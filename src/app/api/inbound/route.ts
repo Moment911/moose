@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { resolveAgencyId } from '../../../lib/apiAuth'
 import { createClient } from '@supabase/supabase-js'
 import { buildFrontDeskPromptForClient } from '@/lib/frontDeskPromptBuilder'
+import {
+  DEFAULT_PROMPT_SECTIONS,
+  compilePromptSections,
+  getDefaultSections,
+} from '@/lib/answering/defaultPromptSections'
 
 const RETELL_API_KEY = process.env.RETELL_API_KEY || ''
 const RETELL_BASE = 'https://api.retellai.com'
@@ -475,6 +480,25 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ templates })
       }
 
+      case 'get_prompt_sections': {
+        // Shape consumed by the Prompt Editor tab. If the agent has saved a
+        // `prompt_sections` jsonb, merge it with defaults so new sections still
+        // appear even on agents saved before they were introduced.
+        if (!agent_id) return NextResponse.json({ error: 'agent_id required' }, { status: 400 })
+        const { data: row } = await supabase
+          .from('koto_inbound_agents')
+          .select('*')
+          .eq('id', agent_id)
+          .maybeSingle()
+
+        const saved: Record<string, string> = (row && (row as any).prompt_sections) || {}
+        const sections = DEFAULT_PROMPT_SECTIONS.map(s => ({
+          ...s,
+          text: (saved[s.id] ?? s.default_text) || '',
+        }))
+        return NextResponse.json({ sections, hasSaved: Object.keys(saved).length > 0 })
+      }
+
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
@@ -638,12 +662,17 @@ End the call once you have collected the caller's information and confirmed next
           'timezone', 'status', 'is_active',
           'greeting_script', 'open_hours_script', 'closed_hours_script', 'closed_script',
           'emergency_script', 'voicemail_script',
-          'intake_template', 'intake_questions', 'business_hours',
+          'intake_template', 'intake_questions', 'intake_templates_saved', 'business_hours',
           'emergency_keywords', 'hipaa_mode', 'recording_enabled',
           'sms_notifications', 'email_notifications', 'notification_email', 'notification_phone',
           'ivr_enabled', 'ivr_config', 'ivr_greeting',
           'auto_callback_enabled', 'auto_callback_delay_minutes', 'auto_callback_max_attempts',
           'transfer_phone', 'transfer_enabled',
+          // Prompt editor + voice settings
+          'prompt_sections',
+          'voice_speed', 'voice_temperature', 'interruption_sensitivity',
+          'backchannel_frequency', 'enable_backchannel', 'ambient_sound', 'responsiveness',
+          'retell_llm_id',
         ])
         const updates: any = {}
         for (const k of Object.keys(raw)) {
@@ -914,6 +943,92 @@ End the call once you have collected the caller's information and confirmed next
         }
 
         return NextResponse.json({ success: true, message: 'Event received' })
+      }
+
+      // -------------------------------------------------------------------
+      // Prompt Editor — customize one section with Claude
+      // -------------------------------------------------------------------
+      case 'customize_section': {
+        const { section_id, current_text, business_context } = body
+        if (!section_id || typeof current_text !== 'string') {
+          return NextResponse.json({ error: 'section_id and current_text required' }, { status: 400 })
+        }
+        const meta = DEFAULT_PROMPT_SECTIONS.find(s => s.id === section_id)
+        if (!meta) return NextResponse.json({ error: 'unknown_section' }, { status: 400 })
+        if (!meta.ai_customizable) {
+          return NextResponse.json({ error: 'section is not AI-customizable' }, { status: 400 })
+        }
+
+        const ctx = business_context || {}
+        const systemPrompt = `You are customizing one section of a system prompt for an AI phone receptionist. Rewrite the section below so it fits the specific business, keeping the same structure, intent, and mustache-style placeholders ({{like_this}}). Do not add new sections. Do not invent facts — only reference details given in the business context. Do not include headings or meta commentary. Return only the rewritten section text.
+
+Section: ${meta.label} (id: ${meta.id})
+Section purpose: ${meta.description}
+
+Business context (JSON):
+${JSON.stringify(ctx, null, 2)}`
+
+        const userMsg = `Here is the current section. Rewrite it customized for this business. Preserve placeholders in double curly braces. Keep it the same approximate length.
+
+---
+${current_text}
+---`
+
+        const customized = await anthropicChat(systemPrompt, userMsg, 1200)
+        return NextResponse.json({ text: customized.trim() })
+      }
+
+      // -------------------------------------------------------------------
+      // Prompt Editor — compile + push to the Retell LLM
+      // -------------------------------------------------------------------
+      case 'sync_retell_prompt': {
+        const { agent_id: syncAgentId } = body
+        if (!syncAgentId) return NextResponse.json({ error: 'agent_id required' }, { status: 400 })
+
+        const { data: row, error: rowErr } = await supabase
+          .from('koto_inbound_agents')
+          .select('*')
+          .eq('id', syncAgentId)
+          .maybeSingle()
+        if (rowErr || !row) return NextResponse.json({ error: 'agent_not_found' }, { status: 404 })
+
+        const sections: Record<string, string> = { ...getDefaultSections(), ...((row as any).prompt_sections || {}) }
+        const compiled = compilePromptSections(sections)
+
+        const retellAgentId = (row as any).retell_agent_id
+        const retellLlmId = (row as any).retell_llm_id
+        if (!retellAgentId) {
+          return NextResponse.json({ error: 'agent has no retell_agent_id' }, { status: 400 })
+        }
+
+        // Prefer updating the existing LLM; fall back to fetching it from the agent.
+        let targetLlmId = retellLlmId
+        if (!targetLlmId) {
+          try {
+            const agentInfo: any = await retellFetch(`/get-agent/${retellAgentId}`)
+            targetLlmId = agentInfo?.response_engine?.llm_id
+          } catch {}
+        }
+        if (!targetLlmId) {
+          return NextResponse.json({ error: 'could not resolve retell_llm_id' }, { status: 500 })
+        }
+
+        try {
+          await retellFetch(`/update-retell-llm/${targetLlmId}`, 'PATCH', {
+            general_prompt: compiled,
+          })
+        } catch (e: any) {
+          return NextResponse.json({ error: e?.message || 'retell update failed' }, { status: 500 })
+        }
+
+        // Best-effort persist of retell_llm_id for next time
+        if (!retellLlmId) {
+          try {
+            await supabase.from('koto_inbound_agents').update({ retell_llm_id: targetLlmId }).eq('id', syncAgentId)
+          } catch {}
+        }
+
+        return NextResponse.json({ success: true, prompt_length: compiled.length })
       }
 
       // -------------------------------------------------------------------

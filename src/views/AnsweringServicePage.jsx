@@ -24,7 +24,7 @@ const TIMEZONES = [
   'America/Anchorage','Pacific/Honolulu','America/Phoenix','America/Detroit',
   'America/Indiana/Indianapolis','America/Kentucky/Louisville'
 ]
-const TABS = ['Setup','Voice & Greeting','Intake Form','Prompt & Compliance','Routing','Call Log','Analytics']
+const TABS = ['Setup','Voice & Greeting','Intake Form','Prompt Editor','Routing','Call Log','Analytics']
 
 const defaultHours = () => DAYS.reduce((a,d)=>({...a,[d]:{enabled:d!=='Sat'&&d!=='Sun',open:'09:00',close:'17:00'}}),{})
 
@@ -411,11 +411,136 @@ function VoiceGreetingTab({ agent, setAgent }) {
     { key:'voicemail', label:'Voicemail Message', icon:<Volume2 size={14}/> },
   ]
 
+  // ── Voice settings (Retell speech config) ────────────────────────────────
+  const [voiceSettings, setVoiceSettings] = useState({
+    voice_speed: agent.voice_speed ?? 1.0,
+    voice_temperature: agent.voice_temperature ?? 1.0,
+    interruption_sensitivity: agent.interruption_sensitivity || 'medium',
+    backchannel_frequency: agent.backchannel_frequency ?? 0.7,
+    enable_backchannel: agent.enable_backchannel !== false,
+    ambient_sound: agent.ambient_sound || 'none',
+    responsiveness: agent.responsiveness ?? 1.0,
+  })
+  const [savingVoice, setSavingVoice] = useState(false)
+
+  async function saveVoiceSettings() {
+    setSavingVoice(true)
+    try {
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, ...voiceSettings })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { setAgent({ ...agent, ...voiceSettings }); toast.success('Voice settings saved') }
+      else toast.error(d.error||'Save failed')
+    } catch { toast.error('Save failed') }
+    setSavingVoice(false)
+  }
+
+  const AMBIENT_OPTIONS = [
+    { v:'none', l:'None' },
+    { v:'office', l:'Office' },
+    { v:'coffee-shop', l:'Coffee Shop' },
+    { v:'convention-hall', l:'Convention Hall' },
+    { v:'summer-outdoor', l:'Summer Outdoor' },
+    { v:'mountain-outdoor', l:'Mountain Outdoor' },
+    { v:'static-noise', l:'Static Noise' },
+    { v:'call-center', l:'Call Center' },
+  ]
+
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
       <div style={card}>
         <h3 style={{ margin:'0 0 14px', fontFamily:FH, fontSize:15 }}>Agent Voice</h3>
         <VoiceSelector selectedVoiceId={agent.voice_id} onSelect={handleVoiceSelect} maxHeight="350px" />
+      </div>
+
+      <div style={card}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+          <h3 style={{ margin:0, fontFamily:FH, fontSize:15 }}><Settings size={16} style={{ marginRight:6, verticalAlign:'-3px' }}/>Voice Controls</h3>
+          <button onClick={saveVoiceSettings} disabled={savingVoice} style={btn()}>
+            {savingVoice ? <Loader2 size={14} className="spin"/> : <Check size={14}/>} Save
+          </button>
+        </div>
+        <p style={{ fontSize:12, color:'#6b7280', marginTop:0, marginBottom:14 }}>Retell speech parameters — tune how the agent sounds on calls.</p>
+
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:6 }}>
+              Speaking Speed · <strong style={{ color:BLK }}>{voiceSettings.voice_speed.toFixed(2)}x</strong>
+            </label>
+            <input type="range" min="0.5" max="2.0" step="0.05" value={voiceSettings.voice_speed}
+              onChange={e=>setVoiceSettings(p=>({...p, voice_speed:parseFloat(e.target.value)}))} style={{ width:'100%' }}/>
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'#9ca3af' }}>
+              <span>Slower</span><span>1.00x</span><span>Faster</span>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:6 }}>
+              Voice Temperature · <strong style={{ color:BLK }}>{voiceSettings.voice_temperature.toFixed(2)}</strong>
+            </label>
+            <input type="range" min="0" max="2" step="0.05" value={voiceSettings.voice_temperature}
+              onChange={e=>setVoiceSettings(p=>({...p, voice_temperature:parseFloat(e.target.value)}))} style={{ width:'100%' }}/>
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'#9ca3af' }}>
+              <span>Flat</span><span>Expressive</span>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:6 }}>
+              Responsiveness · <strong style={{ color:BLK }}>{voiceSettings.responsiveness.toFixed(2)}</strong>
+            </label>
+            <input type="range" min="0" max="1" step="0.05" value={voiceSettings.responsiveness}
+              onChange={e=>setVoiceSettings(p=>({...p, responsiveness:parseFloat(e.target.value)}))} style={{ width:'100%' }}/>
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'#9ca3af' }}>
+              <span>Contemplative</span><span>Quick</span>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:6 }}>
+              Interruption Sensitivity
+            </label>
+            <select style={input} value={voiceSettings.interruption_sensitivity}
+              onChange={e=>setVoiceSettings(p=>({...p, interruption_sensitivity:e.target.value}))}>
+              <option value="low">Low — rarely interrupted</option>
+              <option value="medium">Medium — balanced</option>
+              <option value="high">High — yields quickly</option>
+            </select>
+          </div>
+
+          <div style={{ gridColumn:'1 / -1', display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderTop:'1px solid #f3f4f6' }}>
+            <button onClick={()=>setVoiceSettings(p=>({...p, enable_backchannel:!p.enable_backchannel}))} style={{
+              width:40, height:22, borderRadius:99, border:'none', cursor:'pointer', position:'relative',
+              background:voiceSettings.enable_backchannel?GRN:'#d1d5db', transition:'background .2s',
+            }}>
+              <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', position:'absolute', top:3, left:voiceSettings.enable_backchannel?21:3, transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.2)' }}/>
+            </button>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:13, fontWeight:600, fontFamily:FH }}>Backchanneling</div>
+              <div style={{ fontSize:11, color:'#6b7280' }}>Natural "mm-hmm", "I see", "right" while the caller speaks.</div>
+            </div>
+            {voiceSettings.enable_backchannel && (
+              <div style={{ width:180 }}>
+                <label style={{ fontSize:11, color:'#6b7280', display:'block' }}>
+                  Frequency · <strong style={{ color:BLK }}>{voiceSettings.backchannel_frequency.toFixed(2)}</strong>
+                </label>
+                <input type="range" min="0" max="1" step="0.05" value={voiceSettings.backchannel_frequency}
+                  onChange={e=>setVoiceSettings(p=>({...p, backchannel_frequency:parseFloat(e.target.value)}))} style={{ width:'100%' }}/>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:6 }}>
+              Ambient Sound
+            </label>
+            <select style={input} value={voiceSettings.ambient_sound}
+              onChange={e=>setVoiceSettings(p=>({...p, ambient_sound:e.target.value}))}>
+              {AMBIENT_OPTIONS.map(a=><option key={a.v} value={a.v}>{a.l}</option>)}
+            </select>
+          </div>
+        </div>
       </div>
 
       {sections.map(s => (
@@ -442,19 +567,23 @@ function VoiceGreetingTab({ agent, setAgent }) {
 // TAB 3 — INTAKE FORM
 // ═══════════════════════════════════════════════════════════════════════════════
 function IntakeFormTab({ agent, setAgent }) {
-  const [templates, setTemplates] = useState([])
-  const [selectedTemplate, setSelectedTemplate] = useState(null)
-  const [questions, setQuestions] = useState(agent.intake_questions || [])
+  const QTYPES = ['text','phone','email','date','number','boolean']
+  const [builtinTemplates, setBuiltinTemplates] = useState([])
+  const [customTemplates, setCustomTemplates] = useState(agent.intake_templates_saved || [])
+  const [selectedTemplate, setSelectedTemplate] = useState(agent.intake_template || null)
+  const [questions, setQuestions] = useState(() => (agent.intake_questions || []).map(q=>({ type:'text', enabled:true, ...q })))
   const [loadingTpl, setLoadingTpl] = useState(true)
   const [saving, setSaving] = useState(false)
   const [newQ, setNewQ] = useState('')
+  const [templateName, setTemplateName] = useState('')
+  const [savingTemplate, setSavingTemplate] = useState(false)
 
   useEffect(() => {
     (async () => {
       setLoadingTpl(true)
       try {
         const res = await fetch('/api/inbound?action=get_intake_templates')
-        if (res.ok) { const d = await res.json(); setTemplates(d.templates || []) }
+        if (res.ok) { const d = await res.json(); setBuiltinTemplates(d.templates || []) }
       } catch (e) { console.error(e) }
       setLoadingTpl(false)
     })()
@@ -462,22 +591,26 @@ function IntakeFormTab({ agent, setAgent }) {
 
   function applyTemplate(tpl) {
     setSelectedTemplate(tpl.id)
-    setQuestions(tpl.questions.map(q=>({...q, enabled:true})))
+    setQuestions((tpl.questions || []).map(q=>({ type:'text', enabled:true, ...q })))
     toast.success(`Applied "${tpl.name}" template`)
   }
 
-  function toggleQuestion(idx) {
-    setQuestions(prev => prev.map((q,i) => i===idx ? {...q, enabled:!q.enabled} : q))
-  }
-
+  function toggleQuestion(idx) { setQuestions(prev => prev.map((q,i) => i===idx ? {...q, enabled:!q.enabled} : q)) }
+  function updateQuestion(idx, patch) { setQuestions(prev => prev.map((q,i) => i===idx ? {...q, ...patch} : q)) }
+  function removeQuestion(idx) { setQuestions(prev => prev.filter((_,i)=>i!==idx)) }
   function addQuestion() {
     if (!newQ.trim()) return
-    setQuestions(prev => [...prev, { text:newQ.trim(), type:'text', enabled:true, custom:true }])
+    setQuestions(prev => [...prev, { text:newQ.trim(), type:'text', enabled:true }])
     setNewQ('')
   }
-
-  function removeQuestion(idx) {
-    setQuestions(prev => prev.filter((_,i)=>i!==idx))
+  function moveQuestion(idx, dir) {
+    setQuestions(prev => {
+      const next = [...prev]
+      const target = idx + dir
+      if (target < 0 || target >= next.length) return prev
+      ;[next[idx], next[target]] = [next[target], next[idx]]
+      return next
+    })
   }
 
   async function saveIntake() {
@@ -487,45 +620,104 @@ function IntakeFormTab({ agent, setAgent }) {
         body:JSON.stringify({ action:'update_agent', agent_id:agent.id, intake_questions:questions, intake_template:selectedTemplate })
       })
       const d = await res.json().catch(()=>({}))
-      if (d.success) { setAgent({...agent, intake_questions:questions}); toast.success('Intake form saved') }
+      if (d.success) { setAgent({...agent, intake_questions:questions, intake_template:selectedTemplate}); toast.success('Intake form saved') }
       else toast.error(d.error||'Save failed')
     } catch { toast.error('Save failed') }
     setSaving(false)
   }
 
+  async function saveAsTemplate() {
+    const name = templateName.trim()
+    if (!name) { toast.error('Template name required'); return }
+    if (questions.length === 0) { toast.error('Add questions first'); return }
+    setSavingTemplate(true)
+    try {
+      const newTpl = { id: `custom_${Date.now()}`, name, industry: 'custom', questions: questions.map(({ enabled, ...q }) => { void enabled; return q }) }
+      const nextList = [...customTemplates.filter(t => t.name !== name), newTpl]
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, intake_templates_saved: nextList })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) {
+        setCustomTemplates(nextList)
+        setSelectedTemplate(newTpl.id)
+        setTemplateName('')
+        setAgent({ ...agent, intake_templates_saved: nextList, intake_template: newTpl.id })
+        toast.success(`Saved "${name}" as a template`)
+      } else toast.error(d.error||'Save failed')
+    } catch { toast.error('Save failed') }
+    setSavingTemplate(false)
+  }
+
+  async function deleteCustomTemplate(id) {
+    if (!confirm('Delete this custom template?')) return
+    const nextList = customTemplates.filter(t => t.id !== id)
+    try {
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, intake_templates_saved: nextList })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { setCustomTemplates(nextList); setAgent({ ...agent, intake_templates_saved: nextList }); toast.success('Template deleted') }
+      else toast.error(d.error||'Delete failed')
+    } catch { toast.error('Delete failed') }
+  }
+
+  const allTemplates = [
+    ...customTemplates.map(t => ({ ...t, _custom: true })),
+    ...builtinTemplates.map(t => ({ ...t, _custom: false })),
+  ]
+
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-      {/* Template selector */}
       <div style={card}>
-        <h3 style={{ margin:'0 0 14px', fontFamily:FH, fontSize:15 }}><FileText size={16} style={{ marginRight:6 }}/>Intake Templates</h3>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+          <h3 style={{ margin:0, fontFamily:FH, fontSize:15 }}><FileText size={16} style={{ marginRight:6, verticalAlign:'-3px' }}/>Intake Templates</h3>
+          <span style={{ fontSize:11, color:'#6b7280' }}>{customTemplates.length} custom · {builtinTemplates.length} built-in</span>
+        </div>
         {loadingTpl ? <div style={{ textAlign:'center', padding:20 }}><Loader2 size={20} className="spin" color={R}/></div> : (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:10 }}>
-            {templates.map(tpl => (
+            {allTemplates.map(tpl => (
               <div key={tpl.id} onClick={()=>applyTemplate(tpl)} style={{
                 padding:14, borderRadius:10, border: selectedTemplate===tpl.id ? `2px solid ${R}` : '1px solid #e5e7eb',
-                cursor:'pointer', background: selectedTemplate===tpl.id ? 'rgba(234,39,41,.04)' : '#fafafa', transition:'all .15s'
+                cursor:'pointer', background: selectedTemplate===tpl.id ? 'rgba(234,39,41,.04)' : '#fafafa', transition:'all .15s', position:'relative'
               }}>
-                <div style={{ fontWeight:600, fontSize:13, marginBottom:4 }}>{tpl.name}</div>
+                {tpl._custom && (
+                  <Trash2 size={13} color="#9ca3af" style={{ position:'absolute', top:8, right:8, cursor:'pointer' }}
+                    onClick={(e)=>{ e.stopPropagation(); deleteCustomTemplate(tpl.id) }} />
+                )}
+                <div style={{ fontWeight:600, fontSize:13, marginBottom:4, paddingRight:tpl._custom?16:0 }}>{tpl.name}</div>
                 <div style={{ fontSize:12, color:'#6b7280' }}>{tpl.questions?.length || 0} questions</div>
-                {tpl.industry && <span style={badge('#f3f4f6','#374151')}>{tpl.industry}</span>}
+                {tpl._custom
+                  ? <span style={badge('rgba(234,39,41,.1)', R)}>Custom</span>
+                  : tpl.industry && <span style={badge('#f3f4f6','#374151')}>{tpl.industry}</span>
+                }
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Questions */}
       <div style={card}>
-        <h3 style={{ margin:'0 0 14px', fontFamily:FH, fontSize:15 }}>Questions</h3>
-        {questions.length===0 ? <p style={{ color:'#6b7280', fontSize:13 }}>Select a template or add custom questions</p> : (
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+          <h3 style={{ margin:0, fontFamily:FH, fontSize:15 }}>Questions</h3>
+          <span style={{ fontSize:11, color:'#6b7280' }}>{questions.filter(q=>q.enabled!==false).length} active · {questions.length} total</span>
+        </div>
+        {questions.length===0 ? <p style={{ color:'#6b7280', fontSize:13 }}>Select a template above or add a question below.</p> : (
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {questions.map((q,i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, background:q.enabled?'#f0fdf4':'#f9fafb', border:'1px solid #e5e7eb' }}>
-                <button onClick={()=>toggleQuestion(i)} style={{ width:22, height:22, borderRadius:6, border:`2px solid ${q.enabled?GRN:'#d1d5db'}`, background:q.enabled?GRN:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  {q.enabled && <Check size={13} color="#fff"/>}
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, background:q.enabled!==false?'#f9fafb':'#fafafa', border:'1px solid #e5e7eb' }}>
+                <button onClick={()=>toggleQuestion(i)} title={q.enabled!==false?'Disable':'Enable'} style={{ width:22, height:22, borderRadius:6, border:`2px solid ${q.enabled!==false?GRN:'#d1d5db'}`, background:q.enabled!==false?GRN:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  {q.enabled!==false && <Check size={13} color="#fff"/>}
                 </button>
-                <span style={{ flex:1, fontSize:13, color:q.enabled?BLK:'#6b7280' }}>{q.text}</span>
-                {q.custom && <Trash2 size={14} color="#9ca3af" style={{ cursor:'pointer' }} onClick={()=>removeQuestion(i)}/>}
+                <input style={{ ...input, padding:'4px 8px', flex:1, background:'#fff' }} value={q.text||''} onChange={e=>updateQuestion(i,{text:e.target.value})} />
+                <select style={{ ...input, padding:'4px 6px', width:100, background:'#fff' }} value={q.type||'text'} onChange={e=>updateQuestion(i,{type:e.target.value})}>
+                  {QTYPES.map(t=><option key={t} value={t}>{t}</option>)}
+                </select>
+                <div style={{ display:'flex', gap:2 }}>
+                  <button onClick={()=>moveQuestion(i,-1)} disabled={i===0} title="Move up" style={{ background:'none', border:'none', cursor:i===0?'default':'pointer', opacity:i===0?.3:.7 }}>▲</button>
+                  <button onClick={()=>moveQuestion(i,1)} disabled={i===questions.length-1} title="Move down" style={{ background:'none', border:'none', cursor:i===questions.length-1?'default':'pointer', opacity:i===questions.length-1?.3:.7 }}>▼</button>
+                </div>
+                <Trash2 size={14} color="#9ca3af" style={{ cursor:'pointer', flexShrink:0 }} onClick={()=>removeQuestion(i)} />
               </div>
             ))}
           </div>
@@ -533,6 +725,17 @@ function IntakeFormTab({ agent, setAgent }) {
         <div style={{ display:'flex', gap:8, marginTop:12 }}>
           <input style={input} placeholder="Add a custom question..." value={newQ} onChange={e=>setNewQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addQuestion()} />
           <button onClick={addQuestion} style={btn('#374151')}><Plus size={14}/> Add</button>
+        </div>
+      </div>
+
+      <div style={card}>
+        <h3 style={{ margin:'0 0 10px', fontFamily:FH, fontSize:15 }}><Sparkles size={16} style={{ marginRight:6, verticalAlign:'-3px', color:PURP }}/>Save Questions as Template</h3>
+        <p style={{ margin:'0 0 10px', fontSize:12, color:'#6b7280' }}>Save the current question set as a reusable custom template for this agent.</p>
+        <div style={{ display:'flex', gap:8 }}>
+          <input style={input} placeholder="Template name (e.g. Emergency Intake)" value={templateName} onChange={e=>setTemplateName(e.target.value)} />
+          <button onClick={saveAsTemplate} disabled={savingTemplate||!templateName.trim()||questions.length===0} style={btn(PURP)}>
+            {savingTemplate ? <Loader2 size={14} className="spin"/> : <Sparkles size={14}/>} Save Template
+          </button>
         </div>
       </div>
 
@@ -766,218 +969,173 @@ function AnalyticsTab({ agent, agencyId }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TAB — PROMPT & COMPLIANCE (industry + LLM config + preview)
+// TAB — PROMPT EDITOR (sectioned agent prompt — each section editable + AI-customizable)
 // ═══════════════════════════════════════════════════════════════════════════════
 function PromptComplianceTab({ agent, setAgent }) {
-  const [industries, setIndustries] = useState([])
-  const [industrySlug, setIndustrySlug] = useState(agent.industry_slug || agent.industry || 'generic')
-  const [config, setConfig] = useState(null)
-  const [models, setModels] = useState([])
-  const [topicBoundaries, setTopicBoundaries] = useState(null)
-  const [preview, setPreview] = useState(null)
+  const [sections, setSections] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [previewing, setPreviewing] = useState(false)
-  const [testInput, setTestInput] = useState("Hi, my heating just died and it's freezing. Can someone come out today?")
-  const [estCost, setEstCost] = useState(null)
+  const [syncing, setSyncing] = useState(false)
+  const [customizing, setCustomizing] = useState(null)
+  const [expanded, setExpanded] = useState({})
 
   useEffect(() => {
     (async () => {
       setLoading(true)
       try {
-        const [ind, cfg] = await Promise.all([
-          fetch('/api/answering/industries').then(r => r.json()).catch(() => ({ industries: [] })),
-          fetch(`/api/answering/llm-config?agent_id=${agent.id}`).then(r => r.json()).catch(() => null),
-        ])
-        setIndustries(Array.isArray(ind?.industries) ? ind.industries : [])
-        if (cfg?.llmConfig && typeof cfg.llmConfig === 'object') {
-          setConfig(cfg.llmConfig)
-          setModels(Array.isArray(cfg.models) ? cfg.models : [])
-          setTopicBoundaries(cfg.industry?.topicBoundaries || null)
-          setEstCost(typeof cfg.estimatedCostPerCall === 'number' ? cfg.estimatedCostPerCall : null)
-        }
+        const res = await fetch(`/api/inbound?action=get_prompt_sections&agent_id=${agent.id}`)
+        const d = await res.json().catch(()=>({}))
+        if (Array.isArray(d.sections)) setSections(d.sections)
       } catch (e) { console.error(e) }
       setLoading(false)
     })()
   }, [agent.id])
 
-  const upd = (path, value) => {
-    setConfig(prev => {
-      const next = { ...prev }
-      const keys = path.split('.')
-      let cur = next
-      for (let i = 0; i < keys.length - 1; i++) { if (!cur[keys[i]]) cur[keys[i]] = {}; cur = cur[keys[i]] }
-      cur[keys[keys.length - 1]] = value
-      return next
-    })
+  function updSection(id, text) { setSections(prev => prev.map(s => s.id===id ? { ...s, text } : s)) }
+  function resetSection(id) {
+    setSections(prev => prev.map(s => s.id===id ? { ...s, text: s.default_text } : s))
+    toast.success('Section reset to default')
   }
 
-  async function applyIndustry(slug) {
-    setIndustrySlug(slug)
+  async function customizeSection(section) {
+    setCustomizing(section.id)
     try {
-      toast.loading('Applying industry template...', { id: 'ind' })
-      const res = await fetch('/api/answering/llm-config', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'rebuild_from_industry', agent_id: agent.id, industry_slug: slug }),
-      })
-      const d = await res.json()
-      if (d.success) {
-        setConfig(d.llmConfig)
-        const ind = industries.find(i => i.slug === slug)
-        if (ind) setTopicBoundaries(ind.topic_boundaries || null)
-        setAgent({ ...agent, industry_slug: slug, llm_config: d.llmConfig })
-        toast.success(`Applied ${d.industry?.displayName || slug}`, { id: 'ind' })
-      } else {
-        toast.error(d.error || 'Failed', { id: 'ind' })
+      const business_context = {
+        agent_name: agent.name || agent.business_name,
+        company_name: agent.business_name || agent.name,
+        department: agent.department,
+        sic_code: agent.sic_code,
+        industry: agent.industry,
+        phone_number: agent.phone_number,
+        timezone: agent.timezone,
+        business_hours: agent.business_hours,
       }
-    } catch { toast.error('Failed to apply industry', { id: 'ind' }) }
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'customize_section', section_id: section.id, current_text: section.text, business_context })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.text) { updSection(section.id, d.text); toast.success(`"${section.label}" customized`) }
+      else toast.error(d.error||'Customization failed')
+    } catch { toast.error('Customization failed') }
+    setCustomizing(null)
   }
 
-  async function save() {
+  async function saveAll() {
     setSaving(true)
     try {
-      const res = await fetch('/api/answering/llm-config', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent_id: agent.id, llm_config: config, industry_slug: industrySlug }),
+      const prompt_sections = Object.fromEntries(sections.map(s => [s.id, s.text]))
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, prompt_sections })
       })
-      const d = await res.json()
-      if (d.success) {
-        setAgent({ ...agent, llm_config: config, industry_slug: industrySlug })
-        toast.success('LLM config saved')
-      } else toast.error(d.error || 'Save failed')
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { setAgent({ ...agent, prompt_sections }); toast.success('Prompt saved') }
+      else toast.error(d.error||'Save failed')
     } catch { toast.error('Save failed') }
     setSaving(false)
   }
 
-  async function runPreview() {
-    setPreviewing(true)
+  async function syncToRetell() {
+    setSyncing(true)
     try {
-      const res = await fetch('/api/answering/llm-config', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'preview', agent_id: agent.id, llm_config: config }),
+      // Save first, then push to Retell
+      const prompt_sections = Object.fromEntries(sections.map(s => [s.id, s.text]))
+      const saveRes = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, prompt_sections })
       })
-      const d = await res.json()
-      if (d.systemPrompt) setPreview(d)
-      else toast.error(d.error || 'Preview failed')
-    } catch { toast.error('Preview failed') }
-    setPreviewing(false)
+      const saveData = await saveRes.json().catch(()=>({}))
+      if (!saveData.success) { toast.error(saveData.error||'Save failed'); setSyncing(false); return }
+      const syncRes = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ action:'sync_retell_prompt', agent_id:agent.id })
+      })
+      const syncData = await syncRes.json().catch(()=>({}))
+      if (syncData.success) { setAgent({ ...agent, prompt_sections }); toast.success(`Pushed ${syncData.prompt_length} chars to Retell`) }
+      else toast.error(syncData.error||'Retell sync failed')
+    } catch { toast.error('Sync failed') }
+    setSyncing(false)
   }
 
-  if (loading || !config) return <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={24} className="spin" color={R} /></div>
+  const byCategory = sections.reduce((a, s) => { (a[s.category] = a[s.category] || []).push(s); return a }, {})
+  const CATEGORY_ORDER = ['identity','business','rules','craft','extras']
+  const CATEGORY_LABELS = {
+    identity: { label:'Identity', desc:'Who the agent is. Customize heavily per business.' },
+    business: { label:'Business Playbook', desc:'What callers will ask and what the agent should do. Customize per business.' },
+    rules: { label:'Rules & Compliance', desc:'Industry-specific guardrails. Customize when compliance differs.' },
+    craft: { label:'Conversation Craft', desc:'Cadence, empathy, listening — standards from 20 years of phone work. Don\'t break these.' },
+    extras: { label:'Extras', desc:'Freeform additions from the business owner.' },
+  }
 
-  const selectedModel = models.find(m => m.id === config.model)
+  if (loading) return <div style={{ textAlign:'center', padding:40 }}><Loader2 size={24} className="spin" color={R}/></div>
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-      {/* LEFT — editors */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div style={card}>
-          <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><Zap size={16} style={{ marginRight: 6 }} />Industry Template</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
-            {industries.map(ind => (
-              <div key={ind.slug} onClick={() => applyIndustry(ind.slug)} style={{
-                padding: 12, borderRadius: 10, cursor: 'pointer',
-                border: industrySlug === ind.slug ? `2px solid ${R}` : '1px solid #e5e7eb',
-                background: industrySlug === ind.slug ? 'rgba(234,39,41,.04)' : '#fafafa',
-              }}>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{ind.display_name}</div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
-                  {(ind.topic_boundaries?.allowed?.length || 0)} allowed · {(ind.topic_boundaries?.forbidden?.length || 0)} forbidden
+    <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+      <div style={{ ...card, background:'linear-gradient(135deg, rgba(234,39,41,.04), rgba(124,58,237,.04))', borderColor:'rgba(234,39,41,.2)' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
+          <div>
+            <h3 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:16 }}><Brain size={18} style={{ marginRight:6, verticalAlign:'-4px', color:R }}/>Prompt Editor</h3>
+            <p style={{ margin:0, fontSize:12, color:'#6b7280' }}>Each section below is a piece of the full system prompt. Edit in place, or click "Customize with AI" to rewrite for this business.</p>
+          </div>
+          <div style={{ display:'flex', gap:8, flexShrink:0 }}>
+            <button onClick={saveAll} disabled={saving} style={btn('#374151')}>
+              {saving ? <Loader2 size={14} className="spin"/> : <Check size={14}/>} Save Draft
+            </button>
+            <button onClick={syncToRetell} disabled={syncing} style={btn()}>
+              {syncing ? <Loader2 size={14} className="spin"/> : <Zap size={14}/>} Sync to Retell
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {CATEGORY_ORDER.map(cat => {
+        const items = byCategory[cat] || []
+        if (items.length === 0) return null
+        const meta = CATEGORY_LABELS[cat]
+        return (
+          <div key={cat} style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            <div style={{ padding:'4px 2px' }}>
+              <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', color:R, letterSpacing:.6 }}>{meta.label}</div>
+              <div style={{ fontSize:12, color:'#6b7280' }}>{meta.desc}</div>
+            </div>
+            {items.map(s => {
+              const isExpanded = expanded[s.id] !== false
+              const isDefault = s.text === s.default_text
+              return (
+                <div key={s.id} style={card}>
+                  <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:10, marginBottom: isExpanded ? 10 : 0 }}>
+                    <div style={{ flex:1, cursor:'pointer' }} onClick={()=>setExpanded(p=>({...p, [s.id]: !isExpanded}))}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <ChevronRight size={14} style={{ transform:`rotate(${isExpanded?90:0}deg)`, transition:'transform .15s', color:'#9ca3af' }}/>
+                        <h3 style={{ margin:0, fontFamily:FH, fontSize:14 }}>{s.label}</h3>
+                        {!isDefault && <span style={badge('rgba(234,39,41,.1)', R)}>Edited</span>}
+                      </div>
+                      <p style={{ margin:'4px 0 0 22px', fontSize:12, color:'#6b7280' }}>{s.description}</p>
+                    </div>
+                    <div style={{ display:'flex', gap:6, flexShrink:0 }}>
+                      {s.ai_customizable && (
+                        <button onClick={(e)=>{ e.stopPropagation(); customizeSection(s) }} disabled={customizing===s.id} style={btn(PURP)}>
+                          {customizing===s.id ? <Loader2 size={14} className="spin"/> : <Sparkles size={14}/>} Customize with AI
+                        </button>
+                      )}
+                      {!isDefault && (
+                        <button onClick={(e)=>{ e.stopPropagation(); resetSection(s.id) }} title="Reset to default" style={{ ...btn('#f3f4f6','#374151'), padding:'8px 10px' }}>
+                          <RefreshCw size={14}/>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {isExpanded && (
+                    <textarea
+                      style={{ ...input, minHeight:140, fontFamily:'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize:12, lineHeight:1.5, resize:'vertical', background:'#fafafa' }}
+                      value={s.text||''}
+                      onChange={e=>updSection(s.id, e.target.value)}
+                      placeholder={s.default_text}
+                    />
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
-          <p style={{ fontSize: 11, color: '#6b7280', marginTop: 10 }}>
-            Applying an industry rebuilds the system prompt, topic boundaries, and compliance rules. Your manual edits below will be overwritten.
-          </p>
-        </div>
-
-        <div style={card}>
-          <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><Brain size={16} style={{ marginRight: 6 }} />Model</h3>
-          <select style={input} value={config.model} onChange={e => upd('model', e.target.value)}>
-            {models.map(m => <option key={m.id} value={m.id}>{m.name} ({m.provider})</option>)}
-          </select>
-          {selectedModel && <p style={{ fontSize: 11, color: '#6b7280', marginTop: 6 }}>${selectedModel.costPer1kTokens}/1k tokens · {selectedModel.description}</p>}
-
-          <label style={{ fontSize: 12, color: '#6b7280', marginTop: 14, marginBottom: 4, display: 'block' }}>Temperature ({config.temperature})</label>
-          <input type="range" min="0" max="1" step="0.01" value={config.temperature} onChange={e => upd('temperature', parseFloat(e.target.value))} style={{ width: '100%' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9ca3af' }}><span>Consistent</span><span>Creative</span></div>
-
-          <label style={{ fontSize: 12, color: '#6b7280', marginTop: 14, marginBottom: 4, display: 'block' }}>Max Tokens</label>
-          <input type="number" min="100" max="4000" style={input} value={config.maxTokens} onChange={e => upd('maxTokens', parseInt(e.target.value || '1000', 10))} />
-
-          {estCost != null && (
-            <div style={{ marginTop: 14, padding: 10, background: '#fafafa', borderRadius: 8, fontSize: 12 }}>
-              <strong>Est. cost per call:</strong> ~${estCost.toFixed(4)} · <strong>Per 1000 calls:</strong> ~${(estCost * 1000).toFixed(2)}
-            </div>
-          )}
-        </div>
-
-        <div style={card}>
-          <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><FileText size={16} style={{ marginRight: 6 }} />System Prompt</h3>
-          <textarea
-            style={{ ...input, minHeight: 240, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12 }}
-            value={config.systemPromptTemplate}
-            onChange={e => upd('systemPromptTemplate', e.target.value)}
-          />
-          <p style={{ fontSize: 11, color: '#6b7280', marginTop: 6 }}>
-            Runtime variables: {`{{companyName}}`}, {`{{companyKnowledge}}`}, {`{{hoursDescription}}`}, {`{{routingDescription}}`}
-          </p>
-        </div>
-
-        {topicBoundaries && (
-          <div style={card}>
-            <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><Shield size={16} style={{ marginRight: 6 }} />Topic Boundaries (from industry)</h3>
-            <div style={{ fontSize: 12, color: '#374151', marginBottom: 8 }}>
-              <strong style={{ color: GRN }}>Allowed:</strong> {(topicBoundaries.allowed || []).join(', ') || '(any topic related to the business)'}
-            </div>
-            <div style={{ fontSize: 12, color: '#374151' }}>
-              <strong style={{ color: R }}>Forbidden:</strong> {(topicBoundaries.forbidden || []).join(', ') || '(none)'}
-            </div>
-          </div>
-        )}
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={runPreview} disabled={previewing} style={{ ...btn('#374151'), flex: 1, justifyContent: 'center' }}>
-            {previewing ? <Loader2 size={14} className="spin" /> : <Play size={14} />} Preview
-          </button>
-          <button onClick={save} disabled={saving} style={{ ...btn(), flex: 1, justifyContent: 'center' }}>
-            {saving ? <Loader2 size={14} className="spin" /> : <Check size={14} />} {saving ? 'Saving...' : 'Save Config'}
-          </button>
-        </div>
-      </div>
-
-      {/* RIGHT — preview */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div style={card}>
-          <h3 style={{ margin: '0 0 10px', fontFamily: FH, fontSize: 15 }}>Test Input</h3>
-          <textarea style={{ ...input, minHeight: 80 }} value={testInput} onChange={e => setTestInput(e.target.value)}
-            placeholder="What a caller might say..." />
-          <button onClick={runPreview} disabled={previewing} style={{ ...btn(PURP), marginTop: 10, width: '100%', justifyContent: 'center' }}>
-            {previewing ? <><Loader2 size={14} className="spin" /> Generating...</> : <><Sparkles size={14} /> Generate Preview</>}
-          </button>
-        </div>
-
-        {preview ? (
-          <>
-            <div style={card}>
-              <h3 style={{ margin: '0 0 8px', fontFamily: FH, fontSize: 14 }}>Greeting</h3>
-              <div style={{ padding: 10, background: '#fafafa', borderRadius: 8, fontSize: 13 }}>{preview.greeting}</div>
-            </div>
-            <div style={card}>
-              <h3 style={{ margin: '0 0 8px', fontFamily: FH, fontSize: 14 }}>Rendered System Prompt</h3>
-              <pre style={{ padding: 12, background: '#fafafa', borderRadius: 8, fontSize: 11, lineHeight: 1.5, whiteSpace: 'pre-wrap', maxHeight: 400, overflowY: 'auto', margin: 0, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
-                {preview.systemPrompt}
-              </pre>
-            </div>
-          </>
-        ) : (
-          <div style={{ ...card, textAlign: 'center', padding: 40 }}>
-            <Brain size={32} color="#d1d5db" style={{ marginBottom: 8 }} />
-            <p style={{ color: '#6b7280', fontSize: 13, margin: 0 }}>Click "Generate Preview" to see the final rendered prompt the agent will receive on the next call.</p>
-          </div>
-        )}
-      </div>
+        )
+      })}
     </div>
   )
 }
