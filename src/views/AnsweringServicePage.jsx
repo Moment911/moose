@@ -898,43 +898,163 @@ function CallLogTab({ agent }) {
                 <span style={badge(sentimentColor(c.sentiment)+'20', sentimentColor(c.sentiment))}>{c.sentiment||'—'}</span>
               </div>
               {expanded===c.id && (
-                <div style={{ padding:'14px 20px', background:'#fafafa', borderBottom:'1px solid #e5e7eb', display:'flex', flexDirection:'column', gap:12 }}>
-                  {c.ai_summary && (
-                    <div><strong style={{ fontSize:12, color:'#6b7280' }}>AI Summary</strong><p style={{ margin:'4px 0 0', fontSize:13 }}>{c.ai_summary}</p></div>
-                  )}
-                  {c.intake_data && Object.keys(c.intake_data).length > 0 && (
-                    <div>
-                      <strong style={{ fontSize:12, color:'#6b7280' }}>Intake Data</strong>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:4, marginTop:4 }}>
-                        {Object.entries(c.intake_data).map(([k,v])=>(
-                          <div key={k} style={{ fontSize:12 }}><span style={{ color:'#6b7280' }}>{k}:</span> {v}</div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {c.transcript && (
-                    <div><strong style={{ fontSize:12, color:'#6b7280' }}>Transcript</strong>
-                      <div style={{ marginTop:4, padding:10, background:'#fff', borderRadius:8, border:'1px solid #e5e7eb', maxHeight:200, overflowY:'auto', fontSize:12, whiteSpace:'pre-wrap' }}>{c.transcript}</div>
-                    </div>
-                  )}
-                  {c.recording_url && (
-                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <button onClick={()=>togglePlay(c)} style={btn('#374151')}>
-                        {playing===c.id ? <Pause size={14}/> : <Play size={14}/>} {playing===c.id ? 'Pause' : 'Play Recording'}
-                      </button>
-                    </div>
-                  )}
-                  {c.follow_up_notes !== undefined && (
-                    <div><strong style={{ fontSize:12, color:'#6b7280' }}>Follow-Up Notes</strong>
-                      <p style={{ margin:'4px 0 0', fontSize:13, color:c.follow_up_notes?BLK:'#6b7280' }}>{c.follow_up_notes || 'No follow-up notes'}</p>
-                    </div>
-                  )}
-                </div>
+                <CallDetailPanel call={c} playing={playing} togglePlay={togglePlay} onUpdate={updated => setCalls(prev => prev.map(x => x.id===updated.id ? updated : x))} />
               )}
             </div>
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CALL DETAIL PANEL — expanded row inside CallLogTab
+// Renders caller card, downloads, transcript, notes, resolve/follow-up actions.
+// ═══════════════════════════════════════════════════════════════════════════════
+function CallDetailPanel({ call, playing, togglePlay, onUpdate }) {
+  const c = call
+  const details = c.caller_details || c.intake_data || {}
+  const [noteInput, setNoteInput] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [followUpOpen, setFollowUpOpen] = useState(false)
+  const [followUpAt, setFollowUpAt] = useState(c.follow_up_at ? new Date(c.follow_up_at).toISOString().slice(0,16) : '')
+
+  async function mutate(action, extra) {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action, call_id: c.id, ...extra })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { onUpdate?.(d.call || { ...c, ...extra }); toast.success('Saved') }
+      else toast.error(d.error || 'Save failed')
+    } catch { toast.error('Save failed') }
+    setSaving(false)
+  }
+
+  async function regenerateVoice() {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'regenerate_summary_audio', call_id: c.id })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.summary_audio_url) { onUpdate?.({ ...c, summary_audio_url: d.summary_audio_url }); toast.success('Voice summary regenerated') }
+      else toast.error(d.error || 'TTS failed')
+    } catch { toast.error('TTS failed') }
+    setSaving(false)
+  }
+
+  const downloadUrl = (kind) => `/api/inbound/download?call_id=${c.id}&kind=${kind}`
+  const row = (label, value) => value ? <div style={{ display:'flex', gap:10, fontSize:13 }}><span style={{ color:'#6b7280', width:110, flexShrink:0 }}>{label}</span><span>{value}</span></div> : null
+
+  return (
+    <div style={{ padding:'16px 20px', background:'#fafafa', borderBottom:'1px solid #e5e7eb', display:'flex', flexDirection:'column', gap:14 }}>
+      {/* Actions bar */}
+      <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+        {c.recording_url && (
+          <button onClick={()=>togglePlay(c)} style={btn('#374151')}>
+            {playing===c.id ? <Pause size={14}/> : <Play size={14}/>} {playing===c.id ? 'Pause' : 'Play'}
+          </button>
+        )}
+        {c.recording_url && (
+          <a href={downloadUrl('recording')} style={{ ...btn('#e5e7eb', BLK), textDecoration:'none' }}>
+            <Download size={14}/> Recording
+          </a>
+        )}
+        {c.summary_audio_url
+          ? <a href={downloadUrl('summary')} style={{ ...btn(PURP), textDecoration:'none' }}><Download size={14}/> Voice summary</a>
+          : <button onClick={regenerateVoice} disabled={saving} style={btn(PURP)}><Sparkles size={14}/> Generate voice summary</button>
+        }
+        {c.transcript && (
+          <a href={downloadUrl('transcript')} style={{ ...btn('#e5e7eb', BLK), textDecoration:'none' }}>
+            <Download size={14}/> Transcript (.txt)
+          </a>
+        )}
+        <div style={{ flex:1 }} />
+        {!c.resolved_at && (
+          <button onClick={()=>mutate('mark_resolved', {})} disabled={saving} style={btn(GRN)}>
+            <Check size={14}/> Mark resolved
+          </button>
+        )}
+        <button onClick={()=>setFollowUpOpen(o=>!o)} style={btn('#374151')}>
+          <Clock size={14}/> {c.follow_up_at ? 'Edit follow-up' : 'Set follow-up'}
+        </button>
+      </div>
+
+      {followUpOpen && (
+        <div style={{ ...card, padding:12 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <input type="datetime-local" style={input} value={followUpAt} onChange={e=>setFollowUpAt(e.target.value)} />
+            <button onClick={()=>mutate('set_follow_up', { follow_up_at: followUpAt ? new Date(followUpAt).toISOString() : null, required: !!followUpAt, follow_up_notes: c.follow_up_notes })} disabled={saving} style={btn()}>Save</button>
+            {c.follow_up_at && <button onClick={()=>{ setFollowUpAt(''); mutate('set_follow_up', { follow_up_at: null, required: false }) }} disabled={saving} style={btn('#e5e7eb', BLK)}>Clear</button>}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+        {/* Caller card */}
+        <div style={{ ...card, padding:14 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Caller</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+            {row('Name', details.caller_name || c.caller_name)}
+            {row('Phone', details.callback_number || c.caller_number)}
+            {row('Email', details.callback_email)}
+            {row('Company', details.company_name)}
+            {row('Address', details.address)}
+            {row('Reason', details.reason_for_calling)}
+            {row('Best time', details.best_time_to_reach)}
+            {row('Notes', details.additional_notes)}
+          </div>
+        </div>
+
+        {/* Call metadata + summary */}
+        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+          <div style={{ ...card, padding:14 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>AI Summary</div>
+            <div style={{ fontSize:13, lineHeight:1.5 }}>{c.ai_summary || c.summary || 'Summary unavailable.'}</div>
+            {c.quality_score != null && (
+              <div style={{ marginTop:10, padding:'8px 10px', background:'#f9fafb', borderRadius:6, fontSize:11, color:'#6b7280' }}>
+                <strong style={{ color: c.quality_score>=80?GRN:c.quality_score>=60?AMB:R }}>Quality {c.quality_score}/100</strong>
+                {c.quality_notes && <span> · {c.quality_notes}</span>}
+              </div>
+            )}
+          </div>
+          <div style={{ ...card, padding:14 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Metadata</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {row('Duration', c.duration ? `${Math.floor(c.duration/60)}:${String(c.duration%60).padStart(2,'0')}` : '—')}
+              {row('Intent', c.intent)}
+              {row('Outcome', c.outcome)}
+              {row('Sentiment', c.sentiment)}
+              {row('Urgency', c.urgency)}
+              {row('Resolved', c.resolved_at ? new Date(c.resolved_at).toLocaleString() : null)}
+              {row('Follow-up', c.follow_up_at ? new Date(c.follow_up_at).toLocaleString() : null)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Transcript */}
+      {c.transcript && (
+        <details style={{ ...card, padding:14 }}>
+          <summary style={{ cursor:'pointer', fontSize:12, fontWeight:600, color:'#374151' }}>Full transcript</summary>
+          <pre style={{ marginTop:10, whiteSpace:'pre-wrap', fontSize:12, lineHeight:1.5, color:'#374151', fontFamily:'ui-monospace,Menlo,monospace' }}>{c.transcript}</pre>
+        </details>
+      )}
+
+      {/* Notes log */}
+      <div style={{ ...card, padding:14 }}>
+        <div style={{ fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Notes</div>
+        {c.follow_up_notes && (
+          <pre style={{ whiteSpace:'pre-wrap', fontSize:12, color:'#374151', margin:'0 0 10px', fontFamily:'inherit' }}>{c.follow_up_notes}</pre>
+        )}
+        <div style={{ display:'flex', gap:8 }}>
+          <input style={input} placeholder="Add a note…" value={noteInput} onChange={e=>setNoteInput(e.target.value)} />
+          <button onClick={()=>{ if (!noteInput.trim()) return; mutate('add_call_note', { note: noteInput.trim() }); setNoteInput('') }} disabled={saving || !noteInput.trim()} style={btn()}>Add</button>
+        </div>
+      </div>
     </div>
   )
 }

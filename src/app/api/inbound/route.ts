@@ -208,6 +208,195 @@ function buildClientEmail(params: {
 </div>`.trim()
 }
 
+// ── Normalize a koto_inbound_calls row for the UI ───────────────────────────
+// The DB has both legacy + new column names from years of migrations. The UI
+// expects a single shape: { id, date, caller_name, caller_number, duration,
+// urgency, outcome, sentiment, ai_summary, intake_data, transcript,
+// recording_url, summary_audio_url, recording_archive_url, follow_up_notes }.
+function normalizeCallRow(row: any) {
+  if (!row) return row
+  const recording = row.recording_archive_url || row.recording_url || null
+  return {
+    ...row,
+    date: row.created_at || row.date || null,
+    duration: row.duration_seconds ?? row.duration ?? 0,
+    caller_name: row.caller_name || row.caller_details?.caller_name || null,
+    caller_number: row.caller_number || row.caller_phone || row.from_number || null,
+    callback_number: row.caller_details?.callback_number || row.caller_number || row.caller_phone || null,
+    ai_summary: row.ai_summary || row.summary || '',
+    summary: row.summary || row.ai_summary || '',
+    intake_data: row.caller_details || row.intake_data || {},
+    caller_details: row.caller_details || row.intake_data || {},
+    recording_url: recording,
+    recording_archive_url: row.recording_archive_url || null,
+    summary_audio_url: row.summary_audio_url || null,
+    quality_score: row.quality_score ?? null,
+    quality_notes: row.quality_notes || null,
+    resolved_at: row.resolved_at || null,
+    follow_up_at: row.follow_up_at || null,
+    follow_up_notes: row.follow_up_notes || null,
+  }
+}
+
+// ── Intent classification + recipient routing ───────────────────────────────
+// Picks the best email + phone recipients from the agent's routing-targets and
+// notification settings based on the call's detected intent.
+async function classifyIntent(transcript: string, urgency: string): Promise<string> {
+  if (!transcript || !ANTHROPIC_KEY) return 'general'
+  if (urgency === 'emergency') return 'emergency'
+  try {
+    const out = await anthropicChat(
+      'Classify the primary intent of this answering-service call. Return ONLY one lowercase word from this list: scheduling, billing, sales, support, emergency, existing_client, new_consultation, general.',
+      `Transcript:\n${transcript.slice(0, 6000)}`,
+      24,
+    )
+    return (out || 'general').trim().toLowerCase().replace(/[^a-z_]/g, '') || 'general'
+  } catch { return 'general' }
+}
+
+async function loadRoutingTargets(supabase: any, agentDbId: string): Promise<any[]> {
+  try {
+    const { data } = await supabase
+      .from('koto_inbound_routing_targets')
+      .select('id, label, phone_number, email, priority, conditions')
+      .eq('agent_id', agentDbId)
+      .order('priority', { ascending: true })
+    return data || []
+  } catch { return [] }
+}
+
+function pickRecipientsForIntent(targets: any[], intent: string, urgency: string): { emails: string[]; phones: string[] } {
+  const emails = new Set<string>()
+  const phones = new Set<string>()
+  for (const t of targets) {
+    const cond = t.conditions || {}
+    const intentMatch = !cond.intent || cond.intent === 'any' || cond.intent === intent
+    const urgencyMatch = !cond.urgency || cond.urgency === urgency || cond.urgency === 'any'
+    if (intentMatch && urgencyMatch) {
+      if (t.email) emails.add(t.email)
+      if (t.phone_number) phones.add(t.phone_number)
+    }
+  }
+  return { emails: [...emails], phones: [...phones] }
+}
+
+// ── Outbound webhooks (CRM / Zapier / etc) ──────────────────────────────────
+async function fireOutboundWebhook(url: string, payload: any) {
+  if (!url) return
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'Koto-Answering/1.0' },
+      body: JSON.stringify(payload),
+    })
+  } catch (e: any) {
+    console.error('[outbound webhook] failed', url, e?.message)
+  }
+}
+
+async function postToSlack(webhookUrl: string, params: { businessName: string; urgency: string; summary: string; caller: any; fromNumber: string; callDetailUrl: string }) {
+  if (!webhookUrl) return
+  const { businessName, urgency, summary, caller, fromNumber, callDetailUrl } = params
+  const color = urgency === 'emergency' ? '#dc2626' : urgency === 'high' ? '#ea580c' : '#16a34a'
+  const fields: any[] = []
+  if (caller.caller_name) fields.push({ title: 'Caller', value: caller.caller_name, short: true })
+  if (caller.callback_number || fromNumber) fields.push({ title: 'Callback', value: caller.callback_number || fromNumber, short: true })
+  if (caller.callback_email) fields.push({ title: 'Email', value: caller.callback_email, short: true })
+  if (caller.reason_for_calling) fields.push({ title: 'Reason', value: caller.reason_for_calling, short: false })
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: `${urgency === 'emergency' ? ':rotating_light: EMERGENCY' : urgency === 'high' ? ':warning: Urgent' : ':telephone_receiver: New call'} for ${businessName}`,
+        attachments: [{
+          color,
+          title: 'AI Summary',
+          text: summary,
+          fields,
+          actions: [{ type: 'button', text: 'Open in Koto', url: callDetailUrl }],
+        }],
+      }),
+    })
+  } catch (e: any) {
+    console.error('[slack post] failed', e?.message)
+  }
+}
+
+// ── Spam / repeat-hangup filter ─────────────────────────────────────────────
+async function isSpamCaller(supabase: any, agencyId: string, fromNumber: string): Promise<boolean> {
+  if (!fromNumber || !agencyId) return false
+  // Block list — explicit deny
+  try {
+    const { data } = await supabase
+      .from('koto_inbound_spam_blocklist')
+      .select('id')
+      .eq('agency_id', agencyId)
+      .eq('phone_number', fromNumber)
+      .maybeSingle()
+    if (data) return true
+  } catch {}
+  // Heuristic: 3+ short hangups in the last 7 days
+  try {
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const { data } = await supabase
+      .from('koto_inbound_calls')
+      .select('id, duration_seconds')
+      .eq('agency_id', agencyId)
+      .eq('caller_number', fromNumber)
+      .gte('created_at', since)
+    const shortHangups = (data || []).filter((c: any) => (c.duration_seconds || 0) < 5).length
+    if (shortHangups >= 3) return true
+  } catch {}
+  return false
+}
+
+// ── Caller history (for the call_inbound webhook → dynamic_variables) ───────
+async function buildCallerHistory(supabase: any, agencyId: string, fromNumber: string) {
+  if (!fromNumber || !agencyId) return null
+  try {
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+    const { data } = await supabase
+      .from('koto_inbound_calls')
+      .select('caller_name, summary, ai_summary, urgency, outcome, created_at')
+      .eq('agency_id', agencyId)
+      .eq('caller_number', fromNumber)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(5)
+    if (!data || data.length === 0) return null
+    const lastCall = data[0]
+    const lastName = data.map((d: any) => d.caller_name).find(Boolean) || null
+    return {
+      total_recent_calls: data.length,
+      last_caller_name: lastName,
+      last_call_at: lastCall.created_at,
+      last_call_summary: lastCall.ai_summary || lastCall.summary || '',
+      recent_outcomes: data.map((d: any) => d.outcome).filter(Boolean).join(', '),
+    }
+  } catch { return null }
+}
+
+// ── Quality scoring (Claude rubric) ─────────────────────────────────────────
+async function scoreCallQuality(transcript: string) {
+  if (!transcript || !ANTHROPIC_KEY) return null
+  try {
+    const out = await anthropicChat(
+      `You are a QA reviewer for an AI phone receptionist. Score this call 0-100 against this rubric:
+- Greeting warmth (0-20)
+- Active listening — did the agent wait, not interrupt? (0-20)
+- Information accuracy — did the agent stick to known facts and not hallucinate? (0-20)
+- Caller satisfaction — did the caller's tone improve or stay positive? (0-20)
+- Resolution — was the caller's reason addressed (booked, transferred, message taken)? (0-20)
+Return ONLY a JSON object: {"score": <0-100>, "strengths": "<one sentence>", "improvements": "<one sentence>"}.`,
+      `Transcript:\n${transcript.slice(0, 8000)}`,
+      400,
+    )
+    const m = out.match(/\{[\s\S]*\}/)
+    return m ? JSON.parse(m[0]) : null
+  } catch { return null }
+}
+
 // ---------------------------------------------------------------------------
 // Intake Templates
 // ---------------------------------------------------------------------------
@@ -563,7 +752,7 @@ export async function GET(request: NextRequest) {
 
         const { data, error } = await query
         if (error) throw error
-        return NextResponse.json({ calls: data })
+        return NextResponse.json({ calls: (data || []).map(normalizeCallRow) })
       }
 
       case 'get_call_detail': {
@@ -573,56 +762,131 @@ export async function GET(request: NextRequest) {
           supabase.from('koto_inbound_intakes').select('*').eq('call_id', call_id),
         ])
         if (callRes.error) throw callRes.error
-        return NextResponse.json({ call: callRes.data, intakes: intakesRes.data || [] })
+        return NextResponse.json({ call: normalizeCallRow(callRes.data), intakes: intakesRes.data || [] })
       }
 
       case 'get_analytics': {
         if (!agency_id) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
-        const { data: calls, error } = await supabase
-          .from('koto_inbound_calls')
-          .select('*')
-          .eq('agency_id', agency_id)
+        let q = supabase.from('koto_inbound_calls').select('*').eq('agency_id', agency_id)
+        if (agent_id) q = q.eq('agent_id', agent_id)
+        const { data: calls, error } = await q
         if (error) throw error
 
         const allCalls = calls || []
         const totalCalls = allCalls.length
-        const avgDuration = totalCalls > 0
-          ? Math.round(allCalls.reduce((sum, c) => sum + (c.duration_seconds || 0), 0) / totalCalls)
-          : 0
+        const totalDuration = allCalls.reduce((sum, c) => sum + (c.duration_seconds || 0), 0)
+        const avgDuration = totalCalls > 0 ? Math.round(totalDuration / totalCalls) : 0
+        const totalMinutes = Math.round(totalDuration / 60)
 
         const outcomeCounts: Record<string, number> = {}
-        const hourlyCounts: Record<number, number> = {}
-        const dailyCounts: Record<string, number> = {}
+        const sentimentCounts: Record<string, number> = {}
+        const urgencyCounts: Record<string, number> = {}
+        const hourlyArr = new Array(24).fill(0)
+        const dayOfWeekArr = new Array(7).fill(0) // 0 = Sunday
+        const dailyMap: Record<string, number> = {}
 
+        let appointments = 0, emergencies = 0, voicemails = 0, missed = 0, transferred = 0, resolved = 0
+        let positives = 0, negatives = 0, neutrals = 0
         for (const call of allCalls) {
-          // Outcome counts
-          const outcome = call.outcome || 'unknown'
-          outcomeCounts[outcome] = (outcomeCounts[outcome] || 0) + 1
+          const oc = (call.outcome || 'unknown').toLowerCase()
+          outcomeCounts[oc] = (outcomeCounts[oc] || 0) + 1
+          if (oc === 'appointment' || oc === 'booked') appointments++
+          if (oc === 'voicemail') voicemails++
+          if (oc === 'missed' || oc === 'abandoned') missed++
+          if (oc === 'transferred') transferred++
+          if (oc === 'resolved' || oc === 'completed') resolved++
 
-          // Hourly breakdown
+          const ug = (call.urgency || 'low').toLowerCase()
+          urgencyCounts[ug] = (urgencyCounts[ug] || 0) + 1
+          if (ug === 'emergency' || ug === 'high') emergencies++
+
+          const sn = (call.sentiment || 'neutral').toLowerCase()
+          sentimentCounts[sn] = (sentimentCounts[sn] || 0) + 1
+          if (sn === 'positive') positives++
+          else if (sn === 'negative' || sn === 'frustrated') negatives++
+          else neutrals++
+
           if (call.created_at) {
             const date = new Date(call.created_at)
-            const hour = date.getUTCHours()
-            hourlyCounts[hour] = (hourlyCounts[hour] || 0) + 1
-
+            hourlyArr[date.getHours()]++
+            dayOfWeekArr[date.getDay()]++
             const dayKey = date.toISOString().split('T')[0]
-            dailyCounts[dayKey] = (dailyCounts[dayKey] || 0) + 1
+            dailyMap[dayKey] = (dailyMap[dayKey] || 0) + 1
           }
         }
 
-        const hourlyBreakdown = Array.from({ length: 24 }, (_, h) => ({ hour: h, count: hourlyCounts[h] || 0 }))
-        const dailyBreakdown = Object.entries(dailyCounts)
-          .map(([date, count]) => ({ date, count }))
-          .sort((a, b) => a.date.localeCompare(b.date))
+        const dailyBreakdown = Object.entries(dailyMap).map(([date, count]) => ({ date, count })).sort((a, b) => a.date.localeCompare(b.date))
+        const missedRate = totalCalls > 0 ? missed / totalCalls : 0
 
+        // Flat top-level shape for the AnalyticsTab; nested `analytics` kept for legacy callers.
         return NextResponse.json({
+          total_calls: totalCalls,
+          avg_duration: avgDuration,
+          avg_duration_seconds: avgDuration,
+          total_minutes: totalMinutes,
+          appointments,
+          emergencies,
+          voicemails,
+          missed,
+          transferred,
+          resolved,
+          positives,
+          negatives,
+          neutrals,
+          missed_rate: missedRate,
+          calls_by_hour: hourlyArr,
+          calls_by_day: dayOfWeekArr,
+          daily_breakdown: dailyBreakdown,
+          outcome_counts: outcomeCounts,
+          sentiment_counts: sentimentCounts,
+          urgency_counts: urgencyCounts,
           analytics: {
             total_calls: totalCalls,
             avg_duration_seconds: avgDuration,
             outcome_counts: outcomeCounts,
-            hourly_breakdown: hourlyBreakdown,
+            hourly_breakdown: hourlyArr.map((count, hour) => ({ hour, count })),
             daily_breakdown: dailyBreakdown,
           },
+        })
+      }
+
+      case 'get_followups': {
+        // Callback queue — open follow-ups for this agent/agency, soonest first.
+        if (!agent_id && !agency_id) return NextResponse.json({ error: 'agent_id or agency_id required' }, { status: 400 })
+        let q = supabase.from('koto_inbound_calls').select('*')
+        if (agent_id) q = q.eq('agent_id', agent_id)
+        else if (agency_id) q = q.eq('agency_id', agency_id)
+        q = q.eq('follow_up_required', true).is('resolved_at', null).order('follow_up_at', { ascending: true }).limit(50)
+        const { data, error } = await q
+        if (error) return NextResponse.json({ followups: [] })
+        return NextResponse.json({ followups: (data || []).map(normalizeCallRow) })
+      }
+
+      case 'get_billing_summary': {
+        // Per-agency rollup of minutes + call counts for the given window (default: last 30 days).
+        if (!agency_id) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+        const days = parseInt(searchParams.get('days') || '30', 10)
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+        const { data } = await supabase.from('koto_inbound_calls')
+          .select('duration_seconds, outcome, agent_id, created_at')
+          .eq('agency_id', agency_id)
+          .gte('created_at', since)
+        const calls = data || []
+        const totalCalls = calls.length
+        const totalMinutes = Math.ceil(calls.reduce((s, c) => s + (c.duration_seconds || 0), 0) / 60)
+        const byAgent: Record<string, { calls: number; minutes: number }> = {}
+        for (const c of calls) {
+          const aid = c.agent_id || 'unknown'
+          if (!byAgent[aid]) byAgent[aid] = { calls: 0, minutes: 0 }
+          byAgent[aid].calls++
+          byAgent[aid].minutes += Math.ceil((c.duration_seconds || 0) / 60)
+        }
+        return NextResponse.json({
+          window_days: days,
+          total_calls: totalCalls,
+          total_minutes: totalMinutes,
+          estimated_cost: totalMinutes * 0.02, // matches the rate in the billing post
+          by_agent: byAgent,
         })
       }
 
@@ -844,6 +1108,9 @@ End the call once you have collected the caller's information and confirmed next
           'backchannel_frequency', 'enable_backchannel', 'ambient_sound', 'responsiveness',
           'end_call_after_silence_ms', 'reminder_trigger_ms', 'reminder_max_count', 'max_call_duration_ms',
           'retell_llm_id',
+          // Delivery / integrations / compliance
+          'notification_emails', 'slack_webhook_url', 'teams_webhook_url', 'crm_webhook_url',
+          'crm_webhook_secret', 'digest_schedule', 'hipaa_mode', 'retention_days',
         ])
         const updates: any = {}
         for (const k of Object.keys(raw)) {
@@ -973,6 +1240,46 @@ End the call once you have collected the caller's information and confirmed next
       case 'webhook': {
         const { event, call } = body
 
+        // Pre-call: Retell asks us for dynamic variables. We use this moment to
+        // check the spam blocklist and surface caller history into the prompt.
+        if (event === 'call_inbound' && call) {
+          try {
+            const { data: agentInfo } = await supabase
+              .from('koto_inbound_agents')
+              .select('agency_id, id, business_name, name')
+              .eq('retell_agent_id', call.agent_id)
+              .maybeSingle()
+            const agencyIdForCall = agentInfo?.agency_id || null
+            const from = call.from_number || ''
+
+            if (agencyIdForCall && await isSpamCaller(supabase, agencyIdForCall, from)) {
+              return NextResponse.json({
+                call_inbound: {
+                  override_agent_id: null,
+                  dynamic_variables: { is_spam: 'true' },
+                  metadata: { blocked: 'spam' },
+                },
+                message: 'Spam caller blocked — call should be hung up.',
+              })
+            }
+
+            const history = agencyIdForCall ? await buildCallerHistory(supabase, agencyIdForCall, from) : null
+            const dyn: Record<string, string> = {}
+            if (history) {
+              dyn.known_caller = 'true'
+              if (history.last_caller_name) dyn.caller_name = history.last_caller_name
+              dyn.last_call_summary = history.last_call_summary || ''
+              dyn.total_recent_calls = String(history.total_recent_calls)
+            }
+            return NextResponse.json({
+              call_inbound: { dynamic_variables: dyn },
+            })
+          } catch (e: any) {
+            console.error('[inbound call_inbound] failed:', e?.message)
+            return NextResponse.json({ call_inbound: { dynamic_variables: {} } })
+          }
+        }
+
         if (event === 'call_ended' && call) {
           const transcript = call.transcript || ''
           const fromNumber = call.from_number || ''
@@ -990,22 +1297,26 @@ End the call once you have collected the caller's information and confirmed next
           const db_agent_id = agentInfo?.id || null
           const businessName = agentInfo?.business_name || agentInfo?.name || 'your business'
 
-          // Run all post-call AI passes in parallel: text summary, outcome/sentiment, caller details
-          const [summary, analysis, callerDetails] = await Promise.all([
+          // Run all post-call AI passes in parallel: summary, outcome/sentiment, details, intent, quality
+          const [summary, analysis, callerDetails, intent, quality] = await Promise.all([
             anthropicChat(
               'You are a call summarizer for an answering service. Summarize the following call transcript in 2-3 sentences. Include the caller\'s name if mentioned, their reason for calling, and any action items.',
               `Transcript:\n${transcript}`,
               512,
             ).catch(() => 'Summary unavailable.'),
             anthropicChat(
-              'Analyze this call transcript. Return ONLY a JSON object with two fields: "outcome" (one of: completed, voicemail, missed, transferred, abandoned) and "sentiment" (one of: positive, neutral, negative, frustrated). No other text.',
+              'Analyze this call transcript. Return ONLY a JSON object with two fields: "outcome" (one of: completed, voicemail, missed, transferred, abandoned, appointment) and "sentiment" (one of: positive, neutral, negative, frustrated). No other text.',
               `Transcript:\n${transcript}`,
               256,
             ).then(s => { try { return JSON.parse(s) } catch { return {} } }).catch(() => ({})),
             extractCallerDetails(transcript, fromNumber),
+            classifyIntent(transcript, urgency),
+            scoreCallQuality(transcript),
           ])
-          const outcome = analysis.outcome || 'completed'
+          let outcome = analysis.outcome || 'completed'
           const sentiment = analysis.sentiment || 'neutral'
+          // Voicemail override: if the caller hung up under 5 seconds, treat as voicemail-candidate
+          if (duration > 0 && duration < 5) outcome = 'voicemail'
 
           // Archive the recording + render a voice version of the summary in parallel
           const [archivedRecordingUrl, voiceBuffer] = await Promise.all([
@@ -1015,6 +1326,14 @@ End the call once you have collected the caller's information and confirmed next
           const summaryAudioUrl = voiceBuffer
             ? await uploadToBlob(`answering/summaries/${callId}.mp3`, voiceBuffer, 'audio/mpeg')
             : null
+
+          // Derive a follow-up timestamp if the caller's details say they need one
+          const followUpAt = (() => {
+            if (!callerDetails?.follow_up_needed) return null
+            // Default: follow up within 4 business hours (conservative). Emergency → 30 min.
+            const offsetMs = urgency === 'emergency' ? 30 * 60 * 1000 : 4 * 60 * 60 * 1000
+            return new Date(Date.now() + offsetMs).toISOString()
+          })()
 
           // Insert call record (schema-tolerant — drop unknown columns and retry)
           const callRecordCandidate: any = {
@@ -1036,6 +1355,12 @@ End the call once you have collected the caller's information and confirmed next
             urgency,
             outcome,
             sentiment,
+            intent,
+            quality_score: quality?.score ?? null,
+            quality_notes: quality ? [quality.strengths, quality.improvements].filter(Boolean).join(' · ') : null,
+            follow_up_at: followUpAt,
+            follow_up_required: !!followUpAt,
+            follow_up_notes: callerDetails?.follow_up_instructions || null,
           }
           let callRecord: any = null
           let lastErr: any = null
@@ -1102,13 +1427,18 @@ End the call once you have collected the caller's information and confirmed next
             callDetailUrl,
           })
 
-          // Multi-recipient email — primary notification_email plus any extras configured
-          const recipients: string[] = []
-          if (agentInfo?.notification_email) recipients.push(agentInfo.notification_email)
+          // Intent-based routing: routing targets with a matching intent/urgency get their
+          // own email + SMS. These are additive to the default notification_email.
+          const routingTargets = db_agent_id ? await loadRoutingTargets(supabase, db_agent_id) : []
+          const picked = pickRecipientsForIntent(routingTargets, intent, urgency)
+
+          const emailRecipients = new Set<string>()
+          if (agentInfo?.notification_email) emailRecipients.add(agentInfo.notification_email)
           if (Array.isArray(agentInfo?.notification_emails)) {
-            for (const e of agentInfo.notification_emails) if (typeof e === 'string' && e) recipients.push(e)
+            for (const e of agentInfo.notification_emails) if (typeof e === 'string' && e) emailRecipients.add(e)
           }
-          const uniqueRecipients = Array.from(new Set(recipients))
+          for (const e of picked.emails) emailRecipients.add(e)
+          const uniqueRecipients = [...emailRecipients]
 
           if (uniqueRecipients.length > 0 && process.env.RESEND_API_KEY) {
             try {
@@ -1127,15 +1457,57 @@ End the call once you have collected the caller's information and confirmed next
             }
           }
 
-          // SMS — short summary with link to the full call
-          if (agentInfo?.notification_phone) {
+          // SMS fan-out — default notification_phone plus any phones matched by intent routing
+          const smsTargets = new Set<string>()
+          if (agentInfo?.notification_phone) smsTargets.add(agentInfo.notification_phone)
+          for (const p of picked.phones) smsTargets.add(p)
+          if (smsTargets.size > 0) {
             const smsBody = [
               `${urgency === 'emergency' ? '🚨 EMERGENCY' : urgency === 'high' ? '⚠️ Urgent' : 'New call'}: ${callerDetails?.caller_name || fromNumber}`,
               callerDetails?.callback_number ? `Call back: ${callerDetails.callback_number}` : null,
               callerDetails?.reason_for_calling ? `Re: ${callerDetails.reason_for_calling}` : null,
               `Details: ${callDetailUrl}`,
             ].filter(Boolean).join('\n')
-            await sendSms(agentInfo.notification_phone, smsBody)
+            await Promise.all([...smsTargets].map(to => sendSms(to, smsBody)))
+          }
+
+          // Slack / Teams integrations — pure fire-and-forget, one call each
+          if (agentInfo?.slack_webhook_url) {
+            await postToSlack(agentInfo.slack_webhook_url, {
+              businessName, urgency,
+              summary,
+              caller: callerDetails || {},
+              fromNumber,
+              callDetailUrl,
+            })
+          }
+          if (agentInfo?.teams_webhook_url) {
+            await fireOutboundWebhook(agentInfo.teams_webhook_url, {
+              '@type': 'MessageCard',
+              '@context': 'https://schema.org/extensions',
+              summary: `New call for ${businessName}`,
+              themeColor: urgency === 'emergency' ? 'dc2626' : urgency === 'high' ? 'ea580c' : '16a34a',
+              title: `${urgency.toUpperCase()} — ${callerDetails?.caller_name || fromNumber || 'Unknown'}`,
+              text: summary,
+              potentialAction: callDetailUrl ? [{ '@type': 'OpenUri', name: 'Open in Koto', targets: [{ os: 'default', uri: callDetailUrl }] }] : undefined,
+            })
+          }
+
+          // CRM / Zapier — per-agent outbound webhook with the canonical JSON payload
+          if (agentInfo?.crm_webhook_url) {
+            await fireOutboundWebhook(agentInfo.crm_webhook_url, {
+              event: 'call_completed',
+              secret: agentInfo.crm_webhook_secret || undefined,
+              agency_id,
+              agent_id: db_agent_id,
+              business_name: businessName,
+              call: normalizeCallRow(callRecord),
+              intent,
+              quality,
+              recording_url: archivedRecordingUrl || call.recording_url || null,
+              summary_audio_url: summaryAudioUrl,
+              call_detail_url: callDetailUrl,
+            })
           }
 
           return NextResponse.json({ success: true, call: callRecord })
@@ -1250,6 +1622,120 @@ ${current_text}
         }
 
         return NextResponse.json({ success: true, prompt_length: compiled.length })
+      }
+
+      // -------------------------------------------------------------------
+      // Call lifecycle actions — resolve / follow-up / notes / spam / download
+      // -------------------------------------------------------------------
+      case 'mark_resolved': {
+        const { call_id: mrId, resolved_by } = body
+        if (!mrId) return NextResponse.json({ error: 'call_id required' }, { status: 400 })
+        const patch: Record<string, any> = {
+          resolved_at: new Date().toISOString(),
+          resolved_by: resolved_by || null,
+          follow_up_required: false,
+        }
+        for (let i = 0; i < 4; i++) {
+          const res = await supabase.from('koto_inbound_calls').update(patch).eq('id', mrId).select().maybeSingle()
+          if (!res.error) return NextResponse.json({ success: true, call: normalizeCallRow(res.data) })
+          const m = /Could not find the '([^']+)' column/.exec(res.error.message || '')
+          if (m && m[1] in patch) { delete patch[m[1]]; continue }
+          return NextResponse.json({ error: res.error.message }, { status: 500 })
+        }
+        return NextResponse.json({ error: 'update_failed' }, { status: 500 })
+      }
+
+      case 'set_follow_up': {
+        const { call_id: fuId, follow_up_at, follow_up_notes, required = true } = body
+        if (!fuId) return NextResponse.json({ error: 'call_id required' }, { status: 400 })
+        const patch: Record<string, any> = {
+          follow_up_at: follow_up_at || null,
+          follow_up_notes: follow_up_notes ?? null,
+          follow_up_required: !!required,
+        }
+        for (let i = 0; i < 4; i++) {
+          const res = await supabase.from('koto_inbound_calls').update(patch).eq('id', fuId).select().maybeSingle()
+          if (!res.error) return NextResponse.json({ success: true, call: normalizeCallRow(res.data) })
+          const m = /Could not find the '([^']+)' column/.exec(res.error.message || '')
+          if (m && m[1] in patch) { delete patch[m[1]]; continue }
+          return NextResponse.json({ error: res.error.message }, { status: 500 })
+        }
+        return NextResponse.json({ error: 'update_failed' }, { status: 500 })
+      }
+
+      case 'add_call_note': {
+        const { call_id: anId, note } = body
+        if (!anId || !note) return NextResponse.json({ error: 'call_id and note required' }, { status: 400 })
+        // Append to follow_up_notes (simplest schema-tolerant path — no new table).
+        const { data: existing } = await supabase.from('koto_inbound_calls').select('follow_up_notes').eq('id', anId).maybeSingle()
+        const prev = existing?.follow_up_notes || ''
+        const stamp = new Date().toISOString()
+        const combined = prev ? `${prev}\n\n[${stamp}] ${note}` : `[${stamp}] ${note}`
+        const res = await supabase.from('koto_inbound_calls').update({ follow_up_notes: combined }).eq('id', anId).select().maybeSingle()
+        if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 })
+        return NextResponse.json({ success: true, call: normalizeCallRow(res.data) })
+      }
+
+      case 'block_spam': {
+        const { phone_number: spamNum, agency_id: spamAgency, reason } = body
+        if (!spamNum || !spamAgency) return NextResponse.json({ error: 'phone_number and agency_id required' }, { status: 400 })
+        try {
+          await supabase.from('koto_inbound_spam_blocklist').insert({
+            agency_id: spamAgency,
+            phone_number: spamNum,
+            reason: reason || 'manual',
+          })
+          return NextResponse.json({ success: true })
+        } catch (e: any) {
+          return NextResponse.json({ error: e?.message || 'block failed', hint: 'koto_inbound_spam_blocklist table may not exist yet — migration needed.' }, { status: 500 })
+        }
+      }
+
+      case 'regenerate_summary_audio': {
+        const { call_id: rsaId } = body
+        if (!rsaId) return NextResponse.json({ error: 'call_id required' }, { status: 400 })
+        const { data: row } = await supabase.from('koto_inbound_calls').select('id, summary, ai_summary').eq('id', rsaId).maybeSingle()
+        const text = row?.summary || row?.ai_summary || ''
+        if (!text) return NextResponse.json({ error: 'no summary text' }, { status: 400 })
+        const buf = await synthesizeVoiceSummary(text)
+        if (!buf) return NextResponse.json({ error: 'TTS unavailable — set ELEVENLABS_API_KEY' }, { status: 500 })
+        const url = await uploadToBlob(`answering/summaries/${rsaId}.mp3`, buf, 'audio/mpeg')
+        if (!url) return NextResponse.json({ error: 'blob upload failed' }, { status: 500 })
+        await supabase.from('koto_inbound_calls').update({ summary_audio_url: url }).eq('id', rsaId)
+        return NextResponse.json({ success: true, summary_audio_url: url })
+      }
+
+      case 'send_digest': {
+        // Weekly digest — one email per agent with a rollup of the last N days.
+        const { agency_id: dAgency, days = 7 } = body
+        if (!dAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+        const { data: agents } = await supabase.from('koto_inbound_agents').select('id, name, business_name, notification_email, notification_emails').eq('agency_id', dAgency)
+        let sent = 0
+        for (const ag of agents || []) {
+          const { data: calls } = await supabase.from('koto_inbound_calls').select('*').eq('agent_id', ag.id).gte('created_at', since).order('created_at', { ascending: false })
+          if (!calls || calls.length === 0) continue
+          const recipients = new Set<string>()
+          if (ag.notification_email) recipients.add(ag.notification_email)
+          if (Array.isArray(ag.notification_emails)) for (const e of ag.notification_emails) if (e) recipients.add(e)
+          if (recipients.size === 0 || !process.env.RESEND_API_KEY) continue
+          const rows = (calls || []).slice(0, 50).map((c: any) => `<tr><td style="padding:6px;border-bottom:1px solid #f3f4f6;font-size:12px;color:#6b7280">${new Date(c.created_at).toLocaleString()}</td><td style="padding:6px;border-bottom:1px solid #f3f4f6;font-size:12px">${c.caller_name || c.caller_number || 'Unknown'}</td><td style="padding:6px;border-bottom:1px solid #f3f4f6;font-size:12px">${(c.ai_summary || c.summary || '').slice(0, 140)}</td><td style="padding:6px;border-bottom:1px solid #f3f4f6;font-size:12px">${c.urgency || '—'}</td></tr>`).join('')
+          const html = `<div style="font-family:system-ui;max-width:700px"><h2 style="margin:0 0 8px">${ag.business_name || ag.name} — ${days}-day digest</h2><p style="color:#6b7280;font-size:13px;margin:0 0 14px">${calls.length} calls in the last ${days} days.</p><table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;border-radius:10px"><thead><tr style="background:#f9fafb"><th style="padding:6px;text-align:left;font-size:11px;color:#6b7280">Date</th><th style="padding:6px;text-align:left;font-size:11px;color:#6b7280">Caller</th><th style="padding:6px;text-align:left;font-size:11px;color:#6b7280">Summary</th><th style="padding:6px;text-align:left;font-size:11px;color:#6b7280">Urgency</th></tr></thead><tbody>${rows}</tbody></table></div>`
+          try {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                from: 'Koto Answering Service <notifications@hellokoto.com>',
+                to: [...recipients],
+                subject: `${ag.business_name || ag.name} — ${days}-day call digest (${calls.length} calls)`,
+                html,
+              }),
+            })
+            sent++
+          } catch {}
+        }
+        return NextResponse.json({ success: true, digests_sent: sent })
       }
 
       // -------------------------------------------------------------------
