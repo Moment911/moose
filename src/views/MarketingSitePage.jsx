@@ -347,7 +347,7 @@ const FOOTER_COLUMNS = [
     { label: 'CMO Agent', href: '#platform' },
   ] },
   { title: 'Company',   links: [
-    { label: 'About', href: '#' },
+    { label: 'About', href: '/about' },
     { label: 'Blog', href: '#' },
     { label: 'Careers', href: '#' },
     { label: 'Contact', href: '#contact' },

@@ -48,6 +48,7 @@ import WireframePage from '../views/WireframePage'
 import ESignaturePage from '../views/ESignaturePage'
 import PrivacyPolicyPage from '../views/PrivacyPolicyPage'
 import TermsPage from '../views/TermsPage'
+import AboutPage from '../views/AboutPage'
 import ScoutPage from '../views/scout/ScoutPage'
 import ScoutHistoryPage from '../views/scout/ScoutHistoryPage'
 import KotoDeskPage from '../views/desk/MooseDeskPage'
@@ -268,6 +269,7 @@ export default function App() {
           <Route path="/access/:token" element={<ClientAccessFormPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/uptime/public" element={<PublicUptimePage />} />
           <Route path="/status" element={<StatusPage />} />
           <Route path="/discovery/form/:token" element={<DiscoveryClientFormPage />} />
