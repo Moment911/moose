@@ -11,17 +11,17 @@ const W     = '#ffffff'
 /* Footer columns match the top nav structure so visitors see a consistent menu */
 const COLUMNS = [
   { title: 'Platform', links: [
-    { label: 'Overview', href: '/#platform' },
     { label: 'AI Agents', href: '/ai-agents' },
     { label: 'Chatbots', href: '/chatbots' },
     { label: 'Custom Systems', href: '/custom-systems' },
+    { label: 'Koto AI (agency OS)', href: '/koto-ai' },
     { label: 'KotoIQ', href: '/#kotoiq' },
-    { label: 'Pricing', href: '/#pricing' },
   ] },
   { title: 'Company', links: [
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
     { label: 'Email us', href: CONTACT_EMAIL_HREF },
+    { label: 'Log in', href: '/login' },
     { label: 'Status', href: '/status' },
   ] },
   { title: 'Legal', links: [

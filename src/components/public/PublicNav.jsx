@@ -14,7 +14,7 @@ const LINKS = [
   { href: '/ai-agents',      label: 'AI Agents' },
   { href: '/chatbots',       label: 'Chatbots' },
   { href: '/custom-systems', label: 'Custom Systems' },
-  { id: 'pricing',           label: 'Pricing' },
+  { href: '/koto-ai',        label: 'Koto AI' },
   { href: '/about',          label: 'About' },
   { href: '/contact',        label: 'Contact' },
 ]
@@ -73,11 +73,7 @@ export default function PublicNav() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
-            <button onClick={() => { setMenuOpen(false); navigate('/login') }}
-              style={{ flex: 1, padding: '12px', borderRadius: 10, border: `1px solid ${HAIR}`, background: W, color: BLK, fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
-              Log in
-            </button>
-            <button onClick={() => { setMenuOpen(false); navigate('/signup') }}
+            <button onClick={() => { setMenuOpen(false); navigate('/contact') }}
               style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: BLK, color: W, fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
               Get started
             </button>
@@ -114,14 +110,7 @@ export default function PublicNav() {
         </div>
 
         <div className="pn-right" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button onClick={() => navigate('/login')} style={{
-            fontSize: 14, color: MUTED, fontWeight: 600, background: 'none', border: 'none',
-            cursor: 'pointer', fontFamily: FH,
-          }}
-            onMouseEnter={e => e.currentTarget.style.color = BLK}
-            onMouseLeave={e => e.currentTarget.style.color = MUTED}
-          >Log in</button>
-          <button onClick={() => navigate('/signup')} style={{
+          <button onClick={() => navigate('/contact')} style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '8px 16px', borderRadius: 10, border: 'none',
             background: BLK, color: W, fontSize: 13, fontWeight: 700, fontFamily: FH,

@@ -547,7 +547,7 @@ const DEMO_SCENARIOS = [
 ];
 
 const DEMO_FALLBACK = {
-  text: "I'm in **demo mode** using sample data for a fictional dental client — I'm not connected to any real account here on the marketing site. Try asking me about **traffic drops**, **keyword opportunities**, **competitors**, **Google reviews**, **local rankings**, or **Google Ads performance**. Or start a free trial to get real answers on your own clients.",
+  text: "I'm in **demo mode** using sample data for a fictional dental client — I'm not connected to any real account here on the marketing site. Try asking me about **traffic drops**, **keyword opportunities**, **competitors**, **Google reviews**, **local rankings**, or **Google Ads performance**. Or book a build session and we'll wire this up against your real data.",
   sources: ['Demo mode'],
 };
 
@@ -1130,37 +1130,38 @@ export default function MarketingSitePage() {
             marginBottom: 28,
           }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: GRN }} />
-            The intelligence layer for modern agencies
+            Enterprise AI system builder
           </div>
 
           <h1 className="hero-h1 fade fade-1" style={{
             fontSize: 84, fontWeight: 900, fontFamily: FH,
             letterSpacing: '-.035em', lineHeight: 1.05,
-            color: INK, maxWidth: 900, margin: '0 auto',
+            color: INK, maxWidth: 960, margin: '0 auto',
             paddingTop: 4,
           }}>
-            The operating system<br />for marketing agencies.
+            If you can think it,<br />we build it. <span style={{ color: R }}>Fast.</span>
           </h1>
 
           <p className="fade fade-2" style={{
             fontSize: 20, color: MUTED, fontFamily: FB,
-            lineHeight: 1.55, maxWidth: 620, margin: '24px auto 0',
+            lineHeight: 1.55, maxWidth: 680, margin: '24px auto 0',
           }}>
-            AI agents that call, answer, qualify, publish, and optimize — so you can scale
-            without hiring. Built for the modern agency operator.
+            Custom AI agents, chatbots, and end-to-end systems for any business in any industry.
+            Inbound and outbound calling, conversational AI, workflow automation, deep integrations —
+            designed, built, and deployed in weeks, not quarters.
           </p>
 
           <div className="fade fade-3" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 36 }}>
-            <button className="btn btn-primary btn-lg" onClick={() => navigate('/signup')}>
-              Start free trial <ArrowRight size={16} />
+            <button className="btn btn-primary btn-lg" onClick={() => navigate('/contact')}>
+              Book a build session <ArrowRight size={16} />
             </button>
             <button className="btn btn-secondary btn-lg" onClick={() => scrollTo('platform')}>
-              See how it works
+              See what we build
             </button>
           </div>
 
           <div className="fade fade-3" style={{ fontSize: 13, color: FAINT, marginTop: 18 }}>
-            No credit card required · 14-day free trial · Set up in 10 minutes
+            10 engineers · 20+ years of agency operations · Built for any industry
           </div>
 
           {/* Hero stats */}
@@ -1182,48 +1183,53 @@ export default function MarketingSitePage() {
       {/* ══ PLATFORM ══ */}
       <section id="platform" className="section" style={{ background: W, padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>
         <div style={{ maxWidth: 1160, margin: '0 auto' }}>
-          <div style={{ marginBottom: 48 }}>
-            <div className="eyebrow">The Platform</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 24 }}>
-              <h2 className="sec-h2" style={{
-                fontSize: 56, fontWeight: 900, fontFamily: FH,
-                letterSpacing: '-.035em', color: INK, lineHeight: 1.02, maxWidth: 720,
-              }}>
-                Six AI agents.<br />One command center.
-              </h2>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {CATEGORIES.map(c => (
-                  <button key={c} className={`pill-filter${activeFilter === c ? ' active' : ''}`} onClick={() => setActiveFilter(c)}>{c}</button>
-                ))}
-              </div>
-            </div>
+          <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="eyebrow">What we build</div>
+            <h2 className="sec-h2" style={{
+              fontSize: 56, fontWeight: 900, fontFamily: FH,
+              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
+            }}>
+              Four things. Any industry.<br />Zero templates.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              Every Koto build is custom. We don't ship you a generic tool — we design and ship a
+              system that matches your exact workflow.
+            </p>
           </div>
 
-          <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
-            {filteredTools.map(t => {
-              const Icon = t.icon;
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 18 }}>
+            {[
+              { icon: Phone, title: 'AI Voice Agents',   tag: 'Inbound + outbound', desc: 'Cold-call agents that qualify leads and book meetings. Front-desk agents that answer every inbound call 24/7. Specialist agents for industries like healthcare VOB. Sound human, scale infinitely.', href: '/ai-agents', accent: R },
+              { icon: MessageCircle, title: 'Custom Chatbots', tag: 'Grounded in your data', desc: 'Conversational AI that actually knows your business — retrieves from your real docs, policies, and pricing. Interactive demos for six industries live on our Chatbots page.', href: '/chatbots', accent: T },
+              { icon: Cpu, title: 'Custom AI Systems', tag: 'End-to-end workflows', desc: 'Intake, quoting, triage, scheduling, estimating, reporting — any workflow that shouldn\'t take a human. 17 real system walkthroughs on the Custom Systems page.', href: '/custom-systems', accent: AMB },
+              { icon: Network, title: 'Deep Integrations', tag: 'CRM, calendar, any API', desc: 'Koto wires into Salesforce, HubSpot, GoHighLevel, Twilio, Stripe, QuickBooks — plus anything with an API or webhook. If it exists, we can connect it.', href: '/custom-systems', accent: GRN },
+            ].map(c => {
+              const Icon = c.icon
               return (
-                <div key={t.num} className="card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div key={c.title} className="card" style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(c.href)}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <div style={{
-                      width: 40, height: 40, borderRadius: 10,
-                      background: R + '10', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 48, height: 48, borderRadius: 12,
+                      background: c.accent + '14', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <Icon size={20} color={R} />
+                      <Icon size={24} color={c.accent} />
                     </div>
                     <span style={{
                       fontSize: 10, fontWeight: 700, letterSpacing: '.08em',
-                      textTransform: 'uppercase', color: T,
-                      background: T + '12', padding: '4px 10px', borderRadius: 100,
-                    }}>{t.cat}</span>
+                      textTransform: 'uppercase', color: c.accent,
+                      background: c.accent + '12', padding: '4px 10px', borderRadius: 100,
+                    }}>{c.tag}</span>
                   </div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: '.06em', marginBottom: 6 }}>{t.num}</div>
-                  <h3 style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, letterSpacing: '-.02em', color: INK, marginBottom: 8 }}>
-                    {t.title}
+                  <h3 style={{ fontSize: 24, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK, marginBottom: 10 }}>
+                    {c.title}
                   </h3>
-                  <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, fontFamily: FB }}>{t.desc}</p>
+                  <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.6, fontFamily: FB, marginBottom: 14 }}>{c.desc}</p>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: INK, fontFamily: FH }}>
+                    Explore <ArrowRight size={13} />
+                  </div>
                 </div>
-              );
+              )
             })}
           </div>
         </div>
@@ -2032,7 +2038,7 @@ export default function MarketingSitePage() {
             }}>
               Simple plans. No surprises.
             </h2>
-            <p style={{ fontSize: 16, color: MUTED, fontFamily: FB }}>No contracts. Cancel anytime. 14-day free trial on every plan.</p>
+            <p style={{ fontSize: 16, color: MUTED, fontFamily: FB }}>Straightforward pricing for our agency-OS product. For custom AI builds, talk to us — pricing is scoped per project.</p>
           </div>
 
           <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, alignItems: 'stretch' }}>
@@ -2067,11 +2073,11 @@ export default function MarketingSitePage() {
                 <p style={{ fontSize: 14, color: MUTED, marginBottom: 24, fontFamily: FB, lineHeight: 1.5 }}>{plan.desc || ''}</p>
 
                 <button
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate('/contact')}
                   className={`btn btn-md ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ width: '100%', justifyContent: 'center', marginBottom: 28 }}
                 >
-                  Start free trial
+                  Get in touch
                 </button>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -2108,22 +2114,21 @@ export default function MarketingSitePage() {
               fontSize: 56, fontWeight: 900, fontFamily: FH,
               letterSpacing: '-.035em', color: W, lineHeight: 1.02, marginBottom: 20,
             }}>
-              Ready to run your<br />agency on autopilot?
+              Have an idea?<br />We'll build it.
             </h2>
-            <p style={{ fontSize: 18, color: 'rgba(255,255,255,.7)', fontFamily: FB, maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.55 }}>
-              Replace the dozens of tools and hires that used to slow your agency down. One unified AI system, deployed in minutes.
+            <p style={{ fontSize: 18, color: 'rgba(255,255,255,.7)', fontFamily: FB, maxWidth: 520, margin: '0 auto 36px', lineHeight: 1.55 }}>
+              Custom AI agents, chatbots, and systems for any business — designed, built, and deployed fast. Tell us what you need.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button className="btn btn-pink btn-lg" onClick={() => navigate('/signup')}>
-                Start free trial <ArrowRight size={16} />
+              <button className="btn btn-pink btn-lg" onClick={() => navigate('/contact')}>
+                Book a build session <ArrowRight size={16} />
               </button>
-              <button className="btn btn-lg" onClick={() => scrollTo('pricing')}
-                style={{ background: 'transparent', color: W, border: '1px solid rgba(255,255,255,.3)' }}>
-                See pricing
-              </button>
+              <a href={CONTACT_PHONE_HREF} className="btn btn-lg" style={{ background: 'transparent', color: W, border: '1px solid rgba(255,255,255,.3)', textDecoration: 'none' }}>
+                <Phone size={16} /> {CONTACT_PHONE}
+              </a>
             </div>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginTop: 20 }}>
-              No credit card required · Cancel anytime
+              Prototype in a week · Production in weeks, not quarters
             </div>
           </div>
         </div>
