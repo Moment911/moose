@@ -1733,6 +1733,13 @@ Return JSON with this exact shape:
           }),
         }).catch((e) => console.warn('[voice call_ended] completion email trigger failed:', e))
 
+        // Release phone number after completion (fire and forget)
+        fetch(`${appUrl}/api/onboarding/telnyx-provision`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'release', client_id: clientId }),
+        }).catch(() => {})
+
         const body = analysis
           ? `${callerName} · ${fieldsCaptured} fields captured${engagementPct != null ? ` · Engagement: ${engagementPct}%` : ''}${summaryLine ? ` · ${summaryLine}` : ''}`
           : `${callerName} completed onboarding for ${clientName} — ${fieldsCaptured} fields captured`

@@ -771,6 +771,13 @@ export async function POST(req: NextRequest) {
         }),
       }).catch((e) => console.warn('[onboarding complete] completion email trigger failed:', e))
 
+      // Release phone number after completion (fire and forget)
+      fetch(`${APP_URL}/api/onboarding/telnyx-provision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'release', client_id }),
+      }).catch(() => {})
+
       return NextResponse.json({ ok: true, agent_configured: !existing })
     }
 

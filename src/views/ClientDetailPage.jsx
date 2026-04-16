@@ -959,6 +959,7 @@ export default function ClientDetailPage() {
               { label: 'KotoProof Project', action: 'create_proof', color: '#8b5cf6' },
               { label: 'SEO Hub', path: `/seo/${clientId}`, color: R },
               { label: 'Discovery', path: '/discovery', color: T },
+              { label: 'Run KotoIntel', path: `/intel?client_id=${clientId}`, color: AMB },
               { label: 'Scout Leads', path: '/scout', color: GRN },
               { label: 'Voice Campaign', path: '/voice', color: '#8b5cf6' },
               { label: 'View Reports', path: `/perf/${clientId}`, color: AMB },
