@@ -552,12 +552,14 @@ End the call once you have collected the caller's information and confirmed next
           }
         }
 
-        // Step 1: Create Retell LLM (prompt lives here, not on the agent)
+        // Step 1: Create Retell LLM — match VOB agent setup (Claude 4.6 Sonnet,
+        // conversational turn-taking discipline baked into the prompt).
         let llmId: string
         try {
           const llmRes = await retellFetch('/create-retell-llm', 'POST', {
             general_prompt: generalPrompt,
             begin_message: beginMessage,
+            model: 'claude-4.6-sonnet',
           })
           llmId = llmRes.llm_id
           if (!llmId) throw new Error('Retell did not return llm_id')
@@ -565,7 +567,10 @@ End the call once you have collected the caller's information and confirmed next
           return NextResponse.json({ error: e?.message || 'Retell create-retell-llm failed' }, { status: 500 })
         }
 
-        // Step 2: Create Retell agent referencing the LLM
+        // Step 2: Create Retell agent referencing the LLM.
+        // Match the VOB agent's conversational settings: low interruption, disabled
+        // backchannel, measured responsiveness, and silence/duration guards that
+        // make it behave like a patient human receptionist.
         const resolvedVoiceId = voice_id || '11labs-Marissa'
         let retellAgent: any
         try {
@@ -574,9 +579,16 @@ End the call once you have collected the caller's information and confirmed next
             voice_id: resolvedVoiceId,
             response_engine: { type: 'retell-llm', llm_id: llmId },
             language: 'en-US',
-            enable_backchannel: true,
-            backchannel_frequency: 0.7,
-            interruption_sensitivity: 0.8,
+            enable_backchannel: false,
+            interruption_sensitivity: 0.3,
+            responsiveness: 0.7,
+            voice_speed: 0.95,
+            ambient_sound: null,
+            end_call_after_silence_ms: 30000,
+            reminder_trigger_ms: 10000,
+            reminder_max_count: 2,
+            max_call_duration_ms: 1800000,
+            metadata: { agency_id, kind: 'answering' },
           })
         } catch (e: any) {
           return NextResponse.json({ error: e?.message || 'Retell create-agent failed' }, { status: 500 })
@@ -672,6 +684,7 @@ End the call once you have collected the caller's information and confirmed next
           'prompt_sections',
           'voice_speed', 'voice_temperature', 'interruption_sensitivity',
           'backchannel_frequency', 'enable_backchannel', 'ambient_sound', 'responsiveness',
+          'end_call_after_silence_ms', 'reminder_trigger_ms', 'reminder_max_count', 'max_call_duration_ms',
           'retell_llm_id',
         ])
         const updates: any = {}
@@ -1019,6 +1032,28 @@ ${current_text}
           })
         } catch (e: any) {
           return NextResponse.json({ error: e?.message || 'retell update failed' }, { status: 500 })
+        }
+
+        // Also push any saved voice/speech settings to the Retell agent so the
+        // Voice Controls card in the UI is the source of truth.
+        const r: any = row
+        const agentPatch: Record<string, any> = {}
+        if (r.voice_id) agentPatch.voice_id = r.voice_id
+        if (typeof r.voice_speed === 'number') agentPatch.voice_speed = r.voice_speed
+        if (typeof r.voice_temperature === 'number') agentPatch.voice_temperature = r.voice_temperature
+        if (typeof r.responsiveness === 'number') agentPatch.responsiveness = r.responsiveness
+        if (typeof r.interruption_sensitivity === 'number') agentPatch.interruption_sensitivity = r.interruption_sensitivity
+        if (typeof r.enable_backchannel === 'boolean') agentPatch.enable_backchannel = r.enable_backchannel
+        if (typeof r.backchannel_frequency === 'number') agentPatch.backchannel_frequency = r.backchannel_frequency
+        if (r.ambient_sound !== undefined) agentPatch.ambient_sound = r.ambient_sound === 'none' ? null : r.ambient_sound
+        if (typeof r.end_call_after_silence_ms === 'number') agentPatch.end_call_after_silence_ms = r.end_call_after_silence_ms
+        if (typeof r.reminder_trigger_ms === 'number') agentPatch.reminder_trigger_ms = r.reminder_trigger_ms
+        if (typeof r.reminder_max_count === 'number') agentPatch.reminder_max_count = r.reminder_max_count
+        if (typeof r.max_call_duration_ms === 'number') agentPatch.max_call_duration_ms = r.max_call_duration_ms
+        if (Object.keys(agentPatch).length > 0) {
+          try { await retellFetch(`/update-agent/${retellAgentId}`, 'PATCH', agentPatch) } catch (e: any) {
+            console.error('[sync_retell_prompt] agent patch failed (non-fatal):', e?.message)
+          }
         }
 
         // Best-effort persist of retell_llm_id for next time

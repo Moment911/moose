@@ -411,15 +411,27 @@ function VoiceGreetingTab({ agent, setAgent }) {
     { key:'voicemail', label:'Voicemail Message', icon:<Volume2 size={14}/> },
   ]
 
-  // ── Voice settings (Retell speech config) ────────────────────────────────
+  // ── Voice settings (Retell speech config — matched to VOB agent defaults) ─
+  // interruption_sensitivity is stored as a Retell-native number (0.0–1.0).
+  // Legacy rows that stored "low"/"medium"/"high" strings are coerced below.
+  function coerceInterrupt(v) {
+    if (typeof v === 'number') return v
+    if (v === 'low') return 0.3
+    if (v === 'high') return 0.8
+    return 0.5
+  }
   const [voiceSettings, setVoiceSettings] = useState({
-    voice_speed: agent.voice_speed ?? 1.0,
+    voice_speed: agent.voice_speed ?? 0.95,
     voice_temperature: agent.voice_temperature ?? 1.0,
-    interruption_sensitivity: agent.interruption_sensitivity || 'medium',
+    interruption_sensitivity: coerceInterrupt(agent.interruption_sensitivity ?? 0.3),
     backchannel_frequency: agent.backchannel_frequency ?? 0.7,
-    enable_backchannel: agent.enable_backchannel !== false,
+    enable_backchannel: agent.enable_backchannel === true,
     ambient_sound: agent.ambient_sound || 'none',
-    responsiveness: agent.responsiveness ?? 1.0,
+    responsiveness: agent.responsiveness ?? 0.7,
+    end_call_after_silence_ms: agent.end_call_after_silence_ms ?? 30000,
+    reminder_trigger_ms: agent.reminder_trigger_ms ?? 10000,
+    reminder_max_count: agent.reminder_max_count ?? 2,
+    max_call_duration_ms: agent.max_call_duration_ms ?? 1800000,
   })
   const [savingVoice, setSavingVoice] = useState(false)
 
@@ -499,14 +511,13 @@ function VoiceGreetingTab({ agent, setAgent }) {
 
           <div>
             <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:6 }}>
-              Interruption Sensitivity
+              Interruption Sensitivity · <strong style={{ color:BLK }}>{voiceSettings.interruption_sensitivity.toFixed(2)}</strong>
             </label>
-            <select style={input} value={voiceSettings.interruption_sensitivity}
-              onChange={e=>setVoiceSettings(p=>({...p, interruption_sensitivity:e.target.value}))}>
-              <option value="low">Low — rarely interrupted</option>
-              <option value="medium">Medium — balanced</option>
-              <option value="high">High — yields quickly</option>
-            </select>
+            <input type="range" min="0" max="1" step="0.05" value={voiceSettings.interruption_sensitivity}
+              onChange={e=>setVoiceSettings(p=>({...p, interruption_sensitivity:parseFloat(e.target.value)}))} style={{ width:'100%' }}/>
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'#9ca3af' }}>
+              <span>Patient</span><span>0.30 (VOB default)</span><span>Eager</span>
+            </div>
           </div>
 
           <div style={{ gridColumn:'1 / -1', display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderTop:'1px solid #f3f4f6' }}>
@@ -540,6 +551,52 @@ function VoiceGreetingTab({ agent, setAgent }) {
               {AMBIENT_OPTIONS.map(a=><option key={a.v} value={a.v}>{a.l}</option>)}
             </select>
           </div>
+        </div>
+
+        <div style={{ marginTop:20, paddingTop:16, borderTop:'1px solid #f3f4f6' }}>
+          <h4 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:13 }}>Turn-Taking &amp; Silence</h4>
+          <p style={{ margin:'0 0 12px', fontSize:11, color:'#6b7280' }}>
+            How long the agent waits for an answer before nudging, and how patient it is overall.
+            Defaults mirror the VOB agent so it asks one question and waits.
+          </p>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:16 }}>
+            <div>
+              <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Nudge caller after</label>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <input type="number" min="3" max="120" step="1" style={{ ...input, width:70 }}
+                  value={Math.round(voiceSettings.reminder_trigger_ms/1000)}
+                  onChange={e=>setVoiceSettings(p=>({...p, reminder_trigger_ms:Math.max(3000, (parseInt(e.target.value,10)||10)*1000)}))}/>
+                <span style={{ fontSize:12, color:'#6b7280' }}>sec</span>
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Max nudges</label>
+              <input type="number" min="0" max="5" step="1" style={input}
+                value={voiceSettings.reminder_max_count}
+                onChange={e=>setVoiceSettings(p=>({...p, reminder_max_count:Math.max(0, parseInt(e.target.value,10)||0)}))}/>
+            </div>
+            <div>
+              <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>End call after silence</label>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <input type="number" min="10" max="600" step="5" style={{ ...input, width:70 }}
+                  value={Math.round(voiceSettings.end_call_after_silence_ms/1000)}
+                  onChange={e=>setVoiceSettings(p=>({...p, end_call_after_silence_ms:Math.max(10000, (parseInt(e.target.value,10)||30)*1000)}))}/>
+                <span style={{ fontSize:12, color:'#6b7280' }}>sec</span>
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Max call length</label>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <input type="number" min="1" max="120" step="1" style={{ ...input, width:70 }}
+                  value={Math.round(voiceSettings.max_call_duration_ms/60000)}
+                  onChange={e=>setVoiceSettings(p=>({...p, max_call_duration_ms:Math.max(60000, (parseInt(e.target.value,10)||30)*60000)}))}/>
+                <span style={{ fontSize:12, color:'#6b7280' }}>min</span>
+              </div>
+            </div>
+          </div>
+          <p style={{ margin:'10px 0 0', fontSize:11, color:'#9ca3af' }}>
+            The agent won't re-ask the same question unprompted — it waits for an answer, then nudges once with a rephrased prompt after the silence window.
+          </p>
         </div>
       </div>
 
