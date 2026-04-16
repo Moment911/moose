@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
@@ -107,6 +108,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="backlinks" />
       {/* Header */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 28 }}>
         <div style={{ flexShrink: 0 }}>

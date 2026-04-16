@@ -1,0 +1,30 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/WixTools/
+
+# Build outputs
+dist/
+*.dmg
+*.app
+*.msi
+*.exe
+*.deb
+*.AppImage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Tauri signing keys
+*.key
+*.pub

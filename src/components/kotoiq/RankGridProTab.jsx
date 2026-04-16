@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Grid, Loader2, MapPin, Target } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
@@ -58,6 +59,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="rank_grid" />
       <div style={card}>
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Grid size={18} color={T} /> Rank Grid Pro

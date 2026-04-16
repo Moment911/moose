@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Search, Loader2, RefreshCw, Key, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
@@ -42,6 +43,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="bing_audit" />
       <div style={card}>
         <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Search size={20} color="#0078D4" /> Bing Webmaster Audit

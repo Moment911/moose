@@ -669,6 +669,40 @@ export default function KotoIQPage() {
                   ))}
                 </div>
               ))}
+
+              {/* Download Desktop App footer */}
+              <div style={{ marginTop: 20, padding: '0 20px' }}>
+                <a href="/downloads" target="_blank" rel="noopener noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                    padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${T}30`,
+                    background: T + '08', color: BLK, textDecoration: 'none',
+                    fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                    transition: 'all .1s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = T + '15' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = T + '08' }}
+                >
+                  <Download size={14} color={T} />
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: BLK }}>Download Desktop App</div>
+                    <div style={{ fontSize: 10, fontWeight: 500, color: '#374151', marginTop: 1 }}>macOS · Windows · Linux</div>
+                  </div>
+                </a>
+                <a href="https://chrome.google.com/webstore" target="_blank" rel="noopener noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                    marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1.5px solid #e5e7eb`,
+                    background: '#fff', color: BLK, textDecoration: 'none',
+                    fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                  }}>
+                  <Globe size={14} color="#374151" />
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: BLK }}>Chrome Extension</div>
+                    <div style={{ fontSize: 10, fontWeight: 500, color: '#374151', marginTop: 1 }}>Analyze any page</div>
+                  </div>
+                </a>
+              </div>
             </div>
           )}
 

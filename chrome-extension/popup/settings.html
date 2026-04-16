@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>KotoIQ Settings</title>
+  <link rel="stylesheet" href="popup.css" />
+  <style>
+    html, body { width: 480px; min-height: 100vh; overflow-y: auto; }
+    .app { height: auto; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hdr">
+      <div class="logo-row">
+        <div class="logo-mark">K</div>
+        <div>
+          <div class="logo-name">KotoIQ</div>
+          <div class="logo-sub">Extension Settings</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="settings open">
+      <h2>Connection</h2>
+
+      <div class="field">
+        <label for="endpoint">API Endpoint</label>
+        <input type="url" id="endpoint" placeholder="https://hellokoto.com/api/kotoiq" />
+      </div>
+
+      <div class="field">
+        <label for="api_key">API Key (Bearer token)</label>
+        <input type="password" id="api_key" placeholder="sk-..." />
+      </div>
+
+      <div class="field">
+        <label for="agency_id">Agency ID</label>
+        <input type="text" id="agency_id" placeholder="uuid of your agency" />
+      </div>
+
+      <div class="field">
+        <label for="default_client">Default Client</label>
+        <select id="default_client">
+          <option value="">— None —</option>
+        </select>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" id="refresh-clients">Refresh Clients</button>
+        <button class="btn-primary" id="save">Save Settings</button>
+      </div>
+
+      <div id="save-status" style="font-size: 11px; margin-top: 4px; color: var(--k-gray-500);"></div>
+    </div>
+
+    <footer class="ftr">
+      <span id="version">KotoIQ Extension v1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

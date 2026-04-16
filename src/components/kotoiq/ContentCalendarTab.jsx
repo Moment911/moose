@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 const STATUS_CONFIG = {
   planned: { label: 'Planned', color: '#374151', bg: '#f3f4f6' },
@@ -182,6 +183,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="calendar" />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Map, Loader2, Globe, Target, TrendingUp, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
@@ -33,6 +34,7 @@ export default function CompetitorMapTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="competitor_map" />
       <div style={card}>
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Map size={18} color={T} /> Competitor Topical Map

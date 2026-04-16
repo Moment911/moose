@@ -1,12 +1,14 @@
 "use client"
 import { useState } from 'react'
-import { Info, ChevronDown, ChevronUp, BookOpen, Code } from 'lucide-react'
+import { Info, ChevronDown, ChevronUp, BookOpen, Code, Target } from 'lucide-react'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────
 // HowItWorks — reusable expandable "How this tool works"
-// Shows two explanations per tool: layman's + technical
-// Drop this into any tab to explain how the analysis is done
+// Shows two sections:
+//   1. How It Works (layman vs technical method)
+//   2. What The Output Means (layman vs technical output spec)
+// Supports minimal markdown: **bold**, \n\n paragraph, \n line break
 // ─────────────────────────────────────────────────────────────
 
 const EXPLANATIONS = {
@@ -21,170 +23,274 @@ const EXPLANATIONS = {
     layman: `We give you one score — 0 to 100 — that answers: "Are we an authority on this topic?" It combines how many topics you cover, how well your existing pages are performing over time, how deep your content goes, and where you stand versus competitors. You get a grade A through F per topic cluster.`,
     technical: `Aggregates data from kotoiq_topical_nodes (coverage % per cluster), kotoiq_keywords (position distribution top3/top10/beyond), kotoiq_snapshots (30d/90d trajectory — improving/declining/stable ratio), kotoiq_backlink_profile (domain authority), kotoiq_content_inventory (avg word count per cluster). Sends aggregated metrics to Claude with a weighted scoring prompt: coverage × 0.30 + historical × 0.25 + depth × 0.20 + competitive × 0.25. Returns per-cluster scores with grades and specific strengths/gaps.`,
     data_sources: ['kotoiq_topical_maps + nodes', 'kotoiq_keywords', 'kotoiq_snapshots (90d history)', 'Moz Domain Authority', 'Claude Sonnet 4'],
+    output_layman: `**Overall Authority Score (0-100):** Your topical credibility across all clusters. 80+ = dominant, 60-79 = strong, 40-59 = emerging, <40 = weak.\n\n**Cluster Grades (A-F):** Each topic cluster gets its own grade so you know where you're strong vs. where to double down.\n\n**Strengths:** Clusters where you have real authority — keep publishing to widen the moat.\n\n**Gaps:** Clusters where competitors are winning — invest here.\n\n**Next Action:** Click a cluster with a C, D, or F grade → feeds directly into the Content Calendar as priority.`,
+    output_technical: `**overall_authority_score:** weighted aggregate (coverage 0.30 + historical 0.25 + depth 0.20 + competitive 0.25)\n**cluster_grades:** A ≥ 85 | B 70-84 | C 55-69 | D 40-54 | F < 40\n**trajectory_ratio:** improving_keywords / declining_keywords (>1.0 positive)\n**depth_metric:** avg word_count per cluster page\n**competitive_gap:** client_cluster_score − avg_competitor_cluster_score`,
   },
   briefs: {
     layman: `We don't just write content — we engineer it to rank #1. Before writing, 6 AI agents run in parallel: one finds gaps competitors missed, one maps the concepts Google expects, one identifies authority-signaling brands and terms, one crafts a featured-snippet-ready opening, one validates the title tag, and one aligns sentence structure. Then Claude writes with all that intelligence baked in. After writing, 6 more agents polish the output — strip filler, remove AI-sounding phrases, score topicality, extract knowledge graph data for schema.`,
     technical: `Pre-generation (parallel): runQueryGapAnalyzer(), runFrameAnalyzer(), runNamedEntitySuggester(), runLexicalRelationAnalyzer(), runSafeAnswerGenerator(), runTitleQueryAuditor(). Results injected as context into a Claude Sonnet 4 prompt (8000 max_tokens) that produces structured output with macro/micro content sections, contextual borders, entity-attribute pairs, and title alternatives. Post-generation (sequential): runContextlessWordRemover() → runMetadiscourseAuditor() → runSentenceFilterer() → runEntityInserter() (backfills missing must-include entities) → runTopicalityScorer() (with entity + frame coverage check) → runTripleGenerator() (for schema @graph markup).`,
     data_sources: ['clients table (business context)', 'kotoiq_keywords (target keyword metrics)', 'kotoiq_content_briefs (saved brief)', '12 semantic agents (Claude Sonnet 4)', 'Competitor top-3 page analysis'],
+    output_layman: `**Topicality Score (0-100):** How well the generated content covers everything Google expects for the target keyword. Aim for 85+ before publishing.\n\n**Must-Include Entities:** The people, brands, concepts, and terms that MUST appear in the content — if missing, the page will underperform.\n\n**Title Alternatives:** 3-5 pre-validated title options tested for query-match.\n\n**Schema Triples:** Copy-paste JSON-LD that makes the page eligible for rich results.\n\n**Next Action:** Click "Export to Brief" to hand off to your writer, or "Generate Draft" to produce full-page copy.`,
+    output_technical: `**topicality_score:** (entity_coverage × 0.40) + (frame_coverage × 0.35) + (query_intent_match × 0.25)\n**entity_coverage_pct:** entities_present / must_include_entities\n**frame_coverage_pct:** semantic_frames_matched / expected_frames\n**AI-phrase filter:** removes 16+ overused ChatGPT patterns\n**schema_triples:** @graph JSON-LD with Article + FAQPage + Organization nodes`,
   },
   keywords: {
     layman: `Every keyword you could target — from Google Ads, Search Console, Analytics, and Keyword Planner — merged into one unified view. We score each one on three things: how big the opportunity is, how realistic it is for you to rank, and whether it's likely to win the featured snippet or AI Overview. You see which keywords to invest in, which to defend, and which to ignore.`,
     technical: `Unified Keyword Framework (UKF) merges data from Google Ads API (keywords, CPC, conversions, QS), Search Console API (position, CTR, clicks, impressions), GA4 API (sessions, conversions by landing page), Keyword Planner (search volume, competition), and Moz (DA gap). Computes three scores per keyword: Opportunity (volume 0.25 + CVR 0.30 + rank_gap 0.20 + paid_waste 0.15 + trend 0.10 × intent multiplier), Rank Propensity (DA gap + topical authority + content quality + CTR signal + position + local boost), and AEO Score (format 0.30 + direct_answer 0.25 + schema 0.20 + authority 0.15 + freshness 0.10). Categorizes into: organic_cannibal, striking_distance, quick_win, dark_matter, paid_only, defend, underperformer, monitor.`,
     data_sources: ['Google Ads API', 'Google Search Console API', 'GA4 API', 'Keyword Planner', 'Moz API v2', 'Historical snapshots (kotoiq_snapshots)'],
+    output_layman: `**Opportunity Score (0-100):** Is this keyword worth pursuing? Big volume + high conversion + gap between you and #1 = big number.\n\n**Rank Propensity (0-100):** Can you realistically rank for it? Factors in your DA, topic depth, content fit, and local boost.\n\n**Categories to watch:**\n- **Quick Win:** High opportunity, high propensity — go get these first.\n- **Striking Distance:** Pos 4-15, nudge them to top 3.\n- **Organic Cannibal:** You're paying for clicks you already rank for — kill the ad.\n- **Dark Matter:** High impressions, zero clicks — title/meta problem.\n\n**Next Action:** Filter by category → export to content brief or ads audit.`,
+    output_technical: `**opportunity_score:** (volume × 0.25 + cvr × 0.30 + rank_gap × 0.20 + paid_waste × 0.15 + trend × 0.10) × intent_multiplier\n**rank_propensity_score:** DA_gap_normalized + topical_authority + content_quality + ctr_signal + position_signal + local_boost\n**aeo_score:** format 0.30 + direct_answer 0.25 + schema 0.20 + authority 0.15 + freshness 0.10\n**Categories:** striking_distance (pos 4-15), quick_win (opp>70 + prop>70), organic_cannibal (ranks top3 + bids), dark_matter (imp>500 + ctr<1%)`,
   },
   ranks: {
     layman: `We track where you rank in Google for every important keyword, every day. You see if you're moving up or down over time. We also track "striking distance" keywords — ones in position 4-15 where a small push gets you to the top of page 1.`,
     technical: `Uses DataForSEO SERP API (or Search Console as fallback) to track daily keyword positions. Stored in kotoiq_snapshots with date, position, clicks, impressions, CTR. Rank history tab queries last 90 days, computes position deltas, and groups movements into improved/declined/top3/top10 buckets. Local rank tracker handles geo-specific SERPs by passing coordinates to DataForSEO.`,
     data_sources: ['DataForSEO SERP API', 'Google Search Console', 'kotoiq_snapshots (daily history)'],
+    output_layman: `**Top 3 count:** Keywords where you own the golden real estate.\n\n**Top 10 count:** Keywords on page 1 — each one is a traffic machine.\n\n**Striking Distance (pos 4-15):** The single biggest quick-win bucket. Push these up and revenue follows.\n\n**Improved / Declined:** 30-day movement. Declining = investigate & refresh. Improving = double down.\n\n**Next Action:** Sort by "Biggest Decline" → queue for Content Refresh. Sort by "Striking Distance" → queue for on-page optimization.`,
+    output_technical: `**position_delta_30d:** current_position − position_30d_ago (negative = improved)\n**striking_distance:** keywords where 4 ≤ position ≤ 15\n**top3_keywords / top10_keywords:** integer counts\n**trajectory:** improving (Δ ≤ -3) | stable (-3 < Δ < 3) | declining (Δ ≥ 3)\n**volatility_index:** stddev of position across last 30 daily snapshots`,
   },
   competitors: {
     layman: `We reverse-engineer what your competitors are doing right. We pull their top ranking keywords, find the ones they rank for that you don't, and show you which pages of theirs are driving their traffic. We also analyze their topical maps so you can see exactly what's on their site.`,
     technical: `Uses DataForSEO getDomainCompetitors and getDomainRankedKeywords endpoints. For each competitor, fetches top 500 ranking keywords, compares against client's ranked keywords (set intersection) to identify gaps. Pulls competitor sitemaps and extracts URLs (up to 200). Can run runCompetitorTopicalMapExtractor to infer their content strategy. Stores in kotoiq_keywords.competitor_domains for cross-referencing.`,
     data_sources: ['DataForSEO (ranked keywords, competitors)', 'Competitor sitemaps', 'Moz backlink data', 'Claude Sonnet 4 (topical map inference)'],
+    output_layman: `**Gap Keywords:** They rank, you don't. Every one is a page you should publish.\n\n**Shared Keywords:** You both rank — fight for top 3 by out-depthing them.\n\n**Top Traffic Pages:** The specific URLs driving their traffic — read them, then do it 10× better.\n\n**Next Action:** Click "Extract Topical Map" on a competitor → see their full content strategy → use it to populate your Content Calendar.`,
+    output_technical: `**gap_count:** |competitor_keywords − client_keywords|\n**shared_count:** |competitor_keywords ∩ client_keywords|\n**weakness_ratio:** client_avg_position / competitor_avg_position (>1.0 = you're behind)\n**top_pages:** competitor URLs sorted by estimated_traffic desc\n**opportunity_flag:** gap_keyword AND volume > 100 AND kd < 40`,
   },
   gmb: {
     layman: `Everything about your Google Business Profile in one place — your health score, what's missing, reviews that need responses, post ideas, and a heat map showing where you rank locally around your neighborhood.`,
     technical: `Pulls data from GBP API (pullFullGBPData): business info, categories, hours, photos, reviews, Q&A, posts, insights (views, searches, actions). Computes gmb_health_score weighted across completeness (categories, hours, photos, description, website), review volume + velocity + rating, response rate, Q&A activity, and post frequency. Review response AI uses Claude to draft on-brand replies. Post generator uses business context to produce GBP-optimized captions. Grid scans run at 25/49 geographic points via DataForSEO.`,
     data_sources: ['Google Business Profile API', 'DataForSEO Grid Scan', 'Claude Sonnet 4 (drafting)'],
+    output_layman: `**GMB Health Score (0-100):** One number for your overall profile strength. 80+ is healthy, 60-79 needs work, <60 is urgent.\n\n**Missing Items:** Categories, photos, hours, description — any blank field = points lost.\n\n**Response Rate:** % of reviews you've replied to. Google favors profiles that engage.\n\n**Grid Rank:** Where you show up on the map at each point around your business.\n\n**Next Action:** Missing items → fix in GBP. Unresponded reviews → click "Draft Reply" for AI-written responses.`,
+    output_technical: `**gmb_health_score:** completeness × 0.25 + review_strength × 0.25 + response_rate × 0.20 + qa_activity × 0.15 + post_frequency × 0.15\n**completeness:** filled_fields / total_required_fields\n**review_strength:** (avg_rating / 5) × 0.5 + velocity_normalized × 0.5\n**response_rate:** responded / total_reviews\n**grid score:** avg_position across all grid points (lower = better)`,
   },
   gmb_images: {
     layman: `Upload or AI-generate an image for your Google Business Profile. We automatically stamp it with your business location (GPS coordinates, address, city), set a realistic date and camera, and add an SEO-optimized caption. Google weighs geo-tagged images more heavily for local search, so this gives every photo a local-relevance boost.`,
     technical: `Uses piexifjs to write EXIF metadata (GPS IFD: GPSLatitude/Longitude in DMS format, GPSDateStamp, GPSMapDatum=WGS-84; Zero-th IFD: Make, Model, Software="KotoIQ Geo-Tagger", Artist, Copyright). Coordinates resolved via Google Geocoding API from client address. For generation: uses OpenAI gpt-image-1 (1024×1024) with a Claude-enhanced prompt (adds location details, no people's faces, style hints). PNG→JPEG conversion happens client-side via Canvas before EXIF injection. Upload to GBP Media API via /accounts/{id}/locations/{id}/media with category (PROFILE/COVER/ADDITIONAL/LOGO).`,
     data_sources: ['OpenAI gpt-image-1', 'Google Geocoding API', 'Client GBP data (address, coords)', 'piexifjs (EXIF writer)', 'Supabase Storage + GBP Media API'],
+    output_layman: `**Geo-tagged JPEG:** Your image now carries GPS coordinates, address, city, and a realistic capture date baked into its metadata.\n\n**SEO Caption:** AI-written caption with your business name, location, and service keywords.\n\n**Category:** Profile, Cover, Additional, or Logo — pick where it lands in your GBP.\n\n**Next Action:** Click "Upload to GBP" to push the geo-tagged image live, or download the JPEG to use elsewhere (every image you post with this metadata helps local relevance).`,
+    output_technical: `**EXIF GPS IFD:** GPSLatitudeRef, GPSLatitude (DMS), GPSLongitudeRef, GPSLongitude (DMS), GPSDateStamp, GPSMapDatum=WGS-84\n**EXIF Zero-th:** Make, Model, Software="KotoIQ Geo-Tagger", Artist, Copyright, DateTime\n**Image format:** JPEG (PNG auto-converted via Canvas)\n**Dimensions:** 1024×1024 (gpt-image-1 native)\n**GBP categories:** PROFILE | COVER | ADDITIONAL | LOGO`,
   },
   aeo_multi: {
     layman: `It's not just Google anymore. We score your content for ranking across 5 AI search engines at once: Google AI Overview, Perplexity, ChatGPT Search, Claude, and Copilot. Each one values different things — Perplexity loves citations, ChatGPT wants structured data, Google likes schema. You see which engine you're best positioned for and exactly what to fix for the others.`,
     technical: `runMultiEngineAEO analyzes content against 5 engines' known ranking patterns. For each: format_match (direct answer, Q&A structure, lists), citation_likelihood (external sources cited, authoritative quotes), structural factors (schema markup, semantic HTML, passage eligibility), freshness, authority signals. Scores 0-100 per engine with eligibility tier (high/medium/low). Overall AEO score is weighted avg. Returns best_positioned_for array and prioritized recommendations.`,
     data_sources: ['Content text', 'Schema presence detection', 'Citation extraction', 'Claude Sonnet 4 (engine pattern analysis)'],
+    output_layman: `**Per-Engine Scores (0-100):** Google AIO, Perplexity, ChatGPT, Claude, Copilot — see exactly where you're strong and weak.\n\n**Eligibility Tier:** High = likely cited | Medium = needs tweaks | Low = rewrite needed.\n\n**Best Positioned For:** The engine most likely to cite you as-is.\n\n**Gaps:** Engine-specific issues — e.g. "Perplexity needs 3+ external citations" or "ChatGPT wants FAQPage schema".\n\n**Next Action:** Click the lowest-scoring engine → see the targeted fix list → apply before publishing.`,
+    output_technical: `**per_engine_score:** format_match × 0.30 + citation_likelihood × 0.25 + structural × 0.20 + authority × 0.15 + freshness × 0.10\n**eligibility:** high (≥75) | medium (50-74) | low (<50)\n**engines:** google_aio | perplexity | chatgpt | claude | copilot\n**best_positioned_for:** argmax(per_engine_score)\n**overall_aeo:** weighted avg of 5 engines (google_aio 0.30 + perplexity 0.20 + chatgpt 0.20 + claude 0.15 + copilot 0.15)`,
   },
   content_decay: {
     layman: `Not all content ages well. We look at your existing pages, their ranking history, and how stale they are, then predict which ones are about to lose rankings in 30, 60, and 90 days. You get a refresh queue ordered by urgency — fix the ones about to die first.`,
     technical: `runContentDecayPredictor takes URL, current position, 30/90/180-day historical positions from kotoiq_snapshots, last_updated age, word count, and competitor freshness average. Decay risk classified into low/medium/high/critical based on: trajectory slope, age gap vs competitor freshness, word count below threshold, SERP feature loss patterns. Predicts position at +30d/+60d/+90d and estimated click loss. Returns recommended_refresh_date and priority 1-5.`,
     data_sources: ['kotoiq_content_inventory', 'kotoiq_snapshots (historical positions)', 'kotoiq_keywords', 'Claude Sonnet 4 (decay pattern analysis)'],
+    output_layman: `**Decay Risk:** Critical → refresh THIS week. High → refresh this month. Medium → plan next quarter. Low → leave alone.\n\n**Predicted Position +90d:** Where the page will rank in 90 days if you do nothing.\n\n**Estimated Click Loss:** How many monthly clicks disappear if you don't act.\n\n**Refresh Priority 1-5:** Auto-sorted refresh queue — work top to bottom.\n\n**Next Action:** Click "Add to Refresh Queue" to push into Content Calendar, or "Generate Refresh Brief" to get specific rewrite instructions.`,
+    output_technical: `**decay_risk:** critical (pos_slope ≥ +5/mo AND age > 365d) | high (pos_slope ≥ +3/mo) | medium (pos_slope ≥ +1/mo) | low\n**predicted_position_90d:** current_pos + (pos_slope × 3)\n**estimated_click_loss:** ctr_at_current_pos × impressions − ctr_at_predicted_pos × impressions\n**priority:** 1 (critical + high_traffic) → 5 (low + low_traffic)\n**refresh_by_date:** today + (90 × (1 / risk_multiplier))`,
   },
   semantic: {
     layman: `We analyze every page on your site to check if the language you use actually matches what Google expects for your topic. We look at word patterns (n-grams), how much is main content vs supporting content, and whether your headings flow logically. Pages that drift off-topic or use weak vocabulary get flagged.`,
     technical: `analyzeSemanticNetwork crawls up to 50 sitemap URLs, extracts headings, paragraphs, anchor texts. Computes site-wide 2-grams and 3-grams, top nouns/predicates/adjectives. Claude analyzes each page for macro_context vs micro_contexts, main vs supplementary content ratio (target ~70/30), contextual flow score, contextual consistency. Detects thin_content_pages (<300 words), context_dilution_pages (4+ unrelated topics), orphan_contexts (mentioned but unlinked).`,
     data_sources: ['Full sitemap crawl', 'HTML content extraction', 'Claude Sonnet 4 (semantic analysis)'],
+    output_layman: `**Contextual Flow Score (0-100):** Does the content flow logically from heading to heading? 80+ is a Google-friendly structure.\n\n**Main vs Supplementary Ratio:** Target ~70/30 — too much supplementary = off-topic drift.\n\n**Thin Content Pages:** Under 300 words — merge or expand.\n\n**Context Dilution Pages:** Trying to cover 4+ unrelated topics — split into separate pages.\n\n**Orphan Contexts:** Topics mentioned but never linked to — missed internal-link opportunities.\n\n**Next Action:** Click a flagged page → see the specific fix recommendation.`,
+    output_technical: `**contextual_flow_score:** heading_hierarchy_coherence × 0.5 + topic_consistency × 0.5\n**main_supplementary_ratio:** target 70/30 (deviation > 20% flagged)\n**thin_content_threshold:** word_count < 300\n**context_dilution_threshold:** distinct_topics_per_page ≥ 4\n**n_gram analysis:** 2-gram + 3-gram frequency vs topical expected distribution`,
   },
   internal_links: {
     layman: `We map every internal link on your site. We find: pages with zero internal links pointing to them (invisible to Google), pages with too many links (diluting signal), duplicate anchor text pointing to different URLs (confusing), and pages with high traffic that should be linked from your homepage. All fixable, big impact.`,
     technical: `scanInternalLinks fetches sitemap URLs (batch 10 parallel), extracts all internal <a> tags via regex, classifies anchor_type (exact/partial/branded/naked_url/generic/image) and position (header/nav/content/sidebar/footer). Flags: is_first_link (only first link passes PageRank). Audit computes: equity_concentration (Gini coefficient), orphan_pages (0 inbound links), over_linked_pages (>150 outbound), duplicate_anchor_issues (same anchor → different URLs), starved_pages (high SC impressions + <3 inbound). Cross-refs kotoiq_keywords for traffic weighting.`,
     data_sources: ['Full sitemap crawl', 'Page HTML (all internal anchors)', 'kotoiq_keywords (SC impression data)'],
+    output_layman: `**Orphan Pages:** Zero internal links pointing in — Google barely sees them. Link from 3+ relevant pages.\n\n**Starved Pages:** High Search Console impressions, <3 internal links — link harder and they'll rank harder.\n\n**Over-Linked Pages:** >150 outbound links — you're diluting PageRank, prune aggressively.\n\n**Duplicate Anchor Issues:** Same anchor text → different URLs. Confuses Google, pick one target.\n\n**Equity Concentration (Gini):** 0 = perfectly distributed, 1 = all link equity on one page. Aim < 0.5.\n\n**Next Action:** Click any issue → see exact source/target recommendations with anchor text.`,
+    output_technical: `**orphan_threshold:** inbound_internal_links = 0\n**starved_threshold:** inbound < 3 AND sc_impressions > 500\n**over_linked_threshold:** outbound > 150\n**equity_concentration:** Gini coefficient of inbound_link distribution (0=even, 1=concentrated)\n**anchor_classes:** exact | partial | branded | naked_url | generic | image\n**is_first_link flag:** only first anchor per page passes PageRank (historical Google rule)`,
   },
   brand_serp: {
     layman: `When someone Googles your business name, what do they see? We check every element: Knowledge Panel, site links, People Also Ask questions, reviews, local pack, negative results. If someone asks "Is [your business] a scam?" we flag it so you can fix it.`,
     technical: `scanBrandSERP fetches SERP via DataForSEO for brand query. Detects 11 feature flags (knowledge_panel, site_links, paa, reviews, local_pack, images, videos, news, social, jobs, ai_overview). Counts owned_results (organic positions from client domain). Claude analyzes PAA question sentiment (trust/neutral/negative) and flags negative results. brand_serp_score weighted: owned_results × 0.30 + kp_present × 0.20 + no_negative_results × 0.20 + feature_richness × 0.15 + paa_sentiment × 0.15.`,
     data_sources: ['DataForSEO SERP API', 'Brand name query', 'Claude Sonnet 4 (sentiment analysis)'],
+    output_layman: `**Brand SERP Score (0-100):** Overall health of your branded search. 80+ = you own the SERP. <60 = urgent attention.\n\n**Owned Results:** How many of the top 10 positions YOU own (website, social, subdomains).\n\n**Knowledge Panel Present:** If yes, good. If no, pursue Wikidata/Wikipedia entity build.\n\n**Negative Results / PAA:** Any "scam/complaint/bad" flagged — these need content responses.\n\n**Feature Flags:** Which rich features appear — site links, reviews, images, local pack.\n\n**Next Action:** Negative result found → click "Generate Counter-Content" for AI-drafted response page.`,
+    output_technical: `**brand_serp_score:** owned_results × 0.30 + kp_present × 0.20 + no_negative × 0.20 + feature_richness × 0.15 + paa_sentiment × 0.15\n**owned_results:** count of top-10 results where domain == client_domain OR social\n**feature_flags:** kp, site_links, paa, reviews, local_pack, images, videos, news, social, jobs, ai_overview\n**paa_sentiment:** trust (pos) | neutral | negative — Claude-classified\n**negative_flags:** regex match [scam|complaint|lawsuit|review] in titles/snippets`,
   },
   backlinks: {
     layman: `We analyze every website linking to you — how trustworthy each one is, what anchor text they use, and whether any are toxic (spam sites that hurt you). We compare your link profile to your top competitors to see who has more and better links.`,
     technical: `Uses Moz API v2 /url_metrics (DA, spam_score, referring_domains, total_backlinks) and /links (500 backlinks with source DA, anchor text, spam score). Builds dr_distribution bins (0-10 through 90-100), anchor_distribution by type, toxic_links (spam_score > 7), high_quality_links (DA > 50), edu_gov_links counter. Estimates TrustRank from high-DA + edu/gov ratio. Competitor comparison calls Moz for each competitor domain.`,
     data_sources: ['Moz API v2 (url_metrics, links)', 'Competitor domains from kotoiq_keywords'],
+    output_layman: `**Domain Authority (0-100):** Moz's score for how strong your backlink profile is overall.\n\n**Referring Domains:** Count of unique sites linking to you — more diverse = more trust.\n\n**Toxic Links (spam_score > 7):** Disavow these in Google Search Console to avoid penalties.\n\n**High-Quality Links (DA > 50):** Your actual ranking fuel — thank them, replicate them.\n\n**Anchor Distribution:** Too much exact-match = over-optimization flag. Aim for variety.\n\n**Next Action:** Toxic list → export as disavow.txt. Competitor gap → Backlink Opportunities tab.`,
+    output_technical: `**domain_authority:** Moz DA 0-100\n**toxic_threshold:** spam_score > 7\n**high_quality_threshold:** source_DA > 50\n**trust_rank:** (high_quality_links × 0.6 + edu_gov_links × 0.4) / total_backlinks\n**anchor_distribution:** exact | partial | branded | naked_url | generic | image — healthy profile: branded 40-60%, exact <10%\n**dr_distribution:** 10 bins (0-10, 11-20, ... 91-100)`,
   },
   backlink_opps: {
     layman: `Where can you get new backlinks? We find: sites linking to multiple competitors but not you (easy wins), mentions of your business name that aren't linked (just ask them to link), broken links on industry sites (offer a replacement), directories you're missing, resource pages, and guest post angles. Each comes with a ready-to-send outreach email.`,
     technical: `scanAndGenerateBacklinks aggregates competitor_domains from kotoiq_keywords, calls Moz /links for top 5 competitors (500 each), excludes client's existing referrers. Identifies: competitor_common (linking to 3+ competitors), unlinked_mention (DataForSEO SERP "brand name" -site:client.com), directory (SERP "{industry} directory submit"), resource_page (SERP inurl:resources), guest_post (Claude-generated angles). Enriches DA via Moz batch /url_metrics. Claude generates individualized outreach templates. Ranks by DA × 0.45 + relevance × 0.35 + ease × 0.20.`,
     data_sources: ['Moz backlink data (client + 5 competitors)', 'DataForSEO SERP queries', 'kotoiq_keywords (competitor_domains)', 'Claude Sonnet 4 (outreach email generation)'],
+    output_layman: `**Opportunity Types:**\n- **Competitor Common:** Sites linking to 3+ competitors but not you — highest ROI.\n- **Unlinked Mention:** Your name mentioned, no link — easiest wins, just ask.\n- **Broken Link:** Broken on their site → offer your page as replacement.\n- **Directory:** Industry directories you're not in.\n- **Resource Page:** "/resources" pages that curate tools/services.\n- **Guest Post:** Angles pre-written for pitch.\n\n**Priority Score (0-100):** DA × relevance × ease.\n\n**Next Action:** Click "Copy Outreach Email" → paste into Gmail → send.`,
+    output_technical: `**priority_score:** DA × 0.45 + relevance × 0.35 + ease × 0.20\n**opp_types:** competitor_common | unlinked_mention | broken_link | directory | resource_page | guest_post\n**competitor_common_threshold:** site links to ≥ 3 competitors AND 0 links to client\n**unlinked_mention_query:** "brand_name" -site:client_domain via DataForSEO\n**ease_score:** directory (0.9) > unlinked_mention (0.8) > resource_page (0.6) > guest_post (0.4) > broken_link (0.3)`,
   },
   eeat: {
     layman: `E-E-A-T stands for Experience, Expertise, Authority, Trust — Google's criteria for evaluating content. We check if your pages show real expertise (credentials, author bios), trust signals (HTTPS, contact info, privacy policy), experience markers (case studies, original data), and authority (backlinks, citations). Each gets a score, you get a letter grade A-F.`,
     technical: `auditEEAT fetches target URL, runs rule-based checks for Trust (HTTPS, privacy policy, contact info, physical address, reviews). Sends content to Claude for Experience analysis (first-person language, case studies, original images), Expertise (author bios, credentials, technical vocabulary), Authority (external citations, awards, memberships). Weighted overall: Experience 0.25 + Expertise 0.30 + Authority 0.25 + Trust 0.20. Grades: A≥85, B≥70, C≥55, D≥40, F<40. Checks for author_has_knowledge_panel via Google Knowledge Graph API.`,
     data_sources: ['Target page HTML', 'Moz Domain Authority', 'Claude Sonnet 4 (signal analysis)', 'Google Knowledge Graph API (author entity check)'],
+    output_layman: `**Overall E-E-A-T Grade (A-F):** Google's trust in your page.\n- A (85+): Authoritative. Defend.\n- B (70-84): Strong. Polish.\n- C (55-69): Mediocre. Add author bios, citations.\n- D/F (<55): At risk for YMYL topics.\n\n**Per-Pillar Scores:** See which of the 4 pillars is the weak link.\n\n**Missing Signals:** Specific fixes — "add author byline", "add HTTPS", "cite 3+ external sources".\n\n**Next Action:** Click "Generate Author Bio" or "Add Schema" for one-click fixes.`,
+    output_technical: `**overall_eeat_score:** experience × 0.25 + expertise × 0.30 + authority × 0.25 + trust × 0.20\n**grades:** A ≥ 85 | B 70-84 | C 55-69 | D 40-54 | F < 40\n**trust_checks:** https, privacy_policy, contact_info, physical_address, visible_reviews\n**experience_signals:** first_person_count, case_study_presence, original_image_count\n**expertise_signals:** author_bio_present, credentials_listed, technical_vocab_ratio\n**authority_signals:** external_citation_count, awards_listed, knowledge_panel_linked`,
   },
   schema: {
     layman: `Schema markup is structured code that tells Google exactly what your page is about. We scan your whole site, see which pages have it, flag errors, and auto-generate the right schema for pages that are missing it (FAQ, service, product, how-to, local business). You get copy-paste JSON-LD for each page.`,
     technical: `auditSchema fetches sitemap (up to 100 URLs), batch 10 parallel. Extracts JSON-LD via regex from <script type="application/ld+json">, parses, detects @type field. Validates against schema.org requirements. Analyzes page content to detect eligible-but-missing types (FAQ pages without FAQPage, service pages without Service, etc.). Claude auto-generates JSON-LD for top 10 opportunities. Checks semantic HTML (proper main/article/aside/nav/section usage).`,
     data_sources: ['Full sitemap crawl', 'JSON-LD extraction + validation', 'Claude Sonnet 4 (schema generation)', 'Competitor schema comparison'],
+    output_layman: `**Coverage %:** What share of eligible pages actually have schema.\n\n**Missing Opportunities:** Pages that SHOULD have schema — FAQ pages missing FAQPage, service pages missing Service, product pages missing Product.\n\n**Errors:** Broken or invalid schema flagged by Google.\n\n**Eligible Rich Results:** Which rich result formats you unlock (FAQ, HowTo, Breadcrumb, Review, Event, Product).\n\n**Next Action:** Click any missing-schema page → "Generate JSON-LD" → paste into the page head.`,
+    output_technical: `**schema_coverage_pct:** pages_with_valid_jsonld / eligible_pages\n**error_types:** parse_error | missing_required_prop | invalid_type | deprecated_type\n**eligible_types:** FAQPage | HowTo | Article | Product | LocalBusiness | Review | Event | BreadcrumbList | Organization\n**rich_result_unlocks:** types eligible per content detection\n**semantic_html_score:** proper_use(main, article, aside, nav, section) / expected`,
   },
   on_page: {
     layman: `Everything that makes a page rank, checked in one scan: title tag, meta description, H1, heading structure, keyword placement, image alt text, internal links, load speed, mobile optimization, schema, social tags, URL structure. 17 checks total. You get pass/warning/fail badges and a prioritized fix list.`,
     technical: `analyzeOnPage fetches URL, runs 17 checks: title length 30-60 + keyword + position, meta desc 120-160 + CTA, single H1, heading hierarchy H1→H2→H3, word count >1000, keyword density 0.5-2.5%, Flesch readability score, image alt coverage, internal links 3-10, URL length + keyword, schema present, load time < 3s, viewport meta, OG + Twitter Cards, canonical, keyword placement map (title/H1/first100/meta/URL/alt). Overall 0-100 score. Claude generates prioritized critical_fixes and quick_wins.`,
     data_sources: ['Target page HTML + headers', 'Schema.org validation', 'Claude Sonnet 4 (fix prioritization)'],
+    output_layman: `**On-Page Score (0-100):** 90+ = publish-ready, 70-89 = polish, <70 = major fixes needed.\n\n**17 Checks:** Each badge is Pass (green), Warning (amber), or Fail (red). Failures are ranking blockers.\n\n**Critical Fixes:** Must fix before expecting to rank.\n\n**Quick Wins:** Small tweaks with immediate impact.\n\n**Keyword Placement Map:** Shows if your target keyword appears in title, H1, first 100 words, meta, URL, alt text.\n\n**Next Action:** Work the Critical Fixes list top-to-bottom, then Quick Wins.`,
+    output_technical: `**overall_on_page_score:** sum(check_weights × check_pass) / max_score × 100\n**check groups:** title (3 checks, weight 0.15) | meta (2, 0.10) | headings (3, 0.15) | content (3, 0.20) | technical (3, 0.20) | markup (3, 0.20)\n**title_length_target:** 30-60 chars\n**meta_desc_target:** 120-160 chars\n**keyword_density_range:** 0.5-2.5%\n**pass/warn/fail thresholds:** per-check defined in analyzer`,
   },
   technical_deep: {
     layman: `The technical foundation of your SEO — crawl budget, canonical tags, mobile setup, sitemap health, Core Web Vitals, index coverage. Google can only rank pages it can crawl. This tells you if you're wasting crawl budget, blocking bots, or have critical speed issues.`,
     technical: `auditTechnicalDeep: Phase 1 sitemap (fetches /sitemap.xml and /sitemap_index.xml, counts URLs, checks categorization). Phase 2 crawl (samples 50 URLs, records status codes, canonical tags, viewport meta, noindex, response time). Phase 3 CWV (PageSpeed Insights API for homepage — LCP/FID/CLS). Phase 4 scoring: crawl_waste_pct, url_value_ratio, canonical_score (100 - issue_pct), mobile_score, indexed_pct, cwv_grade.`,
     data_sources: ['Sitemap XML', 'Page crawl (50 sample URLs)', 'PageSpeed Insights API', 'Google API key'],
+    output_layman: `**Crawl Waste %:** Share of sampled URLs returning 4xx/5xx or redirecting. Under 5% is healthy.\n\n**Canonical Score:** Are canonical tags used correctly? Broken canonicals = duplicate content risk.\n\n**Mobile Score:** Viewport + responsive checks.\n\n**Core Web Vitals Grade:** LCP + FID + CLS via PageSpeed — Good / Needs Improvement / Poor.\n\n**Indexed %:** Estimated share of URLs Google has actually indexed.\n\n**Next Action:** Fix any critical (red) issues first — they block rankings site-wide.`,
+    output_technical: `**crawl_waste_pct:** (4xx + 5xx + non_canonical_redirects) / sample_size\n**canonical_score:** 100 − (canonical_issue_count / checked × 100)\n**cwv_grade:** good (LCP<2.5s + FID<100ms + CLS<0.1) | needs_improvement | poor\n**indexed_pct:** (estimated_indexed_urls / sitemap_urls) from SC index coverage\n**url_value_ratio:** high_value_urls / total_urls`,
   },
   gsc_audit: {
     layman: `We connect to your Google Search Console and do a deep 90-day analysis: pages with impressions but missing from the index, queries where your click-through rate is abnormally low (leaving clicks on the table), keywords losing impressions over time, and pages cannibalizing each other's rankings.`,
     technical: `runGSCAudit pulls 90d SC data via fetchSearchConsoleData (by query, by page, by query+page). Compares to prior 90d window for trend delta. Detects: CTR anomalies (pos 3-10, <60% of expected CTR curve), striking_distance (pos 11-20, >50 impressions), impression_decay (≥20% drop vs prior window), cannibalization (2+ URLs ranking for same query with ≥100 combined impressions), indexing_issues (high impressions + zero clicks, deep rank >50). overall_health_score weighted: CTR + avg_position + growth + penalty_count.`,
     data_sources: ['Google Search Console API (90d window)', 'URL Inspection API', 'Claude Sonnet 4 (prioritized recommendations)'],
+    output_layman: `**Overall GSC Health Score (0-100):** One number that summarizes 90d search performance.\n\n**CTR Anomalies:** Keywords where you should be getting more clicks — almost always a title/meta fix.\n\n**Striking Distance:** Position 11-20 with real impressions — the single biggest quick-win bucket.\n\n**Impression Decay:** Queries losing visibility — investigate before they die.\n\n**Cannibalization:** 2+ pages fighting for the same query — consolidate into one authoritative page.\n\n**Next Action:** Each issue has "Create Fix" — auto-generates title, meta, or refresh brief.`,
+    output_technical: `**overall_health_score:** ctr_score × 0.30 + avg_position_score × 0.30 + growth_score × 0.25 + penalty_score × 0.15\n**ctr_anomaly:** pos in [3,10] AND ctr < 0.6 × expected_ctr_curve(pos)\n**striking_distance:** pos in [11,20] AND impressions > 50\n**impression_decay:** impressions_90d < 0.80 × impressions_prior_90d\n**cannibalization:** |urls_ranking_same_query| ≥ 2 AND combined_impressions ≥ 100`,
   },
   bing_audit: {
     layman: `Google isn't the only search engine. Bing powers ChatGPT Search and has 100M+ US users. This pulls your Bing Webmaster data, shows queries where Bing ranks you differently than Google, and finds Bing-specific opportunities you're missing.`,
     technical: `runBingAudit calls Bing Webmaster API: GetQueryStats (top queries with impressions/clicks), GetRankAndTrafficStats (rank distribution), GetCrawlStats (crawl health). Handles 401/403 gracefully for unverified sites. Cross-references Google SC data per query → flags bing_outranks_google and google_outranks_bing discrepancies. Detects Bing-specific striking distance and CTR anomalies using Bing's different CTR curves.`,
     data_sources: ['Bing Webmaster Tools API', 'Google Search Console (for comparison)', 'Claude Sonnet 4'],
+    output_layman: `**Bing vs Google Rank Deltas:** Queries where Bing ranks you way higher (double down — Bing traffic is easier to capture) or way lower (investigate — usually a schema or freshness issue).\n\n**Bing Striking Distance:** Position 11-20 in Bing with impressions.\n\n**Crawl Health:** Bing-reported crawl errors — fix to stay indexed.\n\n**Next Action:** Any query where Bing outranks Google by 5+ positions → run "Why the gap?" analysis — often a quick ChatGPT Search win.`,
+    output_technical: `**bing_outranks_google:** bing_position ≤ google_position − 5\n**google_outranks_bing:** google_position ≤ bing_position − 5\n**bing_striking_distance:** bing_position in [11,20] AND impressions > 20\n**crawl_health_score:** (total_pages_crawled − errors) / total_pages_crawled\n**ctr_curves (Bing):** different from Google — pos1 ~25%, pos2 ~13%, pos3 ~8%`,
   },
   query_paths: {
     layman: `Users don't search just one keyword — they search a sequence. They might start with "best plumber" then refine to "emergency plumber near me" then "24 hour plumber Boca Raton". We group your keywords into these journeys so you can create content that covers the whole search path, not just a single term.`,
     technical: `analyzeQueryPaths clusters keywords into topical/intent/sequential/correlative groups based on: topical similarity (same entity), intent correlation (transactional + commercial nearby), sequential paths (broad→specific query refinement), represented/representative relationships (seed → variations). Claude identifies the seed_query per cluster, members with relationship type, likely common_next_queries and common_prev_queries. Cross-references sc_top_page to mark covered/gap queries.`,
     data_sources: ['kotoiq_keywords (all client keywords)', 'kotoiq_snapshots (query trajectory)', 'Claude Sonnet 4 (cluster identification)'],
+    output_layman: `**Query Clusters:** Each cluster is a user journey — start query → refinement → final search.\n\n**Seed Query:** The broad term users type first.\n\n**Path Members:** The sequential refinements that follow.\n\n**Covered vs Gap:** Which journey steps you rank for, which you don't.\n\n**Common Next Queries:** What users search next after your page — prime internal-link targets.\n\n**Next Action:** Any cluster with gaps in the middle = content-series opportunity. Build pages for each step + interlink them.`,
+    output_technical: `**cluster_types:** topical (shared entity) | intent (shared intent class) | sequential (broad→specific) | correlative (co-searched)\n**seed_query:** cluster member with highest search_volume AND lowest specificity_score\n**coverage_flag:** member is covered if client_domain appears in top_10 for that query\n**common_next_queries:** derived from GSC co-occurrence + Claude intent expansion\n**path_completeness:** covered_members / cluster_size`,
   },
   rank_grid: {
     layman: `Google shows different local results depending on where you physically are. This creates a grid of 25 or 49 points around your business and checks where you rank at each point. You see a color-coded heat map — green where you dominate, red where you're invisible. Dead zones become opportunities for hyperlocal landing pages.`,
     technical: `runRankGridPro wraps DataForSEO grid scan at 5×5 or 7×7 points centered on business coordinates with configurable radius. PRO features: identifies top 3 competitors at each point (not just client rank), Share of Local Voice (% of top 3 positions across all points), 5-color heatmap (1-3 green, 4-10 yellow, 11-20 orange, 21-50 red, >50 black), dead_zones (points where rank > 20), drift vs last scan (compare positions per point), top competitors with dominant zones. Saves history to kotoiq_grid_scans_pro.`,
     data_sources: ['DataForSEO Google Local SERP API', 'Business GPS coordinates', 'Grid of 25-49 geo points'],
+    output_layman: `**Heat Map:** Color-coded grid around your business — green (pos 1-3), yellow (4-10), orange (11-20), red (21-50), black (>50 = invisible).\n\n**Share of Local Voice:** % of grid points where you're in top 3. 50%+ = local dominator.\n\n**Dead Zones:** Specific points (addresses) where you rank below 20 — create hyperlocal landing pages for those neighborhoods.\n\n**Drift vs Last Scan:** Are you expanding your coverage or losing ground?\n\n**Top Competitors per Zone:** Know exactly who to target in each neighborhood.\n\n**Next Action:** Dead zone → "Generate Hyperlocal Page" → publish to cover that area.`,
+    output_technical: `**grid sizes:** 5×5 (25 points) | 7×7 (49 points)\n**radius options:** 0.5 / 1 / 2 / 5 miles\n**heat colors:** green (1-3) | yellow (4-10) | orange (11-20) | red (21-50) | black (>50)\n**solv_pct (Share of Local Voice):** points_in_top3 / total_points\n**dead_zone_threshold:** position > 20\n**drift_per_point:** current_pos − last_scan_pos (positive = got worse)`,
   },
   reviews: {
     layman: `We pull all your Google reviews, analyze what customers praise and complain about, group complaints by topic (parking, pricing, staff, wait times), track whether you're responding fast enough, and draft on-brand responses to every review that needs one. We also track review velocity — are you getting more or fewer reviews over time?`,
     technical: `analyzeReviews pulls GBP reviews via pullFullGBPData. Calculates total_reviews, avg_rating, rating_distribution, review_velocity (last 3 months), velocity_trend. Claude analyzes sentiment by topic — groups praise/complaints into categories (service, pricing, staff, timeliness, communication). response_rate = reviews_with_responses / total. Flags unresponded reviews rating ≤ 3. overall_score weighted: avg_rating + velocity + response_rate + sentiment_positive_pct.`,
     data_sources: ['Google Business Profile API', 'Review text, ratings, dates', 'Claude Sonnet 4 (sentiment + topic clustering)'],
+    output_layman: `**Review Health Score (0-100):** Composite of rating, velocity, response rate, and sentiment.\n\n**Velocity Trend:** Getting more or fewer reviews vs prior 3 months.\n\n**Response Rate:** % of reviews you've replied to. Google rewards responsive profiles.\n\n**Topic Complaints:** Grouped themes (parking, staff, pricing, wait times) — tells you what to fix IRL.\n\n**Topic Praise:** What customers love — bake it into your marketing.\n\n**Next Action:** Unresponded reviews ≤ 3 stars → click "Draft Reply" for on-brand response. Recurring complaint → share with ops team.`,
+    output_technical: `**review_health_score:** avg_rating_normalized × 0.35 + velocity_score × 0.20 + response_rate × 0.25 + sentiment_pos_pct × 0.20\n**velocity_score:** last_3mo_count / prior_3mo_count\n**response_rate:** reviews_with_owner_reply / total_reviews\n**sentiment_pos_pct:** positive_sentiment / total (Claude-classified)\n**topic_clusters:** service | pricing | staff | timeliness | communication | facilities — extracted via Claude`,
   },
   calendar: {
     layman: `A publishing schedule built from your SEO strategy. We pull high-priority gap topics, declining content that needs refresh, and seasonal opportunities, then lay them out across weeks. You see exactly what to publish when — and we track your publishing velocity versus competitors (Vastness × Depth × Momentum).`,
     technical: `buildContentCalendar pulls gap/partial nodes from kotoiq_topical_nodes, declining pages from kotoiq_content_inventory, and gap_queries from kotoiq_query_clusters. Prioritization: P1 high-volume gap core nodes, P2 declining needing refresh, P3 outer section gaps, P4 query cluster gaps. Spreads across weeks respecting momentum targets. calculateMomentum computes Vastness (unique topics covered / topical map size), Depth (avg word count), Momentum (pages per month), VDM overall = weighted avg. Compares to estimated competitor velocity.`,
     data_sources: ['kotoiq_topical_nodes', 'kotoiq_content_inventory', 'kotoiq_query_clusters', 'Competitor sitemap sizes', 'Claude Sonnet 4 (priority scheduling)'],
+    output_layman: `**Weekly Schedule:** Every week has 1-4 items with type (new page / refresh), target keyword, and priority.\n\n**Priority Tiers:** P1 (high-volume gap) → P2 (declining) → P3 (outer topic gap) → P4 (query cluster).\n\n**VDM Score:** Vastness × Depth × Momentum — your overall publishing muscle vs competitors.\n\n**Vastness %:** Topics covered / topical map size.\n\n**Depth avg words:** Avg content length.\n\n**Momentum:** Pages per month.\n\n**Next Action:** Click any item → auto-generate brief. Export week → assign to writer.`,
+    output_technical: `**priority_tiers:** P1 (gap AND volume>500 AND core_node) | P2 (declining AND priority≥3) | P3 (gap AND outer_node) | P4 (gap_query)\n**vdm_score:** (vastness × 0.35 + depth × 0.30 + momentum × 0.35) × 100\n**vastness:** covered_nodes / total_nodes\n**depth:** avg_word_count / 2000 (normalized)\n**momentum:** pages_published_30d / competitor_avg_30d`,
   },
   plagiarism: {
     layman: `Paste any content, we check if it's original or copied. We search the web for exact phrases to find duplicates, and we analyze writing patterns to detect if it was AI-generated (and how obviously). You get an originality score and an AI-detection score.`,
     technical: `checkPlagiarism splits content into 7-sentence chunks, extracts 9-word signature phrases, quoted SERP lookups via DataForSEO for each phrase. Flags chunks where phrases match external URLs. Claude runs AI-detection pass analyzing: perplexity consistency, GPT phrase patterns ("In today's fast-paced world"), em-dash overuse, generic sentence openers, lack of human quirks. Returns overall_originality_score and ai_generation_likelihood 0-100.`,
     data_sources: ['DataForSEO SERP API (phrase matching)', 'Content tokenization', 'Claude Sonnet 4 (AI pattern detection)'],
+    output_layman: `**Originality Score (0-100):** 100 = totally original. Below 85 = real duplication risk.\n\n**AI Generation Likelihood (0-100):** How obvious is it that AI wrote this? Above 70 = readers will clock it, rewrite with more human voice.\n\n**Flagged Chunks:** The exact sentences that matched something online — rewrite these before publishing.\n\n**Matching URLs:** Where the duplicate text was found.\n\n**Next Action:** Flagged chunk → click "Rewrite" for a human-voiced alternative. High AI score → run through Watermark Remover.`,
+    output_technical: `**originality_score:** 100 − (flagged_chunks / total_chunks × 100)\n**ai_generation_likelihood:** perplexity_consistency × 0.30 + gpt_phrase_count × 0.25 + em_dash_ratio × 0.15 + generic_opener_count × 0.15 + sentence_uniformity × 0.15\n**chunk_size:** 7 sentences\n**signature_phrase:** 9-word window, quoted SERP lookup\n**flag_threshold:** phrase_match on external URL (not client own domain)`,
   },
   watermark: {
     layman: `OpenAI embeds invisible watermarks in ChatGPT output (zero-width Unicode characters). Plus, every AI model has tells — overused phrases like "In today's fast-paced world", too many em-dashes, perfect parallel structure. We detect both and rewrite flagged passages so your content reads human.`,
     technical: `removeAIWatermarks strips zero-width Unicode (\\u200b, \\u200c, \\u200d, \\u2060, \\ufeff). Detects 16+ overused ChatGPT phrases, em-dash overuse, "not X, but Y" patterns, excessive transition words (Moreover, Furthermore), triple-clause sentences, generic openers. Claude rewrites flagged sentences in natural voice. Returns human_score_before/after (calculated from pattern frequency + readability), cleaned_content, rewrite_diff showing each change.`,
     data_sources: ['Content text', 'Unicode scanner', 'Claude Sonnet 4 (humanization rewrite)'],
+    output_layman: `**Human Score Before / After:** Where you started, where you ended up. Aim to get above 85.\n\n**Invisible Characters Removed:** Count of zero-width Unicode stripped — OpenAI signature gone.\n\n**Phrases Rewritten:** Count of AI-clichés ("In today's fast-paced world", "In conclusion", "dive deep") humanized.\n\n**Rewrite Diff:** See each original vs. rewritten sentence.\n\n**Next Action:** Click "Copy Cleaned Content" → paste into your CMS. Content is now watermark-free and reads human.`,
+    output_technical: `**human_score:** 100 − (ai_phrase_count × 3 + em_dash_ratio × 20 + invisible_char_count × 5 + generic_opener_count × 2)\n**invisible chars:** \\u200b, \\u200c, \\u200d, \\u2060, \\ufeff (zero-width Unicode)\n**ai_phrase_library:** 16+ known patterns ("It's worth noting", "In today's fast-paced", etc.)\n**em_dash_ratio_threshold:** > 3 per 1000 words = flagged\n**rewrite_diff:** [{original, rewritten, pattern_matched}]`,
   },
   upwork: {
     layman: `Paste an Upwork job description, we tell you if it's worth bidding on. We identify red flags (too low budget, scope creep risk), green flags (specific requirements, realistic budget), must-haves, hidden requirements, and write you a custom cover letter that directly addresses the buyer's needs.`,
     technical: `analyzeUpworkJob sends job description to Claude with structured analysis prompt. Extracts: must_haves (explicit requirements), nice_to_haves, red_flags (low budget / vague scope / scope creep signals), green_flags (specific deliverables / reasonable budget), hidden_requirements (implied skills), actual_need (reading between the lines), difficulty_score, win_probability. Generates: cover letter, 3-5 clarifying questions, project estimate (hours + fixed price), pricing strategy.`,
     data_sources: ['Job description text', 'Claude Sonnet 4 (job analysis + proposal generation)'],
+    output_layman: `**Win Probability (0-100):** Your realistic shot at landing this.\n\n**Red Flags:** Reasons to skip — scope creep, low budget, "rockstar needed" cliché.\n\n**Green Flags:** Reasons to pursue — specific scope, realistic budget, clear deliverables.\n\n**Hidden Requirements:** Implied skills they didn't spell out but will expect.\n\n**Cover Letter:** Custom-written to their exact needs.\n\n**Clarifying Questions:** 3-5 to send with your bid — demonstrates seriousness.\n\n**Next Action:** If Win Prob > 60% and no critical red flags → copy cover letter + questions → submit.`,
+    output_technical: `**win_probability:** (green_flag_count − red_flag_count × 1.5) × specificity_score × budget_fit\n**difficulty_score:** required_skills_count × complexity_weight × timeline_tightness\n**red_flag_patterns:** low_budget | vague_scope | rockstar_language | "simple_task" | unrealistic_timeline\n**green_flag_patterns:** specific_deliverables | budget_range | milestone_breakdown | tech_stack_defined\n**pricing_strategy:** fixed_bid | hourly_bid | hybrid — based on scope clarity`,
   },
   passage_opt: {
     layman: `Google pulls answers for featured snippets paragraph by paragraph. We score every paragraph on your page — is it self-contained? Does it directly answer a question? Is it 40-60 words? Then we optimize each one so any paragraph could become the snippet.`,
     technical: `runPassageRankingOptimizer splits content into paragraphs. Per paragraph: current_snippet_score (40-60 word length check, self-containment, direct answer detection, question-format match). Claude rewrites each paragraph into optimized snippet-ready form. Identifies best_passage_index (highest score) and snippet_type (paragraph/list/table/answer_box). Returns overall_snippet_readiness and optimization_suggestions.`,
     data_sources: ['Content text (paragraph-tokenized)', 'Target keyword', 'Claude Sonnet 4 (snippet optimization)'],
+    output_layman: `**Overall Snippet Readiness (0-100):** How snippet-friendly is the whole page? 80+ = multiple paragraphs eligible.\n\n**Best Passage Index:** The specific paragraph Google is most likely to pull.\n\n**Snippet Type:** Paragraph / List / Table / Answer Box — determines formatting.\n\n**Per-Paragraph Scores:** See which paragraphs are snippet-ready vs need rewriting.\n\n**Optimized Rewrites:** Claude-written alternatives for each weak paragraph.\n\n**Next Action:** Copy the rewritten paragraphs → replace in your CMS → each one is now snippet-eligible.`,
+    output_technical: `**paragraph_score:** length_match (40-60 words, weight 0.30) + self_contained (0.25) + direct_answer (0.25) + question_format (0.20)\n**snippet_readiness:** max(paragraph_scores) × 0.6 + avg(paragraph_scores) × 0.4\n**snippet_types:** paragraph | list | table | answer_box\n**self_contained:** paragraph can stand alone without prior context (Claude-evaluated)\n**direct_answer:** first sentence directly answers target query`,
   },
   context_aligner: {
     layman: `Before you write content, we check if your planned outline actually matches how users search. If your H2s don't cover what users expect, the page won't rank — even if it's well-written. We compare your outline to what actually ranks and flag missing angles or off-topic sections.`,
     technical: `runContextVectorAligner compares planned_content_outline (H2s from brief) against competitor top-3 H2s (scraped from SERP). Claude analyzes: query intent match, concept coverage gaps, extraneous topics that dilute relevance. Returns alignment_score, vector_match (aligned/partial/misaligned), missing_contexts, extraneous_contexts, recommended_outline_adjustments (specific add/remove/replace at position X).`,
     data_sources: ['Planned outline', 'Competitor top-3 SERP pages', 'Claude Sonnet 4 (vector alignment)'],
+    output_layman: `**Alignment Score (0-100):** How well your outline matches ranking pages. 80+ = ship it. Below 60 = major outline rewrite needed.\n\n**Vector Match:** Aligned / Partial / Misaligned — one-glance status.\n\n**Missing Contexts:** H2s ranking pages have that yours doesn't — add these.\n\n**Extraneous Contexts:** H2s in your outline that dilute relevance — cut these.\n\n**Recommended Adjustments:** Exact add/remove/replace at position X.\n\n**Next Action:** Apply adjustments → re-run aligner → target ≥85 before writing.`,
+    output_technical: `**alignment_score:** covered_contexts × 0.50 + intent_match × 0.30 + (1 − dilution_penalty) × 0.20\n**vector_match:** aligned (≥80) | partial (55-79) | misaligned (<55)\n**missing_contexts:** set(top3_h2s) − set(outline_h2s)\n**extraneous_contexts:** set(outline_h2s) − set(top3_h2s) (non-shared, low-semantic-similarity)\n**adjustment ops:** add(position, h2) | remove(position) | replace(position, new_h2)`,
   },
   competitor_map: {
     layman: `Give us a competitor URL and we reverse-engineer their whole SEO strategy: what's their central business topic, what content areas do they focus on, how deep do they go in each area, and what do they cover that you don't.`,
     technical: `runCompetitorTopicalMapExtractor fetches competitor sitemap (sitemap.xml → sitemap_index → children, up to 150 URLs). Groups URLs by path patterns and inferred topics. Claude analyzes URL structure + path hierarchy to infer: inferred_central_entity, inferred_source_context, core_section_topics (count + depth), outer_section_topics. Compares to client's topical map to produce coverage_vs_client (shared, competitor_advantage, client_advantage).`,
     data_sources: ['Competitor sitemap XML', 'URL pattern analysis', 'Claude Sonnet 4 (topic inference)', 'Client topical map (for comparison)'],
+    output_layman: `**Their Central Entity:** The main concept their site is built around.\n\n**Core Topics:** Primary content clusters with depth counts.\n\n**Outer Topics:** Supporting/broader topics they cover.\n\n**Competitor Advantage:** Topics THEY cover and YOU don't — these are your content gaps.\n\n**Client Advantage:** Topics you cover that they don't — defend these.\n\n**Next Action:** Click any Competitor Advantage topic → "Add to Content Calendar" → schedule a page to close the gap.`,
+    output_technical: `**inferred_central_entity:** extracted from root path patterns + title tags\n**core_section_topics:** [{topic, url_count, depth_score}]\n**outer_section_topics:** [{topic, url_count}]\n**coverage_vs_client:** {shared: [], competitor_advantage: [], client_advantage: []}\n**depth_score:** distinct_subpaths_under_topic / expected_depth\n**crawl_cap:** 150 competitor URLs max`,
   },
   content_refresh: {
     layman: `Old content loses rankings unless you update it. We inventory every page, track its position history, flag which ones are declining, and recommend specific updates — what sections to rewrite, what information to add, what's outdated. Prioritized so urgent stuff comes first.`,
-    technical: `buildContentInventory fetches sitemap (200 URLs), analyzes each page (title, word_count, published_at, last_modified, has_images, has_schema, has_faq, internal_links_in/out). Cross-refs kotoiq_keywords for SC data. Compares current position vs 30d/90d snapshots for trajectory (improving/declining/stable/new/dead). freshness_status: fresh <90d, aging 90-180d, stale 180-365d, critical >365d. refresh_priority based on (declining + stale). Claude generates specific refresh_recommendations for top 20 pages.`,
+    technical: `buildContentInventory fetches sitemap (200 URLs), analyzes each page (title, word_count, published_at, last_modified, has_images, has_schema, has_faq, internal_links_in/out). Cross-refs kotoiq_keywords for SC data. Compares current position vs 30d/90d snapshots for trajectory (improving/declining/stable/new/dead). freshness_status: fresh <90d, aging 90-180d, stale 180-365d, critical >365d. Claude generates specific refresh_recommendations for top 20 pages.`,
     data_sources: ['Full sitemap crawl', 'kotoiq_keywords', 'kotoiq_snapshots (trajectory)', 'Claude Sonnet 4 (refresh plans)'],
+    output_layman: `**Freshness Status:** Fresh (<90d) / Aging (90-180d) / Stale (180-365d) / Critical (>365d).\n\n**Trajectory:** Improving / Declining / Stable / New / Dead.\n\n**Refresh Priority:** 1 (urgent) → 5 (leave alone). Do 1s this week.\n\n**Refresh Recommendations:** Specific updates — "Update stats to 2026", "Add FAQ section", "Expand section 3 to 500+ words".\n\n**Next Action:** Click "Generate Refresh Brief" → hand specific instructions to your writer.`,
+    output_technical: `**freshness_status:** fresh (<90d) | aging (90-180d) | stale (180-365d) | critical (>365d)\n**trajectory:** improving (Δ ≤ -3) | declining (Δ ≥ +3) | stable | new (<30d) | dead (imp=0 for 60d)\n**refresh_priority:** 1 (declining AND stale+ AND traffic_value>100) ... 5 (stable AND fresh)\n**refresh_recommendations:** content_gaps[], outdated_sections[], schema_to_add[], internal_links_to_add[]`,
   },
   aeo: {
     layman: `Does your page qualify for the AI Overview box at the top of Google? We check the format (direct answer in first paragraph, 40-60 words), schema markup, author signals, freshness, and question-answer structure. You get a score and exactly what to fix to win that #0 position.`,
     technical: `AEO Score formula: format_match 0.30 + direct_answer 0.25 + schema_markup 0.20 + authority_signals 0.15 + freshness 0.10. analyzePageForKeyword extracts title, meta, headings, first paragraph, schema, images. Checks: does first paragraph directly answer query? Is it 40-60 words / 280-320 chars? Are H2s in question format? Is FAQPage/HowTo schema present? Author byline present? Last modified within 90 days?`,
     data_sources: ['Target page HTML', 'Schema detection', 'Claude Sonnet 4 (gap analysis)'],
+    output_layman: `**AEO Score (0-100):** 85+ = AI Overview eligible, 70-84 = one or two fixes, <70 = rewrite needed.\n\n**Direct Answer Check:** Does your opening paragraph directly answer the target query in 40-60 words?\n\n**Schema Check:** FAQPage / HowTo / Article markup present?\n\n**Authority Signals:** Author byline, credentials, external citations.\n\n**Freshness:** Last modified within 90 days?\n\n**Next Action:** Click any failed check → "Generate Fix" auto-writes the rewrite (opening paragraph, schema JSON-LD, author byline).`,
+    output_technical: `**aeo_score:** format_match × 0.30 + direct_answer × 0.25 + schema × 0.20 + authority × 0.15 + freshness × 0.10\n**direct_answer_check:** first_para length 40-60 words AND contains query_intent_phrase\n**format_match:** h2_question_format_count / total_h2\n**schema_boost:** FAQPage (1.0) | HowTo (1.0) | Article (0.7) | Organization (0.4) | none (0)\n**freshness:** 1.0 if < 90d, 0.7 if 90-180d, 0.4 if 180-365d, 0.1 if > 365d`,
   },
+}
+
+// ─────────────────────────────────────────────────────────────
+// Minimal markdown renderer: **bold**, \n\n paragraph, \n line break
+// ─────────────────────────────────────────────────────────────
+function renderMarkdown(text) {
+  if (!text) return null
+  const paragraphs = text.split('\n\n')
+  return paragraphs.map((para, pIdx) => {
+    const lines = para.split('\n')
+    return (
+      <p key={pIdx} style={{ margin: pIdx === 0 ? '0 0 10px 0' : '10px 0' }}>
+        {lines.map((line, lIdx) => {
+          const parts = []
+          let remaining = line
+          let key = 0
+          while (remaining.length > 0) {
+            const match = remaining.match(/\*\*(.+?)\*\*/)
+            if (!match) {
+              parts.push(<span key={key++}>{remaining}</span>)
+              break
+            }
+            const before = remaining.slice(0, match.index)
+            if (before) parts.push(<span key={key++}>{before}</span>)
+            parts.push(<strong key={key++} style={{ color: BLK, fontWeight: 700 }}>{match[1]}</strong>)
+            remaining = remaining.slice(match.index + match[0].length)
+          }
+          return (
+            <span key={lIdx}>
+              {parts}
+              {lIdx < lines.length - 1 && <br />}
+            </span>
+          )
+        })}
+      </p>
+    )
+  })
 }
 
 export default function HowItWorks({ tool, compact = false }) {
   const [expanded, setExpanded] = useState(false)
-  const [view, setView] = useState('layman') // 'layman' | 'technical'
+  const [methodView, setMethodView] = useState('layman') // 'layman' | 'technical'
+  const [outputView, setOutputView] = useState('layman') // 'layman' | 'technical'
 
   const info = EXPLANATIONS[tool]
   if (!info) return null
+
+  const hasOutput = Boolean(info.output_layman || info.output_technical)
 
   return (
     <div style={{
@@ -201,7 +307,7 @@ export default function HowItWorks({ tool, compact = false }) {
         color: BLK, fontFamily: FH, fontSize: 13, fontWeight: 700,
       }}>
         <Info size={15} color={T} />
-        <span>How this works</span>
+        <span>How this works & what the output means</span>
         {!expanded && info.layman && <span style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', marginLeft: 4 }}>— click to learn</span>}
         <div style={{ marginLeft: 'auto' }}>
           {expanded ? <ChevronUp size={16} color="#374151" /> : <ChevronDown size={16} color="#374151" />}
@@ -210,52 +316,107 @@ export default function HowItWorks({ tool, compact = false }) {
 
       {expanded && (
         <div style={{ marginTop: 14 }}>
-          {/* Toggle */}
-          <div style={{ display: 'flex', gap: 0, marginBottom: 12, background: '#fff', borderRadius: 8, padding: 3, border: '1px solid #e5e7eb', width: 'fit-content' }}>
-            <button onClick={() => setView('layman')} style={{
-              padding: '6px 14px', borderRadius: 6, border: 'none',
-              background: view === 'layman' ? BLK : 'transparent',
-              color: view === 'layman' ? '#fff' : '#1f2937',
-              fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+          {/* ── SECTION 1: How It Works ── */}
+          <div>
+            <div style={{
+              fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase',
+              letterSpacing: '.06em', marginBottom: 8, fontFamily: FH,
+              display: 'flex', alignItems: 'center', gap: 6,
             }}>
-              <BookOpen size={12} /> Plain English
-            </button>
-            <button onClick={() => setView('technical')} style={{
-              padding: '6px 14px', borderRadius: 6, border: 'none',
-              background: view === 'technical' ? BLK : 'transparent',
-              color: view === 'technical' ? '#fff' : '#1f2937',
-              fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+              <BookOpen size={12} /> How It Works
+            </div>
+
+            {/* Toggle */}
+            <div style={{ display: 'flex', gap: 0, marginBottom: 10, background: '#fff', borderRadius: 8, padding: 3, border: '1px solid #e5e7eb', width: 'fit-content' }}>
+              <button onClick={() => setMethodView('layman')} style={{
+                padding: '6px 14px', borderRadius: 6, border: 'none',
+                background: methodView === 'layman' ? BLK : 'transparent',
+                color: methodView === 'layman' ? '#fff' : '#1f2937',
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+              }}>
+                <BookOpen size={12} /> Plain English
+              </button>
+              <button onClick={() => setMethodView('technical')} style={{
+                padding: '6px 14px', borderRadius: 6, border: 'none',
+                background: methodView === 'technical' ? BLK : 'transparent',
+                color: methodView === 'technical' ? '#fff' : '#1f2937',
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+              }}>
+                <Code size={12} /> Technical
+              </button>
+            </div>
+
+            <div style={{
+              fontSize: 13, lineHeight: 1.65, color: '#111827', fontFamily: FB,
+              padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb',
             }}>
-              <Code size={12} /> Technical
-            </button>
-          </div>
+              {info[methodView]}
+            </div>
 
-          {/* Explanation */}
-          <div style={{
-            fontSize: 13, lineHeight: 1.65, color: '#111827',
-            fontFamily: FB,
-            padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb',
-          }}>
-            {info[view]}
-          </div>
-
-          {/* Data sources */}
-          {info.data_sources && (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>
-                Data Sources Used
+            {/* Data sources */}
+            {info.data_sources && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>
+                  Data Sources Used
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                  {info.data_sources.map((ds, i) => (
+                    <span key={i} style={{
+                      fontSize: 11, fontWeight: 600, color: T, background: T + '14',
+                      padding: '3px 9px', borderRadius: 6, border: `1px solid ${T}30`,
+                    }}>
+                      {ds}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {info.data_sources.map((ds, i) => (
-                  <span key={i} style={{
-                    fontSize: 11, fontWeight: 600, color: T, background: T + '14',
-                    padding: '3px 9px', borderRadius: 6, border: `1px solid ${T}30`,
-                  }}>
-                    {ds}
-                  </span>
-                ))}
+            )}
+          </div>
+
+          {/* ── SECTION 2: What The Output Means ── */}
+          {hasOutput && (
+            <div style={{
+              marginTop: 18, paddingTop: 18,
+              borderTop: '1px dashed #cbd5e1',
+            }}>
+              <div style={{
+                fontSize: 11, fontWeight: 800, color: GRN, textTransform: 'uppercase',
+                letterSpacing: '.06em', marginBottom: 8, fontFamily: FH,
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <Target size={12} /> What The Output Means
+              </div>
+
+              {/* Toggle */}
+              <div style={{ display: 'flex', gap: 0, marginBottom: 10, background: '#fff', borderRadius: 8, padding: 3, border: '1px solid #e5e7eb', width: 'fit-content' }}>
+                <button onClick={() => setOutputView('layman')} style={{
+                  padding: '6px 14px', borderRadius: 6, border: 'none',
+                  background: outputView === 'layman' ? BLK : 'transparent',
+                  color: outputView === 'layman' ? '#fff' : '#1f2937',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+                }}>
+                  <BookOpen size={12} /> Plain English
+                </button>
+                <button onClick={() => setOutputView('technical')} style={{
+                  padding: '6px 14px', borderRadius: 6, border: 'none',
+                  background: outputView === 'technical' ? BLK : 'transparent',
+                  color: outputView === 'technical' ? '#fff' : '#1f2937',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+                }}>
+                  <Code size={12} /> Technical
+                </button>
+              </div>
+
+              <div style={{
+                fontSize: 13, lineHeight: 1.65, color: '#111827', fontFamily: FB,
+                padding: '12px 14px', background: '#fff', borderRadius: 8,
+                border: '1px solid #e5e7eb',
+              }}>
+                {renderMarkdown(outputView === 'layman' ? info.output_layman : info.output_technical)}
               </div>
             </div>
           )}

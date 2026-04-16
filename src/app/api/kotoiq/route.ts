@@ -45,6 +45,7 @@ import { exportKnowledgeGraph } from '@/lib/knowledgeGraphExporter'
 import { runAutonomousPipeline, getPipelineRuns, getPipelineRun } from '@/lib/autonomousPipeline'
 import { triggerAutoSetup } from '@/lib/voiceOnboardingAutoSetup'
 import { generateHyperlocalFromGrid } from '@/lib/hyperlocalContentEngine'
+import { crawlSitemaps, getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -4171,6 +4172,80 @@ Provide a detailed analysis. Return ONLY valid JSON:
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // SITEMAP CRAWLER — handles massive multi-sitemap sites
+  // ─────────────────────────────────────────────────────────────
+
+  // Ingest full sitemap (supports 10,000+ URL multi-sitemap structures)
+  if (action === 'crawl_sitemaps') {
+    const { client_id, options } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    try {
+      const { data: client } = await s.from('clients').select('website').eq('id', client_id).single()
+      if (!client?.website) return NextResponse.json({ error: 'Client website not set' }, { status: 400 })
+      const result = await crawlSitemaps(s, { client_id, website: client.website, options })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // Get crawl status
+  if (action === 'get_sitemap_crawl_status') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    try {
+      const crawl = await getLatestCrawl(s, client_id)
+      return NextResponse.json({ crawl })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // Get sitemap URLs with pagination + filtering
+  if (action === 'get_sitemap_urls') {
+    const { client_id, limit, offset, orderBy, filter } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    try {
+      const result = await getSitemapUrls(s, { client_id, limit, offset, orderBy, filter })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // Create a chunked processing job (for engines to process 10k+ URLs without timeout)
+  if (action === 'create_processing_job') {
+    const { client_id, engine, total_urls, batch_size, concurrency, metadata } = body
+    if (!client_id || !engine) return NextResponse.json({ error: 'client_id and engine required' }, { status: 400 })
+    try {
+      const { data, error } = await s.from('kotoiq_processing_jobs').insert({
+        client_id,
+        engine,
+        total_urls: total_urls || 0,
+        batch_size: batch_size || 50,
+        concurrency: concurrency || 10,
+        metadata: metadata || {},
+        status: 'queued',
+      }).select().single()
+      if (error) throw error
+      return NextResponse.json({ job: data })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // Get processing job status
+  if (action === 'get_processing_jobs') {
+    const { client_id, engine, status: jobStatus } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    let q = s.from('kotoiq_processing_jobs').select('*').eq('client_id', client_id).order('created_at', { ascending: false })
+    if (engine) q = q.eq('engine', engine)
+    if (jobStatus) q = q.eq('status', jobStatus)
+    const { data } = await q.limit(20)
+    return NextResponse.json({ jobs: data || [] })
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

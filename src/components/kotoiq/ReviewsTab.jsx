@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 const VELOCITY_COLORS = { accelerating: GRN, stable: '#6b7280', declining: R }
 const VELOCITY_ICONS = { accelerating: TrendingUp, declining: TrendingDown, stable: ArrowRight }
@@ -138,6 +139,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="reviews" />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>

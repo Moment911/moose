@@ -1,0 +1,66 @@
+{
+  "name": "KotoIQ — SEO Intelligence Platform",
+  "short_name": "KotoIQ",
+  "description": "AI-powered SEO command center — 21+ semantic agents, topical maps, rank tracking, content generation, and local SEO intelligence",
+  "start_url": "/kotoiq",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#111111",
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/koto_icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/koto-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/koto-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open KotoIQ dashboard",
+      "url": "/kotoiq?tab=dashboard",
+      "icons": [{ "src": "/koto_icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Ask KotoIQ",
+      "short_name": "Ask",
+      "description": "AI chat over all SEO data",
+      "url": "/kotoiq?tab=ask",
+      "icons": [{ "src": "/koto_icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "PageIQ Writer",
+      "short_name": "Write",
+      "description": "Generate a ranking-ready page",
+      "url": "/kotoiq?tab=briefs",
+      "icons": [{ "src": "/koto_icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Rankings",
+      "short_name": "Ranks",
+      "description": "Track keyword rankings",
+      "url": "/kotoiq?tab=ranks",
+      "icons": [{ "src": "/koto_icon.svg", "sizes": "any" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

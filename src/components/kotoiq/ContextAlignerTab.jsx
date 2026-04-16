@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Target, Loader2, CheckCircle, XCircle, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
@@ -41,6 +42,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="context_aligner" />
       <div style={card}>
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Target size={18} color={T} /> Context Aligner

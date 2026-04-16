@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 const FRESHNESS_COLORS = { fresh: GRN, aging: AMB, stale: '#f97316', critical: R }
 const FRESHNESS_LABELS = { fresh: 'Fresh', aging: 'Aging', stale: 'Stale', critical: 'Critical' }
@@ -148,6 +149,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="content_refresh" />
       {/* Summary header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>

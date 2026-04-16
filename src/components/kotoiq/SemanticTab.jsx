@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 function ScoreRing({ score, label, size = 80, color }) {
   const c = color || (score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? R : '#d1d5db')
@@ -115,6 +116,7 @@ export default function SemanticTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="semantic" />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>

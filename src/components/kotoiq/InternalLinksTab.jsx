@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 // ── Helpers ──────────────────────────────────────────────────
 function fmtN(n) { return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n || 0) }
@@ -235,6 +236,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
   // ── Full audit view ──────────────────────────────────────────
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <HowItWorks tool="internal_links" />
 
       {/* Score Header */}
       <div style={{

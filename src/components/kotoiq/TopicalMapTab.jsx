@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import HowItWorks from './HowItWorks'
 
 // ── Status helpers ──────────────────────────────────────────────
 
@@ -440,6 +441,7 @@ export default function TopicalMapTab({ clientId, agencyId }) {
 
   return (
     <div>
+      <HowItWorks tool="topical_map" />
       {/* Header */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
         <ScoreCircle score={coverageScore} />
