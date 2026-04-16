@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Menu, X, ArrowRight, Check, Phone, MessageSquare,
   BarChart2, Zap, Star, Search, Globe, TrendingUp, Cpu,
+  Database, Network, Sparkles, Target, FileText, MapPin,
+  Eye, Layers, Activity, MessageCircle,
 } from 'lucide-react';
 import { R, T, BLK, GRY, GRN, AMB, W, FH, FB } from '../lib/theme';
 
@@ -88,6 +90,8 @@ const GLOBAL_CSS = `
     .footer-pad { padding: 56px 24px 32px !important; }
     .split { flex-direction: column !important; }
     .stats-row { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
+    .agent-card { grid-template-columns: 1fr !important; gap: 24px !important; padding: 28px !important; }
+    .agent-card > div:last-child { border-left: none !important; border-top: 1px solid ${HAIR}; padding-left: 0 !important; padding-top: 24px !important; }
   }
   @media (min-width: 901px) {
     .show-mobile { display: none !important; }
@@ -127,6 +131,97 @@ const PHASES = [
   { num: '04', title: 'Deploy',   desc: 'Launch AI agents that call, answer, build, review, and optimize — without a break.',   icon: TrendingUp },
 ];
 
+/* ─── KotoIQ engine — the search intelligence system ─── */
+const IQ_PIPELINE = [
+  {
+    num: '01', title: 'Ingest', icon: Database,
+    headline: 'Live data from 12+ sources',
+    desc: 'OAuth connections pull real-time data from Google Search Console, Analytics 4, Ads, and Business Profile. DataForSEO powers SERP scans, rank grids, and AI Overview detection. Moz supplies Domain Authority, backlinks, and spam scores. Your sitemap feeds every indexed page into the pipeline.',
+    items: ['Search Console', 'Analytics 4', 'Google Ads', 'Business Profile', 'DataForSEO', 'Moz', 'Sitemap Crawl', 'SERP APIs'],
+  },
+  {
+    num: '02', title: 'Analyze', icon: Network,
+    headline: '25+ specialized engines run in parallel',
+    desc: 'Each engine is a focused reasoning agent. Semantic agents score topical authority. Rank Grid Pro maps geo-spatial visibility cell by cell. Competitor Watch tracks share-of-voice shifts. Content Decay finds pages bleeding traffic. E-E-A-T scoring grades every page against Google quality guidelines.',
+    items: ['AI Visibility', 'Quick Wins', 'Rank Grid Pro', 'Competitor Watch', 'Semantic Agents', 'Content Decay', 'E-E-A-T Scoring', 'Backlink Intel'],
+  },
+  {
+    num: '03', title: 'Synthesize', icon: Sparkles,
+    headline: 'The right AI model for the right job',
+    desc: 'Fast structured lookups route to Claude Haiku. Deep reasoning and strategic analysis go to Claude Opus. Content generation and briefs use Claude Sonnet. For heavy research, the Multi-AI Blender runs parallel queries across models and reconciles the answers.',
+    items: ['Claude Opus', 'Claude Sonnet', 'Claude Haiku', 'Multi-AI Blender', 'Cost-routed', 'Context-aware', 'Token-tracked', 'Grounded in data'],
+  },
+  {
+    num: '04', title: 'Act', icon: Target,
+    headline: 'Prioritized, client-ready actions',
+    desc: 'The engine outputs a ranked Quick Win queue with traffic and revenue estimates. Content briefs come with page structure, entity coverage, and rotation-ready paragraphs. GMB posts draft themselves. Competitor intel arrives as a one-pager. Every recommendation cites the source data.',
+    items: ['Quick Win Queue', 'Content Briefs', 'GMB Posts', 'Rank Reports', 'AI Visibility Score', 'Ask KotoIQ Chat', 'Client Portals', 'Full Audits'],
+  },
+];
+
+const IQ_CAPABILITIES = [
+  { title: 'AI Visibility Score',  desc: 'A 0–100 grade across semantic coverage, entity presence, E-E-A-T, and SERP feature capture.',        icon: Eye },
+  { title: 'Quick Win Queue',      desc: 'Keywords ranked by effort vs. traffic uplift — prioritized so you work on what moves the needle.',   icon: Zap },
+  { title: 'Rank Grid Pro',        desc: 'Geo-spatial ranking heatmaps for local SEO. See exactly where you rank at every grid cell.',         icon: MapPin },
+  { title: 'Competitor Watch',     desc: 'Monitors competitor movements automatically and alerts you to share-of-voice shifts.',                icon: Activity },
+  { title: 'Content Briefs',       desc: 'Claude-generated briefs with page structure, entity coverage, and rotation-ready variants.',          icon: FileText },
+  { title: 'Ask KotoIQ',           desc: 'A conversational interface that answers strategic questions grounded in your live data.',            icon: MessageCircle },
+  { title: 'Semantic Agents',      desc: 'Topical authority analysis across hundreds of entities and sub-topics per client.',                   icon: Layers },
+  { title: 'Multi-AI Blender',     desc: 'Heavy research queries run across Opus, Sonnet, and Haiku in parallel, then reconcile.',              icon: Sparkles },
+];
+
+/* ─── Koto AI Agents — voice + verification systems ─── */
+const AGENTS = [
+  {
+    tag: 'Outbound', title: 'Cold Call Agent', icon: Phone, accent: R,
+    headline: 'AI outbound that sounds human and books.',
+    desc: 'Built on Retell with a bench of 10+ premium voices (ElevenLabs, OpenAI, Cartesia). Telnyx handles routing and caller-ID rotation. A call-time checker respects state-level dialing windows. Every conversation streams live transcription, handles objections, and posts results back to your CRM the moment the call ends.',
+    specs: [
+      { label: 'Voice providers',   value: 'ElevenLabs · OpenAI · Cartesia' },
+      { label: 'Phone layer',       value: 'Telnyx + Retell native numbers' },
+      { label: 'Concurrency',       value: 'Unlimited parallel calls' },
+      { label: 'Compliance',        value: 'State call-time windows + DNC filtering' },
+      { label: 'Post-call analysis',value: 'Claude — sentiment, lead score, next action' },
+    ],
+  },
+  {
+    tag: 'Onboarding', title: 'Virtual Onboarding (Alex)', icon: MessageCircle, accent: T,
+    headline: 'A dedicated phone number for every new client.',
+    desc: 'The moment a client is created, Koto provisions a Retell phone number and a 4-digit PIN within seconds. When the client calls, Alex verifies the PIN, reviews what\'s already on file, and only asks the missing questions — no repeating what the web form already captured. Every answer writes to the database live during the call via the save_answer tool.',
+    specs: [
+      { label: 'Agent',             value: 'Retell "Koto Onboarding 2" — Alex' },
+      { label: 'Provisioning',      value: 'Auto, ~5 seconds after client creation' },
+      { label: 'State awareness',   value: 'Fresh · Partial · Nearly complete' },
+      { label: 'Question bank',     value: '26 adaptive fields, B2B/B2C/local/national classifier' },
+      { label: 'Post-call',         value: 'Claude Haiku — sentiment, expansion signals, missing fields' },
+    ],
+  },
+  {
+    tag: 'Discovery', title: 'Live Discovery Sessions', icon: Layers, accent: BLK,
+    headline: 'Real-time transcription with an AI coach in the room.',
+    desc: 'Open a session and Koto transcribes the conversation live via Web Speech API. A parallel AI Coach panel runs Section Coach (question-level nudges) and Full Analysis (document-wide strategy). N/A detection auto-skips irrelevant fields; completion bars fill in as sections come together. The final output is a 12-section discovery document saved to koto_discovery_engagements.',
+    specs: [
+      { label: 'Transcription',     value: 'Web Speech API — live in the browser' },
+      { label: 'AI Coach modes',    value: 'Section Coach + Full Analysis' },
+      { label: 'Auto-fill',         value: 'N/A detection, field suggestions from prior answers' },
+      { label: 'Output',            value: '12-section document, exportable + shareable' },
+      { label: 'Collaboration',     value: 'Live view with completion bars per section' },
+    ],
+  },
+  {
+    tag: 'Healthcare', title: 'Verification of Benefits (VOB)', icon: Activity, accent: GRN,
+    headline: 'Koto calls the insurance company for you.',
+    desc: 'A specialized Retell agent dials the payer, navigates the IVR, waits on hold, and runs a structured 72-question interview across 16 benefit categories: eligibility, deductibles, copays, out-of-pocket, coinsurance, prior auth, network status, claims, and more. Each verified answer saves with a confidence score; anything the rep refuses or the call gets stuck on auto-escalates to a human.',
+    specs: [
+      { label: 'Question bank',     value: '72 questions · 16 categories' },
+      { label: 'IVR handling',      value: 'navigate_ivr tool logs every button press' },
+      { label: 'Data capture',      value: 'save_vob_answer with per-field confidence score' },
+      { label: 'Escalation',        value: 'Auto-flag for human review on refusal or dead-end' },
+      { label: 'Output',            value: 'Structured benefits record ready for intake' },
+    ],
+  },
+];
+
 const VOICE_BULLETS = [
   { title: 'Human-sounding AI calls',   desc: 'Hyper-realistic voice AI that qualifies prospects and books meetings without a human in the loop.' },
   { title: 'Unlimited concurrent calls',desc: 'Scale to hundreds of simultaneous calls. No hiring, no burnout.' },
@@ -145,19 +240,19 @@ const PRICING_PLANS = [
     name: 'Starter', price: '$297', period: '/mo',
     desc: 'For solo operators and new agencies.',
     popular: false,
-    features: ['AI Page Builder (5 pages/mo)', 'Cold Call Agent (500 calls/mo)', 'AI Answering Service', 'Review Management', '1 User Seat', 'Email Support'],
+    features: ['3 team seats', 'Up to 25 clients', 'AI review responses', 'Scout lead intelligence', 'Client onboarding forms'],
   },
   {
-    name: 'Growth', price: '$597', period: '/mo',
+    name: 'Growth', price: '$497', period: '/mo',
     desc: 'For growing agencies ready to scale fast.',
     popular: true,
-    features: ['AI Page Builder (Unlimited)', 'Cold Call Agent (5,000 calls/mo)', 'AI Answering Service (Unlimited)', 'Review Management + Auto-Reply', 'Scout Leads (500 / mo)', 'CMO Agent', '5 User Seats', 'Priority Support'],
+    features: ['10 team seats', 'Up to 100 clients', 'Everything in Starter', 'Agency Autopilot (all 6 agents)', 'White-label platform', 'Social content AI'],
   },
   {
     name: 'Agency', price: '$997', period: '/mo',
     desc: 'Full power for established agencies.',
     popular: false,
-    features: ['Everything in Growth', 'Cold Call Agent (Unlimited)', 'Scout Leads (Unlimited)', 'White-Label Option', 'Custom AI Training', 'Dedicated Account Manager', 'Unlimited Seats', 'SLA Support'],
+    features: ['25 team seats', 'Up to 500 clients', 'Everything in Growth', 'Lead scoring AI', 'API access', 'Priority support'],
   },
 ];
 
@@ -192,9 +287,9 @@ const FOOTER_COLUMNS = [
 
 const NAV_LINKS = [
   { id: 'platform', label: 'Platform' },
-  { id: 'how',      label: 'How it works' },
+  { id: 'kotoiq',   label: 'KotoIQ' },
+  { id: 'agents',   label: 'AI Agents' },
   { id: 'pricing',  label: 'Pricing' },
-  { id: 'contact',  label: 'Contact' },
 ];
 
 /* ─── Page ─── */
@@ -481,6 +576,184 @@ export default function MarketingSitePage() {
                     {p.title}
                   </h3>
                   <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, fontFamily: FB }}>{p.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ INSIDE KOTOIQ ══ */}
+      <section id="kotoiq" className="section" style={{ background: SURFACE, padding: '96px 40px' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 64, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="eyebrow" style={{ color: R }}>Inside KotoIQ</div>
+            <h2 className="sec-h2" style={{
+              fontSize: 56, fontWeight: 900, fontFamily: FH,
+              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
+            }}>
+              Not AI that generates.<br />AI that <span style={{ color: R }}>investigates</span>.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              KotoIQ is the search intelligence engine behind every Koto recommendation. It pulls live data
+              from 12+ sources, runs 25+ specialized analysis engines in parallel, and routes each task to
+              the right AI model — so every recommendation is grounded in your real data, not guessed at.
+            </p>
+          </div>
+
+          {/* Pipeline — 4 stages */}
+          <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 48 }}>
+            {IQ_PIPELINE.map((stage, i) => {
+              const Icon = stage.icon;
+              return (
+                <div key={stage.num} style={{
+                  background: W, border: `1px solid ${HAIR}`, borderRadius: 16,
+                  padding: '28px 24px', position: 'relative',
+                }}>
+                  {i < IQ_PIPELINE.length - 1 && (
+                    <div className="hide-mobile" style={{
+                      position: 'absolute', right: -12, top: 48, zIndex: 2,
+                      width: 24, height: 24, borderRadius: '50%',
+                      background: W, border: `1px solid ${HAIR}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: FAINT,
+                    }}>
+                      <ArrowRight size={12} />
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 10,
+                      background: R + '10', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Icon size={20} color={R} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: '.08em' }}>{stage.num}</span>
+                  </div>
+                  <h3 style={{ fontSize: 22, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK, marginBottom: 6 }}>
+                    {stage.title}
+                  </h3>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: R, fontFamily: FH, marginBottom: 10 }}>
+                    {stage.headline}
+                  </div>
+                  <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.6, fontFamily: FB, marginBottom: 16 }}>{stage.desc}</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {stage.items.map(it => (
+                      <span key={it} style={{
+                        fontSize: 11, fontWeight: 600, color: MUTED,
+                        background: SURFACE, border: `1px solid ${HAIR}`,
+                        padding: '3px 8px', borderRadius: 6, fontFamily: FB,
+                      }}>{it}</span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Capabilities grid */}
+          <div style={{
+            background: W, border: `1px solid ${HAIR}`, borderRadius: 20, padding: '40px 36px',
+          }}>
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+                What you get
+              </div>
+              <h3 style={{ fontSize: 28, fontWeight: 900, fontFamily: FH, letterSpacing: '-.025em', color: INK }}>
+                Eight intelligence products in one module.
+              </h3>
+            </div>
+            <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+              {IQ_CAPABILITIES.map(cap => {
+                const Icon = cap.icon;
+                return (
+                  <div key={cap.title}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      marginBottom: 14,
+                    }}>
+                      <Icon size={18} color={T} />
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: INK, marginBottom: 6 }}>{cap.title}</div>
+                    <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.55, fontFamily: FB }}>{cap.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ AI AGENTS UNDER THE HOOD ══ */}
+      <section id="agents" className="section" style={{ background: W, padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="eyebrow">AI agents under the hood</div>
+            <h2 className="sec-h2" style={{
+              fontSize: 56, fontWeight: 900, fontFamily: FH,
+              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
+            }}>
+              Specialized agents.<br />Built for the work that matters.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              Koto ships with purpose-built AI agents for the conversations that move money — outbound
+              sales, client onboarding, discovery, and healthcare verification. Each one is engineered
+              for a specific job, not a general-purpose chatbot.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {AGENTS.map(a => {
+              const Icon = a.icon;
+              return (
+                <div key={a.title} style={{
+                  background: W, border: `1px solid ${HAIR}`, borderRadius: 18,
+                  padding: '36px 36px', display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 48,
+                  transition: 'border-color .2s, box-shadow .2s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = INK; e.currentTarget.style.boxShadow = '0 12px 32px rgba(17,17,17,.06)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = HAIR; e.currentTarget.style.boxShadow = 'none'; }}
+                  className="agent-card"
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 10,
+                        background: a.accent + '12', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Icon size={20} color={a.accent} />
+                      </div>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase',
+                        color: a.accent, background: a.accent + '12',
+                        padding: '4px 10px', borderRadius: 100,
+                      }}>{a.tag}</span>
+                    </div>
+                    <h3 style={{
+                      fontSize: 28, fontWeight: 900, fontFamily: FH, letterSpacing: '-.025em',
+                      color: INK, lineHeight: 1.08, marginBottom: 12,
+                    }}>{a.title}</h3>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: INK, fontFamily: FH, marginBottom: 12 }}>
+                      {a.headline}
+                    </div>
+                    <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, fontFamily: FB }}>{a.desc}</p>
+                  </div>
+
+                  <div style={{ borderLeft: `1px solid ${HAIR}`, paddingLeft: 36 }}>
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: '.08em',
+                      textTransform: 'uppercase', marginBottom: 16,
+                    }}>How it works</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      {a.specs.map(s => (
+                        <div key={s.label}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: MUTED, fontFamily: FH, marginBottom: 2 }}>{s.label}</div>
+                          <div style={{ fontSize: 14, color: INK, fontFamily: FB, lineHeight: 1.45 }}>{s.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               );
             })}
