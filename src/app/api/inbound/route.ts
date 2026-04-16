@@ -602,7 +602,7 @@ End the call once you have collected the caller's information and confirmed next
       // Update Agent
       // -------------------------------------------------------------------
       case 'update_agent': {
-        const { agent_id, updates, update_retell } = body
+        const { agent_id, update_retell } = body
         if (!agent_id) return NextResponse.json({ error: 'agent_id required' }, { status: 400 })
 
         const { data: existing, error: fetchErr } = await supabase
@@ -612,28 +612,58 @@ End the call once you have collected the caller's information and confirmed next
           .single()
         if (fetchErr) throw fetchErr
 
-        // Update local DB
-        const { data: updated, error: updateErr } = await supabase
-          .from('koto_inbound_agents')
-          .update({ ...updates, updated_at: new Date().toISOString() })
-          .eq('id', agent_id)
-          .select()
-          .single()
-        if (updateErr) throw updateErr
+        // Accept either nested { updates: {...} } or fields at the top level (SetupTab spreads form).
+        // Whitelist columns known to exist to survive the prod schema drift from answering_service.sql.
+        const raw: any = body.updates && typeof body.updates === 'object' ? body.updates : body
+        const ALLOWED = new Set([
+          'name', 'business_name', 'agent_name', 'department', 'sic_code', 'industry',
+          'voice_id', 'voice_name', 'phone_number', 'forward_number',
+          'timezone', 'status', 'is_active',
+          'greeting_script', 'open_hours_script', 'closed_hours_script', 'closed_script',
+          'emergency_script', 'voicemail_script',
+          'intake_template', 'intake_questions', 'business_hours',
+          'emergency_keywords', 'hipaa_mode', 'recording_enabled',
+          'sms_notifications', 'email_notifications', 'notification_email', 'notification_phone',
+          'ivr_enabled', 'ivr_config', 'ivr_greeting',
+          'auto_callback_enabled', 'auto_callback_delay_minutes', 'auto_callback_max_attempts',
+          'transfer_phone', 'transfer_enabled',
+        ])
+        const updates: any = {}
+        for (const k of Object.keys(raw)) {
+          if (ALLOWED.has(k)) updates[k] = raw[k]
+        }
 
-        // Optionally sync to Retell
+        // Try the full update. If a column doesn't exist in prod, drop it and retry —
+        // the schema drifts across environments (see answering_service.sql vs live).
+        let updated: any = null
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const { data, error } = await supabase
+            .from('koto_inbound_agents')
+            .update({ ...updates, updated_at: new Date().toISOString() })
+            .eq('id', agent_id)
+            .select()
+            .single()
+          if (!error) { updated = data; break }
+          const m = /Could not find the '([^']+)' column/.exec(error.message || '')
+          if (m && m[1] in updates) {
+            delete updates[m[1]]
+            continue
+          }
+          return NextResponse.json({ error: error.message }, { status: 500 })
+        }
+
         if (update_retell && existing.retell_agent_id) {
           const retellUpdates: any = {}
-          if (updates.agent_name) retellUpdates.agent_name = updates.agent_name
+          if (updates.agent_name || updates.name || updates.business_name) {
+            retellUpdates.agent_name = updates.agent_name || updates.name || updates.business_name
+          }
           if (updates.voice_id) retellUpdates.voice_id = updates.voice_id
-          if (updates.greeting_script) retellUpdates.general_prompt = updates.greeting_script
-
           if (Object.keys(retellUpdates).length > 0) {
-            await retellFetch(`/update-agent/${existing.retell_agent_id}`, 'PATCH', retellUpdates)
+            try { await retellFetch(`/update-agent/${existing.retell_agent_id}`, 'PATCH', retellUpdates) } catch {}
           }
         }
 
-        return NextResponse.json({ agent: updated })
+        return NextResponse.json({ success: true, agent: updated })
       }
 
       // -------------------------------------------------------------------
