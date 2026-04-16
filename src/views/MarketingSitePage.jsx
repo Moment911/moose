@@ -381,6 +381,139 @@ const HAIR_C    = '#e5e7eb';
 const SURFACE_C = '#f9fafb';
 const WASH_C    = '#fafbfc';
 
+/* ─── Molecule / particle network — canvas-driven "constellation" backdrop ─── */
+function ParticleNetwork({
+  count = 42, maxDist = 140, speed = 0.35,
+  color1 = '#E6007E', color2 = '#00C2CB',
+  lineColor = '230, 0, 126', // RGB tuple used in rgba()
+  style = {},
+}) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Respect reduced motion
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const ctx = canvas.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    let width = 0, height = 0;
+    const particles = [];
+
+    function resize() {
+      width = canvas.offsetWidth;
+      height = canvas.offsetHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+    }
+
+    function seed() {
+      particles.length = 0;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * speed,
+          vy: (Math.random() - 0.5) * speed,
+          r: 1.5 + Math.random() * 2.2,
+          color: Math.random() > 0.5 ? color1 : color2,
+          phase: Math.random() * Math.PI * 2,
+        });
+      }
+    }
+
+    resize();
+    seed();
+
+    let rafId = 0;
+    let lastT = performance.now();
+
+    function tick(now) {
+      const dt = Math.min(32, now - lastT);
+      lastT = now;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Update
+      if (!prefersReduced) {
+        for (const p of particles) {
+          p.x += p.vx * (dt / 16);
+          p.y += p.vy * (dt / 16);
+          if (p.x < -20) p.x = width + 20;
+          if (p.x > width + 20) p.x = -20;
+          if (p.y < -20) p.y = height + 20;
+          if (p.y > height + 20) p.y = -20;
+          p.phase += 0.02;
+        }
+      }
+
+      // Connections
+      for (let i = 0; i < particles.length; i++) {
+        const a = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          const max2 = maxDist * maxDist;
+          if (d2 < max2) {
+            const alpha = (1 - Math.sqrt(d2) / maxDist) * 0.28;
+            ctx.strokeStyle = `rgba(${lineColor}, ${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Nodes
+      for (const p of particles) {
+        const pulse = 0.75 + Math.sin(p.phase) * 0.25;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = 0.55 * pulse;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        // Halo
+        ctx.globalAlpha = 0.14 * pulse;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      rafId = requestAnimationFrame(tick);
+    }
+
+    rafId = requestAnimationFrame(tick);
+
+    const onResize = () => { resize(); seed(); };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [count, maxDist, speed, color1, color2, lineColor]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      style={{
+        position: 'absolute', inset: 0, width: '100%', height: '100%',
+        pointerEvents: 'none', ...style,
+      }}
+    />
+  );
+}
+
 /* ─── Demo chat — FULLY SANDBOXED, never hits real APIs or real data ─── */
 const DEMO_SCENARIOS = [
   {
@@ -980,51 +1113,18 @@ export default function MarketingSitePage() {
 
       {/* ══ HERO ══ */}
       <section className="hero" style={{ background: W, padding: '180px 40px 100px', position: 'relative' }}>
-        {/* Aurora layer — isolated in an overflow-hidden wrapper so it can't clip hero content */}
+        {/* Molecule network — drifting atoms connected by thin lines */}
         <div aria-hidden="true" style={{
           position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none',
         }}>
-          {/* Big pink orb, top-left */}
-          <div style={{
-            position: 'absolute', top: 60, left: '8%', width: 520, height: 520,
-            borderRadius: '50%', background: R + '28', filter: 'blur(110px)',
-            animation: 'orbPulse 10s ease-in-out infinite',
-          }} />
-          {/* Teal orb, top-right */}
-          <div style={{
-            position: 'absolute', top: 120, right: '6%', width: 480, height: 480,
-            borderRadius: '50%', background: T + '26', filter: 'blur(110px)',
-            animation: 'orbPulse 13s ease-in-out infinite reverse',
-          }} />
-          {/* Center glow directly behind the headline */}
-          <div style={{
-            position: 'absolute', top: '45%', left: '50%', width: 820, height: 420,
-            borderRadius: '50%', background: `radial-gradient(ellipse at center, ${R}22 0%, ${T}22 50%, transparent 80%)`,
-            filter: 'blur(80px)',
-            transform: 'translate(-50%, -50%)',
-            animation: 'orbSlide 14s ease-in-out infinite',
-          }} />
-          {/* Amber accent orb, mid-left */}
-          <div style={{
-            position: 'absolute', top: '55%', left: '25%', width: 260, height: 260,
-            borderRadius: '50%', background: AMB + '22', filter: 'blur(90px)',
-            animation: 'orbPulse 16s ease-in-out infinite',
-          }} />
-          {/* Green accent orb, mid-right */}
-          <div style={{
-            position: 'absolute', top: '60%', right: '22%', width: 240, height: 240,
-            borderRadius: '50%', background: GRN + '1c', filter: 'blur(90px)',
-            animation: 'orbPulse 18s ease-in-out infinite reverse',
-          }} />
-          {/* Slow-spinning conic aurora behind headline */}
-          <div style={{
-            position: 'absolute', top: '42%', left: '50%', width: 680, height: 680,
-            borderRadius: '50%', opacity: .35,
-            background: `conic-gradient(from 0deg, ${R}00, ${R}22, ${T}22, ${AMB}18, ${R}00)`,
-            filter: 'blur(70px)',
-            transform: 'translate(-50%, -50%)',
-            animation: 'auroraSpin 28s linear infinite',
-          }} />
+          <ParticleNetwork
+            count={52}
+            maxDist={150}
+            speed={0.35}
+            color1={R}
+            color2={T}
+            lineColor="17, 17, 17"
+          />
         </div>
 
         <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
