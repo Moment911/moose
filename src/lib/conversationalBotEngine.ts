@@ -126,6 +126,13 @@ ALWAYS reply with: a short conversational message, then on a new line the action
 
 "client_id" is ONLY used when there is no active client selected AND the user named a client from the AVAILABLE CLIENTS list. In that case, set "client_id" to the matched client's id so the UI can switch. Otherwise omit it or set to null.
 
+MULTIPLE-CHOICE QUESTIONS — CHOICES BLOCK
+When you ask a multiple-choice question (the user's answer is one of a small fixed set, e.g. "Blog post or service page?", "Homepage or specific page?", "Which URL: https://x.com or https://y.com?"), ALWAYS append a <CHOICES> block AFTER the <ACTION> block with a JSON array of the choice strings. The UI will render them as clickable buttons. Each choice should be 1-5 words, exactly matching how the user would answer (so the next turn sees their choice verbatim). Do NOT emit <CHOICES> for the pick_client intent — the client-picker UI handles that case. Do NOT emit <CHOICES> for open-ended questions ("What topic?", "What keyword?"). Only emit it when you're asking the user to choose between a small enumerable set.
+
+<CHOICES>
+["Blog post", "Service page", "Location page", "Home page"]
+</CHOICES>
+
 pick_client EXAMPLE (use when you need a client and none is active):
 
 <ACTION>
@@ -168,6 +175,20 @@ function parseActionBlock(text: string): { message: string; action: BotAction | 
   } catch {
     return { message: text.trim(), action: null }
   }
+}
+
+// ── Parse <CHOICES> block — optional sibling of <ACTION> that offers the user
+// a small fixed set of clickable replies. Stripped from the visible message.
+function parseChoicesBlock(text: string): { choices: string[] | null; cleaned: string } {
+  const match = text.match(/<CHOICES>\s*([\s\S]*?)\s*<\/CHOICES>/i)
+  if (!match) return { choices: null, cleaned: text }
+  try {
+    const arr = JSON.parse(match[1])
+    if (Array.isArray(arr) && arr.length > 0 && arr.every(x => typeof x === 'string')) {
+      return { choices: arr, cleaned: text.replace(match[0], '').trim() }
+    }
+  } catch {}
+  return { choices: null, cleaned: text.replace(match[0], '').trim() }
 }
 
 // ── Build first-line conversation title from a message ─────────────────────
@@ -288,6 +309,9 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
   }
 
   const { message: humanMessage, action } = parseActionBlock(assistantText)
+  const { choices: parsedChoices, cleaned: cleanedMessage } = parseChoicesBlock(humanMessage)
+  // Don't render choice chips for the pick_client flow — its picker UI handles selection.
+  const choices = action?.intent === 'pick_client' ? null : parsedChoices
 
   // Server-side safety net — belt-and-braces correctness guard mirroring rule #8
   // in the system prompt. If the model ignored the rule and tried to execute a
@@ -300,14 +324,19 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
     }
   }
 
-  // Persist assistant message
+  // Persist assistant message. Choices are stashed in action_data so they survive
+  // a round-trip, but history replay doesn't re-render them (clicking an old chip
+  // in a reloaded convo is out of scope — the user can just type instead).
   if (conversationId) {
+    const actionForPersist = action
+      ? (choices ? { ...action, choices } : action)
+      : (choices ? { choices } : null)
     await s.from('kotoiq_bot_messages').insert({
       conversation_id: conversationId,
       role: 'assistant',
-      content: humanMessage,
+      content: cleanedMessage,
       action_intent: action?.intent || null,
-      action_data: action || null,
+      action_data: actionForPersist,
       tokens_input: inputTokens,
       tokens_output: outputTokens,
     })
@@ -318,8 +347,9 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
 
   return {
     conversation_id: conversationId,
-    message: humanMessage,
+    message: cleanedMessage,
     action: action || null,
+    choices,
   }
 }
 

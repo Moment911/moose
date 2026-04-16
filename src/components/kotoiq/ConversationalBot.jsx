@@ -219,7 +219,7 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
       } else {
         setConversationId(j.conversation_id || conversationId)
         setMessages(m => {
-          const next = [...m, { role: 'assistant', content: j.message || '...', action: j.action || null }]
+          const next = [...m, { role: 'assistant', content: j.message || '...', action: j.action || null, choices: Array.isArray(j.choices) && j.choices.length ? j.choices : null }]
           // Auto-execute should_execute actions — fire after state updates so indexes are stable
           if (j.action && j.action.should_execute) {
             const newIdx = next.length - 1
@@ -238,6 +238,14 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
 
   const autoRunAction = (idx, action) => {
     runAction(idx, true, action)
+  }
+
+  // Click a choice chip → mark the chips on that message as used, then send the
+  // chosen string as if the user typed it.
+  const handleChoiceClick = (msgIdx, choice) => {
+    if (thinking) return
+    setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, choices_used: true } : x))
+    send(choice)
   }
 
   // ── Client picker handlers ──────────────────────────────────────────────
@@ -631,6 +639,8 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
                   clients={clients}
                   onPickClient={handlePickExistingClient}
                   onCreateNewClient={handleCreateNewClient}
+                  onChoiceClick={handleChoiceClick}
+                  thinking={thinking}
                 />
           ))}
 
@@ -708,8 +718,9 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
 }
 
 // ── Message bubble subcomponent ───────────────────────────────────────────
-function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, onPickClient, onCreateNewClient }) {
+function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, onPickClient, onCreateNewClient, onChoiceClick, thinking }) {
   const isUser = msg.role === 'user'
+  const hasChoices = !isUser && Array.isArray(msg.choices) && msg.choices.length > 0
   return (
     <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexDirection: isUser ? 'row-reverse' : 'row', animation: 'kotoiqBotFadeIn .25s ease' }}>
       {!isUser && (
@@ -732,6 +743,13 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, on
         }}>
           {msg.content}
         </div>
+        {hasChoices && (
+          <ChoiceChips
+            choices={msg.choices}
+            disabled={msg.choices_used || thinking}
+            onClick={(choice) => onChoiceClick?.(idx, choice)}
+          />
+        )}
         {msg.action && !isUser && (
           <ActionCard
             action={msg.action}
@@ -754,6 +772,48 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, on
           </button>
         )}
       </div>
+    </div>
+  )
+}
+
+// ── Choice chips — compact clickable buttons for multiple-choice prompts ──
+function ChoiceChips({ choices, disabled, onClick }) {
+  return (
+    <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {choices.map((choice, i) => (
+        <button
+          key={`${i}-${choice}`}
+          type="button"
+          onClick={() => !disabled && onClick?.(choice)}
+          disabled={disabled}
+          style={{
+            padding: '6px 12px',
+            borderRadius: 999,
+            border: `1px solid ${disabled ? '#e5e7eb' : '#e5e7eb'}`,
+            background: '#fff',
+            color: disabled ? '#9ca3af' : BLK,
+            fontSize: 12.5,
+            fontWeight: 600,
+            fontFamily: FB,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.55 : 1,
+            transition: 'all .12s',
+            lineHeight: 1.2,
+          }}
+          onMouseEnter={e => {
+            if (disabled) return
+            e.currentTarget.style.borderColor = T
+            e.currentTarget.style.background = '#f0fdfe'
+          }}
+          onMouseLeave={e => {
+            if (disabled) return
+            e.currentTarget.style.borderColor = '#e5e7eb'
+            e.currentTarget.style.background = '#fff'
+          }}
+        >
+          {choice}
+        </button>
+      ))}
     </div>
   )
 }
