@@ -125,11 +125,18 @@ async function archiveRecording(retellUrl: string, callId: string): Promise<stri
 }
 
 // ── Twilio SMS (used when notification_phone is set on the agent) ───────────
+// Reads TWILIO_PHONE_NUMBER first (matches the rest of the repo), falls back
+// to TWILIO_FROM_NUMBER for forward compat. Logs the failure mode so silent
+// no-ops are visible in Vercel logs.
 async function sendSms(to: string, body: string): Promise<boolean> {
   const sid = process.env.TWILIO_ACCOUNT_SID
   const token = process.env.TWILIO_AUTH_TOKEN
-  const from = process.env.TWILIO_FROM_NUMBER
-  if (!sid || !token || !from || !to) return false
+  const from = process.env.TWILIO_PHONE_NUMBER || process.env.TWILIO_FROM_NUMBER
+  if (!sid || !token || !from) {
+    console.error('[sms] not configured — missing', !sid && 'TWILIO_ACCOUNT_SID', !token && 'TWILIO_AUTH_TOKEN', !from && 'TWILIO_PHONE_NUMBER')
+    return false
+  }
+  if (!to) return false
   try {
     const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
       method: 'POST',
@@ -139,9 +146,18 @@ async function sendSms(to: string, body: string): Promise<boolean> {
       },
       body: new URLSearchParams({ To: to, From: from, Body: body.slice(0, 1500) }).toString(),
     })
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      console.error('[sms] Twilio rejected:', res.status, errText.slice(0, 200))
+    }
     return res.ok
-  } catch { return false }
+  } catch (e: any) {
+    console.error('[sms] send error:', e?.message)
+    return false
+  }
 }
+
+const EMAIL_FROM = process.env.DESK_EMAIL_FROM || 'Koto Answering Service <notifications@hellokoto.com>'
 
 // ── Client email template ───────────────────────────────────────────────────
 function buildClientEmail(params: {
@@ -1533,7 +1549,7 @@ End the call once you have collected the caller's information and confirmed next
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  from: 'Koto Answering Service <notifications@hellokoto.com>',
+                  from: EMAIL_FROM,
                   to: uniqueRecipients,
                   subject: `${urgency === 'emergency' ? '🚨 EMERGENCY' : urgency === 'high' ? '⚠️ Urgent' : 'New call'} — ${callerDetails?.caller_name || fromNumber || 'Unknown'} for ${businessName}`,
                   html: emailHtml,
@@ -1806,21 +1822,47 @@ ${current_text}
       }
 
       case 'sync_all_retell_webhooks': {
-        // Pushes the current /api/inbound/webhook URL onto every Retell agent
-        // for the given agency. Use this after rotating NEXT_PUBLIC_APP_URL or
-        // for legacy agents created before webhook_url was registered.
+        // Pushes webhook_url + the VOB-style voice defaults onto every Retell
+        // agent for the given agency. Use this to fix legacy agents whose
+        // Retell config still has backchannel on / high interruption / etc.
         const { agency_id: syncAgency } = body
         if (!syncAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
         const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/inbound/webhook`
         const { data: agents } = await supabase
           .from('koto_inbound_agents')
-          .select('id, retell_agent_id, name, business_name')
+          .select('*')
           .eq('agency_id', syncAgency)
         let synced = 0, failed = 0
         for (const ag of agents || []) {
           if (!ag.retell_agent_id) continue
+          // Start with the VOB-tuned baseline (no backchannel, patient), then
+          // overlay any custom voice settings the agent has saved in the DB.
+          const patch: Record<string, any> = {
+            webhook_url: webhookUrl,
+            enable_backchannel: false,
+            interruption_sensitivity: 0.3,
+            responsiveness: 0.7,
+            voice_speed: 0.95,
+            ambient_sound: null,
+            end_call_after_silence_ms: 30000,
+            reminder_trigger_ms: 10000,
+            reminder_max_count: 2,
+            max_call_duration_ms: 1800000,
+          }
+          if (ag.voice_id) patch.voice_id = ag.voice_id
+          if (typeof ag.voice_speed === 'number') patch.voice_speed = ag.voice_speed
+          if (typeof ag.voice_temperature === 'number') patch.voice_temperature = ag.voice_temperature
+          if (typeof ag.responsiveness === 'number') patch.responsiveness = ag.responsiveness
+          if (typeof ag.interruption_sensitivity === 'number') patch.interruption_sensitivity = ag.interruption_sensitivity
+          if (typeof ag.enable_backchannel === 'boolean') patch.enable_backchannel = ag.enable_backchannel
+          if (typeof ag.backchannel_frequency === 'number') patch.backchannel_frequency = ag.backchannel_frequency
+          if (ag.ambient_sound !== undefined && ag.ambient_sound !== null) patch.ambient_sound = ag.ambient_sound === 'none' ? null : ag.ambient_sound
+          if (typeof ag.end_call_after_silence_ms === 'number') patch.end_call_after_silence_ms = ag.end_call_after_silence_ms
+          if (typeof ag.reminder_trigger_ms === 'number') patch.reminder_trigger_ms = ag.reminder_trigger_ms
+          if (typeof ag.reminder_max_count === 'number') patch.reminder_max_count = ag.reminder_max_count
+          if (typeof ag.max_call_duration_ms === 'number') patch.max_call_duration_ms = ag.max_call_duration_ms
           try {
-            await retellFetch(`/update-agent/${ag.retell_agent_id}`, 'PATCH', { webhook_url: webhookUrl })
+            await retellFetch(`/update-agent/${ag.retell_agent_id}`, 'PATCH', patch)
             synced++
           } catch (e: any) {
             console.error('[sync_all_retell_webhooks] failed for', ag.id, e?.message)
@@ -1986,7 +2028,7 @@ ${current_text}
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                from: 'Answering Service <notifications@koto.ai>',
+                from: EMAIL_FROM,
                 to: [agentData.notification_email],
                 subject: `[Resend] Call Notification - ${callData.caller_number || 'Unknown'}`,
                 html: `
