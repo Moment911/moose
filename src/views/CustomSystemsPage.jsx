@@ -1,0 +1,345 @@
+"use client"
+
+import { useNavigate } from 'react-router-dom'
+import {
+  ArrowRight, Phone, Utensils, Car, Scale, Wrench, Home,
+  Droplet, Dumbbell, Plug, Workflow, Database, Link2, Check,
+} from 'lucide-react'
+import { R, T, BLK, GRN, AMB, W, FH, FB } from '../lib/theme'
+import PublicNav from '../components/public/PublicNav'
+import PublicFooter from '../components/public/PublicFooter'
+
+const INK    = BLK
+const MUTED  = '#6b7280'
+const FAINT  = '#9ca3af'
+const HAIR   = '#e5e7eb'
+const SURFACE= '#f9fafb'
+const WASH   = '#fafbfc'
+
+const CONTACT_PHONE = '(561) 220-0100' // placeholder — swap in real number
+const CONTACT_PHONE_HREF = 'tel:+15612200100'
+
+const CSS = `
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: ${W}; color: ${INK}; font-family: ${FH}; -webkit-font-smoothing: antialiased; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes orbPulse { 0%,100% { transform: translate(0,0) scale(1); opacity: .9; } 50% { transform: translate(40px,-20px) scale(1.08); opacity: 1; } }
+  .fade { animation: fadeUp .6s ease both; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; cursor: pointer; font-family: ${FH}; font-weight: 700; transition: all .18s; border: 1px solid transparent; padding: 12px 22px; font-size: 14px; }
+  .btn-primary { background: ${INK}; color: ${W}; }
+  .btn-primary:hover { background: #000; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(17,17,17,.18); }
+  .btn-secondary { background: ${W}; color: ${INK}; border-color: ${HAIR}; }
+  .btn-secondary:hover { border-color: ${INK}; transform: translateY(-1px); }
+  @media (max-width: 900px) {
+    .m-hero-h1 { font-size: 48px !important; }
+    .m-sec-h2 { font-size: 36px !important; }
+    .m-grid-3 { grid-template-columns: 1fr !important; }
+    .m-grid-2 { grid-template-columns: 1fr !important; }
+    .m-pad { padding: 72px 24px !important; }
+    .mock-split { grid-template-columns: 1fr !important; }
+    .mock-split > div:first-child { border-right: none !important; border-bottom: 1px solid ${HAIR} !important; }
+  }
+`
+
+const INTEGRATIONS = [
+  'Salesforce', 'HubSpot', 'GoHighLevel', 'Monday', 'Asana', 'ClickUp',
+  'Slack', 'Microsoft Teams', 'Gmail', 'Outlook', 'Twilio', 'Telnyx',
+  'Stripe', 'QuickBooks', 'Xero', 'Shopify', 'WooCommerce', 'Square',
+  'Airtable', 'Notion', 'Google Workspace', 'Zapier', 'Make',
+  'Webhooks', 'REST APIs', 'GraphQL', 'SOAP', 'SFTP', 'JDBC / ODBC',
+]
+
+const SYSTEMS = [
+  {
+    industry: 'Catering', accent: R, icon: Utensils,
+    title: 'Wedding Quote Bot',
+    scenario: 'New inquiry arrives via web form or email.',
+    steps: [
+      'Reads the inquiry, extracts event type, date, guest count, venue, dietary notes',
+      'Pulls your current menu pricing and service fees from your catering platform',
+      'Calculates line items: food, bar, staff, dietary accommodations, venue setup',
+      'Generates a polished PDF quote with your branding',
+      'Emails it to the customer and logs the deal in your CRM',
+    ],
+    metric: 'Quote ready in 3.2s · 64% booking rate',
+  },
+  {
+    industry: 'Auto body', accent: BLK, icon: Car,
+    title: 'Collision Photo Estimator',
+    scenario: 'Customer texts photos of the damage.',
+    steps: [
+      'AI identifies the vehicle, affected panels, and severity of damage',
+      'Looks up OEM vs aftermarket parts, labor hours, paint, and blending',
+      'Pulls your shop\'s current labor rate and parts multiplier',
+      'Writes an insurance-ready estimate with photos attached',
+      'Sends the quote plus a scheduling link to the customer by text',
+    ],
+    metric: 'Estimate delivered in 90s · No humans involved',
+  },
+  {
+    industry: 'Law firm', accent: T, icon: Scale,
+    title: 'Intake Qualifier',
+    scenario: 'Prospect calls the firm or fills out the web form.',
+    steps: [
+      'Matches the matter type against the firm\'s practice areas',
+      'Runs an automated conflict check across the case management system',
+      'Assigns severity, urgency, and estimated engagement value',
+      'Schedules the consult with the attorney whose calendar + expertise fits',
+      'Drafts the intake memo and drops it in the case folder before the consult',
+    ],
+    metric: 'Monday morning: 6 qualified consults on the calendar',
+  },
+  {
+    industry: 'HVAC', accent: AMB, icon: Wrench,
+    title: 'Dispatch Assistant',
+    scenario: 'Service call comes in — dead AC at 2pm on the hottest day of the year.',
+    steps: [
+      'Triages urgency: is this life safety, no AC, or routine?',
+      'Checks parts availability in the warehouse and every truck',
+      'Matches job requirements against each tech\'s certifications',
+      'Routes the nearest qualified tech and texts them the work order',
+      'Sends the customer an ETA with a live map link',
+    ],
+    metric: 'Average dispatch time: 4 minutes',
+  },
+  {
+    industry: 'Real estate', accent: GRN, icon: Home,
+    title: 'Offer Analyzer',
+    scenario: 'Buyer agent needs to write an offer on a listing tonight.',
+    steps: [
+      'Pulls comparable sales within a half-mile in the last 90 days',
+      'Reads listing history — price cuts, days on market, prior contracts',
+      'Analyzes public records for seller motivations: divorce, estate, relocation',
+      'Proposes three offer strategies with risk profiles',
+      'Drafts the offer letter, contract, and addenda ready for signature',
+    ],
+    metric: 'Offer ready to send in 8 minutes',
+  },
+  {
+    industry: 'Pool service', accent: T, icon: Droplet,
+    title: 'Text-to-Quote Bot',
+    scenario: 'Customer texts "need weekly service" with a photo of their pool.',
+    steps: [
+      'AI measures the pool from the photo and estimates volume',
+      'Asks for zip code and 2-3 follow-up questions by text',
+      'Calculates monthly price including chemicals, equipment checks, and travel',
+      'Sends the quote as a tap-to-pay link',
+      'Auto-schedules the first visit in the tech\'s route',
+    ],
+    metric: 'From text to signed customer in 6 minutes',
+  },
+  {
+    industry: 'Fitness', accent: R, icon: Dumbbell,
+    title: 'Tour + Starter Plan Bot',
+    scenario: 'Lead lands on the gym\'s booking page.',
+    steps: [
+      'Runs a 6-question goals quiz — strength, weight loss, mobility, etc.',
+      'Matches the prospect to the trainer whose style fits',
+      'Schedules the tour in the trainer\'s live calendar',
+      'Generates a personalized 2-week starter workout plan',
+      'Emails the plan + tour confirmation — prospect walks in already engaged',
+    ],
+    metric: 'Show-up rate doubled · Closing rate 48% higher',
+  },
+]
+
+const PILLARS = [
+  {
+    icon: Workflow, title: 'We start with your workflow',
+    desc: 'Not a checklist of features. We sit with you, map the real process — intake, pricing, approvals, edge cases — and design the system around it.',
+  },
+  {
+    icon: Database, title: 'We connect to everything',
+    desc: 'Your CRM, calendar, inventory, payment processor, phone system, email, file storage. If it has an API or a webhook, we can wire it in.',
+  },
+  {
+    icon: Link2, title: 'We build the glue',
+    desc: 'Most "integrations" are shallow. We build real workflows: conditional logic, approval chains, retry handling, audit logs, human-in-the-loop escape hatches.',
+  },
+  {
+    icon: Plug, title: 'We own the reliability',
+    desc: 'Every run logged, every API call retried, every failure alerted. When a vendor changes their API, we update ours — you never notice.',
+  },
+]
+
+export default function CustomSystemsPage() {
+  const navigate = useNavigate()
+
+  return (
+    <div style={{ minHeight: '100vh', background: W }}>
+      <style>{CSS}</style>
+      <PublicNav />
+      <div style={{ height: 64 }} />
+
+      {/* HERO */}
+      <section className="m-pad" style={{ padding: '120px 40px 80px', position: 'relative' }}>
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 40, left: '10%', width: 500, height: 500, borderRadius: '50%', background: T + '28', filter: 'blur(100px)', animation: 'orbPulse 11s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: 100, right: '8%', width: 460, height: 460, borderRadius: '50%', background: R + '26', filter: 'blur(100px)', animation: 'orbPulse 13s ease-in-out infinite reverse' }} />
+        </div>
+        <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
+          <div className="fade" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 100, border: `1px solid ${HAIR}`, background: WASH, fontSize: 12, fontWeight: 600, color: MUTED, marginBottom: 28 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: GRN }} />
+            Custom Systems
+          </div>
+          <h1 className="m-hero-h1" style={{ fontSize: 76, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 940, margin: '0 auto' }}>
+            If you run it,<br />we can automate it.
+          </h1>
+          <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 680, margin: '24px auto 0' }}>
+            Custom AI systems wired into the tools you already use — your CRM, calendar, inventory, phones,
+            payments. Built around your actual workflow, not a generic template.
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 32, flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" onClick={() => navigate('/contact')}>Book a build session <ArrowRight size={14} /></button>
+            <a href={CONTACT_PHONE_HREF} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+              <Phone size={14} /> {CONTACT_PHONE}
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* PILLARS */}
+      <section className="m-pad" style={{ padding: '96px 40px', background: SURFACE, borderTop: `1px solid ${HAIR}` }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 700, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>How it works</div>
+            <h2 className="m-sec-h2" style={{ fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: INK, lineHeight: 1.05 }}>
+              Four principles behind every build.
+            </h2>
+          </div>
+          <div className="m-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 18 }}>
+            {PILLARS.map(p => {
+              const Icon = p.icon
+              return (
+                <div key={p.title} style={{ background: W, border: `1px solid ${HAIR}`, borderRadius: 16, padding: 28 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Icon size={22} color={R} />
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK, marginBottom: 10 }}>{p.title}</div>
+                  <p style={{ fontSize: 14, color: MUTED, fontFamily: FB, lineHeight: 1.65 }}>{p.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* INTEGRATIONS STRIP */}
+      <section className="m-pad" style={{ padding: '72px 40px' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>Integrates with anything</div>
+          <h3 style={{ fontSize: 28, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK, lineHeight: 1.1, marginBottom: 24 }}>
+            If it has an API, we can wire it in.
+          </h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+            {INTEGRATIONS.map(name => (
+              <span key={name} style={{
+                fontSize: 13, fontWeight: 600, color: INK, fontFamily: FB,
+                background: SURFACE, border: `1px solid ${HAIR}`,
+                padding: '7px 14px', borderRadius: 100,
+              }}>{name}</span>
+            ))}
+            <span style={{
+              fontSize: 13, fontWeight: 800, color: R, fontFamily: FH,
+              background: R + '12', border: `1px solid ${R}30`,
+              padding: '7px 14px', borderRadius: 100,
+            }}>+ Anything custom</span>
+          </div>
+        </div>
+      </section>
+
+      {/* SYSTEM EXAMPLES — CATERING + 6 others */}
+      <section className="m-pad" style={{ padding: '96px 40px', background: SURFACE, borderTop: `1px solid ${HAIR}` }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: R, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>System examples</div>
+            <h2 className="m-sec-h2" style={{ fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: INK, lineHeight: 1.05, marginBottom: 18 }}>
+              Seven real systems we can build.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              Each system is tailored to the business. Here's how one typically comes together.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {SYSTEMS.map((s, i) => {
+              const Icon = s.icon
+              return (
+                <div key={s.title} className="mock-split" style={{
+                  background: W, border: `1px solid ${HAIR}`, borderRadius: 18, overflow: 'hidden',
+                  display: 'grid', gridTemplateColumns: '1fr 1.2fr',
+                }}>
+                  {/* Left: header */}
+                  <div style={{ padding: '32px 32px', borderRight: `1px solid ${HAIR}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: s.accent + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon size={22} color={s.accent} />
+                      </div>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: s.accent, background: s.accent + '12', padding: '4px 10px', borderRadius: 100, letterSpacing: '.06em', textTransform: 'uppercase' }}>{s.industry}</span>
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: '.06em', marginBottom: 4 }}>EXAMPLE {String(i + 1).padStart(2, '0')}</div>
+                    <h3 style={{ fontSize: 26, fontWeight: 900, fontFamily: FH, letterSpacing: '-.025em', color: INK, lineHeight: 1.1, marginBottom: 14 }}>
+                      {s.title}
+                    </h3>
+                    <p style={{ fontSize: 14, color: MUTED, fontFamily: FB, lineHeight: 1.55, marginBottom: 16, fontStyle: 'italic' }}>
+                      {s.scenario}
+                    </p>
+                    <div style={{
+                      display: 'inline-block', padding: '6px 12px',
+                      background: GRN + '12', border: `1px solid ${GRN}30`,
+                      borderRadius: 100, fontSize: 12, fontWeight: 700, color: GRN, fontFamily: FH,
+                    }}>
+                      {s.metric}
+                    </div>
+                  </div>
+                  {/* Right: steps */}
+                  <div style={{ padding: '32px 32px', background: WASH }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>How it runs</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {s.steps.map((step, j) => (
+                        <div key={j} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                          <div style={{
+                            width: 22, height: 22, borderRadius: '50%',
+                            background: s.accent + '14', color: s.accent,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 11, fontWeight: 800, fontFamily: FH, flexShrink: 0,
+                          }}>{j + 1}</div>
+                          <div style={{ fontSize: 14, color: INK, fontFamily: FB, lineHeight: 1.55 }}>{step}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT CTA */}
+      <section className="m-pad" style={{ padding: '96px 40px' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', background: INK, borderRadius: 24, padding: '64px 48px', textAlign: 'center', color: W, position: 'relative', overflow: 'hidden' }}>
+          <div aria-hidden="true" style={{ position: 'absolute', top: -100, right: -100, width: 320, height: 320, borderRadius: '50%', background: R + '30', filter: 'blur(70px)' }} />
+          <div aria-hidden="true" style={{ position: 'absolute', bottom: -100, left: -100, width: 280, height: 280, borderRadius: '50%', background: T + '30', filter: 'blur(70px)' }} />
+          <div style={{ position: 'relative' }}>
+            <h2 className="m-sec-h2" style={{ fontSize: 48, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: W, lineHeight: 1.05, marginBottom: 18 }}>
+              Tell us what you do.<br />We'll show you what we'd build.
+            </h2>
+            <p style={{ fontSize: 17, color: 'rgba(255,255,255,.7)', fontFamily: FB, lineHeight: 1.6, maxWidth: 540, margin: '0 auto 32px' }}>
+              Usually a working prototype in a week. Full production system in four to eight weeks.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button className="btn btn-primary" style={{ background: R, borderColor: R }} onClick={() => navigate('/contact')}>Book a build session <ArrowRight size={14} /></button>
+              <a href={CONTACT_PHONE_HREF} style={{ color: W, textDecoration: 'none', fontFamily: FH, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 20px' }}>
+                <Phone size={14} /> {CONTACT_PHONE}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <PublicFooter />
+    </div>
+  )
+}

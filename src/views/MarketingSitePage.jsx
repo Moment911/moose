@@ -223,27 +223,27 @@ const PHASES = [
 const IQ_PIPELINE = [
   {
     num: '01', title: 'Ingest', icon: Database,
-    headline: 'Live data from 12+ sources',
-    desc: 'OAuth connections pull real-time data from Google Search Console, Analytics 4, Ads, and Business Profile. DataForSEO powers SERP scans, rank grids, and AI Overview detection. Moz supplies Domain Authority, backlinks, and spam scores. Your sitemap feeds every indexed page into the pipeline.',
-    items: ['Search Console', 'Analytics 4', 'Google Ads', 'Business Profile', 'DataForSEO', 'Moz', 'Sitemap Crawl', 'SERP APIs'],
+    headline: 'Live data from every place your clients show up',
+    desc: 'KotoIQ pulls real-time data straight from the channels your clients rank and advertise on — search, analytics, paid media, local listings, reviews, backlinks, and the live web. Your sitemap and every indexed page feed the pipeline automatically.',
+    items: ['Search rankings', 'Website analytics', 'Paid media', 'Local listings', 'Reviews', 'Backlinks', 'Sitemap + pages', 'Live web'],
   },
   {
     num: '02', title: 'Analyze', icon: Network,
-    headline: '25+ specialized engines run in parallel',
-    desc: 'Each engine is a focused reasoning agent. Semantic agents score topical authority. Rank Grid Pro maps geo-spatial visibility cell by cell. Competitor Watch tracks share-of-voice shifts. Content Decay finds pages bleeding traffic. E-E-A-T scoring grades every page against Google quality guidelines.',
-    items: ['AI Visibility', 'Quick Wins', 'Rank Grid Pro', 'Competitor Watch', 'Semantic Agents', 'Content Decay', 'E-E-A-T Scoring', 'Backlink Intel'],
+    headline: '25+ specialized engines running in parallel',
+    desc: 'Each engine is a focused reasoning agent. One scores topical authority. One maps geo-spatial visibility cell by cell. One tracks competitor share-of-voice shifts. One finds pages bleeding traffic. One grades every page against modern search-quality guidelines.',
+    items: ['AI Visibility', 'Quick Wins', 'Rank Grid', 'Competitor Watch', 'Semantic Analysis', 'Content Decay', 'Quality Scoring', 'Backlink Intel'],
   },
   {
     num: '03', title: 'Synthesize', icon: Sparkles,
-    headline: 'The right AI model for the right job',
-    desc: 'Fast structured lookups route to Claude Haiku. Deep reasoning and strategic analysis go to Claude Opus. Content generation and briefs use Claude Sonnet. For heavy research, the Multi-AI Blender runs parallel queries across models and reconciles the answers.',
-    items: ['Claude Opus', 'Claude Sonnet', 'Claude Haiku', 'Multi-AI Blender', 'Cost-routed', 'Context-aware', 'Token-tracked', 'Grounded in data'],
+    headline: 'The right model for the right job',
+    desc: 'Every sub-task gets routed to the AI best suited for it — fast lookups to lightweight models, deep reasoning to the heavy ones, content generation to the most creative. For big research questions, parallel queries run across multiple models and reconcile into one answer.',
+    items: ['Deep reasoning', 'Fast chat', 'Vision + tables', 'Multi-model blend', 'Cost-routed', 'Context-aware', 'Grounded in data', 'Cited sources'],
   },
   {
     num: '04', title: 'Act', icon: Target,
     headline: 'Prioritized, client-ready actions',
-    desc: 'The engine outputs a ranked Quick Win queue with traffic and revenue estimates. Content briefs come with page structure, entity coverage, and rotation-ready paragraphs. GMB posts draft themselves. Competitor intel arrives as a one-pager. Every recommendation cites the source data.',
-    items: ['Quick Win Queue', 'Content Briefs', 'GMB Posts', 'Rank Reports', 'AI Visibility Score', 'Ask KotoIQ Chat', 'Client Portals', 'Full Audits'],
+    desc: 'The engine outputs a ranked Quick Win queue with traffic and revenue estimates. Content briefs arrive with page structure and entity coverage. Business profile posts draft themselves. Competitor intel becomes a one-pager. Every recommendation cites the data it came from.',
+    items: ['Quick Win Queue', 'Content Briefs', 'Profile Posts', 'Rank Reports', 'Visibility Score', 'Ask KotoIQ', 'Client Portals', 'Full Audits'],
   },
 ];
 
@@ -483,33 +483,33 @@ function ParticleNetwork({
 const DEMO_SCENARIOS = [
   {
     triggers: ['traffic', 'down', 'drop', 'decline', 'decreas'],
-    text: 'Organic traffic is down 12% this month on your **dental** sample client. The biggest losses: **dental implants** (-34%), **invisalign near me** (-22%), and **emergency dentist** (-18%). A competitor published fresh pillar content and pushed these pages out of the AI Overview citations. Refreshing those three pages would recover most of the loss — I can draft the content briefs for you.',
-    sources: ['Search Console', 'Analytics 4', 'SERP Snapshot'],
+    text: 'Organic traffic is down 12% this month on your **dental** sample client. The biggest losses: **dental implants** (-34%), **invisalign near me** (-22%), and **emergency dentist** (-18%). A competitor published fresh pillar content and pushed these pages out of the AI answer citations. Refreshing those three pages would recover most of the loss — I can draft the content briefs for you.',
+    sources: ['Search data', 'Website analytics', 'Live SERP'],
   },
   {
     triggers: ['keyword', 'opportunit', 'quick win', 'low hanging', 'easy win'],
     text: 'Your top **quick wins** this week (sample client): **emergency dentist miami** (#11 → #4, est. +1,840 visits/mo), **dental implants cost** (#9 → #3, +2,110/mo), **invisalign near me** (#14 → #6, +1,220/mo). Combined estimated revenue lift: **+$12.4k/month** at current conversion rates.',
-    sources: ['Search Console', 'Keyword Metrics', 'DataForSEO'],
+    sources: ['Search data', 'Keyword metrics', 'Opportunity engine'],
   },
   {
     triggers: ['competit', 'compare', 'rival', 'vs '],
     text: 'Your top 3 competitors by share of voice (sample data): **BriteSmile** is up +14% this month — they just published 4 new service pages targeting your long-tail terms. **Miami Smile Studio** gained +6% on branded search. **Downtown Dental Clinic** dropped -3% after a site migration. BriteSmile is your priority threat.',
-    sources: ['SERP Snapshot', 'Competitor Intelligence'],
+    sources: ['Live SERP', 'Competitor intelligence'],
   },
   {
     triggers: ['review', 'gmb', 'business profile', 'reputation', 'star'],
-    text: 'Sample client Google Business Profile: **4.6 stars** across **47 reviews** (+3 this month). Sentiment dipped slightly — two new 3-star reviews mention wait times. I drafted reply copy for both. Your recent positive reviews cluster around "painless" and "thorough" — great signals to lean into on your landing pages.',
-    sources: ['Business Profile', 'Review Sentiment'],
+    text: 'Sample client local listing: **4.6 stars** across **47 reviews** (+3 this month). Sentiment dipped slightly — two new 3-star reviews mention wait times. I drafted reply copy for both. Your recent positive reviews cluster around "painless" and "thorough" — great signals to lean into on your landing pages.',
+    sources: ['Local listing', 'Review sentiment'],
   },
   {
     triggers: ['local', 'grid', 'map', 'near me'],
     text: 'The 5-mile geo-grid for **"emergency dentist"** on the sample client averages **#4.2**. Strong coverage in Brickell (avg #2) and Coconut Grove (avg #3), but weak visibility north of 79th Street (avg #11). Three neighborhood landing pages would likely close the gap.',
-    sources: ['Rank Grid', 'Local SERP'],
+    sources: ['Rank grid', 'Local SERP'],
   },
   {
     triggers: ['ads', 'ppc', 'paid', 'cpc', 'adwords', 'google ads'],
-    text: 'Sample client Google Ads last 30 days: **$4,217 spend**, **2.1% conversion rate**, **$47 cost-per-acquisition**. Your "emergency dentist" ad group is the star (3.8% CVR, $28 CPA). "Teeth whitening" is bleeding — zero conversions on $612 spend. I would pause that ad group and reallocate to the implant campaign.',
-    sources: ['Google Ads', 'Conversion Tracking'],
+    text: 'Sample client paid media last 30 days: **$4,217 spend**, **2.1% conversion rate**, **$47 cost-per-acquisition**. Your "emergency dentist" ad group is the star (3.8% CVR, $28 CPA). "Teeth whitening" is bleeding — zero conversions on $612 spend. I would pause that ad group and reallocate to the implant campaign.',
+    sources: ['Paid media', 'Conversion tracking'],
   },
   {
     triggers: ['content', 'brief', 'write', 'blog', 'page'],
@@ -1857,6 +1857,63 @@ export default function MarketingSitePage() {
           .catering-split > div:first-child { border-right: none !important; border-bottom: 1px solid ${HAIR} !important; }
         }
       `}</style>
+
+      {/* ══ CONTACT BAND — large phone number, pitched at custom AI + systems ══ */}
+      <section className="section" style={{ padding: '72px 40px', borderTop: `1px solid ${HAIR}` }}>
+        <div style={{
+          maxWidth: 1100, margin: '0 auto',
+          background: `linear-gradient(135deg, ${R}10, ${T}10)`,
+          border: `1px solid ${HAIR}`, borderRadius: 24,
+          padding: '56px 48px', textAlign: 'center', position: 'relative', overflow: 'hidden',
+        }}>
+          <div aria-hidden="true" style={{
+            position: 'absolute', top: -60, right: -60, width: 240, height: 240,
+            borderRadius: '50%', background: R + '22', filter: 'blur(60px)',
+          }} />
+          <div aria-hidden="true" style={{
+            position: 'absolute', bottom: -60, left: -60, width: 220, height: 220,
+            borderRadius: '50%', background: T + '22', filter: 'blur(60px)',
+          }} />
+
+          <div style={{ position: 'relative' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>
+              Contact us
+            </div>
+            <h2 className="sec-h2" style={{
+              fontSize: 48, fontWeight: 900, fontFamily: FH,
+              letterSpacing: '-.035em', lineHeight: 1.05, color: INK, marginBottom: 16,
+            }}>
+              Learn more about our custom<br />AI agents and systems.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 520, margin: '0 auto 32px' }}>
+              Tell us what you want to automate. We'll show you the working version — usually a prototype within a week.
+            </p>
+
+            <a href="tel:+15612200100" style={{
+              display: 'block', fontSize: 68, fontWeight: 900, fontFamily: FH,
+              letterSpacing: '-.045em', color: INK, lineHeight: 1, marginBottom: 24,
+              textDecoration: 'none',
+            }} className="home-contact-phone">
+              (561) 220-0100
+            </a>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button className="btn btn-primary btn-lg" onClick={() => navigate('/contact')}>
+                Book a build session <ArrowRight size={16} />
+              </button>
+              <a href="tel:+15612200100" className="btn btn-secondary btn-lg" style={{ textDecoration: 'none' }}>
+                <Phone size={16} /> Call now
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <style>{`
+          @media (max-width: 700px) {
+            .home-contact-phone { font-size: 42px !important; letter-spacing: -.03em !important; }
+          }
+        `}</style>
+      </section>
 
       {/* ══ BUILT FOR SCALE ══ */}
       <section className="section" style={{ background: SURFACE, padding: '96px 40px' }}>

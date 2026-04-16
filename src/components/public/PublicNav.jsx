@@ -9,11 +9,14 @@ const HAIR  = '#e5e7eb'
 const W     = '#ffffff'
 
 /* Same nav on every public page — home, about, privacy, terms */
+/* mix of dedicated pages (href) and homepage anchors (id) */
 const LINKS = [
   { id: 'platform', label: 'Platform' },
-  { id: 'kotoiq',   label: 'KotoIQ' },
-  { id: 'agents',   label: 'AI Agents' },
+  { href: '/ai-agents',      label: 'AI Agents' },
+  { href: '/custom-systems', label: 'Custom Systems' },
   { id: 'pricing',  label: 'Pricing' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
 ]
 
 export default function PublicNav() {
@@ -42,6 +45,12 @@ export default function PublicNav() {
     }
   }
 
+  const goHref = (href) => (e) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    navigate(href)
+  }
+
   return (
     <>
       {menuOpen && (
@@ -57,12 +66,11 @@ export default function PublicNav() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {LINKS.map(l => (
-              <button key={l.id} onClick={goSection(l.id)}
+              <button key={l.label} onClick={l.id ? goSection(l.id) : goHref(l.href)}
                 style={{ background: 'none', border: 'none', color: BLK, fontSize: 28, fontWeight: 800, fontFamily: FH, letterSpacing: '-.02em', cursor: 'pointer', textAlign: 'left' }}>
                 {l.label}
               </button>
             ))}
-            <a href="/about" style={{ color: BLK, fontSize: 28, fontWeight: 800, fontFamily: FH, letterSpacing: '-.02em', textDecoration: 'none' }}>About</a>
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
             <button onClick={() => { setMenuOpen(false); navigate('/login') }}
@@ -89,9 +97,11 @@ export default function PublicNav() {
       }} className="pn-root">
         <img src="/koto_logo.svg" alt="Koto" style={{ height: 26, cursor: 'pointer' }} onClick={() => navigate('/')} />
 
-        <div className="pn-center" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+        <div className="pn-center" style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
           {LINKS.map(l => (
-            <a key={l.id} href={`/#${l.id}`} onClick={goSection(l.id)}
+            <a key={l.label}
+              href={l.id ? `/#${l.id}` : l.href}
+              onClick={l.id ? goSection(l.id) : goHref(l.href)}
               style={{
                 fontSize: 14, color: MUTED, fontWeight: 600, textDecoration: 'none',
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -101,13 +111,6 @@ export default function PublicNav() {
               onMouseLeave={e => e.currentTarget.style.color = MUTED}
             >{l.label}</a>
           ))}
-          <a href="/about" style={{
-            fontSize: 14, color: MUTED, fontWeight: 600, textDecoration: 'none',
-            transition: 'color .15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.color = BLK}
-            onMouseLeave={e => e.currentTarget.style.color = MUTED}
-          >About</a>
         </div>
 
         <div className="pn-right" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
