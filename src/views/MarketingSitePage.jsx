@@ -33,6 +33,66 @@ const GLOBAL_CSS = `
   .fade-2 { animation-delay: .12s; }
   .fade-3 { animation-delay: .2s; }
 
+  /* ── Mock screen animations ── */
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .5; transform: scale(1.15); }
+  }
+  @keyframes fillBar {
+    from { width: 0%; }
+  }
+  @keyframes countFlash {
+    0%   { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rowSweep {
+    0%, 92%, 100% { background: transparent; }
+    40%, 70%      { background: ${R}08; }
+  }
+  @keyframes blink {
+    0%, 50%   { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  @keyframes typingDot {
+    0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+    30%           { opacity: 1; transform: translateY(-3px); }
+  }
+  @keyframes streamIn {
+    from { clip-path: inset(0 100% 0 0); }
+    to   { clip-path: inset(0 0    0 0); }
+  }
+  @keyframes cellFlash {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+    50%      { transform: scale(1.08); box-shadow: 0 0 0 2px currentColor; }
+  }
+  @keyframes ring {
+    from { stroke-dashoffset: 283; }
+    to   { stroke-dashoffset: var(--ring-target, 79); }
+  }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(-4px, -4px); }
+  }
+
+  .dot-1 { animation: typingDot 1.2s infinite; animation-delay: 0s; }
+  .dot-2 { animation: typingDot 1.2s infinite; animation-delay: .15s; }
+  .dot-3 { animation: typingDot 1.2s infinite; animation-delay: .3s; }
+
+  .mock-row-1 { animation: rowSweep 5s infinite; animation-delay: 0s; }
+  .mock-row-2 { animation: rowSweep 5s infinite; animation-delay: 1.2s; }
+  .mock-row-3 { animation: rowSweep 5s infinite; animation-delay: 2.4s; }
+  .mock-row-4 { animation: rowSweep 5s infinite; animation-delay: 3.6s; }
+
+  .mock-screen {
+    background: ${W}; border: 1px solid ${HAIR}; border-radius: 16px;
+    overflow: hidden; position: relative; box-shadow: 0 24px 48px rgba(17,17,17,.08), 0 4px 12px rgba(17,17,17,.04);
+  }
+  .mock-header {
+    display: flex; align-items: center; gap: 6px; padding: 12px 16px;
+    border-bottom: 1px solid ${HAIR}; background: ${WASH};
+  }
+  .mock-dot { width: 9px; height: 9px; border-radius: 50%; }
+
   .nav-link {
     color: ${MUTED}; text-decoration: none; font-size: 14px; font-weight: 600;
     background: none; border: none; cursor: pointer; font-family: ${FH}; padding: 0;
@@ -92,6 +152,8 @@ const GLOBAL_CSS = `
     .stats-row { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
     .agent-card { grid-template-columns: 1fr !important; gap: 24px !important; padding: 28px !important; }
     .agent-card > div:last-child { border-left: none !important; border-top: 1px solid ${HAIR}; padding-left: 0 !important; padding-top: 24px !important; }
+    .mock-grid { grid-template-columns: 1fr !important; }
+    .mock-hero { grid-template-columns: 1fr !important; }
   }
   @media (min-width: 901px) {
     .show-mobile { display: none !important; }
@@ -680,6 +742,342 @@ export default function MarketingSitePage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ SEE IT IN ACTION — ANIMATED MOCKS ══ */}
+      <section className="section" style={{ background: W, padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="eyebrow" style={{ color: R }}>See it in action</div>
+            <h2 className="sec-h2" style={{
+              fontSize: 56, fontWeight: 900, fontFamily: FH,
+              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
+            }}>
+              Real data. Real insights.<br />Real fast.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              A look at what KotoIQ produces on a typical client — scored, prioritized, and ready to act on.
+            </p>
+          </div>
+
+          {/* Hero row: AI Visibility Score + Quick Wins */}
+          <div className="mock-hero" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 20, marginBottom: 20 }}>
+
+            {/* ─── MOCK 1: AI Visibility Score ─── */}
+            <div className="mock-screen">
+              <div className="mock-header">
+                <span className="mock-dot" style={{ background: '#ff5f57' }} />
+                <span className="mock-dot" style={{ background: '#ffbd2e' }} />
+                <span className="mock-dot" style={{ background: '#28c840' }} />
+                <span style={{ marginLeft: 8, fontSize: 12, color: MUTED, fontFamily: FH, fontWeight: 600 }}>
+                  kotoiq.app/dashboard
+                </span>
+                <span style={{ marginLeft: 'auto', fontSize: 11, color: FAINT, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: GRN, animation: 'pulseDot 2s infinite' }} />
+                  Live
+                </span>
+              </div>
+
+              <div style={{ padding: '32px 32px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 6 }}>
+                      AI Visibility Score
+                    </div>
+                    <div style={{ fontSize: 22, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK }}>
+                      Acme Dental · Miami FL
+                    </div>
+                  </div>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 100,
+                    background: GRN + '12', fontSize: 11, fontWeight: 700, color: GRN,
+                  }}>
+                    <TrendingUp size={12} /> +4 pts this week
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+                  {/* Radial ring */}
+                  <div style={{ position: 'relative', width: 160, height: 160, flexShrink: 0 }}>
+                    <svg width="160" height="160" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="45" fill="none" stroke={HAIR} strokeWidth="7" />
+                      <circle
+                        cx="50" cy="50" r="45" fill="none" stroke={R} strokeWidth="7" strokeLinecap="round"
+                        strokeDasharray="283" style={{
+                          transformOrigin: '50% 50%', transform: 'rotate(-90deg)',
+                          animation: 'ring 1.8s ease-out forwards', '--ring-target': '79',
+                        }}
+                      />
+                    </svg>
+                    <div style={{
+                      position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center', animation: 'countFlash 1s ease-out .9s both',
+                    }}>
+                      <div style={{ fontSize: 44, fontWeight: 900, fontFamily: FH, letterSpacing: '-.03em', color: INK, lineHeight: 1 }}>72</div>
+                      <div style={{ fontSize: 11, color: MUTED, fontWeight: 600, marginTop: 2 }}>out of 100</div>
+                      <div style={{
+                        marginTop: 6, padding: '2px 10px', borderRadius: 100, background: R + '15',
+                        color: R, fontSize: 12, fontWeight: 900, fontFamily: FH,
+                      }}>B+</div>
+                    </div>
+                  </div>
+
+                  {/* Sub-scores */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {[
+                      { label: 'Semantic coverage', value: 78, color: T },
+                      { label: 'Entity presence',   value: 65, color: R },
+                      { label: 'E-E-A-T signals',   value: 71, color: INK },
+                      { label: 'SERP features',     value: 74, color: AMB },
+                    ].map((s, i) => (
+                      <div key={s.label}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, color: MUTED, fontWeight: 600 }}>{s.label}</span>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: INK, fontFamily: FH }}>{s.value}</span>
+                        </div>
+                        <div style={{ height: 6, background: SURFACE, borderRadius: 100, overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%', width: `${s.value}%`, background: s.color, borderRadius: 100,
+                            animation: `fillBar 1.2s cubic-bezier(.22,1,.36,1) ${.4 + i * .15}s both`,
+                          }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ─── MOCK 2: Quick Wins ─── */}
+            <div className="mock-screen">
+              <div className="mock-header">
+                <span className="mock-dot" style={{ background: '#ff5f57' }} />
+                <span className="mock-dot" style={{ background: '#ffbd2e' }} />
+                <span className="mock-dot" style={{ background: '#28c840' }} />
+                <span style={{ marginLeft: 8, fontSize: 12, color: MUTED, fontFamily: FH, fontWeight: 600 }}>
+                  kotoiq.app/quick-wins
+                </span>
+              </div>
+
+              <div style={{ padding: '24px 24px 16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 20 }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+                      Quick Win Queue
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK }}>
+                      24 keywords ranked by impact
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
+                  <div style={{ padding: '12px 14px', borderRadius: 10, background: GRN + '08', border: `1px solid ${GRN}20` }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: GRN, letterSpacing: '.06em', textTransform: 'uppercase' }}>Est. traffic gain</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK, marginTop: 2 }}>+8,340<span style={{ fontSize: 13, color: MUTED, fontWeight: 600 }}> /mo</span></div>
+                  </div>
+                  <div style={{ padding: '12px 14px', borderRadius: 10, background: R + '08', border: `1px solid ${R}20` }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: R, letterSpacing: '.06em', textTransform: 'uppercase' }}>Est. revenue lift</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK, marginTop: 2 }}>+$12.4k<span style={{ fontSize: 13, color: MUTED, fontWeight: 600 }}> /mo</span></div>
+                  </div>
+                </div>
+
+                {/* Rows */}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {[
+                    { kw: 'emergency dentist miami',    from: 11, to: 4, traffic: '+1,840', cls: 'mock-row-1' },
+                    { kw: 'invisalign near me',         from: 14, to: 6, traffic: '+1,220', cls: 'mock-row-2' },
+                    { kw: 'dental implants cost',       from: 9,  to: 3, traffic: '+2,110', cls: 'mock-row-3' },
+                    { kw: 'same day crown brickell',    from: 18, to: 7, traffic: '+  680', cls: 'mock-row-4' },
+                  ].map((r, i) => (
+                    <div key={r.kw} className={r.cls} style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '10px 10px',
+                      borderRadius: 8, borderBottom: i < 3 ? `1px solid ${HAIR}` : 'none',
+                    }}>
+                      <span style={{
+                        fontSize: 10, fontWeight: 800, color: R, background: R + '12',
+                        padding: '3px 8px', borderRadius: 100, letterSpacing: '.04em',
+                      }}>HIGH</span>
+                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: INK, fontFamily: FB }}>{r.kw}</span>
+                      <span style={{ fontSize: 12, color: MUTED, fontFamily: 'monospace' }}>#{r.from} → <strong style={{ color: GRN }}>#{r.to}</strong></span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: GRN, fontFamily: FH, minWidth: 56, textAlign: 'right' }}>{r.traffic}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Second row: Rank Grid + Ask KotoIQ */}
+          <div className="mock-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+
+            {/* ─── MOCK 3: Rank Grid Pro ─── */}
+            <div className="mock-screen">
+              <div className="mock-header">
+                <span className="mock-dot" style={{ background: '#ff5f57' }} />
+                <span className="mock-dot" style={{ background: '#ffbd2e' }} />
+                <span className="mock-dot" style={{ background: '#28c840' }} />
+                <span style={{ marginLeft: 8, fontSize: 12, color: MUTED, fontFamily: FH, fontWeight: 600 }}>
+                  kotoiq.app/rank-grid
+                </span>
+              </div>
+
+              <div style={{ padding: '24px' }}>
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+                    Rank Grid Pro
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK }}>
+                    "emergency dentist" · 5 mile grid
+                  </div>
+                </div>
+
+                {/* Grid */}
+                <div style={{
+                  display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 16,
+                  position: 'relative',
+                }}>
+                  {(() => {
+                    const grid = [
+                      [8, 5, 3, 2, 4, 7, 12],
+                      [6, 3, 1, 1, 2, 4, 9],
+                      [4, 2, 1, 1, 1, 3, 6],
+                      [7, 4, 2, 1, 2, 5, 11],
+                      [12, 8, 5, 3, 4, 9, 18],
+                    ];
+                    return grid.flat().map((rank, idx) => {
+                      const isCenter = idx === Math.floor(grid.length / 2) * 7 + 3;
+                      const color = rank <= 3 ? GRN : rank <= 10 ? AMB : '#ef4444';
+                      return (
+                        <div key={idx} style={{
+                          aspectRatio: '1', borderRadius: 6, background: color + '18',
+                          border: `1px solid ${color}30`, color,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 12, fontWeight: 900, fontFamily: FH,
+                          animation: isCenter ? 'none' : `cellFlash 6s infinite`, animationDelay: `${(idx * 0.15) % 4}s`,
+                          position: 'relative',
+                        }}>
+                          {rank}
+                          {isCenter && (
+                            <div style={{
+                              position: 'absolute', inset: -3, borderRadius: 8,
+                              background: INK, color: W,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 12, fontWeight: 900,
+                            }}>
+                              <MapPin size={14} color={W} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* Legend */}
+                <div style={{ display: 'flex', gap: 16, fontSize: 11, color: MUTED, fontWeight: 600 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: GRN + '30', border: `1px solid ${GRN}` }} /> Top 3
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: AMB + '30', border: `1px solid ${AMB}` }} /> 4–10
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: '#ef444430', border: '1px solid #ef4444' }} /> 11+
+                  </span>
+                  <span style={{ marginLeft: 'auto', fontWeight: 700, color: INK }}>Avg rank: 4.2</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ─── MOCK 4: Ask KotoIQ ─── */}
+            <div className="mock-screen">
+              <div className="mock-header">
+                <span className="mock-dot" style={{ background: '#ff5f57' }} />
+                <span className="mock-dot" style={{ background: '#ffbd2e' }} />
+                <span className="mock-dot" style={{ background: '#28c840' }} />
+                <span style={{ marginLeft: 8, fontSize: 12, color: MUTED, fontFamily: FH, fontWeight: 600 }}>
+                  kotoiq.app/ask
+                </span>
+              </div>
+
+              <div style={{ padding: '24px 24px 20px' }}>
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+                    Ask KotoIQ
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK }}>
+                    Grounded in your live client data
+                  </div>
+                </div>
+
+                {/* Conversation */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* User bubble */}
+                  <div style={{
+                    alignSelf: 'flex-end', maxWidth: '80%', padding: '10px 14px',
+                    background: INK, color: W, borderRadius: '14px 14px 4px 14px',
+                    fontSize: 13, fontWeight: 600, fontFamily: FB,
+                  }}>
+                    Why is organic traffic down 12% this month?
+                  </div>
+
+                  {/* Typing indicator (briefly visible before assistant reply) */}
+                  <div style={{
+                    alignSelf: 'flex-start', padding: '10px 14px', background: SURFACE,
+                    border: `1px solid ${HAIR}`, borderRadius: '14px 14px 14px 4px',
+                    display: 'flex', gap: 4,
+                  }}>
+                    <span className="dot-1" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED }} />
+                    <span className="dot-2" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED }} />
+                    <span className="dot-3" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED }} />
+                  </div>
+
+                  {/* Assistant bubble */}
+                  <div style={{
+                    alignSelf: 'flex-start', maxWidth: '92%', padding: '14px 16px',
+                    background: SURFACE, border: `1px solid ${HAIR}`,
+                    borderRadius: '14px 14px 14px 4px',
+                  }}>
+                    <div style={{
+                      fontSize: 13, color: INK, lineHeight: 1.6, fontFamily: FB,
+                      animation: 'streamIn 2.2s steps(40) 0.6s both',
+                    }}>
+                      Three service pages lost AI Overview placement on <strong>"dental implants"</strong>,
+                      <strong> "invisalign"</strong>, and <strong>"emergency dentist"</strong>. Competitor
+                      <strong> BriteSmile</strong> published fresh pillar content and captured the citation
+                      slot. Recommend refreshing these three pages — details in the brief below.
+                      <span style={{ display: 'inline-block', width: 2, height: 14, background: INK, verticalAlign: 'middle', marginLeft: 2, animation: 'blink 1s infinite' }} />
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${HAIR}` }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }}>Sources:</span>
+                      {['GSC', 'GA4', 'DataForSEO', 'SERP Snapshot'].map(s => (
+                        <span key={s} style={{
+                          fontSize: 10, fontWeight: 700, color: MUTED,
+                          background: W, border: `1px solid ${HAIR}`,
+                          padding: '2px 7px', borderRadius: 100,
+                        }}>{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Input bar */}
+                <div style={{
+                  marginTop: 16, padding: '10px 14px', borderRadius: 10,
+                  border: `1px solid ${HAIR}`, background: W,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 13, color: FAINT,
+                }}>
+                  <MessageCircle size={14} />
+                  Ask anything about this client...
+                  <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: FAINT, letterSpacing: '.04em' }}>⌘K</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
