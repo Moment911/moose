@@ -2,13 +2,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Menu, X, ArrowRight, Check, Phone, MessageSquare,
+  ArrowRight, Check, Phone, MessageSquare,
   BarChart2, Zap, Star, Search, Globe, TrendingUp, Cpu,
   Database, Network, Sparkles, Target, FileText, MapPin,
   Eye, Layers, Activity, MessageCircle, Mail, Send, Loader,
-  Car, Scale, Wrench, Home, Droplet, Dumbbell, Utensils,
+  Car, Scale, Wrench, Home, Droplet, Dumbbell,
 } from 'lucide-react';
 import { R, T, BLK, GRY, GRN, AMB, W, FH, FB } from '../lib/theme';
+import { supabase } from '../lib/supabase';
+import PublicNav from '../components/public/PublicNav';
+import PublicFooter from '../components/public/PublicFooter';
 
 /* ─── Palette aliases for readability ─── */
 const INK      = BLK;                // #111111 — near-black text
@@ -316,61 +319,23 @@ const VOICE_BULLETS = [
   { title: 'Smart follow-up sequences', desc: 'Automated multi-touch follow-up triggered by call outcomes.' },
 ];
 
-const PRICING_PLANS = [
+/* Shape matches AgencySignupPage's DEFAULT_PLANS so /signup and / never drift */
+const DEFAULT_PRICING = [
   {
-    name: 'Starter', price: '$297', period: '/mo',
+    id: 'starter', name: 'Starter', price: 297, popular: false,
     desc: 'For solo operators and new agencies.',
-    popular: false,
     features: ['3 team seats', 'Up to 25 clients', 'AI review responses', 'Scout lead intelligence', 'Client onboarding forms'],
   },
   {
-    name: 'Growth', price: '$497', period: '/mo',
+    id: 'growth', name: 'Growth', price: 497, popular: true,
     desc: 'For growing agencies ready to scale fast.',
-    popular: true,
     features: ['10 team seats', 'Up to 100 clients', 'Everything in Starter', 'Agency Autopilot (all 6 agents)', 'White-label platform', 'Social content AI'],
   },
   {
-    name: 'Agency', price: '$997', period: '/mo',
+    id: 'agency', name: 'Agency', price: 997, popular: false,
     desc: 'Full power for established agencies.',
-    popular: false,
     features: ['25 team seats', 'Up to 500 clients', 'Everything in Growth', 'Lead scoring AI', 'API access', 'Priority support'],
   },
-];
-
-const FOOTER_COLUMNS = [
-  { title: 'Platform',  links: [
-    { label: 'AI Page Builder', href: '#platform' },
-    { label: 'Cold Call Agent', href: '#platform' },
-    { label: 'Answering Service', href: '#platform' },
-    { label: 'Review Management', href: '#platform' },
-    { label: 'Scout Leads', href: '#platform' },
-    { label: 'CMO Agent', href: '#platform' },
-  ] },
-  { title: 'Company',   links: [
-    { label: 'About', href: '/about' },
-    { label: 'Blog', href: '#' },
-    { label: 'Careers', href: '#' },
-    { label: 'Contact', href: '#contact' },
-  ] },
-  { title: 'Resources', links: [
-    { label: 'Documentation', href: '#' },
-    { label: 'API', href: '#' },
-    { label: 'Case Studies', href: '#' },
-    { label: 'Help Center', href: '#' },
-  ] },
-  { title: 'Legal',     links: [
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookie Policy', href: '/privacy#cookies' },
-    { label: 'CCPA', href: '/privacy#california' },
-  ] },
-];
-
-const NAV_LINKS = [
-  { id: 'platform', label: 'Platform' },
-  { id: 'kotoiq',   label: 'KotoIQ' },
-  { id: 'agents',   label: 'AI Agents' },
-  { id: 'pricing',  label: 'Pricing' },
 ];
 
 /* ─── Palette aliases available in module scope ─── */
@@ -1034,14 +999,41 @@ function ChatDemo() {
 /* ─── Page ─── */
 export default function MarketingSitePage() {
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [plans, setPlans] = useState(DEFAULT_PRICING);
 
+  // Pull pricing from the same DB key the signup page reads — keeps both in sync
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    let cancelled = false;
+    supabase
+      .from('platform_config')
+      .select('value')
+      .eq('key', 'signup_plans')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const fromDb = data?.value;
+        if (Array.isArray(fromDb) && fromDb.length) {
+          // Merge each DB plan with our default (keeps desc if DB lacks it)
+          const merged = fromDb.map(p => ({
+            ...DEFAULT_PRICING.find(d => d.id === p.id),
+            ...p,
+          }));
+          setPlans(merged);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // Scroll-to-section after landing from another page with /#hash
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.slice(1);
+      window.setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      }, 80);
+    }
   }, []);
 
   const filteredTools = activeFilter === 'All' ? TOOLS : TOOLS.filter(t => t.cat === activeFilter);
@@ -1052,75 +1044,55 @@ export default function MarketingSitePage() {
     <>
       <style>{GLOBAL_CSS}</style>
 
-      {/* ══ MOBILE MENU ══ */}
-      {menuOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, background: W, zIndex: 9000,
-          display: 'flex', flexDirection: 'column', padding: '24px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
-            <img src="/koto_logo.svg" alt="Koto" style={{ height: 28 }} />
-            <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK }}>
-              <X size={24} />
-            </button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {NAV_LINKS.map(l => (
-              <button key={l.id} onClick={() => { setMenuOpen(false); scrollTo(l.id); }}
-                style={{ background: 'none', border: 'none', color: INK, fontSize: 28, fontWeight: 800, fontFamily: FH, letterSpacing: '-.02em', cursor: 'pointer', textAlign: 'left' }}>
-                {l.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
-            <button className="btn btn-secondary btn-md" style={{ flex: 1, justifyContent: 'center' }} onClick={() => { setMenuOpen(false); navigate('/login'); }}>Log in</button>
-            <button className="btn btn-primary btn-md" style={{ flex: 1, justifyContent: 'center' }} onClick={() => { setMenuOpen(false); navigate('/signup'); }}>Get started</button>
-          </div>
-        </div>
-      )}
-
-      {/* ══ NAV ══ */}
-      <nav className="nav-pad" style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 8000,
-        background: scrolled ? 'rgba(255,255,255,.85)' : W,
-        backdropFilter: scrolled ? 'saturate(180%) blur(14px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'saturate(180%) blur(14px)' : 'none',
-        borderBottom: scrolled ? `1px solid ${HAIR}` : '1px solid transparent',
-        transition: 'all .2s',
-        padding: '0 40px', height: 64,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <img src="/koto_logo.svg" alt="Koto" style={{ height: 26, cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
-
-        <div className="hide-mobile" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
-          {NAV_LINKS.map(l => (
-            <button key={l.id} className="nav-link" onClick={() => scrollTo(l.id)}>{l.label}</button>
-          ))}
-        </div>
-
-        <div className="hide-mobile" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button className="nav-link" onClick={() => navigate('/login')}>Log in</button>
-          <button className="btn btn-primary btn-sm" onClick={() => navigate('/signup')}>
-            Get started <ArrowRight size={14} />
-          </button>
-        </div>
-
-        <button className="show-mobile" onClick={() => setMenuOpen(true)}
-          style={{ background: 'none', border: 'none', color: INK, cursor: 'pointer' }}>
-          <Menu size={24} />
-        </button>
-      </nav>
+      <PublicNav />
 
       {/* ══ HERO ══ */}
       <section className="hero" style={{ background: W, padding: '180px 40px 100px', position: 'relative' }}>
-        {/* Molecule network — drifting atoms connected by thin lines */}
+        {/* Background: animated color + molecule network stacked */}
         <div aria-hidden="true" style={{
           position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none',
         }}>
+          {/* Color layer — bigger, bolder, more motion */}
+          <div style={{
+            position: 'absolute', top: -60, left: '4%', width: 620, height: 620,
+            borderRadius: '50%', background: R + '3a', filter: 'blur(90px)',
+            animation: 'orbPulse 9s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', top: 60, right: '2%', width: 580, height: 580,
+            borderRadius: '50%', background: T + '38', filter: 'blur(90px)',
+            animation: 'orbPulse 11s ease-in-out infinite reverse',
+          }} />
+          <div style={{
+            position: 'absolute', top: '40%', left: '50%', width: 900, height: 500,
+            borderRadius: '50%',
+            background: `radial-gradient(ellipse at center, ${R}32 0%, ${T}2e 45%, transparent 75%)`,
+            filter: 'blur(70px)', transform: 'translate(-50%, -50%)',
+            animation: 'orbSlide 13s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', top: '55%', left: '20%', width: 320, height: 320,
+            borderRadius: '50%', background: AMB + '2e', filter: 'blur(80px)',
+            animation: 'orbPulse 15s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', top: '60%', right: '16%', width: 300, height: 300,
+            borderRadius: '50%', background: GRN + '28', filter: 'blur(80px)',
+            animation: 'orbPulse 17s ease-in-out infinite reverse',
+          }} />
+          <div style={{
+            position: 'absolute', top: '48%', left: '50%', width: 760, height: 760,
+            borderRadius: '50%', opacity: .5,
+            background: `conic-gradient(from 0deg, ${R}00, ${R}30, ${T}30, ${AMB}22, ${R}00)`,
+            filter: 'blur(60px)', transform: 'translate(-50%, -50%)',
+            animation: 'auroraSpin 24s linear infinite',
+          }} />
+
+          {/* Molecule layer — drifts on top of the color */}
           <ParticleNetwork
-            count={52}
+            count={56}
             maxDist={150}
-            speed={0.35}
+            speed={0.38}
             color1={R}
             color2={T}
             lineColor="17, 17, 17"
@@ -1791,10 +1763,9 @@ export default function MarketingSitePage() {
             <div className="eyebrow" style={{ color: R }}>Custom-built AI</div>
             <h2 className="sec-h2" style={{
               fontSize: 56, fontWeight: 900, fontFamily: FH,
-              letterSpacing: '-.035em', color: INK, lineHeight: 1.1, marginBottom: 18,
+              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
             }}>
-              <span style={{ display: 'block' }}>If you can describe it,</span>
-              <span style={{ display: 'block' }}>we can <span style={{ color: R }}>build it</span>.</span>
+              If you can describe it,<br />we can <span style={{ color: R }}>build it</span>.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
               Every business has a workflow that shouldn't take a human — the intake, the quoting,
@@ -1981,8 +1952,8 @@ export default function MarketingSitePage() {
           </div>
 
           <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, alignItems: 'stretch' }}>
-            {PRICING_PLANS.map(plan => (
-              <div key={plan.name} style={{
+            {plans.map(plan => (
+              <div key={plan.id || plan.name} style={{
                 position: 'relative',
                 background: W,
                 border: plan.popular ? `2px solid ${INK}` : `1px solid ${HAIR}`,
@@ -2004,10 +1975,12 @@ export default function MarketingSitePage() {
                   {plan.name}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
-                  <span style={{ fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: INK, lineHeight: 1 }}>{plan.price}</span>
-                  <span style={{ fontSize: 15, color: MUTED, fontFamily: FB }}>{plan.period}</span>
+                  <span style={{ fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: INK, lineHeight: 1 }}>
+                    ${typeof plan.price === 'number' ? plan.price : String(plan.price).replace('$', '')}
+                  </span>
+                  <span style={{ fontSize: 15, color: MUTED, fontFamily: FB }}>/mo</span>
                 </div>
-                <p style={{ fontSize: 14, color: MUTED, marginBottom: 24, fontFamily: FB, lineHeight: 1.5 }}>{plan.desc}</p>
+                <p style={{ fontSize: 14, color: MUTED, marginBottom: 24, fontFamily: FB, lineHeight: 1.5 }}>{plan.desc || ''}</p>
 
                 <button
                   onClick={() => navigate('/signup')}
@@ -2072,58 +2045,7 @@ export default function MarketingSitePage() {
         </div>
       </section>
 
-      {/* ══ FOOTER ══ */}
-      <footer id="contact" className="footer-pad" style={{ background: W, borderTop: `1px solid ${HAIR}`, padding: '72px 40px 40px' }}>
-        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
-          <div className="grid-4" style={{
-            display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: 40, marginBottom: 56,
-          }}>
-            <div>
-              <img src="/koto_logo.svg" alt="Koto" style={{ height: 26, marginBottom: 14 }} />
-              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, maxWidth: 280, fontFamily: FB }}>
-                The intelligence layer for modern marketing agencies. Built to scale, designed to win.
-              </p>
-            </div>
-            {FOOTER_COLUMNS.map(col => (
-              <div key={col.title}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: INK, marginBottom: 14 }}>
-                  {col.title}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {col.links.map(l => (
-                    <a key={l.label} href={l.href} style={{
-                      fontSize: 14, color: MUTED, textDecoration: 'none',
-                      transition: 'color .15s', fontFamily: FB,
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.color = INK}
-                      onMouseLeave={e => e.currentTarget.style.color = MUTED}
-                    >{l.label}</a>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{
-            borderTop: `1px solid ${HAIR}`, paddingTop: 24,
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
-          }}>
-            <div style={{ fontSize: 13, color: FAINT, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span>© 2026 Koto Technologies, Inc.</span>
-              <a href="/privacy" style={{ color: FAINT, textDecoration: 'none' }}
-                onMouseEnter={e => e.currentTarget.style.color = INK}
-                onMouseLeave={e => e.currentTarget.style.color = FAINT}>Privacy</a>
-              <a href="/terms" style={{ color: FAINT, textDecoration: 'none' }}
-                onMouseEnter={e => e.currentTarget.style.color = INK}
-                onMouseLeave={e => e.currentTarget.style.color = FAINT}>Terms</a>
-            </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: GRN }} />
-              <span style={{ fontSize: 13, color: FAINT }}>All systems operational</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </>
   );
 }

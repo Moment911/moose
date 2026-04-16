@@ -1,5 +1,7 @@
 "use client"
 import { useState } from 'react'
+import PublicNav from '../components/public/PublicNav'
+import PublicFooter from '../components/public/PublicFooter'
 
 const CO   = 'Koto LLC'
 const APP  = 'Koto'
@@ -58,17 +60,8 @@ export default function TermsPage() {
 
   return (
     <div style={{ minHeight:'100vh', background:'#f9fafb', fontFamily:FH }}>
-
-      {/* Top bar */}
-      <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'14px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:10, boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <img src="/koto_logo.svg" alt="Koto" style={{ height:28, width:'auto' }}/>
-        </div>
-        <div style={{ display:'flex', gap:16 }}>
-          <a href="/privacy" style={{ fontSize:14, color:'#6b7280', fontWeight:600, textDecoration:'none' }}>Privacy Policy</a>
-          <a href="/" style={{ fontSize:14, color:RED, fontWeight:700, textDecoration:'none' }}>← Back to App</a>
-        </div>
-      </div>
+      <PublicNav />
+      <div style={{ height:64 }} />
 
       <div style={{ maxWidth:1100, margin:'0 auto', padding:'48px 24px', display:'grid', gridTemplateColumns:'240px 1fr', gap:48, alignItems:'start' }}>
 
@@ -281,6 +274,7 @@ export default function TermsPage() {
           </div>
         </div>
       </div>
+      <PublicFooter />
     </div>
   )
 }

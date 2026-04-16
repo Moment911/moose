@@ -3,8 +3,10 @@
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, MapPin, Mail, Sparkles, Code2, Users,
-  Rocket, Heart, Zap, Building2, Brain, Phone,
+  Rocket, Heart, Zap, Building2, Brain,
 } from 'lucide-react'
+import PublicNav from '../components/public/PublicNav'
+import PublicFooter from '../components/public/PublicFooter'
 
 /* ─── Tokens (match MarketingSitePage) ─── */
 const R    = '#E6007E'
@@ -84,22 +86,8 @@ export default function AboutPage() {
     <div style={{ minHeight: '100vh', background: W }}>
       <style>{GLOBAL_CSS}</style>
 
-      {/* ══ Top nav ══ */}
-      <nav className="about-nav" style={{
-        position: 'sticky', top: 0, zIndex: 100, background: W,
-        borderBottom: `1px solid ${HAIR}`, padding: '0 40px', height: 64,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <img src="/koto_logo.svg" alt="Koto" style={{ height: 26, cursor: 'pointer' }} onClick={() => navigate('/')} />
-        <div className="hide-mobile" style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
-          <a href="/" style={{ fontSize: 14, color: MUTED, textDecoration: 'none', fontWeight: 600 }}>Home</a>
-          <a href="/#platform" style={{ fontSize: 14, color: MUTED, textDecoration: 'none', fontWeight: 600 }}>Platform</a>
-          <a href="/#pricing" style={{ fontSize: 14, color: MUTED, textDecoration: 'none', fontWeight: 600 }}>Pricing</a>
-          <button className="btn btn-primary" style={{ padding: '8px 16px', fontSize: 13 }} onClick={() => navigate('/signup')}>
-            Get started <ArrowRight size={13} />
-          </button>
-        </div>
-      </nav>
+      <PublicNav />
+      <div style={{ height: 64 }} />{/* spacer for fixed nav */}
 
       {/* ══ HERO ══ */}
       <section className="about-pad" style={{ padding: '120px 40px 80px', position: 'relative', overflow: 'hidden' }}>
@@ -405,21 +393,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ══ FOOTER ══ */}
-      <footer style={{ borderTop: `1px solid ${HAIR}`, padding: '40px 40px', background: W }}>
-        <div style={{
-          maxWidth: 1100, margin: '0 auto',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16,
-        }}>
-          <img src="/koto_logo.svg" alt="Koto" style={{ height: 22 }} />
-          <div style={{ fontSize: 13, color: FAINT, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span>© 2026 Koto Technologies, Inc.</span>
-            <a href="/" style={{ color: FAINT, textDecoration: 'none' }}>Home</a>
-            <a href="/privacy" style={{ color: FAINT, textDecoration: 'none' }}>Privacy</a>
-            <a href="/terms" style={{ color: FAINT, textDecoration: 'none' }}>Terms</a>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   )
 }
