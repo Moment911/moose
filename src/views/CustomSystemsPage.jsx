@@ -422,7 +422,7 @@ export default function CustomSystemsPage() {
               fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em',
               color: INK, lineHeight: 1.05, marginBottom: 18,
             }}>
-              Three live builds, auto-playing.
+              Eight live builds, auto-playing.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
               Animated simulations of what three different Koto systems do on every run. Real-world shape,
@@ -549,6 +549,210 @@ export default function CustomSystemsPage() {
             }} />
             <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
               <strong style={{ color: INK }}>Mortgage Pre-Qual Bot.</strong> 24/7 pre-quals, pre-filed to the loan officer.
+            </div>
+          </div>
+
+          {/* Mock 4: Law Firm Intake Qualifier */}
+          <div style={{ marginBottom: 24 }}>
+            <InlineSystemMock config={{
+              browserUrl: 'morales-law.com / intake',
+              leftIcon: Phone, leftEyebrow: 'Inbound call captured',
+              source: { icon: Phone, label: '+1 (305) 555-0187 · Kevin J.', sub: 'Called 11:42 AM · 3 min conversation', status: 'NEW' },
+              fields: [
+                { step: 1, label: 'Case type',      value: 'Auto accident · rear-ended at light' },
+                { step: 2, label: 'Date / location',value: 'Oct 11 · I-95 S @ SW 8 St exit, Miami' },
+                { step: 3, label: 'Police report',  value: 'Filed · Case #FL-2026-847291' },
+                { step: 4, label: 'Injuries',       value: 'Neck + lower back · ER visit Oct 11' },
+                { step: 5, label: 'PIP / Ins',      value: 'GEICO · $10k PIP · $50k UM' },
+                { step: 6, label: 'Conflict check', value: 'Cleared · no adverse parties on file' },
+              ],
+              rightIcon: Scale, rightEyebrow: 'Intake memo + scheduling',
+              calculatingText: 'Running conflict check, matching attorney, estimating case value...',
+              outputTitle: 'Intake Memo — Case KV-0447',
+              outputSub: 'Priority: High',
+              lines: [
+                { step: 10, label: 'Statute of limitations',   prefix: '', amount: '2027-10-11 (2 yrs)' },
+                { step: 11, label: 'Est. medical damages',                 amount: 18500 },
+                { step: 12, label: 'Est. lost wages',                      amount: 4200 },
+                { step: 13, label: 'Est. pain & suffering (3×)',           amount: 68100 },
+                { step: 14, label: 'Attorney assigned',         prefix: '', amount: 'Attorney Morales' },
+              ],
+              confirmText: 'Consult booked · Tomorrow 10:30 AM Zoom · Client received confirmation text',
+              confirmHint: '4.1s end-to-end',
+              footerLabel: 'Custom AI system · Morales & Associates',
+              footerStats: [
+                { label: 'Intakes today', value: '19' },
+                { label: 'Avg qualify time', value: '3.9s' },
+                { label: 'Sign rate', value: '71%' },
+              ],
+              accent: BLK,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Law Firm Intake Qualifier.</strong> Qualifies callers, runs conflict check, books the consult.
+            </div>
+          </div>
+
+          {/* Mock 5: HVAC Dispatch */}
+          <div style={{ marginBottom: 24 }}>
+            <InlineSystemMock config={{
+              browserUrl: 'coastal-hvac.com / dispatch',
+              leftIcon: Phone, leftEyebrow: 'Service call',
+              source: { icon: Phone, label: 'Mrs. Patel · 4420 NE 5th Ave, Boca Raton', sub: 'No AC · called 2:08 PM', status: 'URGENT' },
+              fields: [
+                { step: 1, label: 'Issue',         value: '3-ton Trane unit · no cold air · panel tripped' },
+                { step: 2, label: 'Unit info',     value: '2019 install · Trane XR14 · warranty ends 2029' },
+                { step: 3, label: 'Priority',     value: 'P1 · residential · 94°F outside' },
+                { step: 4, label: 'Parts needed', value: 'Likely capacitor · truck has 3 in stock' },
+                { step: 5, label: 'Tech match',   value: 'Marcus D. · EPA 608 Type II · 1.4 mi away' },
+                { step: 6, label: 'ETA',          value: '28 minutes' },
+              ],
+              rightIcon: Wrench, rightEyebrow: 'Dispatched',
+              calculatingText: 'Checking parts truck inventory, matching tech certifications, optimizing route...',
+              outputTitle: 'Work Order #WO-4419',
+              outputSub: 'Marcus D. · Truck 14',
+              lines: [
+                { step: 10, label: 'Diagnostic fee',                  amount: 89 },
+                { step: 11, label: 'Capacitor (45+5 µF)',             amount: 165 },
+                { step: 12, label: 'Labor (est. 45 min)',             amount: 145 },
+                { step: 13, label: 'Service call travel',             amount: 0 },
+                { step: 14, label: 'Warranty parts coverage',         prefix: '', amount: 'Yes (-$165)' },
+              ],
+              subtotal: 234, total: 234,
+              totalLabel: 'Customer out-of-pocket',
+              confirmText: 'Tech en route · Customer got SMS with live map + Marcus\'s photo + bio',
+              confirmHint: '4.2s dispatch',
+              footerLabel: 'Custom AI system · Coastal HVAC',
+              footerStats: [
+                { label: 'Calls today', value: '42' },
+                { label: 'Avg dispatch', value: '4 min' },
+                { label: 'Same-day fix', value: '94%' },
+              ],
+              accent: AMB,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>HVAC Dispatch Assistant.</strong> Triage, parts, cert-matched tech, live-map dispatch.
+            </div>
+          </div>
+
+          {/* Mock 6: Real Estate Offer Analyzer */}
+          <div style={{ marginBottom: 24 }}>
+            <InlineSystemMock config={{
+              browserUrl: 'bayharborrealty.com / offer-builder',
+              leftIcon: Home, leftEyebrow: 'Target property',
+              source: { icon: Home, label: '1020 Cleveland Rd · Bay Harbor Islands', sub: '3/2.5 · 2,410 sq ft · canal-front', status: 'LIVE' },
+              fields: [
+                { step: 1, label: 'List price',       value: '$1,695,000 ($703/sf)' },
+                { step: 2, label: 'Days on market',   value: '42 (1 price cut $1.795 → $1.695)' },
+                { step: 3, label: 'Seller motivation',value: 'Estate sale · 2nd home · out-of-state rep' },
+                { step: 4, label: '6 comps pulled',   value: '3 sold · 2 active · 1 pending · avg $688/sf' },
+                { step: 5, label: 'Inspection flags', value: '40-yr inspection passed · no open permits' },
+                { step: 6, label: 'Buyer position',   value: 'Pre-qual $1.8M · 20% down · 30-yr conv' },
+              ],
+              rightIcon: FileText, rightEyebrow: 'Offer strategy',
+              calculatingText: 'Running comps, motivation analysis, and drafting strategy...',
+              outputTitle: 'Strategy for 1020 Cleveland Rd',
+              outputSub: '3 negotiation paths',
+              lines: [
+                { step: 10, label: 'Aggressive · $1.595M',    prefix: '', amount: '-5.9% · 65% land rate' },
+                { step: 11, label: 'Market · $1.650M',        prefix: '', amount: '-2.6% · 85% land rate' },
+                { step: 12, label: 'Strong · $1.690M',        prefix: '', amount: 'full-ask land rate 96%' },
+                { step: 13, label: 'Recommended ask',         prefix: '', amount: '$1.640M net' },
+                { step: 14, label: 'Key concession',          prefix: '', amount: '21-day inspection + cash-equivalent close' },
+              ],
+              confirmText: 'Offer letter + contract drafted · Ready for buyer signature',
+              confirmHint: '5.8s end-to-end',
+              footerLabel: 'Custom AI system · Bay Harbor Realty',
+              footerStats: [
+                { label: 'Offers drafted today', value: '11' },
+                { label: 'Avg prep', value: '6 min' },
+                { label: 'Acceptance rate', value: '62%' },
+              ],
+              accent: GRN,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Real Estate Offer Analyzer.</strong> Comps, motivation, 3 strategies, offer letter drafted.
+            </div>
+          </div>
+
+          {/* Mock 7: Hotel Pre-Arrival Concierge */}
+          <div style={{ marginBottom: 24 }}>
+            <InlineSystemMock config={{
+              browserUrl: 'oceana-miami.com / arrivals',
+              leftIcon: Bed, leftEyebrow: 'Upcoming reservation',
+              source: { icon: Bed, label: 'Ms. Rachel Howard', sub: 'Arrives Oct 24 · 4 nights · King Ocean View', status: 'VIP' },
+              fields: [
+                { step: 1, label: 'Loyalty',       value: 'Platinum · 14th stay · prefers high floor' },
+                { step: 2, label: 'Stay reason',   value: 'Anniversary (per past-stay note)' },
+                { step: 3, label: 'Dietary',       value: 'Pescatarian · allergic to tree nuts' },
+                { step: 4, label: 'Prior bookings',value: 'Always spa day + sunset dinner · bottle of Sancerre on arrival' },
+                { step: 5, label: 'Upgrade pool',  value: '2 Oceanfront Suites open · $180/night upsell' },
+                { step: 6, label: 'Contact',       value: 'Text sent 72 hrs before arrival · opened 4 min ago' },
+              ],
+              rightIcon: Sparkles, rightEyebrow: 'Pre-arrival plan',
+              calculatingText: 'Curating upgrade, spa, dining, and amenities against preferences...',
+              outputTitle: 'Pre-Arrival Package',
+              outputSub: 'Ready for front desk',
+              lines: [
+                { step: 10, label: 'Upgrade · Oceanfront Suite',      amount: 720 },
+                { step: 11, label: 'Spa · Couples signature massage', amount: 540 },
+                { step: 12, label: 'Dining · sunset tasting menu',    amount: 280 },
+                { step: 13, label: 'Welcome bottle · Sancerre 2021',  amount: 0 },
+                { step: 14, label: 'Anniversary amenity · comp',      prefix: '', amount: 'rose petals + champagne' },
+              ],
+              subtotal: 1540, total: 1540,
+              totalLabel: 'Ancillary revenue',
+              confirmText: 'Upgrade + spa + dining confirmed · Anniversary note routed to front desk + engineering',
+              confirmHint: '3.7s curated',
+              footerLabel: 'Custom AI system · Oceana Miami Beach',
+              footerStats: [
+                { label: 'Guests today', value: '127' },
+                { label: 'Upsell rate', value: '53%' },
+                { label: 'Guest satisfaction', value: '94%' },
+              ],
+              accent: T,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Hotel Pre-Arrival Concierge.</strong> Reads the guest, upgrades, books spa + dining, flags VIPs.
+            </div>
+          </div>
+
+          {/* Mock 8: Solar Proposal Generator */}
+          <div style={{ marginBottom: 24 }}>
+            <InlineSystemMock config={{
+              browserUrl: 'everstone-solar.com / quote',
+              leftIcon: Mail, leftEyebrow: 'Homeowner inquiry',
+              source: { icon: Sun, label: 'Tom + Linda Chen · Plantation, FL', sub: 'Uploaded 12-mo FPL bill · 2,650 sf home', status: 'NEW' },
+              fields: [
+                { step: 1, label: 'Avg usage',       value: '1,840 kWh/mo · $287/mo current bill' },
+                { step: 2, label: 'Rate type',       value: 'FPL RS-1 · escalating 4.2%/yr' },
+                { step: 3, label: 'Roof scan',       value: 'SE exposure · 1,240 sf usable · no shade' },
+                { step: 4, label: 'System size',     value: '11.4 kW · 28 panels · SunPower X22' },
+                { step: 5, label: 'Est. production', value: '1,980 kWh/mo · 108% offset' },
+                { step: 6, label: 'Incentives',      value: '30% Federal ITC · FL sales tax exempt' },
+              ],
+              rightIcon: Sun, rightEyebrow: 'Proposal generated',
+              calculatingText: 'Sizing system, running financing scenarios, drafting branded proposal...',
+              outputTitle: 'Proposal #SP-2284',
+              outputSub: '25-year savings',
+              lines: [
+                { step: 10, label: 'System cost',                        amount: 38400 },
+                { step: 11, label: 'Federal ITC (30% credit)',  prefix: '-$', amount: 11520 },
+                { step: 12, label: 'Net after incentives',               amount: 26880 },
+                { step: 13, label: '25-yr lifetime savings',             amount: 118400 },
+                { step: 14, label: 'Payback period',           prefix: '', amount: '6.8 years' },
+              ],
+              confirmText: 'Proposal emailed · Design consult booked for Saturday 10 AM · Reps notified',
+              confirmHint: '4.3s end-to-end',
+              footerLabel: 'Custom AI system · Everstone Solar',
+              footerStats: [
+                { label: 'Proposals today', value: '23' },
+                { label: 'Avg time', value: '4 min' },
+                { label: 'Consult booked', value: '58%' },
+              ],
+              accent: AMB,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Solar Proposal Generator.</strong> Bill → roof → system size → financing → proposal sent.
             </div>
           </div>
         </div>

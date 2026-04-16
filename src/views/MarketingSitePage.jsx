@@ -1352,10 +1352,7 @@ export default function MarketingSitePage() {
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
               KotoIQ is a full search-intelligence system we built for marketing agencies — live data from
               every source a client shows up in, 25+ parallel analysis engines, and a multi-model AI layer
-              that routes each task to the right model. Here's how that system works, end-to-end.{' '}
-              <a href="/koto-ai" style={{ color: R, fontWeight: 700, textDecoration: 'none' }}>
-                See the full agency OS →
-              </a>
+              that routes each task to the right model. Here's how that system works, end-to-end.
             </p>
           </div>
 

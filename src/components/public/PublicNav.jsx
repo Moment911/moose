@@ -14,9 +14,9 @@ const LINKS = [
   { href: '/ai-agents',      label: 'AI Agents' },
   { href: '/chatbots',       label: 'Chatbots' },
   { href: '/custom-systems', label: 'Custom Systems' },
-  { href: '/koto-ai',        label: 'Koto AI' },
   { href: '/about',          label: 'About' },
   { href: '/contact',        label: 'Contact' },
+  // { href: '/koto-ai', label: 'Koto AI' }, // HIDDEN — page still live at /koto-ai
 ]
 
 export default function PublicNav() {
