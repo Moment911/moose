@@ -4497,6 +4497,15 @@ Provide a detailed analysis. Return ONLY valid JSON:
   }
 
   if (action === 'run_conversational_bot') {
+    // When no active client is selected, pass the full agency client list so the bot can
+    // match a named client ("audit RDC's homepage") and emit client_id back to the UI.
+    if (body.agency_id && !body.client_id) {
+      const { data: availClients } = await sb().from('clients')
+        .select('id, name, website, primary_service, location')
+        .eq('agency_id', body.agency_id)
+        .is('deleted_at', null)
+      body.available_clients = availClients || []
+    }
     const result = await runConversationalBot(sb(), ai, body)
     if ((result as any).error) return NextResponse.json({ error: (result as any).error }, { status: (result as any).status || 500 })
     return NextResponse.json(result)

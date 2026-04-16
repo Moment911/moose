@@ -47,7 +47,7 @@ const SUGGESTED_PROMPTS = [
 
 const PANEL_WIDTH = 420
 
-export default function ConversationalBot({ clientId, clientName, agencyId, currentTab, onSwitchTab }) {
+export default function ConversationalBot({ clientId, clientName, agencyId, currentTab, onSwitchTab, onSwitchClient, clients }) {
   const [open, setOpen] = useState(false)
   const [hasEverOpened, setHasEverOpened] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
@@ -178,7 +178,9 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
     setThinking(true)
     setHasNewSuggestion(false)
     try {
-      const history = messages.map(m => ({ role: m.role, content: m.content }))
+      const history = messages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .map(m => ({ role: m.role, content: m.content }))
       const res = await fetch('/api/kotoiq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -219,13 +221,58 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
     runAction(idx, true, action)
   }
 
-  // Run the proposed action: switch tab + (optionally) execute the API.
+  // Progressively reveal form_fields into the active tab — one character at a time
+  // across fields — so the user sees the bot "typing" into the form. Budget capped
+  // so nothing ever takes longer than ~2s total.
+  const liveFillFields = async (tabKey, fields) => {
+    if (!onSwitchTab) return
+    const entries = Object.entries(fields || {}).filter(([, v]) => v !== undefined && v !== null)
+    if (!entries.length) return
+    // Strings get typed; non-strings are applied whole.
+    const totalChars = entries.reduce((n, [, v]) => n + (typeof v === 'string' ? v.length : 1), 0)
+    const BUDGET_MS = 1800
+    const perCharMs = Math.max(8, Math.min(40, Math.floor(BUDGET_MS / Math.max(totalChars, 1))))
+    const partial = {}
+    for (const [key, value] of entries) {
+      if (typeof value === 'string') {
+        for (let i = 1; i <= value.length; i++) {
+          partial[key] = value.slice(0, i)
+          onSwitchTab(tabKey, { ...partial })
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise(r => setTimeout(r, perCharMs))
+        }
+      } else {
+        partial[key] = value
+        onSwitchTab(tabKey, { ...partial })
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(r => setTimeout(r, 60))
+      }
+    }
+  }
+
+  // Run the proposed action: switch client (if needed) → switch tab → progressively fill
+  // the form character-by-character so the user sees the bot "typing" in → optionally execute.
   // Accepts an explicit action for auto-run from within send() where state hasn't flushed yet.
   const runAction = async (msgIdx, executeNow, explicitAction) => {
     const resolvedAction = explicitAction || messages[msgIdx]?.action
     if (!resolvedAction) return
-    const { intent, tab_to_open, form_fields, should_execute } = resolvedAction
-    if (onSwitchTab) onSwitchTab(tab_to_open, form_fields || {})
+    const { intent, tab_to_open, form_fields, should_execute, client_id: actionClientId } = resolvedAction
+
+    // If the action targets a different client, switch first and give React a moment to commit
+    if (actionClientId && actionClientId !== clientId && onSwitchClient) {
+      const target = (clients || []).find(c => c.id === actionClientId)
+      if (target) {
+        setMessages(m => [...m, { role: 'system_note', content: `Switching to ${target.name}…` }])
+      }
+      onSwitchClient(actionClientId)
+      await new Promise(r => setTimeout(r, 220))
+    }
+
+    // Open the tab immediately with empty fields so the blank form is visible...
+    if (onSwitchTab) onSwitchTab(tab_to_open, {})
+    // ...then progressively reveal the fields, character-by-character.
+    await liveFillFields(tab_to_open, form_fields || {})
+
     if (!executeNow || !should_execute) {
       setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { mode: 'prefill' } } : x))
       return
@@ -249,10 +296,11 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
         setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { mode: 'prefill' }, progressSteps: undefined, progressIdx: undefined } : x))
         return
       }
+      const effectiveClientId = actionClientId || clientId
       const res = await fetch('/api/kotoiq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: apiAction, client_id: clientId, agency_id: agencyId, ...form_fields }),
+        body: JSON.stringify({ action: apiAction, client_id: effectiveClientId, agency_id: agencyId, ...form_fields }),
       })
       const j = await res.json()
       clearInterval(tick)
@@ -411,7 +459,9 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
           )}
 
           {messages.map((m, i) => (
-            <MessageBubble key={i} msg={m} idx={i} onRun={runAction} executing={executing === i} />
+            m.role === 'system_note'
+              ? <SystemNote key={i} text={m.content} />
+              : <MessageBubble key={i} msg={m} idx={i} onRun={runAction} executing={executing === i} />
           ))}
 
           {thinking && (
@@ -597,6 +647,19 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
         </div>
       )}
       <style>{`.kotoiq-bot-spin { animation: kotoiqBotSpin 1s linear infinite; } @keyframes kotoiqBotSpin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  )
+}
+
+function SystemNote({ text }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0', animation: 'kotoiqBotFadeIn .25s ease' }}>
+      <div style={{
+        fontSize: 11, fontFamily: FB, color: '#6b7280', background: '#eef2ff',
+        border: '1px solid #dbeafe', borderRadius: 999, padding: '4px 10px',
+      }}>
+        {text}
+      </div>
     </div>
   )
 }

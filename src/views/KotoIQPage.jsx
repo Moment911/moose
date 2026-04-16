@@ -400,8 +400,11 @@ export default function KotoIQPage() {
   const [dashboard, setDashboard] = useState(null)
   // Conversational bot prefill — populated when bot says "open this tab with these fields"
   const [prefilledForm, setPrefilledForm] = useState(null)
+  // Called by the ConversationalBot — switches tab and pushes a prefilledForm update.
+  // Always sets prefilledForm (even with empty fields) so the bot can progressively
+  // reveal fields across many calls and downstream tabs see each intermediate state.
   const handleBotSwitchTab = (tabKey, formFields) => {
-    if (formFields && Object.keys(formFields || {}).length) setPrefilledForm({ tab: tabKey, fields: formFields, ts: Date.now() })
+    setPrefilledForm({ tab: tabKey, fields: formFields || {}, ts: Date.now() })
     if (tabKey) setTab(tabKey)
   }
   // Apply prefill to inline-rendered tabs (briefs, competitors) when present
@@ -4129,6 +4132,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         agencyId={agencyId}
         currentTab={tab}
         onSwitchTab={handleBotSwitchTab}
+        onSwitchClient={(id) => setClientId(id)}
+        clients={clients}
       />
     </div>
     </div>

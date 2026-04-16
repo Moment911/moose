@@ -16,6 +16,14 @@ interface BotMessage {
   content: string
 }
 
+interface AvailableClient {
+  id: string
+  name: string
+  website?: string
+  primary_service?: string
+  location?: string
+}
+
 interface BotBody {
   client_id?: string
   agency_id?: string
@@ -24,6 +32,7 @@ interface BotBody {
   conversation_history?: BotMessage[]
   current_tab?: string
   current_form_state?: Record<string, any>
+  available_clients?: AvailableClient[]
 }
 
 interface BotAction {
@@ -32,6 +41,7 @@ interface BotAction {
   form_fields: Record<string, any>
   should_execute: boolean
   next_question?: string
+  client_id?: string
 }
 
 // ── System Prompt — the brain of the assistant ─────────────────────────────
@@ -90,6 +100,12 @@ DECISION LOGIC
 3. If the request is vague ("help me rank") → ask what topic/keyword/page they care about.
 4. If the user asks something not in the intent list → suggest the closest intent and confirm.
 5. Multi-step ("write a brief then audit it") → handle the FIRST step now, mention you'll do the next once this finishes.
+6. When there is NO active client AND an AVAILABLE CLIENTS list is shown:
+   a. If the user names a client (fuzzy match their words against the client's name or website/domain) → set "client_id" to that client's id and fill form_fields using that client's info. should_execute may be true if you have everything.
+   b. If the user does NOT name a client (e.g. "audit my homepage", "what should I work on") → DO NOT guess a client. Set should_execute: false, omit client_id, and next_question: "Which client? (<list 3-5 names>)". Do NOT autofill a URL/domain/brand from any client.
+7. "my", "our", "the", "this" + a page/site/brand reference:
+   - With an active client → resolve to that client's website/name.
+   - Without an active client → ask which client; never guess.
 
 OUTPUT FORMAT (STRICT)
 ALWAYS reply with: a short conversational message, then on a new line the action block.
@@ -100,9 +116,12 @@ ALWAYS reply with: a short conversational message, then on a new line the action
   "tab_to_open": "briefs",
   "form_fields": { "keyword": "emergency plumbing boca raton", "page_type": "service_page" },
   "should_execute": true,
-  "next_question": null
+  "next_question": null,
+  "client_id": null
 }
 </ACTION>
+
+"client_id" is ONLY used when there is no active client selected AND the user named a client from the AVAILABLE CLIENTS list. In that case, set "client_id" to the matched client's id so the UI can switch. Otherwise omit it or set to null.
 
 If you don't yet have an intent (pure chit-chat or clarification needed first), omit the <ACTION> block entirely.
 Use double quotes only, valid JSON, no comments inside the block. The UI parses this — malformed JSON breaks the experience.`
@@ -130,7 +149,7 @@ function deriveTitle(message: string): string {
 
 // ── Main entrypoint ────────────────────────────────────────────────────────
 export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, body: BotBody) {
-  const { client_id, agency_id, message, conversation_history = [], current_tab, current_form_state } = body
+  const { client_id, agency_id, message, conversation_history = [], current_tab, current_form_state, available_clients } = body
   if (!message || typeof message !== 'string') {
     return { error: 'message is required', status: 400 }
   }
@@ -192,8 +211,27 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
   if (current_form_state && Object.keys(current_form_state).length) {
     ctxPieces.push(`Current form state: ${JSON.stringify(current_form_state).slice(0, 400)}`)
   }
-  const systemPrompt = ctxPieces.length
-    ? `${SYSTEM_PROMPT}\n\nCONTEXT\n${ctxPieces.join('\n')}`
+
+  // If there's no active client but we have an agency client list, surface it to Claude
+  // so it can match names and populate client_id in the ACTION block.
+  let clientListBlock = ''
+  if (!client_id && Array.isArray(available_clients) && available_clients.length) {
+    const rows = available_clients.slice(0, 100).map(c => {
+      const bits = [c.name]
+      if (c.website) bits.push(`(${c.website})`)
+      const tail: string[] = []
+      if (c.primary_service) tail.push(c.primary_service)
+      if (c.location) tail.push(c.location)
+      const suffix = tail.length ? ` — ${tail.join(' · ')}` : ''
+      return `- id=${c.id} | ${bits.join(' ')}${suffix}`
+    }).join('\n')
+    clientListBlock = `\n\nAVAILABLE CLIENTS (no active client selected — the user must name one or you must ask which)\n${rows}\n\nIf the user names one of these clients (fuzzy match on name or website/domain — e.g. "RDC" matches "RDC Construction", "innovative aba" matches "Innovative ABA Therapy"), emit an ACTION block with the matching client's id in the "client_id" field and populate form_fields using that client's website/service/location. If the user does NOT name one, set should_execute: false and ask which client in next_question.`
+  } else if (!client_id) {
+    clientListBlock = `\n\nNO ACTIVE CLIENT. There are no available clients for this agency, or the list was not provided. If the user references "my site" / "my homepage" / a specific page, ask which client they mean — do not guess.`
+  }
+
+  const systemPrompt = ctxPieces.length || clientListBlock
+    ? `${SYSTEM_PROMPT}${ctxPieces.length ? `\n\nCONTEXT\n${ctxPieces.join('\n')}` : ''}${clientListBlock}`
     : SYSTEM_PROMPT
 
   let assistantText = ''
