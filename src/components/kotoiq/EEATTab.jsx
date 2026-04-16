@@ -27,7 +27,7 @@ function GradeBadge({ grade, score, size = 'large' }) {
       }}>
         {grade || '—'}
       </div>
-      <div style={{ fontFamily: FH, fontSize: isLarge ? 14 : 11, fontWeight: 700, color: '#6b7280' }}>
+      <div style={{ fontFamily: FH, fontSize: isLarge ? 14 : 11, fontWeight: 700, color: '#374151' }}>
         {score != null ? `${score}/100` : ''}
       </div>
     </div>
@@ -54,7 +54,7 @@ function SignalList({ signals, dimension }) {
           }
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: sig.found ? BLK : '#9ca3af' }}>{sig.name}</div>
-            {sig.detail && <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2 }}>{sig.detail}</div>}
+            {sig.detail && <div style={{ fontSize: 11, color: '#1f2937', marginTop: 2 }}>{sig.detail}</div>}
           </div>
         </div>
       ))}
@@ -113,7 +113,7 @@ export default function EEATTab({ clientId, agencyId }) {
       <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
         <Shield size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>E-E-A-T Scorer</div>
-        <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, maxWidth: 460, margin: '0 auto 20px' }}>
+        <div style={{ fontSize: 14, color: '#374151', marginBottom: 20, maxWidth: 460, margin: '0 auto 20px' }}>
           Analyze your site for Experience, Expertise, Authoritativeness, and Trust signals that Google uses to evaluate content quality.
         </div>
 
@@ -134,7 +134,7 @@ export default function EEATTab({ clientId, agencyId }) {
             Run E-E-A-T Audit
           </button>
           <button onClick={() => setShowUrl(!showUrl)}
-            style={{ padding: '12px 16px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff', color: '#6b7280', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            style={{ padding: '12px 16px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             <Globe size={13} style={{ marginRight: 4, verticalAlign: -2 }} /> Specific URL
           </button>
         </div>
@@ -157,7 +157,7 @@ export default function EEATTab({ clientId, agencyId }) {
         <GradeBadge grade={audit.grade} score={audit.overall_eeat_score} />
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>E-E-A-T Score</div>
-          <div style={{ fontSize: 13, color: '#6b7280' }}>
+          <div style={{ fontSize: 13, color: '#374151' }}>
             {audit.url ? `Page: ${audit.url}` : 'Site-wide assessment'} — updated {audit.updated_at ? new Date(audit.updated_at).toLocaleDateString() : 'recently'}
           </div>
           <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
@@ -166,7 +166,7 @@ export default function EEATTab({ clientId, agencyId }) {
               return (
                 <div key={d.key} style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', fontFamily: FH }}>{d.key}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: FH }}>{d.key}</span>
                     <span style={{ fontSize: 12, fontWeight: 800, color, fontFamily: FH }}>{d.score}</span>
                   </div>
                   <ScoreBar score={d.score} color={color} />
@@ -177,7 +177,7 @@ export default function EEATTab({ clientId, agencyId }) {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <button onClick={runAudit} disabled={running}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#6b7280' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#374151' }}>
             {running ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Rerun
           </button>
         </div>
@@ -214,12 +214,12 @@ export default function EEATTab({ clientId, agencyId }) {
                   </div>
                   <div>
                     <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>{dim.key}</div>
-                    <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 600 }}>Weight: {dim.weight}</div>
+                    <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 600 }}>Weight: {dim.weight}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color }}>{dim.score}</div>
-                  <div style={{ fontSize: 12, color: '#4b5563' }}>{foundCount}/{totalCount}</div>
+                  <div style={{ fontSize: 12, color: '#1f2937' }}>{foundCount}/{totalCount}</div>
                   {expanded ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function EEATTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                 {audit.author_has_knowledge_panel
                   ? <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: GRN + '12', color: GRN }}>Knowledge Panel</span>
-                  : <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f3f4f6', color: '#4b5563' }}>No Knowledge Panel</span>
+                  : <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f3f4f6', color: '#1f2937' }}>No Knowledge Panel</span>
                 }
               </div>
             </div>
@@ -287,7 +287,7 @@ export default function EEATTab({ clientId, agencyId }) {
                   </span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{rec.action}</div>
-                    {rec.impact && <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2 }}>{rec.impact}</div>}
+                    {rec.impact && <div style={{ fontSize: 11, color: '#1f2937', marginTop: 2 }}>{rec.impact}</div>}
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: dimColor + '10', color: dimColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                     {rec.dimension}

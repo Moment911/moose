@@ -22,7 +22,7 @@ function ScoreRing({ score, label, color, size = 64 }) {
           style={{ transition: 'stroke-dashoffset .6s ease' }} />
       </svg>
       <div style={{ marginTop: -size / 2 - 10, fontFamily: FH, fontSize: size > 50 ? 18 : 14, fontWeight: 900, color, lineHeight: `${size}px` }}>{score}</div>
-      {label && <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>}
+      {label && <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>}
     </div>
   )
 }
@@ -31,8 +31,8 @@ function StatBox({ label, value, color, sub }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px', textAlign: 'center' }}>
       <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>
-      {sub && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{sub}</div>}
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{sub}</div>}
     </div>
   )
 }
@@ -40,7 +40,7 @@ function StatBox({ label, value, color, sub }) {
 function CopyButton({ text }) {
   return (
     <button onClick={() => { navigator.clipboard.writeText(text); toast.success('Copied to clipboard') }}
-      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#6b7280' }}>
+      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#374151' }}>
       <Copy size={11} /> Copy
     </button>
   )
@@ -115,7 +115,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
         <Code size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Schema & Structured Data</div>
-        <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, maxWidth: 480, margin: '0 auto 20px' }}>
+        <div style={{ fontSize: 14, color: '#374151', marginBottom: 20, maxWidth: 480, margin: '0 auto 20px' }}>
           Audit your site for JSON-LD structured data, find missing schema opportunities, and auto-generate markup to boost rich results.
         </div>
         <button onClick={runAudit} disabled={running}
@@ -147,7 +147,7 @@ export default function SchemaTab({ clientId, agencyId }) {
           <StatBox label="Semantic HTML" value={audit.semantic_html_score || 0} color={audit.semantic_html_score >= 70 ? GRN : AMB} sub="/100" />
         </div>
         <button onClick={runAudit} disabled={running}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#6b7280', whiteSpace: 'nowrap' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#374151', whiteSpace: 'nowrap' }}>
           {running ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Rerun
         </button>
       </div>
@@ -184,7 +184,7 @@ export default function SchemaTab({ clientId, agencyId }) {
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 {['URL', 'Recommended Schema', 'CTR Lift', ''].map(h => (
-                  <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'URL' ? 'left' : 'center' }}>{h}</th>
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'URL' ? 'left' : 'center' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -230,7 +230,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <XCircle size={12} color={R} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{err.type}</span>
-                    <span style={{ fontSize: 12, color: '#4b5563' }}>{err.url.replace(/^https?:\/\/[^/]+/, '')}</span>
+                    <span style={{ fontSize: 12, color: '#1f2937' }}>{err.url.replace(/^https?:\/\/[^/]+/, '')}</span>
                   </div>
                   {err.errors.map((e, j) => (
                     <div key={j} style={{ fontSize: 12, color: R, marginLeft: 20 }}>{e}</div>
@@ -260,7 +260,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#fafafa', cursor: 'pointer' }} onClick={() => setExpandedSchema(expanded ? null : i)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: T + '10', color: T }}>{gen.type}</span>
-                      <span style={{ fontSize: 12, color: '#6b7280' }}>{gen.url.replace(/^https?:\/\/[^/]+/, '')}</span>
+                      <span style={{ fontSize: 12, color: '#374151' }}>{gen.url.replace(/^https?:\/\/[^/]+/, '')}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <CopyButton text={htmlStr} />
@@ -303,7 +303,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                   <code style={{ fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: AMB + '10', color: AMB, whiteSpace: 'nowrap' }}>{issue.element}</code>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{issue.issue}</div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{issue.suggestion}</div>
+                    <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{issue.suggestion}</div>
                   </div>
                 </div>
               ))}

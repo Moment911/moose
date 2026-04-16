@@ -23,6 +23,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import PDFDocument from 'pdfkit'
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { enrichProposalWithSEOData } from '@/lib/proposalDataEnricher'
 
 export const maxDuration = 120
 
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
     const sb = getSupabase()
 
     if (action === 'generate') {
-      const { client_id, agency_id, services, monthly_budget, tone, focus_area } = body
+      const { client_id, agency_id, services, monthly_budget, tone, focus_area, proposal_type } = body
       if (!client_id || !agency_id) {
         return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
       }
@@ -128,6 +129,45 @@ export async function POST(req: NextRequest) {
       const uvpStr = pick('unique_selling_prop', 'unique_value_prop', 'why_choose_you') || 'N/A'
       const brandVoiceStr = pick('brand_voice', 'brand_tone')
 
+      // ── Inject live KotoIQ SEO intelligence if this client has any. ──
+      // Powers both the default proposal (as bonus specifics) and the
+      // "SEO Intelligence Proposal" type which is fully data-driven.
+      const seoEnrichment = await enrichProposalWithSEOData(sb, client_id)
+      const isSeoIntelProposal = proposal_type === 'seo_intelligence'
+
+      const seoContextBlock = seoEnrichment.has_kotoiq_data ? `
+
+LIVE SEO INTELLIGENCE (from KotoIQ scans — use these specific numbers, keywords, and competitor names in the proposal):
+- Domain authority: ${seoEnrichment.domain_authority} (competitor avg: ${seoEnrichment.competitor_avg_da ?? 'unknown'})
+- Topical authority score: ${seoEnrichment.topical_authority_score}/100 (competitor avg: ${seoEnrichment.competitor_avg_authority_score ?? 'unknown'}, gap to close: ${seoEnrichment.authority_gap ?? 'unknown'})
+- Tracked keywords: ${seoEnrichment.total_keywords_tracked}
+- Wasted ad spend on organic cannibals: $${seoEnrichment.wasted_ad_spend_monthly.toLocaleString()}/mo
+- Decay-risk pages: ${seoEnrichment.decay_risk_pages} (losing ~${seoEnrichment.decay_traffic_loss_estimate.toLocaleString()} clicks/mo)
+- Pages missing structured data: ${seoEnrichment.missing_schema_count}
+- Broken backlinks recoverable: ${seoEnrichment.broken_backlinks_count}
+- Total opportunity value (competitor keywords client doesn't own): $${seoEnrichment.total_opportunity_value.toLocaleString()}/mo
+
+Top competitors:
+${JSON.stringify(seoEnrichment.specifics.top_competitors, null, 2)}
+
+Top commercial keyword gaps (transactional intent, not currently ranking):
+${JSON.stringify(seoEnrichment.specifics.top_commercial_gaps, null, 2)}
+
+Pages currently decaying:
+${JSON.stringify(seoEnrichment.specifics.declining_urls, null, 2)}
+
+Quick wins available:
+${JSON.stringify(seoEnrichment.quick_wins, null, 2)}
+
+Narrative bullets to reference verbatim where relevant:
+${seoEnrichment.narrative_bullets.map((b) => '- ' + b).join('\n')}
+
+MANDATE: the situation analysis and strategy sections MUST reference specific keywords, specific competitor domains, and specific URLs from the data above. Do NOT speak in generic terms when live data is available.` : ''
+
+      const proposalInstruction = isSeoIntelProposal && seoEnrichment.has_kotoiq_data ? `
+
+This is an SEO INTELLIGENCE PROPOSAL. Build the entire proposal around the LIVE SEO INTELLIGENCE data above. Every recommendation, strategy item, and ROI projection must cite specific numbers from the intel. The executive summary must open with the single most compelling data point (e.g. "$X/mo in wasted ad spend" or "Competitor Y owns $Z/mo in keyword value you don't"). Strategy items should each map to one of: attacking competitor keyword gaps, defending decaying pages, fixing wasted ad spend, adding schema to eligible pages, reclaiming broken backlinks. Services should be concrete SEO workstreams (Topical Authority Build, Content Decay Triage, Schema Deployment, Competitor Keyword Capture, etc.).` : ''
+
       const userPrompt = `Generate a marketing proposal for:
 Client: ${clientNameStr}
 Industry: ${industryStr}
@@ -147,7 +187,7 @@ Agency: ${agencyName}
 Proposed monthly investment: ${monthly_budget || 'TBD'}
 ${tone ? `Tone: ${tone}` : ''}
 ${focus_area ? `Primary focus area: ${focus_area}` : ''}
-${Array.isArray(services) && services.length ? `Services to emphasize: ${services.join(', ')}` : ''}
+${Array.isArray(services) && services.length ? `Services to emphasize: ${services.join(', ')}` : ''}${seoContextBlock}${proposalInstruction}
 
 Generate a complete proposal with these sections:
 1. Executive Summary (2-3 paragraphs, specific to their business)
@@ -226,6 +266,27 @@ Return ONLY valid JSON (no markdown fences, no preamble) with this exact shape:
         pdfBuffer = Buffer.from([])
       }
 
+      // Persist the SEO intelligence snapshot alongside the proposal content
+      // so the viewer can render the "data-backed" sidebar without re-fetching.
+      if (seoEnrichment.has_kotoiq_data) {
+        proposalContent.seo_intelligence = {
+          proposal_type: isSeoIntelProposal ? 'seo_intelligence' : 'standard',
+          wasted_ad_spend_monthly: seoEnrichment.wasted_ad_spend_monthly,
+          topical_authority_score: seoEnrichment.topical_authority_score,
+          authority_gap: seoEnrichment.authority_gap,
+          decay_risk_pages: seoEnrichment.decay_risk_pages,
+          decay_traffic_loss_estimate: seoEnrichment.decay_traffic_loss_estimate,
+          missing_schema_count: seoEnrichment.missing_schema_count,
+          broken_backlinks_count: seoEnrichment.broken_backlinks_count,
+          total_opportunity_value: seoEnrichment.total_opportunity_value,
+          top_competitors: seoEnrichment.specifics.top_competitors,
+          top_commercial_gaps: seoEnrichment.specifics.top_commercial_gaps,
+          declining_urls: seoEnrichment.specifics.declining_urls,
+          quick_wins: seoEnrichment.quick_wins,
+          generated_at: new Date().toISOString(),
+        }
+      }
+
       const { data: saved, error: saveErr } = await sb
         .from('koto_proposals')
         .insert({
@@ -266,6 +327,17 @@ Return ONLY valid JSON (no markdown fences, no preamble) with this exact shape:
         proposal_id: saved.id,
         pdf_url: pdfUrl,
         content: proposalContent,
+        seo_intelligence_used: seoEnrichment.has_kotoiq_data,
+        proposal_type: isSeoIntelProposal ? 'seo_intelligence' : 'standard',
+        seo_summary: seoEnrichment.has_kotoiq_data ? {
+          wasted_ad_spend_monthly: seoEnrichment.wasted_ad_spend_monthly,
+          topical_authority_score: seoEnrichment.topical_authority_score,
+          authority_gap: seoEnrichment.authority_gap,
+          decay_risk_pages: seoEnrichment.decay_risk_pages,
+          missing_schema_count: seoEnrichment.missing_schema_count,
+          total_opportunity_value: seoEnrichment.total_opportunity_value,
+          quick_win_count: seoEnrichment.quick_wins.length,
+        } : null,
       })
     }
 

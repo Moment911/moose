@@ -11,6 +11,18 @@
     {
       "path": "/api/digest",
       "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/competitor-watch",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/daily-digest",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/industry-benchmarks",
+      "schedule": "0 2 * * 0"
     }
   ],
   "functions": {
@@ -49,6 +61,18 @@
     },
     "src/app/api/digest/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/competitor-watch/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/daily-digest/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/industry-benchmarks/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/kotoiq/route.ts": {
+      "maxDuration": 300
     }
   }
 }

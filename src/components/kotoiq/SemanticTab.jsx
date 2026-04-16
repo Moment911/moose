@@ -22,13 +22,13 @@ function ScoreRing({ score, label, size = 80, color }) {
           style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
         <text x="40" y="44" textAnchor="middle" style={{ fontSize: 18, fontWeight: 900, fontFamily: FH, fill: BLK }}>{score || '--'}</text>
       </svg>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>{label}</div>
     </div>
   )
 }
 
 function TagCloud({ items }) {
-  if (!items?.length) return <div style={{ color: '#4b5563', fontSize: 12 }}>No data yet</div>
+  if (!items?.length) return <div style={{ color: '#1f2937', fontSize: 12 }}>No data yet</div>
   const maxCount = Math.max(...items.map(i => i.count))
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -54,7 +54,7 @@ function WordList({ title, items, icon: Icon, color }) {
   if (!items?.length) return null
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
         <Icon size={12} color={color || T} /> {title}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -119,7 +119,7 @@ export default function SemanticTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>Semantic Content Network</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Analyze site-wide content structure, topical coverage, and semantic health</div>
+          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>Analyze site-wide content structure, topical coverage, and semantic health</div>
         </div>
         <button onClick={runAnalysis} disabled={running}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1 }}>
@@ -129,7 +129,7 @@ export default function SemanticTab({ clientId, agencyId }) {
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: 60, color: '#4b5563' }}>
+        <div style={{ textAlign: 'center', padding: 60, color: '#1f2937' }}>
           <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontWeight: 600 }}>Loading analysis...</div>
         </div>
@@ -139,7 +139,7 @@ export default function SemanticTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 60 }}>
           <Brain size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Semantic Analysis Yet</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Click "Run Analysis" to scan your content and build a semantic network map.</div>
+          <div style={{ fontSize: 13, color: '#374151', marginBottom: 16 }}>Click "Run Analysis" to scan your content and build a semantic network map.</div>
         </div>
       )}
 
@@ -151,14 +151,14 @@ export default function SemanticTab({ clientId, agencyId }) {
             <ScoreRing score={a.contextual_flow_score || 0} label="Flow" />
             <ScoreRing score={a.contextual_consistency_score || 0} label="Consistency" />
             <div style={{ flex: 1, borderLeft: '1px solid #e5e7eb', paddingLeft: 24, marginLeft: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, fontFamily: FH }}>QUICK SUMMARY</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 4, fontFamily: FH }}>QUICK SUMMARY</div>
               <div style={{ fontSize: 13, color: BLK, lineHeight: 1.6 }}>
                 {a.overall_score >= 70 ? 'Good semantic structure. Content topics are well-organized and internally linked.' :
                  a.overall_score >= 40 ? 'Moderate semantic health. Some content gaps and structural issues to address.' :
                  a.overall_score > 0 ? 'Weak semantic structure. Significant improvements needed in content organization.' :
                  'Analysis incomplete.'}
               </div>
-              <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 11, color: '#6b7280' }}>
+              <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 11, color: '#374151' }}>
                 <span>{(a.page_analyses || []).length} pages analyzed</span>
                 <span>{(a.thin_content_pages || []).length} thin pages</span>
                 <span>{(a.context_dilution_pages || []).length} diluted pages</span>
@@ -174,18 +174,18 @@ export default function SemanticTab({ clientId, agencyId }) {
               <div style={titleStyle}><Hash size={15} color={T} /> Top N-grams</div>
               {ngrams.trigrams?.length > 0 && (
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 6 }}>3-word phrases</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 6 }}>3-word phrases</div>
                   <TagCloud items={ngrams.trigrams?.slice(0, 15)} />
                 </div>
               )}
               {ngrams.bigrams?.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 6 }}>2-word phrases</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 6 }}>2-word phrases</div>
                   <TagCloud items={ngrams.bigrams?.slice(0, 15)} />
                 </div>
               )}
               {!ngrams.trigrams?.length && !ngrams.bigrams?.length && (
-                <div style={{ color: '#4b5563', fontSize: 12, padding: 20, textAlign: 'center' }}>No N-gram data</div>
+                <div style={{ color: '#1f2937', fontSize: 12, padding: 20, textAlign: 'center' }}>No N-gram data</div>
               )}
             </div>
 
@@ -208,13 +208,13 @@ export default function SemanticTab({ clientId, agencyId }) {
                     <div key={i} style={{ marginBottom: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{hp.pattern}</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#6b7280' }}>{hp.count}x</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#374151' }}>{hp.count}x</span>
                       </div>
                       <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden', marginBottom: 4 }}>
                         <div style={{ height: '100%', borderRadius: 3, background: T, width: `${Math.min(hp.count / Math.max(...a.heading_patterns.map(h => h.count)) * 100, 100)}%` }} />
                       </div>
                       {hp.examples?.length > 0 && (
-                        <div style={{ fontSize: 12, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: 12, color: '#1f2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           e.g. {hp.examples[0]}
                         </div>
                       )}
@@ -222,7 +222,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   ))}
                 </div>
               ) : (
-                <div style={{ color: '#4b5563', fontSize: 12, padding: 20, textAlign: 'center' }}>No heading patterns</div>
+                <div style={{ color: '#1f2937', fontSize: 12, padding: 20, textAlign: 'center' }}>No heading patterns</div>
               )}
             </div>
           </div>
@@ -233,12 +233,12 @@ export default function SemanticTab({ clientId, agencyId }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
               {/* Main vs Supplementary ratio */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Main vs Supplementary Content</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Main vs Supplementary Content</div>
                 <div style={{ display: 'flex', height: 24, borderRadius: 6, overflow: 'hidden', background: '#f3f4f6', marginBottom: 6 }}>
                   <div style={{ width: `${mainPct}%`, background: T, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>{mainPct}%</div>
                   <div style={{ width: `${suppPct}%`, background: '#d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>{suppPct}%</div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#6b7280' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#374151' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: T }} /> Main</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: '#d1d5db' }} /> Supplementary</span>
                 </div>
@@ -249,22 +249,22 @@ export default function SemanticTab({ clientId, agencyId }) {
 
               {/* Flow score */}
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Contextual Flow</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Contextual Flow</div>
                 <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: a.contextual_flow_score >= 70 ? GRN : a.contextual_flow_score >= 40 ? AMB : R }}>
                   {a.contextual_flow_score || '--'}
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: '#374151', marginTop: 4 }}>
                   {a.contextual_flow_score >= 70 ? 'Logical heading hierarchy' : a.contextual_flow_score >= 40 ? 'Some structural gaps' : 'Needs restructuring'}
                 </div>
               </div>
 
               {/* Consistency score */}
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Content Consistency</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Content Consistency</div>
                 <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: a.contextual_consistency_score >= 70 ? GRN : a.contextual_consistency_score >= 40 ? AMB : R }}>
                   {a.contextual_consistency_score || '--'}
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: '#374151', marginTop: 4 }}>
                   {a.contextual_consistency_score >= 70 ? 'Headings match content' : a.contextual_consistency_score >= 40 ? 'Moderate mismatches' : 'Significant mismatches'}
                 </div>
               </div>
@@ -277,7 +277,7 @@ export default function SemanticTab({ clientId, agencyId }) {
             <div style={card}>
               <div style={titleStyle}>
                 <AlertTriangle size={15} color={R} /> Thin Content
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginLeft: 'auto' }}>{(a.thin_content_pages || []).length} pages</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#1f2937', marginLeft: 'auto' }}>{(a.thin_content_pages || []).length} pages</span>
               </div>
               {(a.thin_content_pages || []).length > 0 ? (
                 <div style={{ maxHeight: 280, overflowY: 'auto' }}>
@@ -303,7 +303,7 @@ export default function SemanticTab({ clientId, agencyId }) {
             <div style={card}>
               <div style={titleStyle}>
                 <AlertTriangle size={15} color={AMB} /> Context Dilution
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginLeft: 'auto' }}>{(a.context_dilution_pages || []).length} pages</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#1f2937', marginLeft: 'auto' }}>{(a.context_dilution_pages || []).length} pages</span>
               </div>
               {(a.context_dilution_pages || []).length > 0 ? (
                 <div style={{ maxHeight: 280, overflowY: 'auto' }}>
@@ -315,7 +315,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                           <span key={j} style={{ fontSize: 11, padding: '1px 6px', borderRadius: 10, background: AMB + '15', color: AMB, fontWeight: 600 }}>{t}</span>
                         ))}
                       </div>
-                      <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2 }}>{p.topic_count} topics (ideal: 1-3)</div>
+                      <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>{p.topic_count} topics (ideal: 1-3)</div>
                     </div>
                   ))}
                 </div>
@@ -330,17 +330,17 @@ export default function SemanticTab({ clientId, agencyId }) {
             <div style={card}>
               <div style={titleStyle}>
                 <Link2 size={15} color={AMB} /> Orphan Contexts
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginLeft: 'auto' }}>{(a.orphan_contexts || []).length} topics</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#1f2937', marginLeft: 'auto' }}>{(a.orphan_contexts || []).length} topics</span>
               </div>
               {(a.orphan_contexts || []).length > 0 ? (
                 <div style={{ maxHeight: 280, overflowY: 'auto' }}>
                   {a.orphan_contexts.map((o, i) => (
                     <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{o.topic}</div>
-                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: '#374151', marginTop: 2 }}>
                         Mentioned on: <span style={{ color: T }}>{o.mentioned_on}</span>
                       </div>
-                      <div style={{ fontSize: 12, color: '#4b5563' }}>
+                      <div style={{ fontSize: 12, color: '#1f2937' }}>
                         Linked pages: {o.linked_pages || 0}
                       </div>
                     </div>
@@ -364,11 +364,11 @@ export default function SemanticTab({ clientId, agencyId }) {
                     padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600,
                     background: '#f3f4f6', color: BLK, display: 'inline-flex', alignItems: 'center', gap: 4,
                   }}>
-                    "{p.opener}..." <span style={{ fontSize: 11, color: '#4b5563' }}>({p.count}x)</span>
+                    "{p.opener}..." <span style={{ fontSize: 11, color: '#1f2937' }}>({p.count}x)</span>
                   </span>
                 ))}
               </div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#374151', marginTop: 8 }}>
                 Repetitive openers can signal template-driven or formulaic content. Vary your paragraph starts for better readability.
               </div>
             </div>

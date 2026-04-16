@@ -778,6 +778,21 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({ action: 'release', client_id }),
       }).catch(() => {})
 
+      // KotoIQ auto-setup (fire and forget) — runs quick scan, topical map,
+      // on-page audit, seeds 10 content briefs + calendar, drafts strategy plan.
+      // Non-blocking: must not delay the completion response if KotoIQ is down.
+      try {
+        void fetch(`${APP_URL}/api/kotoiq`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'trigger_auto_setup',
+            client_id,
+            agency_id: resolvedAgency,
+          }),
+        }).catch(() => {})
+      } catch { /* swallow — never block onboarding completion */ }
+
       return NextResponse.json({ ok: true, agent_configured: !existing })
     }
 

@@ -1,0 +1,42 @@
+/* KotoIQ content script — minimal styles for injected elements */
+.kotoiq-float-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #14b8a6;
+  color: #fff;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(17, 17, 17, 0.18);
+  z-index: 2147483646;
+  border: none;
+  transition: transform 0.15s;
+}
+
+.kotoiq-float-btn:hover {
+  transform: scale(1.05);
+  background: #0f9488;
+}
+
+.kotoiq-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #111;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 2147483647;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}

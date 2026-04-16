@@ -23,6 +23,28 @@ import { runQueryGapAnalyzer, runFrameAnalyzer, runSemanticRoleLabeler, runNamed
 import { runContextlessWordRemover, runTopicalityScorer, runSentenceFilterer, runSafeAnswerGenerator } from '@/lib/semanticPostProcessors'
 import { runLexicalRelationAnalyzer, runTopicClusterer, runTitleQueryAuditor, runKeyFactSummarizer, runBridgeTopicSuggester } from '@/lib/semanticAgentsTier2'
 import { runCommentGenerator, runSentimentOptimizer, runEntityInserter, runMetadiscourseAuditor, runNgramExtractor, runTripleGenerator, runSpamHitDetector, runQualityUpdateAuditor } from '@/lib/semanticAgentsTier3'
+import { runTopicalAuthorityAuditor, runContextVectorAligner, runMultiEngineAEO, runContentDecayPredictor, runCompetitorTopicalMapExtractor, runPassageRankingOptimizer } from '@/lib/kotoiqAdvancedAgents'
+import { geoTagImage } from '@/lib/imageGeoTagger'
+import { generateGMBImage, generateImageCaption, uploadImageToStorage, uploadImageToGBP } from '@/lib/gmbImageEngine'
+import { analyzeUpworkJob, generateProposalPackage } from '@/lib/upworkChecklistEngine'
+import { checkPlagiarism, getPlagiarismHistory } from '@/lib/plagiarismEngine'
+import { analyzeOnPage, getOnPageHistory } from '@/lib/onPageEngine'
+import { runRankGridPro, getGridScanHistory, compareGridScans } from '@/lib/rankGridProEngine'
+import { removeAIWatermarks } from '@/lib/watermarkRemover'
+import { runGSCAudit, getGSCAudit } from '@/lib/gscAuditEngine'
+import { runBingAudit, getBingAudit } from '@/lib/bingAuditEngine'
+import { scanAndGenerateBacklinks, getBacklinkOpportunities } from '@/lib/backlinkOpportunityEngine'
+import { askKotoIQ, listConversations, getConversation, deleteConversation } from '@/lib/askKotoIQEngine'
+import { setupCompetitorWatch, runCompetitorWatchCheck, getCompetitorEvents } from '@/lib/competitorWatchEngine'
+import { setupSlackIntegration, setupTeamsIntegration, sendDailyDigest } from '@/lib/slackTeamsIntegration'
+import { calculateIndustryBenchmarks, getBenchmarkForClient } from '@/lib/industryBenchmarkEngine'
+import { generateScorecard } from '@/lib/scorecardEngine'
+import { generateStrategicPlan, getLatestStrategicPlan } from '@/lib/strategyEngine'
+import { convertTriplesToSchema, autoInjectSchemaFromPage } from '@/lib/tripleSchemaIntegration'
+import { exportKnowledgeGraph } from '@/lib/knowledgeGraphExporter'
+import { runAutonomousPipeline, getPipelineRuns, getPipelineRun } from '@/lib/autonomousPipeline'
+import { triggerAutoSetup } from '@/lib/voiceOnboardingAutoSetup'
+import { generateHyperlocalFromGrid } from '@/lib/hyperlocalContentEngine'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -2193,6 +2215,32 @@ Return the content in this format:
         console.error('[semantic-agents] Post-generation agents failed, returning raw content:', e)
       }
 
+      // Step 7: Convert the generated triples to ready-to-inject JSON-LD @graph.
+      // Non-fatal — if this fails we still return the content + raw triples.
+      let autoSchemaJsonLd: any = null
+      let autoSchemaTypesUsed: string[] = []
+      let autoSchemaEntityCount = 0
+      let autoSchemaRelationshipCount = 0
+      if (triples?.triples?.length) {
+        try {
+          const pageUrl = client?.website ? `${client.website.replace(/\/$/, '')}/${(brief.target_keyword || '').toLowerCase().replace(/\s+/g, '-')}` : 'https://example.com/'
+          const pageType = brief.page_type || 'LocalBusiness'
+          const converted = await convertTriplesToSchema(ai, {
+            triples: triples.triples,
+            business_name: client?.name || '',
+            page_url: pageUrl,
+            page_type: pageType,
+            agencyId: agency_id,
+          })
+          autoSchemaJsonLd = converted.json_ld
+          autoSchemaTypesUsed = converted.schema_types_used
+          autoSchemaEntityCount = converted.entity_count
+          autoSchemaRelationshipCount = converted.relationship_count
+        } catch (e) {
+          console.error('[write_full_page] triple-to-schema conversion failed:', e)
+        }
+      }
+
       return NextResponse.json({
         title: sections.title || brief.title_tag,
         meta: sections.meta || brief.meta_description,
@@ -2206,6 +2254,10 @@ Return the content in this format:
         title_audit: titleAudit || null,
         knowledge_graph_triples: triples?.triples?.slice(0, 20) || null,
         schema_suggestions: triples?.schema_suggestions || null,
+        auto_generated_json_ld: autoSchemaJsonLd,
+        auto_schema_types_used: autoSchemaTypesUsed,
+        auto_schema_entity_count: autoSchemaEntityCount,
+        auto_schema_relationship_count: autoSchemaRelationshipCount,
         sentence_quality: sentenceFilter ? {
           filler_pct: sentenceFilter.filler_pct,
           informative_pct: sentenceFilter.informative_pct,
@@ -2226,6 +2278,7 @@ Return the content in this format:
           entity_inserter: !!entityInsertResult,
           topicality_scorer: !!topicalityScore,
           triple_generator: !!triples,
+          triple_to_schema: !!autoSchemaJsonLd,
         },
       })
     } catch (e: any) {
@@ -3242,6 +3295,879 @@ Provide a detailed analysis. Return ONLY valid JSON:
         agencyId: agency_id,
       })
       return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // GMB IMAGE GEO-TAGGER
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Helper — pull client location context for geo-tagging
+  async function getClientLocationContext(client_id: string) {
+    const { data: client } = await s.from('clients').select('name, website, primary_service, location, address').eq('id', client_id).single()
+    const { data: report } = await s.from('koto_intel_reports').select('report_data').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
+    const gbp = report?.report_data?.gbp_audit || {}
+    return {
+      businessName: client?.name || '',
+      primaryService: client?.primary_service || '',
+      address: client?.address || client?.location || gbp.address || '',
+      lat: gbp.lat || gbp.latitude,
+      lng: gbp.lng || gbp.longitude,
+      city: gbp.city,
+      state: gbp.state,
+    }
+  }
+
+  // Geo-tag an uploaded image
+  if (action === 'geo_tag_image') {
+    const { client_id, image_base64, keywords, caption } = body
+    if (!client_id || !image_base64) return NextResponse.json({ error: 'client_id and image_base64 required' }, { status: 400 })
+    try {
+      const ctx = await getClientLocationContext(client_id)
+      if (!ctx.address && !ctx.lat) return NextResponse.json({ error: 'No address or GPS on file for this client. Add client address first.' }, { status: 400 })
+      const result = await geoTagImage({
+        imageBase64: image_base64,
+        businessName: ctx.businessName,
+        address: ctx.address,
+        lat: ctx.lat,
+        lng: ctx.lng,
+        city: ctx.city,
+        state: ctx.state,
+        keywords,
+        caption,
+      })
+      // Upload tagged image to storage
+      const upload = await uploadImageToStorage(s, { clientId: client_id, dataUrl: result.taggedImageBase64 })
+      // Save record
+      const { data: saved } = await s.from('kotoiq_gmb_images').insert({
+        client_id,
+        source: 'upload',
+        caption: caption || null,
+        keywords: keywords || [],
+        gps_lat: result.metadata.gps.lat,
+        gps_lng: result.metadata.gps.lng,
+        address: result.metadata.location.address,
+        city: result.metadata.location.city,
+        state: result.metadata.location.state,
+        country: result.metadata.location.country,
+        metadata: result.metadata,
+        storage_path: upload.path,
+        public_url: upload.publicUrl,
+      }).select().single()
+      return NextResponse.json({ success: true, image: saved, tagged_data_url: result.taggedImageBase64, metadata: result.metadata })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // Generate AI image + optional geo-tag + optional upload
+  if (action === 'generate_gmb_image') {
+    const { client_id, agency_id, prompt, style, auto_tag, auto_upload, gbp_category } = body
+    if (!client_id || !prompt) return NextResponse.json({ error: 'client_id and prompt required' }, { status: 400 })
+    try {
+      const ctx = await getClientLocationContext(client_id)
+      // Generate image
+      const generated = await generateGMBImage(ai, {
+        prompt,
+        businessName: ctx.businessName,
+        primaryService: ctx.primaryService,
+        city: ctx.city,
+        style,
+        agencyId: agency_id,
+      })
+      // Generate caption
+      const captionData = await generateImageCaption(ai, {
+        businessName: ctx.businessName,
+        service: ctx.primaryService,
+        city: ctx.city,
+        keywords: body.keywords,
+        imageDescription: generated.enhancedPrompt,
+        agencyId: agency_id,
+      })
+
+      // NOTE: OpenAI gpt-image-1 returns PNG. EXIF geo-tagging requires JPEG.
+      // For now, store the generated PNG as-is. Client-side will need to convert to JPEG
+      // before geo-tagging (via Canvas). We return the generated image and caption;
+      // the client triggers 'geo_tag_image' after converting.
+      const upload = await uploadImageToStorage(s, { clientId: client_id, dataUrl: generated.imageBase64 })
+
+      const { data: saved } = await s.from('kotoiq_gmb_images').insert({
+        client_id,
+        source: 'generated',
+        prompt,
+        enhanced_prompt: generated.enhancedPrompt,
+        caption: captionData.caption,
+        alt_text: captionData.alt_text,
+        keywords: captionData.keywords || [],
+        storage_path: upload.path,
+        public_url: upload.publicUrl,
+      }).select().single()
+
+      return NextResponse.json({
+        success: true,
+        image: saved,
+        image_base64: generated.imageBase64,
+        enhanced_prompt: generated.enhancedPrompt,
+        caption: captionData.caption,
+        alt_text: captionData.alt_text,
+        keywords: captionData.keywords,
+        note: 'Generated as PNG. Convert to JPEG client-side before geo-tagging.',
+      })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // Upload a stored image to GBP
+  if (action === 'upload_image_to_gbp') {
+    const { client_id, image_id, category } = body
+    if (!client_id || !image_id) return NextResponse.json({ error: 'client_id and image_id required' }, { status: 400 })
+    try {
+      const { data: img } = await s.from('kotoiq_gmb_images').select('*').eq('id', image_id).single()
+      if (!img?.public_url) return NextResponse.json({ error: 'Image has no public URL' }, { status: 400 })
+
+      // Get GBP connection
+      const { data: connections } = await s.from('seo_connections').select('*').eq('client_id', client_id)
+      const gbpConn = connections?.find((c: any) => (c.provider === 'gmb' || c.provider === 'google') && c.refresh_token)
+      if (!gbpConn) return NextResponse.json({ error: 'No GBP connection found' }, { status: 400 })
+
+      const { getAccessToken } = await import('@/lib/seoService')
+      const accessToken = await getAccessToken(gbpConn)
+      if (!accessToken) return NextResponse.json({ error: 'Cannot authenticate with GBP' }, { status: 400 })
+
+      const accountId = gbpConn.account_id
+      const locationId = gbpConn.location_id || gbpConn.property_id
+      if (!accountId || !locationId) return NextResponse.json({ error: 'GBP connection missing account_id or location_id' }, { status: 400 })
+
+      const gbpResult = await uploadImageToGBP({
+        accessToken,
+        accountId,
+        locationId,
+        sourceUrl: img.public_url,
+        category: (category || 'ADDITIONAL') as any,
+        description: img.caption,
+      })
+
+      await s.from('kotoiq_gmb_images').update({
+        gbp_media_id: gbpResult.name || gbpResult.mediaId,
+        gbp_category: category || 'ADDITIONAL',
+        gbp_uploaded_at: new Date().toISOString(),
+      }).eq('id', image_id)
+
+      return NextResponse.json({ success: true, gbp: gbpResult })
+    } catch (e: any) {
+      await s.from('kotoiq_gmb_images').update({ gbp_error: e.message }).eq('id', body.image_id)
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // Generate just a caption (for existing images)
+  if (action === 'generate_image_caption') {
+    const { client_id, agency_id, image_description, keywords } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    try {
+      const ctx = await getClientLocationContext(client_id)
+      const result = await generateImageCaption(ai, {
+        businessName: ctx.businessName,
+        service: ctx.primaryService,
+        city: ctx.city,
+        keywords,
+        imageDescription: image_description,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // List all GMB images for a client
+  if (action === 'list_gmb_images') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data } = await s.from('kotoiq_gmb_images').select('*').eq('client_id', client_id).order('created_at', { ascending: false }).limit(100)
+    return NextResponse.json({ images: data || [] })
+  }
+
+  // ── Upwork Checklist: analyze job posting ─────────────────────────────────
+  if (action === 'analyze_upwork_job') {
+    try {
+      const result = await analyzeUpworkJob(ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Upwork Checklist: generate full proposal package ──────────────────────
+  if (action === 'generate_proposal_package') {
+    try {
+      const result = await generateProposalPackage(ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Plagiarism Checker ───────────────────────────────────────────────────
+  if (action === 'check_plagiarism') {
+    try {
+      const result = await checkPlagiarism(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_plagiarism_history') {
+    try {
+      const data = await getPlagiarismHistory(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── On-Page SEO Analyzer ─────────────────────────────────────────────────
+  if (action === 'analyze_on_page') {
+    try {
+      const result = await analyzeOnPage(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_on_page_history') {
+    try {
+      const data = await getOnPageHistory(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Rank Grid Pro ────────────────────────────────────────────────────────
+  if (action === 'run_rank_grid_pro') {
+    try {
+      const result = await runRankGridPro(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_grid_scan_history') {
+    try {
+      const data = await getGridScanHistory(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'compare_grid_scans') {
+    try {
+      const data = await compareGridScans(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── ChatGPT Watermark Remover ────────────────────────────────────────────
+  if (action === 'remove_ai_watermarks') {
+    try {
+      const result = await removeAIWatermarks(ai, { ...body, supabase: s })
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── GSC Audit Engine ──────────────────────────────────────────────────────
+  if (action === 'run_gsc_audit') {
+    try {
+      const result = await runGSCAudit(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_gsc_audit') {
+    try {
+      const audit = await getGSCAudit(s, body)
+      return NextResponse.json({ audit })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Bing Audit Engine ─────────────────────────────────────────────────────
+  if (action === 'run_bing_audit') {
+    try {
+      const result = await runBingAudit(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_bing_audit') {
+    try {
+      const audit = await getBingAudit(s, body)
+      return NextResponse.json({ audit })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Backlink Opportunity Engine ───────────────────────────────────────────
+  if (action === 'scan_backlink_opportunities') {
+    try {
+      const result = await scanAndGenerateBacklinks(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_backlink_opportunities') {
+    try {
+      const opportunities = await getBacklinkOpportunities(s, body)
+      return NextResponse.json({ opportunities })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ADVANCED SEMANTIC AGENTS
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── TOPICAL AUTHORITY AUDITOR ─────────────────────────────────
+  if (action === 'audit_topical_authority') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    try {
+      // Get latest topical map + nodes
+      const { data: mapRow } = await s.from('kotoiq_topical_maps')
+        .select('*').eq('client_id', client_id)
+        .order('created_at', { ascending: false }).limit(1).maybeSingle()
+
+      const { data: nodes } = mapRow
+        ? await s.from('kotoiq_topical_nodes').select('*').eq('map_id', mapRow.id)
+        : { data: [] }
+
+      // Get keywords
+      const { data: keywords } = await s.from('kotoiq_keywords')
+        .select('keyword, fingerprint, sc_avg_position, search_volume, sc_clicks, sc_impressions, category')
+        .eq('client_id', client_id).limit(200)
+
+      // Build 30d & 90d trajectory from snapshots
+      const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const ninetyDaysAgo = new Date(); ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+      const fingerprints = (keywords || []).map((k: any) => k.fingerprint).filter(Boolean)
+
+      const { data: snapshots30 } = fingerprints.length
+        ? await s.from('kotoiq_snapshots').select('keyword_fingerprint, sc_position, created_at')
+            .eq('client_id', client_id)
+            .in('keyword_fingerprint', fingerprints.slice(0, 200))
+            .gte('created_at', thirtyDaysAgo.toISOString().split('T')[0])
+            .lte('created_at', new Date(thirtyDaysAgo.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        : { data: [] }
+
+      const { data: snapshots90 } = fingerprints.length
+        ? await s.from('kotoiq_snapshots').select('keyword_fingerprint, sc_position, created_at')
+            .eq('client_id', client_id)
+            .in('keyword_fingerprint', fingerprints.slice(0, 200))
+            .gte('created_at', ninetyDaysAgo.toISOString().split('T')[0])
+            .lte('created_at', new Date(ninetyDaysAgo.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        : { data: [] }
+
+      const pos30Map = new Map<string, number>()
+      for (const snap of (snapshots30 || [])) {
+        if (snap.sc_position && !pos30Map.has(snap.keyword_fingerprint)) {
+          pos30Map.set(snap.keyword_fingerprint, snap.sc_position)
+        }
+      }
+      const pos90Map = new Map<string, number>()
+      for (const snap of (snapshots90 || [])) {
+        if (snap.sc_position && !pos90Map.has(snap.keyword_fingerprint)) {
+          pos90Map.set(snap.keyword_fingerprint, snap.sc_position)
+        }
+      }
+
+      // Pull DA from domain enrichment if available
+      const { data: client } = await s.from('clients')
+        .select('name, website, primary_service, target_customer, location')
+        .eq('id', client_id).single()
+
+      const { data: daRow } = await s.from('kotoiq_domain_enrichment')
+        .select('domain_authority').eq('client_id', client_id)
+        .order('created_at', { ascending: false }).limit(1).maybeSingle()
+
+      const result = await runTopicalAuthorityAuditor(ai, {
+        central_entity: mapRow?.central_entity,
+        source_context: mapRow?.source_context,
+        topical_nodes: ((nodes as any[]) || []).map((n: any) => ({
+          entity: n.entity,
+          section: n.section,
+          status: n.status,
+          priority: n.priority,
+          macro_context: n.macro_context,
+          existing_url: n.existing_url,
+          search_volume: n.search_volume,
+        })),
+        keywords: (keywords || []).map((k: any) => ({
+          keyword: k.keyword,
+          current_position: k.sc_avg_position,
+          position_30d_ago: pos30Map.get(k.fingerprint) ?? null,
+          position_90d_ago: pos90Map.get(k.fingerprint) ?? null,
+          search_volume: k.search_volume,
+          clicks: k.sc_clicks,
+          impressions: k.sc_impressions,
+          category: k.category,
+        })),
+        domain_authority: daRow?.domain_authority ?? null,
+        business_context: client ? `${client.name || ''} — ${client.primary_service || ''} serving ${client.target_customer || ''} in ${client.location || ''}` : undefined,
+        agencyId: agency_id,
+      })
+
+      // Optionally save authority_score back to topical_maps
+      if (mapRow?.id) {
+        try {
+          await s.from('kotoiq_topical_maps').update({
+            authority_score: result.authority_score,
+            authority_grade: result.grade,
+            authority_audited_at: new Date().toISOString(),
+          }).eq('id', mapRow.id)
+        } catch { /* column may not exist yet; non-fatal */ }
+      }
+
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── CONTEXT VECTOR ALIGNER ────────────────────────────────────
+  if (action === 'align_context_vectors') {
+    const { keyword, outline, competitor_h2s, intent, business_context, agency_id } = body
+    if (!keyword || !outline) return NextResponse.json({ error: 'keyword and outline required' }, { status: 400 })
+
+    try {
+      const result = await runContextVectorAligner(ai, {
+        target_keyword: keyword,
+        planned_content_outline: outline,
+        competitor_h2s: competitor_h2s || [],
+        query_intent: intent,
+        business_context,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── MULTI-ENGINE AEO SCORER ───────────────────────────────────
+  if (action === 'score_multi_engine_aeo') {
+    const { content, keyword, url, has_schema, has_citations, agency_id } = body
+    if (!content || !keyword) return NextResponse.json({ error: 'content and keyword required' }, { status: 400 })
+
+    try {
+      const result = await runMultiEngineAEO(ai, {
+        content,
+        keyword,
+        url,
+        has_schema,
+        has_citations,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── CONTENT DECAY PREDICTOR ───────────────────────────────────
+  if (action === 'predict_content_decay') {
+    const { client_id, url, agency_id } = body
+    if (!client_id || !url) return NextResponse.json({ error: 'client_id and url required' }, { status: 400 })
+
+    try {
+      // Pull inventory row for this URL
+      const { data: inv } = await s.from('kotoiq_content_inventory')
+        .select('*').eq('client_id', client_id).eq('url', url).maybeSingle()
+
+      // Find a keyword that targets this URL via topical nodes with existing_url
+      const { data: node } = await s.from('kotoiq_topical_nodes')
+        .select('entity').eq('client_id', client_id).eq('existing_url', url).maybeSingle()
+
+      const targetKeyword: string | undefined = node?.entity || undefined
+
+      let currentPos = 50
+      let pos30: number | null = null
+      let pos90: number | null = null
+      let pos180: number | null = null
+      let currentClicks: number | null = null
+      let searchVol: number | null = null
+
+      if (targetKeyword) {
+        const fp = targetKeyword.toLowerCase().trim().replace(/\s+/g, ' ')
+        const { data: kw } = await s.from('kotoiq_keywords')
+          .select('sc_avg_position, sc_clicks, search_volume')
+          .eq('client_id', client_id).eq('fingerprint', fp).maybeSingle()
+        if (kw) {
+          currentPos = kw.sc_avg_position ?? 50
+          currentClicks = kw.sc_clicks ?? null
+          searchVol = kw.search_volume ?? null
+        }
+
+        const now = new Date()
+        const d30 = new Date(now); d30.setDate(d30.getDate() - 30)
+        const d90 = new Date(now); d90.setDate(d90.getDate() - 90)
+        const d180 = new Date(now); d180.setDate(d180.getDate() - 180)
+
+        const { data: snaps } = await s.from('kotoiq_snapshots')
+          .select('sc_position, created_at')
+          .eq('client_id', client_id).eq('keyword_fingerprint', fp)
+          .gte('created_at', d180.toISOString().split('T')[0])
+          .order('created_at', { ascending: true })
+
+        if (snaps?.length) {
+          const findNear = (target: Date): number | null => {
+            let best: any = null
+            let bestDiff = Infinity
+            for (const snap of snaps) {
+              const sd = new Date(snap.created_at as string)
+              const diff = Math.abs(sd.getTime() - target.getTime())
+              if (diff < bestDiff && snap.sc_position) { best = snap; bestDiff = diff }
+            }
+            return best?.sc_position ?? null
+          }
+          pos30 = findNear(d30)
+          pos90 = findNear(d90)
+          pos180 = findNear(d180)
+        }
+      }
+
+      const result = await runContentDecayPredictor(ai, {
+        url,
+        keyword: targetKeyword,
+        current_position: currentPos,
+        position_30d_ago: pos30,
+        position_90d_ago: pos90,
+        position_180d_ago: pos180,
+        last_updated: inv?.last_modified ?? null,
+        word_count: inv?.word_count ?? null,
+        current_clicks_monthly: currentClicks,
+        search_volume: searchVol,
+        agencyId: agency_id,
+      })
+
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── COMPETITOR TOPICAL MAP EXTRACTOR ──────────────────────────
+  if (action === 'extract_competitor_topical_map') {
+    const { competitor_url, client_id, agency_id } = body
+    if (!competitor_url) return NextResponse.json({ error: 'competitor_url required' }, { status: 400 })
+
+    try {
+      const base = competitor_url.replace(/\/+$/, '')
+      const candidates = [`${base}/sitemap.xml`, `${base}/sitemap_index.xml`, `${base}/sitemap-index.xml`]
+      let sitemapXml = ''
+      let fetched = ''
+      for (const cand of candidates) {
+        try {
+          const r = await fetch(cand, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
+            signal: AbortSignal.timeout(10000),
+          })
+          if (r.ok) { sitemapXml = await r.text(); fetched = cand; break }
+        } catch { /* try next */ }
+      }
+
+      const extractLocs = (xml: string): string[] =>
+        [...xml.matchAll(/<loc>([\s\S]*?)<\/loc>/gi)].map(m => m[1].trim())
+
+      let allUrls: string[] = extractLocs(sitemapXml)
+
+      // If sitemap_index, recurse into child sitemaps
+      const childSitemaps = allUrls.filter(u => /sitemap.*\.xml/i.test(u))
+      if (childSitemaps.length && allUrls.length === childSitemaps.length) {
+        allUrls = []
+        for (const child of childSitemaps.slice(0, 5)) {
+          try {
+            const r = await fetch(child, {
+              headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
+              signal: AbortSignal.timeout(10000),
+            })
+            if (r.ok) {
+              const xml = await r.text()
+              allUrls.push(...extractLocs(xml).filter(u => !/sitemap.*\.xml/i.test(u)))
+            }
+          } catch { /* skip */ }
+          if (allUrls.length >= 150) break
+        }
+      }
+
+      const urls = allUrls.slice(0, 150)
+      if (!urls.length) return NextResponse.json({ error: `No URLs found in sitemap for ${competitor_url}. Tried: ${candidates.join(', ')}` }, { status: 404 })
+
+      let clientCentralEntity: string | undefined
+      let clientTopics: string[] = []
+      if (client_id) {
+        const { data: clientMap } = await s.from('kotoiq_topical_maps')
+          .select('central_entity').eq('client_id', client_id)
+          .order('created_at', { ascending: false }).limit(1).maybeSingle()
+        clientCentralEntity = clientMap?.central_entity
+
+        const { data: clientNodes } = await s.from('kotoiq_topical_nodes')
+          .select('entity, section').eq('client_id', client_id).limit(100)
+        clientTopics = (clientNodes || []).map((n: any) => n.entity)
+      }
+
+      const result = await runCompetitorTopicalMapExtractor(ai, {
+        competitor_url,
+        sitemap_urls: urls,
+        client_central_entity: clientCentralEntity,
+        client_topics: clientTopics,
+        agencyId: agency_id,
+      })
+
+      return NextResponse.json({ ...result, sitemap_source: fetched, urls_analyzed: urls.length })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── PASSAGE RANKING OPTIMIZER ─────────────────────────────────
+  if (action === 'optimize_passages') {
+    const { content, keyword, user_question, agency_id } = body
+    if (!content || !keyword) return NextResponse.json({ error: 'content and keyword required' }, { status: 400 })
+
+    try {
+      const result = await runPassageRankingOptimizer(ai, {
+        content,
+        keyword,
+        user_question,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── ASK KOTOIQ — conversational chat ──────────────────────────────────────
+  if (action === 'ask_kotoiq') {
+    try {
+      const result = await askKotoIQ(s, ai, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'list_chat_conversations') {
+    try {
+      const result = await listConversations(s, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_chat_conversation') {
+    try {
+      const result = await getConversation(s, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'delete_chat_conversation') {
+    try {
+      const result = await deleteConversation(s, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Chrome extension — minimal client list ────────────────────────────────
+  if (action === 'list_clients_for_extension') {
+    try {
+      const { agency_id } = body
+      if (!agency_id) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+      const { data, error } = await s.from('clients')
+        .select('id, name, website')
+        .eq('agency_id', agency_id)
+        .is('deleted_at', null)
+        .order('name', { ascending: true })
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ clients: data || [] })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Competitor Watch ──────────────────────────────────────────────────
+  if (action === 'setup_competitor_watch') {
+    try { return NextResponse.json(await setupCompetitorWatch(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'run_competitor_watch_check') {
+    try { return NextResponse.json(await runCompetitorWatchCheck(s, ai, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'get_competitor_events') {
+    try { return NextResponse.json(await getCompetitorEvents(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Slack / Teams Integration ─────────────────────────────────────────
+  if (action === 'setup_slack_integration') {
+    try { return NextResponse.json(await setupSlackIntegration(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'setup_teams_integration') {
+    try { return NextResponse.json(await setupTeamsIntegration(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'send_daily_digest') {
+    try { return NextResponse.json(await sendDailyDigest(s, ai, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Industry Benchmarks ───────────────────────────────────────────────
+  if (action === 'calculate_industry_benchmarks') {
+    try { return NextResponse.json(await calculateIndustryBenchmarks(s, ai)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'get_benchmark_for_client') {
+    try { return NextResponse.json(await getBenchmarkForClient(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Scorecard ─────────────────────────────────────────────────────────
+  if (action === 'generate_scorecard') {
+    try { return NextResponse.json(await generateScorecard(s, ai, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── STRATEGY ENGINE — unified strategic planner ───────────────────────────
+  if (action === 'generate_strategic_plan') {
+    try {
+      return await generateStrategicPlan(s, ai, body)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_latest_strategic_plan') {
+    try {
+      return await getLatestStrategicPlan(s, body)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TRIPLE → SCHEMA AUTO-INJECTION ────────────────────────────────────────
+  if (action === 'auto_inject_schema_from_triples') {
+    try {
+      return await autoInjectSchemaFromPage(s, ai, body)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'convert_triples_to_schema') {
+    try {
+      const { triples, business_name, page_url, page_type, agency_id } = body
+      if (!Array.isArray(triples)) return NextResponse.json({ error: 'triples array required' }, { status: 400 })
+      const result = await convertTriplesToSchema(ai, {
+        triples, business_name: business_name || '', page_url: page_url || '',
+        page_type: page_type || 'LocalBusiness', agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── KNOWLEDGE GRAPH EXPORT (Wikidata / JSON-LD / RDF Turtle) ──────────────
+  if (action === 'export_knowledge_graph') {
+    try {
+      return await exportKnowledgeGraph(s, ai, body)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // AUTOMATION WORKFLOWS
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── AUTONOMOUS CONTENT PIPELINE ──────────────────────────────────────
+  if (action === 'run_autonomous_pipeline') {
+    try {
+      const result = await runAutonomousPipeline(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_pipeline_runs') {
+    try {
+      const runs = await getPipelineRuns(s, body)
+      return NextResponse.json({ runs })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_pipeline_run') {
+    try {
+      const run = await getPipelineRun(s, body)
+      return NextResponse.json({ run })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── VOICE ONBOARDING AUTO-SETUP ──────────────────────────────────────
+  if (action === 'trigger_auto_setup') {
+    try {
+      const result = await triggerAutoSetup(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── HYPERLOCAL CONTENT FROM GRID DEAD ZONES ──────────────────────────
+  if (action === 'generate_hyperlocal_from_grid') {
+    try {
+      const result = await generateHyperlocalFromGrid(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
     }

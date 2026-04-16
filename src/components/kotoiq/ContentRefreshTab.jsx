@@ -15,7 +15,7 @@ const PRIORITY_LABELS = { urgent: 'Urgent', soon: 'Soon', scheduled: 'Scheduled'
 
 const TRAJECTORY_CONFIG = {
   improving: { icon: ArrowUp, color: GRN, label: 'Improving' },
-  stable: { icon: ArrowRight, color: '#6b7280', label: 'Stable' },
+  stable: { icon: ArrowRight, color: '#374151', label: 'Stable' },
   declining: { icon: ArrowDown, color: R, label: 'Declining' },
   dead: { icon: Skull, color: '#991b1b', label: 'Dead' },
   new: { icon: Sparkles, color: T, label: 'New' },
@@ -152,7 +152,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>Content Refresh Engine</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Monitor content freshness, identify declining pages, plan updates</div>
+          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>Monitor content freshness, identify declining pages, plan updates</div>
         </div>
         <button onClick={buildInventory} disabled={building}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: building ? 'wait' : 'pointer', opacity: building ? 0.6 : 1 }}>
@@ -162,7 +162,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: 60, color: '#4b5563' }}>
+        <div style={{ textAlign: 'center', padding: 60, color: '#1f2937' }}>
           <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontWeight: 600 }}>Loading inventory...</div>
         </div>
@@ -172,7 +172,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 60 }}>
           <FileText size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Content Inventory Yet</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Click "Build Inventory" to scan your sitemap and analyze content freshness.</div>
+          <div style={{ fontSize: 13, color: '#374151', marginBottom: 16 }}>Click "Build Inventory" to scan your sitemap and analyze content freshness.</div>
         </div>
       )}
 
@@ -192,7 +192,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   <div style={{ width: 28, height: 28, borderRadius: 7, background: color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={14} color={color} />
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</span>
                 </div>
                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{value}</div>
               </div>
@@ -210,7 +210,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             </div>
             <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
               {[['Fresh', GRN], ['Aging', AMB], ['Stale', '#f97316'], ['Critical', R]].map(([l, c]) => (
-                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280' }}>
+                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#374151' }}>
                   <div style={{ width: 10, height: 10, borderRadius: 3, background: c }} /> {l}
                 </div>
               ))}
@@ -228,7 +228,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
               ))}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, color: '#4b5563', fontWeight: 600 }}>Sort:</span>
+              <span style={{ fontSize: 11, color: '#1f2937', fontWeight: 600 }}>Sort:</span>
               {SORT_OPTIONS.map(o => (
                 <button key={o.key} onClick={() => { if (sortBy === o.key) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortBy(o.key); setSortDir('asc') } }}
                   style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${sortBy === o.key ? T : '#e5e7eb'}`, background: sortBy === o.key ? T + '10' : '#fff', color: sortBy === o.key ? T : '#6b7280', display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -243,11 +243,11 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: FB }}>
               <thead>
                 <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                  <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
                     <input type="checkbox" onChange={e => { if (e.target.checked) setSelectedUrls(new Set(filtered.map(r => r.url))); else setSelectedUrls(new Set()) }} checked={selectedUrls.size === filtered.length && filtered.length > 0} />
                   </th>
                   {['URL', 'Title', 'Words', 'Pos', 'Trajectory', 'Days Old', 'Freshness', 'Priority'].map(h => (
-                    <th key={h} style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -275,7 +275,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                           <TrajIcon size={13} /> {traj.label}
                         </div>
                       </td>
-                      <td style={{ padding: '8px', fontFamily: FH, fontWeight: 700, color: '#6b7280' }}>{item.days_since_update != null ? `${item.days_since_update}d` : '--'}</td>
+                      <td style={{ padding: '8px', fontFamily: FH, fontWeight: 700, color: '#374151' }}>{item.days_since_update != null ? `${item.days_since_update}d` : '--'}</td>
                       <td style={{ padding: '8px' }}>
                         <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: fColor + '15', color: fColor, textTransform: 'uppercase' }}>
                           {FRESHNESS_LABELS[item.freshness_status] || item.freshness_status}
@@ -292,7 +292,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
               </tbody>
             </table>
             {filtered.length === 0 && (
-              <div style={{ padding: 40, textAlign: 'center', color: '#4b5563', fontSize: 13 }}>No pages match the current filter.</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#1f2937', fontSize: 13 }}>No pages match the current filter.</div>
             )}
           </div>
 
@@ -308,7 +308,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             </div>
 
             {plans.length === 0 && !planLoading && (
-              <div style={{ padding: 24, textAlign: 'center', color: '#4b5563', fontSize: 13 }}>
+              <div style={{ padding: 24, textAlign: 'center', color: '#1f2937', fontSize: 13 }}>
                 Select pages above and click "Generate Plan" to get AI-powered refresh recommendations.
               </div>
             )}
@@ -319,11 +319,11 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer', background: '#f9fafb' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{plan.title || truncateUrl(plan.url)}</div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{truncateUrl(plan.url, 60)}</div>
+                    <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{truncateUrl(plan.url, 60)}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {plan.priority && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: (PRIORITY_COLORS[plan.priority] || '#6b7280') + '15', color: PRIORITY_COLORS[plan.priority] || '#6b7280', textTransform: 'uppercase' }}>{plan.priority}</span>}
-                    {plan.estimated_hours && <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>{plan.estimated_hours}h est.</span>}
+                    {plan.estimated_hours && <span style={{ fontSize: 11, color: '#374151', fontWeight: 600 }}>{plan.estimated_hours}h est.</span>}
                     {expandedPlan === i ? <ChevronUp size={14} color="#6b7280" /> : <ChevronDown size={14} color="#6b7280" />}
                   </div>
                 </div>
@@ -331,12 +331,12 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   <div style={{ padding: '16px 20px', borderTop: '1px solid #e5e7eb' }}>
                     {plan.sections_to_update?.length > 0 && (
                       <div style={{ marginBottom: 14 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Sections to Update</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Sections to Update</div>
                         {plan.sections_to_update.map((sec, j) => (
                           <div key={j} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12, color: BLK }}>
                             <span style={{ fontWeight: 700, minWidth: 80, color: T }}>{sec.action}</span>
                             <span style={{ fontWeight: 600 }}>{sec.section}:</span>
-                            <span style={{ color: '#6b7280' }}>{sec.details}</span>
+                            <span style={{ color: '#374151' }}>{sec.details}</span>
                           </div>
                         ))}
                       </div>

@@ -26,7 +26,7 @@ function ScoreRing({ score, size = 100 }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
-        <div style={{ fontSize: size * 0.1, color: '#4b5563', fontWeight: 600, marginTop: 2 }}>/ 100</div>
+        <div style={{ fontSize: size * 0.1, color: '#1f2937', fontWeight: 600, marginTop: 2 }}>/ 100</div>
       </div>
     </div>
   )
@@ -124,7 +124,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Brand SERP Score</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+          <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
             {data
               ? `Scanning "${data.brand_query}" -- ${featuresPresent}/${featuresTotal} SERP features detected, ${data.owned_results}/${data.total_results} owned results`
               : 'Analyze how your brand appears in Google search results'}
@@ -156,7 +156,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Shield size={40} color="#d1d5db" style={{ marginBottom: 12 }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Brand SERP Data</div>
-          <div style={{ fontSize: 13, color: '#4b5563' }}>Click "Scan Brand SERP" to analyze how your brand appears in Google</div>
+          <div style={{ fontSize: 13, color: '#1f2937' }}>Click "Scan Brand SERP" to analyze how your brand appears in Google</div>
         </div>
       )}
 
@@ -166,7 +166,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
           <div style={card}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Globe size={16} color={T} /> SERP Features
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginLeft: 'auto' }}>{featuresPresent} / {featuresTotal} active</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#1f2937', marginLeft: 'auto' }}>{featuresPresent} / {featuresTotal} active</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
               {FEATURES.map(f => {
@@ -183,7 +183,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: active ? BLK : '#9ca3af' }}>{f.label}</div>
-                      <div style={{ fontSize: 12, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
+                      <div style={{ fontSize: 12, color: '#1f2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
                     </div>
                     {active ? <CheckCircle size={16} color={GRN} /> : <XCircle size={16} color="#d1d5db" />}
                   </div>
@@ -202,8 +202,8 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                 {data.owned_results}
               </div>
               <div>
-                <div style={{ fontSize: 13, color: '#6b7280' }}>out of {data.total_results} top results are from your domain</div>
-                <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2 }}>
+                <div style={{ fontSize: 13, color: '#374151' }}>out of {data.total_results} top results are from your domain</div>
+                <div style={{ fontSize: 11, color: '#1f2937', marginTop: 2 }}>
                   {data.owned_results >= 7 ? 'Excellent brand SERP dominance' :
                     data.owned_results >= 5 ? 'Good presence — room to grow' :
                     data.owned_results >= 3 ? 'Moderate presence — competitors visible' :
@@ -223,7 +223,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
               <span style={{ fontSize: 12, color: GRN, fontWeight: 700 }}>Owned ({data.owned_results})</span>
-              <span style={{ fontSize: 12, color: '#4b5563', fontWeight: 700 }}>Other ({(data.total_results || 10) - data.owned_results})</span>
+              <span style={{ fontSize: 12, color: '#1f2937', fontWeight: 700 }}>Other ({(data.total_results || 10) - data.owned_results})</span>
             </div>
           </div>
 
@@ -271,7 +271,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                   marginBottom: i < data.negative_results.length - 1 ? 8 : 0,
                 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>{nr.title}</div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nr.url}</div>
+                  <div style={{ fontSize: 11, color: '#374151', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nr.url}</div>
                   <div style={{ fontSize: 12, color: R }}>{nr.reason}</div>
                 </div>
               ))}
@@ -283,7 +283,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
               <CheckCircle size={20} color={GRN} />
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: GRN }}>No Negative Results</div>
-                <div style={{ fontSize: 12, color: '#6b7280' }}>Your brand SERP is clean -- no negative sentiment detected in top results</div>
+                <div style={{ fontSize: 12, color: '#374151' }}>Your brand SERP is clean -- no negative sentiment detected in top results</div>
               </div>
             </div>
           )}
@@ -294,8 +294,8 @@ export default function BrandSerpTab({ clientId, agencyId }) {
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Globe size={16} color={T} /> Knowledge Panel
               </div>
-              <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.6 }}>{data.kp_description}</div>
-              {data.kp_source && <div style={{ fontSize: 11, color: '#4b5563', marginTop: 6 }}>Source: {data.kp_source}</div>}
+              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{data.kp_description}</div>
+              {data.kp_source && <div style={{ fontSize: 11, color: '#1f2937', marginTop: 6 }}>Source: {data.kp_source}</div>}
             </div>
           )}
 
@@ -308,7 +308,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
               {strategyLoading ? (
                 <div style={{ textAlign: 'center', padding: 32 }}>
                   <Loader2 size={24} color={R} style={{ animation: 'spin 1s linear infinite' }} />
-                  <div style={{ fontSize: 13, color: '#4b5563', marginTop: 8 }}>Analyzing brand SERP and generating strategy...</div>
+                  <div style={{ fontSize: 13, color: '#1f2937', marginTop: 8 }}>Analyzing brand SERP and generating strategy...</div>
                 </div>
               ) : strategy ? (
                 <div>
@@ -327,7 +327,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                           color: strategy.knowledge_panel.status === 'active' ? GRN : AMB,
                         }}>{strategy.knowledge_panel.status}</span>
                       </div>
-                      <ul style={{ fontSize: 12, color: '#6b7280', paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
+                      <ul style={{ fontSize: 12, color: '#374151', paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
                         {strategy.knowledge_panel.actions?.map((a, i) => <li key={i}>{a}</li>)}
                       </ul>
                     </div>
@@ -339,7 +339,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                       <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 6 }}>
                         Owned Results: {strategy.owned_results.current} / {strategy.owned_results.target} target
                       </div>
-                      <ul style={{ fontSize: 12, color: '#6b7280', paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
+                      <ul style={{ fontSize: 12, color: '#374151', paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
                         {strategy.owned_results.actions?.map((a, i) => <li key={i}>{a}</li>)}
                       </ul>
                     </div>
@@ -349,7 +349,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                   {strategy.paa_strategy?.actions?.length > 0 && (
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 6 }}>PAA Strategy</div>
-                      <ul style={{ fontSize: 12, color: '#6b7280', paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
+                      <ul style={{ fontSize: 12, color: '#374151', paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
                         {strategy.paa_strategy.actions.map((a, i) => <li key={i}>{a}</li>)}
                       </ul>
                     </div>
@@ -359,7 +359,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                   {strategy.negative_mitigation?.actions?.length > 0 && (
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: R, marginBottom: 6 }}>Negative Mitigation</div>
-                      <ul style={{ fontSize: 12, color: '#6b7280', paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
+                      <ul style={{ fontSize: 12, color: '#374151', paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
                         {strategy.negative_mitigation.actions.map((a, i) => <li key={i}>{a}</li>)}
                       </ul>
                     </div>
@@ -378,7 +378,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                               color: a.impact === 'high' ? GRN : a.impact === 'medium' ? AMB : '#9ca3af',
                               textTransform: 'uppercase', letterSpacing: '.04em',
                             }}>{a.impact}</span>
-                            <span style={{ fontSize: 12, color: '#4b5563' }}>{a.timeline}</span>
+                            <span style={{ fontSize: 12, color: '#1f2937' }}>{a.timeline}</span>
                           </div>
                         ))}
                       </div>
@@ -391,7 +391,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
 
           {/* Last scanned */}
           {data.updated_at && (
-            <div style={{ fontSize: 11, color: '#4b5563', textAlign: 'right', marginTop: 4 }}>
+            <div style={{ fontSize: 11, color: '#1f2937', textAlign: 'right', marginTop: 4 }}>
               Last scanned: {new Date(data.updated_at).toLocaleString()}
             </div>
           )}
