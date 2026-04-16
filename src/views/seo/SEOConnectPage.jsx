@@ -288,9 +288,10 @@ export default function SEOConnectPage() {
       setTempTokens(null)
       toast.success('Google accounts connected!')
 
-      // If launched from KotoIQ, redirect back
+      // If launched from KotoIQ, redirect back with client preserved
       if (returnTo) {
-        navigate(returnTo)
+        const sep = returnTo.includes('?') ? '&' : '?'
+        navigate(`${returnTo}${sep}client=${clientId}`)
         return
       }
       setStep('complete')

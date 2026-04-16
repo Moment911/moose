@@ -501,6 +501,14 @@ export default function KotoIQPage() {
   const [selectedGa4, setSelectedGa4] = useState('')
   const [gscSearch, setGscSearch] = useState('')
   const [ga4Search, setGa4Search] = useState('')
+  const [connections, setConnections] = useState([])
+  const loadConnections = useCallback(async () => {
+    if (!clientId) { setConnections([]); return }
+    const { data } = await supabase.from('seo_connections').select('*').eq('client_id', clientId)
+    setConnections(data || [])
+  }, [clientId])
+  useEffect(() => { loadConnections() }, [loadConnections])
+  useEffect(() => { if (tab === 'connect') loadConnections() }, [tab, loadConnections])
 
   // Load clients
   const loadClients = useCallback(() => {
@@ -713,6 +721,15 @@ export default function KotoIQPage() {
       loadQuickWins()
     }
   }, [clientId, tab, loadAiVisibility, loadQuickWins])
+
+  // Restore client + tab from URL (e.g. after returning from /seo/connect)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const urlClient = params.get('client')
+    const urlTab = params.get('tab')
+    if (urlClient) setClientId(urlClient)
+    if (urlTab) setTab(urlTab)
+  }, [])
 
   // Handle Google OAuth callback — exchange code for tokens, fetch properties
   useEffect(() => {
@@ -3859,7 +3876,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   const googleClientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim()
                   if (!googleClientId) { toast.error('Google OAuth not configured'); return }
                   const scopes = 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/adwords https://www.googleapis.com/auth/business.manage https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
-                  const redirectUri = window.location.origin + '/seo/connect'
+                  const redirectUri = window.location.origin + '/kotoiq'
                   const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), returnTo: '/kotoiq?tab=connect' }))
                   const params = new URLSearchParams({
                     client_id: googleClientId, redirect_uri: redirectUri, response_type: 'code',
@@ -3884,18 +3901,38 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   { key: 'analytics', label: 'Google Analytics 4', desc: 'Sessions, conversions, revenue, bounce rate', color: '#F4B400', icon: BarChart2 },
                   { key: 'ads', label: 'Google Ads', desc: 'Spend, CPC, conversions, quality score', color: '#34A853', icon: DollarSign },
                   { key: 'gmb', label: 'Business Profile', desc: 'Reviews, local visibility, performance', color: '#EA4335', icon: MapPin },
-                ].map(svc => (
-                  <div key={svc.key} style={{ padding: '16px 18px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: svc.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svc.icon size={18} color={svc.color} />
+                ].map(svc => {
+                  const c = connections.find(x => x.provider === svc.key && x.connected)
+                  const isConnected = !!c
+                  const badge = isConnected
+                    ? { label: 'Connected', bg: GRN + '15', color: GRN }
+                    : { label: 'Not connected', bg: '#f3f4f6', color: '#9ca3af' }
+                  return (
+                    <div key={svc.key} style={{ padding: '16px 18px', borderRadius: 12, border: '1px solid ' + (isConnected ? GRN + '40' : '#e5e7eb'), background: '#fff', display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: svc.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svc.icon size={18} color={svc.color} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
+                        <div style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {isConnected
+                            ? (c.site_url?.replace('sc-domain:', '').replace('https://', '') || (c.property_id ? `Property ${c.property_id}` : svc.desc))
+                            : svc.desc}
+                        </div>
+                      </div>
+                      <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: badge.bg, color: badge.color, whiteSpace: 'nowrap' }}>{badge.label}</span>
+                      {isConnected && (
+                        <button onClick={async () => {
+                          await supabase.from('seo_connections').delete().eq('client_id', clientId).eq('provider', svc.key)
+                          toast.success(`${svc.label} disconnected`)
+                          loadConnections()
+                        }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#9ca3af', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
+                          Disconnect
+                        </button>
+                      )}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
-                      <div style={{ fontSize: 11, color: '#1f2937' }}>{svc.desc}</div>
-                    </div>
-                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#f3f4f6', color: '#1f2937' }}>Pending</span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
@@ -3975,19 +4012,29 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       }, { onConflict: 'client_id,provider' })
                     }
                     // Auto-save GBP + Ads if scope includes them
+                    const missingScopes = []
                     if (scope?.includes('business.manage')) {
                       await supabase.from('seo_connections').upsert({
                         client_id: clientId, provider: 'gmb', access_token, refresh_token: refresh_token || null,
                         token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
+                    } else {
+                      missingScopes.push('Business Profile')
                     }
                     if (scope?.includes('adwords')) {
                       await supabase.from('seo_connections').upsert({
                         client_id: clientId, provider: 'ads', access_token, refresh_token: refresh_token || null,
                         token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
+                    } else {
+                      missingScopes.push('Google Ads')
                     }
-                    toast.success('Google services connected!')
+                    await loadConnections()
+                    if (missingScopes.length > 0) {
+                      toast.success('Connected! Note: ' + missingScopes.join(' & ') + ' access was not granted by Google — re-run sign-in and check those boxes on the consent screen.', { duration: 8000 })
+                    } else {
+                      toast.success('Google services connected!')
+                    }
                     setOauthStep('done')
                   } catch (e) { toast.error('Failed to save: ' + e.message); setOauthStep('pick_properties') }
                 }} disabled={oauthStep === 'saving' || (!selectedGsc && !selectedGa4)}
