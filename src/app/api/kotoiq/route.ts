@@ -7,6 +7,18 @@ import { fetchGoogleAdsKeywords, fetchGoogleAdsCampaigns } from '@/lib/perfMarke
 import { enrichDomain } from '@/lib/domainEnrichment'
 import { getSERPResults, runGMBGridScan, getKeywordRankings, getBalance as getDFSBalance, getDomainCompetitors, getDomainRankedKeywords, getDomainIntersection } from '@/lib/dataforseo'
 import { pullFullGBPData, listQuestions, answerQuestion } from '@/lib/gbpApi'
+import { scanBrandSERP, getBrandSERP, getBrandDefenseStrategy } from '@/lib/brandSerpEngine'
+import { analyzeBacklinks, getBacklinkProfile } from '@/lib/backlinkEngine'
+import { auditEEAT, getEEATAudit } from '@/lib/eeatEngine'
+import { auditSchema, getSchemaAudit, generateSchemaForUrl } from '@/lib/schemaEngine'
+import { scanInternalLinks, getInternalLinkAudit, getLinkSuggestions } from '@/lib/internalLinkEngine'
+import { generateTopicalMap, getTopicalMap, updateTopicalNode, analyzeTopicalCoverage } from '@/lib/topicalMapEngine'
+import { buildContentInventory, getContentInventory, getRefreshPlan } from '@/lib/contentRefreshEngine'
+import { analyzeSemanticNetwork, getSemanticAnalysis } from '@/lib/semanticAnalyzer'
+import { auditTechnicalDeep, getTechnicalDeep } from '@/lib/technicalSeoEngine'
+import { analyzeQueryPaths, getQueryClusters } from '@/lib/queryPathEngine'
+import { analyzeReviews, getReviewIntelligence, createReviewCampaign, getReviewCampaigns } from '@/lib/reviewIntelEngine'
+import { buildContentCalendar, getContentCalendar, updateCalendarItem, calculateMomentum, getMomentum } from '@/lib/contentCalendarEngine'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -33,16 +45,182 @@ function pct(n: string | number | null): number {
 // ── Detect intent from keyword ──────────────────────────────────────────────
 function classifyIntent(kw: string): string {
   const lc = kw.toLowerCase()
-  if (/\b(buy|price|cost|quote|hire|book|schedule|near me|emergency|same day|24.?hour|free estimate)\b/.test(lc)) return 'transactional'
+
+  // visit_in_place — local/physical intent
+  if (/\b(near me|directions to|open now|hours of|drive to|walk to|closest|nearby)\b/.test(lc)) return 'visit_in_place'
+  if (/\b\d{5}\b/.test(lc)) return 'visit_in_place' // contains zip code
+  // Common city/state patterns: "plumber in austin", "dentist dallas tx"
+  if (/\b(in|near)\s+[a-z]{3,}\b/.test(lc) && /\b(buy|hire|find|get|shop|eat|visit|plumber|dentist|lawyer|restaurant|store|salon|repair|service)\b/.test(lc)) return 'visit_in_place'
+
+  // answer_seeking — direct answer queries
+  if (/^(what is|what are|what does|what do|how much|how many|how long|how far|how old|when does|when is|when did|who is|who are|who was|where is|where are|where do|is it|are there|can you|does|do i need)\b/.test(lc)) return 'answer_seeking'
+
+  if (/\b(buy|price|cost|quote|hire|book|schedule|emergency|same day|24.?hour|free estimate)\b/.test(lc)) return 'transactional'
   if (/\b(best|top|vs|review|compare|affordable|cheap|rated)\b/.test(lc)) return 'commercial'
   if (/\b(how|what|why|when|does|can|is|are|guide|tips|ideas)\b/.test(lc)) return 'informational'
   if (/\b(login|sign in|phone number|address|hours|website)\b/.test(lc)) return 'navigational'
   return 'commercial' // default for local service keywords
 }
 
+// ── Quality Threshold (replaces keyword difficulty concept) ─────────────────
+function computeQualityThreshold(kw: any, allKeywords: any[]): number {
+  // Content quality of ranking pages (proxy: word count + schema)
+  const avgCompWordCount = kw.competitor_avg_word_count || 1200
+  const contentQualityBar = Math.min(avgCompWordCount / 3000, 1) // 3000 words = max bar
+  const hasCompetitorSchema = kw.competitor_has_schema ? 1 : 0
+  const contentQuality = contentQualityBar * 0.7 + hasCompetitorSchema * 0.3
+
+  // Relevance threshold: longer queries = more specific = lower threshold
+  const queryWords = (kw.keyword || '').split(/\s+/).length
+  const querySpecificity = 1 - Math.min(queryWords / 8, 1) // 1-word = hardest, 8+ = easiest
+
+  // Predictive ranking: if client already ranks 11-20, threshold is lower
+  const pos = kw.sc_avg_position || 100
+  let positionFactor = 1.0
+  if (pos <= 20 && pos >= 11) positionFactor = 0.6 // striking distance — easier
+  else if (pos <= 10 && pos >= 4) positionFactor = 0.4 // almost there
+  else if (pos <= 3) positionFactor = 0.2 // defending
+  else positionFactor = 1.0 // not ranking
+
+  // Propagation of relevance: how many related keywords does the client rank for?
+  const fp = fingerprint(kw.keyword || '')
+  const rootTerms = fp.split(' ').filter((w: string) => w.length > 3)
+  let relatedCount = 0
+  for (const other of allKeywords) {
+    if (other.fingerprint === fp) continue
+    const otherFp = other.fingerprint || ''
+    if (rootTerms.some((t: string) => otherFp.includes(t))) relatedCount++
+  }
+  const topicalCoverage = 1 - Math.min(relatedCount / 10, 1) // 10+ related = strong coverage = easier
+
+  const raw = (
+    0.30 * contentQuality +
+    0.20 * querySpecificity +
+    0.25 * positionFactor +
+    0.25 * topicalCoverage
+  )
+
+  return Math.round(raw * 100)
+}
+
+// ── Detect query relationships (represented/representative queries) ─────────
+function detectQueryRelationships(keywords: any[]): Record<string, { seed: string; representative: string; variations: string[] }> {
+  const fps = keywords.map((kw: any) => ({
+    fp: fingerprint(kw.keyword || ''),
+    keyword: kw.keyword || '',
+    volume: kw.kp_monthly_volume || 0,
+  }))
+
+  // Sort by word count ascending so shorter = potential representative
+  fps.sort((a: any, b: any) => a.fp.split(' ').length - b.fp.split(' ').length)
+
+  const groups: Record<string, { seed: string; representative: string; variations: string[] }> = {}
+  const assigned = new Set<string>()
+
+  for (const item of fps) {
+    if (assigned.has(item.fp)) continue
+
+    // Find all keywords that contain this keyword as a substring (represented queries)
+    const variations: string[] = []
+    for (const other of fps) {
+      if (other.fp === item.fp || assigned.has(other.fp)) continue
+      // other is a longer variation containing the current keyword
+      if (other.fp.includes(item.fp) && other.fp !== item.fp) {
+        variations.push(other.keyword)
+        assigned.add(other.fp)
+      }
+    }
+
+    if (variations.length > 0) {
+      // The representative is the highest-volume version
+      const allInGroup = [item, ...fps.filter((f: any) => variations.includes(f.keyword))]
+      const highestVolume = allInGroup.sort((a: any, b: any) => b.volume - a.volume)[0]
+
+      groups[item.fp] = {
+        seed: item.keyword,
+        representative: highestVolume.keyword,
+        variations,
+      }
+      assigned.add(item.fp)
+    }
+  }
+
+  return groups
+}
+
+// ── AEO Score (AI Engine Optimization) ─────────────────────────────────────
+function computeAEOScore(kw: any, pageAnalysis: any): number {
+  if (!pageAnalysis) return 0
+
+  // FORMAT MATCH (30%) — Does content format match AI Overview preferences?
+  let formatScore = 0
+  // Direct answer in first paragraph (definition-style opening)
+  if (pageAnalysis.first_para_words && pageAnalysis.first_para_words >= 20 && pageAnalysis.first_para_words <= 60) formatScore += 0.3
+  else if (pageAnalysis.first_para_words && pageAnalysis.first_para_words <= 80) formatScore += 0.15
+  // Question-answer H2/H3 structure
+  const questionHeadings = (pageAnalysis.h2s || []).filter((h: string) => h.includes('?')).length
+  if (questionHeadings >= 3) formatScore += 0.3
+  else if (questionHeadings >= 1) formatScore += 0.15
+  // Lists/tables present
+  if (pageAnalysis.has_lists || pageAnalysis.has_tables) formatScore += 0.2
+  // Short factual paragraphs (proxy: word count / heading count ratio)
+  const avgWordsPerSection = pageAnalysis.word_count / Math.max(pageAnalysis.h2_count + pageAnalysis.h3_count, 1)
+  if (avgWordsPerSection >= 100 && avgWordsPerSection <= 300) formatScore += 0.2
+  else if (avgWordsPerSection < 500) formatScore += 0.1
+  const formatFinal = Math.min(formatScore, 1) * 30
+
+  // DIRECT ANSWER (25%) — Does the first paragraph directly answer the query?
+  let directAnswerScore = 0
+  const kwTerms = (kw.keyword || '').toLowerCase().split(/\s+/).filter((w: string) => w.length > 3)
+  if (pageAnalysis.keyword_in_first_100) directAnswerScore += 0.4
+  if (pageAnalysis.keyword_in_h1) directAnswerScore += 0.2
+  if (pageAnalysis.keyword_in_title) directAnswerScore += 0.2
+  // Complete answer check: first paragraph has reasonable length
+  if (pageAnalysis.first_para_words >= 30 && pageAnalysis.first_para_words <= 60) directAnswerScore += 0.2
+  else if (pageAnalysis.first_para_words >= 20) directAnswerScore += 0.1
+  const directFinal = Math.min(directAnswerScore, 1) * 25
+
+  // SCHEMA MARKUP (20%) — Relevant structured data present?
+  let schemaScore = 0
+  const schemas = pageAnalysis.schemas || []
+  if (schemas.includes('FAQPage')) schemaScore += 0.35
+  if (schemas.includes('HowTo')) schemaScore += 0.25
+  if (schemas.some((s: string) => ['Article', 'NewsArticle', 'BlogPosting'].includes(s))) schemaScore += 0.2
+  if (schemas.length > 0) schemaScore += 0.2 // any schema is better than none
+  const schemaFinal = Math.min(schemaScore, 1) * 20
+
+  // AUTHORITY SIGNALS (15%) — E-E-A-T indicators
+  let authorityScore = 0
+  // Author byline proxy: schema has author or Person
+  if (schemas.some((s: string) => ['Person', 'author'].includes(s))) authorityScore += 0.3
+  // Domain Authority
+  const da = kw.moz_da || 0
+  if (da >= 50) authorityScore += 0.4
+  else if (da >= 30) authorityScore += 0.25
+  else if (da >= 15) authorityScore += 0.1
+  // Internal links as citation proxy
+  if (pageAnalysis.internal_links >= 10) authorityScore += 0.3
+  else if (pageAnalysis.internal_links >= 5) authorityScore += 0.15
+  const authorityFinal = Math.min(authorityScore, 1) * 15
+
+  // FRESHNESS (10%) — How recent is the content?
+  let freshnessScore = 0.1 // default: assume old
+  if (kw.last_modified_days != null) {
+    if (kw.last_modified_days <= 90) freshnessScore = 1.0
+    else if (kw.last_modified_days <= 180) freshnessScore = 0.7
+    else if (kw.last_modified_days <= 365) freshnessScore = 0.4
+    else freshnessScore = 0.1
+  } else {
+    freshnessScore = 0.5 // unknown — assume moderate
+  }
+  const freshnessFinal = freshnessScore * 10
+
+  return Math.round(formatFinal + directFinal + schemaFinal + authorityFinal + freshnessFinal)
+}
+
 // ── Scoring: Opportunity Score ──────────────────────────────────────────────
 function computeOpportunityScore(kw: any): number {
-  const intentMap: Record<string, number> = { transactional: 1.3, commercial: 1.1, informational: 0.8, navigational: 0.6 }
+  const intentMap: Record<string, number> = { transactional: 1.3, commercial: 1.1, visit_in_place: 1.25, answer_seeking: 0.9, informational: 0.8, navigational: 0.6 }
   const intentMultiplier = intentMap[kw.intent] || 1.0
 
   // Normalize volume (0-1, cap at 5000 monthly)
@@ -837,6 +1015,42 @@ Google's "Experience" signal (E in E-E-A-T) is the competitive moat. At least 30
 STEP 4 — PERFORMANCE SIGNALS:
 Include specific metrics to track after publishing — which GSC impression share movements indicate the page is gaining authority, what CTR to target at each position, when to update the content.
 
+STEP 5 — SEMANTIC CONTENT ARCHITECTURE (Topical Authority framework):
+
+Define the MAIN CONTENT section:
+- What is the macro-context (the ONE primary focus of this page)?
+- What are the context-terms and topical entries?
+- What heading hierarchy creates the best contextual flow?
+- Write the heading vectors: each H2 should process the macro-context; H3s should be connected questions with conditions/qualifiers
+
+Define the SUPPLEMENTARY CONTENT section:
+- What micro-contexts support the macro-context?
+- What internal links should appear here and with what anchor text?
+- What contextual bridges connect this page to other topical map nodes?
+
+Define the CONTEXTUAL BORDER:
+- Where does main content end and supplementary content begin?
+- What grouper question transitions from macro to micro context?
+
+STEP 6 — TITLE TAG OPTIMIZATION (Entity-Attribute Pairs):
+Generate 3 title tag options using these methods:
+1. Conjunctive method: "Entity1 and Entity2 for Context" (conditional synonymy)
+2. Entity-Attribute method: "Entity: Attribute1 and Attribute2"
+3. Hypernym-Hyponym method: "General Term: Specific1, Specific2, Specific3"
+
+Each title should:
+- Place the heaviest term (highest search volume word) near the front
+- Include the central entity or a synonym
+- Stay under 60 characters
+- Use conditional synonymy where applicable
+
+STEP 7 — MICRO-SEMANTICS OPTIMIZATION:
+For the first 3 heading sections, provide:
+- Recommended paragraph opener (first sentence structure that maximizes relevance)
+- Key predicates to use (verbs that signal the right context)
+- Word sequence optimization notes (which word order creates higher term weight)
+- Featured snippet format (if applicable: 40 words, 320 chars, direct answer first)
+
 ═══ CONTENT INSTRUCTIONS ═══
 1. The brief must beat current top-ranking pages by providing INFORMATION GAIN — not just being longer
 2. FAQ questions from real People Also Ask data
@@ -903,17 +1117,55 @@ Return ONLY valid JSON:
   "ranking_timeline": "estimated weeks/months to rank based on competition",
   "aeo_optimization": {
     "target_snippet_type": "paragraph|list|table|faq",
-    "ai_overview_eligible": true/false,
+    "ai_overview_eligible": true,
     "optimization_notes": "specific tips for AI citation",
     "suggested_searches_to_target": ["related searches that should become new pages"]
-  }
+  },
+  "main_content_sections": [
+    {
+      "heading": "H2 heading that processes the macro-context",
+      "macro_context": "the primary focus this section addresses",
+      "context_terms": ["term1", "term2"],
+      "heading_vector": "how this H2 connects to the macro-context",
+      "sub_sections": [
+        { "h3": "Connected question with condition/qualifier", "key_predicates": ["verb1", "verb2"] }
+      ]
+    }
+  ],
+  "supplementary_content_sections": [
+    {
+      "heading": "Supplementary section heading",
+      "micro_context": "what micro-context this supports",
+      "internal_link_anchors": [{ "text": "anchor text", "target_page": "/target-url/" }],
+      "contextual_bridge": "how this connects to other topical map nodes"
+    }
+  ],
+  "contextual_border": {
+    "main_content_ends_at": "heading or section name where main content ends",
+    "supplementary_begins_at": "heading or section name where supplementary begins",
+    "grouper_question": "transition question from macro to micro context"
+  },
+  "title_options": [
+    { "method": "conjunctive", "title": "Entity1 and Entity2 for Context", "rationale": "why this works" },
+    { "method": "entity_attribute", "title": "Entity: Attribute1 and Attribute2", "rationale": "why this works" },
+    { "method": "hypernym_hyponym", "title": "General: Specific1, Specific2", "rationale": "why this works" }
+  ],
+  "micro_semantic_notes": [
+    {
+      "section": "section heading",
+      "paragraph_opener": "recommended first sentence structure",
+      "key_predicates": ["verbs that signal the right context"],
+      "word_sequence_notes": "which word order creates higher term weight",
+      "snippet_format": "featured snippet format if applicable (40 words, 320 chars, direct answer first)"
+    }
+  ]
 }`
 
     try {
       const msg = await ai.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
-        system: 'You are KotoIQ content strategist. Return ONLY valid JSON. No markdown.',
+        max_tokens: 8000,
+        system: 'You are KotoIQ content strategist applying Semantic SEO principles. Return ONLY valid JSON. No markdown.',
         messages: [{ role: 'user', content: briefPrompt }],
       })
       void logTokenUsage({ feature: 'kotoiq_content_brief', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
@@ -941,6 +1193,13 @@ Return ONLY valid JSON:
         opportunity_score: kwData?.opportunity_score || null,
         rank_propensity: kwData?.rank_propensity || null,
         estimated_monthly_traffic: brief.estimated_monthly_traffic || null,
+        semantic_data: {
+          main_content_sections: brief.main_content_sections || [],
+          supplementary_content_sections: brief.supplementary_content_sections || [],
+          contextual_border: brief.contextual_border || null,
+          title_options: brief.title_options || [],
+          micro_semantic_notes: brief.micro_semantic_notes || [],
+        },
       }).select().single()
 
       return NextResponse.json({ brief: { id: saved?.id, ...brief }, keyword_data: kwData })
@@ -2056,6 +2315,374 @@ Return ONLY valid JSON:
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
     }
+  }
+
+  // ── BRAND SERP: Scan branded SERP ──────────────────────────────────────
+  if (action === 'scan_brand_serp') {
+    try {
+      const result = await scanBrandSERP(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_brand_serp') {
+    try {
+      const data = await getBrandSERP(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'brand_defense_strategy') {
+    try {
+      const strategy = await getBrandDefenseStrategy(s, ai, body)
+      return NextResponse.json({ strategy })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── BACKLINKS: Analyze backlink profile ───────────────────────────────
+  if (action === 'analyze_backlinks') {
+    try {
+      const result = await analyzeBacklinks(s, ai, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_backlink_profile') {
+    try {
+      const data = await getBacklinkProfile(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── INTERNAL LINKS: Scan site internal links ───────────────────────────
+  if (action === 'scan_internal_links') {
+    try {
+      const result = await scanInternalLinks(s, ai, body)
+      if (result.error) return NextResponse.json({ error: result.error }, { status: result.status || 500 })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_link_audit') {
+    try {
+      const result = await getInternalLinkAudit(s, body)
+      if (result.error) return NextResponse.json({ error: result.error }, { status: result.status || 500 })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_link_suggestions') {
+    try {
+      const result = await getLinkSuggestions(s, ai, body)
+      if (result.error) return NextResponse.json({ error: result.error }, { status: result.status || 500 })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── E-E-A-T AUDIT ──────────────────────────────────────────────────────
+  if (action === 'audit_eeat') {
+    try {
+      const result = await auditEEAT(s, ai, body)
+      return NextResponse.json({ audit: result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_eeat_audit') {
+    try {
+      const audit = await getEEATAudit(s, body)
+      return NextResponse.json({ audit })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── SCHEMA & STRUCTURED DATA AUDIT ────────────────────────────────────
+  if (action === 'audit_schema') {
+    try {
+      const result = await auditSchema(s, ai, body)
+      return NextResponse.json({ audit: result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_schema_audit') {
+    try {
+      const audit = await getSchemaAudit(s, body)
+      return NextResponse.json({ audit })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'generate_schema_for_url') {
+    try {
+      const result = await generateSchemaForUrl(s, ai, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TOPICAL MAP: Generate ──────────────────────────────────────────────
+  if (action === 'generate_topical_map') {
+    try {
+      const result = await generateTopicalMap(s, ai, body)
+      if (result.error) return NextResponse.json({ error: result.error }, { status: result.status || 500 })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TOPICAL MAP: Get ─────────────────────────────────────────────────
+  if (action === 'get_topical_map') {
+    try {
+      const result = await getTopicalMap(s, body)
+      if (result.error) return NextResponse.json({ error: result.error }, { status: result.status || 500 })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TOPICAL MAP: Update node ─────────────────────────────────────────
+  if (action === 'update_topical_node') {
+    try {
+      const result = await updateTopicalNode(s, body)
+      if (result.error) return NextResponse.json({ error: result.error }, { status: result.status || 500 })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TOPICAL MAP: Analyze coverage ────────────────────────────────────
+  if (action === 'analyze_topical_coverage') {
+    try {
+      const result = await analyzeTopicalCoverage(s, ai, body)
+      if (result.error) return NextResponse.json({ error: result.error }, { status: result.status || 500 })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── CONTENT REFRESH ENGINE ─────────────────────────────────────────
+  if (action === 'build_content_inventory') {
+    const result = await buildContentInventory(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_content_inventory') {
+    const result = await getContentInventory(s, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_refresh_plan') {
+    const result = await getRefreshPlan(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+
+  // ── SEMANTIC CONTENT NETWORK ANALYZER ─────────────────────────────
+  if (action === 'analyze_semantic_network') {
+    const result = await analyzeSemanticNetwork(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_semantic_analysis') {
+    const result = await getSemanticAnalysis(s, body)
+    return NextResponse.json(result)
+  }
+
+  // ── AEO DEEP ANALYSIS ──────────────────────────────────────────────────
+  if (action === 'aeo_deep_analysis') {
+    const { client_id, agency_id, keyword, target_url } = body
+    if (!client_id || !keyword) return NextResponse.json({ error: 'client_id and keyword required' }, { status: 400 })
+
+    const fp = fingerprint(keyword)
+    const { data: kwData } = await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).eq('fingerprint', fp).single()
+    const { data: client } = await s.from('clients').select('name, website').eq('id', client_id).single()
+
+    // Step 1: Analyze client's page for this keyword
+    const pageUrl = target_url || kwData?.sc_top_page || client?.website
+    let pageAnalysis: any = null
+    if (pageUrl) {
+      try {
+        const fullUrl = pageUrl.startsWith('http') ? pageUrl : `https://${pageUrl}`
+        pageAnalysis = await analyzePageForKeyword(fullUrl, keyword)
+      } catch { /* skip */ }
+    }
+
+    // Step 2: Compute AEO score for the client's page
+    const aeoScore = pageAnalysis ? computeAEOScore(kwData || { keyword }, pageAnalysis) : 0
+
+    // Step 3: Check SERP for AI Overview via DataForSEO (if available)
+    let serpData: any = null
+    let hasAIOverview = false
+    try {
+      const serpResults = await getSERPResults(keyword, 'United States', 'en')
+      serpData = serpResults
+      // DataForSEO returns AI Overview in featured_snippet or ai_overview field
+      if (serpResults?.items) {
+        hasAIOverview = serpResults.items.some((item: any) =>
+          item.type === 'ai_overview' || item.type === 'featured_snippet' || item.type === 'answer_box'
+        )
+      }
+    } catch { /* DataForSEO not available or quota exceeded */ }
+
+    // Step 4: Use Claude to generate specific AEO recommendations
+    const aeoPrompt = `You are KotoIQ AEO (AI Engine Optimization) analyst. Analyze this keyword and page data to provide specific recommendations for winning AI Overviews and Featured Snippets.
+
+KEYWORD: "${keyword}"
+BUSINESS: ${client?.name || 'Unknown'}
+WEBSITE: ${client?.website || 'Unknown'}
+INTENT: ${kwData?.intent || classifyIntent(keyword)}
+
+CLIENT PAGE ANALYSIS:
+${pageAnalysis ? JSON.stringify(pageAnalysis, null, 2) : 'No page found for this keyword'}
+
+AEO SCORE: ${aeoScore}/100
+AI OVERVIEW DETECTED IN SERP: ${hasAIOverview ? 'Yes' : 'Unknown/No'}
+CURRENT POSITION: ${kwData?.sc_avg_position ? `#${Math.round(kwData.sc_avg_position)}` : 'Not ranking'}
+
+Provide a detailed analysis. Return ONLY valid JSON:
+{
+  "current_aeo_status": {
+    "score": ${aeoScore},
+    "grade": "A/B/C/D/F based on score",
+    "has_ai_overview": ${hasAIOverview},
+    "current_snippet_type": "paragraph|list|table|none",
+    "is_client_cited": false
+  },
+  "gap_analysis": {
+    "format_gaps": ["specific format issues preventing AI citation"],
+    "content_gaps": ["missing content that AI Overviews typically include for this query"],
+    "schema_gaps": ["missing schema markup that would help"],
+    "authority_gaps": ["E-E-A-T signals that are missing or weak"]
+  },
+  "recommendations": [
+    {
+      "priority": 1,
+      "action": "specific action to take",
+      "impact": "high|medium|low",
+      "effort": "high|medium|low",
+      "details": "detailed implementation instructions",
+      "expected_improvement": "estimated AEO score improvement"
+    }
+  ],
+  "ideal_answer_format": {
+    "opening_sentence": "the exact type of opening sentence that would win the AI Overview",
+    "structure": "paragraph|list|table|comparison",
+    "target_word_count": 40,
+    "key_entities_to_include": ["entity1", "entity2"],
+    "sample_answer": "a 40-word sample direct answer that could win the AI Overview for this query"
+  },
+  "estimated_difficulty": {
+    "score": 0,
+    "factors": ["what makes it easy or hard to win this AI Overview"],
+    "timeline": "estimated weeks to see AEO improvement"
+  }
+}`
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: 'You are KotoIQ AEO analyst specializing in AI Overview optimization. Return ONLY valid JSON. No markdown.',
+        messages: [{ role: 'user', content: aeoPrompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_aeo_analysis', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+      const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+      const analysis = JSON.parse(cleaned)
+
+      return NextResponse.json({
+        keyword,
+        aeo_score: aeoScore,
+        page_analysis: pageAnalysis,
+        analysis,
+        keyword_data: kwData,
+      })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TECHNICAL SEO DEEP INTELLIGENCE ─────────────────────────────────
+  if (action === 'audit_technical_deep') {
+    const result = await auditTechnicalDeep(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_technical_deep') {
+    const result = await getTechnicalDeep(s, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+
+  // ── QUERY PATH / SESSION ANALYZER ─────────────────────────────────────
+  if (action === 'analyze_query_paths') {
+    const result = await analyzeQueryPaths(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_query_clusters') {
+    const result = await getQueryClusters(s, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+
+  // ── REVIEW INTELLIGENCE ENGINE ──────────────────────────────────────
+  if (action === 'analyze_reviews') {
+    const result = await analyzeReviews(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_review_intelligence') {
+    const result = await getReviewIntelligence(s, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'create_review_campaign') {
+    const result = await createReviewCampaign(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_review_campaigns') {
+    const result = await getReviewCampaigns(s, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+
+  // ── CONTENT CALENDAR & PUBLISHING MOMENTUM ENGINE ───────────────────
+  if (action === 'build_content_calendar') {
+    const result = await buildContentCalendar(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_content_calendar') {
+    const result = await getContentCalendar(s, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'update_calendar_item') {
+    const result = await updateCalendarItem(s, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'calculate_momentum') {
+    const result = await calculateMomentum(s, ai, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+  if (action === 'get_momentum') {
+    const result = await getMomentum(s, body)
+    return NextResponse.json(result, { status: result.error ? 400 : 200 })
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

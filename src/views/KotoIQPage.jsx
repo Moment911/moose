@@ -7,11 +7,24 @@ import {
   Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
-  Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings
+  Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings,
+  Map, Code, Award, GitBranch
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+import ContentRefreshTab from '../components/kotoiq/ContentRefreshTab'
+import SemanticTab from '../components/kotoiq/SemanticTab'
+import InternalLinksTab from '../components/kotoiq/InternalLinksTab'
+import EEATTab from '../components/kotoiq/EEATTab'
+import SchemaTab from '../components/kotoiq/SchemaTab'
+import BrandSerpTab from '../components/kotoiq/BrandSerpTab'
+import BacklinksTab from '../components/kotoiq/BacklinksTab'
+import TopicalMapTab from '../components/kotoiq/TopicalMapTab'
+import TechnicalDeepTab from '../components/kotoiq/TechnicalDeepTab'
+import QueryPathTab from '../components/kotoiq/QueryPathTab'
+import ReviewsTab from '../components/kotoiq/ReviewsTab'
+import ContentCalendarTab from '../components/kotoiq/ContentCalendarTab'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -560,6 +573,12 @@ export default function KotoIQPage() {
                 ['keywords', 'Keywords', Search],
                 ['aeo', 'AEO', Brain],
                 ['competitors', 'Competitors', Target],
+                ['brand_serp', 'Brand SERP', Shield],
+                ['backlinks', 'Backlinks', Link2],
+                ['internal_links', 'Int. Links', Link2],
+                ['eeat', 'E-E-A-T', Award],
+                ['schema', 'Schema', Code],
+                ['technical_deep', 'Technical', Activity],
               ].map(([key, label, Icon]) => (
                 <button key={key} onClick={() => setTab(key)}
                   style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
@@ -569,7 +588,12 @@ export default function KotoIQPage() {
               <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
               {/* Build */}
               {[
+                ['content_refresh', 'Content', RefreshCw],
+                ['semantic', 'Semantic', Brain],
+                ['topical_map', 'Topical Map', Map],
                 ['briefs', 'PageIQ', Zap],
+                ['query_paths', 'Query Paths', GitBranch],
+                ['calendar', 'Calendar', Clock],
                 ['utm', 'UTM', Link2],
               ].map(([key, label, Icon]) => (
                 <button key={key} onClick={() => setTab(key)}
@@ -581,7 +605,8 @@ export default function KotoIQPage() {
               {/* Track */}
               {[
                 ['ranks', 'Rankings', TrendingUp],
-                ['gmb', 'GMB', Star],
+                ['reviews', 'Reviews', Star],
+                ['gmb', 'GMB', MapPin],
                 ['visitors', 'Visitors', Eye],
                 ['reports', 'Reports', BarChart2],
               ].map(([key, label, Icon]) => (
@@ -1118,6 +1143,21 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ AEO RESEARCH TAB ══ */}
         {clientId && tab === 'aeo' && (
           <AEOResearchTab clientId={clientId} clientName={clients.find(c => c.id === clientId)?.name} clientIndustry={clients.find(c => c.id === clientId)?.primary_service} keywords={keywords} />
+        )}
+
+        {/* ══ CONTENT REFRESH TAB ══ */}
+        {clientId && tab === 'content_refresh' && (
+          <ContentRefreshTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ SEMANTIC TAB ══ */}
+        {clientId && tab === 'semantic' && (
+          <SemanticTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ TOPICAL MAP TAB ══ */}
+        {clientId && tab === 'topical_map' && (
+          <TopicalMapTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ PAGE BUILDER TAB ══ */}
@@ -1996,6 +2036,51 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {/* Content Variant Modules moved to PageIQ (briefs) tab */}
           </>
+        )}
+
+        {/* ══ BRAND SERP TAB ══ */}
+        {clientId && tab === 'brand_serp' && (
+          <BrandSerpTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ BACKLINKS TAB ══ */}
+        {clientId && tab === 'backlinks' && (
+          <BacklinksTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ INTERNAL LINKS TAB ══ */}
+        {clientId && tab === 'internal_links' && (
+          <InternalLinksTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ E-E-A-T TAB ══ */}
+        {clientId && tab === 'eeat' && (
+          <EEATTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ SCHEMA TAB ══ */}
+        {clientId && tab === 'schema' && (
+          <SchemaTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ TECHNICAL DEEP TAB ══ */}
+        {clientId && tab === 'technical_deep' && (
+          <TechnicalDeepTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ QUERY PATHS TAB ══ */}
+        {clientId && tab === 'query_paths' && (
+          <QueryPathTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ REVIEWS TAB ══ */}
+        {clientId && tab === 'reviews' && (
+          <ReviewsTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ CONTENT CALENDAR TAB ══ */}
+        {clientId && tab === 'calendar' && (
+          <ContentCalendarTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ COMPETITORS TAB ══ */}
