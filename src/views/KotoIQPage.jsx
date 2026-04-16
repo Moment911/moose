@@ -565,68 +565,53 @@ export default function KotoIQPage() {
             </div>
           </div>
 
-          {/* Tab bar — grouped with dividers */}
+          {/* Tab bar — two-row grouped layout */}
           {clientId && (
-            <div style={{ padding: '0 40px', display: 'flex', gap: 0, overflowX: 'auto' }}>
-              {/* Analyze */}
-              {[
-                ['dashboard', 'Dashboard', BarChart2],
-                ['keywords', 'Keywords', Search],
-                ['aeo', 'AEO', Brain],
-                ['competitors', 'Competitors', Target],
-                ['brand_serp', 'Brand SERP', Shield],
-                ['backlinks', 'Backlinks', Link2],
-                ['internal_links', 'Int. Links', Link2],
-                ['eeat', 'E-E-A-T', Award],
-                ['schema', 'Schema', Code],
-                ['technical_deep', 'Technical', Activity],
-              ].map(([key, label, Icon]) => (
-                <button key={key} onClick={() => setTab(key)}
-                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
-                  <Icon size={13} /> {label}
-                </button>
-              ))}
-              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
-              {/* Build */}
-              {[
-                ['content_refresh', 'Content', RefreshCw],
-                ['semantic', 'Semantic', Brain],
-                ['topical_map', 'Topical Map', Map],
-                ['briefs', 'PageIQ', Zap],
-                ['query_paths', 'Query Paths', GitBranch],
-                ['calendar', 'Calendar', Clock],
-                ['utm', 'UTM', Link2],
-              ].map(([key, label, Icon]) => (
-                <button key={key} onClick={() => setTab(key)}
-                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
-                  <Icon size={13} /> {label}
-                </button>
-              ))}
-              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
-              {/* Track */}
-              {[
-                ['ranks', 'Rankings', TrendingUp],
-                ['reviews', 'Reviews', Star],
-                ['gmb', 'GMB', MapPin],
-                ['visitors', 'Visitors', Eye],
-                ['reports', 'Reports', BarChart2],
-              ].map(([key, label, Icon]) => (
-                <button key={key} onClick={() => setTab(key)}
-                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
-                  <Icon size={13} /> {label}
-                </button>
-              ))}
-              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
-              {/* Settings */}
-              {[
-                ['audit', 'Audit', Shield],
-                ['connect', 'Connect', Settings],
-              ].map(([key, label, Icon]) => (
-                <button key={key} onClick={() => setTab(key)}
-                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
-                  <Icon size={13} /> {label}
-                </button>
-              ))}
+            <div style={{ padding: '0 40px' }}>
+              {/* Row 1: Core tabs */}
+              <div style={{ display: 'flex', gap: 0, overflowX: 'auto', borderBottom: '1px solid #f3f4f6' }}>
+                {[
+                  ['dashboard', 'Dashboard', BarChart2],
+                  ['keywords', 'Keywords', Search],
+                  ['briefs', 'PageIQ', Zap],
+                  ['topical_map', 'Topical Map', Map],
+                  ['ranks', 'Rankings', TrendingUp],
+                  ['competitors', 'Competitors', Target],
+                  ['gmb', 'GMB', MapPin],
+                  ['aeo', 'AEO', Brain],
+                  ['connect', 'Connect', Settings],
+                ].map(([key, label, Icon]) => (
+                  <button key={key} onClick={() => setTab(key)}
+                    style={{ padding: '10px 16px', fontSize: 13, fontWeight: tab === key ? 800 : 600, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2.5px solid ${BLK}` : '2.5px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#6b7280', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                    <Icon size={14} /> {label}
+                  </button>
+                ))}
+              </div>
+              {/* Row 2: Advanced intelligence tabs */}
+              <div style={{ display: 'flex', gap: 0, overflowX: 'auto' }}>
+                {[
+                  ['content_refresh', 'Content', RefreshCw],
+                  ['semantic', 'Semantic', Brain],
+                  ['query_paths', 'Query Paths', GitBranch],
+                  ['internal_links', 'Links', Link2],
+                  ['backlinks', 'Backlinks', Link2],
+                  ['brand_serp', 'Brand SERP', Shield],
+                  ['eeat', 'E-E-A-T', Award],
+                  ['schema', 'Schema', Code],
+                  ['technical_deep', 'Technical', Activity],
+                  ['reviews', 'Reviews', Star],
+                  ['calendar', 'Calendar', Clock],
+                  ['reports', 'Reports', BarChart2],
+                  ['visitors', 'Visitors', Eye],
+                  ['audit', 'Audit', Shield],
+                  ['utm', 'UTM', Link2],
+                ].map(([key, label, Icon]) => (
+                  <button key={key} onClick={() => setTab(key)}
+                    style={{ padding: '8px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${T}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                    <Icon size={12} /> {label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
