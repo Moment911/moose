@@ -28,3 +28,7 @@ CREATE TABLE IF NOT EXISTS kotoiq_bot_messages (
 CREATE INDEX IF NOT EXISTS idx_bot_conv_client ON kotoiq_bot_conversations(client_id);
 CREATE INDEX IF NOT EXISTS idx_bot_conv_agency ON kotoiq_bot_conversations(agency_id);
 CREATE INDEX IF NOT EXISTS idx_bot_msg_conv ON kotoiq_bot_messages(conversation_id);
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('kotoiq-bot-uploads', 'kotoiq-bot-uploads', true)
+ON CONFLICT (id) DO NOTHING;

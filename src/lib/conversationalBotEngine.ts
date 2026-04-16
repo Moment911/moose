@@ -135,8 +135,25 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
     return { error: 'message is required', status: 400 }
   }
 
-  // Get or create conversation
+  // Load client context so the AI knows *who* it is helping
+  let clientContext: { name?: string; website?: string; primary_service?: string; location?: string } = {}
+  if (client_id && agency_id) {
+    const { data: client } = await s.from('clients')
+      .select('name, website, primary_service, location')
+      .eq('id', client_id).eq('agency_id', agency_id).single()
+    if (client) clientContext = client
+  }
+
+  // Get or create conversation — always stamp with current client + agency so it stays siloed
   let conversationId = body.conversation_id
+  if (conversationId) {
+    // Verify this conversation belongs to the active client/agency — prevents cross-silo loads
+    const { data: existing } = await s.from('kotoiq_bot_conversations')
+      .select('id, client_id, agency_id').eq('id', conversationId).single()
+    if (!existing || (client_id && existing.client_id !== client_id) || (agency_id && existing.agency_id !== agency_id)) {
+      conversationId = undefined // treat as new — caller tried to attach to wrong silo
+    }
+  }
   if (!conversationId) {
     const { data: conv } = await s.from('kotoiq_bot_conversations')
       .insert({ client_id: client_id || null, agency_id: agency_id || null, title: deriveTitle(message) })
@@ -161,6 +178,16 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
 
   // Inject light context as a leading user note (system used for the prompt)
   const ctxPieces: string[] = []
+  if (clientContext.name) ctxPieces.push(`Active client: ${clientContext.name}`)
+  if (clientContext.website) ctxPieces.push(`Client website: ${clientContext.website}`)
+  if (clientContext.primary_service) ctxPieces.push(`Primary service: ${clientContext.primary_service}`)
+  if (clientContext.location) ctxPieces.push(`Location: ${clientContext.location}`)
+  if (clientContext.website) {
+    ctxPieces.push(`When the user says "my homepage", "my site", "our page", or otherwise implies the active client's own URL, autofill form_fields.url with: ${clientContext.website}. Do not ask for the URL unless they clearly mean a different page.`)
+  }
+  if (clientContext.name) {
+    ctxPieces.push(`When a tool needs a domain, brand_name, or business_name, use the client's name/website above — don't ask unless they clearly mean a different entity.`)
+  }
   if (current_tab) ctxPieces.push(`User is currently on tab: ${current_tab}`)
   if (current_form_state && Object.keys(current_form_state).length) {
     ctxPieces.push(`Current form state: ${JSON.stringify(current_form_state).slice(0, 400)}`)
@@ -219,12 +246,14 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
 }
 
 // ── Get a single conversation with messages ────────────────────────────────
-export async function getBotConversation(s: SupabaseClient, body: { conversation_id: string }) {
-  const { conversation_id } = body
+export async function getBotConversation(s: SupabaseClient, body: { conversation_id: string; client_id?: string; agency_id?: string }) {
+  const { conversation_id, client_id, agency_id } = body
   if (!conversation_id) return { error: 'conversation_id required', status: 400 }
   const { data: conversation } = await s.from('kotoiq_bot_conversations')
     .select('*').eq('id', conversation_id).single()
   if (!conversation) return { error: 'not found', status: 404 }
+  if (client_id && conversation.client_id !== client_id) return { error: 'not found', status: 404 }
+  if (agency_id && conversation.agency_id !== agency_id) return { error: 'not found', status: 404 }
   const { data: messages } = await s.from('kotoiq_bot_messages')
     .select('*').eq('conversation_id', conversation_id).order('created_at', { ascending: true })
   return { conversation, messages: messages || [] }

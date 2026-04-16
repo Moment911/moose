@@ -4,8 +4,37 @@
 // auto-fill / execute KotoIQ actions.
 // ─────────────────────────────────────────────────────────────
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { MessageCircle, X, Minimize2, Send, Mic, Brain, Sparkles, ChevronRight, Loader, History, Plus, CheckCircle2, AlertCircle } from 'lucide-react'
+import { MessageCircle, X, Minimize2, Send, Mic, Brain, Sparkles, ChevronRight, Loader, History, Plus, CheckCircle2, AlertCircle, Paperclip } from 'lucide-react'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import { supabase } from '../../lib/supabase'
+
+const INTENT_PROGRESS_STEPS = {
+  run_on_page_audit: ['Fetching page HTML', 'Analyzing headings', 'Checking meta tags', 'Scoring on-page signals', 'Finalizing report'],
+  generate_brief: ['Researching competitors', 'Pulling SERP features', 'Drafting outline', 'Generating brief'],
+  aeo_multi_engine: ['Querying ChatGPT', 'Querying Perplexity', 'Querying Gemini', 'Scoring visibility'],
+  score_aeo: ['Querying ChatGPT', 'Querying Perplexity', 'Querying Gemini', 'Scoring visibility'],
+  build_topical_map: ['Mapping entities', 'Finding clusters', 'Building hierarchy'],
+  analyze_competitor: ['Crawling competitor site', 'Extracting topics', 'Mapping structure'],
+  crawl_sitemap: ['Fetching sitemap', 'Parsing URLs', 'Categorizing pages'],
+  check_plagiarism: ['Fetching content', 'Scanning the web', 'Scoring originality'],
+  audit_eeat: ['Fetching page', 'Checking author signals', 'Scoring E-E-A-T'],
+  analyze_backlinks: ['Pulling backlink profile', 'Scoring domains', 'Summarizing'],
+  audit_schema: ['Fetching page', 'Parsing structured data', 'Validating schema'],
+  scan_internal_links: ['Crawling pages', 'Mapping internal links', 'Finding gaps'],
+  analyze_semantic_network: ['Extracting entities', 'Mapping relationships', 'Scoring network'],
+  audit_technical_deep: ['Crawling site', 'Checking Core Web Vitals', 'Auditing technical SEO'],
+  find_backlinks: ['Scanning niche', 'Finding linkable sites', 'Scoring opportunities'],
+  analyze_reviews: ['Fetching reviews', 'Running sentiment analysis', 'Finding themes'],
+  run_pipeline: ['Kicking off pipeline', 'Running full audit suite', 'Assembling report'],
+  brand_serp_scan: ['Querying Google', 'Analyzing SERP', 'Scoring brand defense'],
+  generate_schema: ['Fetching page', 'Extracting entities', 'Generating JSON-LD'],
+  hyperlocal_content: ['Pulling grid scan', 'Drafting hyperlocal copy', 'Finalizing'],
+  gsc_audit: ['Pulling GSC data', 'Analyzing queries', 'Summarizing'],
+  bing_audit: ['Pulling Bing data', 'Analyzing', 'Summarizing'],
+  build_content_calendar: ['Planning weeks', 'Assigning topics', 'Finalizing calendar'],
+  content_refresh_plan: ['Inventorying pages', 'Scoring decay', 'Ranking refresh targets'],
+  default: ['Starting', 'Running analysis', 'Finalizing'],
+}
 
 const SUGGESTED_PROMPTS = [
   { icon: Sparkles, label: 'Write me a blog post about...' },
@@ -20,17 +49,20 @@ const PANEL_WIDTH = 420
 
 export default function ConversationalBot({ clientId, agencyId, currentTab, onSwitchTab }) {
   const [open, setOpen] = useState(false)
-  const [minimized, setMinimized] = useState(false)
+  const [hasEverOpened, setHasEverOpened] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
-  const [messages, setMessages] = useState([]) // {role, content, action?, action_executed?, action_result?, error?}
+  const [messages, setMessages] = useState([]) // {role, content, action?, action_executed?, action_result?, error?, progressSteps?, progressIdx?}
   const [input, setInput] = useState('')
   const [thinking, setThinking] = useState(false)
   const [conversationId, setConversationId] = useState(null)
   const [conversations, setConversations] = useState([])
   const [executing, setExecuting] = useState(null) // index of message being executed
   const [hasNewSuggestion, setHasNewSuggestion] = useState(false)
+  const [pendingFile, setPendingFile] = useState(null) // File object queued to send
+  const [uploadingFile, setUploadingFile] = useState(false)
   const scrollRef = useRef(null)
   const textareaRef = useRef(null)
+  const fileInputRef = useRef(null)
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
 
   // Auto-scroll on new message
@@ -70,9 +102,10 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
       const res = await fetch('/api/kotoiq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get_bot_conversation', conversation_id: id }),
+        body: JSON.stringify({ action: 'get_bot_conversation', conversation_id: id, client_id: clientId, agency_id: agencyId }),
       })
       const j = await res.json()
+      if (j.error) return
       const msgs = (j.messages || []).map(m => ({
         role: m.role,
         content: m.content,
@@ -86,6 +119,23 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
     } catch {}
   }
 
+  // Upload a file to Supabase storage → return public URL
+  const uploadAttachment = async (file, convId) => {
+    const ts = Date.now()
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const path = `${agencyId || 'anon'}/${clientId || 'anon'}/${convId || 'new'}/${ts}-${safeName}`
+    const { error } = await supabase.storage.from('kotoiq-bot-uploads').upload(path, file, { upsert: false })
+    if (error) throw error
+    const { data } = supabase.storage.from('kotoiq-bot-uploads').getPublicUrl(path)
+    return data?.publicUrl
+  }
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  }
+
   const startNew = () => {
     setMessages([])
     setConversationId(null)
@@ -94,11 +144,37 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
 
   const send = async (text) => {
     const trimmed = (text || input).trim()
-    if (!trimmed || thinking) return
-    const userMsg = { role: 'user', content: trimmed }
+    if ((!trimmed && !pendingFile) || thinking) return
+
+    let attachmentUrl = null
+    let attachmentName = null
+    let attachmentSize = null
+    if (pendingFile) {
+      setUploadingFile(true)
+      try {
+        attachmentUrl = await uploadAttachment(pendingFile, conversationId)
+        attachmentName = pendingFile.name
+        attachmentSize = pendingFile.size
+      } catch (e) {
+        setUploadingFile(false)
+        setMessages(m => [...m, { role: 'assistant', content: 'Attachment upload failed: ' + (e?.message || 'unknown'), error: true }])
+        return
+      }
+      setUploadingFile(false)
+    }
+
+    const finalText = attachmentUrl
+      ? `[attached: ${attachmentName} ${attachmentUrl}] ${trimmed}`.trim()
+      : trimmed
+    const displayText = attachmentUrl
+      ? `${trimmed}\n\n[attached: ${attachmentName} (${formatSize(attachmentSize)})]`.trim()
+      : trimmed
+
+    const userMsg = { role: 'user', content: displayText }
     const newMessages = [...messages, userMsg]
     setMessages(newMessages)
     setInput('')
+    setPendingFile(null)
     setThinking(true)
     setHasNewSuggestion(false)
     try {
@@ -111,7 +187,7 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
           client_id: clientId,
           agency_id: agencyId,
           conversation_id: conversationId,
-          message: trimmed,
+          message: finalText,
           conversation_history: history,
           current_tab: currentTab,
         }),
@@ -121,7 +197,15 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
         setMessages(m => [...m, { role: 'assistant', content: 'Hmm, I hit an error: ' + j.error, error: true }])
       } else {
         setConversationId(j.conversation_id || conversationId)
-        setMessages(m => [...m, { role: 'assistant', content: j.message || '...', action: j.action || null }])
+        setMessages(m => {
+          const next = [...m, { role: 'assistant', content: j.message || '...', action: j.action || null }]
+          // Auto-execute should_execute actions — fire after state updates so indexes are stable
+          if (j.action && j.action.should_execute) {
+            const newIdx = next.length - 1
+            setTimeout(() => autoRunAction(newIdx, j.action), 0)
+          }
+          return next
+        })
         if (j.action) setHasNewSuggestion(true)
       }
     } catch (e) {
@@ -131,24 +215,38 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
     }
   }
 
-  // Run the proposed action: switch tab + (optionally) execute the API
-  const runAction = async (msgIdx, executeNow) => {
-    const msg = messages[msgIdx]
-    if (!msg?.action) return
-    const { intent, tab_to_open, form_fields, should_execute } = msg.action
-    // Always switch tab + prefill
+  const autoRunAction = (idx, action) => {
+    runAction(idx, true, action)
+  }
+
+  // Run the proposed action: switch tab + (optionally) execute the API.
+  // Accepts an explicit action for auto-run from within send() where state hasn't flushed yet.
+  const runAction = async (msgIdx, executeNow, explicitAction) => {
+    const resolvedAction = explicitAction || messages[msgIdx]?.action
+    if (!resolvedAction) return
+    const { intent, tab_to_open, form_fields, should_execute } = resolvedAction
     if (onSwitchTab) onSwitchTab(tab_to_open, form_fields || {})
     if (!executeNow || !should_execute) {
-      // Just open and prefill — confirm in chat
       setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { mode: 'prefill' } } : x))
       return
     }
     setExecuting(msgIdx)
+    const steps = INTENT_PROGRESS_STEPS[intent] || INTENT_PROGRESS_STEPS.default
+    setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, progressSteps: steps, progressIdx: 0 } : x))
+    const tick = setInterval(() => {
+      setMessages(m => m.map((x, i) => {
+        if (i !== msgIdx) return x
+        const cur = x.progressIdx ?? 0
+        const next = Math.min(cur + 1, steps.length - 1)
+        return { ...x, progressIdx: next }
+      }))
+    }, 800)
     try {
       const apiAction = INTENT_TO_API[intent]
       if (!apiAction) {
+        clearInterval(tick)
         setMessages(m => [...m, { role: 'assistant', content: `Switched to ${tab_to_open}. Form is pre-filled — review and run when ready.` }])
-        setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { mode: 'prefill' } } : x))
+        setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { mode: 'prefill' }, progressSteps: undefined, progressIdx: undefined } : x))
         return
       }
       const res = await fetch('/api/kotoiq', {
@@ -157,8 +255,9 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
         body: JSON.stringify({ action: apiAction, client_id: clientId, agency_id: agencyId, ...form_fields }),
       })
       const j = await res.json()
+      clearInterval(tick)
       const ok = res.ok && !j.error
-      setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { ok, summary: j.error || summarizeResult(j) } } : x))
+      setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { ok, summary: j.error || summarizeResult(j) }, progressSteps: undefined, progressIdx: undefined } : x))
       setMessages(m => [...m, {
         role: 'assistant',
         content: ok
@@ -166,7 +265,8 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
           : `That run failed: ${j.error || 'unknown error'}. Want me to try something else?`,
       }])
     } catch (e) {
-      setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { ok: false, summary: e?.message || 'error' } } : x))
+      clearInterval(tick)
+      setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { ok: false, summary: e?.message || 'error' }, progressSteps: undefined, progressIdx: undefined } : x))
     } finally {
       setExecuting(null)
     }
@@ -179,23 +279,56 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
     }
   }
 
+  const openPanel = () => { setOpen(true); setHasEverOpened(true) }
+  const collapsePanel = () => { setOpen(false); setHasEverOpened(true) }
+
   // ── Render ──────────────────────────────────────────────────────────────
   if (!open) {
+    // Before user has ever opened → show big circular launcher (bottom-right)
+    if (!hasEverOpened) {
+      return (
+        <button
+          onClick={openPanel}
+          title="KotoIQ Assistant"
+          style={{
+            position: 'fixed', bottom: 24, right: 24, width: 56, height: 56, borderRadius: '50%',
+            background: T, color: '#fff', border: 'none', cursor: 'pointer',
+            boxShadow: '0 6px 20px rgba(0,194,203,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, transition: 'transform .15s', animation: hasNewSuggestion ? 'kotoiqBotPulse 1.6s infinite' : 'none',
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          <MessageCircle size={26} />
+          <style>{`@keyframes kotoiqBotPulse { 0%,100% { box-shadow: 0 6px 20px rgba(0,194,203,0.45); } 50% { box-shadow: 0 6px 30px rgba(0,194,203,0.85); } }`}</style>
+        </button>
+      )
+    }
+    // After opening once → collapse to a thin vertical side-tab on the right
     return (
       <button
-        onClick={() => { setOpen(true); setMinimized(false) }}
+        onClick={openPanel}
         title="KotoIQ Assistant"
         style={{
-          position: 'fixed', bottom: 24, right: 24, width: 56, height: 56, borderRadius: '50%',
-          background: T, color: '#fff', border: 'none', cursor: 'pointer',
-          boxShadow: '0 6px 20px rgba(0,194,203,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 9999, transition: 'transform .15s', animation: hasNewSuggestion ? 'kotoiqBotPulse 1.6s infinite' : 'none',
+          position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)',
+          width: 44, height: '80vh', borderTopLeftRadius: 12, borderBottomLeftRadius: 12,
+          background: BLK, color: '#fff', border: 'none', borderRight: 'none', cursor: 'pointer',
+          boxShadow: '-4px 0 14px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px 0',
+          zIndex: 9999,
+          animation: hasNewSuggestion ? 'kotoiqSidePulse 1.6s infinite' : 'none',
         }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
       >
-        <MessageCircle size={26} />
-        <style>{`@keyframes kotoiqBotPulse { 0%,100% { box-shadow: 0 6px 20px rgba(0,194,203,0.45); } 50% { box-shadow: 0 6px 30px rgba(0,194,203,0.85); } }`}</style>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Brain size={16} color="#fff" />
+        </div>
+        <div style={{
+          writingMode: 'vertical-rl', transform: 'rotate(180deg)',
+          fontFamily: FH, fontSize: 12, fontWeight: 700, letterSpacing: 1.2,
+        }}>
+          KotoIQ
+        </div>
+        <style>{`@keyframes kotoiqSidePulse { 0%,100% { box-shadow: -4px 0 14px rgba(0,0,0,0.18); } 50% { box-shadow: -4px 0 22px rgba(0,194,203,0.75); } }`}</style>
       </button>
     )
   }
@@ -223,11 +356,11 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
           style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: 4, opacity: 0.7 }}>
           <History size={18} />
         </button>
-        <button onClick={() => { setOpen(false); setMinimized(true) }} title="Minimize"
+        <button onClick={collapsePanel} title="Minimize to side"
           style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: 4, opacity: 0.7 }}>
           <Minimize2 size={18} />
         </button>
-        <button onClick={() => setOpen(false)} title="Close"
+        <button onClick={collapsePanel} title="Close to side"
           style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: 4, opacity: 0.7 }}>
           <X size={18} />
         </button>
@@ -295,7 +428,34 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
       {/* Input bar */}
       {!showHistory && (
         <div style={{ padding: 12, borderTop: '1px solid #e5e7eb', background: '#fff' }}>
+          {pendingFile && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#f0fdfe', border: `1px solid ${T}`, borderRadius: 8, marginBottom: 8, fontSize: 12, fontFamily: FB, color: BLK, maxWidth: '100%' }}>
+              <Paperclip size={12} color={T} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>{pendingFile.name}</span>
+              <span style={{ color: '#6b7280' }}>{formatSize(pendingFile.size)}</span>
+              {uploadingFile && <Loader size={12} className="kotoiq-bot-spin" />}
+              <button onClick={() => setPendingFile(null)} disabled={uploadingFile}
+                style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                <X size={14} />
+              </button>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,application/pdf,text/csv,text/plain,.csv,.txt"
+              style={{ display: 'none' }}
+              onChange={e => {
+                const f = e.target.files?.[0]
+                if (f) setPendingFile(f)
+                e.target.value = ''
+              }}
+            />
+            <button title="Attach file" onClick={() => fileInputRef.current?.click()} disabled={thinking || uploadingFile}
+              style={{ background: '#f3f4f6', color: BLK, border: 'none', borderRadius: 10, padding: 10, cursor: thinking || uploadingFile ? 'not-allowed' : 'pointer' }}>
+              <Paperclip size={18} />
+            </button>
             <textarea
               ref={textareaRef}
               value={input}
@@ -311,8 +471,8 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
               style={{ background: '#f3f4f6', color: '#9ca3af', border: 'none', borderRadius: 10, padding: 10, cursor: 'not-allowed' }}>
               <Mic size={18} />
             </button>
-            <button onClick={() => send()} disabled={thinking || !input.trim()}
-              style={{ background: input.trim() && !thinking ? T : '#e5e7eb', color: '#fff', border: 'none', borderRadius: 10, padding: 10, cursor: input.trim() && !thinking ? 'pointer' : 'not-allowed' }}>
+            <button onClick={() => send()} disabled={thinking || uploadingFile || (!input.trim() && !pendingFile)}
+              style={{ background: (input.trim() || pendingFile) && !thinking && !uploadingFile ? T : '#e5e7eb', color: '#fff', border: 'none', borderRadius: 10, padding: 10, cursor: (input.trim() || pendingFile) && !thinking && !uploadingFile ? 'pointer' : 'not-allowed' }}>
               <Send size={18} />
             </button>
           </div>
@@ -349,7 +509,7 @@ function MessageBubble({ msg, idx, onRun, executing }) {
           {msg.content}
         </div>
         {msg.action && !isUser && (
-          <ActionCard action={msg.action} idx={idx} onRun={onRun} executing={executing} executed={msg.action_executed} result={msg.action_result} />
+          <ActionCard action={msg.action} idx={idx} onRun={onRun} executing={executing} executed={msg.action_executed} result={msg.action_result} progressSteps={msg.progressSteps} progressIdx={msg.progressIdx} />
         )}
       </div>
     </div>
@@ -357,9 +517,11 @@ function MessageBubble({ msg, idx, onRun, executing }) {
 }
 
 // ── Action proposal card ──────────────────────────────────────────────────
-function ActionCard({ action, idx, onRun, executing, executed, result }) {
+function ActionCard({ action, idx, onRun, executing, executed, result, progressSteps, progressIdx }) {
   const fields = action.form_fields || {}
   const fieldKeys = Object.keys(fields)
+  const showProgress = executing && Array.isArray(progressSteps) && progressSteps.length > 0
+  const curStep = showProgress ? Math.min(progressIdx ?? 0, progressSteps.length - 1) : -1
   return (
     <div style={{ marginTop: 8, border: `1px solid ${T}`, borderRadius: 12, background: '#f0fdfe', padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -381,12 +543,37 @@ function ActionCard({ action, idx, onRun, executing, executed, result }) {
           ))}
         </div>
       )}
+      {showProgress && (
+        <div style={{ background: '#fff', borderRadius: 8, padding: 10, marginBottom: 10 }}>
+          {progressSteps.map((step, i) => {
+            const done = i < curStep
+            const active = i === curStep
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontFamily: FB, padding: '3px 0', color: done ? GRN : active ? BLK : '#9ca3af' }}>
+                {done ? (
+                  <CheckCircle2 size={13} color={GRN} />
+                ) : active ? (
+                  <span style={{ width: 13, height: 13, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: T, animation: 'kotoiqBotStepPulse 1s infinite' }} />
+                  </span>
+                ) : (
+                  <span style={{ width: 13, height: 13, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d1d5db' }} />
+                  </span>
+                )}
+                <span style={{ fontWeight: active ? 600 : 400 }}>{step}</span>
+              </div>
+            )
+          })}
+          <style>{`@keyframes kotoiqBotStepPulse { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.25); } }`}</style>
+        </div>
+      )}
       {executed ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: result?.ok === false ? '#991b1b' : GRN, fontFamily: FB }}>
           {result?.ok === false ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
           <span>{result?.ok === false ? 'Failed' : (result?.mode === 'prefill' ? 'Form pre-filled — opened the tab' : 'Run complete')}</span>
         </div>
-      ) : (
+      ) : executing ? null : (
         <div style={{ display: 'flex', gap: 6 }}>
           {action.should_execute ? (
             <button onClick={() => onRun(idx, true)} disabled={executing}
@@ -400,7 +587,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result }) {
           </button>
         </div>
       )}
-      {action.next_question && !executed && (
+      {action.next_question && !executed && !executing && (
         <div style={{ marginTop: 8, fontSize: 12, color: '#6b7280', fontStyle: 'italic', fontFamily: FB }}>
           {action.next_question}
         </div>
