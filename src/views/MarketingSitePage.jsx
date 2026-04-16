@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Menu, X, ArrowRight, Check, Phone, MessageSquare,
@@ -173,17 +173,26 @@ const TOOLS = [
 const CATEGORIES = ['All', 'SEO', 'Voice', 'Growth', 'Intelligence'];
 
 const HERO_STATS = [
-  { num: '247+', label: 'Agencies' },
-  { num: '3×',   label: 'Avg revenue growth' },
-  { num: '24/7', label: 'AI always active' },
-  { num: '318',  label: 'Leads / day' },
+  { num: '645k',  label: 'Businesses analyzed' },
+  { num: '4.2M',  label: 'Opportunities surfaced' },
+  { num: '12+',   label: 'Live data sources' },
+  { num: '<3s',   label: 'Avg response time' },
 ];
 
 const PROOF_STATS = [
-  { value: '247+', label: 'Agencies powered' },
-  { value: '318k', label: 'Leads generated' },
-  { value: '98%',  label: 'Client retention' },
-  { value: '4×',   label: 'Avg ROI multiplier' },
+  { value: '645,000', label: 'Businesses analyzed' },
+  { value: '4.2M',    label: 'Opportunities surfaced' },
+  { value: '25+',     label: 'Specialized AI engines' },
+  { value: '99.9%',   label: 'Target uptime' },
+];
+
+const ENTERPRISE_FEATURES = [
+  { title: 'Bank-level encryption',   desc: 'All data encrypted in transit and at rest. Keys rotated on schedule.' },
+  { title: 'Role-based access',        desc: 'Granular permissions per team member. SSO-ready for enterprise plans.' },
+  { title: 'Full audit trail',         desc: 'Every AI action, edit, and export is logged and exportable for compliance.' },
+  { title: 'Isolated client data',     desc: "Your clients' data never leaves your workspace. Zero cross-agency bleed." },
+  { title: 'US-hosted infrastructure', desc: 'Data stays in US regions. Single-tenant isolation available on Agency plan.' },
+  { title: 'GDPR & CCPA aware',        desc: 'Data subject requests handled with built-in tooling for export and deletion.' },
 ];
 
 const PHASES = [
@@ -232,54 +241,56 @@ const IQ_CAPABILITIES = [
   { title: 'Multi-AI Blender',     desc: 'Heavy research queries run across Opus, Sonnet, and Haiku in parallel, then reconcile.',              icon: Sparkles },
 ];
 
-/* ─── Koto AI Agents — voice + verification systems ─── */
+/* ─── Koto AI Agents — plain-English overviews + real use cases ─── */
 const AGENTS = [
   {
     tag: 'Outbound', title: 'Cold Call Agent', icon: Phone, accent: R,
-    headline: 'AI outbound that sounds human and books.',
-    desc: 'Built on Retell with a bench of 10+ premium voices (ElevenLabs, OpenAI, Cartesia). Telnyx handles routing and caller-ID rotation. A call-time checker respects state-level dialing windows. Every conversation streams live transcription, handles objections, and posts results back to your CRM the moment the call ends.',
-    specs: [
-      { label: 'Voice providers',   value: 'ElevenLabs · OpenAI · Cartesia' },
-      { label: 'Phone layer',       value: 'Telnyx + Retell native numbers' },
-      { label: 'Concurrency',       value: 'Unlimited parallel calls' },
-      { label: 'Compliance',        value: 'State call-time windows + DNC filtering' },
-      { label: 'Post-call analysis',value: 'Claude — sentiment, lead score, next action' },
+    headline: 'AI that dials, qualifies, and books — all day.',
+    desc: 'Hand Koto a list of leads. It calls every one of them, handles the small talk, qualifies interest, answers questions, and books the ready ones straight onto your calendar. It never gets tired, never leaves early, and never skips a follow-up.',
+    cases: [
+      { title: 'Home services agency', scenario: 'A roofing agency has 2,000 storm-damage leads. Koto calls all of them in a week, qualifies interest, and books 68 inspections without a single human dial.' },
+      { title: 'Law firm', scenario: 'Web leads that come in after 5pm used to sit until morning. Now Koto calls each one within 60 seconds — 40% more consults booked.' },
+      { title: 'Insurance broker', scenario: 'Reactivating 5-year-old aged leads by hand used to be a slog. Koto works the whole list and recaptures 120 policies in one week.' },
     ],
   },
   {
-    tag: 'Onboarding', title: 'Virtual Onboarding (Alex)', icon: MessageCircle, accent: T,
-    headline: 'A dedicated phone number for every new client.',
-    desc: 'The moment a client is created, Koto provisions a Retell phone number and a 4-digit PIN within seconds. When the client calls, Alex verifies the PIN, reviews what\'s already on file, and only asks the missing questions — no repeating what the web form already captured. Every answer writes to the database live during the call via the save_answer tool.',
-    specs: [
-      { label: 'Agent',             value: 'Retell "Koto Onboarding 2" — Alex' },
-      { label: 'Provisioning',      value: 'Auto, ~5 seconds after client creation' },
-      { label: 'State awareness',   value: 'Fresh · Partial · Nearly complete' },
-      { label: 'Question bank',     value: '26 adaptive fields, B2B/B2C/local/national classifier' },
-      { label: 'Post-call',         value: 'Claude Haiku — sentiment, expansion signals, missing fields' },
+    tag: 'Onboarding', title: 'Virtual Onboarding', icon: MessageCircle, accent: T,
+    headline: 'New clients onboard themselves — by phone.',
+    desc: 'Every new client gets their own phone number to call. Koto\'s onboarding agent interviews them, answers their questions, and fills out your onboarding document while they talk. No more chasing clients to finish a form.',
+    cases: [
+      { title: 'Dental marketing agency', scenario: 'You sign a new client on Tuesday. By Wednesday they\'ve spent 18 minutes on the phone with Koto — and you have a 20-page onboarding doc ready without anyone on your team lifting a finger.' },
+      { title: 'Stalled form', scenario: 'A client started the web form and never finished. They call in later, Koto already knows which 6 questions are still missing and only asks those.' },
+      { title: 'Non-tech clients', scenario: 'Contractors and restaurant owners would rather talk than type. They pick up the phone, Koto gathers everything, and the agency team gets the finished doc by email.' },
     ],
   },
   {
     tag: 'Discovery', title: 'Live Discovery Sessions', icon: Layers, accent: BLK,
-    headline: 'Real-time transcription with an AI coach in the room.',
-    desc: 'Open a session and Koto transcribes the conversation live via Web Speech API. A parallel AI Coach panel runs Section Coach (question-level nudges) and Full Analysis (document-wide strategy). N/A detection auto-skips irrelevant fields; completion bars fill in as sections come together. The final output is a 12-section discovery document saved to koto_discovery_engagements.',
-    specs: [
-      { label: 'Transcription',     value: 'Web Speech API — live in the browser' },
-      { label: 'AI Coach modes',    value: 'Section Coach + Full Analysis' },
-      { label: 'Auto-fill',         value: 'N/A detection, field suggestions from prior answers' },
-      { label: 'Output',            value: '12-section document, exportable + shareable' },
-      { label: 'Collaboration',     value: 'Live view with completion bars per section' },
+    headline: 'An AI coach in the room for every discovery call.',
+    desc: 'Start a live session and Koto listens in. It transcribes in real time, suggests the next question to ask, and builds the strategy document as the conversation unfolds. You walk out of the call with a finished discovery doc instead of a blank page.',
+    cases: [
+      { title: 'New account kickoff', scenario: 'On a Zoom kickoff with a new client, Koto quietly builds the 12-section strategy doc in the background. The moment the call ends, you send it.' },
+      { title: 'Mid-call nudge', scenario: 'Halfway through discovery you realize you never asked about budget. Koto already flagged it in the sidebar — one click to bring it up.' },
+      { title: 'Junior strategists', scenario: 'A newer team member runs the call. Koto\'s coaching prompts keep them on track, surfacing follow-ups they wouldn\'t have thought of.' },
+    ],
+  },
+  {
+    tag: 'Inbound', title: 'AI Front Desk', icon: MessageSquare, accent: AMB,
+    headline: 'Your 24/7 receptionist that never misses a call.',
+    desc: 'Koto answers every inbound call, sounds like a real front-desk person, schedules appointments, answers common questions, takes messages for urgent ones, and hands off cleanly to a human when needed. Your after-hours and overflow calls stop going to voicemail.',
+    cases: [
+      { title: 'Dental office after-hours', scenario: 'A patient with a cracked tooth calls at 9pm. Koto answers warmly, finds an opening Tuesday morning, and books it. No callback chain the next day — the appointment is already on the schedule.' },
+      { title: 'Law firm intake', scenario: 'An inbound lead calls the firm. Koto qualifies the case type, captures the key facts, schedules the consult, and the attorney walks into Monday morning with six intake summaries ready to review.' },
+      { title: 'HVAC overflow', scenario: 'A heat wave hits and every phone is ringing. Koto takes the overflow, schedules tune-ups, and books emergency service calls — zero busy signals, zero lost jobs.' },
     ],
   },
   {
     tag: 'Healthcare', title: 'Verification of Benefits (VOB)', icon: Activity, accent: GRN,
     headline: 'Koto calls the insurance company for you.',
-    desc: 'A specialized Retell agent dials the payer, navigates the IVR, waits on hold, and runs a structured 72-question interview across 16 benefit categories: eligibility, deductibles, copays, out-of-pocket, coinsurance, prior auth, network status, claims, and more. Each verified answer saves with a confidence score; anything the rep refuses or the call gets stuck on auto-escalates to a human.',
-    specs: [
-      { label: 'Question bank',     value: '72 questions · 16 categories' },
-      { label: 'IVR handling',      value: 'navigate_ivr tool logs every button press' },
-      { label: 'Data capture',      value: 'save_vob_answer with per-field confidence score' },
-      { label: 'Escalation',        value: 'Auto-flag for human review on refusal or dead-end' },
-      { label: 'Output',            value: 'Structured benefits record ready for intake' },
+    desc: 'Instead of your front desk spending hours on hold, Koto dials the insurance company, waits through the IVR, talks to the rep, and comes back with a verified benefits report — deductibles, copays, prior auth, the whole sheet — ready for intake.',
+    cases: [
+      { title: 'Physical therapy clinic', scenario: '40 new patients to verify today. Koto runs all 40 calls in parallel. By 11am the front desk has every deductible, copay, and prior-auth status in hand.' },
+      { title: 'Behavioral health practice', scenario: 'Used to burn 20 hours a week on VOB. Now that time goes to patient care — Koto handles the calls and fills the intake sheet.' },
+      { title: 'Dental office', scenario: 'A patient schedules same-day. Koto verifies coverage in the background and the front desk has the answer before the patient walks in.' },
     ],
   },
 ];
@@ -289,12 +300,6 @@ const VOICE_BULLETS = [
   { title: 'Unlimited concurrent calls',desc: 'Scale to hundreds of simultaneous calls. No hiring, no burnout.' },
   { title: 'Real-time CRM updates',     desc: 'Every call transcribed, scored, and synced to your CRM automatically.' },
   { title: 'Smart follow-up sequences', desc: 'Automated multi-touch follow-up triggered by call outcomes.' },
-];
-
-const TESTIMONIALS = [
-  { quote: "Koto transformed how we operate. We scaled from 12 to 47 clients in six months without hiring anyone.",           name: 'Marcus T.', role: 'Founder, Apex Digital' },
-  { quote: "The answering service alone pays for itself 10× over. We never miss a lead — even at 2am on a Sunday.",            name: 'Sarah K.',  role: 'CEO, Momentum Marketing' },
-  { quote: "The cold call agent booked 34 demos in the first week. My team thought I'd hired a full outbound crew overnight.", name: 'Derek L.',  role: 'VP Sales, Elevate Agency' },
 ];
 
 const PRICING_PLANS = [
@@ -353,6 +358,276 @@ const NAV_LINKS = [
   { id: 'agents',   label: 'AI Agents' },
   { id: 'pricing',  label: 'Pricing' },
 ];
+
+/* ─── Palette aliases available in module scope ─── */
+const INK_C     = BLK;
+const MUTED_C   = '#6b7280';
+const FAINT_C   = '#9ca3af';
+const HAIR_C    = '#e5e7eb';
+const SURFACE_C = '#f9fafb';
+const WASH_C    = '#fafbfc';
+
+/* ─── Demo chat — FULLY SANDBOXED, never hits real APIs or real data ─── */
+const DEMO_SCENARIOS = [
+  {
+    triggers: ['traffic', 'down', 'drop', 'decline', 'decreas'],
+    text: 'Organic traffic is down 12% this month on your **dental** sample client. The biggest losses: **dental implants** (-34%), **invisalign near me** (-22%), and **emergency dentist** (-18%). A competitor published fresh pillar content and pushed these pages out of the AI Overview citations. Refreshing those three pages would recover most of the loss — I can draft the content briefs for you.',
+    sources: ['Search Console', 'Analytics 4', 'SERP Snapshot'],
+  },
+  {
+    triggers: ['keyword', 'opportunit', 'quick win', 'low hanging', 'easy win'],
+    text: 'Your top **quick wins** this week (sample client): **emergency dentist miami** (#11 → #4, est. +1,840 visits/mo), **dental implants cost** (#9 → #3, +2,110/mo), **invisalign near me** (#14 → #6, +1,220/mo). Combined estimated revenue lift: **+$12.4k/month** at current conversion rates.',
+    sources: ['Search Console', 'Keyword Metrics', 'DataForSEO'],
+  },
+  {
+    triggers: ['competit', 'compare', 'rival', 'vs '],
+    text: 'Your top 3 competitors by share of voice (sample data): **BriteSmile** is up +14% this month — they just published 4 new service pages targeting your long-tail terms. **Miami Smile Studio** gained +6% on branded search. **Downtown Dental Clinic** dropped -3% after a site migration. BriteSmile is your priority threat.',
+    sources: ['SERP Snapshot', 'Competitor Intelligence'],
+  },
+  {
+    triggers: ['review', 'gmb', 'business profile', 'reputation', 'star'],
+    text: 'Sample client Google Business Profile: **4.6 stars** across **47 reviews** (+3 this month). Sentiment dipped slightly — two new 3-star reviews mention wait times. I drafted reply copy for both. Your recent positive reviews cluster around "painless" and "thorough" — great signals to lean into on your landing pages.',
+    sources: ['Business Profile', 'Review Sentiment'],
+  },
+  {
+    triggers: ['local', 'grid', 'map', 'near me'],
+    text: 'The 5-mile geo-grid for **"emergency dentist"** on the sample client averages **#4.2**. Strong coverage in Brickell (avg #2) and Coconut Grove (avg #3), but weak visibility north of 79th Street (avg #11). Three neighborhood landing pages would likely close the gap.',
+    sources: ['Rank Grid', 'Local SERP'],
+  },
+  {
+    triggers: ['ads', 'ppc', 'paid', 'cpc', 'adwords', 'google ads'],
+    text: 'Sample client Google Ads last 30 days: **$4,217 spend**, **2.1% conversion rate**, **$47 cost-per-acquisition**. Your "emergency dentist" ad group is the star (3.8% CVR, $28 CPA). "Teeth whitening" is bleeding — zero conversions on $612 spend. I would pause that ad group and reallocate to the implant campaign.',
+    sources: ['Google Ads', 'Conversion Tracking'],
+  },
+  {
+    triggers: ['content', 'brief', 'write', 'blog', 'page'],
+    text: 'Based on the sample client\'s keyword gaps, your next content priorities are: (1) a pillar page on **dental implant financing** (high commercial intent, competitors weak), (2) a comparison: **Invisalign vs. traditional braces for adults**, (3) a location page for **Coral Gables emergency dentistry**. I can generate full briefs with structure, entity coverage, and FAQ schema.',
+    sources: ['Keyword Gaps', 'Content Decay', 'SERP Analysis'],
+  },
+  {
+    triggers: ['score', 'visibility', 'ai visibility', 'rating'],
+    text: 'Sample client **AI Visibility Score: 72/100 (grade B+)**, up +4 points this week. Sub-scores: Semantic coverage **78**, Entity presence **65**, E-E-A-T signals **71**, SERP features **74**. The biggest lift available is on **Entity presence** — adding structured data for your services and location would likely push the overall score to A.',
+    sources: ['AI Visibility Engine', 'Semantic Agents'],
+  },
+];
+
+const DEMO_FALLBACK = {
+  text: "I'm in **demo mode** using sample data for a fictional dental client — I'm not connected to any real account here on the marketing site. Try asking me about **traffic drops**, **keyword opportunities**, **competitors**, **Google reviews**, **local rankings**, or **Google Ads performance**. Or start a free trial to get real answers on your own clients.",
+  sources: ['Demo mode'],
+};
+
+const DEMO_SUGGESTIONS = [
+  'Why is traffic down this month?',
+  'What are my biggest keyword opportunities?',
+  'How do I compare to competitors?',
+  'How are my Google reviews doing?',
+];
+
+function matchDemoScenario(query) {
+  const q = query.toLowerCase();
+  for (const s of DEMO_SCENARIOS) {
+    if (s.triggers.some(t => q.includes(t))) return s;
+  }
+  return DEMO_FALLBACK;
+}
+
+// Renders markdown-lite text with **bold** segments
+function renderBold(text) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((p, i) =>
+    p.startsWith('**') && p.endsWith('**')
+      ? <strong key={i} style={{ color: INK_C }}>{p.slice(2, -2)}</strong>
+      : <span key={i}>{p}</span>
+  );
+}
+
+function ChatDemo() {
+  const [messages, setMessages] = useState([{
+    role: 'assistant',
+    text: "I'm **KotoIQ** in demo mode — ask me anything and I'll show you what I can do using sample data for a fictional dental client. I'm not connected to any real data on this page.",
+    sources: null,
+    complete: true,
+  }]);
+  const [input, setInput] = useState('');
+  const [thinking, setThinking] = useState(false);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, thinking]);
+
+  function ask(question) {
+    if (!question.trim() || thinking) return;
+    const q = question.trim();
+    setInput('');
+    setMessages(m => [...m, { role: 'user', text: q }]);
+    setThinking(true);
+
+    // Simulate network delay → streaming response (fully local, no fetch)
+    window.setTimeout(() => {
+      const scenario = matchDemoScenario(q);
+      setThinking(false);
+      setMessages(m => [...m, { role: 'assistant', text: '', sources: null, complete: false }]);
+
+      const full = scenario.text;
+      let i = 0;
+      const stream = window.setInterval(() => {
+        i += 3;
+        setMessages(m => {
+          const copy = [...m];
+          copy[copy.length - 1] = { role: 'assistant', text: full.slice(0, i), sources: null, complete: false };
+          return copy;
+        });
+        if (i >= full.length) {
+          window.clearInterval(stream);
+          setMessages(m => {
+            const copy = [...m];
+            copy[copy.length - 1] = { role: 'assistant', text: full, sources: scenario.sources, complete: true };
+            return copy;
+          });
+        }
+      }, 18);
+    }, 900);
+  }
+
+  return (
+    <div className="mock-screen">
+      <div className="mock-header">
+        <span className="mock-dot" style={{ background: '#ff5f57' }} />
+        <span className="mock-dot" style={{ background: '#ffbd2e' }} />
+        <span className="mock-dot" style={{ background: '#28c840' }} />
+        <span style={{ marginLeft: 8, fontSize: 12, color: MUTED_C, fontFamily: FH, fontWeight: 600 }}>
+          kotoiq.app/ask
+        </span>
+        <span style={{
+          marginLeft: 'auto', fontSize: 10, fontWeight: 800, letterSpacing: '.08em',
+          color: R, background: R + '12', padding: '3px 8px', borderRadius: 100,
+        }}>
+          DEMO MODE
+        </span>
+      </div>
+
+      <div style={{ padding: '20px 22px 16px' }}>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+            Ask KotoIQ
+          </div>
+          <div style={{ fontSize: 17, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK_C }}>
+            Try a question — live demo
+          </div>
+        </div>
+
+        {/* Conversation */}
+        <div ref={scrollRef} style={{
+          display: 'flex', flexDirection: 'column', gap: 10,
+          maxHeight: 320, overflowY: 'auto', paddingRight: 4,
+        }}>
+          {messages.map((m, i) => (
+            m.role === 'user' ? (
+              <div key={i} style={{
+                alignSelf: 'flex-end', maxWidth: '85%', padding: '9px 13px',
+                background: INK_C, color: '#fff', borderRadius: '14px 14px 4px 14px',
+                fontSize: 13, fontWeight: 600, fontFamily: FB, lineHeight: 1.45,
+              }}>
+                {m.text}
+              </div>
+            ) : (
+              <div key={i} style={{
+                alignSelf: 'flex-start', maxWidth: '92%', padding: '12px 14px',
+                background: SURFACE_C, border: `1px solid ${HAIR_C}`,
+                borderRadius: '14px 14px 14px 4px',
+              }}>
+                <div style={{ fontSize: 13, color: INK_C, lineHeight: 1.6, fontFamily: FB }}>
+                  {renderBold(m.text)}
+                  {!m.complete && (
+                    <span style={{
+                      display: 'inline-block', width: 2, height: 14, background: INK_C,
+                      verticalAlign: 'middle', marginLeft: 2,
+                      animation: 'blink 1s infinite',
+                    }} />
+                  )}
+                </div>
+                {m.sources && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10, paddingTop: 10, borderTop: `1px solid ${HAIR_C}` }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }}>Sources:</span>
+                    {m.sources.map(s => (
+                      <span key={s} style={{
+                        fontSize: 10, fontWeight: 700, color: MUTED_C,
+                        background: '#fff', border: `1px solid ${HAIR_C}`,
+                        padding: '2px 7px', borderRadius: 100,
+                      }}>{s}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          ))}
+
+          {thinking && (
+            <div style={{
+              alignSelf: 'flex-start', padding: '10px 14px', background: SURFACE_C,
+              border: `1px solid ${HAIR_C}`, borderRadius: '14px 14px 14px 4px',
+              display: 'flex', gap: 4,
+            }}>
+              <span className="dot-1" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED_C }} />
+              <span className="dot-2" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED_C }} />
+              <span className="dot-3" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED_C }} />
+            </div>
+          )}
+        </div>
+
+        {/* Suggestion chips — only show when no user messages yet */}
+        {messages.filter(m => m.role === 'user').length === 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+            {DEMO_SUGGESTIONS.map(s => (
+              <button key={s} onClick={() => ask(s)} style={{
+                fontSize: 11, fontWeight: 600, color: MUTED_C, fontFamily: FB,
+                background: '#fff', border: `1px solid ${HAIR_C}`,
+                padding: '5px 10px', borderRadius: 100, cursor: 'pointer',
+                transition: 'all .15s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = INK_C; e.currentTarget.style.color = INK_C; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = HAIR_C; e.currentTarget.style.color = MUTED_C; }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Input bar */}
+        <form onSubmit={e => { e.preventDefault(); ask(input); }}
+          style={{
+            marginTop: 14, padding: '8px 12px', borderRadius: 10,
+            border: `1px solid ${HAIR_C}`, background: '#fff',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+          <MessageCircle size={14} color={FAINT_C} />
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Ask about traffic, keywords, competitors..."
+            disabled={thinking}
+            style={{
+              flex: 1, border: 'none', outline: 'none', background: 'transparent',
+              fontSize: 13, fontFamily: FB, color: INK_C, padding: '4px 0',
+            }}
+          />
+          <button type="submit" disabled={!input.trim() || thinking}
+            style={{
+              padding: '5px 10px', borderRadius: 6, border: 'none',
+              background: (!input.trim() || thinking) ? HAIR_C : INK_C,
+              color: (!input.trim() || thinking) ? FAINT_C : '#fff',
+              fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+              transition: 'all .15s', letterSpacing: '.02em',
+            }}>
+            Ask
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 /* ─── Page ─── */
 export default function MarketingSitePage() {
@@ -435,8 +710,20 @@ export default function MarketingSitePage() {
       </nav>
 
       {/* ══ HERO ══ */}
-      <section className="hero" style={{ background: W, padding: '160px 40px 100px' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center' }}>
+      <section className="hero" style={{ background: W, padding: '160px 40px 100px', position: 'relative', overflow: 'hidden' }}>
+        {/* Animated ambient gradient orbs */}
+        <div style={{
+          position: 'absolute', top: 80, left: '15%', width: 420, height: 420,
+          borderRadius: '50%', background: R + '18', filter: 'blur(100px)',
+          pointerEvents: 'none', animation: 'drift 9s ease-in-out infinite',
+        }} />
+        <div style={{
+          position: 'absolute', top: 140, right: '12%', width: 360, height: 360,
+          borderRadius: '50%', background: T + '16', filter: 'blur(100px)',
+          pointerEvents: 'none', animation: 'drift 11s ease-in-out infinite reverse',
+        }} />
+
+        <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <div className="fade" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             padding: '6px 14px', borderRadius: 100, border: `1px solid ${HAIR}`,
@@ -993,92 +1280,8 @@ export default function MarketingSitePage() {
               </div>
             </div>
 
-            {/* ─── MOCK 4: Ask KotoIQ ─── */}
-            <div className="mock-screen">
-              <div className="mock-header">
-                <span className="mock-dot" style={{ background: '#ff5f57' }} />
-                <span className="mock-dot" style={{ background: '#ffbd2e' }} />
-                <span className="mock-dot" style={{ background: '#28c840' }} />
-                <span style={{ marginLeft: 8, fontSize: 12, color: MUTED, fontFamily: FH, fontWeight: 600 }}>
-                  kotoiq.app/ask
-                </span>
-              </div>
-
-              <div style={{ padding: '24px 24px 20px' }}>
-                <div style={{ marginBottom: 18 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 4 }}>
-                    Ask KotoIQ
-                  </div>
-                  <div style={{ fontSize: 18, fontWeight: 900, fontFamily: FH, letterSpacing: '-.02em', color: INK }}>
-                    Grounded in your live client data
-                  </div>
-                </div>
-
-                {/* Conversation */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {/* User bubble */}
-                  <div style={{
-                    alignSelf: 'flex-end', maxWidth: '80%', padding: '10px 14px',
-                    background: INK, color: W, borderRadius: '14px 14px 4px 14px',
-                    fontSize: 13, fontWeight: 600, fontFamily: FB,
-                  }}>
-                    Why is organic traffic down 12% this month?
-                  </div>
-
-                  {/* Typing indicator (briefly visible before assistant reply) */}
-                  <div style={{
-                    alignSelf: 'flex-start', padding: '10px 14px', background: SURFACE,
-                    border: `1px solid ${HAIR}`, borderRadius: '14px 14px 14px 4px',
-                    display: 'flex', gap: 4,
-                  }}>
-                    <span className="dot-1" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED }} />
-                    <span className="dot-2" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED }} />
-                    <span className="dot-3" style={{ width: 6, height: 6, borderRadius: '50%', background: MUTED }} />
-                  </div>
-
-                  {/* Assistant bubble */}
-                  <div style={{
-                    alignSelf: 'flex-start', maxWidth: '92%', padding: '14px 16px',
-                    background: SURFACE, border: `1px solid ${HAIR}`,
-                    borderRadius: '14px 14px 14px 4px',
-                  }}>
-                    <div style={{
-                      fontSize: 13, color: INK, lineHeight: 1.6, fontFamily: FB,
-                      animation: 'streamIn 2.2s steps(40) 0.6s both',
-                    }}>
-                      Three service pages lost AI Overview placement on <strong>"dental implants"</strong>,
-                      <strong> "invisalign"</strong>, and <strong>"emergency dentist"</strong>. Competitor
-                      <strong> BriteSmile</strong> published fresh pillar content and captured the citation
-                      slot. Recommend refreshing these three pages — details in the brief below.
-                      <span style={{ display: 'inline-block', width: 2, height: 14, background: INK, verticalAlign: 'middle', marginLeft: 2, animation: 'blink 1s infinite' }} />
-                    </div>
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${HAIR}` }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }}>Sources:</span>
-                      {['GSC', 'GA4', 'DataForSEO', 'SERP Snapshot'].map(s => (
-                        <span key={s} style={{
-                          fontSize: 10, fontWeight: 700, color: MUTED,
-                          background: W, border: `1px solid ${HAIR}`,
-                          padding: '2px 7px', borderRadius: 100,
-                        }}>{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Input bar */}
-                <div style={{
-                  marginTop: 16, padding: '10px 14px', borderRadius: 10,
-                  border: `1px solid ${HAIR}`, background: W,
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  fontSize: 13, color: FAINT,
-                }}>
-                  <MessageCircle size={14} />
-                  Ask anything about this client...
-                  <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: FAINT, letterSpacing: '.04em' }}>⌘K</span>
-                </div>
-              </div>
-            </div>
+            {/* ─── MOCK 4: Ask KotoIQ — INTERACTIVE DEMO ─── */}
+            <ChatDemo />
           </div>
         </div>
       </section>
@@ -1142,12 +1345,17 @@ export default function MarketingSitePage() {
                     <div style={{
                       fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: '.08em',
                       textTransform: 'uppercase', marginBottom: 16,
-                    }}>How it works</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      {a.specs.map(s => (
-                        <div key={s.label}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: MUTED, fontFamily: FH, marginBottom: 2 }}>{s.label}</div>
-                          <div style={{ fontSize: 14, color: INK, fontFamily: FB, lineHeight: 1.45 }}>{s.value}</div>
+                    }}>Real-world use cases</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {a.cases.map(c => (
+                        <div key={c.title} style={{ display: 'flex', gap: 12 }}>
+                          <div style={{
+                            width: 3, borderRadius: 2, background: a.accent, flexShrink: 0, alignSelf: 'stretch',
+                          }} />
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: INK, fontFamily: FH, marginBottom: 4 }}>{c.title}</div>
+                            <div style={{ fontSize: 14, color: MUTED, fontFamily: FB, lineHeight: 1.55 }}>{c.scenario}</div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1159,46 +1367,85 @@ export default function MarketingSitePage() {
         </div>
       </section>
 
-      {/* ══ PROOF ══ */}
+      {/* ══ BUILT FOR SCALE ══ */}
       <section className="section" style={{ background: SURFACE, padding: '96px 40px' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div className="eyebrow">Proof</div>
+          <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="eyebrow">Built for scale</div>
             <h2 className="sec-h2" style={{
               fontSize: 56, fontWeight: 900, fontFamily: FH,
-              letterSpacing: '-.035em', color: INK, lineHeight: 1.02,
+              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
             }}>
-              Built by operators.<br />Loved by agencies.
+              Enterprise infrastructure.<br />Agency-ready workflows.
             </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              Koto is engineered for agencies that run dozens to hundreds of clients — with the security,
+              auditability, and performance your enterprise clients expect.
+            </p>
           </div>
 
+          {/* Big stats — live counter style */}
           <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18, marginBottom: 48 }}>
-            {PROOF_STATS.map(s => (
+            {PROOF_STATS.map((s, i) => (
               <div key={s.label} style={{
-                background: W, border: `1px solid ${HAIR}`, borderRadius: 14,
-                padding: '28px 24px', textAlign: 'center',
+                background: W, border: `1px solid ${HAIR}`, borderRadius: 16,
+                padding: '32px 24px', textAlign: 'center', position: 'relative', overflow: 'hidden',
               }}>
-                <div style={{ fontSize: 44, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: INK, lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 10, letterSpacing: '.02em', fontWeight: 600 }}>{s.label}</div>
+                <div style={{
+                  position: 'absolute', top: 12, right: 12,
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  fontSize: 10, fontWeight: 700, color: GRN, letterSpacing: '.04em',
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: GRN, animation: 'pulseDot 2s infinite' }} />
+                  LIVE
+                </div>
+                <div style={{
+                  fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.04em',
+                  color: INK, lineHeight: 1, animation: `countFlash .8s ease-out ${0.1 + i * 0.1}s both`,
+                }}>{s.value}</div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 14, letterSpacing: '.02em', fontWeight: 700, textTransform: 'uppercase' }}>{s.label}</div>
               </div>
             ))}
           </div>
 
-          <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
-            {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="card" style={{ background: W }}>
-                <div style={{ display: 'flex', gap: 3, marginBottom: 14 }}>
-                  {[0,1,2,3,4].map(k => <Star key={k} size={14} color={AMB} fill={AMB} />)}
+          {/* Enterprise feature grid */}
+          <div style={{
+            background: W, border: `1px solid ${HAIR}`, borderRadius: 20,
+            padding: '40px 36px',
+          }}>
+            <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Security & compliance
                 </div>
-                <p style={{ fontSize: 15, color: INK, lineHeight: 1.65, marginBottom: 20, fontFamily: FB }}>
-                  "{t.quote}"
-                </p>
-                <div style={{ paddingTop: 16, borderTop: `1px solid ${HAIR}` }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: INK, fontFamily: FH }}>{t.name}</div>
-                  <div style={{ fontSize: 13, color: MUTED, marginTop: 2, fontFamily: FB }}>{t.role}</div>
-                </div>
+                <h3 style={{ fontSize: 28, fontWeight: 900, fontFamily: FH, letterSpacing: '-.025em', color: INK }}>
+                  Engineered for the data you're trusted with.
+                </h3>
               </div>
-            ))}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {['SOC-2 pending', 'GDPR-aware', 'CCPA-ready', 'US-hosted'].map(b => (
+                  <span key={b} style={{
+                    fontSize: 11, fontWeight: 700, color: MUTED,
+                    background: SURFACE, border: `1px solid ${HAIR}`,
+                    padding: '5px 10px', borderRadius: 100, letterSpacing: '.04em',
+                  }}>{b}</span>
+                ))}
+              </div>
+            </div>
+            <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+              {ENTERPRISE_FEATURES.map(f => (
+                <div key={f.title} style={{ display: 'flex', gap: 12 }}>
+                  <div style={{
+                    width: 6, height: 6, borderRadius: '50%', background: GRN, marginTop: 8, flexShrink: 0,
+                    boxShadow: `0 0 0 4px ${GRN}15`,
+                  }} />
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: INK, fontFamily: FH, marginBottom: 4 }}>{f.title}</div>
+                    <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.55, fontFamily: FB }}>{f.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -1291,7 +1538,7 @@ export default function MarketingSitePage() {
               Ready to run your<br />agency on autopilot?
             </h2>
             <p style={{ fontSize: 18, color: 'rgba(255,255,255,.7)', fontFamily: FB, maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.55 }}>
-              Join 247+ agencies using Koto to automate growth and reclaim their time.
+              Replace the dozens of tools and hires that used to slow your agency down. One unified AI system, deployed in minutes.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button className="btn btn-pink btn-lg" onClick={() => navigate('/signup')}>
