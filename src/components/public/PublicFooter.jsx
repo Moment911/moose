@@ -12,9 +12,10 @@ const W     = '#ffffff'
 const COLUMNS = [
   { title: 'Platform', links: [
     { label: 'Overview', href: '/#platform' },
+    { label: 'AI Agents', href: '/ai-agents' },
+    { label: 'Chatbots', href: '/chatbots' },
+    { label: 'Custom Systems', href: '/custom-systems' },
     { label: 'KotoIQ', href: '/#kotoiq' },
-    { label: 'AI Agents', href: '/#agents' },
-    { label: 'Custom AI', href: '/#custom' },
     { label: 'Pricing', href: '/#pricing' },
   ] },
   { title: 'Company', links: [

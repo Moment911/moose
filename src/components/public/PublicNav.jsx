@@ -11,12 +11,12 @@ const W     = '#ffffff'
 /* Same nav on every public page — home, about, privacy, terms */
 /* mix of dedicated pages (href) and homepage anchors (id) */
 const LINKS = [
-  { id: 'platform', label: 'Platform' },
   { href: '/ai-agents',      label: 'AI Agents' },
+  { href: '/chatbots',       label: 'Chatbots' },
   { href: '/custom-systems', label: 'Custom Systems' },
-  { id: 'pricing',  label: 'Pricing' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
+  { id: 'pricing',           label: 'Pricing' },
+  { href: '/about',          label: 'About' },
+  { href: '/contact',        label: 'Contact' },
 ]
 
 export default function PublicNav() {

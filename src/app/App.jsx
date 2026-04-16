@@ -51,6 +51,7 @@ import TermsPage from '../views/TermsPage'
 import AboutPage from '../views/AboutPage'
 import AIAgentsMarketingPage from '../views/AIAgentsMarketingPage'
 import CustomSystemsPage from '../views/CustomSystemsPage'
+import ChatbotsPage from '../views/ChatbotsPage'
 import ScoutPage from '../views/scout/ScoutPage'
 import ScoutHistoryPage from '../views/scout/ScoutHistoryPage'
 import KotoDeskPage from '../views/desk/MooseDeskPage'
@@ -274,6 +275,7 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/ai-agents" element={<AIAgentsMarketingPage />} />
           <Route path="/custom-systems" element={<CustomSystemsPage />} />
+          <Route path="/chatbots" element={<ChatbotsPage />} />
           <Route path="/uptime/public" element={<PublicUptimePage />} />
           <Route path="/status" element={<StatusPage />} />
           <Route path="/discovery/form/:token" element={<DiscoveryClientFormPage />} />
