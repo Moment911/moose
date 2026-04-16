@@ -7,6 +7,7 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 // ── Types ──────────────────────────────────────────────────────
 interface PageAnalysis {
@@ -197,6 +198,9 @@ export async function analyzeSemanticNetwork(s: SupabaseClient, ai: Anthropic, b
   const { client_id } = body
   if (!client_id) return { error: 'client_id required' }
 
+  // url_limit body param — default 500, max 10,000 (was fixed at 50)
+  const urlLimit = Math.min(Math.max(parseInt(String(body.url_limit)) || 500, 1), 10000)
+
   const { data: client } = await s.from('clients').select('website, name').eq('id', client_id).single()
   if (!client?.website) return { error: 'Client has no website configured' }
 
@@ -205,11 +209,38 @@ export async function analyzeSemanticNetwork(s: SupabaseClient, ai: Anthropic, b
     try { return new URL(website.startsWith('http') ? website : `https://${website}`).hostname } catch { return website }
   })()
 
-  // Fetch sitemap (up to 50 for deep analysis)
-  const sitemapUrls = await fetchSitemapUrls(website, 50)
+  // Prefer cached sitemap URLs (semantic analysis benefits from priority-sorted coverage)
+  let sitemapUrls: string[] = []
+  try {
+    const latestCrawl = await getLatestCrawl(s as any, client_id).catch(() => null)
+    if (latestCrawl?.status === 'complete' && (latestCrawl.urls_saved || 0) > 0) {
+      const result = await getSitemapUrls(s as any, { client_id, limit: urlLimit, orderBy: 'priority' })
+      sitemapUrls = (result.urls || []).map((u: any) => u.url).filter(Boolean)
+    }
+  } catch { /* fall through */ }
+
+  // Fallback: live sitemap fetch
+  if (sitemapUrls.length === 0) {
+    sitemapUrls = await fetchSitemapUrls(website, urlLimit)
+  }
+
   if (!sitemapUrls.length) return { error: 'No URLs found in sitemap' }
 
-  // Fetch and extract content from all pages (batch 5)
+  // Processing job for observability
+  let jobId: string | null = null
+  try {
+    const { data: job } = await s.from('kotoiq_processing_jobs').insert({
+      client_id,
+      engine: 'semantic',
+      status: 'running',
+      total_urls: sitemapUrls.length,
+      processed_urls: 0,
+      started_at: new Date().toISOString(),
+    }).select().single()
+    jobId = job?.id || null
+  } catch { /* non-critical */ }
+
+  // Fetch and extract content from all pages (concurrent chunks of 10 with progress)
   interface PageData {
     url: string
     title: string
@@ -220,22 +251,46 @@ export async function analyzeSemanticNetwork(s: SupabaseClient, ai: Anthropic, b
     wordCount: number
   }
 
-  const pageDataArr = await batchProcess(sitemapUrls, 5, async (url): Promise<PageData | null> => {
-    const { html, ok } = await fetchPage(url)
-    if (!ok) return null
-    return {
-      url,
-      title: extractTitle(html),
-      text: stripTags(html),
-      headings: extractHeadings(html),
-      paragraphs: extractParagraphs(html),
-      anchors: extractInternalAnchors(html, domain),
-      wordCount: stripTags(html).split(/\s+/).filter(Boolean).length,
+  const pageDataArr: (PageData | null)[] = []
+  const CHUNK = 10
+  for (let i = 0; i < sitemapUrls.length; i += CHUNK) {
+    const batch = sitemapUrls.slice(i, i + CHUNK)
+    const batchResults = await Promise.all(batch.map(async (url): Promise<PageData | null> => {
+      const { html, ok } = await fetchPage(url)
+      if (!ok) return null
+      return {
+        url,
+        title: extractTitle(html),
+        text: stripTags(html),
+        headings: extractHeadings(html),
+        paragraphs: extractParagraphs(html),
+        anchors: extractInternalAnchors(html, domain),
+        wordCount: stripTags(html).split(/\s+/).filter(Boolean).length,
+      }
+    }))
+    pageDataArr.push(...batchResults)
+    if (jobId) {
+      try {
+        await s.from('kotoiq_processing_jobs').update({
+          processed_urls: pageDataArr.length,
+          updated_at: new Date().toISOString(),
+        }).eq('id', jobId)
+      } catch { /* non-critical */ }
     }
-  })
+  }
 
   const pages = pageDataArr.filter((p): p is PageData => p !== null)
-  if (!pages.length) return { error: 'Could not fetch any pages' }
+  if (!pages.length) {
+    if (jobId) {
+      try {
+        await s.from('kotoiq_processing_jobs').update({
+          status: 'failed',
+          completed_at: new Date().toISOString(),
+        }).eq('id', jobId)
+      } catch { /* non-critical */ }
+    }
+    return { error: 'Could not fetch any pages' }
+  }
 
   // ── Site-wide aggregations ─────────────────────────────────
   const allTitlesAndH1s = pages.flatMap(p => [p.title, ...p.headings.filter(h => h.level === 1).map(h => h.text)])
@@ -344,7 +399,18 @@ Scoring:
   await s.from('kotoiq_semantic_analysis').delete().eq('client_id', client_id)
   await s.from('kotoiq_semantic_analysis').insert(result)
 
-  return { success: true, analysis: result }
+  // Mark processing job complete
+  if (jobId) {
+    try {
+      await s.from('kotoiq_processing_jobs').update({
+        status: 'complete',
+        processed_urls: sitemapUrls.length,
+        completed_at: new Date().toISOString(),
+      }).eq('id', jobId)
+    } catch { /* non-critical */ }
+  }
+
+  return { success: true, analysis: result, job_id: jobId, urls_processed: sitemapUrls.length }
 }
 
 // ═══════════════════════════════════════════════════════════════

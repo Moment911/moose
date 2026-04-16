@@ -7,6 +7,7 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 // ── Types ──────────────────────────────────────────────────────
 interface InventoryRow {
@@ -267,6 +268,9 @@ export async function buildContentInventory(s: SupabaseClient, ai: Anthropic, bo
   const { client_id } = body
   if (!client_id) return { error: 'client_id required' }
 
+  // url_limit body param — default 500, max 10,000
+  const urlLimit = Math.min(Math.max(parseInt(body.url_limit) || 500, 1), 10000)
+
   // Get client website
   const { data: client } = await s.from('clients').select('website, name').eq('id', client_id).single()
   if (!client?.website) return { error: 'Client has no website configured' }
@@ -276,9 +280,26 @@ export async function buildContentInventory(s: SupabaseClient, ai: Anthropic, bo
     try { return new URL(website.startsWith('http') ? website : `https://${website}`).hostname } catch { return website }
   })()
 
-  // Fetch sitemap
-  const sitemapUrls = await fetchSitemapUrls(website, 200)
-  if (!sitemapUrls.length) return { error: 'No URLs found in sitemap. Ensure the site has a sitemap.xml.' }
+  // Try cached sitemap URLs from kotoiq_sitemap_urls first
+  let sitemapUrls: string[] = []
+  try {
+    const latestCrawl = await getLatestCrawl(s as any, client_id).catch(() => null)
+    if (latestCrawl?.status === 'complete' && (latestCrawl.urls_saved || 0) > 0) {
+      const result = await getSitemapUrls(s as any, {
+        client_id,
+        limit: urlLimit,
+        orderBy: 'lastmod', // freshness matters for content refresh
+      })
+      sitemapUrls = (result.urls || []).map((u: any) => u.url).filter(Boolean)
+    }
+  } catch { /* fall through to XML fetch */ }
+
+  // Fallback: fetch sitemap XML directly (legacy path)
+  if (sitemapUrls.length === 0) {
+    sitemapUrls = await fetchSitemapUrls(website, urlLimit)
+  }
+
+  if (!sitemapUrls.length) return { error: 'No URLs found in sitemap. Ensure the site has a sitemap.xml or run the sitemap crawler first.' }
 
   // Get existing keyword data for SC positions/clicks matching
   const { data: keywords } = await s.from('kotoiq_keywords').select('keyword, sc_avg_position, sc_clicks, sc_impressions, sc_ctr, sc_top_page')
@@ -354,8 +375,36 @@ export async function buildContentInventory(s: SupabaseClient, ai: Anthropic, bo
     }
   }
 
-  // Analyze pages in batches of 10
-  const pageResults = await batchProcess(sitemapUrls, 10, (url) => analyzePage(url, domain))
+  // Create processing job
+  let jobId: string | null = null
+  try {
+    const { data: job } = await s.from('kotoiq_processing_jobs').insert({
+      client_id,
+      engine: 'content_refresh',
+      status: 'running',
+      total_urls: sitemapUrls.length,
+      processed_urls: 0,
+      started_at: new Date().toISOString(),
+    }).select().single()
+    jobId = job?.id || null
+  } catch { /* processing_jobs is nice-to-have */ }
+
+  // Analyze pages in concurrent chunks of 10 with progress updates
+  const pageResults: (Partial<InventoryRow> | null)[] = []
+  const CHUNK = 10
+  for (let i = 0; i < sitemapUrls.length; i += CHUNK) {
+    const batch = sitemapUrls.slice(i, i + CHUNK)
+    const batchResults = await Promise.all(batch.map((url) => analyzePage(url, domain)))
+    pageResults.push(...batchResults)
+    if (jobId) {
+      try {
+        await s.from('kotoiq_processing_jobs').update({
+          processed_urls: pageResults.length,
+          updated_at: new Date().toISOString(),
+        }).eq('id', jobId)
+      } catch { /* non-critical */ }
+    }
+  }
 
   // Compute internal_links_in (count how many pages link to each URL)
   const internalLinkCount = new Map<string, number>()
@@ -469,8 +518,21 @@ Return ONLY valid JSON: an array of objects, each with "url" and "recommendation
     await s.from('kotoiq_content_inventory').insert(rows.slice(i, i + 50))
   }
 
+  // Mark processing job complete
+  if (jobId) {
+    try {
+      await s.from('kotoiq_processing_jobs').update({
+        status: 'complete',
+        processed_urls: sitemapUrls.length,
+        completed_at: new Date().toISOString(),
+      }).eq('id', jobId)
+    } catch { /* non-critical */ }
+  }
+
   return {
     success: true,
+    job_id: jobId,
+    urls_processed: sitemapUrls.length,
     total_pages: rows.length,
     fresh: rows.filter(r => r.freshness_status === 'fresh').length,
     aging: rows.filter(r => r.freshness_status === 'aging').length,

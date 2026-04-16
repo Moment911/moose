@@ -46,6 +46,10 @@ import { runAutonomousPipeline, getPipelineRuns, getPipelineRun } from '@/lib/au
 import { triggerAutoSetup } from '@/lib/voiceOnboardingAutoSetup'
 import { generateHyperlocalFromGrid } from '@/lib/hyperlocalContentEngine'
 import { crawlSitemaps, getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
+import { calculateAIVisibility, getAIVisibilityHistory } from '@/lib/aiVisibilityEngine'
+import { generateQuickWinQueue, updateQuickWinStatus } from '@/lib/quickWinEngine'
+import { getPortalData, checkPortalRateLimit, logPortalView } from '@/lib/portalEngine'
+import { runBulkOperation, getBulkOperationStatus } from '@/lib/bulkOperationsEngine'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -4246,6 +4250,80 @@ Provide a detailed analysis. Return ONLY valid JSON:
     if (jobStatus) q = q.eq('status', jobStatus)
     const { data } = await q.limit(20)
     return NextResponse.json({ jobs: data || [] })
+  }
+
+  // ── UNIFIED KPI: AI Visibility Score ──────────────────────────────────
+  if (action === 'calculate_ai_visibility') {
+    try {
+      const result = await calculateAIVisibility(s, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_ai_visibility_history') {
+    try {
+      const result = await getAIVisibilityHistory(s, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── UNIFIED KPI: Quick Win Queue ──────────────────────────────────────
+  if (action === 'generate_quick_win_queue') {
+    try {
+      const result = await generateQuickWinQueue(s, ai, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'update_quick_win_status') {
+    try {
+      const result = await updateQuickWinStatus(s, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Client Portal (public, read-only) ──
+  if (action === 'get_portal_data') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown').split(',')[0].trim()
+    if (!checkPortalRateLimit(ip)) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+    try {
+      const data = await getPortalData(s, client_id)
+      logPortalView(s, client_id, ip, req.headers.get('user-agent') || '')
+      return NextResponse.json(data)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── Bulk Operations ──
+  if (action === 'run_bulk_operation') {
+    try {
+      const result = await runBulkOperation(s, ai, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 400 })
+    }
+  }
+
+  if (action === 'get_bulk_operation_status') {
+    try {
+      const result = await getBulkOperationStatus(s, body)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 400 })
+    }
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

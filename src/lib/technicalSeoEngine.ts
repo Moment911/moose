@@ -6,6 +6,7 @@ import 'server-only'
 import { SupabaseClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 interface CanonicalIssue {
@@ -118,10 +119,13 @@ function isSitemapIndex(xml: string): boolean {
 export async function auditTechnicalDeep(
   s: SupabaseClient,
   ai: Anthropic,
-  body: { client_id: string; agency_id?: string }
+  body: { client_id: string; agency_id?: string; url_limit?: number }
 ) {
   const { client_id } = body
   if (!client_id) return { error: 'client_id required' }
+
+  // url_limit body param — default 500, max 10,000 (was 50 sampled)
+  const urlLimit = Math.min(Math.max(parseInt(String(body.url_limit)) || 500, 1), 10000)
 
   // Get client website
   const { data: client } = await s.from('clients').select('name, website').eq('id', client_id).single()
@@ -140,39 +144,58 @@ export async function auditTechnicalDeep(
   const sitemapIssues: SitemapIssue[] = []
   const childSitemaps: string[] = []
 
-  for (const path of sitemapPaths) {
-    const url = baseUrl + path
-    const res = await fetchWithTimeout(url)
-    if (res && res.ok) {
-      sitemapUrl = url
-      const xml = await res.text()
-
-      if (isSitemapIndex(xml)) {
-        // It's a sitemap index — extract child sitemaps
-        sitemapCategorized = true
-        const childUrls = extractUrlsFromSitemap(xml)
-        childSitemaps.push(...childUrls)
-
-        // Fetch each child sitemap (limit to 10)
-        for (const childUrl of childUrls.slice(0, 10)) {
-          try {
-            const childRes = await fetchWithTimeout(childUrl, 8000)
-            if (childRes && childRes.ok) {
-              const childXml = await childRes.text()
-              const urls = extractUrlsFromSitemap(childXml)
-              allSitemapUrls.push(...urls)
-            } else {
-              sitemapIssues.push({ url: childUrl, issue: 'child_sitemap_error', status: childRes?.status || 0 })
-            }
-          } catch {
-            sitemapIssues.push({ url: childUrl, issue: 'child_sitemap_unreachable' })
-          }
-        }
-      } else {
-        // Single sitemap
-        allSitemapUrls = extractUrlsFromSitemap(xml)
+  // Prefer cached sitemap URLs from kotoiq_sitemap_urls when a complete crawl exists
+  let usedCache = false
+  try {
+    const latestCrawl = await getLatestCrawl(s as any, client_id).catch(() => null)
+    if (latestCrawl?.status === 'complete' && (latestCrawl.urls_saved || 0) > 0) {
+      // Pull ALL URLs for totalUrls accuracy (cap 10k — sitemap spec max per file is 50k)
+      const cached = await getSitemapUrls(s as any, { client_id, limit: 10000, orderBy: 'discovered_at' })
+      allSitemapUrls = (cached.urls || []).map((u: any) => u.url).filter(Boolean)
+      if (allSitemapUrls.length > 0) {
+        usedCache = true
+        // Grab source_sitemap from the crawl record if available
+        sitemapUrl = baseUrl + '/sitemap.xml'
+        sitemapCategorized = (latestCrawl.sitemaps_found || 0) > 1
       }
-      break
+    }
+  } catch { /* fall through to live fetch */ }
+
+  if (!usedCache) {
+    for (const path of sitemapPaths) {
+      const url = baseUrl + path
+      const res = await fetchWithTimeout(url)
+      if (res && res.ok) {
+        sitemapUrl = url
+        const xml = await res.text()
+
+        if (isSitemapIndex(xml)) {
+          // It's a sitemap index — extract child sitemaps
+          sitemapCategorized = true
+          const childUrls = extractUrlsFromSitemap(xml)
+          childSitemaps.push(...childUrls)
+
+          // Fetch each child sitemap (limit to 10)
+          for (const childUrl of childUrls.slice(0, 10)) {
+            try {
+              const childRes = await fetchWithTimeout(childUrl, 8000)
+              if (childRes && childRes.ok) {
+                const childXml = await childRes.text()
+                const urls = extractUrlsFromSitemap(childXml)
+                allSitemapUrls.push(...urls)
+              } else {
+                sitemapIssues.push({ url: childUrl, issue: 'child_sitemap_error', status: childRes?.status || 0 })
+              }
+            } catch {
+              sitemapIssues.push({ url: childUrl, issue: 'child_sitemap_unreachable' })
+            }
+          }
+        } else {
+          // Single sitemap
+          allSitemapUrls = extractUrlsFromSitemap(xml)
+        }
+        break
+      }
     }
   }
 
@@ -185,15 +208,18 @@ export async function auditTechnicalDeep(
 
   const totalUrls = uniqueUrls.length || 1 // avoid division by zero
 
-  // ── Phase 2: Page Crawl (sample up to 50 URLs) ────────────────────────
-  const sampleSize = Math.min(50, uniqueUrls.length)
-  // Pick evenly distributed sample
+  // Processing job for progress tracking (phase 2 crawl)
+  let jobId: string | null = null
+
+  // ── Phase 2: Page Crawl (sample up to urlLimit URLs, spread across sitemap) ──
+  const sampleSize = Math.min(urlLimit, uniqueUrls.length)
+  // Pick evenly distributed sample for good section coverage
   const sampleUrls: string[] = []
-  if (uniqueUrls.length <= 50) {
+  if (uniqueUrls.length <= sampleSize) {
     sampleUrls.push(...uniqueUrls)
   } else {
-    const step = Math.floor(uniqueUrls.length / 50)
-    for (let i = 0; i < uniqueUrls.length && sampleUrls.length < 50; i += step) {
+    const step = Math.max(1, Math.floor(uniqueUrls.length / sampleSize))
+    for (let i = 0; i < uniqueUrls.length && sampleUrls.length < sampleSize; i += step) {
       sampleUrls.push(uniqueUrls[i])
     }
   }
@@ -203,12 +229,25 @@ export async function auditTechnicalDeep(
     sampleUrls.unshift(baseUrl)
   }
 
+  // Create processing job
+  try {
+    const { data: job } = await s.from('kotoiq_processing_jobs').insert({
+      client_id,
+      engine: 'technical_seo',
+      status: 'running',
+      total_urls: sampleUrls.length,
+      processed_urls: 0,
+      started_at: new Date().toISOString(),
+    }).select().single()
+    jobId = job?.id || null
+  } catch { /* non-critical */ }
+
   const crawlResults: PageCrawlResult[] = []
   const canonicalIssues: CanonicalIssue[] = []
   const mobileMismatches: MobileMismatch[] = []
   const statusCodes: Record<string, number> = {}
 
-  // Crawl in batches of 10
+  // Crawl in concurrent chunks of 10 with progress tracking
   for (let i = 0; i < sampleUrls.length; i += 10) {
     const batch = sampleUrls.slice(i, i + 10)
     const results = await Promise.all(batch.map(async (url) => {
@@ -242,6 +281,14 @@ export async function auditTechnicalDeep(
       return { url, status, canonical, canonical_self: canonicalSelf, has_viewport: viewport, has_noindex: noindex, response_time_ms: timeMs }
     }))
     crawlResults.push(...results)
+    if (jobId) {
+      try {
+        await s.from('kotoiq_processing_jobs').update({
+          processed_urls: crawlResults.length,
+          updated_at: new Date().toISOString(),
+        }).eq('id', jobId)
+      } catch { /* non-critical */ }
+    }
   }
 
   // Check for non-200 URLs in sitemap
@@ -386,6 +433,17 @@ export async function auditTechnicalDeep(
   const { error } = await s.from('kotoiq_technical_deep').insert(record)
   if (error) return { error: `DB save failed: ${error.message}` }
 
+  // Mark processing job complete
+  if (jobId) {
+    try {
+      await s.from('kotoiq_processing_jobs').update({
+        status: 'complete',
+        processed_urls: sampleUrls.length,
+        completed_at: new Date().toISOString(),
+      }).eq('id', jobId)
+    } catch { /* non-critical */ }
+  }
+
   // Log token usage (no AI tokens used in this audit, but log the action)
   try {
     await logTokenUsage({
@@ -397,7 +455,7 @@ export async function auditTechnicalDeep(
     })
   } catch { /* non-critical */ }
 
-  return { success: true, ...record }
+  return { success: true, ...record, job_id: jobId, urls_processed: sampleUrls.length }
 }
 
 // ── Get existing audit ─────────────────────────────────────────────────────

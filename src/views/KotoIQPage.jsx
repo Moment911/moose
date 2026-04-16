@@ -8,7 +8,8 @@ import {
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
   Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings,
-  Map, Code, Award, GitBranch, Eraser, Grid, Sparkles, Briefcase, Image as ImageIcon
+  Map, Code, Award, GitBranch, Eraser, Grid, Sparkles, Briefcase, Image as ImageIcon,
+  Layers, Share2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -42,6 +43,16 @@ import PassageOptimizerTab from '../components/kotoiq/PassageOptimizerTab'
 import ContextAlignerTab from '../components/kotoiq/ContextAlignerTab'
 import CompetitorMapTab from '../components/kotoiq/CompetitorMapTab'
 import AskKotoIQTab from '../components/kotoiq/AskKotoIQTab'
+import StrategyTab from '../components/kotoiq/StrategyTab'
+import ScorecardTab from '../components/kotoiq/ScorecardTab'
+import CompetitorWatchTab from '../components/kotoiq/CompetitorWatchTab'
+import IntegrationsTab from '../components/kotoiq/IntegrationsTab'
+import BulkOperationsTab from '../components/kotoiq/BulkOperationsTab'
+import AutonomousPipelineTab from '../components/kotoiq/AutonomousPipelineTab'
+import KnowledgeGraphTab from '../components/kotoiq/KnowledgeGraphTab'
+import HyperlocalTab from '../components/kotoiq/HyperlocalTab'
+import SitemapCrawlerTab from '../components/kotoiq/SitemapCrawlerTab'
+import ProcessingJobsTab from '../components/kotoiq/ProcessingJobsTab'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -134,6 +145,243 @@ function ScoreBadge({ score, label }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// AI VISIBILITY HERO — unified top KPI
+// ═══════════════════════════════════════════════════════════════════════════
+function gradeColor(grade) {
+  if (grade === 'A') return GRN
+  if (grade === 'B') return T
+  if (grade === 'C') return AMB
+  if (grade === 'D') return '#f97316'
+  return R
+}
+
+function ScoreRing({ score, grade, size = 160 }) {
+  const s = Number(score) || 0
+  const color = gradeColor(grade)
+  const radius = size / 2 - 12
+  const circ = 2 * Math.PI * radius
+  const offset = circ - (s / 100) * circ
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke="#f3f4f6" strokeWidth="12" fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke={color} strokeWidth="12" fill="none"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset .8s ease' }} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: BLK, lineHeight: 1 }}>{Math.round(s)}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.08em', marginTop: 4 }}>out of 100</div>
+        <div style={{ marginTop: 6, padding: '2px 10px', borderRadius: 20, background: color + '15', color, fontFamily: FH, fontSize: 14, fontWeight: 900 }}>{grade || '—'}</div>
+      </div>
+    </div>
+  )
+}
+
+function Sparkline({ points, color, width = 220, height = 44 }) {
+  if (!points || points.length < 2) {
+    return <div style={{ fontSize: 11, color: '#9ca3af', padding: '12px 0' }}>Not enough history — snapshots accumulate over time</div>
+  }
+  const vals = points.map(p => Number(p) || 0)
+  const min = Math.min(...vals)
+  const max = Math.max(...vals)
+  const range = max - min || 1
+  const step = width / (vals.length - 1)
+  const path = vals.map((v, i) => `${i === 0 ? 'M' : 'L'} ${i * step} ${height - ((v - min) / range) * height}`).join(' ')
+  return (
+    <svg width={width} height={height} style={{ display: 'block' }}>
+      <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function AiVisibilityHero({ data, history, loading, onRefresh }) {
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '22px 26px', marginBottom: 16 }
+  const score = data?.ai_visibility_score || 0
+  const grade = data?.grade || '—'
+  const color = gradeColor(grade)
+  const components = data?.components || {}
+  const trendDir = data?.trend_direction || 'flat'
+  const trendPct = data?.trend_pct || 0
+  const focus = data?.next_focus || []
+  const sparkPoints = (history || []).map(h => Number(h.ai_visibility_score) || 0)
+  const subScores = [
+    { key: 'topical_authority', label: 'Topical Authority', value: components.topical_authority?.score },
+    { key: 'brand_serp', label: 'Brand SERP', value: components.brand_serp?.score },
+    { key: 'eeat', label: 'E-E-A-T', value: components.eeat?.score },
+    { key: 'aeo', label: 'AEO', value: components.aeo?.score },
+  ]
+  return (
+    <div style={{ ...card, background: `linear-gradient(135deg, ${color}06 0%, #ffffff 55%)`, borderColor: color + '30' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Target size={18} color={color} />
+          </div>
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: BLK, letterSpacing: '-.01em' }}>AI Visibility Score</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Unified across Topical Authority, Brand SERP, E-E-A-T, and AEO</div>
+          </div>
+        </div>
+        <button onClick={onRefresh} disabled={loading} style={{
+          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
+          border: `1px solid ${color}`, background: '#fff', color, fontSize: 12, fontWeight: 700, fontFamily: FH,
+          cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.6 : 1,
+        }}>
+          {loading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
+          {loading ? 'Calculating…' : 'Refresh Score'}
+        </button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 24, alignItems: 'center' }}>
+        <ScoreRing score={score} grade={grade} size={160} />
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 20,
+              background: trendDir === 'up' ? GRN + '15' : trendDir === 'down' ? R + '15' : '#f3f4f6',
+              color: trendDir === 'up' ? GRN : trendDir === 'down' ? R : '#6b7280',
+              fontSize: 12, fontWeight: 800, fontFamily: FH,
+            }}>
+              {trendDir === 'up' ? <ArrowUpRight size={12} /> : trendDir === 'down' ? <ArrowDownRight size={12} /> : <span style={{ fontSize: 14 }}>●</span>}
+              {trendDir === 'flat' ? 'flat' : `${trendPct > 0 ? '+' : ''}${trendPct}%`} vs 30d
+            </div>
+            <div style={{ flex: 1 }}>
+              <Sparkline points={sparkPoints} color={color} />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
+            {subScores.map(sub => {
+              const v = Number(sub.value || 0)
+              const subColor = v >= 75 ? GRN : v >= 50 ? T : v >= 30 ? AMB : R
+              return (
+                <div key={sub.key} style={{ padding: '10px 12px', borderRadius: 10, background: '#fff', border: `1px solid ${subColor}30` }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>{sub.label}</div>
+                  <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: subColor, lineHeight: 1 }}>{Math.round(v)}</div>
+                </div>
+              )
+            })}
+          </div>
+          {focus.length > 0 && (
+            <div style={{ padding: '10px 14px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>What to focus on</div>
+              <div style={{ fontSize: 13, color: BLK, fontWeight: 600 }}>{focus.join(' • ')}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUICK WIN QUEUE CARD — unified priority stack
+// ═══════════════════════════════════════════════════════════════════════════
+function effortBadgeColor(effort) {
+  if (effort === 'quick_win') return GRN
+  if (effort === 'moderate') return AMB
+  return R
+}
+
+function QuickWinRow({ item, index, onMarkDone, onMarkSkipped }) {
+  const priorityLabel = index < 3 ? 'P1' : index < 7 ? 'P2' : 'P3'
+  const priorityColor = index < 3 ? R : index < 7 ? AMB : T
+  const ec = effortBadgeColor(item.effort)
+  return (
+    <div style={{
+      display: 'grid', gridTemplateColumns: '50px 1fr auto auto auto auto',
+      alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10,
+      border: '1px solid #e5e7eb', background: '#fff', marginBottom: 8,
+    }}>
+      <div style={{
+        fontFamily: FH, fontSize: 13, fontWeight: 900, color: priorityColor,
+        background: priorityColor + '15', padding: '4px 8px', borderRadius: 6, textAlign: 'center',
+      }}>{priorityLabel}</div>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH, lineHeight: 1.3, marginBottom: 3 }}>{item.title}</div>
+        <div style={{ fontSize: 11, color: '#6b7280' }}>{(item.source || '').replace(/_/g, ' ').replace(/\./g, ' / ')}</div>
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: ec + '15', color: ec, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        {(item.effort || '').replace('_', ' ')}
+      </div>
+      <div style={{ fontSize: 12, color: '#374151', fontFamily: FH, textAlign: 'right', minWidth: 80 }}>
+        <div style={{ fontWeight: 800, color: GRN }}>+{item.estimated_traffic_gain || 0}</div>
+        <div style={{ fontSize: 10, color: '#9ca3af' }}>traffic</div>
+      </div>
+      <button onClick={() => onMarkDone(item.id)} title="Mark done" style={{
+        display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 6,
+        border: `1px solid ${GRN}`, background: '#fff', color: GRN, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+      }}>
+        <CheckCircle size={12} /> Done
+      </button>
+      <button onClick={() => onMarkSkipped(item.id)} title="Skip" style={{
+        padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff',
+        color: '#6b7280', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+      }}>Skip</button>
+    </div>
+  )
+}
+
+function QuickWinQueueCard({ queue, totals, loading, onGenerate, onMarkDone, onMarkSkipped, showAll, onToggleAll }) {
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const visibleItems = showAll ? queue : queue.slice(0, 10)
+  return (
+    <div style={card}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={16} color={R} />
+          </div>
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 900, color: BLK }}>Quick Wins — This Week's Action Queue</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Ranked across every KotoIQ tool by impact / effort</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {queue.length > 0 && (
+            <div style={{ fontSize: 12, color: '#374151' }}>
+              <span style={{ fontWeight: 800, color: GRN }}>+{totals.estimated_total_traffic_gain || 0}</span> est. traffic · {totals.total_items} items
+            </div>
+          )}
+          <button onClick={onGenerate} disabled={loading} style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
+            border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH,
+            cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.6 : 1,
+          }}>
+            {loading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <TrendingUp size={12} />}
+            {loading ? 'Generating…' : 'Generate Queue'}
+          </button>
+        </div>
+      </div>
+      {queue.length === 0 && !loading && (
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6b7280' }}>
+          <Zap size={32} color={T} style={{ opacity: 0.3, margin: '0 auto 12px' }} />
+          <div style={{ fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 6 }}>No queue yet</div>
+          <div style={{ fontSize: 12 }}>Run a few KotoIQ tools first, then click "Generate Queue" to stack the top 25 priorities.</div>
+        </div>
+      )}
+      {queue.length === 0 && loading && (
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <Loader2 size={24} color={R} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      )}
+      {visibleItems.map((item, i) => (
+        <QuickWinRow key={item.id || i} item={item} index={i} onMarkDone={onMarkDone} onMarkSkipped={onMarkSkipped} />
+      ))}
+      {queue.length > 10 && (
+        <div style={{ textAlign: 'center', marginTop: 8 }}>
+          <button onClick={onToggleAll} style={{
+            padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+            color: BLK, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+          }}>
+            {showAll ? 'Show Top 10' : `View All ${queue.length} Items`}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 export default function KotoIQPage() {
   const { agencyId } = useAuth()
   const navigate = useNavigate()
@@ -204,6 +452,15 @@ export default function KotoIQPage() {
   const [briefKeyword, setBriefKeyword] = useState('')
   const [briefPageType, setBriefPageType] = useState('service_page')
   const [activeBrief, setActiveBrief] = useState(null)
+
+  // Unified KPIs — AI Visibility Score + Quick Win Queue
+  const [aiVis, setAiVis] = useState(null)
+  const [aiVisHistory, setAiVisHistory] = useState([])
+  const [aiVisLoading, setAiVisLoading] = useState(false)
+  const [quickWins, setQuickWins] = useState([])
+  const [quickWinTotals, setQuickWinTotals] = useState({ total_items: 0, estimated_total_traffic_gain: 0, estimated_total_revenue_gain: 0 })
+  const [quickWinLoading, setQuickWinLoading] = useState(false)
+  const [showAllQuickWins, setShowAllQuickWins] = useState(false)
   const [generatingBrief, setGeneratingBrief] = useState(false)
 
   // OAuth callback state
@@ -255,6 +512,51 @@ export default function KotoIQPage() {
       if (!editingClient && data.client?.id) setClientId(data.client.id)
     } catch { toast.error('Failed to save client') }
     setSavingClient(false)
+  }
+
+  // Load AI Visibility Score
+  const loadAiVisibility = useCallback(() => {
+    if (!clientId) return
+    setAiVisLoading(true)
+    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'calculate_ai_visibility', client_id: clientId, agency_id: agencyId }) })
+      .then(r => r.json()).then(res => { if (!res.error) setAiVis(res); setAiVisLoading(false) })
+      .catch(() => setAiVisLoading(false))
+    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get_ai_visibility_history', client_id: clientId, days: 30 }) })
+      .then(r => r.json()).then(res => { if (Array.isArray(res.history)) setAiVisHistory(res.history) }).catch(() => {})
+  }, [clientId, agencyId])
+
+  // Load Quick Win Queue (top 10 by default)
+  const loadQuickWins = useCallback((opts = {}) => {
+    if (!clientId) return
+    setQuickWinLoading(true)
+    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'generate_quick_win_queue', client_id: clientId, agency_id: agencyId, ...opts }) })
+      .then(r => r.json()).then(res => {
+        if (Array.isArray(res.queue)) {
+          setQuickWins(res.queue)
+          setQuickWinTotals({
+            total_items: res.total_items || 0,
+            estimated_total_traffic_gain: res.estimated_total_traffic_gain || 0,
+            estimated_total_revenue_gain: res.estimated_total_revenue_gain || 0,
+          })
+        }
+        setQuickWinLoading(false)
+      })
+      .catch(() => setQuickWinLoading(false))
+  }, [clientId, agencyId])
+
+  // Mark a quick win done/in-progress/skipped
+  const updateQuickWin = async (itemId, status) => {
+    try {
+      const res = await fetch('/api/kotoiq', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_quick_win_status', item_id: itemId, status }),
+      })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error); return }
+      toast.success(status === 'done' ? 'Marked done' : `Marked ${status.replace('_', ' ')}`)
+      setQuickWins(prev => status === 'done' || status === 'skipped' ? prev.filter(q => q.id !== itemId) : prev.map(q => q.id === itemId ? { ...q, status } : q))
+    } catch { toast.error('Failed to update') }
   }
 
   // Load dashboard
@@ -374,6 +676,14 @@ export default function KotoIQPage() {
   }, [clientId])
 
   useEffect(() => { loadDashboard() }, [loadDashboard])
+
+  // Auto-load unified KPIs when dashboard is active
+  useEffect(() => {
+    if (clientId && tab === 'dashboard') {
+      loadAiVisibility()
+      loadQuickWins()
+    }
+  }, [clientId, tab, loadAiVisibility, loadQuickWins])
 
   // Handle Google OAuth callback — exchange code for tokens, fetch properties
   useEffect(() => {
@@ -600,6 +910,9 @@ export default function KotoIQPage() {
                   ['topical_authority', 'Authority Score', Award],
                 ]},
                 { group: 'Intelligence', items: [
+                  ['strategy', 'Strategic Plan', Target],
+                  ['scorecard', 'Scorecard', Award],
+                  ['competitor_watch', 'Competitor Watch', Eye],
                   ['competitors', 'Competitors', Target],
                   ['competitor_map', 'Competitor Maps', Map],
                   ['aeo', 'AEO Research', Brain],
@@ -608,10 +921,13 @@ export default function KotoIQPage() {
                   ['backlinks', 'Backlinks', Link2],
                   ['backlink_opps', 'Link Opportunities', Target],
                   ['eeat', 'E-E-A-T', Award],
+                  ['knowledge_graph', 'Knowledge Graph', GitBranch],
                   ['query_paths', 'Query Paths', GitBranch],
                 ]},
                 { group: 'Content', items: [
+                  ['autopilot', 'Auto-Pilot', Sparkles],
                   ['briefs', 'PageIQ Writer', Zap],
+                  ['hyperlocal', 'Hyperlocal Content', MapPin],
                   ['topical_map', 'Topical Map', Map],
                   ['content_refresh', 'Content Health', RefreshCw],
                   ['content_decay', 'Decay Prediction', AlertCircle],
@@ -630,6 +946,8 @@ export default function KotoIQPage() {
                   ['bing_audit', 'Bing Audit', Search],
                   ['schema', 'Schema Markup', Code],
                   ['internal_links', 'Internal Links', Link2],
+                  ['sitemap_crawler', 'Sitemap Crawler', Layers],
+                  ['jobs', 'Background Jobs', Clock],
                 ]},
                 { group: 'Local & Reviews', items: [
                   ['gmb', 'Google Business', MapPin],
@@ -643,6 +961,8 @@ export default function KotoIQPage() {
                   ['visitors', 'Visitors', Eye],
                   ['utm', 'UTM Builder', Link2],
                   ['upwork', 'Upwork Tool', Briefcase],
+                  ['bulk_ops', 'Bulk Operations', Layers],
+                  ['integrations', 'Integrations', Link2],
                   ['connect', 'Connect APIs', Settings],
                 ]},
               ].map(section => (
@@ -833,6 +1153,18 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <Download size={14} /> Export PDF
               </button>
             )}
+            {clientId && (
+              <button onClick={() => {
+                const url = `${window.location.origin}/portal/${clientId}`
+                navigator.clipboard?.writeText(url).then(
+                  () => toast.success('Client portal link copied'),
+                  () => toast.error('Copy failed — URL: ' + url)
+                )
+              }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                title="Copy shareable white-label client portal link">
+                <Share2 size={14} /> Share Portal Link
+              </button>
+            )}
           </div>
 
         {/* Old horizontal tab bar removed — now using sidebar nav */}
@@ -914,6 +1246,26 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ DASHBOARD TAB ══ */}
         {clientId && tab === 'dashboard' && d && !loading && (
           <>
+            {/* ── AI VISIBILITY SCORE — Unified Top KPI ── */}
+            <AiVisibilityHero
+              data={aiVis}
+              history={aiVisHistory}
+              loading={aiVisLoading}
+              onRefresh={loadAiVisibility}
+            />
+
+            {/* ── QUICK WIN QUEUE — Unified Priority Stack ── */}
+            <QuickWinQueueCard
+              queue={quickWins}
+              totals={quickWinTotals}
+              loading={quickWinLoading}
+              onGenerate={() => loadQuickWins()}
+              onMarkDone={(id) => updateQuickWin(id, 'done')}
+              onMarkSkipped={(id) => updateQuickWin(id, 'skipped')}
+              showAll={showAllQuickWins}
+              onToggleAll={() => setShowAllQuickWins(v => !v)}
+            />
+
             {d.empty ? (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <Brain size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
@@ -2233,6 +2585,20 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           <GMBImagesTab clientId={clientId} agencyId={agencyId} />
         )}
 
+        {/* ══ NEW: STRATEGY / SCORECARD / COMPETITOR WATCH / INTEGRATIONS ══ */}
+        {clientId && tab === 'strategy' && <StrategyTab clientId={clientId} agencyId={agencyId} />}
+        {clientId && tab === 'scorecard' && <ScorecardTab clientId={clientId} agencyId={agencyId} />}
+        {clientId && tab === 'competitor_watch' && <CompetitorWatchTab clientId={clientId} agencyId={agencyId} />}
+        {clientId && tab === 'integrations' && <IntegrationsTab clientId={clientId} agencyId={agencyId} />}
+
+        {/* ══ BULK OPERATIONS — agency-wide, no clientId required ══ */}
+        {tab === 'bulk_ops' && (
+          <BulkOperationsTab
+            agencyId={agencyId}
+            clients={(portfolio?.clients || []).map(c => ({ id: c.id, name: c.name }))}
+          />
+        )}
+
         {/* ══ NEW: RANK GRID PRO ══ */}
         {clientId && tab === 'rank_grid' && (
           <RankGridProTab clientId={clientId} agencyId={agencyId} />
@@ -2241,6 +2607,31 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ NEW: UPWORK CHECKLIST ══ */}
         {clientId && tab === 'upwork' && (
           <UpworkChecklistTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ NEW: AUTONOMOUS CONTENT PIPELINE ══ */}
+        {clientId && tab === 'autopilot' && (
+          <AutonomousPipelineTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ NEW: KNOWLEDGE GRAPH EXPORT ══ */}
+        {clientId && tab === 'knowledge_graph' && (
+          <KnowledgeGraphTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ NEW: HYPERLOCAL CONTENT ══ */}
+        {clientId && tab === 'hyperlocal' && (
+          <HyperlocalTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ NEW: SITEMAP CRAWLER ══ */}
+        {clientId && tab === 'sitemap_crawler' && (
+          <SitemapCrawlerTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ NEW: PROCESSING JOBS ══ */}
+        {clientId && tab === 'jobs' && (
+          <ProcessingJobsTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ COMPETITORS TAB ══ */}

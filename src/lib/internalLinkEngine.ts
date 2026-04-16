@@ -6,6 +6,7 @@
 // recommendations for internal linking improvements.
 // ─────────────────────────────────────────────────────────────
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 type SB = any
 type AI = any
@@ -270,6 +271,9 @@ export async function scanInternalLinks(s: SB, ai: AI, body: any) {
   const { client_id } = body
   if (!client_id) return { error: 'client_id required', status: 400 }
 
+  // url_limit body param — default 500, max 10,000
+  const urlLimit = Math.min(Math.max(parseInt(body.url_limit) || 500, 1), 10000)
+
   // Get client website
   const { data: client } = await s.from('clients').select('website, name').eq('id', client_id).single()
   const rawWebsite = client?.website?.trim() || ''
@@ -278,19 +282,58 @@ export async function scanInternalLinks(s: SB, ai: AI, body: any) {
   const domain = rawWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '')
   const baseUrl = rawWebsite.startsWith('http') ? rawWebsite : `https://${rawWebsite}`
 
-  // 1) Get all URLs from sitemap
-  const sitemapUrls = await fetchSitemapUrls(domain)
+  // 1) Get all URLs — prefer cached crawl, fallback to live sitemap
+  let sitemapUrls: string[] = []
+  try {
+    const latestCrawl = await getLatestCrawl(s, client_id).catch(() => null)
+    if (latestCrawl?.status === 'complete' && (latestCrawl.urls_saved || 0) > 0) {
+      const result = await getSitemapUrls(s, { client_id, limit: urlLimit, orderBy: 'priority' })
+      sitemapUrls = (result.urls || []).map((u: any) => u.url).filter(Boolean)
+    }
+  } catch { /* fall through */ }
+  if (sitemapUrls.length === 0) {
+    sitemapUrls = await fetchSitemapUrls(domain)
+    sitemapUrls = sitemapUrls.slice(0, urlLimit)
+  }
 
-  // 2) Crawl each page and extract links (batch of 10)
+  // Create processing job for observability
+  let jobId: string | null = null
+  try {
+    const { data: job } = await s.from('kotoiq_processing_jobs').insert({
+      client_id,
+      engine: 'internal_links',
+      status: 'running',
+      total_urls: sitemapUrls.length,
+      processed_urls: 0,
+      started_at: new Date().toISOString(),
+    }).select().single()
+    jobId = job?.id || null
+  } catch { /* non-critical */ }
+
+  // 2) Crawl each page and extract links (concurrent chunks of 10 with progress)
   const allLinks: ExtractedLink[] = []
   const pageStatuses: Record<string, number> = {}
   const breadcrumbPages: Set<string> = new Set()
   const crawledPages: Set<string> = new Set()
 
-  const pageResults = await batchProcess(sitemapUrls, 10, async (url) => {
-    const result = await fetchPage(url)
-    return { url, result }
-  })
+  const pageResults: { url: string; result: { html: string; status: number } | null }[] = []
+  const CHUNK = 10
+  for (let i = 0; i < sitemapUrls.length; i += CHUNK) {
+    const batch = sitemapUrls.slice(i, i + CHUNK)
+    const batchResults = await Promise.all(batch.map(async (url) => {
+      const result = await fetchPage(url)
+      return { url, result }
+    }))
+    pageResults.push(...batchResults)
+    if (jobId) {
+      try {
+        await s.from('kotoiq_processing_jobs').update({
+          processed_urls: pageResults.length,
+          updated_at: new Date().toISOString(),
+        }).eq('id', jobId)
+      } catch { /* non-critical */ }
+    }
+  }
 
   for (const { url, result } of pageResults) {
     const normalUrl = url.replace(/\/+$/, '')
@@ -586,10 +629,23 @@ export async function scanInternalLinks(s: SB, ai: AI, body: any) {
     recommendations = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
   } catch { /* AI recommendations are optional */ }
 
+  // Mark processing job complete
+  if (jobId) {
+    try {
+      await s.from('kotoiq_processing_jobs').update({
+        status: 'complete',
+        processed_urls: sitemapUrls.length,
+        completed_at: new Date().toISOString(),
+      }).eq('id', jobId)
+    } catch { /* non-critical */ }
+  }
+
   return {
     audit: { ...auditRow, recommendations },
     link_count: linkRows.length,
     pages_crawled: totalPages,
+    job_id: jobId,
+    urls_processed: sitemapUrls.length,
   }
 }
 

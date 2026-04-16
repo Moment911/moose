@@ -6,6 +6,7 @@ import 'server-only'
 import { SupabaseClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { getSitemapUrls as getSitemapUrlsCached, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 interface SchemaInstance {
@@ -266,20 +267,47 @@ async function processBatch(urls: string[]): Promise<{
 export async function auditSchema(
   s: SupabaseClient,
   ai: Anthropic,
-  body: { client_id: string; agency_id?: string }
+  body: { client_id: string; agency_id?: string; url_limit?: number }
 ) {
   const { client_id } = body
   if (!client_id) throw new Error('client_id required')
+
+  // url_limit body param — default 1000, max 10,000 (schema audit expanded from 100)
+  const urlLimit = Math.min(Math.max(parseInt(String(body.url_limit)) || 1000, 1), 10000)
 
   const { data: client } = await s.from('clients').select('name, website, primary_service').eq('id', client_id).single()
   if (!client?.website) throw new Error('No website found for client — set it on the client record first')
 
   const website = client.website.replace(/\/$/, '')
 
-  // 1. Get sitemap URLs
-  const urls = await getSitemapUrls(website, 100)
+  // 1. Get URLs — prefer cached sitemap crawl; fall back to live fetch
+  let urls: string[] = []
+  try {
+    const latestCrawl = await getLatestCrawl(s as any, client_id).catch(() => null)
+    if (latestCrawl?.status === 'complete' && (latestCrawl.urls_saved || 0) > 0) {
+      const result = await getSitemapUrlsCached(s as any, { client_id, limit: urlLimit, orderBy: 'priority' })
+      urls = (result.urls || []).map((u: any) => u.url).filter(Boolean)
+    }
+  } catch { /* fall through */ }
+  if (urls.length === 0) {
+    urls = await getSitemapUrls(website, urlLimit)
+  }
 
-  // 2. Process in batches of 10
+  // Create processing job for progress tracking
+  let jobId: string | null = null
+  try {
+    const { data: job } = await s.from('kotoiq_processing_jobs').insert({
+      client_id,
+      engine: 'schema',
+      status: 'running',
+      total_urls: urls.length,
+      processed_urls: 0,
+      started_at: new Date().toISOString(),
+    }).select().single()
+    jobId = job?.id || null
+  } catch { /* non-critical */ }
+
+  // 2. Process in concurrent chunks of 10 with job progress
   const allSchemas: SchemaInstance[] = []
   let totalWith = 0
   let totalWithout = 0
@@ -296,6 +324,14 @@ export async function auditSchema(
     for (const [url, types] of result.pageTypes) allPageTypes.set(url, types)
     allSemanticScores.push(...result.semanticScores)
     if (allSemanticIssues.length < 15) allSemanticIssues.push(...result.semanticIssues)
+    if (jobId) {
+      try {
+        await s.from('kotoiq_processing_jobs').update({
+          processed_urls: Math.min(i + 10, urls.length),
+          updated_at: new Date().toISOString(),
+        }).eq('id', jobId)
+      } catch { /* non-critical */ }
+    }
   }
 
   // 3. Aggregate schema types
@@ -414,7 +450,18 @@ Return ONLY a valid JSON array:
   await s.from('kotoiq_schema_audit').delete().eq('client_id', client_id)
   await s.from('kotoiq_schema_audit').insert(record)
 
-  return record
+  // Mark processing job complete
+  if (jobId) {
+    try {
+      await s.from('kotoiq_processing_jobs').update({
+        status: 'complete',
+        processed_urls: urls.length,
+        completed_at: new Date().toISOString(),
+      }).eq('id', jobId)
+    } catch { /* non-critical */ }
+  }
+
+  return { ...record, job_id: jobId, urls_processed: urls.length }
 }
 
 // ── Get existing audit ──────────────────────────────────────────────────────

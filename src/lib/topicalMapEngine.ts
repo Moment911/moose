@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 type SB = any
 type AI = import('@anthropic-ai/sdk').default
@@ -61,6 +62,9 @@ export async function generateTopicalMap(s: SB, ai: AI, body: any) {
     return { error: 'client_id and agency_id required', status: 400 }
   }
 
+  // url_limit body param — default 500, max 10,000
+  const urlLimit = Math.min(Math.max(parseInt(body.url_limit) || 500, 1), 10000)
+
   // 1. Get client info
   const { data: client, error: clientErr } = await s
     .from('clients')
@@ -88,34 +92,53 @@ export async function generateTopicalMap(s: SB, ai: AI, body: any) {
   if (!normalizedUrl.startsWith('http')) normalizedUrl = 'https://' + normalizedUrl
   const origin = new URL(normalizedUrl).origin
 
-  const [pageHtml, sitemapXml] = await Promise.all([
-    fetchPage(normalizedUrl),
-    (async () => {
-      for (const path of ['/sitemap.xml', '/sitemap_index.xml', '/wp-sitemap.xml']) {
-        const xml = await fetchPage(`${origin}${path}`)
-        if (xml && xml.includes('<loc>')) return xml
+  // Try cached sitemap URLs first (prioritize high priority + recent lastmod)
+  let sitemapUrls: string[] = []
+  try {
+    const latestCrawl = await getLatestCrawl(s, client_id).catch(() => null)
+    if (latestCrawl?.status === 'complete' && (latestCrawl.urls_saved || 0) > 0) {
+      // Pull two sets — high priority for topical core + recently-modified for freshness —
+      // then intelligently merge.
+      const byPriority = await getSitemapUrls(s, { client_id, limit: Math.ceil(urlLimit * 0.6), orderBy: 'priority' })
+      const byLastmod = await getSitemapUrls(s, { client_id, limit: Math.ceil(urlLimit * 0.6), orderBy: 'lastmod' })
+      const seen = new Set<string>()
+      for (const row of [...(byPriority.urls || []), ...(byLastmod.urls || [])]) {
+        if (seen.size >= urlLimit) break
+        if (row?.url && !seen.has(row.url)) {
+          seen.add(row.url)
+        }
       }
-      return ''
-    })(),
-  ])
+      sitemapUrls = Array.from(seen)
+    }
+  } catch { /* fall through */ }
+
+  const pageHtml = await fetchPage(normalizedUrl)
+
+  // Fallback: fetch sitemap XML inline (legacy behavior)
+  if (sitemapUrls.length === 0) {
+    let sitemapXml = ''
+    for (const path of ['/sitemap.xml', '/sitemap_index.xml', '/wp-sitemap.xml']) {
+      const xml = await fetchPage(`${origin}${path}`)
+      if (xml && xml.includes('<loc>')) { sitemapXml = xml; break }
+    }
+    let fallbackUrls = extractSitemapUrls(sitemapXml)
+    // If sitemap_index, fetch child sitemaps
+    if (sitemapXml.includes('<sitemapindex')) {
+      const childUrls = fallbackUrls.slice(0, 5)
+      const childResults = await Promise.all(childUrls.map(u => fetchPage(u)))
+      const allPageUrls: string[] = []
+      for (const child of childResults) {
+        allPageUrls.push(...extractSitemapUrls(child))
+      }
+      fallbackUrls = [...new Set(allPageUrls)]
+    }
+    sitemapUrls = fallbackUrls.slice(0, urlLimit)
+  }
 
   const pageText = extractText(pageHtml).slice(0, 6000)
   const headings = extractH1H2(pageHtml)
   const titles = extractPageTitles(pageHtml)
-  let sitemapUrls = extractSitemapUrls(sitemapXml)
 
-  // If sitemap_index, fetch child sitemaps
-  if (sitemapXml.includes('<sitemapindex')) {
-    const childUrls = sitemapUrls.slice(0, 5)
-    const childResults = await Promise.all(childUrls.map(u => fetchPage(u)))
-    const allPageUrls: string[] = []
-    for (const child of childResults) {
-      allPageUrls.push(...extractSitemapUrls(child))
-    }
-    sitemapUrls = [...new Set(allPageUrls)]
-  }
-
-  sitemapUrls = sitemapUrls.slice(0, 200)
   const sitemapPaths = sitemapUrls.map(u => { try { return new URL(u).pathname } catch { return u } }).filter(p => p !== '/')
 
   // 4. Fetch content from top pages for deeper context
@@ -638,24 +661,38 @@ export async function analyzeTopicalCoverage(s: SB, ai: AI, body: any) {
   if (!normalizedUrl.startsWith('http')) normalizedUrl = 'https://' + normalizedUrl
   const origin = new URL(normalizedUrl).origin
 
-  // Crawl sitemap
+  // url_limit body param — default 500, max 10,000
+  const coverageUrlLimit = Math.min(Math.max(parseInt(body.url_limit) || 500, 1), 10000)
+
+  // Prefer cached sitemap URLs
   let sitemapUrls: string[] = []
-  for (const path of ['/sitemap.xml', '/sitemap_index.xml', '/wp-sitemap.xml']) {
-    const xml = await fetchPage(`${origin}${path}`)
-    if (xml && xml.includes('<loc>')) {
-      if (xml.includes('<sitemapindex')) {
-        const childUrls = extractSitemapUrls(xml).slice(0, 5)
-        const childResults = await Promise.all(childUrls.map(u => fetchPage(u)))
-        for (const child of childResults) {
-          sitemapUrls.push(...extractSitemapUrls(child))
-        }
-      } else {
-        sitemapUrls = extractSitemapUrls(xml)
-      }
-      break
+  try {
+    const latestCrawl = await getLatestCrawl(s, client_id).catch(() => null)
+    if (latestCrawl?.status === 'complete' && (latestCrawl.urls_saved || 0) > 0) {
+      const result = await getSitemapUrls(s, { client_id, limit: coverageUrlLimit, orderBy: 'priority' })
+      sitemapUrls = (result.urls || []).map((u: any) => u.url).filter(Boolean)
     }
+  } catch { /* fall through */ }
+
+  // Fallback: crawl sitemap inline
+  if (sitemapUrls.length === 0) {
+    for (const path of ['/sitemap.xml', '/sitemap_index.xml', '/wp-sitemap.xml']) {
+      const xml = await fetchPage(`${origin}${path}`)
+      if (xml && xml.includes('<loc>')) {
+        if (xml.includes('<sitemapindex')) {
+          const childUrls = extractSitemapUrls(xml).slice(0, 5)
+          const childResults = await Promise.all(childUrls.map(u => fetchPage(u)))
+          for (const child of childResults) {
+            sitemapUrls.push(...extractSitemapUrls(child))
+          }
+        } else {
+          sitemapUrls = extractSitemapUrls(xml)
+        }
+        break
+      }
+    }
+    sitemapUrls = [...new Set(sitemapUrls)].slice(0, coverageUrlLimit)
   }
-  sitemapUrls = [...new Set(sitemapUrls)].slice(0, 200)
 
   // Fetch a sample of pages for content analysis
   const pagesToAnalyze = sitemapUrls.slice(0, 20)
