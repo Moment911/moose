@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { R, T, BLK, GRY, GRN, AMB, W, FH, FB } from '../lib/theme';
 import { supabase } from '../lib/supabase';
+import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact';
 import PublicNav from '../components/public/PublicNav';
 import PublicFooter from '../components/public/PublicFooter';
 
@@ -1889,19 +1890,19 @@ export default function MarketingSitePage() {
               Tell us what you want to automate. We'll show you the working version — usually a prototype within a week.
             </p>
 
-            <a href="tel:+15612200100" style={{
+            <a href={CONTACT_PHONE_HREF} style={{
               display: 'block', fontSize: 68, fontWeight: 900, fontFamily: FH,
               letterSpacing: '-.045em', color: INK, lineHeight: 1, marginBottom: 24,
               textDecoration: 'none',
             }} className="home-contact-phone">
-              (561) 220-0100
+              {CONTACT_PHONE}
             </a>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button className="btn btn-primary btn-lg" onClick={() => navigate('/contact')}>
                 Book a build session <ArrowRight size={16} />
               </button>
-              <a href="tel:+15612200100" className="btn btn-secondary btn-lg" style={{ textDecoration: 'none' }}>
+              <a href={CONTACT_PHONE_HREF} className="btn btn-secondary btn-lg" style={{ textDecoration: 'none' }}>
                 <Phone size={16} /> Call now
               </a>
             </div>

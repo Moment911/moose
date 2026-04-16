@@ -1,6 +1,7 @@
 "use client"
 import { useNavigate } from 'react-router-dom'
 import { R, T, BLK, GRN, FH, FB } from '../../lib/theme'
+import { CONTACT_CITY, CONTACT_EMAIL_HREF } from '../../lib/contact'
 
 const MUTED = '#6b7280'
 const FAINT = '#9ca3af'
@@ -18,7 +19,8 @@ const COLUMNS = [
   ] },
   { title: 'Company', links: [
     { label: 'About', href: '/about' },
-    { label: 'Contact', href: 'mailto:adam@hellokoto.com' },
+    { label: 'Contact', href: '/contact' },
+    { label: 'Email us', href: CONTACT_EMAIL_HREF },
     { label: 'Status', href: '/status' },
   ] },
   { title: 'Legal', links: [
@@ -69,7 +71,7 @@ export default function PublicFooter() {
               fontSize: 13, color: MUTED,
             }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: GRN }} />
-              <span>Based in Boca Raton, Florida</span>
+              <span>Based in {CONTACT_CITY}</span>
             </div>
           </div>
 

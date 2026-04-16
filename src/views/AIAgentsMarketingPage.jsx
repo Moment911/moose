@@ -3,10 +3,14 @@
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Phone, MessageSquare, MessageCircle, Heart,
-  Briefcase, ShoppingBag, Building2, Stethoscope, Plane, Home,
-  GraduationCap, Car, Sparkles, Brain, Shield,
+  Briefcase, ShoppingBag, ShoppingCart, Building2, Stethoscope,
+  Plane, Home, GraduationCap, Car, Sparkles, Brain, Shield,
+  DollarSign, Umbrella, Utensils, Truck, Hammer, Users, Bed,
+  BookOpen, Smile, PawPrint, Sun, Pill, Store, HardHat, Scissors,
+  Leaf, Activity, Music,
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, W, FH, FB } from '../lib/theme'
+import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 
@@ -16,9 +20,6 @@ const FAINT  = '#9ca3af'
 const HAIR   = '#e5e7eb'
 const SURFACE= '#f9fafb'
 const WASH   = '#fafbfc'
-
-const CONTACT_PHONE = '(561) 220-0100' // placeholder — swap in real number
-const CONTACT_PHONE_HREF = 'tel:+15612200100'
 
 const CSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -72,6 +73,30 @@ const AGENTS = [
   { icon: Heart, title: 'Patient Intake Assistant', industry: 'Clinical', accent: R, desc: 'Pre-visit intake by phone or text — medical history, insurance, reason for visit — all structured in your EMR.' },
   { icon: GraduationCap, title: 'Admissions Counselor Agent', industry: 'Education', accent: GRN, desc: 'Guides prospective students through program selection, answers questions, schedules tours, sends application links.' },
   { icon: Plane, title: 'Travel Concierge', industry: 'Travel', accent: AMB, desc: 'Plans trips end-to-end — flights, hotels, ground, dining — within each client\'s budget and taste.' },
+  { icon: DollarSign, title: 'Mortgage Loan Officer Assistant', industry: 'Finance', accent: GRN, desc: 'Pre-qualifies borrowers, collects docs, explains loan products, and prepares the file before it reaches a human LO.' },
+  { icon: Umbrella, title: 'Insurance Quote Bot', industry: 'Insurance', accent: T, desc: 'Walks prospects through a quote by phone or text, pulls carrier rates, binds coverage, and emails the policy.' },
+  { icon: Smile, title: 'Dental Recall Coordinator', industry: 'Dental', accent: R, desc: 'Calls patients due for cleanings, confirms insurance, finds an opening that fits, and books the appointment.' },
+  { icon: PawPrint, title: 'Veterinary Appointment Scheduler', industry: 'Veterinary', accent: AMB, desc: 'Handles pet intake by phone — species, age, symptoms, urgency — routes emergencies and schedules routine visits.' },
+  { icon: Brain, title: 'Mental Health Triage Bot', industry: 'Behavioral health', accent: '#8b5cf6', desc: 'Gentle intake flow that screens for urgency, matches patient to the right therapist, and books the first session.' },
+  { icon: Activity, title: 'Chiropractic Front Desk', industry: 'Chiropractic', accent: GRN, desc: 'Answers inbound calls, handles new-patient intake, verifies insurance, schedules adjustments — evenings and weekends included.' },
+  { icon: Sparkles, title: 'Med Spa Booking Concierge', industry: 'Beauty / wellness', accent: R, desc: 'Books consultations, quotes package pricing, explains treatments, and recovers no-shows with auto-text follow-ups.' },
+  { icon: HardHat, title: 'Roofing Storm-Lead Responder', industry: 'Home services', accent: AMB, desc: 'Calls inbound storm-damage leads within 60 seconds, qualifies the roof, schedules the inspection, sends insurance tips.' },
+  { icon: Sun, title: 'Solar Consultation Bot', industry: 'Solar', accent: AMB, desc: 'Runs the energy-bill qualification, calculates rough savings, books the in-home design consultation, nurtures cold leads.' },
+  { icon: Utensils, title: 'Restaurant Reservation Concierge', industry: 'Restaurant', accent: R, desc: 'Takes reservations by phone, handles waitlist, answers allergy questions, manages private events and catering inquiries.' },
+  { icon: Bed, title: 'Hotel Pre-Arrival Concierge', industry: 'Hospitality', accent: T, desc: 'Upgrades rooms, books amenities, answers local questions, and handles early check-in requests before the guest arrives.' },
+  { icon: ShoppingCart, title: 'E-commerce Returns Specialist', industry: 'Retail', accent: BLK, desc: 'Handles returns end-to-end: reason, photo review, refund vs exchange, label generation — all in a single conversation.' },
+  { icon: Users, title: 'Recruiter Screening Agent', industry: 'Staffing / HR', accent: T, desc: 'Pre-screens every applicant by phone, scores fit against the job rubric, schedules interviews with the right recruiter.' },
+  { icon: Heart, title: 'Nonprofit Donor Engagement', industry: 'Nonprofit', accent: R, desc: 'Thanks every donor personally, recovers lapsed givers, runs campaign outreach, and pre-qualifies major gift prospects.' },
+  { icon: Activity, title: 'Senior Care Intake', industry: 'Home health', accent: GRN, desc: 'Gentle family-facing intake: level of care needed, insurance, schedule, concerns — structured into a care plan summary.' },
+  { icon: Truck, title: 'Logistics Dispatch Bot', industry: 'Logistics', accent: AMB, desc: 'Takes freight bookings, quotes rates from live carrier data, dispatches loads, and keeps shippers updated in real time.' },
+  { icon: Store, title: 'Franchise Lead Qualifier', industry: 'Franchise dev', accent: BLK, desc: 'Qualifies franchise candidates against net-worth and territory rules, books discovery calls, starts the FDD process.' },
+  { icon: Car, title: 'Dealership Internet Sales Agent', industry: 'Auto sales', accent: R, desc: 'Responds to every internet lead within a minute, answers model questions, books test drives, and holds the vehicle.' },
+  { icon: BookOpen, title: 'Tutoring Matching Agent', industry: 'Tutoring', accent: T, desc: 'Screens students\' needs, matches them to tutors by subject and learning style, schedules sessions, sends prep materials.' },
+  { icon: Scissors, title: 'Salon Booking + Reminders', industry: 'Salon / spa', accent: '#8b5cf6', desc: 'Books color + cuts, confirms allergies, manages waitlists, and auto-fills cancellations from the priority list.' },
+  { icon: Hammer, title: 'Construction Bid Assistant', industry: 'Construction', accent: AMB, desc: 'Takes RFQ calls, collects scope, measures from drawings, assembles pricing from historical jobs, drafts the bid.' },
+  { icon: Leaf, title: 'Landscaping Estimator', industry: 'Landscaping', accent: GRN, desc: 'Measures properties from aerial imagery, quotes mowing / design / install, books the walkthrough, sends the estimate.' },
+  { icon: Pill, title: 'Pharmacy Refill Bot', industry: 'Pharmacy', accent: R, desc: 'Patient calls for a refill — the bot checks authorization, insurance, pickup window, and alerts the pharmacist if there\'s a conflict.' },
+  { icon: Music, title: 'Music School Enrollment', industry: 'Arts / education', accent: T, desc: 'Books trial lessons, matches students to instructors by instrument and style, handles recital RSVPs, collects tuition.' },
 ]
 
 const CHATBOTS = [
@@ -81,6 +106,10 @@ const CHATBOTS = [
   { icon: Brain, title: 'Onboarding Coach', desc: 'Walks new users through setup step-by-step, remembers where they left off, nudges them back if they go quiet for a few days.' },
   { icon: Sparkles, title: 'Research & Competitive Intel', desc: 'Takes a question like "who else sells to mid-market dental groups in Florida?" and returns a sourced, structured brief in minutes.' },
   { icon: Shield, title: 'Compliance Q&A', desc: 'Employees paste in clauses, copy, or policy text — the bot flags risks, cites the relevant regulation, and suggests fixes.' },
+  { icon: Stethoscope, title: 'Patient Education Bot', desc: 'Answers treatment, medication, and post-op questions in plain language, escalates anything clinical to a nurse, logs every interaction.' },
+  { icon: Users, title: 'Sales Enablement Bot', desc: 'Reps ask "what\'s the latest pricing for enterprise with a two-year?" — the bot returns the answer grounded in live playbooks and approved slides.' },
+  { icon: BookOpen, title: 'Knowledge Base Concierge', desc: 'Replaces a stale FAQ page. Retrieves from every internal doc, cites the source, and learns from every "not quite right" feedback loop.' },
+  { icon: DollarSign, title: 'Finance & Billing Bot', desc: 'Clients ask about invoices, payment status, refund eligibility — the bot looks it up in your billing system and responds with the exact answer.' },
 ]
 
 export default function AIAgentsMarketingPage() {
@@ -187,10 +216,11 @@ export default function AIAgentsMarketingPage() {
           <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>Agent examples</div>
             <h2 className="m-sec-h2" style={{ fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: INK, lineHeight: 1.05, marginBottom: 18 }}>
-              Ten agents we build.
+              Two dozen agents. Every industry.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
-              A sample of industries and workflows. Bring us yours — we can probably automate it.
+              A sample of what we've built and what we can build. If your workflow isn't on the list,
+              it doesn't mean we can't do it — it probably means we've never been asked yet.
             </p>
           </div>
           <div className="m-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 18 }}>

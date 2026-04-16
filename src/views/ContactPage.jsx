@@ -4,6 +4,10 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Phone, Mail, MapPin, Clock, ArrowRight } from 'lucide-react'
 import { R, T, BLK, GRN, W, FH, FB } from '../lib/theme'
+import {
+  CONTACT_PHONE, CONTACT_PHONE_HREF,
+  CONTACT_EMAIL, CONTACT_ADDRESS, CONTACT_HOURS,
+} from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 
@@ -13,13 +17,6 @@ const FAINT  = '#9ca3af'
 const HAIR   = '#e5e7eb'
 const SURFACE= '#f9fafb'
 const WASH   = '#fafbfc'
-
-/* ─── Contact details — swap values when real numbers/emails are live ─── */
-const CONTACT_PHONE      = '(561) 220-0100'
-const CONTACT_PHONE_HREF = 'tel:+15612200100'
-const CONTACT_EMAIL      = 'adam@hellokoto.com'
-const CONTACT_ADDRESS    = 'Boca Raton, Florida · United States'
-const CONTACT_HOURS      = 'Mon–Fri · 9:00 AM – 6:00 PM ET'
 
 /* LeadConnector (GoHighLevel) form — matches the embed Adam provided */
 const FORM_SRC     = 'https://api.leadconnectorhq.com/widget/form/a4qjojaBe4g7HaWPIoW9'

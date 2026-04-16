@@ -6,6 +6,7 @@ import {
   Droplet, Dumbbell, Plug, Workflow, Database, Link2, Check,
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, W, FH, FB } from '../lib/theme'
+import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 
@@ -15,9 +16,6 @@ const FAINT  = '#9ca3af'
 const HAIR   = '#e5e7eb'
 const SURFACE= '#f9fafb'
 const WASH   = '#fafbfc'
-
-const CONTACT_PHONE = '(561) 220-0100' // placeholder — swap in real number
-const CONTACT_PHONE_HREF = 'tel:+15612200100'
 
 const CSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
