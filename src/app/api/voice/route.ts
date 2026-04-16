@@ -63,10 +63,25 @@ export async function GET(req: NextRequest) {
   if (action === 'get_voices' || action === 'list_voices') {
     try {
       const raw = await retellFetch('/list-voices')
+      // Return BOTH naming conventions so legacy (voice_id/voice_name/preview_audio_url)
+      // and new (id/name/preview_url) consumers work. VoiceSelector reads voice_id and
+      // preview_audio_url; AnsweringServicePage calls onSelect(voice_id).
       const voices = (Array.isArray(raw) ? raw : []).map((v: any) => ({
-        id: v.voice_id, name: v.voice_name, provider: v.provider,
-        gender: v.gender, accent: v.accent, language: v.language || 'en',
-        age: v.age, preview_url: v.preview_audio_url, avatar_url: v.avatar_url,
+        // legacy
+        voice_id: v.voice_id,
+        voice_name: v.voice_name,
+        preview_audio_url: v.preview_audio_url,
+        // new-style aliases
+        id: v.voice_id,
+        name: v.voice_name,
+        preview_url: v.preview_audio_url,
+        // shared
+        provider: v.provider,
+        gender: v.gender,
+        accent: v.accent,
+        language: v.language || 'en',
+        age: v.age,
+        avatar_url: v.avatar_url,
         recommended: v.recommended || false,
       }))
       return new NextResponse(JSON.stringify({ voices }), {

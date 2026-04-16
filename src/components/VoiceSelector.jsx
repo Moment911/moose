@@ -18,7 +18,7 @@ const PROVIDER_COLORS = {
   inworld: "#6b7280",
 };
 
-const CACHE_KEY = "koto_voices_cache";
+const CACHE_KEY = "koto_voices_cache_v2";  // bumped -- payload shape changed (dual-naming)
 const CACHE_TTL = 60 * 60 * 1000;
 const PAGE_SIZE = 50;
 
