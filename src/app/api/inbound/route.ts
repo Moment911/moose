@@ -551,7 +551,9 @@ End the call once you have collected the caller's information and confirmed next
           return NextResponse.json({ error: e?.message || 'Retell create-agent failed' }, { status: 500 })
         }
 
-        // Step 3: Insert agent record (schema uses `name`, `closed_hours_script`, `status`, `industry`)
+        // Step 3: Insert agent record. Only send the minimal fields the wizard collects —
+        // the prod schema has drifted from src/sql/answering_service.sql, so scripts and
+        // optional toggles are configured on the agent detail page after activation.
         const agentRecord: any = {
           agency_id,
           client_id: client_id || null,
@@ -560,15 +562,9 @@ End the call once you have collected the caller's information and confirmed next
           retell_agent_id: retellAgent.agent_id,
           voice_id: resolvedVoiceId,
           sic_code: sic_code || null,
-          greeting_script: greeting_script || '',
-          closed_hours_script: closed_script || '',
-          emergency_script: emergency_script || '',
-          intake_questions: intake_questions || [],
-          timezone: timezone || 'America/New_York',
-          status: 'active',
           phone_number: phone_number || forward_number || null,
-          phone_source: phone_number ? 'koto' : (forward_number ? 'forward' : 'koto'),
         }
+        void greeting_script; void closed_script; void emergency_script; void intake_questions; void timezone;
 
         const { data: agentData, error: agentError } = await supabase
           .from('koto_inbound_agents')

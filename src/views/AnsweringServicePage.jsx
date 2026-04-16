@@ -118,7 +118,9 @@ export default function AnsweringServicePage() {
 
           {/* RIGHT PANEL */}
           <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-            {!selectedAgent ? (
+            {showWizard ? (
+              <NewAgentWizard agencyId={agencyId} onClose={()=>setShowWizard(false)} onCreated={(a)=>{setAgents(p=>[a,...p]);setSelectedAgent(a);setShowWizard(false)}} />
+            ) : !selectedAgent ? (
               <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12 }}>
                 <PhoneIncoming size={40} color='#d1d5db' />
                 <p style={{ color:'#6b7280', fontSize:15 }}>Select an agent or create a new one</p>
@@ -144,8 +146,6 @@ export default function AnsweringServicePage() {
         </div>
       </div>
 
-      {/* WIZARD */}
-      {showWizard && <NewAgentWizard agencyId={agencyId} onClose={()=>setShowWizard(false)} onCreated={(a)=>{setAgents(p=>[a,...p]);setSelectedAgent(a);setShowWizard(false)}} />}
     </div>
   )
 }
@@ -1167,16 +1167,20 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
     return s.label.toLowerCase().includes(q) || s.code.includes(q) || (s.division||'').toLowerCase().includes(q)
   }).slice(0,60)
 
-  const overlay = { position:'fixed', inset:0, background:'rgba(0,0,0,.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }
-  const modal = { background:'#fff', borderRadius:16, width:680, maxHeight:'90vh', overflowY:'auto', padding:28, position:'relative' }
   const stepDot = (n) => ({ width:28, height:28, borderRadius:99, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, fontFamily:FH, background:step===n?R:step>n?GRN:'#e5e7eb', color:step>=n?'#fff':'#6b7280' })
 
   return (
-    <div style={overlay} onClick={onClose}>
-      <div style={modal} onClick={e=>e.stopPropagation()}>
-        <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'none', border:'none', cursor:'pointer' }}><X size={20} color="#6b7280"/></button>
-
-        <h2 style={{ margin:'0 0 8px', fontFamily:FH, fontSize:20 }}>New Answering Agent</h2>
+    <div style={{ flex:1, overflowY:'auto', padding:'20px 24px', background:'#fff' }}>
+      <div style={{ maxWidth:720, margin:'0 auto' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+          <div>
+            <h2 style={{ margin:0, fontFamily:FH, fontSize:20 }}>New Answering Agent</h2>
+            <p style={{ margin:'4px 0 0', fontSize:13, color:'#6b7280' }}>Provision a Retell AI agent for a client in four steps.</p>
+          </div>
+          <button onClick={onClose} style={{ background:'none', border:'1px solid #e5e7eb', borderRadius:8, padding:'6px 10px', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#6b7280' }}>
+            <X size={14}/> Cancel
+          </button>
+        </div>
 
         {/* Step indicators */}
         <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:24 }}>
