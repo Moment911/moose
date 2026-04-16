@@ -17,6 +17,11 @@ const COLUMNS = [
     // { label: 'KotoIQ', href: '/#kotoiq' },          // lives on /koto-ai (hidden)
     // { label: 'Koto AI (agency OS)', href: '/koto-ai' }, // hidden
   ] },
+  { title: 'Services', links: [
+    { label: 'Custom CRM', href: '/services/crm' },
+    { label: 'Lead Generation', href: '/services/lead-generation' },
+    { label: 'Website Design', href: '/services/website-design' },
+  ] },
   { title: 'Company', links: [
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
@@ -58,7 +63,7 @@ export default function PublicFooter() {
     }}>
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         <div className="pf-grid" style={{
-          display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 48,
+          display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: 40, marginBottom: 48,
         }}>
           {/* Brand column */}
           <div>

@@ -11,11 +11,14 @@ const W     = '#ffffff'
 /* Same nav on every public page — home, about, privacy, terms */
 /* mix of dedicated pages (href) and homepage anchors (id) */
 const LINKS = [
-  { href: '/ai-agents',      label: 'AI Agents' },
-  { href: '/chatbots',       label: 'Chatbots' },
-  { href: '/custom-systems', label: 'Custom Systems' },
-  { href: '/about',          label: 'About' },
-  { href: '/contact',        label: 'Contact' },
+  { href: '/ai-agents',                 label: 'AI Agents' },
+  { href: '/chatbots',                  label: 'Chatbots' },
+  { href: '/custom-systems',            label: 'Custom Systems' },
+  { href: '/services/crm',              label: 'Custom CRM' },
+  { href: '/services/lead-generation',  label: 'Lead Gen' },
+  { href: '/services/website-design',   label: 'Websites' },
+  { href: '/about',                     label: 'About' },
+  { href: '/contact',                   label: 'Contact' },
   // { href: '/koto-ai', label: 'Koto AI' }, // HIDDEN — page still live at /koto-ai
 ]
 

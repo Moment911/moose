@@ -90,6 +90,9 @@ import ClientReportPage from '../views/ClientReportPage'
 import ClientDocumentsPage from '../views/ClientDocumentsPage'
 import OnboardingPage from '../views/OnboardingPage'
 import MarketingSitePage from '../views/MarketingSitePage'
+import CrmServicesPage from '../views/CrmServicesPage'
+import LeadGenServicesPage from '../views/LeadGenServicesPage'
+import WebDesignServicesPage from '../views/WebDesignServicesPage'
 import AgencySignupPage from '../views/AgencySignupPage'
 import AgencySettingsPage from '../views/AgencySettingsPage'
 import DbSetupPage from '../views/DbSetupPage'
@@ -259,6 +262,9 @@ export default function App() {
           <Route path="/signup" element={<AgencySignupPage />} />
           <Route path="/welcome" element={<MarketingSitePage />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/services/crm" element={<CrmServicesPage />} />
+          <Route path="/services/lead-generation" element={<LeadGenServicesPage />} />
+          <Route path="/services/website-design" element={<WebDesignServicesPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/onboarding-guide" element={<OnboardingGuidePage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
