@@ -83,8 +83,8 @@ async function synthesizeVoiceSummary(text: string): Promise<Buffer | null> {
       },
       body: JSON.stringify({
         text,
-        model_id: 'eleven_turbo_v2_5',
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.55, similarity_boost: 0.85, style: 0.1, use_speaker_boost: true },
       }),
     })
     if (!res.ok) return null
@@ -850,6 +850,61 @@ export async function GET(request: NextRequest) {
         })
       }
 
+      case 'get_live_calls': {
+        // Live monitor — fetches in-progress Retell calls and their current
+        // transcript. UI polls this every few seconds during an active call.
+        if (!agency_id && !agent_id) return NextResponse.json({ error: 'agency_id or agent_id required' }, { status: 400 })
+        try {
+          // Retell /list-calls with call_status filter. We filter by our agent's
+          // retell_agent_id so we only surface calls belonging to this account.
+          const { data: agents } = await supabase
+            .from('koto_inbound_agents')
+            .select('id, retell_agent_id, business_name, name')
+            .eq(agent_id ? 'id' : 'agency_id', agent_id || agency_id)
+          const retellAgentIds = (agents || []).map((a: any) => a.retell_agent_id).filter(Boolean)
+          if (retellAgentIds.length === 0) return NextResponse.json({ calls: [] })
+
+          const listRes = await retellFetch('/v2/list-calls', 'POST', {
+            filter_criteria: {
+              agent_id: retellAgentIds,
+              call_status: ['ongoing', 'registered'],
+            },
+            limit: 50,
+          })
+          const calls = Array.isArray(listRes) ? listRes : (listRes?.calls || [])
+          const mapped = calls.map((c: any) => {
+            const ag = (agents || []).find((a: any) => a.retell_agent_id === c.agent_id)
+            return {
+              call_id: c.call_id,
+              retell_call_id: c.call_id,
+              agent_id: ag?.id,
+              agent_name: ag?.business_name || ag?.name,
+              from_number: c.from_number,
+              to_number: c.to_number,
+              start_timestamp: c.start_timestamp,
+              call_status: c.call_status,
+              transcript: c.transcript || '',
+              transcript_with_tool_calls: c.transcript_with_tool_calls || [],
+            }
+          })
+          return NextResponse.json({ calls: mapped })
+        } catch (e: any) {
+          return NextResponse.json({ calls: [], error: e?.message })
+        }
+      }
+
+      case 'get_live_call_detail': {
+        // Single in-progress call — fetched directly from Retell for freshest transcript.
+        const liveCallId = searchParams.get('call_id') || call_id
+        if (!liveCallId) return NextResponse.json({ error: 'call_id required' }, { status: 400 })
+        try {
+          const live = await retellFetch(`/v2/get-call/${liveCallId}`)
+          return NextResponse.json({ call: live })
+        } catch (e: any) {
+          return NextResponse.json({ error: e?.message || 'retell fetch failed' }, { status: 500 })
+        }
+      }
+
       case 'get_followups': {
         // Callback queue — open follow-ups for this agent/agency, soonest first.
         if (!agent_id && !agency_id) return NextResponse.json({ error: 'agent_id or agency_id required' }, { status: 400 })
@@ -1021,6 +1076,7 @@ End the call once you have collected the caller's information and confirmed next
         // backchannel, measured responsiveness, and silence/duration guards that
         // make it behave like a patient human receptionist.
         const resolvedVoiceId = voice_id || '11labs-Marissa'
+        const inboundWebhookUrl = `${webhookBase}/api/inbound/webhook`
         let retellAgent: any
         try {
           retellAgent = await retellFetch('/create-agent', 'POST', {
@@ -1028,6 +1084,7 @@ End the call once you have collected the caller's information and confirmed next
             voice_id: resolvedVoiceId,
             response_engine: { type: 'retell-llm', llm_id: llmId },
             language: 'en-US',
+            webhook_url: inboundWebhookUrl,
             enable_backchannel: false,
             interruption_sensitivity: 0.3,
             responsiveness: 0.7,
@@ -1620,9 +1677,14 @@ ${current_text}
         }
 
         // Also push any saved voice/speech settings to the Retell agent so the
-        // Voice Controls card in the UI is the source of truth.
+        // Voice Controls card in the UI is the source of truth. Always register
+        // the webhook_url — existing agents created before webhooks were wired
+        // need this patch to start firing call_ended events.
         const r: any = row
-        const agentPatch: Record<string, any> = {}
+        const webhookBase = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+        const agentPatch: Record<string, any> = {
+          webhook_url: `${webhookBase}/api/inbound/webhook`,
+        }
         if (r.voice_id) agentPatch.voice_id = r.voice_id
         if (typeof r.voice_speed === 'number') agentPatch.voice_speed = r.voice_speed
         if (typeof r.voice_temperature === 'number') agentPatch.voice_temperature = r.voice_temperature

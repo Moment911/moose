@@ -24,7 +24,7 @@ const TIMEZONES = [
   'America/Anchorage','Pacific/Honolulu','America/Phoenix','America/Detroit',
   'America/Indiana/Indianapolis','America/Kentucky/Louisville'
 ]
-const TABS = ['Setup','Voice & Greeting','Intake Form','Prompt Editor','Routing','Call Log','Analytics']
+const TABS = ['Setup','Voice & Greeting','Intake Form','Prompt Editor','Routing','Live Monitor','Call Log','Analytics']
 
 const defaultHours = () => DAYS.reduce((a,d)=>({...a,[d]:{enabled:d!=='Sat'&&d!=='Sun',open:'09:00',close:'17:00'}}),{})
 
@@ -137,8 +137,9 @@ export default function AnsweringServicePage() {
                   {activeTab===2 && <IntakeFormTab agent={selectedAgent} setAgent={a=>{setSelectedAgent(a);setAgents(prev=>prev.map(x=>x.id===a.id?a:x))}} />}
                   {activeTab===3 && <PromptComplianceTab agent={selectedAgent} setAgent={a=>{setSelectedAgent(a);setAgents(prev=>prev.map(x=>x.id===a.id?a:x))}} />}
                   {activeTab===4 && <RoutingTab agent={selectedAgent} />}
-                  {activeTab===5 && <CallLogTab agent={selectedAgent} />}
-                  {activeTab===6 && <AnalyticsTab agent={selectedAgent} agencyId={agencyId} />}
+                  {activeTab===5 && <LiveMonitorTab agent={selectedAgent} />}
+                  {activeTab===6 && <CallLogTab agent={selectedAgent} />}
+                  {activeTab===7 && <AnalyticsTab agent={selectedAgent} agencyId={agencyId} />}
                 </div>
               </>
             )}
@@ -799,6 +800,158 @@ function IntakeFormTab({ agent, setAgent }) {
       <button onClick={saveIntake} disabled={saving} style={{ ...btn(), padding:'12px 0', justifyContent:'center' }}>
         {saving ? <Loader2 size={16} className="spin"/> : <Check size={16}/>} {saving ? 'Saving...' : 'Save Intake Form'}
       </button>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TAB — LIVE MONITOR (polls Retell for in-progress calls + streaming transcript)
+// ═══════════════════════════════════════════════════════════════════════════════
+function LiveMonitorTab({ agent }) {
+  const [liveCalls, setLiveCalls] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCallId, setSelectedCallId] = useState(null)
+  const [detail, setDetail] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const transcriptEndRef = useRef(null)
+
+  async function fetchLive() {
+    try {
+      const res = await fetch(`/api/inbound?action=get_live_calls&agent_id=${agent.id}`)
+      const d = await res.json().catch(()=>({}))
+      const calls = Array.isArray(d.calls) ? d.calls : []
+      setLiveCalls(calls)
+      if (!selectedCallId && calls.length > 0) setSelectedCallId(calls[0].call_id)
+      if (selectedCallId && !calls.find(c => c.call_id === selectedCallId)) setSelectedCallId(calls[0]?.call_id || null)
+    } catch {}
+    setLoading(false)
+  }
+
+  async function fetchDetail(id) {
+    if (!id) return
+    setDetailLoading(true)
+    try {
+      const res = await fetch(`/api/inbound?action=get_live_call_detail&call_id=${id}`)
+      const d = await res.json().catch(()=>({}))
+      if (d.call) setDetail(d.call)
+    } catch {}
+    setDetailLoading(false)
+  }
+
+  // Poll the list every 5s, poll the selected call's transcript every 2s.
+  useEffect(() => {
+    fetchLive()
+    const t = setInterval(fetchLive, 5000)
+    return () => clearInterval(t)
+  }, [agent.id])
+
+  useEffect(() => {
+    if (!selectedCallId) { setDetail(null); return }
+    fetchDetail(selectedCallId)
+    const t = setInterval(() => fetchDetail(selectedCallId), 2000)
+    return () => clearInterval(t)
+  }, [selectedCallId])
+
+  // Auto-scroll transcript to bottom as new lines arrive.
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [detail?.transcript])
+
+  const lines = (() => {
+    const arr = detail?.transcript_with_tool_calls || []
+    if (Array.isArray(arr) && arr.length > 0) {
+      return arr.filter(e => e.role === 'agent' || e.role === 'user').map((e, i) => ({ i, role: e.role, content: e.content || '' }))
+    }
+    // Fallback: split the flat transcript into turns by "User:" / "Agent:" prefixes
+    const t = detail?.transcript || ''
+    return t.split(/\n(?=(?:User:|Agent:))/).map((chunk, i) => {
+      const role = chunk.startsWith('User:') ? 'user' : chunk.startsWith('Agent:') ? 'agent' : 'system'
+      return { i, role, content: chunk.replace(/^(User:|Agent:)\s*/, '') }
+    }).filter(l => l.content.trim())
+  })()
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+        <div style={{ width:10, height:10, borderRadius:99, background: liveCalls.length > 0 ? GRN : '#d1d5db', boxShadow: liveCalls.length > 0 ? `0 0 0 4px ${GRN}25` : 'none', animation: liveCalls.length > 0 ? 'pulse-live 2s infinite' : 'none' }}/>
+        <h3 style={{ margin:0, fontFamily:FH, fontSize:15 }}>Live Monitor</h3>
+        <span style={{ fontSize:12, color:'#6b7280' }}>{liveCalls.length} active call{liveCalls.length===1?'':'s'}</span>
+        <div style={{ flex:1 }}/>
+        <button onClick={fetchLive} style={btn('#e5e7eb', BLK)}><RefreshCw size={14}/> Refresh</button>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign:'center', padding:40 }}><Loader2 size={24} className="spin" color={R}/></div>
+      ) : liveCalls.length === 0 ? (
+        <div style={{ ...card, textAlign:'center', padding:40 }}>
+          <PhoneIncoming size={32} color='#d1d5db' style={{ marginBottom:8 }}/>
+          <p style={{ color:'#6b7280', margin:0 }}>No active calls right now.</p>
+          <p style={{ color:'#9ca3af', fontSize:12, marginTop:6 }}>When a call comes in, it'll appear here live with the transcript updating in real time.</p>
+        </div>
+      ) : (
+        <div style={{ display:'grid', gridTemplateColumns:'280px 1fr', gap:14 }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+            {liveCalls.map(c => {
+              const elapsed = c.start_timestamp ? Math.floor((Date.now() - c.start_timestamp) / 1000) : 0
+              return (
+                <div key={c.call_id} onClick={()=>setSelectedCallId(c.call_id)} style={{
+                  padding:12, borderRadius:10, cursor:'pointer', transition:'all .15s',
+                  background: selectedCallId===c.call_id ? 'rgba(234,39,41,.06)' : '#fff',
+                  border: selectedCallId===c.call_id ? `2px solid ${R}` : '1px solid #e5e7eb',
+                }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+                    <div style={{ width:6, height:6, borderRadius:99, background:GRN, animation:'pulse-live 2s infinite' }}/>
+                    <span style={{ fontSize:12, fontWeight:700, color:GRN }}>LIVE</span>
+                    <span style={{ fontSize:11, color:'#6b7280', fontFamily:'ui-monospace, Menlo, monospace', marginLeft:'auto' }}>{Math.floor(elapsed/60)}:{String(elapsed%60).padStart(2,'0')}</span>
+                  </div>
+                  <div style={{ fontSize:13, fontWeight:600 }}>{c.from_number || 'Unknown'}</div>
+                  <div style={{ fontSize:11, color:'#6b7280', marginTop:2 }}>{c.call_status}</div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div style={card}>
+            {!selectedCallId ? (
+              <div style={{ textAlign:'center', padding:20, color:'#9ca3af', fontSize:13 }}>Select a call to listen in</div>
+            ) : !detail ? (
+              <div style={{ textAlign:'center', padding:40 }}><Loader2 size={20} className="spin" color={R}/></div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column', gap:12, maxHeight:500 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, paddingBottom:10, borderBottom:'1px solid #f3f4f6' }}>
+                  <div style={{ width:8, height:8, borderRadius:99, background:GRN, animation:'pulse-live 2s infinite' }}/>
+                  <strong style={{ fontSize:14 }}>{detail.from_number || detail.to_number || 'Unknown caller'}</strong>
+                  {detailLoading && <Loader2 size={12} className="spin" color="#9ca3af"/>}
+                  <div style={{ flex:1 }}/>
+                  <span style={{ fontSize:11, color:'#6b7280' }}>{detail.call_status}</span>
+                </div>
+                <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, padding:'4px 0', maxHeight:420 }}>
+                  {lines.length === 0 ? (
+                    <div style={{ textAlign:'center', padding:30, color:'#9ca3af', fontSize:12 }}>Waiting for transcript…</div>
+                  ) : lines.map(l => (
+                    <div key={l.i} style={{ display:'flex', flexDirection:l.role==='user'?'row-reverse':'row', gap:8 }}>
+                      <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12,
+                        background: l.role==='user' ? '#f3f4f6' : 'rgba(234,39,41,.06)',
+                        borderTopLeftRadius: l.role==='user'?12:2,
+                        borderTopRightRadius: l.role==='user'?2:12,
+                        fontSize:13, lineHeight:1.5,
+                      }}>
+                        <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', color: l.role==='user'?'#374151':R, marginBottom:4 }}>
+                          {l.role==='user' ? 'Caller' : 'Agent'}
+                        </div>
+                        {l.content}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={transcriptEndRef}/>
+                </div>
+                <div style={{ fontSize:11, color:'#9ca3af', textAlign:'center' }}>Updating every 2 seconds</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes pulse-live { 0%, 100% { opacity: 1 } 50% { opacity: .4 } }`}</style>
     </div>
   )
 }
