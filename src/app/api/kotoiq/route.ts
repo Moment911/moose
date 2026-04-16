@@ -4522,6 +4522,109 @@ Provide a detailed analysis. Return ONLY valid JSON:
     return NextResponse.json(result)
   }
 
+  // ── CLIENT ACTIVITY LOG ─────────────────────────────────────────────────
+  // Whitelist of tables whose rows a revert is permitted to delete.
+  // Enforced server-side so a compromised client cannot coerce us into
+  // DROPping arbitrary data via the result_ref_table column.
+  const REVERTIBLE_TABLES = new Set([
+    'kotoiq_content_briefs',
+    'kotoiq_topical_maps',
+    'kotoiq_content_calendar',
+    'kotoiq_schema_outputs',
+    'kotoiq_on_page_audits',
+    'kotoiq_aeo_scores',
+    'kotoiq_competitor_maps',
+    'kotoiq_hyperlocal_content',
+    'kotoiq_strategic_plans',
+  ])
+
+  if (action === 'log_client_activity') {
+    const {
+      client_id, agency_id, bot_conversation_id, bot_message_id,
+      intent, action_api, inputs, result,
+      result_ref_table, result_ref_id, status, user_id,
+    } = body
+    if (!client_id || !agency_id || !intent) {
+      return NextResponse.json({ error: 'client_id, agency_id, intent required' }, { status: 400 })
+    }
+    const { data: c } = await s.from('clients').select('id, agency_id').eq('id', client_id).single()
+    if (!c || c.agency_id !== agency_id) {
+      return NextResponse.json({ error: 'client not in agency' }, { status: 403 })
+    }
+    try {
+      const { data: row, error } = await s.from('kotoiq_client_activity').insert({
+        client_id,
+        agency_id,
+        bot_conversation_id: bot_conversation_id || null,
+        bot_message_id: bot_message_id || null,
+        intent,
+        action_api: action_api || null,
+        inputs: inputs || {},
+        result: result || {},
+        result_ref_table: result_ref_table || null,
+        result_ref_id: result_ref_id || null,
+        status: status || 'success',
+        created_by: user_id || null,
+      }).select('id').single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ activity_id: row?.id })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'list_client_activity') {
+    const { client_id, agency_id, limit, intent } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    const { data: c } = await s.from('clients').select('id, agency_id').eq('id', client_id).single()
+    if (!c || c.agency_id !== agency_id) {
+      return NextResponse.json({ error: 'client not in agency' }, { status: 403 })
+    }
+    let q = s.from('kotoiq_client_activity')
+      .select('*')
+      .eq('client_id', client_id)
+      .eq('agency_id', agency_id)
+      .order('created_at', { ascending: false })
+      .limit(Math.min(Number(limit) || 50, 200))
+    if (intent) q = q.eq('intent', intent)
+    const { data, error } = await q
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ activities: data || [] })
+  }
+
+  if (action === 'revert_client_activity') {
+    const { activity_id, agency_id, user_id } = body
+    if (!activity_id || !agency_id) {
+      return NextResponse.json({ error: 'activity_id and agency_id required' }, { status: 400 })
+    }
+    const { data: row } = await s.from('kotoiq_client_activity')
+      .select('*').eq('id', activity_id).single()
+    if (!row) return NextResponse.json({ error: 'activity not found' }, { status: 404 })
+    if (row.agency_id !== agency_id) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+    if (row.status !== 'success') return NextResponse.json({ error: 'not revertible — already ' + row.status }, { status: 400 })
+
+    if (row.result_ref_table && row.result_ref_id) {
+      if (!REVERTIBLE_TABLES.has(row.result_ref_table)) {
+        return NextResponse.json({ error: 'Not revertible' }, { status: 400 })
+      }
+      const { error: delErr } = await s.from(row.result_ref_table).delete().eq('id', row.result_ref_id)
+      if (delErr) {
+        return NextResponse.json({ error: 'Revert failed: ' + delErr.message }, { status: 500 })
+      }
+    }
+
+    const { error: upErr } = await s.from('kotoiq_client_activity').update({
+      status: 'reverted',
+      reverted_at: new Date().toISOString(),
+      reverted_by: user_id || null,
+    }).eq('id', activity_id)
+    if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
+
+    return NextResponse.json({ reverted: true, activity_id })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 

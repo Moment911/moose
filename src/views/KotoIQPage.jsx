@@ -54,6 +54,7 @@ import HyperlocalTab from '../components/kotoiq/HyperlocalTab'
 import SitemapCrawlerTab from '../components/kotoiq/SitemapCrawlerTab'
 import ProcessingJobsTab from '../components/kotoiq/ProcessingJobsTab'
 import ConversationalBot from '../components/kotoiq/ConversationalBot'
+import ActivityTab from '../components/kotoiq/ActivityTab'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -956,6 +957,7 @@ export default function KotoIQPage() {
                   ['calendar', 'Content Calendar', Clock],
                 ]},
                 { group: 'Technical', items: [
+                  ['activity', 'Activity', Clock],
                   ['audit', 'SEO Audit', Shield],
                   ['on_page', 'On-Page Audit', FileText],
                   ['technical_deep', 'Technical Deep', Activity],
@@ -2600,6 +2602,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ NEW: GMB IMAGES ══ */}
         {clientId && tab === 'gmb_images' && (
           <GMBImagesTab clientId={clientId} agencyId={agencyId} prefilledForm={prefilledForm?.tab === 'gmb_images' ? prefilledForm.fields : null} />
+        )}
+
+        {clientId && tab === 'activity' && (
+          <ActivityTab clientId={clientId} agencyId={agencyId} onSwitchTab={setTab} />
         )}
 
         {/* ══ NEW: STRATEGY / SCORECARD / COMPETITOR WATCH / INTEGRATIONS ══ */}

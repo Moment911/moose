@@ -47,6 +47,21 @@ const SUGGESTED_PROMPTS = [
 
 const PANEL_WIDTH = 420
 
+// Map intent → table + JSON path to the persisted row id. When missing or a
+// look-up fails, we still log the activity row with NULL refs — revert is then
+// disabled for that entry but the history is preserved.
+const ACTION_RESULT_REFS = {
+  generate_brief: { table: 'kotoiq_content_briefs', path: 'brief.id' },
+  build_topical_map: { table: 'kotoiq_topical_maps', path: 'map.id' },
+  run_on_page_audit: { table: 'kotoiq_on_page_audits', path: 'record_id' },
+  generate_strategic_plan: { table: 'kotoiq_strategic_plans', path: 'plan_id' },
+}
+
+function resolvePath(obj, path) {
+  if (!obj || !path) return null
+  return path.split('.').reduce((a, k) => (a == null ? a : a[k]), obj)
+}
+
 export default function ConversationalBot({ clientId, clientName, agencyId, currentTab, onSwitchTab, onSwitchClient, clients }) {
   const [open, setOpen] = useState(false)
   const [hasEverOpened, setHasEverOpened] = useState(false)
@@ -306,11 +321,32 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
       clearInterval(tick)
       const ok = res.ok && !j.error
       setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: true, action_result: { ok, summary: j.error || summarizeResult(j) }, progressSteps: undefined, progressIdx: undefined } : x))
+      if (ok && effectiveClientId && agencyId) {
+        const ref = ACTION_RESULT_REFS[intent]
+        const refId = ref ? resolvePath(j, ref.path) : null
+        fetch('/api/kotoiq', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'log_client_activity',
+            client_id: effectiveClientId,
+            agency_id: agencyId,
+            bot_conversation_id: conversationId,
+            intent,
+            action_api: apiAction,
+            inputs: form_fields || {},
+            result: { summary: summarizeResult(j) },
+            result_ref_table: refId ? ref.table : null,
+            result_ref_id: refId || null,
+          }),
+        }).catch(() => {})
+      }
       setMessages(m => [...m, {
         role: 'assistant',
         content: ok
-          ? `Done. ${summarizeResult(j)} I switched you to the ${tab_to_open} tab so you can see the full result.`
+          ? `Done. ${summarizeResult(j)} I logged this to activity — open the Activity tab to view history or revert.`
           : `That run failed: ${j.error || 'unknown error'}. Want me to try something else?`,
+        ...(ok ? { viewActivity: true } : {}),
       }])
     } catch (e) {
       clearInterval(tick)
@@ -461,7 +497,7 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
           {messages.map((m, i) => (
             m.role === 'system_note'
               ? <SystemNote key={i} text={m.content} />
-              : <MessageBubble key={i} msg={m} idx={i} onRun={runAction} executing={executing === i} />
+              : <MessageBubble key={i} msg={m} idx={i} onRun={runAction} executing={executing === i} onViewActivity={onSwitchTab ? () => onSwitchTab('activity', {}) : null} />
           ))}
 
           {thinking && (
@@ -538,7 +574,7 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
 }
 
 // ── Message bubble subcomponent ───────────────────────────────────────────
-function MessageBubble({ msg, idx, onRun, executing }) {
+function MessageBubble({ msg, idx, onRun, executing, onViewActivity }) {
   const isUser = msg.role === 'user'
   return (
     <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexDirection: isUser ? 'row-reverse' : 'row', animation: 'kotoiqBotFadeIn .25s ease' }}>
@@ -564,6 +600,12 @@ function MessageBubble({ msg, idx, onRun, executing }) {
         </div>
         {msg.action && !isUser && (
           <ActionCard action={msg.action} idx={idx} onRun={onRun} executing={executing} executed={msg.action_executed} result={msg.action_result} progressSteps={msg.progressSteps} progressIdx={msg.progressIdx} />
+        )}
+        {msg.viewActivity && !isUser && onViewActivity && (
+          <button onClick={onViewActivity}
+            style={{ marginTop: 6, padding: '6px 10px', background: '#fff', color: T, border: `1px solid ${T}`, borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <History size={12} /> View activity
+          </button>
         )}
       </div>
     </div>
