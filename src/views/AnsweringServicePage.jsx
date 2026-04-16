@@ -104,8 +104,8 @@ export default function AnsweringServicePage() {
                   background: selectedAgent?.id===a.id ? 'rgba(234,39,41,.04)' : 'transparent', transition:'all .15s'
                 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <div style={{ width:8, height:8, borderRadius:99, background: a.status==='active' ? GRN : '#d1d5db' }} />
-                    <span style={{ fontSize:14, fontWeight:600, fontFamily:FH, color:BLK }}>{a.business_name || 'Untitled'}</span>
+                    <div style={{ width:8, height:8, borderRadius:99, background: (a.status==='active' || a.is_active || a.retell_agent_id) ? GRN : '#d1d5db' }} />
+                    <span style={{ fontSize:14, fontWeight:600, fontFamily:FH, color:BLK }}>{a.name || a.business_name || 'Untitled'}</span>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:4, marginLeft:16 }}>
                     {a.department && <span style={badge('#f3f4f6','#374151')}>{a.department}</span>}
@@ -340,12 +340,20 @@ function SetupTab({ agent, setAgent, agencyId, saving, setSaving }) {
 // TAB 2 — VOICE & GREETING
 // ═══════════════════════════════════════════════════════════════════════════════
 function VoiceGreetingTab({ agent, setAgent }) {
-  const [scripts, setScripts] = useState({
-    greeting: agent.scripts?.greeting || '',
-    open_hours: agent.scripts?.open_hours || '',
-    closed_hours: agent.scripts?.closed_hours || '',
-    emergency: agent.scripts?.emergency || '',
-    voicemail: agent.scripts?.voicemail || '',
+  // Section → DB column mapping. Scripts are individual columns, not a nested `scripts` jsonb.
+  const SECTION_COLS = {
+    greeting: 'greeting_script',
+    open_hours: 'open_hours_script',
+    closed_hours: 'closed_hours_script',
+    emergency: 'emergency_script',
+    voicemail: 'voicemail_script',
+  }
+  const [scripts, setScripts] = useState(() => {
+    const init = {}
+    for (const [section, col] of Object.entries(SECTION_COLS)) {
+      init[section] = agent[col] || agent.scripts?.[section] || ''
+    }
+    return init
   })
   const [generating, setGenerating] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -354,7 +362,7 @@ function VoiceGreetingTab({ agent, setAgent }) {
     setGenerating(section)
     try {
       const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ action:'generate_script', section, business_context:{ name:agent.business_name, department:agent.department, sic:agent.sic_code, hours:agent.business_hours }})
+        body:JSON.stringify({ action:'generate_script', section, business_context:{ name:agent.name||agent.business_name, department:agent.department, sic:agent.sic_code, hours:agent.business_hours }})
       })
       const d = await res.json()
       if (d.script) { setScripts(p=>({...p,[section]:d.script})); toast.success(`Generated ${section.replace(/_/g,' ')} script`) }
@@ -368,18 +376,29 @@ function VoiceGreetingTab({ agent, setAgent }) {
       const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ action:'update_agent', agent_id:agent.id, voice_id:voiceId })
       })
-      if (res.ok) { setAgent({...agent, voice_id:voiceId}); toast.success('Voice updated') }
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { setAgent({...agent, voice_id:voiceId}); toast.success('Voice updated') }
+      else toast.error(d.error||'Voice update failed')
     } catch { toast.error('Failed to update voice') }
   }
 
   async function saveScripts() {
     setSaving(true)
     try {
+      // Send as flat columns so the update_agent whitelist accepts them.
+      const updates = {}
+      for (const [section, col] of Object.entries(SECTION_COLS)) {
+        updates[col] = scripts[section] || ''
+      }
       const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, scripts })
+        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, ...updates })
       })
-      if (res.ok) { setAgent({...agent, scripts}); toast.success('Scripts saved') }
-      else toast.error('Save failed')
+      const d = await res.json().catch(()=>({}))
+      if (d.success) {
+        const nextAgent = { ...agent, ...updates }
+        setAgent(nextAgent)
+        toast.success('Scripts saved')
+      } else toast.error(d.error||'Save failed')
     } catch { toast.error('Save failed') }
     setSaving(false)
   }
@@ -465,10 +484,11 @@ function IntakeFormTab({ agent, setAgent }) {
     setSaving(true)
     try {
       const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, intake_questions:questions, intake_template_id:selectedTemplate })
+        body:JSON.stringify({ action:'update_agent', agent_id:agent.id, intake_questions:questions, intake_template:selectedTemplate })
       })
-      if (res.ok) { setAgent({...agent, intake_questions:questions}); toast.success('Intake form saved') }
-      else toast.error('Save failed')
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { setAgent({...agent, intake_questions:questions}); toast.success('Intake form saved') }
+      else toast.error(d.error||'Save failed')
     } catch { toast.error('Save failed') }
     setSaving(false)
   }

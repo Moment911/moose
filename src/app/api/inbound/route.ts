@@ -558,9 +558,9 @@ End the call once you have collected the caller's information and confirmed next
           return NextResponse.json({ error: e?.message || 'Retell create-agent failed' }, { status: 500 })
         }
 
-        // Step 3: Insert agent record. Only send the minimal fields the wizard collects —
-        // the prod schema has drifted from src/sql/answering_service.sql, so scripts and
-        // optional toggles are configured on the agent detail page after activation.
+        // Step 3: Insert agent record. Prod schema has drifted from answering_service.sql,
+        // so start with the full set and retry with the offending column stripped if
+        // Supabase reports it missing. Scripts/notifications are set on the detail page later.
         const agentRecord: any = {
           agency_id,
           client_id: client_id || null,
@@ -571,19 +571,29 @@ End the call once you have collected the caller's information and confirmed next
           voice_id: resolvedVoiceId,
           sic_code: sic_code || null,
           phone_number: phone_number || forward_number || null,
+          status: 'active',
+          is_active: true,
         }
         void greeting_script; void closed_script; void emergency_script; void intake_questions; void timezone;
 
-        const { data: agentData, error: agentError } = await supabase
-          .from('koto_inbound_agents')
-          .insert(agentRecord)
-          .select()
-          .single()
-        if (agentError) {
-          // Best effort: clean up orphaned Retell resources so the user can retry
+        let agentData: any = null
+        let lastInsertError: any = null
+        for (let attempt = 0; attempt < 10; attempt++) {
+          const res = await supabase
+            .from('koto_inbound_agents')
+            .insert(agentRecord)
+            .select()
+            .single()
+          if (!res.error) { agentData = res.data; lastInsertError = null; break }
+          lastInsertError = res.error
+          const m = /Could not find the '([^']+)' column/.exec(res.error.message || '')
+          if (m && m[1] in agentRecord) { delete agentRecord[m[1]]; continue }
+          break
+        }
+        if (lastInsertError || !agentData) {
           try { await retellFetch(`/delete-agent/${retellAgent.agent_id}`, 'DELETE') } catch {}
           try { await retellFetch(`/delete-retell-llm/${llmId}`, 'DELETE') } catch {}
-          return NextResponse.json({ error: agentError.message }, { status: 500 })
+          return NextResponse.json({ error: lastInsertError?.message || 'insert failed' }, { status: 500 })
         }
 
         // Step 4: If the wizard already provisioned a Koto number, link it to the new agent
@@ -699,8 +709,11 @@ End the call once you have collected the caller's information and confirmed next
           .eq('agent_id', deleteAgentId)
         if (phones) {
           for (const phone of phones) {
-            if (phone.retell_phone_number_id) {
-              try { await retellFetch(`/delete-phone-number/${phone.retell_phone_number_id}`, 'DELETE') } catch {}
+            // Column is `retell_number_id` (set by provision_number); handle the legacy
+            // `retell_phone_number_id` name too so older rows still clean up.
+            const retellPhoneId = phone.retell_number_id || phone.retell_phone_number_id
+            if (retellPhoneId) {
+              try { await retellFetch(`/delete-phone-number/${retellPhoneId}`, 'DELETE') } catch {}
             }
           }
           await supabase.from('koto_inbound_phone_numbers').delete().eq('agent_id', deleteAgentId)
