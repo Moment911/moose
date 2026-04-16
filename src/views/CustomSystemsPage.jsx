@@ -6,12 +6,14 @@ import {
   Droplet, Dumbbell, Plug, Workflow, Database, Link2, Check,
   ChefHat, Stethoscope, DollarSign, Package, Hammer, Bed,
   Truck, Smile, BarChart2, CalendarClock, Sun, Users,
+  Mail, FileText, Camera, Sparkles,
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, W, FH, FB } from '../lib/theme'
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
+import InlineSystemMock from '../components/public/InlineSystemMock'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -405,6 +407,149 @@ export default function CustomSystemsPage() {
               background: R + '12', border: `1px solid ${R}30`,
               padding: '7px 14px', borderRadius: 100,
             }}>+ Anything custom</span>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURED ANIMATED MOCKS — watch three systems fill in live */}
+      <section className="m-pad" style={{ padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: R, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>
+              Watch it run
+            </div>
+            <h2 className="m-sec-h2" style={{
+              fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em',
+              color: INK, lineHeight: 1.05, marginBottom: 18,
+            }}>
+              Three live builds, auto-playing.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              Animated simulations of what three different Koto systems do on every run. Real-world shape,
+              real-feeling numbers, fabricated for the demo.
+            </p>
+          </div>
+
+          {/* Mock 1: Catering Order Intake */}
+          <div style={{ marginBottom: 24 }}>
+            <InlineSystemMock config={{
+              browserUrl: 'savannah-catering.com / orders',
+              leftIcon: Mail, leftEyebrow: 'Incoming order',
+              source: { icon: Mail, label: 'orders@savannah-catering.com', sub: 'Online order · 12s ago', status: 'NEW' },
+              fields: [
+                { step: 1, label: 'Event type',    value: 'Corporate lunch (drop-off)' },
+                { step: 2, label: 'Date',          value: 'Friday, Oct 17 · 12:00 PM delivery' },
+                { step: 3, label: 'Headcount',     value: '48 guests' },
+                { step: 4, label: 'Menu',          value: 'Mediterranean Build-Your-Own' },
+                { step: 5, label: 'Delivery',      value: '333 Las Olas Blvd · floor 14' },
+                { step: 6, label: 'Dietary notes', value: '3 vegetarian · 2 gluten-free' },
+              ],
+              rightIcon: ChefHat, rightEyebrow: 'Kitchen + driver dispatch',
+              calculatingText: 'Checking kitchen capacity, prep time, driver routes...',
+              outputTitle: 'Order #8247 — Kitchen Ticket',
+              outputSub: '48 guests',
+              lines: [
+                { step: 10, label: 'Mediterranean BYO × 48',   amount: 816 },
+                { step: 11, label: 'Staff delivery + setup (1 hr)', amount: 85 },
+                { step: 12, label: 'Dietary accommodations',   amount: 42 },
+                { step: 13, label: 'Delivery fee (downtown)',  amount: 45 },
+              ],
+              subtotal: 988, tax: 69, total: 1057,
+              confirmText: 'Kitchen ticket printed · Driver Jorge routed · Customer notified',
+              confirmHint: '2.8s end-to-end',
+              footerLabel: 'Custom AI system · Savannah Catering Co.',
+              footerStats: [
+                { label: 'Orders today', value: '32' },
+                { label: 'Avg handoff', value: '3.1s' },
+                { label: 'On-time rate', value: '98%' },
+              ],
+              accent: R,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Catering Order Management.</strong> Live with a South Florida catering client.
+            </div>
+          </div>
+
+          {/* Mock 2: Collision Estimator */}
+          <div style={{ marginBottom: 24 }}>
+            <InlineSystemMock config={{
+              browserUrl: 'coastal-bodyshop.com / estimate',
+              leftIcon: Camera, leftEyebrow: 'Customer submission',
+              source: { icon: Camera, label: 'Photos uploaded · 4 of 4', sub: '2019 Honda Accord EX-L · rear-end collision', status: 'ANALYZING' },
+              fields: [
+                { step: 1, label: 'Vehicle',       value: '2019 Honda Accord EX-L Sedan' },
+                { step: 2, label: 'VIN',           value: '1HGCV1F34KA012347' },
+                { step: 3, label: 'Mileage',       value: '47,820 mi' },
+                { step: 4, label: 'Impact area',   value: 'Rear bumper · trunk lid · both quarter panels' },
+                { step: 5, label: 'Severity',      value: 'Moderate · structural check needed' },
+                { step: 6, label: 'Paint match',   value: 'Modern Steel Metallic (NH-797M)' },
+              ],
+              rightIcon: FileText, rightEyebrow: 'Auto-generated estimate',
+              calculatingText: 'Pricing OEM parts, labor hours, paint + blending...',
+              outputTitle: 'Estimate #RE-2471',
+              outputSub: 'Insurance-ready',
+              lines: [
+                { step: 10, label: 'Rear bumper cover (OEM)',     amount: 624 },
+                { step: 11, label: 'Trunk lid replacement',       amount: 1280 },
+                { step: 12, label: 'Quarter panel repair (both)', amount: 1440 },
+                { step: 13, label: 'Paint + blending (4 panels)', amount: 1150 },
+                { step: 14, label: 'Labor · 18 hrs @ $62/hr',     amount: 1116 },
+              ],
+              subtotal: 5610, tax: 0, total: 5610,
+              totalLabel: 'Estimate total',
+              confirmText: 'Estimate PDF sent to customer + Allstate claim #4427891',
+              confirmHint: '94s end-to-end',
+              footerLabel: 'Custom AI system · Coastal Body Shop',
+              footerStats: [
+                { label: 'Estimates today', value: '14' },
+                { label: 'Avg time', value: '92s' },
+                { label: 'Conversion', value: '71%' },
+              ],
+              accent: BLK,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Collision Photo Estimator.</strong> 4 photos in → insurance-ready quote in 90 seconds.
+            </div>
+          </div>
+
+          {/* Mock 3: Mortgage Pre-Qual */}
+          <div style={{ marginBottom: 24 }}>
+            <InlineSystemMock config={{
+              browserUrl: 'everstone-lending.com / pre-qual',
+              leftIcon: DollarSign, leftEyebrow: 'Borrower profile',
+              source: { icon: Users, label: 'Rachel K. + Daniel K.', sub: 'Coral Springs FL · first-time buyers', status: 'SOFT PULL' },
+              fields: [
+                { step: 1, label: 'Combined income',  value: '$214,000 / year (W-2 + K-1)' },
+                { step: 2, label: 'Credit (soft)',    value: '742 / 758 · prime' },
+                { step: 3, label: 'Liquid assets',    value: '$118,400 · 2 accounts' },
+                { step: 4, label: 'Monthly debts',    value: '$1,820 (auto + student)' },
+                { step: 5, label: 'Target price',     value: '$675,000' },
+                { step: 6, label: 'Down payment',     value: '$135,000 (20%)' },
+              ],
+              rightIcon: FileText, rightEyebrow: 'Pre-qualification result',
+              calculatingText: 'Running DTI, reserves, and program fit...',
+              outputTitle: 'Pre-Qual Letter — Case #PQ-01847',
+              outputSub: '30-yr conventional',
+              lines: [
+                { step: 10, label: 'Max purchase price',       amount: 742000 },
+                { step: 11, label: 'Loan amount (at target)',  amount: 540000 },
+                { step: 12, label: 'Est. P + I payment',       amount: 3501 },
+                { step: 13, label: 'Est. taxes + insurance',   amount: 872 },
+                { step: 14, label: 'All-in monthly payment',   amount: 4373 },
+              ],
+              confirmText: 'Pre-qual letter emailed · Routed to LO Jen Castillo · Close prob. 82%',
+              confirmHint: '6.4s end-to-end',
+              footerLabel: 'Custom AI system · Everstone Lending',
+              footerStats: [
+                { label: 'Pre-quals today', value: '27' },
+                { label: 'Avg time', value: '5.9s' },
+                { label: 'Weekend capture', value: '+3×' },
+              ],
+              accent: GRN,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Mortgage Pre-Qual Bot.</strong> 24/7 pre-quals, pre-filed to the loan officer.
+            </div>
           </div>
         </div>
       </section>
