@@ -1748,15 +1748,19 @@ export default function MarketingSitePage() {
       </section>
 
       {/* ══ CUSTOM-BUILD ══ */}
-      <section id="custom" className="section" style={{ background: W, padding: '96px 40px', borderTop: `1px solid ${HAIR}`, position: 'relative', overflow: 'hidden' }}>
-        {/* Subtle animated gradient behind headline */}
+      <section id="custom" className="section" style={{ background: W, padding: '120px 40px 96px', borderTop: `1px solid ${HAIR}`, position: 'relative' }}>
+        {/* Isolated gradient wrapper so overflow:hidden can't clip the headline ascenders */}
         <div aria-hidden="true" style={{
-          position: 'absolute', top: 80, left: '50%', transform: 'translateX(-50%)',
-          width: 720, height: 300, borderRadius: '50%',
-          background: `radial-gradient(ellipse at center, ${T}18 0%, ${R}18 60%, transparent 80%)`,
-          filter: 'blur(80px)', pointerEvents: 'none',
-          animation: 'orbPulse 14s ease-in-out infinite',
-        }} />
+          position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none',
+        }}>
+          <div style={{
+            position: 'absolute', top: 120, left: '50%', transform: 'translateX(-50%)',
+            width: 720, height: 300, borderRadius: '50%',
+            background: `radial-gradient(ellipse at center, ${T}18 0%, ${R}18 60%, transparent 80%)`,
+            filter: 'blur(80px)',
+            animation: 'orbPulse 14s ease-in-out infinite',
+          }} />
+        </div>
 
         <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
           <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
