@@ -202,10 +202,10 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
 
   const panelStyle = isMobile
     ? { position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 9999 }
-    : { position: 'fixed', top: 0, right: 0, width: PANEL_WIDTH, height: '100vh', zIndex: 9999 }
+    : { position: 'fixed', bottom: 24, right: 24, width: PANEL_WIDTH, height: 'min(640px, calc(100vh - 48px))', zIndex: 9999, borderRadius: 16, overflow: 'hidden' }
 
   return (
-    <div style={{ ...panelStyle, background: '#fff', borderLeft: `1px solid #e5e7eb`, boxShadow: '-8px 0 30px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ ...panelStyle, background: '#fff', border: '1px solid #e5e7eb', boxShadow: '0 20px 50px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10, background: BLK, color: '#fff' }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
