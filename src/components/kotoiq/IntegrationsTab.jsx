@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import {
   Link2, Loader2, CheckCircle, XCircle, Send, Clock,
-  Slack, MessageSquare, Save, Trash2,
+  Hash, MessageSquare, Save, Trash2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -215,7 +215,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <IntegrationCard
-          type="slack" label="Slack" icon={Slack} color="#611f69"
+          type="slack" label="Slack" icon={Hash} color="#611f69"
           state={slack} setState={setSlack}
           clientId={clientId} agencyId={agencyId}
         />
