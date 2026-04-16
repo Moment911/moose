@@ -558,6 +558,7 @@ End the call once you have collected the caller's information and confirmed next
           agency_id,
           client_id: client_id || null,
           name: agentName,
+          business_name: displayName,
           department: department || 'main',
           retell_agent_id: retellAgent.agent_id,
           voice_id: resolvedVoiceId,
