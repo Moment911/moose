@@ -192,24 +192,24 @@ const TOOLS = [
 const CATEGORIES = ['All', 'SEO', 'Voice', 'Growth', 'Intelligence'];
 
 const HERO_STATS = [
-  { num: '645k',  label: 'Businesses analyzed' },
-  { num: '4.2M',  label: 'Opportunities surfaced' },
-  { num: '12+',   label: 'Live data sources' },
-  { num: '<3s',   label: 'Avg response time' },
+  { num: '1 week',  label: 'Prototype turnaround' },
+  { num: '14',      label: 'Foundation models we use' },
+  { num: '24',      label: 'Agents already built' },
+  { num: '<3s',     label: 'Avg agent response' },
 ];
 
 const PROOF_STATS = [
-  { value: '645,000', label: 'Businesses analyzed' },
-  { value: '4.2M',    label: 'Opportunities surfaced' },
-  { value: '25+',     label: 'Specialized AI engines' },
-  { value: '99.9%',   label: 'Target uptime' },
+  { value: '1 week',   label: 'Prototype turnaround' },
+  { value: '4–8 wks',  label: 'Production deploys' },
+  { value: '24+',      label: 'Agent types shipped' },
+  { value: '99.9%',    label: 'Target uptime' },
 ];
 
 const ENTERPRISE_FEATURES = [
   { title: 'Bank-level encryption',   desc: 'All data encrypted in transit and at rest. Keys rotated on schedule.' },
   { title: 'Role-based access',        desc: 'Granular permissions per team member. SSO-ready for enterprise plans.' },
   { title: 'Full audit trail',         desc: 'Every AI action, edit, and export is logged and exportable for compliance.' },
-  { title: 'Isolated client data',     desc: "Your clients' data never leaves your workspace. Zero cross-agency bleed." },
+  { title: 'Isolated data per tenant', desc: "Your data never leaves your workspace. Zero cross-tenant bleed." },
   { title: 'US-hosted infrastructure', desc: 'Data stays in US regions. Single-tenant isolation available on Agency plan.' },
   { title: 'GDPR & CCPA aware',        desc: 'Data subject requests handled with built-in tooling for export and deletion.' },
 ];
@@ -1342,7 +1342,7 @@ export default function MarketingSitePage() {
       <section id="kotoiq" className="section" style={{ background: SURFACE, padding: '96px 40px' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 64, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
-            <div className="eyebrow" style={{ color: R }}>Inside KotoIQ</div>
+            <div className="eyebrow" style={{ color: R }}>One example of what we build · KotoIQ</div>
             <h2 className="sec-h2" style={{
               fontSize: 56, fontWeight: 900, fontFamily: FH,
               letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
@@ -1350,9 +1350,12 @@ export default function MarketingSitePage() {
               Not AI that generates.<br />AI that <span style={{ color: R }}>investigates</span>.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
-              KotoIQ is the search intelligence engine behind every Koto recommendation. It pulls live data
-              from 12+ sources, runs 25+ specialized analysis engines in parallel, and routes each task to
-              the right AI model — so every recommendation is grounded in your real data, not guessed at.
+              KotoIQ is a full search-intelligence system we built for marketing agencies — live data from
+              every source a client shows up in, 25+ parallel analysis engines, and a multi-model AI layer
+              that routes each task to the right model. Here's how that system works, end-to-end.{' '}
+              <a href="/koto-ai" style={{ color: R, fontWeight: 700, textDecoration: 'none' }}>
+                See the full agency OS →
+              </a>
             </p>
           </div>
 
@@ -1692,21 +1695,81 @@ export default function MarketingSitePage() {
         </div>
       </section>
 
-      {/* ══ AI AGENTS UNDER THE HOOD ══ */}
-      <section id="agents" className="section" style={{ background: W, padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>
+      {/* ══ CHATBOTS PREVIEW — links to /chatbots ══ */}
+      <section className="section" style={{ padding: '96px 40px', background: SURFACE, borderTop: `1px solid ${HAIR}` }}>
         <div style={{ maxWidth: 1160, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
-            <div className="eyebrow">AI agents under the hood</div>
+          <div style={{ textAlign: 'center', marginBottom: 48, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="eyebrow" style={{ color: T }}>Try them yourself</div>
             <h2 className="sec-h2" style={{
               fontSize: 56, fontWeight: 900, fontFamily: FH,
               letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
             }}>
-              Specialized agents.<br />Built for the work that matters.
+              Six live chatbot demos.<br />Six different industries.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
-              Koto ships with purpose-built AI agents for the conversations that move money — outbound
-              sales, client onboarding, discovery, and healthcare verification. Each one is engineered
-              for a specific job, not a general-purpose chatbot.
+              Each bot knows its business — real menus, real pricing, real policies. Click in, ask anything,
+              see how fast we could build one for you.
+            </p>
+          </div>
+
+          <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
+            {[
+              { label: 'Dental Practice',  hint: 'Appointments, insurance, emergencies', color: R },
+              { label: 'Real Estate',      hint: 'Property search, neighborhoods, mortgage', color: T },
+              { label: 'Restaurant',       hint: 'Reservations, menu, allergies, events', color: AMB },
+              { label: 'Auto Dealer',      hint: 'Inventory, financing, trade-in, test drives', color: '#8b5cf6' },
+              { label: 'Law Firm',         hint: 'Intake, fees, case types, documents', color: BLK },
+              { label: 'SaaS Support',     hint: 'Plans, integrations, billing, passwords', color: GRN },
+            ].map(b => (
+              <a key={b.label} href="/chatbots" onClick={e => { e.preventDefault(); navigate('/chatbots') }} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '20px 22px', background: W, border: `1px solid ${HAIR}`,
+                borderRadius: 14, textDecoration: 'none', cursor: 'pointer',
+                transition: 'all .2s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = INK; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(17,17,17,.06)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = HAIR; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 10, height: 10, borderRadius: '50%', background: b.color,
+                    boxShadow: `0 0 0 3px ${b.color}22`,
+                  }} />
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: INK, fontFamily: FH }}>{b.label}</div>
+                    <div style={{ fontSize: 12, color: MUTED, fontFamily: FB, marginTop: 2 }}>{b.hint}</div>
+                  </div>
+                </div>
+                <ArrowRight size={16} color={FAINT} />
+              </a>
+            ))}
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <button className="btn btn-primary btn-md" onClick={() => navigate('/chatbots')}>
+              Open the chatbot demos <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ AI AGENTS UNDER THE HOOD ══ */}
+      <section id="agents" className="section" style={{ background: W, padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="eyebrow">A few agents we've already built</div>
+            <h2 className="sec-h2" style={{
+              fontSize: 56, fontWeight: 900, fontFamily: FH,
+              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
+            }}>
+              Purpose-built agents.<br />Across every industry.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              Five of the two-dozen agents we've shipped — each one designed for the specific
+              conversation it handles, not a generic chatbot with a wig on.{' '}
+              <a href="/ai-agents" style={{ color: R, fontWeight: 700, textDecoration: 'none' }}>
+                See all 24 →
+              </a>
             </p>
           </div>
 
@@ -1953,11 +2016,11 @@ export default function MarketingSitePage() {
               fontSize: 56, fontWeight: 900, fontFamily: FH,
               letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
             }}>
-              Enterprise infrastructure.<br />Agency-ready workflows.
+              Enterprise infrastructure.<br />Shipped at startup speed.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
-              Koto is engineered for agencies that run dozens to hundreds of clients — with the security,
-              auditability, and performance your enterprise clients expect.
+              Koto is engineered for the businesses that want AI that actually works — with the security,
+              auditability, and performance your customers, clients, and regulators expect.
             </p>
           </div>
 
