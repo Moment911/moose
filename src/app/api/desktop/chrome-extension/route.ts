@@ -7,9 +7,11 @@ export const dynamic = 'force-dynamic'
 /**
  * Alias for /api/desktop/download/chrome-extension.
  * The /downloads page links here for the Chrome extension button.
+ * Streams the private blob through the server — never exposes the Blob URL.
  */
 export async function GET() {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  const token = process.env.BLOB_READ_WRITE_TOKEN
+  if (!token) {
     return NextResponse.json(
       {
         error: 'Downloads not configured',
@@ -34,5 +36,31 @@ export async function GET() {
     )
   }
 
-  return NextResponse.redirect(asset.url, { status: 302 })
+  const upstream = await fetch(asset.url, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+
+  if (!upstream.ok || !upstream.body) {
+    return NextResponse.json(
+      {
+        error: 'Download failed',
+        message: `Upstream blob responded with status ${upstream.status}.`,
+      },
+      { status: 502 },
+    )
+  }
+
+  const filename = asset.filename || 'chrome-extension.zip'
+  const contentType = upstream.headers.get('content-type') || 'application/zip'
+  const contentLength = upstream.headers.get('content-length')
+
+  const headers: Record<string, string> = {
+    'Content-Type': contentType,
+    'Content-Disposition': `attachment; filename="${filename}"`,
+    'Cache-Control': 'private, max-age=300',
+  }
+  if (contentLength) headers['Content-Length'] = contentLength
+
+  return new Response(upstream.body, { status: 200, headers })
 }

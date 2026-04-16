@@ -25,11 +25,31 @@ stored alongside it. The manifest looks like:
 }
 ```
 
-`src/app/api/desktop/manifest/route.ts` reads this file. The per-platform
-redirect route `src/app/api/desktop/download/[platform]/route.ts` looks up
-the URL and 302-redirects the browser. Missing platforms in the manifest →
-the route returns 404 with "This platform is not yet available — join the
-waitlist at /downloads."
+`src/app/api/desktop/manifest/route.ts` reads this file server-side using
+`BLOB_READ_WRITE_TOKEN` and returns a **URL-stripped** public version
+(`{ available, filename, size_mb, sha256 }` per platform) — the raw Blob
+URLs never reach the client. The per-platform route
+`src/app/api/desktop/download/[platform]/route.ts` resolves the private
+URL server-side, fetches the blob with the token, and streams the bytes
+back to the browser with a `Content-Disposition: attachment` header.
+
+### Privacy Model
+
+All artifacts are stored as private — downloads are only reachable through
+the API route, which holds the read-write token. The `/api/desktop/manifest`
+response intentionally omits every `url` field so the browser cannot ever
+bypass the proxy.
+
+**SDK quirk:** `@vercel/blob` v1.1.1 still requires `access: 'public'` at the
+`put()` call site (the SDK throws otherwise) and has no signed-URL helper.
+We compensate by treating the returned URL as a secret — never exposing it
+client-side, and fetching it server-side with `Authorization: Bearer
+${BLOB_READ_WRITE_TOKEN}`. When the SDK ships private access + signed URLs
+(roadmap item), swap the proxy stream in `download/[platform]/route.ts`
+for a short-lived signed URL and re-enable the 302 redirect.
+
+Missing platforms in the manifest → the route returns 404 with "This platform
+is not yet available — join the waitlist at /downloads."
 
 ## Cutting a Release
 
@@ -57,7 +77,9 @@ The script:
 3. Finds the resulting artifact in `desktop-app/src-tauri/target/<triple>/release/bundle/`.
 4. Computes size + SHA-256.
 5. Uploads to Vercel Blob at `kotoiq-downloads/latest/<version>/<filename>`
-   with `access: 'public'` and `allowOverwrite: true`.
+   with `access: 'public'` (SDK-enforced — see Privacy Model above) and
+   `allowOverwrite: true`. The resulting URL is treated as a secret and only
+   referenced by server-side routes holding the read-write token.
 6. Loads the existing manifest (if any), merges the new entries in, bumps
    `released_at`, and re-uploads the manifest.
 

@@ -50,7 +50,7 @@ const DOWNLOADS: Record<PlatformKey, {
 }
 
 interface ManifestAsset {
-  url?: string
+  available?: boolean
   size_mb?: number
   filename?: string
   sha256?: string
@@ -105,8 +105,8 @@ export default function DownloadsPage() {
   const platformMeta = DOWNLOADS[platform]
   const RecIcon = platformMeta.icon
   const recommendedAsset = manifest?.platforms?.[platform]
-  const recommendedAvailable = !!recommendedAsset?.url
-  const chromeExtAvailable = !!manifest?.platforms?.['chrome-extension']?.url
+  const recommendedAvailable = !!recommendedAsset?.available
+  const chromeExtAvailable = !!manifest?.platforms?.['chrome-extension']?.available
 
   const version = manifest?.version && manifest.version !== '0.0.0' ? manifest.version : null
   const releasedAt = manifest?.released_at ? formatReleasedAt(manifest.released_at) : null
@@ -176,7 +176,7 @@ export default function DownloadsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
             {(Object.entries(DOWNLOADS) as [PlatformKey, typeof DOWNLOADS[PlatformKey]][]).map(([key, d]) => {
               const Icon = d.icon
-              const available = !!manifest?.platforms?.[key]?.url
+              const available = !!manifest?.platforms?.[key]?.available
               const sizeLabel = manifest?.platforms?.[key]?.size_mb
                 ? `${manifest.platforms[key]!.size_mb} MB`
                 : d.note

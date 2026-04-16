@@ -176,6 +176,11 @@ async function uploadToBlob(filepath, blobPathname, contentType) {
   // Dynamic import so the script can run in dry-run without the package
   const { put } = await import('@vercel/blob')
   const buf = await readFile(filepath)
+  // NOTE: @vercel/blob v1.1.1 only accepts access: 'public' at the SDK level
+  // (the CJS bundle explicitly throws on any other value). We enforce privacy by
+  // never exposing the returned URL to clients — the /api/desktop/download route
+  // proxies bytes server-side with the BLOB_READ_WRITE_TOKEN, and the public
+  // manifest endpoint strips URLs before responding.
   const result = await put(blobPathname, buf, {
     access: 'public',
     contentType,
@@ -315,6 +320,9 @@ async function main() {
     log.dry(`Would upload manifest → blob:${MANIFEST_PATHNAME}`)
   } else {
     const { put } = await import('@vercel/blob')
+    // See note in uploadToBlob — access stays 'public' because the SDK rejects
+    // any other value, but the manifest route strips URLs before responding
+    // and never returns raw blob URLs to clients.
     const result = await put(MANIFEST_PATHNAME, manifestJson, {
       access: 'public',
       contentType: 'application/json',
