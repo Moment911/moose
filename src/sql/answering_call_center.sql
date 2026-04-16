@@ -60,6 +60,32 @@ ALTER TABLE koto_inbound_routing_targets ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "routing_targets_all" ON koto_inbound_routing_targets;
 CREATE POLICY "routing_targets_all" ON koto_inbound_routing_targets FOR ALL USING (true) WITH CHECK (true);
 
+-- ── Calendar bookings (book_appointment Retell tool) ──────────────────────
+ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS calendar_webhook_url text;
+ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS scheduling_link      text;
+
+CREATE TABLE IF NOT EXISTS koto_inbound_bookings (
+  id                uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  agency_id         uuid,
+  agent_id          uuid REFERENCES koto_inbound_agents(id) ON DELETE SET NULL,
+  retell_call_id    text,
+  caller_name       text,
+  callback_number   text,
+  callback_email    text,
+  appointment_at    timestamptz,
+  duration_minutes  int DEFAULT 30,
+  reason            text,
+  status            text DEFAULT 'pending',  -- pending / confirmed / cancelled
+  external_id       text,                    -- e.g. Cal.com booking ID after confirmation
+  notes             text,
+  created_at        timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_bookings_agent ON koto_inbound_bookings(agent_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_when  ON koto_inbound_bookings(appointment_at);
+ALTER TABLE koto_inbound_bookings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "bookings_all" ON koto_inbound_bookings;
+CREATE POLICY "bookings_all" ON koto_inbound_bookings FOR ALL USING (true) WITH CHECK (true);
+
 -- ── Spam / blocklist ───────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS koto_inbound_spam_blocklist (
   id            uuid DEFAULT gen_random_uuid() PRIMARY KEY,

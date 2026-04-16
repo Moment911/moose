@@ -975,13 +975,40 @@ End the call once you have collected the caller's information and confirmed next
         }
 
         // Step 1: Create Retell LLM — match VOB agent setup (Claude 4.6 Sonnet,
-        // conversational turn-taking discipline baked into the prompt).
+        // conversational turn-taking discipline baked into the prompt). Register
+        // a `book_appointment` tool so the agent can hand a structured booking
+        // back to us when the caller wants to schedule.
+        const webhookBase = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+        const generalTools = [
+          {
+            type: 'custom',
+            name: 'book_appointment',
+            description: 'Record an appointment booking when the caller agrees to a time. Always confirm the time and contact info back to the caller before invoking this tool.',
+            url: `${webhookBase}/api/inbound/tool/book_appointment`,
+            speak_during_execution: true,
+            execution_message_description: 'Tell the caller you are booking the time and to hold for a moment.',
+            parameters: {
+              type: 'object',
+              properties: {
+                caller_name: { type: 'string', description: 'Full name of the person being booked.' },
+                callback_number: { type: 'string', description: 'Best phone number to confirm the booking.' },
+                callback_email: { type: 'string', description: 'Optional email for confirmation.' },
+                appointment_iso: { type: 'string', description: 'ISO 8601 timestamp of the requested appointment, in the business timezone.' },
+                duration_minutes: { type: 'number', description: 'Estimated duration in minutes.' },
+                reason: { type: 'string', description: 'Short description of the appointment reason.' },
+              },
+              required: ['caller_name', 'callback_number', 'appointment_iso'],
+            },
+          },
+        ]
+
         let llmId: string
         try {
           const llmRes = await retellFetch('/create-retell-llm', 'POST', {
             general_prompt: generalPrompt,
             begin_message: beginMessage,
             model: 'claude-4.6-sonnet',
+            general_tools: generalTools,
           })
           llmId = llmRes.llm_id
           if (!llmId) throw new Error('Retell did not return llm_id')
