@@ -11,6 +11,7 @@ const W     = '#ffffff'
 /* Same nav on every public page — home, about, privacy, terms */
 /* mix of dedicated pages (href) and homepage anchors (id) */
 const LINKS = [
+  { href: '/demos',                     label: 'Live demos' },
   { href: '/ai-agents',                 label: 'AI Agents' },
   { href: '/chatbots',                  label: 'Chatbots' },
   { href: '/custom-systems',            label: 'Custom Systems' },

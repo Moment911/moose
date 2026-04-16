@@ -21,6 +21,7 @@ const COLUMNS = [
     { label: 'Custom CRM', href: '/services/crm' },
     { label: 'Lead Generation', href: '/services/lead-generation' },
     { label: 'Website Design', href: '/services/website-design' },
+    { label: 'Live demos', href: '/demos' },
   ] },
   { title: 'Company', links: [
     { label: 'About', href: '/about' },

@@ -1,8 +1,10 @@
 "use client"
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import PublicNav from '../components/public/PublicNav'
 import { R, T, BLK, GRY, W, FH, FB } from '../lib/theme'
-import { ShoppingCart, Package, Coffee, UtensilsCrossed, Droplets, Box, Truck, Check, Plus, Minus, Trash2, AlertCircle } from 'lucide-react'
+import { ShoppingCart, Package, Coffee, UtensilsCrossed, Droplets, Box, Truck, Check, Plus, Minus, Trash2, AlertCircle, Sparkles, ArrowRight } from 'lucide-react'
 
 /* ── Product Catalog ──────────────────────────────────────────────────────── */
 
@@ -138,6 +140,42 @@ function computeMealLine(line) {
   return { price, cogs, weight, lineTotal: price * line.qty, lineCogs: cogs * line.qty, lineWeight: weight * line.qty }
 }
 
+/* ── Demo Banner — shown in public demo mode only ─────────────────────────── */
+
+function DemoBanner({ onBookCall }) {
+  return (
+    <div style={{
+      background: 'linear-gradient(90deg, #fde7f1, #cff8fa)',
+      borderBottom: '1px solid #e5e7eb',
+      padding: '14px 32px',
+      display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+      fontFamily: FH,
+    }}>
+      <span style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        fontSize: 11, fontWeight: 800, color: R, letterSpacing: '.08em',
+        textTransform: 'uppercase',
+        background: W, border: '1px solid #e5e7eb', borderRadius: 100,
+        padding: '4px 10px',
+      }}>
+        <Sparkles size={11} /> Live demo
+      </span>
+      <span style={{ fontSize: 14, color: BLK, fontWeight: 600, flex: 1, minWidth: 240 }}>
+        <strong>Koto AI is auto-filling this order in real time.</strong>
+        <span style={{ color: '#6b7280', fontWeight: 500 }}> Watch the summary on the right update as meals, extras, shipping, and pricing populate — no humans touching the keyboard.</span>
+      </span>
+      <button onClick={onBookCall} style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '9px 18px', borderRadius: 8, border: 'none',
+        background: BLK, color: W, fontSize: 13, fontWeight: 700, fontFamily: FH,
+        cursor: 'pointer', whiteSpace: 'nowrap',
+      }}>
+        Build one for your business <ArrowRight size={13} />
+      </button>
+    </div>
+  )
+}
+
 /* ── Toast Component ──────────────────────────────────────────────────────── */
 
 function Toast({ message, type, onClose }) {
@@ -161,7 +199,9 @@ function Toast({ message, type, onClose }) {
 
 /* ── Main Page ────────────────────────────────────────────────────────────── */
 
-export default function KotoOrderPage() {
+export default function KotoOrderPage({ demoMode = false }) {
+  const navigate = useNavigate()
+
   /* ── Meal Builder State ── */
   const [mealContainer, setMealContainer] = useState('paper-box')
   const [mealSandwich, setMealSandwich] = useState(null)
@@ -205,6 +245,97 @@ export default function KotoOrderPage() {
     setToast({ message, type })
     setTimeout(() => setToast({ message: '', type: 'success' }), 4000)
   }
+
+  /* ── Autofill demo — runs when demoMode prop is true ──────────────────
+     Staged sequence fills customer, delivery, 3 meals, ad-hoc items, and
+     payment over ~11s so prospects can watch every field populate and the
+     summary rebuild live. Pure client-side; writes no data. */
+  useEffect(() => {
+    if (!demoMode) return
+
+    // Next-Friday delivery date in ISO (yyyy-mm-dd)
+    const d = new Date()
+    const offset = ((5 - d.getDay() + 7) % 7) || 7  // at least 1 week out, on a Friday
+    d.setDate(d.getDate() + offset + 7)
+    const deliveryIso = d.toISOString().slice(0, 10)
+
+    const steps = [
+      // Contact + company
+      [700,   () => { setContactName('Sarah Chen');           showToast('AI: pulling contact from invitation…') }],
+      [1050,  () => setCompany('Apex Dental Group')],
+      [1350,  () => setContactEmail('sarah.chen@apexdental.example')],
+      [1650,  () => setContactPhone('(305) 555-0184')],
+      [1950,  () => setPoNumber('APX-2026-04')],
+
+      // Delivery
+      [2300,  () => { setDeliveryDate(deliveryIso);           showToast('AI: scheduling for next open Friday') }],
+      [2550,  () => setDeliveryTime('11:30')],
+      [2900,  () => setDeliveryAddress('1441 Brickell Ave, Suite 1420, Miami FL 33131')],
+
+      // Meal 1 — Turkey & Swiss × 12
+      [3400,  () => { setMealSandwich('turkey-swiss');        showToast('AI: building Meal 1 — Turkey & Swiss') }],
+      [3700,  () => setMealSides(['chips-regular', 'fruit-cup'])],
+      [4000,  () => setMealDrink('water')],
+      [4300,  () => setMealExtras(['silverware-plastic', 'napkins-2', 'salt-pepper'])],
+      [4600,  () => setMealQty(12)],
+      [5200,  () => {
+        setOrderLines(prev => [...prev, {
+          id: Date.now() + 1,
+          sandwich: 'turkey-swiss', container: 'paper-box',
+          sides: ['chips-regular', 'fruit-cup'], drink: 'water',
+          extras: ['silverware-plastic', 'napkins-2', 'salt-pepper'], qty: 12,
+        }])
+        setMealSandwich(null); setMealSides([]); setMealDrink(null); setMealExtras([]); setMealQty(1)
+      }],
+
+      // Meal 2 — Chicken Wrap × 8
+      [5800,  () => { setMealSandwich('chicken-wrap');        showToast('AI: building Meal 2 — Grilled Chicken Wrap') }],
+      [6100,  () => setMealSides(['chips-bbq', 'brownie'])],
+      [6400,  () => setMealDrink('lemonade')],
+      [6700,  () => setMealExtras(['silverware-plastic', 'napkins-2', 'condiment-ranch'])],
+      [7000,  () => setMealQty(8)],
+      [7600,  () => {
+        setOrderLines(prev => [...prev, {
+          id: Date.now() + 2,
+          sandwich: 'chicken-wrap', container: 'paper-box',
+          sides: ['chips-bbq', 'brownie'], drink: 'lemonade',
+          extras: ['silverware-plastic', 'napkins-2', 'condiment-ranch'], qty: 8,
+        }])
+        setMealSandwich(null); setMealSides([]); setMealDrink(null); setMealExtras([]); setMealQty(1)
+      }],
+
+      // Meal 3 — Veggie × 5
+      [8200,  () => { setMealSandwich('veggie');              showToast('AI: building Meal 3 — Garden Veggie') }],
+      [8500,  () => setMealSides(['fruit-cup', 'apple'])],
+      [8800,  () => setMealDrink('juice-apple')],
+      [9100,  () => setMealExtras(['silverware-plastic', 'napkins-2'])],
+      [9400,  () => setMealQty(5)],
+      [10000, () => {
+        setOrderLines(prev => [...prev, {
+          id: Date.now() + 3,
+          sandwich: 'veggie', container: 'paper-box',
+          sides: ['fruit-cup', 'apple'], drink: 'juice-apple',
+          extras: ['silverware-plastic', 'napkins-2'], qty: 5,
+        }])
+        setMealSandwich(null); setMealSides([]); setMealDrink(null); setMealExtras([]); setMealQty(1)
+      }],
+
+      // Ad-hoc + final details
+      [10500, () => {
+        setAdhocLines(prev => [...prev, { id: Date.now() + 4, itemId: 'napkins-4', name: 'Napkins (4-pack)', category: 'Extra', listPrice: 0.15, cogs: 0.05, weight_oz: 0.4, qty: 5 }])
+        showToast('AI: added napkin + wet-wipe spares')
+      }],
+      [10700, () => {
+        setAdhocLines(prev => [...prev, { id: Date.now() + 5, itemId: 'wet-wipe', name: 'Wet Wipe', category: 'Extra', listPrice: 0.15, cogs: 0.05, weight_oz: 0.3, qty: 25 }])
+      }],
+      [11000, () => setSpecialInstructions('Deliver to concierge desk in lobby. Building requires 30-min advance notice for catering carts.')],
+      [11300, () => setSelectedVehicle('sprinter')],
+      [11700, () => { setShowPricing(true); showToast('AI: order ready — review and place when you\'re satisfied') }],
+    ]
+
+    const timers = steps.map(([ms, fn]) => setTimeout(fn, ms))
+    return () => timers.forEach(clearTimeout)
+  }, [demoMode])
 
   /* ── Meal Builder Toggles ── */
   function toggleMealSide(id) {
@@ -330,11 +461,29 @@ export default function KotoOrderPage() {
   }, [mealSandwich, mealContainer, mealSides, mealDrink, mealExtras, mealQty])
 
   return (
-    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
-      <Sidebar />
+    <div className="page-shell" style={{
+      display: demoMode ? 'block' : 'flex',
+      height: demoMode ? 'auto' : '100vh',
+      minHeight: demoMode ? '100vh' : undefined,
+      overflow: demoMode ? 'visible' : 'hidden',
+      background: GRY, fontFamily: FB,
+    }}>
+      {demoMode ? (
+        <>
+          <PublicNav />
+          <div style={{ height: 64 }} />
+          <DemoBanner onBookCall={() => navigate('/contact')} />
+        </>
+      ) : (
+        <Sidebar />
+      )}
       <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'success' })} />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{
+        flex: demoMode ? 'none' : 1,
+        display: 'flex', flexDirection: 'column',
+        overflow: demoMode ? 'visible' : 'hidden',
+      }}>
         {/* ── Header ── */}
         <div style={{ background: W, borderBottom: '1px solid #e5e7eb', padding: '20px 32px 18px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -353,7 +502,11 @@ export default function KotoOrderPage() {
         </div>
 
         {/* ── Content ── */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '24px 32px 48px' }}>
+        <div style={{
+          flex: demoMode ? 'none' : 1,
+          overflow: demoMode ? 'visible' : 'auto',
+          padding: '24px 32px 48px',
+        }}>
           <div style={{ display: 'flex', gap: 24, maxWidth: 1400, alignItems: 'flex-start' }}>
 
             {/* ══════════ Left Column: Builder + Lines + Ad-Hoc + Order Details (60%) ══════════ */}

@@ -94,6 +94,9 @@ import CrmServicesPage from '../views/CrmServicesPage'
 import LeadGenServicesPage from '../views/LeadGenServicesPage'
 import WebDesignServicesPage from '../views/WebDesignServicesPage'
 import CrmMigrationChecklistPage from '../views/resources/CrmMigrationChecklistPage'
+import DemosHubPage from '../views/demos/DemosHubPage'
+import DemoMockPage from '../views/demos/DemoMockPage'
+import { DEMO_CONFIGS } from '../views/demos/demoConfigs'
 import AgencySignupPage from '../views/AgencySignupPage'
 import AgencySettingsPage from '../views/AgencySettingsPage'
 import DbSetupPage from '../views/DbSetupPage'
@@ -267,6 +270,12 @@ export default function App() {
           <Route path="/services/lead-generation" element={<LeadGenServicesPage />} />
           <Route path="/services/website-design" element={<WebDesignServicesPage />} />
           <Route path="/resources/crm-migration-checklist" element={<CrmMigrationChecklistPage />} />
+          <Route path="/demos" element={<DemosHubPage />} />
+          <Route path="/demos/catering" element={<KotoOrderPage demoMode />} />
+          <Route path="/demos/estimate" element={<DemoMockPage demo={DEMO_CONFIGS.estimate} />} />
+          <Route path="/demos/intake" element={<DemoMockPage demo={DEMO_CONFIGS.intake} />} />
+          <Route path="/demos/dispatch" element={<DemoMockPage demo={DEMO_CONFIGS.dispatch} />} />
+          <Route path="/demos/pre-qual" element={<DemoMockPage demo={DEMO_CONFIGS.preQual} />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/onboarding-guide" element={<OnboardingGuidePage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
