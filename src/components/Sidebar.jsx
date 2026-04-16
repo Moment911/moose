@@ -145,7 +145,7 @@ export default function Sidebar() {
   useEffect(() => {
     if (!isSuperAdmin) return
     import('../lib/supabase').then(({ supabase }) => {
-      supabase.from('agencies').select('id, name, brand_name, logo_url').order('name').then(({ data }) => setWsAgencies(data || []))
+      supabase.from('agencies').select('id, name, brand_name, brand_logo_url').order('name').then(({ data }) => setWsAgencies(data || []))
     })
   }, [isSuperAdmin])
 
@@ -284,8 +284,8 @@ export default function Sidebar() {
                       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: 'none', borderBottom: '1px solid #f3f4f6', background: isActive ? '#f9fafb' : '#fff', cursor: 'pointer', textAlign: 'left' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                       onMouseLeave={e => e.currentTarget.style.background = isActive ? '#f9fafb' : '#fff'}>
-                      {a.logo_url ? (
-                        <img src={a.logo_url} alt="" style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'contain', background: '#f3f4f6' }} />
+                      {a.brand_logo_url ? (
+                        <img src={a.brand_logo_url} alt="" style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'contain', background: '#f3f4f6' }} />
                       ) : (
                         <div style={{ width: 24, height: 24, borderRadius: 6, background: R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: R, flexShrink: 0 }}>
                           {(a.brand_name || a.name || '?')[0].toUpperCase()}
