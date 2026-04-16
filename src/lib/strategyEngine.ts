@@ -14,7 +14,7 @@
 
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { logTokenUsage } from '@/lib/tokenTracker'
+import { blendThreeAIs } from '@/lib/multiAiBlender'
 
 type SB = any
 type AI = Anthropic
@@ -265,22 +265,16 @@ Return ONLY valid JSON, no markdown fences, this exact shape:
 
   let plan: any = null
   try {
-    const msg = await ai.messages.create({
-      model: MODEL,
-      max_tokens: 6000,
-      temperature: 0.4,
-      system: 'You are a senior SEO/GEO strategist. Return only valid JSON — no markdown, no preamble.',
-      messages: [{ role: 'user', content: prompt }],
-    })
-    void logTokenUsage({
-      feature: 'kotoiq_strategic_plan',
-      model: MODEL,
-      inputTokens: msg.usage?.input_tokens || 0,
-      outputTokens: msg.usage?.output_tokens || 0,
+    const blend = await blendThreeAIs({
+      systemPrompt: 'You are a senior SEO/GEO strategist. Return only valid JSON — no markdown, no preamble.',
+      userPrompt: prompt,
+      synthesisInstruction: 'Merge these strategic plans into one superior plan — pick the most defensible attack/defend/abandon reasoning, combine the weekly_actions into the most impactful sequence with no duplicates, and align the resource_allocation with the combined wisdom. Preserve the exact JSON schema.',
+      feature: 'kotoiq_strategic_plan_blended',
       agencyId: agency_id,
-      metadata: { client_id, timeframe: tf },
+      maxTokens: 6000,
     })
-    const text = msg.content[0].type === 'text' ? msg.content[0].text : ''
+    void ai // signature parity — blender owns the provider calls
+    const text = blend.synthesized || ''
     const cleaned = text.replace(/```json\s*|```\s*$/g, '').trim()
     plan = JSON.parse(cleaned)
   } catch (e: any) {

@@ -16,6 +16,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { blendThreeAIs } from '@/lib/multiAiBlender'
 
 type AI = any
 
@@ -339,10 +340,7 @@ export async function runMultiEngineAEO(ai: AI, params: {
     ? params.content.slice(0, 10000) + '\n...[truncated]'
     : params.content
 
-  const msg = await ai.messages.create({
-    model: MODEL,
-    max_tokens: DEFAULT_MAX_TOKENS,
-    system: `You are a multi-engine Answer Engine Optimization analyst. You evaluate whether a piece of content is likely to be cited/surfaced by five distinct AI search engines, each of which weighs ranking factors differently.
+  const systemPrompt = `You are a multi-engine Answer Engine Optimization analyst. You evaluate whether a piece of content is likely to be cited/surfaced by five distinct AI search engines, each of which weighs ranking factors differently.
 
 ENGINE PROFILES — score each 0-100 independently:
 
@@ -391,12 +389,19 @@ Return ONLY valid JSON:
   "overall_aeo_score": number,
   "top_recommendations": ["string"],
   "best_positioned_for": ["string"]
-}`,
-    messages: [{ role: 'user', content: `Score this content for all 5 AI search engines:\n\n${contentPreview}` }],
+}`
+
+  const blend = await blendThreeAIs({
+    systemPrompt,
+    userPrompt: `Score this content for all 5 AI search engines:\n\n${contentPreview}`,
+    synthesisInstruction: 'Merge these multi-engine AEO scores — for each engine take the most evidence-backed score and factors, recompute overall_aeo_score using the stated weighting (Google 0.3, Perplexity 0.2, ChatGPT 0.2, Claude 0.15, Copilot 0.15), and consolidate top_recommendations by impact. Preserve the exact JSON schema.',
+    feature: 'kotoiq_multi_engine_aeo_blended',
+    agencyId: params.agencyId,
+    maxTokens: DEFAULT_MAX_TOKENS,
   })
 
-  track(msg, 'kotoiq_multi_engine_aeo', params.agencyId)
-  return parseJSON<MultiEngineAEOResult>(extractText(msg))
+  void ai // signature parity — blender owns the provider calls
+  return parseJSON<MultiEngineAEOResult>(blend.synthesized || '{}')
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -501,10 +506,7 @@ export async function runCompetitorTopicalMapExtractor(ai: AI, params: {
     ? params.client_topics.map(t => `- ${t}`).join('\n')
     : '(no client topic list provided)'
 
-  const msg = await ai.messages.create({
-    model: MODEL,
-    max_tokens: DEFAULT_MAX_TOKENS,
-    system: `You are a competitor topical map extractor. From a competitor's sitemap URL list, infer the structure of their topical authority map — what they have organized their site around.
+  const systemPrompt = `You are a competitor topical map extractor. From a competitor's sitemap URL list, infer the structure of their topical authority map — what they have organized their site around.
 
 URL SLUG ANALYSIS:
 - Group URLs by their path prefix patterns (/services/*, /blog/*, /locations/*, /guides/*).
@@ -544,12 +546,19 @@ Return ONLY valid JSON:
   "topical_map_size": number,
   "coverage_vs_client": {"shared": ["string"], "competitor_advantage": ["string"], "client_advantage": ["string"]},
   "strategic_insights": ["string"]
-}`,
-    messages: [{ role: 'user', content: `COMPETITOR URLS (${sampleUrls.length}):\n${urlBlock}\n\nExtract the competitor's topical map.` }],
+}`
+
+  const blend = await blendThreeAIs({
+    systemPrompt,
+    userPrompt: `COMPETITOR URLS (${sampleUrls.length}):\n${urlBlock}\n\nExtract the competitor's topical map.`,
+    synthesisInstruction: 'Merge these competitor topical maps into one — reconcile topic counts by URL evidence, keep the most defensible central_entity / source_context inference, dedupe core/outer topics, and keep the sharpest strategic_insights. Preserve the exact JSON schema.',
+    feature: 'kotoiq_competitor_topical_map_extractor_blended',
+    agencyId: params.agencyId,
+    maxTokens: DEFAULT_MAX_TOKENS,
   })
 
-  track(msg, 'kotoiq_competitor_topical_map_extractor', params.agencyId)
-  return parseJSON<CompetitorTopicalMapResult>(extractText(msg))
+  void ai // signature parity — blender owns the provider calls
+  return parseJSON<CompetitorTopicalMapResult>(blend.synthesized || '{}')
 }
 
 // ═══════════════════════════════════════════════════════════════

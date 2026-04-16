@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { blendThreeAIs } from '@/lib/multiAiBlender'
 import { getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 type SB = any
@@ -287,23 +288,18 @@ Return ONLY valid JSON with this exact structure:
   ]
 }`
 
-  // 6. Call Claude
-  const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 8000,
-    system: 'You are KotoIQ\'s Semantic SEO intelligence engine. Build topical maps using advanced semantic methodology. Return ONLY valid JSON. No markdown, no commentary.',
-    messages: [{ role: 'user', content: topicalMapPrompt }],
-  })
-
-  void logTokenUsage({
-    feature: 'kotoiq_topical_map',
-    model: 'claude-sonnet-4-20250514',
-    inputTokens: msg.usage?.input_tokens || 0,
-    outputTokens: msg.usage?.output_tokens || 0,
+  // 6. Call the blended AI (Claude + GPT-4o + Gemini, Opus synthesizes)
+  const blend = await blendThreeAIs({
+    systemPrompt: 'You are KotoIQ\'s Semantic SEO intelligence engine. Build topical maps using advanced semantic methodology. Return ONLY valid JSON. No markdown, no commentary.',
+    userPrompt: topicalMapPrompt,
+    synthesisInstruction: 'Merge these topical maps into the single most rigorous map — keep the richest entity coverage, the most defensible central_entity / source_context pairing, the highest-quality edges, and drop any fabricated nodes. Preserve the exact JSON schema.',
+    feature: 'kotoiq_topical_map_blended',
     agencyId: agency_id,
+    maxTokens: 8000,
   })
 
-  const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+  void ai // signature parity — actual calls go through blendThreeAIs now
+  const raw = blend.synthesized || '{}'
   let mapData: any
   try {
     mapData = JSON.parse(cleanJSON(raw))

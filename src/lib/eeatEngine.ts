@@ -5,7 +5,7 @@ import 'server-only'
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
-import { logTokenUsage } from '@/lib/tokenTracker'
+import { blendThreeAIs } from '@/lib/multiAiBlender'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 interface Signal {
@@ -187,24 +187,19 @@ Analyze for these E-E-A-T dimensions and return ONLY valid JSON:
   ]
 }`
 
-  const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 3000,
-    system: 'You are a Google Search Quality Rater analyzing E-E-A-T signals. Return ONLY valid JSON.',
-    messages: [{ role: 'user', content: prompt }],
+  const blend = await blendThreeAIs({
+    systemPrompt: 'You are a Google Search Quality Rater analyzing E-E-A-T signals. Return ONLY valid JSON.',
+    userPrompt: prompt,
+    synthesisInstruction: 'Merge these E-E-A-T audits into one authoritative JSON assessment — take the most evidence-backed signal findings from each and consolidate recommendations. Keep the exact JSON schema.',
+    feature: 'kotoiq_eeat_blended',
+    agencyId: body.agency_id || undefined,
+    maxTokens: 3000,
   })
 
-  void logTokenUsage({
-    feature: 'kotoiq_eeat',
-    model: 'claude-sonnet-4-20250514',
-    inputTokens: msg.usage?.input_tokens || 0,
-    outputTokens: msg.usage?.output_tokens || 0,
-    agencyId: body.agency_id || null,
-  })
-
-  const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+  const raw = blend.synthesized || '{}'
   const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
   const analysis = JSON.parse(cleaned)
+  void ai // retained parameter kept for signature compatibility
 
   // Calculate dimension scores
   const expSignals: Signal[] = analysis.experience?.signals || []

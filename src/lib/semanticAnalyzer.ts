@@ -6,7 +6,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
-import { logTokenUsage } from '@/lib/tokenTracker'
+import { blendThreeAIs } from '@/lib/multiAiBlender'
 import { getSitemapUrls, getLatestCrawl } from '@/lib/sitemapCrawler'
 
 // ── Types ──────────────────────────────────────────────────────
@@ -334,10 +334,8 @@ export async function analyzeSemanticNetwork(s: SupabaseClient, ai: Anthropic, b
 
   let aiAnalysis: any = {}
   try {
-    const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 5000,
-      system: `You are a semantic SEO analyst. Analyze the content network of a website.
+    const blend = await blendThreeAIs({
+      systemPrompt: `You are a semantic SEO analyst. Analyze the content network of a website.
 Return ONLY valid JSON with this structure:
 {
   "page_analyses": [{"url": "", "macro_context": "", "micro_contexts": [""], "main_vs_supplementary": 0.7, "contextual_flow": 85, "contextual_consistency": 80, "topics": [""]}],
@@ -359,20 +357,14 @@ Scoring:
 - context_dilution: pages covering 4+ unrelated topics
 - orphan_contexts: topics mentioned but not linked to any other page
 - overall_score: 0-100 composite`,
-      messages: [{
-        role: 'user',
-        content: `Analyze the semantic network for ${client.name || domain}:\n${JSON.stringify(pageSummaries, null, 2)}`,
-      }],
+      userPrompt: `Analyze the semantic network for ${client.name || domain}:\n${JSON.stringify(pageSummaries, null, 2)}`,
+      synthesisInstruction: 'Merge these semantic network analyses — take the sharpest page_analyses entries, the most defensible context_dilution and orphan_contexts findings, and average the numeric scores with a bias toward the most evidence-grounded analyst. Preserve the exact JSON schema.',
+      feature: 'kotoiq_semantic_blended',
+      maxTokens: 5000,
     })
 
-    void logTokenUsage({
-      feature: 'kotoiq_semantic',
-      model: 'claude-sonnet-4-20250514',
-      inputTokens: msg.usage?.input_tokens || 0,
-      outputTokens: msg.usage?.output_tokens || 0,
-    })
-
-    const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+    void ai // signature parity — blender handles provider fan-out
+    const raw = blend.synthesized || '{}'
     aiAnalysis = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
   } catch { /* AI analysis is supplementary */ }
 

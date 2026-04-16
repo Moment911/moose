@@ -52,6 +52,7 @@ import { generateQuickWinQueue, updateQuickWinStatus } from '@/lib/quickWinEngin
 import { getPortalData, checkPortalRateLimit, logPortalView } from '@/lib/portalEngine'
 import { runBulkOperation, getBulkOperationStatus } from '@/lib/bulkOperationsEngine'
 import { runConversationalBot, getBotConversation, listBotConversations } from '@/lib/conversationalBotEngine'
+import { blendThreeAIs } from '@/lib/multiAiBlender'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -1195,15 +1196,16 @@ Return ONLY valid JSON:
 }`
 
     try {
-      const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 8000,
-        system: 'You are KotoIQ content strategist applying Semantic SEO principles. Return ONLY valid JSON. No markdown.',
-        messages: [{ role: 'user', content: briefPrompt }],
+      const blend = await blendThreeAIs({
+        systemPrompt: 'You are KotoIQ content strategist applying Semantic SEO principles. Return ONLY valid JSON. No markdown.',
+        userPrompt: briefPrompt,
+        synthesisInstruction: 'Merge these content briefs into one elite brief — take the sharpest information-gain analysis, the deepest entity coverage, the best title/meta candidates, and the most specific human-required sections. Preserve the exact JSON schema.',
+        feature: 'kotoiq_generate_brief_blended',
+        agencyId: agency_id,
+        maxTokens: 8000,
       })
-      void logTokenUsage({ feature: 'kotoiq_content_brief', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
 
-      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+      const raw = blend.synthesized || '{}'
       const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
       const brief = JSON.parse(cleaned)
 
@@ -2780,15 +2782,16 @@ Provide a detailed analysis. Return ONLY valid JSON:
 }`
 
     try {
-      const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
-        system: 'You are KotoIQ AEO analyst specializing in AI Overview optimization. Return ONLY valid JSON. No markdown.',
-        messages: [{ role: 'user', content: aeoPrompt }],
+      const blend = await blendThreeAIs({
+        systemPrompt: 'You are KotoIQ AEO analyst specializing in AI Overview optimization. Return ONLY valid JSON. No markdown.',
+        userPrompt: aeoPrompt,
+        synthesisInstruction: 'Merge these AEO analyses into one authoritative assessment — consolidate the most actionable gap_analysis entries, keep the strongest ideal_answer_format, and rank recommendations by real impact. Preserve the exact JSON schema.',
+        feature: 'kotoiq_aeo_deep_analysis_blended',
+        agencyId: agency_id,
+        maxTokens: 4000,
       })
-      void logTokenUsage({ feature: 'kotoiq_aeo_analysis', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
 
-      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+      const raw = blend.synthesized || '{}'
       const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
       const analysis = JSON.parse(cleaned)
 
