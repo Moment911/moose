@@ -120,7 +120,7 @@ export default function CitationTrackerPage() {
   useEffect(() => { if (clientId) loadHistory() }, [clientId])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id,name,phone,city,state,address').order('name')
+    const { data } = await supabase.from('clients').select('id,name,phone,city,state,address').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(data || [])
   }
 

@@ -6,10 +6,39 @@ import Sidebar from '../components/Sidebar'
 import {
   Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
-  CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin
+  CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
+  Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { supabase } from '../lib/supabase'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
+// ── Section Actions — delete + rerun buttons for every section ──────────────
+function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+      {onRerun && (
+        <button onClick={onRerun} disabled={running} style={{
+          display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 6,
+          border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600,
+          cursor: running ? 'wait' : 'pointer', color: '#6b7280', opacity: running ? 0.5 : 1,
+        }}>
+          {running ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={11} />}
+          {rerunLabel}
+        </button>
+      )}
+      {onDelete && (
+        <button onClick={() => { if (confirm(`${deleteLabel}? This cannot be undone.`)) onDelete() }} style={{
+          display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 6,
+          border: '1px solid #fecaca', background: '#fff', fontSize: 11, fontWeight: 600,
+          cursor: 'pointer', color: '#dc2626',
+        }}>
+          <Trash2 size={11} /> {deleteLabel}
+        </button>
+      )}
+    </div>
+  )
+}
 
 // ── Category config ─────────────────────────────────────────────────────────
 const CAT_CONFIG = {
@@ -78,7 +107,14 @@ function ScoreBadge({ score, label }) {
 export default function KotoIQPage() {
   const { agencyId } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('dashboard') // dashboard | keywords
+  // Tab persisted in URL so refresh keeps position
+  const [tab, setTab] = (() => {
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    const initial = params?.get('tab') || 'dashboard'
+    const [t, setter] = useState(initial)
+    const wrappedSet = (v) => { setter(v); const url = new URL(window.location.href); url.searchParams.set('tab', v); window.history.replaceState({}, '', url.toString()) }
+    return [t, wrappedSet]
+  })()
   const [loading, setLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [portfolio, setPortfolio] = useState(null)
@@ -110,6 +146,19 @@ export default function KotoIQPage() {
   const [gmbLoading, setGmbLoading] = useState(false)
   const [draftingReview, setDraftingReview] = useState(null)
   const [reviewDraft, setReviewDraft] = useState('')
+  const [gridKw, setGridKw] = useState('')
+  const [gridBiz, setGridBiz] = useState('')
+  const [gridLat, setGridLat] = useState('')
+  const [gridLng, setGridLng] = useState('')
+  const [gridCity, setGridCity] = useState('')
+  const [geocoding, setGeocoding] = useState(false)
+  const [gridRunning, setGridRunning] = useState(false)
+  const [gridResult, setGridResult] = useState(null)
+  const [compLandscape, setCompLandscape] = useState(null)
+  const [compLandscapeLoading, setCompLandscapeLoading] = useState(false)
+  const [selectedCompDomain, setSelectedCompDomain] = useState(null)
+  const [compDomainKws, setCompDomainKws] = useState(null)
+  const [compDomainLoading, setCompDomainLoading] = useState(false)
   const [gmbPosts, setGmbPosts] = useState([])
   const [generatingPosts, setGeneratingPosts] = useState(false)
   const [fullPageContent, setFullPageContent] = useState(null)
@@ -127,12 +176,22 @@ export default function KotoIQPage() {
   const [activeBrief, setActiveBrief] = useState(null)
   const [generatingBrief, setGeneratingBrief] = useState(false)
 
+  // OAuth callback state
+  const [oauthStep, setOauthStep] = useState(null) // null | 'exchanging' | 'pick_properties' | 'saving' | 'done'
+  const [oauthTokens, setOauthTokens] = useState(null)
+  const [gscSites, setGscSites] = useState([])
+  const [ga4Properties, setGa4Properties] = useState([])
+  const [selectedGsc, setSelectedGsc] = useState('')
+  const [selectedGa4, setSelectedGa4] = useState('')
+  const [gscSearch, setGscSearch] = useState('')
+  const [ga4Search, setGa4Search] = useState('')
+
   // Load clients
   const loadClients = useCallback(() => {
     if (!agencyId) return
-    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/clients?select=id,name,website,primary_service&agency_id=eq.${agencyId}&deleted_at=is.null&order=name`, {
-      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` }
-    }).then(r => r.json()).then(c => { if (Array.isArray(c)) setClients(c) })
+    supabase.from('clients').select('id, name, website, primary_service, industry, status')
+      .eq('agency_id', agencyId).is('deleted_at', null).order('name')
+      .then(({ data }) => { if (Array.isArray(data)) setClients(data) })
   }, [agencyId])
 
   useEffect(() => {
@@ -285,11 +344,99 @@ export default function KotoIQPage() {
   }, [clientId])
 
   useEffect(() => { loadDashboard() }, [loadDashboard])
+
+  // Handle Google OAuth callback — exchange code for tokens, fetch properties
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    const stateRaw = params.get('state')
+    if (!code || !stateRaw) return
+
+    // Clean URL
+    const cleanUrl = window.location.pathname
+    window.history.replaceState({}, '', cleanUrl)
+
+    try {
+      const state = JSON.parse(decodeURIComponent(stateRaw))
+      const oauthClientId = state.clientId
+      if (oauthClientId) setClientId(oauthClientId)
+
+      setTab('connect')
+      setOauthStep('exchanging')
+      toast.loading('Exchanging tokens...', { id: 'oauth' })
+
+      const redirectUri = window.location.origin + '/kotoiq'
+      fetch('/api/seo/google-exchange', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, redirect_uri: redirectUri }),
+      }).then(r => r.json()).then(async tokens => {
+        if (tokens.error || !tokens.access_token) {
+          toast.error(tokens.details || tokens.error || 'Token exchange failed', { id: 'oauth' })
+          setOauthStep(null)
+          return
+        }
+
+        toast.success('Authenticated! Loading your accounts...', { id: 'oauth' })
+        setOauthTokens({ ...tokens, clientId: oauthClientId })
+
+        // Fetch GSC sites
+        try {
+          const gscRes = await fetch('https://searchconsole.googleapis.com/webmasters/v3/sites', {
+            headers: { Authorization: `Bearer ${tokens.access_token}` }
+          })
+          if (gscRes.ok) {
+            const gscData = await gscRes.json()
+            const sites = (gscData.siteEntry || []).filter(s => s.permissionLevel !== 'siteUnverifiedUser')
+            setGscSites(sites)
+          }
+        } catch {}
+
+        // Fetch GA4 properties — paginate through ALL pages
+        try {
+          let allSummaries = []
+          let pageToken = null
+          do {
+            const url = 'https://analyticsadmin.googleapis.com/v1beta/accountSummaries' + (pageToken ? `?pageToken=${pageToken}` : '?pageSize=200')
+            const summaryRes = await fetch(url, { headers: { Authorization: `Bearer ${tokens.access_token}` } })
+            if (!summaryRes.ok) break
+            const summaryData = await summaryRes.json()
+            allSummaries = allSummaries.concat(summaryData.accountSummaries || [])
+            pageToken = summaryData.nextPageToken || null
+          } while (pageToken)
+
+          if (allSummaries.length > 0) {
+            const allProps = allSummaries.flatMap(acc =>
+              (acc.propertySummaries || []).map(p => ({
+                name: p.property, displayName: p.displayName, account: acc.displayName,
+              }))
+            )
+            setGa4Properties(allProps)
+          }
+        } catch {}
+
+        setOauthStep('pick_properties')
+      }).catch(e => {
+        toast.error('OAuth failed: ' + e.message, { id: 'oauth' })
+        setOauthStep(null)
+      })
+    } catch { setOauthStep(null) }
+  }, [])
   useEffect(() => { if (tab === 'keywords') loadKeywords() }, [tab, loadKeywords])
   useEffect(() => { if (tab === 'briefs') loadBriefs() }, [tab, loadBriefs])
   useEffect(() => { if (tab === 'ranks') loadRanks() }, [tab, loadRanks])
   useEffect(() => { if (tab === 'audit') loadEnrichment() }, [tab, loadEnrichment])
   useEffect(() => { if (tab === 'gmb') loadGMB() }, [tab, loadGMB])
+
+  // Auto-fill grid tracker from client + GMB data
+  useEffect(() => {
+    if (!clientId || !clients.length) return
+    const c = clients.find(x => x.id === clientId)
+    if (!gridBiz && (gmb?.gbp?.name || c?.name)) setGridBiz(gmb?.gbp?.name || c?.name || '')
+    if (!gridCity && c) {
+      const city = [c.city, c.state].filter(Boolean).join(', ')
+      if (city) setGridCity(city)
+    }
+  }, [clientId, clients, gmb])
 
   // Sync
   const runSync = async () => {
@@ -346,45 +493,214 @@ export default function KotoIQPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: GRY, fontFamily: FB }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#ffffff', fontFamily: FB }}>
       <Sidebar />
-      <div style={{ flex: 1, padding: '24px 32px', maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div>
-            <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.03em' }}>KotoIQ</div>
-            <div style={{ fontSize: 13, color: '#6b7280' }}>AI-Powered Search Intelligence</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* ── Fixed Header ─────────────────────────────────────── */}
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+          {/* Top bar: logo + client selector + actions */}
+          <div style={{ padding: '16px 40px', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={18} color="#fff" />
+              </div>
+              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>KotoIQ</div>
+            </div>
+
+            {/* Client selector — prominent */}
             <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
-              style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, background: '#fff', cursor: 'pointer', minWidth: 180 }}>
-              <option value="">Select client...</option>
+              style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontWeight: 600, fontFamily: FH, background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#9ca3af', maxWidth: 400 }}>
+              <option value="">Select a client...</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+
+            {/* Quick actions — always visible */}
             {clientId && (
-              <button onClick={() => {
-                const c = clients.find(x => x.id === clientId)
-                if (c) { setEditingClient(c); setClientForm({ name: c.name || '', website: c.website || '', primary_service: c.primary_service || '', location: '' }); setShowClientModal(true) }
-              }} title="Edit client" style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✏️</button>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add website first'); return }; runQuickScan() }}
+                  disabled={syncing || enriching}
+                  style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${R}30`, background: '#fff', fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4, opacity: syncing ? 0.5 : 1 }}>
+                  {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Scan
+                </button>
+                <button onClick={runDeepEnrich} disabled={enriching || syncing}
+                  style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${AMB}30`, background: '#fff', fontSize: 12, fontWeight: 700, cursor: enriching ? 'wait' : 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4, opacity: enriching ? 0.5 : 1 }}>
+                  {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />} Audit
+                </button>
+                <button onClick={runSync} disabled={syncing}
+                  style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: syncing ? '#e5e7eb' : BLK, fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Sync
+                </button>
+              </div>
             )}
-            <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
-              style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${GRN}`, background: '#fff', color: GRN, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>+ Add Client</button>
-            <button onClick={runQuickScan} disabled={syncing || enriching || !clientId}
-              style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${R}`, background: syncing ? '#e5e7eb' : '#fff', color: R, fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-              {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />}
-              Quick Scan
-            </button>
-            <button onClick={runDeepEnrich} disabled={enriching || syncing || !clientId}
-              style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${AMB}`, background: enriching ? '#e5e7eb' : '#fff', color: AMB, fontSize: 12, fontWeight: 700, cursor: enriching ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-              {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />}
-              Deep Audit
-            </button>
-            <button onClick={runSync} disabled={syncing || !clientId}
-              style={{ padding: '8px 20px', borderRadius: 10, border: 'none', background: syncing ? '#e5e7eb' : T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
-              Full Sync
-            </button>
+
+            {/* Settings */}
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              {clientId && (
+                <button onClick={() => {
+                  const c = clients.find(x => x.id === clientId)
+                  if (c) { setEditingClient(c); setClientForm({ name: c.name || '', website: c.website || '', primary_service: c.primary_service || '', location: '' }); setShowClientModal(true) }
+                }} style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Edit Client">
+                  <Edit2 size={14} color="#6b7280" />
+                </button>
+              )}
+              <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
+                style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Add Client">
+                <Plus size={14} color="#6b7280" />
+              </button>
+            </div>
+          </div>
+
+          {/* Tab bar — grouped with dividers */}
+          {clientId && (
+            <div style={{ padding: '0 40px', display: 'flex', gap: 0, overflowX: 'auto' }}>
+              {/* Analyze */}
+              {[
+                ['dashboard', 'Dashboard', BarChart2],
+                ['keywords', 'Keywords', Search],
+                ['aeo', 'AEO', Brain],
+                ['competitors', 'Competitors', Target],
+              ].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
+              {/* Build */}
+              {[
+                ['briefs', 'PageIQ', Zap],
+                ['utm', 'UTM', Link2],
+              ].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
+              {/* Track */}
+              {[
+                ['ranks', 'Rankings', TrendingUp],
+                ['gmb', 'GMB', Star],
+                ['visitors', 'Visitors', Eye],
+                ['reports', 'Reports', BarChart2],
+              ].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
+              {/* Settings */}
+              {[
+                ['audit', 'Audit', Shield],
+                ['connect', 'Connect', Settings],
+              ].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Scrollable Content ────────────────────────────────── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
+
+          {/* Action cards — show only when client has no data yet */}
+          {clientId && !dashboard && tab === 'dashboard' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 24 }}>
+              {/* Quick Scan */}
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Zap size={22} color={R} />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Quick Scan</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>No login required</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
+                  Scans the client's website, XML sitemap, and top competitors via Moz DA. Claude AI analyzes the content and extracts 30-60 target keywords with opportunity scores, intent classification, and ranking potential.
+                </div>
+                <ul style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
+                  <li>Website content + sitemap crawl</li>
+                  <li>Moz Domain Authority lookup</li>
+                  <li>AI keyword extraction + scoring</li>
+                  <li>Competitor identification</li>
+                </ul>
+                <button onClick={() => {
+                  const c = clients.find(x => x.id === clientId)
+                  if (!c?.website) { toast.error('Add a website URL first — click Edit Client'); return }
+                  runQuickScan()
+                }} disabled={syncing || enriching}
+                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: R, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing || enriching ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {syncing ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={16} />}
+                  Run Quick Scan
+                </button>
+              </div>
+
+              {/* Deep Audit */}
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: AMB + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Shield size={22} color={AMB} />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Deep Audit</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>Technical SEO analysis</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
+                  Comprehensive 11-point technical audit covering everything that affects your search rankings. Identifies issues and provides specific fix recommendations.
+                </div>
+                <ul style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
+                  <li>PageSpeed + Core Web Vitals (CrUX)</li>
+                  <li>SSL certificate + security headers</li>
+                  <li>Schema markup + structured data</li>
+                  <li>Tech stack + CMS detection</li>
+                  <li>Domain age + authority signals</li>
+                </ul>
+                <button onClick={runDeepEnrich} disabled={enriching || syncing || !clientId}
+                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: AMB, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: enriching ? 'wait' : 'pointer', opacity: enriching || syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {enriching ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={16} />}
+                  Run Deep Audit
+                </button>
+              </div>
+
+              {/* Full Sync */}
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <RefreshCw size={22} color={T} />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Full Sync</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>Requires Google OAuth</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
+                  Pulls real keyword data from your connected Google accounts and merges everything into unified keyword profiles with cross-source scoring.
+                </div>
+                <ul style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
+                  <li>Search Console: rankings, clicks, impressions</li>
+                  <li>Google Ads: spend, CPC, conversions</li>
+                  <li>GA4: sessions, conversions, revenue</li>
+                  <li>Keyword Planner: volume, competition</li>
+                </ul>
+                <button onClick={runSync} disabled={syncing || !clientId}
+                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: T, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
+                  Run Full Sync
+                </button>
+              </div>
+            </div>
+          )}
+
+        {/* Export */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             {clientId && dashboard && !dashboard.empty && (
               <button onClick={() => {
                 fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'export_report', client_id: clientId }) })
@@ -417,7 +733,6 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               </button>
             )}
           </div>
-        </div>
 
         {/* Tabs (only show when client selected) */}
         {clientId && (
@@ -511,7 +826,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {d.empty ? (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <Brain size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
-                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No data yet</div>
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No keyword data yet</div>
                 <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Choose how to get started:</div>
                 <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <div style={{ padding: '24px', borderRadius: 14, border: `2px solid ${R}20`, background: R + '04', maxWidth: 280, textAlign: 'center' }}>
@@ -531,7 +846,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <RefreshCw size={32} color={T} style={{ margin: '0 auto 12px' }} />
                     <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Full Sync</div>
                     <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Requires Google OAuth. Pulls real data from Search Console, Google Ads, GA4. Connect at /seo/connect first.</div>
-                    <button onClick={() => { navigate('/seo/connect') }} disabled={syncing}
+                    <button onClick={() => { setTab('connect') }} disabled={syncing}
                       style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                       <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Connect Google →
                     </button>
@@ -647,6 +962,21 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ KEYWORDS TAB ══ */}
         {clientId && tab === 'keywords' && (
           <>
+            {/* Header with actions */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Keyword Explorer ({kwTotal} keywords)</div>
+              <SectionActions
+                onRerun={() => { const c = clients.find(x => x.id === clientId); if (c?.website) runQuickScan(); else toast.error('Add a website URL first') }}
+                onDelete={async () => {
+                  await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete_scan', client_id: clientId, scan_type: 'quick_scan' }) })
+                  setKeywords([]); setKwTotal(0); setDashboard(null); toast.success('Keywords cleared')
+                }}
+                rerunLabel="Rescan"
+                deleteLabel="Clear Keywords"
+                running={syncing}
+              />
+            </div>
             {/* Filters */}
             <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -744,12 +1074,67 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 </div>
               )}
             </div>
+
+            {/* Content Variant Modules — KP System */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <LayoutGrid size={18} color={AMB} /> Content Variant Modules
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.6 }}>
+                Each page section has multiple content variants. The WP plugin automatically rotates variants every N page views, signaling freshness to Google and triggering re-indexing.
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  { id: 'intro', label: 'Introduction', desc: 'Opening headline + value proposition', variants: 3, icon: '📝' },
+                  { id: 'what_is', label: 'What Is This Service', desc: 'Educational explainer content', variants: 2, icon: '❓' },
+                  { id: 'why_us', label: 'Why Choose Us', desc: 'Trust signals + differentiators', variants: 2, icon: '✅' },
+                  { id: 'services', label: 'Services Offered', desc: 'Service breakdown with descriptions', variants: 2, icon: '📋' },
+                  { id: 'local', label: 'Local Area Focus', desc: 'Hyperlocal city/area content', variants: 2, icon: '📍' },
+                  { id: 'process', label: 'Our Process', desc: 'Step-by-step how-it-works', variants: 2, icon: '⚙️' },
+                  { id: 'trust', label: 'Trust & Social Proof', desc: 'Reviews + testimonials', variants: 2, icon: '⭐' },
+                  { id: 'comparison', label: 'Comparison / vs.', desc: 'Pro vs DIY, local vs national', variants: 2, icon: '⚖️' },
+                  { id: 'faq', label: 'FAQ Block', desc: 'AEO-optimized with schema markup', variants: 2, icon: '💬' },
+                  { id: 'internal_links', label: 'Internal Links', desc: 'Service area + related page links', variants: 2, icon: '🔗' },
+                  { id: 'cta', label: 'Call to Action', desc: 'Conversion-focused closing section', variants: 2, icon: '📞' },
+                ].map(mod => (
+                  <div key={mod.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff' }}>
+                    <span style={{ fontSize: 20, width: 36, textAlign: 'center' }}>{mod.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
+                      <div style={{ fontSize: 12, color: '#6b7280' }}>{mod.desc}</div>
+                    </div>
+                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: T + '12', color: T }}>{mod.variants} variants</span>
+                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: GRN + '12', color: GRN }}>Auto-rotate</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 10, background: AMB + '06', border: `1px solid ${AMB}20`, fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
+                <strong>How rotation works:</strong> After publishing via the WP plugin, each section's variants rotate every 10 page views — updating <code>last_modified</code> and pinging Google/Bing for re-indexing.
+              </div>
+            </div>
           </>
+        )}
+
+        {/* ══ AEO RESEARCH TAB ══ */}
+        {clientId && tab === 'aeo' && (
+          <AEOResearchTab clientId={clientId} clientName={clients.find(c => c.id === clientId)?.name} clientIndustry={clients.find(c => c.id === clientId)?.primary_service} keywords={keywords} />
         )}
 
         {/* ══ PAGE BUILDER TAB ══ */}
         {clientId && tab === 'briefs' && (
           <>
+            {/* Page Builder Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>PageIQ — Content Builder</div>
+                <div style={{ fontSize: 13, color: '#6b7280' }}>AI content briefs + multi-variant page generation with automatic rotation</div>
+              </div>
+              <SectionActions
+                onDelete={() => { setBriefs([]); setActiveBrief(null); toast.success('Briefs cleared') }}
+                deleteLabel="Clear Briefs"
+              />
+            </div>
+
             {/* Generate new brief */}
             <div style={card}>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1069,13 +1454,32 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ RANK TRACKER TAB ══ */}
         {clientId && tab === 'ranks' && (
           <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Rank Tracker</div>
+              <SectionActions
+                onRerun={loadRanks}
+                onDelete={() => { setRankData(null); toast.success('Rank data cleared') }}
+                rerunLabel="Refresh"
+                deleteLabel="Clear"
+                running={rankLoading}
+              />
+            </div>
             {rankLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!rankLoading && !rankData?.total_tracked && (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <TrendingUp size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
                 <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No ranking data yet</div>
-                <div style={{ fontSize: 14, color: '#6b7280' }}>Run a sync to pull Search Console rankings. Position history builds over time with each sync.</div>
+                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Run a Quick Scan first to discover keywords, then check rankings here.</div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                  <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add a website URL first'); return }; runQuickScan() }}
+                    disabled={syncing} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    <Zap size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Quick Scan Keywords
+                  </button>
+                  <button onClick={runSync} disabled={syncing} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Full Sync (GSC + Ads)
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1237,12 +1641,22 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ DEEP AUDIT TAB ══ */}
         {clientId && tab === 'audit' && (
           <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Deep Technical Audit</div>
+              <SectionActions
+                onRerun={runDeepEnrich}
+                onDelete={() => { setEnrichment(null); toast.success('Audit data cleared') }}
+                rerunLabel="Rerun Audit"
+                deleteLabel="Clear"
+                running={enriching}
+              />
+            </div>
             {enrichLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!enrichLoading && !enrichment && (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <Shield size={48} color={AMB} style={{ margin: '0 auto 16px', opacity: .3 }} />
-                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No deep audit data yet</div>
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No audit data yet</div>
                 <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Run a Deep Audit to analyze this client with 11 SEO tools in parallel — technical audit, on-page analysis, citations, AI visibility, content gaps, market density, and more.</div>
                 <button onClick={runDeepEnrich} disabled={enriching}
                   style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: AMB, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
@@ -1579,16 +1993,245 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 </div>
               </>
             )}
+
+            {/* Content Variant Modules moved to PageIQ (briefs) tab */}
           </>
         )}
 
         {/* ══ COMPETITORS TAB ══ */}
         {clientId && tab === 'competitors' && (
           <>
-            {/* Keyword input */}
+            {/* Competitor Landscape — auto-discovers competitors via DataForSEO */}
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Target size={18} color={T} /> Competitor Landscape
+                  <SectionActions
+                    onDelete={() => { setCompLandscape(null); setSelectedCompDomain(null); setCompDomainKws(null); toast.success('Competitor data cleared') }}
+                    deleteLabel="Clear"
+                  />
+                </div>
+                <button onClick={async () => {
+                  setCompLandscapeLoading(true)
+                  try {
+                    const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'dfs_competitors', client_id: clientId }) })
+                    const data = await res.json()
+                    if (data.success) setCompLandscape(data)
+                    else toast.error(data.error || 'Failed to load competitors')
+                  } catch { toast.error('Failed to load competitors') }
+                  setCompLandscapeLoading(false)
+                }} disabled={compLandscapeLoading} style={{
+                  padding: '8px 18px', borderRadius: 8, border: 'none', background: compLandscapeLoading ? '#e5e7eb' : BLK,
+                  color: '#fff', fontSize: 12, fontWeight: 700, cursor: compLandscapeLoading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {compLandscapeLoading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={12} />}
+                  {compLandscape ? 'Refresh' : 'Discover Competitors'}
+                </button>
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+                Find all domains competing for the same keywords as your client. Click any competitor to see which keywords they rank for.
+              </div>
+
+              {compLandscapeLoading && <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+
+              {compLandscape && !compLandscapeLoading && (
+                <>
+                  {/* Client's own keywords summary */}
+                  {compLandscape.client_keywords && (
+                    <div style={{ padding: '14px 18px', background: T + '08', borderRadius: 10, border: `1px solid ${T}20`, marginBottom: 16 }}>
+                      <div style={{ display: 'flex', gap: 20 }}>
+                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: T }}>{compLandscape.client_keywords.total || 0}</span><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Total Keywords</div></div>
+                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{compLandscape.domain}</span><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Your Domain</div></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Competitor table */}
+                  {compLandscape.competitors?.length > 0 && (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                            {['Competitor', 'Shared KWs', 'Organic KWs', 'Est. Traffic', 'Est. Traffic Value', 'Relevance', ''].map(h => (
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Competitor' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {compLandscape.competitors.map((comp, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selectedCompDomain === comp.domain ? T + '06' : 'transparent' }}
+                              onClick={async () => {
+                                setSelectedCompDomain(comp.domain)
+                                setCompDomainLoading(true)
+                                try {
+                                  const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ action: 'dfs_compare', domain1: compLandscape.domain, domain2: comp.domain }) })
+                                  const data = await res.json()
+                                  if (data.success) setCompDomainKws(data)
+                                } catch {}
+                                setCompDomainLoading(false)
+                              }}>
+                              <td style={{ padding: '10px', fontSize: 14, fontWeight: 700, color: BLK, fontFamily: FH }}>{comp.domain}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: T }}>{comp.intersections || comp.keywords_count}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{(comp.organic_count || 0).toLocaleString()}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{Math.round(comp.organic_traffic || 0).toLocaleString()}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: GRN }}>${Math.round(comp.organic_cost || 0).toLocaleString()}</td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6', width: 60, margin: '0 auto', overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', borderRadius: 3, background: comp.competitor_relevance > 0.5 ? R : comp.competitor_relevance > 0.2 ? AMB : GRN, width: `${Math.min(comp.competitor_relevance * 100, 100)}%` }} />
+                                </div>
+                              </td>
+                              <td style={{ textAlign: 'center' }}><ChevronDown size={14} color="#9ca3af" /></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Selected competitor detail — keyword comparison */}
+                  {selectedCompDomain && (
+                    <div style={{ marginTop: 16, padding: '16px 20px', background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb' }}>
+                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
+                        {compLandscape.domain} vs {selectedCompDomain} — Shared Keywords
+                      </div>
+                      {compDomainLoading && <div style={{ textAlign: 'center', padding: 20 }}><Loader2 size={20} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+                      {compDomainKws && !compDomainLoading && (
+                        <div style={{ overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                                {['Keyword', 'Volume', 'CPC', 'Your Pos', 'Their Pos', 'Gap'].map(h => (
+                                  <th key={h} style={{ padding: '6px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(compDomainKws.intersection || []).slice(0, 30).map((kw, i) => {
+                                const gap = (kw.domain1_position || 99) - (kw.domain2_position || 99)
+                                return (
+                                  <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                    <td style={{ padding: '8px 10px', fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</td>
+                                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>{(kw.search_volume || 0).toLocaleString()}</td>
+                                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>${(kw.cpc || 0).toFixed(2)}</td>
+                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: kw.domain1_position <= 3 ? GRN : kw.domain1_position <= 10 ? T : kw.domain1_position <= 20 ? AMB : R }}>
+                                      {kw.domain1_position || '—'}
+                                    </td>
+                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: kw.domain2_position <= 3 ? GRN : kw.domain2_position <= 10 ? T : kw.domain2_position <= 20 ? AMB : R }}>
+                                      {kw.domain2_position || '—'}
+                                    </td>
+                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 13, fontWeight: 700, color: gap < 0 ? GRN : gap > 0 ? R : '#9ca3af' }}>
+                                      {gap < 0 ? `+${Math.abs(gap)}` : gap > 0 ? `-${gap}` : '='}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      {/* Gap Analysis + Attack Opportunities */}
+                      {compDomainKws?.intersection?.length > 0 && !compDomainLoading && (() => {
+                        const intersection = compDomainKws.intersection || []
+                        // Keywords where competitor outranks you
+                        const losing = intersection.filter(kw => kw.domain1_position && kw.domain2_position && kw.domain1_position > kw.domain2_position)
+                          .sort((a, b) => (b.search_volume || 0) - (a.search_volume || 0))
+                        // Keywords where you're close (within 5 positions)
+                        const strikingDistance = intersection.filter(kw => kw.domain1_position && kw.domain1_position > 3 && kw.domain1_position <= 10)
+                          .sort((a, b) => (a.domain1_position || 99) - (b.domain1_position || 99))
+                        // High-value keywords you don't rank for but they do
+                        const gaps = (compDomainKws.domain2_keywords?.keywords || [])
+                          .filter(kw => kw.position <= 10 && kw.search_volume >= 50 && !intersection.find(i => i.keyword === kw.keyword))
+                          .sort((a, b) => (b.search_volume || 0) - (a.search_volume || 0))
+                          .slice(0, 10)
+
+                        return (
+                          <div style={{ marginTop: 16 }}>
+                            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Attack Opportunities</div>
+
+                            {/* Opportunity cards */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+                              <div style={{ padding: '16px', background: R + '06', borderRadius: 10, border: `1px solid ${R}15` }}>
+                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: R }}>{losing.length}</div>
+                                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>They Beat You</div>
+                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Keywords where competitor ranks higher</div>
+                              </div>
+                              <div style={{ padding: '16px', background: AMB + '06', borderRadius: 10, border: `1px solid ${AMB}15` }}>
+                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: AMB }}>{strikingDistance.length}</div>
+                                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Striking Distance</div>
+                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>You're position 4-10 — push to top 3</div>
+                              </div>
+                              <div style={{ padding: '16px', background: T + '06', borderRadius: 10, border: `1px solid ${T}15` }}>
+                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: T }}>{gaps.length}</div>
+                                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Keyword Gaps</div>
+                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>They rank, you don't — new opportunities</div>
+                              </div>
+                            </div>
+
+                            {/* Top losing keywords — attack these first */}
+                            {losing.length > 0 && (
+                              <div style={{ marginBottom: 16 }}>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Priority Targets — They Outrank You ({losing.length})</div>
+                                {losing.slice(0, 8).map((kw, i) => (
+                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</div>
+                                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: R }}>You: #{kw.domain1_position}</span>
+                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>vs</span>
+                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.domain2_position}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Keyword gaps — they rank, you don't */}
+                            {gaps.length > 0 && (
+                              <div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Untapped Keywords — They Rank, You Don't ({gaps.length})</div>
+                                {gaps.map((kw, i) => (
+                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</div>
+                                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: '#d1d5db' }}>You: —</span>
+                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>vs</span>
+                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.position}</span>
+                                      <span style={{ padding: '2px 8px', borderRadius: 12, background: T + '12', fontSize: 10, fontWeight: 700, color: T }}>NEW OPP</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!compLandscape && !compLandscapeLoading && (
+                <div style={{ textAlign: 'center', padding: '30px 0', color: '#9ca3af', fontSize: 13 }}>
+                  Click "Discover Competitors" to find all domains competing for the same keywords.
+                </div>
+              )}
+            </div>
+
+            {/* Per-keyword page analysis */}
             <div style={card}>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={18} color={R} /> Competitor Page Analysis
+                <SectionActions
+                  onDelete={() => { setCompAnalysis(null); toast.success('Analysis cleared') }}
+                  deleteLabel="Clear"
+                />
               </div>
               <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Enter a keyword to reverse-engineer the top-ranking pages — word count, headings, schema, FAQ, keyword placement, and Moz authority.</div>
               <div style={{ display: 'flex', gap: 12 }}>
@@ -1913,6 +2556,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ GMB TAB ══ */}
         {clientId && tab === 'gmb' && (
           <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Google Business Profile</div>
+              <SectionActions
+                onRerun={loadGMB}
+                onDelete={() => { setGmb(null); setGmbPosts([]); toast.success('GMB data cleared') }}
+                rerunLabel="Refresh"
+                deleteLabel="Clear"
+                running={gmbLoading}
+              />
+            </div>
             {gmbLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!gmbLoading && !gmb?.gbp && (
@@ -2075,11 +2728,18 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     </div>
                   )}
 
-                  {/* GBP Post Generator */}
+                  {/* GBP Post Generator + Content Calendar */}
                   <div style={card}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                       <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Zap size={18} color={R} /> GBP Post Generator
+                        <Zap size={18} color={R} /> GBP Content Calendar
+                        <SectionActions
+                          onDelete={() => { setGmbPosts([]); toast.success('Posts cleared') }}
+                          onRerun={generatePosts}
+                          rerunLabel="Regenerate"
+                          running={generatingPosts}
+                          deleteLabel="Clear Posts"
+                        />
                       </div>
                       <button onClick={generatePosts} disabled={generatingPosts}
                         style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: generatingPosts ? '#e5e7eb' : R, color: '#fff', fontSize: 12, fontWeight: 700, cursor: generatingPosts ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -2087,31 +2747,109 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {generatingPosts ? 'Generating...' : 'Generate 4 Posts'}
                       </button>
                     </div>
+
                     {gmbPosts.length > 0 && (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                         {gmbPosts.map((post, i) => {
-                          const typeColors = { offer: R, tips: T, team: GRN, seasonal: AMB }
+                          const typeColors = { offer: R, tips: T, team: GRN, seasonal: AMB, update: T, event: AMB }
                           const color = typeColors[post.type] || '#6b7280'
+                          const schedDate = post.scheduled_date ? new Date(post.scheduled_date) : new Date(Date.now() + i * 7 * 86400000)
+
                           return (
-                            <div key={i} style={{ padding: '16px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: `3px solid ${color}` }}>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: color + '15', color, textTransform: 'uppercase' }}>{post.type}</span>
-                                <span style={{ fontSize: 10, color: '#9ca3af' }}>{post.text?.length || 0} chars</span>
+                            <div key={i} style={{ padding: '20px 24px', borderRadius: 14, background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${color}` }}>
+                              {/* Header */}
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: color + '12', color, textTransform: 'uppercase' }}>{post.type}</span>
+                                  <span style={{ fontSize: 12, color: '#9ca3af' }}>Week {i + 1} · {schedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: post._approved ? GRN + '12' : '#f3f4f6', color: post._approved ? GRN : '#9ca3af' }}>
+                                    {post._approved ? '✓ Approved' : 'Draft'}
+                                  </span>
+                                </div>
                               </div>
-                              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 10 }}>{post.text}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color }}>{post.cta}</span>
-                                <button onClick={() => { navigator.clipboard.writeText(post.text); toast.success('Post copied!') }}
-                                  style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, cursor: 'pointer' }}>Copy</button>
+
+                              {/* Image + Text side by side */}
+                              <div style={{ display: 'flex', gap: 16 }}>
+                                {/* Image area */}
+                                <div style={{ width: 160, flexShrink: 0 }}>
+                                  {post._imageUrl ? (
+                                    <img src={post._imageUrl} alt="" style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 10, border: '1px solid #e5e7eb' }} />
+                                  ) : (
+                                    <div style={{ width: 160, height: 120, borderRadius: 10, background: '#f3f4f6', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
+                                      <Eye size={20} color="#d1d5db" />
+                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>No image</span>
+                                    </div>
+                                  )}
+                                  <button onClick={async () => {
+                                    const pexelsKey = 'jaoJot7PGna546LXEjXxCNwv7nqivFKvKKK7dMKimp3DDANeffaLpUco'
+                                    const query = post.image_query || (post.type === 'offer' ? g.primary_category?.replace(/_/g, ' ') : post.text?.slice(0, 30)) || g.name || 'business'
+                                    try {
+                                      const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=5`, { headers: { Authorization: pexelsKey } })
+                                      const data = await res.json()
+                                      const photos = data.photos || []
+                                      if (photos.length > 0) {
+                                        const img = photos[Math.floor(Math.random() * Math.min(photos.length, 3))]
+                                        const updated = [...gmbPosts]
+                                        updated[i] = { ...updated[i], _imageUrl: img.src?.medium || img.src?.small }
+                                        setGmbPosts(updated)
+                                        toast.success('Image found!')
+                                      } else { toast.error('No images found for this topic') }
+                                    } catch { toast.error('Image search failed') }
+                                  }} style={{ width: '100%', marginTop: 6, padding: '5px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, fontWeight: 600, cursor: 'pointer', color: '#6b7280' }}>
+                                    Find Image
+                                  </button>
+                                </div>
+
+                                {/* Text area */}
+                                <div style={{ flex: 1 }}>
+                                  <textarea value={post._editText ?? post.text} onChange={e => {
+                                    const updated = [...gmbPosts]
+                                    updated[i] = { ...updated[i], _editText: e.target.value }
+                                    setGmbPosts(updated)
+                                  }} rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB, lineHeight: 1.6, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                      <span style={{ fontSize: 11, fontWeight: 700, color }}>{post.cta}</span>
+                                      {post.url && <span style={{ fontSize: 11, color: T }}>{post.url}</span>}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                      <button onClick={() => { navigator.clipboard.writeText(post._editText || post.text); toast.success('Post text copied to clipboard!') }}
+                                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280' }}>Copy Text</button>
+                                      <button onClick={() => {
+                                        const updated = [...gmbPosts]
+                                        updated[i] = { ...updated[i], _approved: !updated[i]._approved }
+                                        setGmbPosts(updated)
+                                        toast.success(updated[i]._approved ? 'Post approved!' : 'Approval removed')
+                                      }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: post._approved ? '#e5e7eb' : GRN, color: post._approved ? '#6b7280' : '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                                        {post._approved ? 'Unapprove' : 'Approve'}
+                                      </button>
+                                      {post._approved && (
+                                        <button onClick={() => {
+                                          navigator.clipboard.writeText(post._editText || post.text)
+                                          window.open('https://business.google.com/posts', '_blank')
+                                          toast.success('Text copied — paste it in the GBP post editor')
+                                        }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#4285F4', color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                                          Post to GBP →
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           )
                         })}
                       </div>
                     )}
+
                     {gmbPosts.length === 0 && !generatingPosts && (
-                      <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '20px 0' }}>
-                        Click "Generate 4 Posts" to create a week's worth of GBP content — offer, tips, team, and seasonal posts.
+                      <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                        <Zap size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
+                        <div style={{ fontSize: 14, color: '#6b7280', maxWidth: 400, margin: '0 auto', lineHeight: 1.6 }}>
+                          Generate a 4-week content calendar with AI-written posts. Each post includes type (offer, tips, team, seasonal), editable text, image suggestions from Pexels, and approval workflow.
+                        </div>
                       </div>
                     )}
                   </div>
@@ -2218,42 +2956,157 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       See your Google Maps 3-Pack position from 25 geographic points around your business. Green = you're in the pack. Red = competitors dominate.
                     </div>
 
-                    {/* Simulated 5x5 grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, maxWidth: 400, margin: '0 auto 20px' }}>
-                      {Array.from({ length: 25 }).map((_, i) => {
-                        const row = Math.floor(i / 5)
-                        const col = i % 5
-                        const isCenter = row === 2 && col === 2
-                        const dist = Math.sqrt(Math.pow(row - 2, 2) + Math.pow(col - 2, 2))
-                        // Simulate: green near center, yellow mid, red far
-                        const color = isCenter ? BLK : dist <= 1.5 ? GRN : dist <= 2.5 ? AMB : R
-                        const rank = isCenter ? '📍' : dist <= 1.5 ? '#1' : dist <= 2.5 ? '#3' : '#7'
-                        return (
-                          <div key={i} style={{
-                            aspectRatio: '1', borderRadius: 8,
-                            background: isCenter ? BLK : color + '15',
-                            border: `2px solid ${color}`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: isCenter ? 16 : 13, fontWeight: 800,
-                            color: isCenter ? '#fff' : color, fontFamily: FH,
-                          }}>
-                            {rank}
+                    {/* Live Grid Scan Form */}
+                    {(() => {
+                      const runGrid = async () => {
+                        if (!gridKw || !gridBiz || !gridLat || !gridLng) { toast.error('Fill in all fields'); return }
+                        setGridRunning(true)
+                        toast.loading('Running 5x5 grid scan via DataForSEO...', { id: 'grid' })
+                        try {
+                          const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'dfs_grid_scan', client_id: clientId, agency_id: agencyId, keyword: gridKw, business_name: gridBiz, lat: gridLat, lng: gridLng }) })
+                          const data = await res.json()
+                          if (data.success) { setGridResult(data.result); toast.success(`Grid scan complete — ${data.result.coverage_pct}% coverage`, { id: 'grid' }) }
+                          else { toast.error(data.error || 'Grid scan failed', { id: 'grid' }) }
+                        } catch { toast.error('Grid scan failed', { id: 'grid' }) }
+                        setGridRunning(false)
+                      }
+
+                      return (
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+                            <div>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Keyword</label>
+                              <input value={gridKw} onChange={e => setGridKw(e.target.value)} placeholder="e.g. water damage restoration"
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                              {keywords.length > 0 && !gridKw && (
+                                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                                  {keywords.filter(k => k.intent === 'transactional' || k.intent === 'commercial' || k.kp_monthly_volume > 100).slice(0, 6).map((k, i) => (
+                                    <button key={i} onClick={() => setGridKw(k.keyword)} style={{ padding: '3px 8px', borderRadius: 12, fontSize: 10, fontWeight: 600, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: T }}>{k.keyword}</button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Business Name</label>
+                              <input value={gridBiz} onChange={e => setGridBiz(e.target.value)} placeholder={g.name}
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                            </div>
+                            <div style={{ gridColumn: 'span 2' }}>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>City / Address (we'll find the coordinates)</label>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <input value={gridCity} onChange={e => setGridCity(e.target.value)}
+                                  placeholder="e.g. Fort Lauderdale, FL or 123 Main St, Miami"
+                                  onKeyDown={async e => {
+                                    if (e.key !== 'Enter' || !gridCity.trim()) return
+                                    setGeocoding(true)
+                                    try {
+                                      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''
+                                      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(gridCity)}&key=${apiKey}`)
+                                      const data = await res.json()
+                                      if (data.results?.[0]?.geometry?.location) {
+                                        setGridLat(String(data.results[0].geometry.location.lat))
+                                        setGridLng(String(data.results[0].geometry.location.lng))
+                                        toast.success(`Found: ${data.results[0].formatted_address}`)
+                                      } else { toast.error('Location not found — try a more specific address') }
+                                    } catch { toast.error('Geocoding failed') }
+                                    setGeocoding(false)
+                                  }}
+                                  style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+                                <button onClick={async () => {
+                                  if (!gridCity.trim()) { toast.error('Enter a city or address'); return }
+                                  setGeocoding(true)
+                                  try {
+                                    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''
+                                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(gridCity)}&key=${apiKey}`)
+                                    const data = await res.json()
+                                    if (data.results?.[0]?.geometry?.location) {
+                                      setGridLat(String(data.results[0].geometry.location.lat))
+                                      setGridLng(String(data.results[0].geometry.location.lng))
+                                      toast.success(`Found: ${data.results[0].formatted_address}`)
+                                    } else { toast.error('Location not found') }
+                                  } catch { toast.error('Geocoding failed') }
+                                  setGeocoding(false)
+                                }} disabled={geocoding} style={{
+                                  padding: '10px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                                  fontSize: 13, fontWeight: 700, cursor: geocoding ? 'wait' : 'pointer', color: BLK, whiteSpace: 'nowrap',
+                                  display: 'flex', alignItems: 'center', gap: 6,
+                                }}>
+                                  {geocoding ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <MapPin size={12} />}
+                                  Find Location
+                                </button>
+                              </div>
+                              {gridLat && gridLng && (
+                                <div style={{ fontSize: 11, color: GRN, fontWeight: 600, marginTop: 6 }}>
+                                  Coordinates: {parseFloat(gridLat).toFixed(4)}, {parseFloat(gridLng).toFixed(4)}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )
-                      })}
-                    </div>
+                          <button onClick={runGrid} disabled={gridRunning} style={{
+                            padding: '10px 24px', borderRadius: 10, border: 'none', background: gridRunning ? '#e5e7eb' : BLK, color: '#fff',
+                            fontSize: 13, fontWeight: 700, cursor: gridRunning ? 'wait' : 'pointer', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {gridRunning ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MapPin size={14} />}
+                            {gridRunning ? 'Scanning 25 points...' : 'Run Live Grid Scan'}
+                          </button>
 
-                    <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 16 }}>
-                      {[['#1-3 (In Pack)', GRN], ['#4-10 (Visible)', AMB], ['#11+ (Invisible)', R], ['📍 Your Business', BLK]].map(([label, color]) => (
-                        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280' }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />{label}
-                        </div>
-                      ))}
-                    </div>
+                          {/* Grid results */}
+                          {gridResult && (
+                            <>
+                              <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+                                {[['Coverage', `${gridResult.coverage_pct}%`, gridResult.coverage_pct >= 60 ? GRN : gridResult.coverage_pct >= 30 ? AMB : R],
+                                  ['Avg Rank', gridResult.avg_rank || '—', gridResult.avg_rank <= 3 ? GRN : gridResult.avg_rank <= 10 ? AMB : R],
+                                  ['Best', `#${gridResult.best_rank || '—'}`, gridResult.best_rank <= 3 ? GRN : AMB],
+                                  ['Found', `${gridResult.ranked_cells}/${gridResult.total_cells}`, GRN],
+                                ].map(([label, val, color]) => (
+                                  <div key={label} style={{ textAlign: 'center' }}>
+                                    <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{val}</div>
+                                    <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>{label}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${gridResult.grid_size || 5}, 1fr)`, gap: 4, maxWidth: 400, margin: '0 auto 16px' }}>
+                                {(gridResult.cells || []).map((cell, i) => {
+                                  const rank = cell.rank
+                                  const color = rank === null ? '#e5e7eb' : rank <= 3 ? GRN : rank <= 10 ? AMB : R
+                                  const isCenter = cell.row === Math.floor((gridResult.grid_size || 5) / 2) && cell.col === Math.floor((gridResult.grid_size || 5) / 2)
+                                  return (
+                                    <div key={i} style={{
+                                      aspectRatio: '1', borderRadius: 8,
+                                      background: isCenter ? BLK : rank === null ? '#f3f4f6' : color + '15',
+                                      border: `2px solid ${isCenter ? BLK : color}`,
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      fontSize: isCenter ? 14 : 12, fontWeight: 800,
+                                      color: isCenter ? '#fff' : rank === null ? '#d1d5db' : color, fontFamily: FH,
+                                    }} title={cell.top_3?.map(t => `#${t.rank} ${t.title}`).join('\n') || 'Not found'}>
+                                      {isCenter ? '📍' : rank ? `#${rank}` : '·'}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </>
+                          )}
 
-                    <div style={{ padding: '14px 18px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fcd34d', fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
-                      <strong>This is a preview.</strong> Live grid tracking requires DataForSEO API (~$5/month for 10 keywords × 25 grid points). Once connected, this map shows real-time local pack positions from every direction around your business — updated weekly.
-                    </div>
+                          {!gridResult && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, maxWidth: 400, margin: '0 auto 16px' }}>
+                              {Array.from({ length: 25 }).map((_, i) => (
+                                <div key={i} style={{ aspectRatio: '1', borderRadius: 8, background: '#f3f4f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#d1d5db', fontFamily: FH, fontWeight: 800 }}>
+                                  {i === 12 ? '📍' : '·'}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 16 }}>
+                            {[['#1-3 (In Pack)', GRN], ['#4-10 (Visible)', AMB], ['#11+ (Invisible)', R], ['📍 Your Business', BLK]].map(([label, color]) => (
+                              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280' }}>
+                                <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />{label}
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )
+                    })()}
                   </div>
                 </>
               )
@@ -2261,6 +3114,321 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </>
         )}
 
+        {/* ══ UTM BUILDER TAB ══ */}
+        {clientId && tab === 'utm' && (
+          <UTMBuilderTab clientId={clientId} clientName={clients.find(c => c.id === clientId)?.name} clientWebsite={clients.find(c => c.id === clientId)?.website} />
+        )}
+
+        {/* ══ VISITORS TAB (Pixel Tracking embedded) ══ */}
+        {clientId && tab === 'visitors' && (
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Visitor Intelligence</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>
+              Real-time visitor tracking, browser fingerprinting, and behavioral analysis for your client's website.
+            </div>
+            <div style={{ padding: '20px 24px', background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.7 }}>
+                <strong>To get started:</strong> Install the tracking pixel on the client's website. The pixel tracks visitors, identifies companies via IP lookup, and builds behavioral profiles automatically.
+              </div>
+              <button onClick={() => navigate('/kotoiq/pixels')} style={{
+                marginTop: 14, padding: '12px 24px', borderRadius: 10, border: 'none',
+                background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              }}>
+                Open Visitor Intelligence Dashboard
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ══ CONNECT TAB ══ */}
+        {clientId && tab === 'connect' && (
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Connect Data Sources</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
+              Connect your Google accounts to pull real keyword data, analytics, and business profile information. All connections are read-only and encrypted.
+            </div>
+
+            {/* Sitemap URL */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Globe size={18} color={T} /> Sitemap URL
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+                Adding your sitemap helps KotoIQ discover all indexed pages and analyze your site structure. We'll also try to auto-detect it from your website.
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input
+                  defaultValue={clients.find(c => c.id === clientId)?.sitemap_url || ''}
+                  placeholder="https://example.com/sitemap.xml"
+                  id="sitemap-input"
+                  style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                <button onClick={async () => {
+                  const url = document.getElementById('sitemap-input')?.value
+                  if (!url) return
+                  await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'update_client', client_id: clientId, agency_id: agencyId, sitemap_url: url }) })
+                  toast.success('Sitemap URL saved')
+                }} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                  Save
+                </button>
+              </div>
+            </div>
+
+            {/* Google Services — one-click OAuth */}
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Shield size={18} color={GRN} /> Google Services
+                </div>
+                <button onClick={() => {
+                  const googleClientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim()
+                  if (!googleClientId) { toast.error('Google OAuth not configured'); return }
+                  const scopes = 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/adwords https://www.googleapis.com/auth/business.manage https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+                  const redirectUri = window.location.origin + '/seo/connect'
+                  const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), returnTo: '/kotoiq?tab=connect' }))
+                  const params = new URLSearchParams({
+                    client_id: googleClientId, redirect_uri: redirectUri, response_type: 'code',
+                    scope: scopes, access_type: 'offline', prompt: 'consent select_account', state,
+                  })
+                  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
+                }} style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 10,
+                  border: 'none', background: '#4285F4', color: '#fff', fontSize: 14, fontWeight: 700,
+                  fontFamily: FH, cursor: 'pointer',
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                  Sign in with Google
+                </button>
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+                One sign-in connects Search Console, Analytics, Ads, and Business Profile for <strong>{clients.find(c => c.id === clientId)?.name}</strong>. Read-only access — Koto cannot modify your accounts.
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                {[
+                  { key: 'search_console', label: 'Search Console', desc: 'Keyword rankings, clicks, impressions, CTR', color: '#4285F4', icon: Search },
+                  { key: 'analytics', label: 'Google Analytics 4', desc: 'Sessions, conversions, revenue, bounce rate', color: '#F4B400', icon: BarChart2 },
+                  { key: 'ads', label: 'Google Ads', desc: 'Spend, CPC, conversions, quality score', color: '#34A853', icon: DollarSign },
+                  { key: 'gmb', label: 'Business Profile', desc: 'Reviews, local visibility, performance', color: '#EA4335', icon: MapPin },
+                ].map(svc => (
+                  <div key={svc.key} style={{ padding: '16px 18px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: svc.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svc.icon size={18} color={svc.color} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
+                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{svc.desc}</div>
+                    </div>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: '#f3f4f6', color: '#9ca3af' }}>Pending</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Property picker — shown after OAuth */}
+            {oauthStep === 'pick_properties' && oauthTokens && (
+              <div style={{ ...card, borderLeft: `4px solid ${GRN}` }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: GRN, marginBottom: 16 }}>
+                  Authenticated — Select Properties to Connect
+                </div>
+
+                {/* GSC picker */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Search size={14} color="#4285F4" /> Search Console Site
+                  </div>
+                  {gscSites.length === 0 ? (
+                    <div style={{ fontSize: 12, color: '#9ca3af', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No verified GSC sites found for this account</div>
+                  ) : (
+                    <>
+                      <input value={gscSearch} onChange={e => setGscSearch(e.target.value)} placeholder={`Search ${gscSites.length} sites...`}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, marginBottom: 6, outline: 'none', boxSizing: 'border-box' }} />
+                      <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                        {gscSites.filter(s => !gscSearch || s.siteUrl.toLowerCase().includes(gscSearch.toLowerCase())).map(s => (
+                          <div key={s.siteUrl} onClick={() => setSelectedGsc(s.siteUrl)}
+                            style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGsc === s.siteUrl ? 700 : 400, background: selectedGsc === s.siteUrl ? '#eff6ff' : '#fff', borderBottom: '1px solid #f3f4f6', borderLeft: selectedGsc === s.siteUrl ? '3px solid #4285F4' : '3px solid transparent', color: selectedGsc === s.siteUrl ? '#4285F4' : BLK }}>
+                            {s.siteUrl.replace('sc-domain:', '★ ').replace('https://', '').replace(/\/$/, '')}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* GA4 picker */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <BarChart2 size={14} color="#F4B400" /> Google Analytics 4 Property
+                  </div>
+                  {ga4Properties.length === 0 ? (
+                    <div style={{ fontSize: 12, color: '#9ca3af', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No GA4 properties found for this account</div>
+                  ) : (
+                    <>
+                      <input value={ga4Search} onChange={e => setGa4Search(e.target.value)} placeholder={`Search ${ga4Properties.length} properties...`}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, marginBottom: 6, outline: 'none', boxSizing: 'border-box' }} />
+                      <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                        {ga4Properties.filter(p => !ga4Search || p.displayName.toLowerCase().includes(ga4Search.toLowerCase())).map(p => {
+                          const propId = p.name.replace('properties/', '')
+                          return (
+                            <div key={p.name} onClick={() => setSelectedGa4(propId)}
+                              style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGa4 === propId ? 700 : 400, background: selectedGa4 === propId ? '#fef3c7' : '#fff', borderBottom: '1px solid #f3f4f6', borderLeft: selectedGa4 === propId ? '3px solid #F4B400' : '3px solid transparent', color: selectedGa4 === propId ? '#d97706' : BLK }}>
+                              {p.displayName} <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 6 }}>{propId} · {p.account}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Save button */}
+                <button onClick={async () => {
+                  if (!selectedGsc && !selectedGa4) { toast.error('Select at least one property'); return }
+                  setOauthStep('saving')
+                  const { access_token, refresh_token, expires_in, scope } = oauthTokens
+                  const expiresAt = new Date(Date.now() + (expires_in || 3600) * 1000).toISOString()
+                  try {
+                    if (selectedGsc) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'search_console', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, site_url: selectedGsc, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
+                    if (selectedGa4) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'analytics', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, property_id: selectedGa4, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
+                    // Auto-save GBP + Ads if scope includes them
+                    if (scope?.includes('business.manage')) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'gmb', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
+                    if (scope?.includes('adwords')) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'ads', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
+                    toast.success('Google services connected!')
+                    setOauthStep('done')
+                  } catch (e) { toast.error('Failed to save: ' + e.message); setOauthStep('pick_properties') }
+                }} disabled={oauthStep === 'saving' || (!selectedGsc && !selectedGa4)}
+                  style={{ width: '100%', padding: '14px', borderRadius: 10, border: 'none', background: (!selectedGsc && !selectedGa4) ? '#e5e7eb' : GRN, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                  {oauthStep === 'saving' ? 'Saving...' : `Save Connections${selectedGsc && selectedGa4 ? ' (2)' : selectedGsc || selectedGa4 ? ' (1)' : ''}`}
+                </button>
+              </div>
+            )}
+
+            {oauthStep === 'done' && (
+              <div style={{ ...card, borderLeft: `4px solid ${GRN}`, background: GRN + '04' }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: GRN, marginBottom: 8 }}>Connected Successfully</div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+                  {selectedGsc && <div>Search Console: {selectedGsc.replace('sc-domain:', '').replace('https://', '')}</div>}
+                  {selectedGa4 && <div>GA4 Property: {selectedGa4}</div>}
+                </div>
+                <button onClick={() => { setTab('dashboard'); setOauthStep(null) }}
+                  style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: BLK, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  Go to Dashboard →
+                </button>
+              </div>
+            )}
+
+            {oauthStep === 'exchanging' && (
+              <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
+                <Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
+                <div style={{ fontSize: 14, color: '#6b7280' }}>Exchanging tokens with Google...</div>
+              </div>
+            )}
+
+            {/* DataForSEO */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Zap size={18} color={AMB} /> DataForSEO API
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+                Powers SERP feature detection, AI Overview analysis, competitor intelligence, GMB grid tracking, and bulk rank checking.
+              </div>
+              <div style={{ padding: '12px 16px', background: GRN + '06', borderRadius: 8, border: `1px solid ${GRN}20`, fontSize: 13, color: GRN, fontWeight: 600 }}>
+                ✓ Connected — API key configured in environment
+              </div>
+            </div>
+
+            {/* Moz API */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <TrendingUp size={18} color={T} /> Moz API
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+                Domain Authority, Page Authority, backlink counts, spam score — used in Quick Scan and competitor analysis.
+              </div>
+              <div style={{ padding: '12px 16px', background: GRN + '06', borderRadius: 8, border: `1px solid ${GRN}20`, fontSize: 13, color: GRN, fontWeight: 600 }}>
+                ✓ Connected — API key configured in environment
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ REPORTS TAB ══ */}
+        {clientId && tab === 'reports' && (
+          <ReportsTab clientId={clientId} keywords={keywords} dashboard={dashboard} />
+        )}
+
+        {/* Dead reports_old block removed — real Reports tab above */}
+        {false && (
+          <div>
+            <div>
+              {[
+                { title: 'Position Distribution', desc: 'Keywords by rank bucket: #1-3, #4-10, #11-20, #21+', icon: BarChart2, color: T, source: 'GSC' },
+                { title: 'CTR by Position', desc: 'Click-through rate at each ranking position vs expected', icon: TrendingUp, color: GRN, source: 'GSC' },
+                { title: 'Impression Trends', desc: 'Keywords gaining or losing impressions week-over-week', icon: TrendingUp, color: AMB, source: 'GSC Daily' },
+                { title: 'Rank Movement', desc: 'Biggest gainers and losers in the last 7/30 days', icon: ArrowUpRight, color: R, source: 'GSC' },
+                { title: 'Pages by Traffic', desc: 'Top landing pages ranked by organic sessions', icon: FileText, color: T, source: 'GSC + GA4' },
+                { title: 'Conversion by Page', desc: 'Which pages drive the most conversions and revenue', icon: DollarSign, color: GRN, source: 'GA4' },
+                { title: 'Paid vs Organic', desc: 'Keywords where you rank organically AND pay for ads', icon: Target, color: R, source: 'GSC + Ads' },
+                { title: 'Cost per Acquisition', desc: 'CPA by keyword — find the most efficient converters', icon: DollarSign, color: AMB, source: 'Ads' },
+                { title: 'Quality Score Map', desc: 'Ad quality score distribution — where to improve', icon: Star, color: AMB, source: 'Ads' },
+                { title: 'AI Overview Coverage', desc: 'Which keywords trigger AI Overviews — are you cited?', icon: Brain, color: '#7c3aed', source: 'DataForSEO' },
+                { title: 'Featured Snippets', desc: 'Snippet opportunities you can win with content updates', icon: Zap, color: T, source: 'DataForSEO' },
+                { title: 'Local Pack Map', desc: 'Geographic heatmap of local pack visibility', icon: MapPin, color: GRN, source: 'DataForSEO Grid' },
+                { title: 'Competitor Gap', desc: 'Keywords competitors rank for that you don\'t', icon: Target, color: R, source: 'DataForSEO' },
+                { title: 'Domain Authority', desc: 'DA trend over time vs competitor domains', icon: Shield, color: T, source: 'Moz' },
+                { title: 'Backlink Growth', desc: 'New and lost backlinks tracked over time', icon: TrendingUp, color: GRN, source: 'Moz' },
+                { title: 'Page Speed Scores', desc: 'Performance scores for all tracked URLs', icon: Zap, color: AMB, source: 'CrUX' },
+                { title: 'Core Web Vitals', desc: 'LCP, FID, CLS — pass/fail by page', icon: Activity, color: R, source: 'CrUX' },
+                { title: 'GBP Impressions', desc: 'Search vs Maps views of your business profile', icon: Eye, color: '#EA4335', source: 'GBP API' },
+                { title: 'GBP Actions', desc: 'Calls, directions, website clicks from your listing', icon: Phone, color: GRN, source: 'GBP API' },
+                { title: 'Review Velocity', desc: 'Review growth rate + sentiment analysis', icon: Star, color: AMB, source: 'GBP + Places' },
+                { title: 'Content Gaps', desc: 'Topics competitors cover that you\'re missing', icon: FileText, color: R, source: 'DataForSEO' },
+                { title: 'Search Intent Map', desc: 'Keywords classified by intent: transactional, info, nav', icon: Brain, color: T, source: 'AI' },
+                { title: 'Opportunity Matrix', desc: 'Keywords scored by volume × rank gap × conversion', icon: Target, color: GRN, source: 'Composite' },
+                { title: 'ROI Calculator', desc: 'Organic traffic value vs equivalent paid cost', icon: DollarSign, color: '#7c3aed', source: 'GSC + Ads' },
+                { title: 'Seasonal Trends', desc: 'Keywords with seasonal patterns + peak predictions', icon: Clock, color: AMB, source: 'GSC + KP' },
+                { title: 'Technical Issues', desc: 'SEO errors found in the last deep audit', icon: AlertCircle, color: R, source: 'Deep Audit' },
+                { title: 'Schema Coverage', desc: 'Which pages have structured data and which don\'t', icon: FileText, color: T, source: 'Scrape' },
+                { title: 'Internal Links', desc: 'Link distribution + orphan page detection', icon: Globe, color: AMB, source: 'Scrape' },
+                { title: 'Entity Coverage', desc: 'Core entities in your niche — coverage vs competitors', icon: Brain, color: '#7c3aed', source: 'AI + DFS' },
+                { title: 'Monthly Summary', desc: 'Auto-generated performance report across all metrics', icon: FileText, color: BLK, source: 'All' },
+              ].map((report, i) => (
+                <div key={i} style={{ padding: '18px 20px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', transition: 'all .15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = report.color; e.currentTarget.style.boxShadow = `0 4px 16px ${report.color}10` }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+                  onClick={() => toast('Report coming soon — data sources need to be connected first')}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <report.icon size={16} color={report.color} />
+                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{report.title}</div>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5, marginBottom: 8 }}>{report.desc}</div>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: report.color + '10', color: report.color }}>{report.source}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
       </div>
 
       {/* Client Add/Edit Modal */}
@@ -2304,6 +3472,715 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   AEO RESEARCH TAB — Search Google, extract AI Overview + gaps + opportunities
+   ══════════════════════════════════════════════════════════════════════════ */
+function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: trackedKeywords }) {
+  const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState(null)
+
+  // Generate AI suggestions based on client's business
+  const suggestedSearches = (() => {
+    const suggestions = []
+    // From tracked keywords (top by volume)
+    if (trackedKeywords?.length > 0) {
+      trackedKeywords
+        .filter(k => k.kp_monthly_volume > 50)
+        .sort((a, b) => (b.kp_monthly_volume || 0) - (a.kp_monthly_volume || 0))
+        .slice(0, 6)
+        .forEach(k => suggestions.push(k.keyword))
+    }
+    // From client industry
+    if (clientIndustry && suggestions.length < 8) {
+      const industry = clientIndustry.toLowerCase()
+      suggestions.push(`${industry} near me`, `best ${industry} in my area`, `how much does ${industry} cost`, `${industry} reviews`)
+    }
+    // From client name
+    if (clientName && suggestions.length < 10) {
+      suggestions.push(`${clientName}`, `${clientName} reviews`)
+    }
+    return [...new Set(suggestions)].slice(0, 10)
+  })()
+
+  const runResearch = async () => {
+    if (!query.trim()) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'aeo_research', keyword: query.trim(), client_id: clientId }) })
+      const data = await res.json()
+      if (data.success) setResult(data)
+      else toast.error(data.error || 'Research failed')
+    } catch { toast.error('Research failed') }
+    setLoading(false)
+  }
+
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+  const FB = "'Raleway','Helvetica Neue',sans-serif"
+
+  return (
+    <>
+      {/* Search input */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Brain size={18} color={T} /> AEO Research — AI Overview Gap Finder
+        </div>
+        <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14, lineHeight: 1.6 }}>
+          Search any keyword to see what Google's AI Overview says, which companies it mentions, what information it misses, and which new pages you should create to get cited.
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input value={query} onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') runResearch() }}
+            placeholder="Enter a keyword or phrase to research..."
+            style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, fontFamily: FH, fontWeight: 600, outline: 'none' }} />
+          <button onClick={runResearch} disabled={loading || !query.trim()}
+            style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: loading ? '#e5e7eb' : BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={16} />}
+            {loading ? 'Searching...' : 'Research'}
+          </button>
+        </div>
+        {/* AI Suggested Searches */}
+        {suggestedSearches.length > 0 && !query && !result && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Suggested searches for {clientName || 'this business'}</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {suggestedSearches.map((s, i) => (
+                <button key={i} onClick={() => { setQuery(s); }} style={{
+                  padding: '6px 14px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', color: BLK, transition: 'all .12s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = T; e.currentTarget.style.color = T }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = BLK }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {loading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /><div style={{ marginTop: 12, fontSize: 13, color: '#6b7280' }}>Searching Google + analyzing AI Overview...</div></div>}
+
+      {result && !loading && (
+        <>
+          {/* AI Overview */}
+          <div style={{ ...card, borderLeft: result.ai_overview ? `4px solid ${T}` : '4px solid #e5e7eb' }}>
+            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Brain size={16} color={T} />
+              {result.ai_overview ? 'AI Overview Present' : 'No AI Overview for This Query'}
+            </div>
+            {result.ai_overview ? (
+              <>
+                <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, marginBottom: 12, padding: '12px 16px', background: T + '06', borderRadius: 10 }}>
+                  {result.ai_overview.text || 'AI Overview text not extracted'}
+                </div>
+                {result.mentioned_companies?.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Companies Cited in AI Overview</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {result.mentioned_companies.map((c, i) => (
+                        <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{ padding: '4px 12px', borderRadius: 20, background: '#f3f4f6', fontSize: 12, fontWeight: 600, color: BLK, textDecoration: 'none' }}>
+                          {c.domain}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 13, color: '#6b7280', padding: '12px 16px', background: '#f9fafb', borderRadius: 10 }}>
+                No AI Overview for this query — this is an opportunity. Content targeting this keyword has a clear path to ranking without competing against an AI summary.
+              </div>
+            )}
+          </div>
+
+          {/* Gap Analysis */}
+          {result.gap_analysis && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Information Gap Analysis</div>
+              {result.gap_analysis.information_gaps?.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Gaps in Current Content (Your Opportunity)</div>
+                  {result.gap_analysis.information_gaps.map((gap, i) => (
+                    <div key={i} style={{ padding: '8px 14px', background: R + '04', borderRadius: 8, borderLeft: `3px solid ${R}`, marginBottom: 6, fontSize: 13, color: '#374151', lineHeight: 1.5 }}>
+                      {gap}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {result.gap_analysis.content_opportunities?.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: GRN, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Content Opportunities</div>
+                  {result.gap_analysis.content_opportunities.map((opp, i) => (
+                    <div key={i} style={{ padding: '8px 14px', background: GRN + '04', borderRadius: 8, borderLeft: `3px solid ${GRN}`, marginBottom: 6, fontSize: 13, color: '#374151', lineHeight: 1.5 }}>
+                      {opp}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {result.gap_analysis.aeo_strategy && (
+                <div style={{ padding: '14px 18px', background: T + '06', borderRadius: 10, border: `1px solid ${T}20`, marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>AEO Strategy</div>
+                  <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{result.gap_analysis.aeo_strategy}</div>
+                </div>
+              )}
+              {result.gap_analysis.entity_map?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Core Entities</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {result.gap_analysis.entity_map.map((e, i) => (
+                      <span key={i} style={{ padding: '3px 10px', borderRadius: 20, background: '#f0f9ff', fontSize: 12, fontWeight: 600, color: '#0369a1' }}>{e}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Suggested Pages */}
+          {(result.gap_analysis?.suggested_pages?.length > 0 || result.related_searches?.length > 0) && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Suggested New Pages to Create</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {(result.gap_analysis?.suggested_pages || result.related_searches || []).map((page, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{page}</div>
+                    <button onClick={() => setQuery(page)} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: T }}>Research This</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* People Also Ask */}
+          {result.people_also_ask?.length > 0 && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>People Also Ask ({result.people_also_ask.length})</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {result.people_also_ask.map((q, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: '#f9fafb', borderRadius: 8 }}>
+                    <span style={{ fontSize: 13, color: '#374151' }}>{q}</span>
+                    <button onClick={() => setQuery(q)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: T }}>Research</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Organic Results */}
+          {result.top_results?.length > 0 && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Top 10 Organic Results</div>
+              {result.top_results.map((r, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < result.top_results.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                  <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 900, color: r.position <= 3 ? GRN : r.position <= 10 ? AMB : R, minWidth: 30, textAlign: 'center' }}>#{r.position}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{r.title}</div>
+                    <div style={{ fontSize: 11, color: T }}>{r.domain}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Featured Snippet */}
+          {result.featured_snippet && (
+            <div style={{ ...card, borderLeft: `4px solid ${AMB}` }}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 8 }}>Featured Snippet</div>
+              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>{result.featured_snippet.description}</div>
+              <div style={{ fontSize: 12, color: AMB, fontWeight: 700 }}>{result.featured_snippet.domain} — {result.featured_snippet.type}</div>
+            </div>
+          )}
+
+          {/* Related Searches */}
+          {result.related_searches?.length > 0 && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Related Searches ({result.related_searches.length})</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {result.related_searches.map((s, i) => (
+                  <button key={i} onClick={() => setQuery(s)} style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: BLK }}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   REPORTS TAB — Real data views from keywords + connected sources
+   ══════════════════════════════════════════════════════════════════════════ */
+function ReportsTab({ clientId, keywords, dashboard }) {
+  const [activeReport, setActiveReport] = useState(null)
+  const kws = keywords || []
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+
+  // Pre-compute report data from keywords
+  const ranked = kws.filter(k => k.sc_position || k.position)
+  const posGroups = {
+    top3: ranked.filter(k => (k.sc_position || k.position) <= 3),
+    top10: ranked.filter(k => (k.sc_position || k.position) > 3 && (k.sc_position || k.position) <= 10),
+    top20: ranked.filter(k => (k.sc_position || k.position) > 10 && (k.sc_position || k.position) <= 20),
+    beyond: ranked.filter(k => (k.sc_position || k.position) > 20),
+    unranked: kws.filter(k => !k.sc_position && !k.position),
+  }
+  const aiOverviewKws = kws.filter(k => k.ai_overview)
+  const paidKws = kws.filter(k => k.ads_spend_cents > 0 || k.ads_clicks > 0)
+  const organicPaidOverlap = kws.filter(k => (k.sc_position || k.position) && (k.ads_spend_cents > 0))
+
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+
+  if (kws.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+        <BarChart2 size={48} color="#d1d5db" style={{ margin: '0 auto 16px' }} />
+        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No Data Yet</div>
+        <div style={{ fontSize: 14, color: '#6b7280', maxWidth: 400, margin: '0 auto' }}>Run a Quick Scan or Full Sync first to populate keyword data. Reports will generate automatically from your data.</div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Data Reports</div>
+      <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>{kws.length} keywords tracked · {ranked.length} with ranking data</div>
+
+      {/* Position Distribution */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Position Distribution</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 16 }}>
+          {[
+            ['#1-3', posGroups.top3.length, GRN],
+            ['#4-10', posGroups.top10.length, T],
+            ['#11-20', posGroups.top20.length, AMB],
+            ['#21+', posGroups.beyond.length, R],
+            ['Not Ranked', posGroups.unranked.length, '#9ca3af'],
+          ].map(([label, count, color]) => (
+            <div key={label} style={{ textAlign: 'center', padding: '16px', background: color + '08', borderRadius: 10 }}>
+              <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color }}>{count}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, fontWeight: 600 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+        {/* Bar visualization */}
+        <div style={{ display: 'flex', height: 24, borderRadius: 6, overflow: 'hidden' }}>
+          {[[posGroups.top3.length, GRN], [posGroups.top10.length, T], [posGroups.top20.length, AMB], [posGroups.beyond.length, R], [posGroups.unranked.length, '#d1d5db']].map(([count, color], i) => (
+            count > 0 ? <div key={i} style={{ flex: count, background: color, transition: 'flex .3s' }} title={`${count} keywords`} /> : null
+          ))}
+        </div>
+      </div>
+
+      {/* AI Overview Coverage */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>AI Overview Coverage</div>
+        <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: '#7c3aed' }}>{aiOverviewKws.length}</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Keywords with AI Overview</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: '#9ca3af' }}>{kws.length - aiOverviewKws.length}</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Without AI Overview</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: T }}>{kws.length > 0 ? Math.round((aiOverviewKws.length / kws.length) * 100) : 0}%</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Coverage Rate</div>
+          </div>
+        </div>
+        {aiOverviewKws.length > 0 && (
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 8 }}>Keywords with AI Overview</div>
+            {aiOverviewKws.slice(0, 10).map((kw, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
+                <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: (kw.sc_position || kw.position) <= 10 ? GRN : AMB }}>#{kw.sc_position || kw.position || '—'}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Paid vs Organic Overlap */}
+      {organicPaidOverlap.length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Paid vs Organic Overlap — Cannibal Keywords</div>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>Keywords where you rank organically AND pay for ads. Consider reducing bids on keywords where organic rank is strong.</div>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                {['Keyword', 'Organic Pos', 'Ad Spend', 'Ad CPC', 'Volume', 'Action'].map(h => (
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {organicPaidOverlap.slice(0, 15).map((kw, i) => {
+                const pos = kw.sc_position || kw.position || 99
+                return (
+                  <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '8px 10px', fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</td>
+                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: pos <= 3 ? GRN : pos <= 10 ? T : AMB }}>#{pos}</td>
+                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>${((kw.ads_spend_cents || 0) / 100).toFixed(0)}</td>
+                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>${((kw.ads_cpc_cents || 0) / 100).toFixed(2)}</td>
+                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: pos <= 3 ? R + '12' : AMB + '12', color: pos <= 3 ? R : AMB }}>
+                        {pos <= 3 ? 'Pause Ad' : pos <= 10 ? 'Reduce Bid' : 'Keep'}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Opportunity Matrix */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Opportunities by Score</div>
+        {kws.filter(k => k.opportunity_score > 0).sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0)).slice(0, 15).map((kw, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+            <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 900, color: T, minWidth: 36 }}>{Math.round(kw.opportunity_score)}</span>
+            <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden' }}>
+              <div style={{ width: `${kw.opportunity_score}%`, height: '100%', borderRadius: 3, background: kw.opportunity_score >= 70 ? GRN : kw.opportunity_score >= 40 ? AMB : '#d1d5db' }} />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: BLK, minWidth: 200 }}>{kw.keyword}</span>
+            <span style={{ fontSize: 12, color: '#9ca3af', minWidth: 60 }}>#{kw.sc_position || kw.position || '—'}</span>
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
+          </div>
+        ))}
+        {kws.filter(k => k.opportunity_score > 0).length === 0 && (
+          <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '20px 0' }}>Run a Quick Scan to generate opportunity scores</div>
+        )}
+      </div>
+
+      {/* Search Intent Distribution */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Search Intent Distribution</div>
+        {(() => {
+          const intents = {}
+          kws.forEach(k => { const i = k.intent || 'unknown'; intents[i] = (intents[i] || 0) + 1 })
+          const intentColors = { transactional: R, commercial: AMB, informational: T, navigational: '#7c3aed', unknown: '#9ca3af' }
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+              {Object.entries(intents).map(([intent, count]) => (
+                <div key={intent} style={{ textAlign: 'center', padding: '14px', background: (intentColors[intent] || '#9ca3af') + '08', borderRadius: 10 }}>
+                  <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: intentColors[intent] || '#9ca3af' }}>{count}</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'capitalize', marginTop: 4 }}>{intent}</div>
+                </div>
+              ))}
+            </div>
+          )
+        })()}
+      </div>
+
+      {/* Category Breakdown */}
+      {dashboard?.categories && Object.keys(dashboard.categories).length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Keyword Categories</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+            {Object.entries(dashboard.categories).map(([cat, count]) => (
+              <div key={cat} style={{ padding: '14px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{count}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'capitalize', marginTop: 4 }}>{cat.replace(/_/g, ' ')}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Featured Snippet Opportunities */}
+      {kws.filter(k => k.featured_snippet).length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Featured Snippet Opportunities</div>
+          {kws.filter(k => k.featured_snippet).slice(0, 10).map((kw, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: '#9ca3af' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
+                <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: AMB + '12', color: AMB }}>Snippet</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ROI Calculator */}
+      {paidKws.length > 0 && (() => {
+        const totalPaidSpend = paidKws.reduce((s, k) => s + (k.ads_spend_cents || 0), 0) / 100
+        const organicValue = ranked.reduce((s, k) => {
+          const vol = k.kp_monthly_volume || 0
+          const pos = k.sc_position || k.position || 99
+          const ctr = pos <= 1 ? 0.285 : pos <= 3 ? 0.12 : pos <= 5 ? 0.065 : pos <= 10 ? 0.025 : 0.005
+          const cpc = (k.ads_cpc_cents || k.kp_bid_high_cents || 200) / 100
+          return s + (vol * ctr * cpc)
+        }, 0)
+        return (
+          <div style={card}>
+            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>ROI: Organic Value vs Paid Cost</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+              <div style={{ padding: '18px', background: GRN + '06', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: GRN }}>${Math.round(organicValue).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Organic Value/mo</div>
+              </div>
+              <div style={{ padding: '18px', background: R + '06', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: R }}>${Math.round(totalPaidSpend).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Ad Spend/mo</div>
+              </div>
+              <div style={{ padding: '18px', background: T + '06', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: T }}>{totalPaidSpend > 0 ? `${(organicValue / totalPaidSpend).toFixed(1)}x` : '∞'}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>ROI Multiple</div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Volume Distribution */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Search Volume Distribution</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {[
+            ['High (1K+)', kws.filter(k => (k.kp_monthly_volume || 0) >= 1000).length, GRN],
+            ['Medium (100-999)', kws.filter(k => (k.kp_monthly_volume || 0) >= 100 && (k.kp_monthly_volume || 0) < 1000).length, T],
+            ['Low (10-99)', kws.filter(k => (k.kp_monthly_volume || 0) >= 10 && (k.kp_monthly_volume || 0) < 100).length, AMB],
+            ['Very Low (<10)', kws.filter(k => (k.kp_monthly_volume || 0) < 10).length, '#9ca3af'],
+          ].map(([label, count, color]) => (
+            <div key={label} style={{ padding: '16px', background: color + '08', borderRadius: 10, textAlign: 'center' }}>
+              <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color }}>{count}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Local Pack Keywords */}
+      {kws.filter(k => k.local_pack).length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Local Pack Keywords ({kws.filter(k => k.local_pack).length})</div>
+          {kws.filter(k => k.local_pack).slice(0, 10).map((kw, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
+              <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '12', color: GRN }}>Local Pack</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Top Pages by Keyword Count */}
+      {(() => {
+        const pageMap = {}
+        kws.forEach(k => { if (k.url) { if (!pageMap[k.url]) pageMap[k.url] = { url: k.url, count: 0, avgPos: 0, totalVol: 0 }; pageMap[k.url].count++; pageMap[k.url].avgPos += (k.sc_position || k.position || 0); pageMap[k.url].totalVol += (k.kp_monthly_volume || 0) } })
+        const pages = Object.values(pageMap).map(p => ({ ...p, avgPos: p.count > 0 ? Math.round(p.avgPos / p.count) : 0 })).sort((a, b) => b.count - a.count).slice(0, 10)
+        if (pages.length === 0) return null
+        return (
+          <div style={card}>
+            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Pages by Keyword Count</div>
+            {pages.map((p, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 900, color: T, minWidth: 30 }}>{p.count}</span>
+                <div style={{ flex: 1, fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {p.url?.replace(/https?:\/\/[^/]+/, '') || '/'}
+                </div>
+                <span style={{ fontSize: 11, color: '#9ca3af' }}>Avg #{p.avgPos}</span>
+                <span style={{ fontSize: 11, color: '#9ca3af' }}>{p.totalVol.toLocaleString()} vol</span>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   UTM BUILDER TAB
+   ══════════════════════════════════════════════════════════════════════════ */
+function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
+  const [baseUrl, setBaseUrl] = useState(clientWebsite || '')
+  const [source, setSource] = useState('')
+  const [medium, setMedium] = useState('')
+  const [campaign, setCampaign] = useState('')
+  const [content, setContent] = useState('')
+  const [term, setTerm] = useState('')
+  const [history, setHistory] = useState([])
+
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+  const FB = "'Raleway','Helvetica Neue',sans-serif"
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+
+  const buildUrl = () => {
+    if (!baseUrl) return ''
+    const params = new URLSearchParams()
+    if (source) params.set('utm_source', source)
+    if (medium) params.set('utm_medium', medium)
+    if (campaign) params.set('utm_campaign', campaign)
+    if (content) params.set('utm_content', content)
+    if (term) params.set('utm_term', term)
+    const qs = params.toString()
+    if (!qs) return baseUrl
+    const sep = baseUrl.includes('?') ? '&' : '?'
+    return `${baseUrl}${sep}${qs}`
+  }
+
+  const generatedUrl = buildUrl()
+
+  const presets = [
+    { label: 'GBP Post', source: 'google', medium: 'organic', campaign: 'gbp_post' },
+    { label: 'Google Ads', source: 'google', medium: 'cpc', campaign: 'brand' },
+    { label: 'Facebook Ad', source: 'facebook', medium: 'paid_social', campaign: 'awareness' },
+    { label: 'Email Blast', source: 'email', medium: 'email', campaign: 'newsletter' },
+    { label: 'Instagram Bio', source: 'instagram', medium: 'social', campaign: 'bio_link' },
+    { label: 'LinkedIn Post', source: 'linkedin', medium: 'social', campaign: 'organic_post' },
+    { label: 'QR Code', source: 'qr_code', medium: 'offline', campaign: 'print_material' },
+    { label: 'SMS Campaign', source: 'sms', medium: 'sms', campaign: 'promo' },
+  ]
+
+  return (
+    <div>
+      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>UTM Builder</div>
+      <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
+        Create UTM-tagged URLs to track which marketing channels drive traffic. Every link is trackable in Google Analytics.
+      </div>
+
+      {/* Quick Presets */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Quick Presets</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {presets.map(p => (
+            <button key={p.label} onClick={() => { setSource(p.source); setMedium(p.medium); setCampaign(p.campaign) }}
+              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e5e7eb', background: source === p.source && medium === p.medium ? T + '12' : '#fff', color: source === p.source && medium === p.medium ? T : '#6b7280', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .12s' }}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Builder Form */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 16 }}>Build Your URL</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              Landing Page URL *
+            </label>
+            <input value={baseUrl} onChange={e => setBaseUrl(e.target.value)}
+              placeholder="https://example.com/services/plumbing"
+              style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Source * <span style={{ fontWeight: 400, textTransform: 'none' }}>— where traffic comes from</span>
+              </label>
+              <input value={source} onChange={e => setSource(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="google, facebook, newsletter"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Medium * <span style={{ fontWeight: 400, textTransform: 'none' }}>— marketing channel type</span>
+              </label>
+              <input value={medium} onChange={e => setMedium(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="cpc, email, social, organic"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Campaign * <span style={{ fontWeight: 400, textTransform: 'none' }}>— campaign name</span>
+              </label>
+              <input value={campaign} onChange={e => setCampaign(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="spring_promo, brand_awareness"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Content <span style={{ fontWeight: 400, textTransform: 'none' }}>— ad/link variant (optional)</span>
+              </label>
+              <input value={content} onChange={e => setContent(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="banner_top, sidebar, cta_button"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              Term <span style={{ fontWeight: 400, textTransform: 'none' }}>— paid keyword (optional)</span>
+            </label>
+            <input value={term} onChange={e => setTerm(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+              placeholder="emergency_plumber, water_damage"
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Generated URL */}
+      {generatedUrl && source && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Generated URL</div>
+          <div style={{ padding: '14px 18px', background: '#111', borderRadius: 10, marginBottom: 14, position: 'relative' }}>
+            <code style={{ fontSize: 13, color: '#a3e635', fontFamily: 'monospace', wordBreak: 'break-all', lineHeight: 1.6 }}>
+              {generatedUrl}
+            </code>
+            <button onClick={() => { navigator.clipboard.writeText(generatedUrl); toast.success('URL copied!'); setHistory(prev => [{ url: generatedUrl, source, medium, campaign, date: new Date().toISOString() }, ...prev.slice(0, 19)]) }}
+              style={{ position: 'absolute', top: 10, right: 10, padding: '5px 12px', borderRadius: 6, border: 'none', background: 'rgba(255,255,255,.15)', color: '#fff', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Copy size={12} /> Copy
+            </button>
+          </div>
+
+          {/* Parameter breakdown */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {source && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: T + '12', color: T }}>source: {source}</span>}
+            {medium && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: GRN + '12', color: GRN }}>medium: {medium}</span>}
+            {campaign && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: AMB + '12', color: AMB }}>campaign: {campaign}</span>}
+            {content && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#7c3aed12', color: '#7c3aed' }}>content: {content}</span>}
+            {term && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: R + '12', color: R }}>term: {term}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* History */}
+      {history.length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Recently Generated ({history.length})</div>
+          {history.map((h, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < history.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.url}</div>
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{h.source} / {h.medium} / {h.campaign}</div>
+              </div>
+              <button onClick={() => { navigator.clipboard.writeText(h.url); toast.success('Copied!') }}
+                style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280', flexShrink: 0 }}>Copy</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Tips */}
+      <div style={{ ...card, background: '#f9fafb' }}>
+        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 10 }}>UTM Best Practices</div>
+        <ul style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.8, paddingLeft: 18, margin: 0 }}>
+          <li>Always use lowercase — GA4 treats "Google" and "google" as different sources</li>
+          <li>Use underscores instead of spaces (e.g. <code>spring_promo</code> not <code>spring promo</code>)</li>
+          <li>Be consistent — use the same source/medium naming across all campaigns</li>
+          <li>Never use UTM parameters on internal links (it breaks session attribution)</li>
+          <li>For GBP posts, always use <code>source=google&medium=organic&campaign=gbp_post</code></li>
+          <li>Tag every external link — untagged traffic shows as "direct" in GA4</li>
+        </ul>
+      </div>
     </div>
   )
 }

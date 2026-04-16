@@ -11,7 +11,7 @@ import NotificationCenter from './NotificationCenter'
 import DarkModeToggle from './DarkModeToggle'
 import toast from 'react-hot-toast'
 
-import { R, T, W } from '../lib/theme'
+import { R, T, W, GRN } from '../lib/theme'
 
 function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, sub, hidden }) {
   const loc    = useLocation()
@@ -336,7 +336,7 @@ export default function Sidebar() {
             <NavLink to="/proposals" startsWith icon={FileSignature} label="Proposals" hidden={!can?.('view_proposals')}/>
             <NavLink to="/perf" startsWith icon={TrendingUp} label="Reports" hidden={!can?.('view_reports')}/>
             <NavLink to="/seo" startsWith icon={BarChart2} label="SEO Hub" hidden={!can?.('seo_hub')}/>
-            <NavLink to="/page-builder" icon={Sparkles} label="Page Builder" hidden={!can?.('page_builder')}/>
+            <NavLink to="/kotoiq?tab=briefs" icon={Sparkles} label="Page Builder" hidden={true}/>
             <NavLink to="/scout" startsWith icon={Target} label="Scout" hidden={!can?.('scout')}/>
             <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" hidden={!can?.('voice_agent')}/>
             <NavLink to="/my-front-desk" icon={PhoneIncoming} label="Front Desk" hidden={!can?.('front_desk')}/>
@@ -435,7 +435,7 @@ export default function Sidebar() {
                 <NavLink to="/seo/competitor-intel" icon={BarChart2} label="Competitor Intel" sub hidden={!feat('competitor_intel')}/>
                 <NavLink to="/seo/citations" icon={MapPin} label="Citation Tracker" sub hidden={!feat('citation_tracker')}/>
               </>)}
-              <NavLink to="/page-builder" icon={Sparkles} label="Page Builder" hidden={!match('Page Builder') || !feat('page_builder')}/>
+              <NavLink to="/kotoiq?tab=briefs" icon={Sparkles} label="PageIQ" hidden={true}/>
               <NavLink to="/wordpress" icon={Globe} label="WP Plugin" hidden={!match('WP Plugin') || !feat('wordpress_plugin')}/>
             </Section>
 
@@ -444,7 +444,7 @@ export default function Sidebar() {
               <NavLink to="/agent" icon={Brain} label="AI CMO" badge="AI" badgeColor={R} hidden={!match('AI CMO') || !feat('cmo_agent')}/>
               <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" hidden={!match('Predictive Intel') || !feat('predictive_intel')}/>
               <NavLink to="/intel" startsWith icon={Zap} label="KotoIntel" badge="NEW" badgeColor={T} hidden={!match('KotoIntel')}/>
-              <NavLink to="/kotoiq" icon={Search} label="KotoIQ" badge="NEW" badgeColor={R} hidden={!match('KotoIQ')}/>
+              <NavLink to="/kotoiq" icon={Search} label="KotoIQ" badge="SEO" badgeColor={GRN}/>
               <NavLink to="/scout" startsWith icon={Target} label="Scout" hidden={!match('Scout') || !feat('scout')}/>
               <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub hidden={!match('Pipeline CRM') || !feat('pipeline_crm')}/>
               <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub hidden={!match('Scout History') || !feat('scout')}/>
@@ -460,7 +460,7 @@ export default function Sidebar() {
               <NavLink to="/trades" icon={Zap} label="Trades Portal" sub hidden={!match('Trades Portal') || !feat('industry_agents')}/>
               <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" hidden={!match('Video Voicemails') || !feat('video_voicemails')}/>
               <NavLink to="/avatars" icon={Users} label="AI Avatars" sub hidden={!match('AI Avatars') || !feat('ai_avatars')}/>
-              <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" hidden={!match('Visitor Intelligence') || !feat('pixel_tracking')}/>
+              <NavLink to="/kotoiq?tab=visitors" icon={Eye} label="Visitor Intelligence" hidden={true}/>
               <NavLink to="/vob" icon={Shield} label="VOB Agent" badge="RCM" badgeColor={T} hidden={!match('VOB Agent') || !feat('vob_agent')}/>
             </Section>
 

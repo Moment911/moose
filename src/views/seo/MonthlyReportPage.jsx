@@ -69,7 +69,7 @@ export default function MonthlyReportPage() {
   useEffect(() => { if (clientId) loadHistory() }, [clientId])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id,name,email,industry').order('name')
+    const { data } = await supabase.from('clients').select('id,name,email,industry').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(data || [])
   }
 

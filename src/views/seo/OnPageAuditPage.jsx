@@ -131,7 +131,7 @@ export default function OnPageAuditPage() {
   useEffect(() => { if (clientId) loadHistory() }, [clientId])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id,name,website,city,state,sic_code,industry').order('name')
+    const { data } = await supabase.from('clients').select('id,name,website,city,state,sic_code,industry').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(data || [])
   }
 

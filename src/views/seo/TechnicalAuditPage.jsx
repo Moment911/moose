@@ -21,7 +21,7 @@ export default function TechnicalAuditPage(){
   const [result,setResult]=useState(null)
   const [tab,setTab]=useState('overview')
 
-  useEffect(()=>{supabase.from('clients').select('id,name,website').order('name').then(({data})=>setClients(data||[]))},[])
+  useEffect(()=>{supabase.from('clients').select('id,name,website').eq('agency_id',agencyId).is('deleted_at',null).order('name').then(({data})=>setClients(data||[]))},[agencyId])
   useEffect(()=>{if(selectedClient){setClientId(selectedClient.id);if(selectedClient.website)setUrl(selectedClient.website)}},[selectedClient])
 
   async function runAudit(){

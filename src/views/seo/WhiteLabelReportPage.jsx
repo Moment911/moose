@@ -42,7 +42,7 @@ export default function WhiteLabelReportPage(){
   const [reportData,setReportData]=useState(null)
 
   useEffect(()=>{
-    supabase.from('clients').select('id,name,email,industry,city,state').order('name').then(({data})=>setClients(data||[]))
+    supabase.from('clients').select('id,name,email,industry,city,state').eq('agency_id',agencyId).is('deleted_at',null).order('name').then(({data})=>setClients(data||[]))
     supabase.from('agencies').select('name,brand_name,brand_color').eq('id',agencyId).single().then(({data})=>{
       if(data) setBranding(b=>({...b,agency_name:data.brand_name||data.name||b.agency_name,primary_color:data.brand_color||b.primary_color}))
     })

@@ -20,7 +20,7 @@ export default function AIVisibilityPage(){
   const [step,setStep]=useState('')
   const [result,setResult]=useState(null)
 
-  useEffect(()=>{supabase.from('clients').select('id,name,industry,city,state').order('name').then(({data})=>setClients(data||[]))},[])
+  useEffect(()=>{supabase.from('clients').select('id,name,industry,city,state').eq('agency_id',agencyId).is('deleted_at',null).order('name').then(({data})=>setClients(data||[]))},[agencyId])
   useEffect(()=>{
     if(selectedClient){
       setClientId(selectedClient.id)

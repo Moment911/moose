@@ -97,6 +97,8 @@ export default function ClientsPage() {
   const [showAdd, setShowAdd]   = useState(false)
   const [menuOpen, setMenuOpen] = useState(null)
   const [editingId, setEditingId] = useState(null)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   const [form, setForm] = useState({
     name:'', email:'', phone:'', website:'', industry:'', status:'active',
@@ -422,6 +424,21 @@ export default function ClientsPage() {
               style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:`0 4px 14px ${ACCENT}40` }}>
               <Plus size={16}/> Add Client
             </button>
+            {selectedIds.size > 0 && (
+              <button onClick={async () => {
+                if (!confirm(`Delete ${selectedIds.size} client${selectedIds.size > 1 ? 's' : ''}? This cannot be undone.`)) return
+                setBulkDeleting(true)
+                for (const id of selectedIds) { await deleteClient(id) }
+                setSelectedIds(new Set())
+                setBulkDeleting(false)
+                toast.success(`${selectedIds.size} client${selectedIds.size > 1 ? 's' : ''} deleted`)
+                loadClients()
+              }} disabled={bulkDeleting}
+                style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'1px solid #fecaca', background:'#fff', color:'#dc2626', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                {bulkDeleting ? <Loader2 size={14} style={{ animation:'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
+                Delete {selectedIds.size} Selected
+              </button>
+            )}
           </div>
 
           {/* Add/Edit form */}
@@ -715,17 +732,23 @@ export default function ClientsPage() {
                 <thead>
                   <tr style={{ borderRadius:'16px 16px 0 0' }}>
                     {[
+                      { key:'_select',  label: '' },
                       { key:'name',     label:'Client Name' },
                       { key:'industry', label:'Industry' },
                       { key:'status',   label:'Status' },
                       { key:'health',   label:'Health' },
                       { key:'email',    label:'Contact' },
                     ].map(col => (
-                      <th key={col.key} style={THstyle(col.key)} onClick={() => toggleSort(col.key)}>
-                        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-                          {col.label}
-                          <SortIcon field={col.key} sortKey={sortKey} sortDir={sortDir}/>
-                        </div>
+                      <th key={col.key} style={{ ...THstyle(col.key), ...(col.key === '_select' ? { width: 40, cursor: 'default' } : {}) }}
+                        onClick={() => col.key === '_select' ? setSelectedIds(prev => prev.size === filtered.length ? new Set() : new Set(filtered.map(c => c.id))) : toggleSort(col.key)}>
+                        {col.key === '_select' ? (
+                          <input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={() => {}} style={{ cursor: 'pointer', accentColor: ACCENT }} />
+                        ) : (
+                          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                            {col.label}
+                            <SortIcon field={col.key} sortKey={sortKey} sortDir={sortDir}/>
+                          </div>
+                        )}
                       </th>
                     ))}
                     <th style={{ ...THstyle(''), cursor:'default', width:100 }}>Actions</th>
@@ -737,10 +760,21 @@ export default function ClientsPage() {
                     return (
                     <tr key={client.id}
                       style={{ borderBottom: i < filtered.length-1 ? '1px solid #f3f4f6' : 'none', cursor:'pointer', transition:'background .1s' }}
-                      onMouseEnter={e => { e.currentTarget.style.background='#fafafa'; e.currentTarget.style.transform='translateX(2px)' }}
-                      onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.transform='' }}
+                      onMouseEnter={e => { e.currentTarget.style.background='#fafafa' }}
+                      onMouseLeave={e => { e.currentTarget.style.background='' }}
                       onClick={() => navigate(`/clients/${client.id}`)}>
 
+                      {/* Select */}
+                      <td style={{ padding:'14px 8px', width: 40 }} onClick={e => e.stopPropagation()}>
+                        <input type="checkbox" checked={selectedIds.has(client.id)}
+                          onChange={() => setSelectedIds(prev => {
+                            const next = new Set(prev)
+                            if (next.has(client.id)) next.delete(client.id)
+                            else next.add(client.id)
+                            return next
+                          })}
+                          style={{ cursor: 'pointer', accentColor: ACCENT }} />
+                      </td>
                       {/* Name */}
                       <td style={{ padding:'14px 14px' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:12 }}>

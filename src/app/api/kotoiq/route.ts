@@ -5,6 +5,8 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 import { getAccessToken, fetchSearchConsoleData, fetchGA4Data } from '@/lib/seoService'
 import { fetchGoogleAdsKeywords, fetchGoogleAdsCampaigns } from '@/lib/perfMarketing'
 import { enrichDomain } from '@/lib/domainEnrichment'
+import { getSERPResults, runGMBGridScan, getKeywordRankings, getBalance as getDFSBalance, getDomainCompetitors, getDomainRankedKeywords, getDomainIntersection } from '@/lib/dataforseo'
+import { pullFullGBPData, listQuestions, answerQuestion } from '@/lib/gbpApi'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -148,9 +150,12 @@ export async function POST(req: NextRequest) {
 
     // Get client's Google connection
     const { data: connections } = await s.from('seo_connections').select('*').eq('client_id', client_id)
-    const googleConn = connections?.find((c: any) => c.provider === 'google' && c.refresh_token)
+    // SEOConnectPage saves as: search_console, analytics, ads, gmb
+    const googleConn = connections?.find((c: any) => (c.provider === 'analytics' || c.provider === 'google') && c.refresh_token)
     const adsConn = connections?.find((c: any) => c.provider === 'ads' && c.refresh_token)
     const scConn = connections?.find((c: any) => c.provider === 'search_console' && c.refresh_token)
+    // Use the SC connection's token for GA4 too if no separate analytics connection
+    const ga4Conn = googleConn || scConn
 
     // Get client website for SC
     const { data: client } = await s.from('clients').select('website, name').eq('id', client_id).single()
@@ -167,24 +172,28 @@ export async function POST(req: NextRequest) {
       const dataPeriod = `${startDate} to ${endDate}`
 
       // ── Pull from all sources in parallel ──
-      const activeConn = googleConn || adsConn || scConn
-      const accessToken = activeConn ? await getAccessToken(activeConn) : null
+      // Get access tokens — each connection may have its own token
+      const scToken = scConn ? await getAccessToken(scConn) : null
+      const ga4Token = ga4Conn ? await getAccessToken(ga4Conn) : null
+      const adsToken = adsConn ? await getAccessToken(adsConn) : null
+      const anyToken = scToken || ga4Token || adsToken
 
       const customerId = adsConn?.account_id || googleConn?.account_id
-      const scSiteUrl = website.startsWith('http') ? website : `https://${website}`
+      const scSiteUrl = scConn?.site_url || (website.startsWith('http') ? website : `https://${website}`)
+      const ga4PropertyId = ga4Conn?.property_id || googleConn?.property_id
 
       const [adsKeywords, adsCampaigns, scData, ga4Data] = await Promise.all([
-        customerId && accessToken
-          ? fetchGoogleAdsKeywords({ access_token: accessToken }, customerId).catch(() => [])
+        customerId && adsToken
+          ? fetchGoogleAdsKeywords({ access_token: adsToken }, customerId).catch(() => [])
           : [],
-        customerId && accessToken
-          ? fetchGoogleAdsCampaigns({ access_token: accessToken }, customerId).catch(() => [])
+        customerId && adsToken
+          ? fetchGoogleAdsCampaigns({ access_token: adsToken }, customerId).catch(() => [])
           : [],
-        scConn && accessToken && website
-          ? fetchSearchConsoleData(accessToken, scSiteUrl, startDate, endDate).catch(() => null)
+        scToken && scSiteUrl
+          ? fetchSearchConsoleData(scToken, scSiteUrl, startDate, endDate).catch(() => null)
           : null,
-        googleConn?.property_id && accessToken
-          ? fetchGA4Data(accessToken, googleConn.property_id, startDate, endDate).catch(() => null)
+        ga4PropertyId && ga4Token
+          ? fetchGA4Data(ga4Token, ga4PropertyId, startDate, endDate).catch(() => null)
           : null,
       ])
 
@@ -811,15 +820,33 @@ KEYWORD DATA:
 - Rank propensity: ${kwData?.rank_propensity || 'Unknown'}/100
 - Client Domain Authority: ${kwData?.moz_da || 'Unknown'}
 
-INSTRUCTIONS:
-1. Generate a complete page brief that will rank #1 for this keyword
-2. The brief should beat current top-ranking pages by being more comprehensive, better structured, and more useful
-3. Include FAQ questions sourced from what real people ask about this topic
-4. Include schema markup recommendations
-5. Specify exact entity coverage needed for NLP/AEO optimization
-6. The content should be written for HUMANS first, optimized for search second
-7. For local service businesses, include city/area mentions naturally
-8. Target featured snippet / AI Overview capture where applicable
+═══ THE 4-STEP FRAMEWORK (Apply to EVERY brief) ═══
+
+STEP 1 — INFORMATION GAIN ANALYSIS:
+Before structuring the brief, analyze what current AI Overviews and top-ranking pages already cover for this keyword. Identify SPECIFIC data points, user pain points, or technical shifts that existing content MISSES. The brief must include at least 3 "information gain" sections — content that adds NEW value no current page provides. If you can't identify the gap, the page isn't worth creating.
+
+STEP 2 — ENTITY-FIRST OPTIMIZATION:
+Identify the 15-20 core entities related to this keyword and business. The page must explicitly connect these entities through content AND internal linking. The goal is topical authority — not keyword stuffing. Map entity relationships so the site is seen as an authority graph.
+
+STEP 3 — AI SKELETON + HUMAN EXPERIENCE MARKERS:
+Mark each section in the outline as either:
+- [AI-READY] — AI can write this section (technical info, definitions, lists)
+- [HUMAN-REQUIRED] — Needs original experience: screenshots, proprietary data, case studies, unique methodology, before/after photos, customer stories
+Google's "Experience" signal (E in E-E-A-T) is the competitive moat. At least 30% of the page should be marked [HUMAN-REQUIRED].
+
+STEP 4 — PERFORMANCE SIGNALS:
+Include specific metrics to track after publishing — which GSC impression share movements indicate the page is gaining authority, what CTR to target at each position, when to update the content.
+
+═══ CONTENT INSTRUCTIONS ═══
+1. The brief must beat current top-ranking pages by providing INFORMATION GAIN — not just being longer
+2. FAQ questions from real People Also Ask data
+3. Schema markup for structured data
+4. Entity coverage map for NLP/AEO optimization
+5. Written for HUMANS first, optimized for search second
+6. City/area mentions for local businesses
+7. Target featured snippet AND AI Overview capture
+8. Opening paragraph: 40-60 words direct answer (featured snippet target)
+9. No generic advice — every recommendation must be specific to THIS keyword and THIS business
 
 Return ONLY valid JSON:
 {
@@ -852,12 +879,33 @@ Return ONLY valid JSON:
     "image_suggestions": ["type of image 1", "type of image 2"],
     "differentiator_angle": "what makes this page unique vs competitors"
   },
+  "information_gain": {
+    "gaps_in_current_content": ["specific gap 1 — what current pages miss", "gap 2", "gap 3"],
+    "unique_value_propositions": ["what THIS page will provide that no other page does"],
+    "ai_overview_gaps": "what the current AI Overview for this query misses"
+  },
+  "experience_markers": {
+    "human_required_sections": ["sections that NEED original human experience/data/screenshots"],
+    "ai_ready_sections": ["sections AI can generate well"],
+    "experience_percentage": "estimated % of page that needs human input"
+  },
+  "entity_map": {
+    "core_entities": ["entity1", "entity2"],
+    "entity_relationships": ["entity1 → entity2 (how they connect)"],
+    "topical_authority_gaps": ["entities competitors cover that you don't"]
+  },
+  "performance_tracking": {
+    "target_ctr_by_position": {"pos_1": 0.28, "pos_3": 0.12, "pos_10": 0.025},
+    "impression_share_goal_30d": "expected impression count after 30 days",
+    "content_refresh_trigger": "refresh if impressions drop 20% week-over-week"
+  },
   "estimated_monthly_traffic": number,
   "ranking_timeline": "estimated weeks/months to rank based on competition",
   "aeo_optimization": {
     "target_snippet_type": "paragraph|list|table|faq",
     "ai_overview_eligible": true/false,
-    "optimization_notes": "specific tips for AI citation"
+    "optimization_notes": "specific tips for AI citation",
+    "suggested_searches_to_target": ["related searches that should become new pages"]
   }
 }`
 
@@ -934,18 +982,18 @@ Return ONLY valid JSON:
     const { client_id } = body
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
 
-    const { data: client } = await s.from('clients').select('name, website').eq('id', client_id).single()
+    const { data: client } = await s.from('clients').select('name, website, city, state, industry').eq('id', client_id).single()
     if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
 
-    // Get client location from latest intel report
+    // Get client location from latest intel report OR client record
     const { data: latestReport } = await s.from('koto_intel_reports').select('inputs, report_data')
       .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
-    const location = latestReport?.inputs?.location || ''
+    const location = latestReport?.inputs?.location || [client.city, client.state].filter(Boolean).join(', ') || ''
     const existingGBP = latestReport?.report_data?.gbp_audit
 
-    // Fetch fresh GBP data if no recent report
+    // Fetch fresh GBP data if no recent report — use client name + city/state
     let gbpData = existingGBP
-    if (!gbpData && client.name && location) {
+    if (!gbpData && client.name) {
       const apiKey = process.env.GOOGLE_PLACES_KEY || process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_API_KEY || ''
       if (apiKey) {
         try {
@@ -1040,25 +1088,42 @@ Return ONLY the response text, no JSON wrapper, no quotes around it.`
   if (action === 'generate_gbp_posts') {
     const { client_id, business_name, industry, services, num_posts } = body
 
-    const prompt = `Generate ${num_posts || 4} Google Business Profile posts for ${business_name || 'a local business'} (${industry || 'local services'}).
+    const today = new Date()
+    const prompt = `Generate ${num_posts || 4} Google Business Profile posts for "${business_name || 'a local business'}" (${industry || 'local services'}).
 
 Services: ${services || 'general services'}
+Current date: ${today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+Season: ${['Winter','Winter','Spring','Spring','Spring','Summer','Summer','Summer','Fall','Fall','Fall','Winter'][today.getMonth()]}
 
-Each post should be different:
-1. An offer/promotion post (drives "Book" clicks)
-2. A tips/educational post (builds authority)
-3. A behind-the-scenes/team post (builds trust)
-4. A seasonal/timely post (relevance signal)
+Generate 4 different posts scheduled 5-7 days apart:
+1. An OFFER post (drives conversions — these get highest visibility in search)
+2. A TIPS/educational post (builds authority + AEO signals)
+3. An UPDATE ("What's New") post — company news, new service, or blog summary
+4. An EVENT or seasonal post (community engagement, time-sensitive)
 
-RULES:
-- 150-300 characters each (GBP limit is 1500 but short performs better)
-- Include a clear CTA
-- Mention the city/area when natural
-- Use emojis sparingly (1-2 per post max)
-- Each post should work as a standalone piece
+═══ CRITICAL GBP POST RULES (2026 Best Practices) ═══
+
+THE FIRST 80 RULE: Only the first 80-150 characters show on mobile before "Read More."
+Put the core value proposition or primary keyword in the FIRST sentence. No preamble.
+
+BAD: "We are excited to announce that our team at ABC Plumbing is now offering..."
+GOOD: "24/7 emergency drain cleaning in Fort Lauderdale — $50 off this week only."
+
+- Total length: 200-400 characters (short performs better than long)
+- NEVER put phone numbers or website URLs in the post text (causes soft-rejections)
+- Use 1-2 emojis maximum per post — at the start or end, not mid-sentence
+- Include the city/neighborhood name naturally for local ranking signal
+- Each post must include a CTA button type (Book, Learn More, Call, Order, Sign Up)
+- Include a suggested landing page URL with UTM tracking: ?utm_source=google&utm_medium=organic&utm_campaign=gbp_post
+- Include a suggested image search query so we can match a relevant photo
+- Make posts SPECIFIC to the business — never generic
+- Reference the season, weather, or current events when relevant
+- For offers: include specific discount amount, expiry creates urgency
+- For tips: lead with the actionable tip, not "Here are some tips..."
+- For updates: lead with what changed, not "We're excited to share..."
 
 Return ONLY valid JSON array:
-[{"type": "offer|tips|team|seasonal", "text": "post text", "cta": "Book Now|Learn More|Call Us|Visit Us"}]`
+[{"type": "offer|tips|update|event", "text": "post text — first 80 chars are critical", "cta": "Book Now|Learn More|Call Now|Order Online|Sign Up", "url": "/suggested-landing-page?utm_source=google&utm_medium=organic&utm_campaign=gbp_post", "image_query": "search query for finding a relevant stock photo", "scheduled_date": "YYYY-MM-DD"}]`
 
     try {
       const msg = await ai.messages.create({
@@ -1088,30 +1153,45 @@ Return ONLY valid JSON array:
     const fp = fingerprint(keyword)
     const { data: kwData } = await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).eq('fingerprint', fp).single()
 
-    // Google search to find top ranking URLs (use Places text search as proxy for organic)
-    // In production, DataForSEO SERP API would be used here
-    // For now, we fetch the keyword's SC top page and competitor sites from intel data
-    const { data: latestReport } = await s.from('koto_intel_reports').select('report_data')
-      .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
-    const competitors = latestReport?.report_data?.competitors || []
-
-    // Fetch and analyze competitor pages
+    // Use DataForSEO to get real SERP results for the keyword
     const analyses: any[] = []
+    let serpUrls: { url: string; domain: string; title: string; rank: number }[] = []
+
+    try {
+      const serpResult = await getSERPResults(keyword)
+      serpUrls = serpResult.items.slice(0, 5).map(item => ({
+        url: item.url, domain: item.domain, title: item.title, rank: item.rank_group,
+      }))
+    } catch {
+      // Fallback to intel report competitors if DataForSEO fails
+      const { data: latestReport } = await s.from('koto_intel_reports').select('report_data')
+        .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
+      const competitors = latestReport?.report_data?.competitors || []
+      serpUrls = competitors.slice(0, 5).map((c: any, i: number) => ({
+        url: c.website || `https://${c.domain}`, domain: c.domain || '', title: c.name || '', rank: i + 1,
+      }))
+    }
 
     // Analyze client's own page first (if ranking)
     if (kwData?.sc_top_page) {
       const analysis = await analyzePageForKeyword(kwData.sc_top_page, keyword)
-      if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain })
+      if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: 0 })
+    } else if (clientDomain) {
+      // Check if client shows up in SERP results
+      const clientSerp = serpUrls.find(u => u.domain.includes(clientDomain.replace('www.', '')))
+      if (clientSerp) {
+        const analysis = await analyzePageForKeyword(clientSerp.url, keyword)
+        if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: clientSerp.rank })
+        serpUrls = serpUrls.filter(u => u !== clientSerp) // don't analyze again below
+      }
     }
 
-    // Analyze competitor websites (fetch homepage or likely service page)
-    for (const comp of competitors.slice(0, 3)) {
-      if (!comp.website) continue
+    // Analyze top SERP results
+    for (const comp of serpUrls.slice(0, 4)) {
+      if (!comp.url) continue
       try {
-        // Try to find a relevant page on competitor site
-        const compUrl = comp.website.startsWith('http') ? comp.website : `https://${comp.website}`
-        const analysis = await analyzePageForKeyword(compUrl, keyword)
-        if (analysis) analyses.push({ ...analysis, is_client: false, name: comp.name })
+        const analysis = await analyzePageForKeyword(comp.url, keyword)
+        if (analysis) analyses.push({ ...analysis, is_client: false, name: comp.title || comp.domain, rank: comp.rank })
       } catch { continue }
     }
 

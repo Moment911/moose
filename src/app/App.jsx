@@ -169,6 +169,8 @@ import GmailCallbackPage from '../views/GmailCallbackPage'
 import HelpPage from '../views/HelpPage'
 import IntelPage from '../views/IntelPage'
 import KotoIQPage from '../views/KotoIQPage'
+import KotoFinPro from '../components/KotoFinPro'
+import KotoFinGuidePage from '../views/KotoFinGuidePage'
 import MarketingQuizPage from '../views/MarketingQuizPage'
 import IntelPublicPage from '../views/IntelPublicPage'
 import KotoOrderPage from '../views/KotoOrderPage'
@@ -240,7 +242,7 @@ export default function App() {
       <ThemeProvider>
       <ClientProvider>
       <MobileMenuProvider>
-        <Toaster position="top-right" />
+        <Toaster position="bottom-right" />
         <CommandPalette />
         <OnboardingWizard />
         {/* RealTimeCostMeter removed — was a floating pricing pill, now available only in /cog-report */}
@@ -323,7 +325,8 @@ function AppRoutes() {
           <Route path="/client-profile" element={<ClientProfilePage />} />
           <Route path="/scout/pipeline" element={<ScoutPipelinePage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
-          <Route path="/page-builder" element={<PageBuilderPage/>}/>
+          <Route path="/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
+          <Route path="/kotoiq/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
                 <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
@@ -392,6 +395,7 @@ function AppRoutes() {
           <Route path="/industry-agents" element={<IndustryAgentPage />} />
           <Route path="/opportunities" element={<OpportunitiesPage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
+          <Route path="/kotoiq/pixels" element={<PixelTrackingPage />} />
           <Route path="/vob" element={<VOBAgentPage />} />
           <Route path="/integrations/ghl" element={<GHLIntegrationPage />} />
           <Route path="/sequences" element={<EmailSequencePage />} />
@@ -399,6 +403,8 @@ function AppRoutes() {
           <Route path="/intel" element={<IntelPage />} />
           <Route path="/intel/:reportId" element={<IntelPage />} />
           <Route path="/kotoiq" element={<KotoIQPage />} />
+          <Route path="/kotofin" element={<KotoFinPro />} />
+          <Route path="/kotofin/guide" element={<KotoFinGuidePage />} />
           <Route path="/marketing-quiz" element={<MarketingQuizPage />} />
           <Route path="/video-voicemails" element={<VideoVoicemailPage />} />
           <Route path="/avatars" element={<AvatarBrowserPage />} />
@@ -447,6 +453,7 @@ function AppRoutes() {
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
           <Route path="/seo/plugin" element={<WordPressControlPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
+          <Route path="/kotoiq/connect" element={<Navigate to="/kotoiq?tab=connect" replace />}/>
           <Route path="/order" element={<KotoOrderPage />} />
           <Route path="/qa" element={<QAConsolePage />} />
           <Route path="/billing-admin" element={<BillingAdminPage />} />

@@ -115,7 +115,7 @@ export default function ClientAccessFormPage() {
   useEffect(() => {
     if (!token) { setLoading(false); return }
     supabase.from('clients').select('id,name,email,access_checklist,agency_email_override,access_form_token,onboarding_token')
-      .or(`access_form_token.eq.${token},onboarding_token.eq.${token}`).single()
+      .or(`access_form_token.eq.${token},onboarding_token.eq.${token}`).is('deleted_at', null).single()
       .then(({ data }) => {
         if (!data) { setLoading(false); return }
         setClient(data)

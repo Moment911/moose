@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ChevronLeft, Users, CheckSquare, Clock, AlertTriangle, Wand2, Copy, Send, Mail, Loader2 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase, sendEmailSummary } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
 import { callClaude } from '../lib/ai'
 import { format, formatDistanceToNow, isToday, isPast, startOfWeek } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -11,6 +12,7 @@ import toast from 'react-hot-toast'
 const ROLES_CLS = { owner: 'bg-brand-50 text-brand-700', manager: 'bg-blue-50 text-blue-700', designer: 'bg-purple-50 text-purple-700', viewer: 'bg-gray-100 text-gray-600' }
 
 export default function EmployeePage() {
+  const { agencyId } = useAuth()
   const { staffId } = useParams()
   const navigate = useNavigate()
   const [staff, setStaff] = useState([])
@@ -22,13 +24,13 @@ export default function EmployeePage() {
   const [aiLoading, setAiLoading] = useState(false)
   const [summaryType, setSummaryType] = useState('daily')
 
-  useEffect(() => { loadAll() }, [])
+  useEffect(() => { loadAll() }, [agencyId])
   useEffect(() => { if (staffId) loadStaffDetail(staffId) }, [staffId, staff])
 
   async function loadAll() {
     try { const { data } = await supabase.from('staff_members').select('*').order('created_at'); setStaff(data || []) } catch { setStaff([]) }
     try { const { data } = await supabase.from('staff_client_access').select('*'); setAccess(data || []) } catch {}
-    const { data: c } = await supabase.from('clients').select('*').order('name'); setClients(c || [])
+    const { data: c } = await supabase.from('clients').select('*').eq('agency_id', agencyId).is('deleted_at', null).order('name'); setClients(c || [])
   }
 
   async function loadStaffDetail(id) {
