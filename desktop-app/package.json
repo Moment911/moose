@@ -12,7 +12,8 @@
     "build:mac-arm": "tauri build --target aarch64-apple-darwin",
     "build:mac-intel": "tauri build --target x86_64-apple-darwin",
     "build:win": "tauri build --target x86_64-pc-windows-msvc",
-    "build:linux": "tauri build --target x86_64-unknown-linux-gnu"
+    "build:linux": "tauri build --target x86_64-unknown-linux-gnu --bundles deb",
+    "build:linux-appimage": "tauri build --target x86_64-unknown-linux-gnu --bundles appimage"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.1.0"

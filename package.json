@@ -17,6 +17,7 @@
     "@twilio/voice-sdk": "^2.18.1",
     "@types/pdf-parse": "^1.1.5",
     "@types/pdfkit": "^0.17.5",
+    "@vercel/blob": "^1.1.1",
     "@zip.js/zip.js": "^2.8.26",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
