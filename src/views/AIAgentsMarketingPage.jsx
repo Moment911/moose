@@ -14,6 +14,7 @@ import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
+import AgentCallMock from '../components/public/AgentCallMock'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -145,6 +146,283 @@ export default function AIAgentsMarketingPage() {
             <a href={CONTACT_PHONE_HREF} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               <Phone size={14} /> {CONTACT_PHONE}
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* WATCH THEM WORK — five live conversational agent demos */}
+      <section className="m-pad" style={{ padding: '48px 40px 96px', borderTop: `1px solid ${HAIR}` }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: R, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>
+              Watch them work
+            </div>
+            <h2 className="m-sec-h2" style={{
+              fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em',
+              color: INK, lineHeight: 1.05, marginBottom: 18,
+            }}>
+              Five live agents, five real calls.
+            </h2>
+            <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
+              Auto-playing simulations of what each agent does on an actual call — real-looking
+              transcript on the left, structured data capture on the right, outcome at the end.
+              All numbers, names, and dialogue fabricated for the demo.
+            </p>
+          </div>
+
+          {/* Mock 1: Cold Call Agent */}
+          <div style={{ marginBottom: 28 }}>
+            <AgentCallMock config={{
+              icon: Phone, accent: R,
+              title: 'Cold Call Agent — Coastal Air Solutions',
+              callerName: 'Sarah Johnson · Facilities Mgr',
+              callerMeta: 'Bayside Property Mgmt · Dallas TX',
+              capturingLabel: 'Live CRM sync',
+              turns: [
+                { step: 1,  role: 'bot',    text: "Hi Sarah, this is Koto calling on behalf of Coastal Air Solutions. Do you have 60 seconds?" },
+                { step: 3,  role: 'caller', text: "Oh — hi. I'm about to head into a meeting, honestly." },
+                { step: 5,  role: 'bot',    text: "No problem, I'll be brief. We're offering free preventive-maintenance walk-throughs for property managers this month. Quick question — who handles your HVAC now?" },
+                { step: 7,  role: 'caller', text: "We've got a guy we've used for years." },
+                { step: 9,  role: 'bot',    text: "Totally get that. Most managers we speak with already have someone. Our walkthrough usually finds 15–30% cost savings on the rooftop units, and it's no-commitment. Want the 20-point report?" },
+                { step: 11, role: 'caller', text: "What's involved?" },
+                { step: 13, role: 'bot',    text: "Thirty-minute site visit, thermal imaging, refrigerant check, written cost-optimization report within 48 hours. Our tech Mike has openings Tuesday or Wednesday next week — which works?" },
+                { step: 15, role: 'caller', text: "Tuesday at 2 would work." },
+                { step: 17, role: 'bot',    text: "Perfect — booking Mike for Tuesday Oct 21 at 2 PM at your Bayside portfolio office. I'll email the confirmation and his bio, and he'll text 20 minutes before. Thanks Sarah!" },
+              ],
+              capture: [
+                { step: 2,  label: 'Lead',        value: 'Sarah Johnson' },
+                { step: 4,  label: 'Company',     value: 'Bayside Property Mgmt' },
+                { step: 6,  label: 'Objection',   value: 'Existing vendor', pill: 'HANDLED', pillColor: AMB },
+                { step: 10, label: 'Interest',    value: 'Asked about assessment details' },
+                { step: 14, label: 'Intent',      value: 'Qualified', pill: 'HIGH', pillColor: GRN },
+                { step: 16, label: 'Booked',      value: 'Tue Oct 21 · 2:00 PM' },
+                { step: 18, label: 'Assigned',    value: 'Mike Reyes (Senior Tech)' },
+                { step: 19, label: 'Lead score',  value: '82 / 100', pill: 'TOP 20%', pillColor: R },
+              ],
+              outcome: {
+                step: 22,
+                title: 'Call ended · Meeting booked',
+                detail: 'CRM updated · calendar invite sent to Sarah · Mike alerted · follow-up email scheduled for day-of',
+                accent: GRN,
+              },
+              footerLabel: 'Outbound Agent · Coastal Air Solutions',
+              footerStats: [
+                { label: 'Calls today', value: '427' },
+                { label: 'Meetings booked', value: '38' },
+                { label: 'Conn-to-meeting', value: '8.9%' },
+              ],
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Outbound Cold Call.</strong> Qualifies, handles objections, books the meeting. Scales infinitely.
+            </div>
+          </div>
+
+          {/* Mock 2: AI Front Desk — Dental emergency */}
+          <div style={{ marginBottom: 28 }}>
+            <AgentCallMock config={{
+              icon: MessageSquare, accent: T,
+              title: 'AI Front Desk — Hartwell Dental',
+              callerName: 'Jessica Martinez · New patient',
+              callerMeta: 'Inbound · +1 (305) 555-0137',
+              capturingLabel: 'Inbound intake',
+              turns: [
+                { step: 1,  role: 'bot',    text: "Good afternoon, Hartwell Dental Group — this is our AI receptionist. How can I help?" },
+                { step: 3,  role: 'caller', text: "Hi, I have a really bad toothache, I think I need to come in today." },
+                { step: 5,  role: 'bot',    text: "I'm so sorry. Let me triage real quick — which tooth, and what's the pain level 1 to 10?" },
+                { step: 7,  role: 'caller', text: "Upper right molar, probably an 8. There's some swelling." },
+                { step: 9,  role: 'bot',    text: "Got it. Any fever, trouble breathing, or spreading swelling?" },
+                { step: 11, role: 'caller', text: "No fever, swelling's just around the tooth." },
+                { step: 13, role: 'bot',    text: "Okay — that needs to be seen today. Dr. Hartwell has an emergency slot at 4:15 PM. Can you make that?" },
+                { step: 15, role: 'caller', text: "Yes please!" },
+                { step: 17, role: 'bot',    text: "Booking now. Can I get your full name, date of birth, and insurance?" },
+                { step: 19, role: 'caller', text: "Jessica Martinez, March 15 1988, Delta Dental PPO." },
+                { step: 21, role: 'bot',    text: "Verified — you're in-network. You're booked for today 4:15 PM with Dr. Hartwell. Confirmation text + intake forms are on their way. If the pain worsens or swelling spreads, call 911 or come in immediately." },
+              ],
+              capture: [
+                { step: 2,  label: 'Caller',      value: 'New patient' },
+                { step: 6,  label: 'Tooth',       value: 'Upper right molar #3' },
+                { step: 8,  label: 'Pain',        value: '8 / 10', pill: 'SEVERE', pillColor: R },
+                { step: 10, label: 'Swelling',    value: 'Localized · no fever' },
+                { step: 12, label: 'Triage',      value: 'Urgent · see today', pill: 'EMERGENCY', pillColor: R },
+                { step: 16, label: 'Slot',        value: 'Today · 4:15 PM · Dr. Hartwell' },
+                { step: 20, label: 'Patient',     value: 'Jessica Martinez · DOB 3/15/88' },
+                { step: 22, label: 'Insurance',   value: 'Delta Dental PPO', pill: 'IN-NETWORK', pillColor: GRN },
+              ],
+              outcome: {
+                step: 25,
+                title: 'Booked · Confirmation sent',
+                detail: 'Appointment in EMR · intake forms texted to patient · hygienist + operatory prepped · Dr. Hartwell alerted',
+                accent: T,
+              },
+              footerLabel: 'Inbound Agent · Hartwell Dental',
+              footerStats: [
+                { label: 'Calls today', value: '94' },
+                { label: 'Answered', value: '100%' },
+                { label: 'Booked rate', value: '78%' },
+              ],
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Inbound Front Desk.</strong> 24/7 intake with medical-grade triage and live insurance verification.
+            </div>
+          </div>
+
+          {/* Mock 3: VOB Agent — Insurance verification */}
+          <div style={{ marginBottom: 28 }}>
+            <AgentCallMock config={{
+              icon: Stethoscope, accent: GRN,
+              title: 'VOB Agent — Thrive Behavioral Health',
+              callerName: 'Calling Anthem BCBS',
+              callerMeta: 'On behalf of patient Mark Chen',
+              capturingLabel: 'Benefits being verified',
+              totalSteps: 38,
+              turns: [
+                { step: 1,  role: 'bot',    text: "[Dialing Anthem BCBS provider services...]" },
+                { step: 2,  role: 'caller', text: "[IVR] Thank you for calling Anthem. Press 1 for provider services." },
+                { step: 3,  role: 'bot',    text: "[Pressed 1 · Entered TIN · Selected benefits verification]" },
+                { step: 5,  role: 'caller', text: "[Hold music · 4:22 on hold]" },
+                { step: 7,  role: 'caller', text: "Provider services, this is Linda. How can I help?" },
+                { step: 9,  role: 'bot',    text: "Hi Linda. Calling to verify outpatient mental-health benefits for member ID EV4728192, DOB 6-12-1985, for CPT 90837." },
+                { step: 11, role: 'caller', text: "One moment... okay, I have the member. Active PPO plan, effective 1-1-2026." },
+                { step: 13, role: 'bot',    text: "Great — what's the individual deductible and how much has been met?" },
+                { step: 15, role: 'caller', text: "Individual deductible is $2,500, family is $5,000. He's met $1,840 year-to-date." },
+                { step: 17, role: 'bot',    text: "Copay for CPT 90837?" },
+                { step: 19, role: 'caller', text: "$40 copay after deductible is met. 80/20 coinsurance until out-of-pocket max." },
+                { step: 21, role: 'bot',    text: "Prior auth requirements, and is telehealth covered at parity?" },
+                { step: 23, role: 'caller', text: "Prior auth required for more than 12 sessions per year. Telehealth is covered same as in-person." },
+                { step: 25, role: 'bot',    text: "Thanks Linda. Can I get a reference number for this call?" },
+                { step: 27, role: 'caller', text: "Sure — REF-884721. Anything else?" },
+                { step: 29, role: 'bot',    text: "That's all, thank you. Have a great day." },
+              ],
+              capture: [
+                { step: 4,  label: 'IVR',         value: 'Navigated', pill: 'AUTO', pillColor: T },
+                { step: 6,  label: 'Hold',        value: '4m 22s' },
+                { step: 10, label: 'Member',      value: 'Mark Chen · ID EV4728192' },
+                { step: 12, label: 'Plan',        value: 'Anthem BCBS PPO', pill: 'ACTIVE', pillColor: GRN },
+                { step: 16, label: 'Deductible',  value: '$2,500 ind · $1,840 met' },
+                { step: 20, label: 'Copay',       value: '$40 after ded · 80/20 coins' },
+                { step: 24, label: 'Prior auth',  value: 'Required >12 sessions' },
+                { step: 24, label: 'Telehealth',  value: 'Covered at parity', pill: 'YES', pillColor: GRN },
+                { step: 28, label: 'Reference',   value: 'REF-884721' },
+              ],
+              outcome: {
+                step: 31,
+                title: 'Benefits verified · report delivered',
+                detail: 'Structured benefits summary filed in EMR · front desk + patient notified · first session pre-authorized',
+                accent: GRN,
+              },
+              footerLabel: 'VOB Agent · Thrive Behavioral Health',
+              footerStats: [
+                { label: 'VOBs today', value: '47' },
+                { label: 'Avg call', value: '11m 40s' },
+                { label: 'Rep-refusal rate', value: '2.1%' },
+              ],
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Healthcare VOB Agent.</strong> Calls the payer, waits on hold, interviews the rep, files the benefits report.
+            </div>
+          </div>
+
+          {/* Mock 4: Virtual Onboarding (Alex) */}
+          <div style={{ marginBottom: 28 }}>
+            <AgentCallMock config={{
+              icon: MessageCircle, accent: BLK,
+              title: 'Virtual Onboarding · Alex',
+              callerName: 'Dr. Elena Ramirez · New agency client',
+              callerMeta: 'Coral Gables Dermatology · inbound',
+              capturingLabel: 'Onboarding doc building',
+              turns: [
+                { step: 1,  role: 'bot',    text: "Hi Dr. Ramirez! I'm Alex — your dedicated onboarding assistant at Summit Marketing. I'll grab a few quick details so your team can hit the ground running. Sound good?" },
+                { step: 3,  role: 'caller', text: "Sure, let's do it." },
+                { step: 5,  role: 'bot',    text: "First — what's the primary service you want us focused on?" },
+                { step: 7,  role: 'caller', text: "Cosmetic derm, mostly Botox and fillers. That's our highest margin work." },
+                { step: 9,  role: 'bot',    text: "Who's your ideal patient?" },
+                { step: 11, role: 'caller', text: "Women 35 to 55, household income over $100k, living within 15 miles of Coral Gables." },
+                { step: 13, role: 'bot',    text: "What makes your practice different from the other injectors out there?" },
+                { step: 15, role: 'caller', text: "We're board-certified, we use only Allergan products, and our lead injector has 12 years of experience." },
+                { step: 17, role: 'bot',    text: "Monthly ad budget range?" },
+                { step: 19, role: 'caller', text: "Eight to twelve thousand, depending on season." },
+                { step: 21, role: 'bot',    text: "Any welcome-patient offer we can promote?" },
+                { step: 23, role: 'caller', text: "Yes — $100 off first Botox treatment." },
+                { step: 25, role: 'bot',    text: "Perfect, that's everything. Your team at Summit is going to receive a 20-page onboarding doc, a brand brief, and a 90-day growth plan within the hour. Talk soon!" },
+              ],
+              capture: [
+                { step: 2,  label: 'Client',      value: 'Coral Gables Derm · Dr. Ramirez' },
+                { step: 8,  label: 'Service',     value: 'Cosmetic derm · Botox + fillers' },
+                { step: 12, label: 'Target',      value: 'W 35-55 · $100k+ HH · 15-mi radius' },
+                { step: 16, label: 'USP',         value: 'Board-cert · Allergan · 12-yr injector' },
+                { step: 20, label: 'Budget',      value: '$8-12k / mo' },
+                { step: 24, label: 'Offer',       value: '$100 off first Botox' },
+                { step: 25, label: 'Classifier',  value: 'Local B2C', pill: 'AUTO-TAGGED', pillColor: T },
+                { step: 26, label: 'Doc status',  value: '100%', pill: 'READY', pillColor: GRN },
+              ],
+              outcome: {
+                step: 28,
+                title: '20-page doc generated · agency alerted',
+                detail: 'Strategy doc + brand brief + 90-day plan emailed to Summit Marketing · client confirmation sent · phone number released',
+                accent: BLK,
+              },
+              footerLabel: 'Onboarding Agent · Summit Marketing',
+              footerStats: [
+                { label: 'Calls this week', value: '23' },
+                { label: 'Avg duration', value: '18m' },
+                { label: 'Completion', value: '96%' },
+              ],
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Virtual Onboarding (Alex).</strong> Every new client gets a dedicated number and finishes their own interview.
+            </div>
+          </div>
+
+          {/* Mock 5: Legal Intake Concierge */}
+          <div style={{ marginBottom: 28 }}>
+            <AgentCallMock config={{
+              icon: Briefcase, accent: AMB,
+              title: 'Legal Intake Concierge · Morales & Associates',
+              callerName: 'John Walsh · Inbound',
+              callerMeta: '+1 (305) 555-0188 · Miami',
+              capturingLabel: 'Case file building',
+              turns: [
+                { step: 1,  role: 'caller', text: "Hi, I was in a car accident last week and I need help." },
+                { step: 3,  role: 'bot',    text: "I'm so sorry you're dealing with this. I'm the intake assistant at Morales & Associates. Can you walk me through what happened?" },
+                { step: 5,  role: 'caller', text: "Last Tuesday on I-95 southbound, near the SW 8th Street exit — I was stopped and got rear-ended hard." },
+                { step: 7,  role: 'bot',    text: "Was a police report filed, and did you go to the ER or a doctor?" },
+                { step: 9,  role: 'caller', text: "Yes, police report was filed on-scene. I went to the ER that night and I've been seeing a chiropractor three times a week since." },
+                { step: 11, role: 'bot',    text: "What injuries are you treating right now?" },
+                { step: 13, role: 'caller', text: "Lower back pain, headaches, neck stiffness." },
+                { step: 15, role: 'bot',    text: "Who are you insured with, and do you carry PIP?" },
+                { step: 17, role: 'caller', text: "State Farm, full coverage including PIP." },
+                { step: 19, role: 'bot',    text: "Thank you. Let me run a quick conflict check... [10 seconds] ... cleared. Attorney Morales has openings tomorrow at 10:30 AM by Zoom or 2 PM in-person. Which works better?" },
+                { step: 21, role: 'caller', text: "Zoom tomorrow at 10:30 would be great." },
+                { step: 23, role: 'bot',    text: "Booked. I'm texting you the Zoom link, a list of documents to bring, and a confidentiality acknowledgment. Attorney Morales will call you by phone first if the Zoom doesn't connect. Hang in there." },
+              ],
+              capture: [
+                { step: 4,  label: 'Caller',        value: 'John Walsh' },
+                { step: 6,  label: 'Case type',     value: 'Auto · rear-end', pill: 'STANDARD', pillColor: GRN },
+                { step: 6,  label: 'Date/location', value: 'Oct 14 · I-95 S @ SW 8 St' },
+                { step: 10, label: 'Police report', value: 'Filed on-scene' },
+                { step: 10, label: 'Medical care',  value: 'ER same night · chiro 3×/wk' },
+                { step: 14, label: 'Injuries',      value: 'L-back · headaches · neck' },
+                { step: 18, label: 'Insurance',     value: 'State Farm · PIP confirmed' },
+                { step: 20, label: 'Conflict',      value: 'Cleared', pill: 'OK', pillColor: GRN },
+                { step: 22, label: 'Consult',       value: 'Tomorrow · 10:30 AM Zoom' },
+                { step: 22, label: 'Attorney',      value: 'Morales (lead)' },
+              ],
+              outcome: {
+                step: 26,
+                title: 'Intake memo drafted · consult booked',
+                detail: 'Case file created in CRM · Zoom link + document list texted to client · Attorney Morales briefed · statute-of-limitations tracker started',
+                accent: AMB,
+              },
+              footerLabel: 'Intake Agent · Morales & Associates',
+              footerStats: [
+                { label: 'Intakes this week', value: '41' },
+                { label: 'Avg qualify time', value: '4m 18s' },
+                { label: 'Sign rate', value: '73%' },
+              ],
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Legal Intake Concierge.</strong> Qualifies by case type, runs conflict check, books the right attorney, drafts the memo.
+            </div>
           </div>
         </div>
       </section>
