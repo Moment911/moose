@@ -464,8 +464,15 @@ export async function GET(request: NextRequest) {
       }
 
       case 'get_intake_templates': {
-        // UI expects an array; INTAKE_TEMPLATES is keyed by slug internally.
-        return NextResponse.json({ templates: Object.values(INTAKE_TEMPLATES) })
+        // UI expects `name` + `industry`; INTAKE_TEMPLATES uses `label` + id.
+        const templates = Object.values(INTAKE_TEMPLATES).map((t: any) => ({
+          id: t.id,
+          name: t.label,
+          industry: t.id,
+          icon_emoji: t.icon_emoji,
+          questions: t.questions,
+        }))
+        return NextResponse.json({ templates })
       }
 
       default:
@@ -900,14 +907,30 @@ End the call once you have collected the caller's information and confirmed next
       // Generate Script
       // -------------------------------------------------------------------
       case 'generate_script': {
-        const { business_name: scriptBiz, business_type: scriptType, script_type, custom_instructions, naics_code, naics_title } = body
-        if (!scriptType) return NextResponse.json({ error: 'script_type required (greeting, closed, emergency)' }, { status: 400 })
+        // Accept `section` (new UI) or `script_type` (older caller).
+        const scriptSection = body.section || body.script_type
+        if (!scriptSection) {
+          return NextResponse.json({ error: 'section required (greeting, open_hours, closed_hours, emergency, voicemail)' }, { status: 400 })
+        }
+        const ctx = body.business_context || {}
+        const scriptBiz = body.business_name || ctx.name || ctx.business_name || 'the business'
+        const scriptIndustry = body.business_type || ctx.industry || ctx.sic || 'general'
+        const department = ctx.department ? ` (${ctx.department} department)` : ''
+        const custom_instructions = body.custom_instructions
 
-        const naicsContext = naics_code ? ` NAICS code: ${naics_code} (${naics_title}). Use this industry classification to tailor terminology, compliance requirements, and caller expectations.` : ''
-        const systemPrompt = `You are an expert at writing professional answering service scripts. Generate a ${script_type} script for a ${scriptType || 'general'} business called "${scriptBiz || 'the business'}".${naicsContext} The script should be conversational, warm, and professional. Keep it under 200 words.`
+        const sectionGuide: Record<string, string> = {
+          greeting: 'the opening greeting the agent says when a caller answers — warm, introduce the business, invite them to share why they called',
+          open_hours: 'the response during business hours confirming the business is open and the agent is taking the message',
+          closed_hours: 'the response outside business hours — explain hours, promise a callback, offer to take a message',
+          emergency: 'the emergency response — acknowledge urgency, collect critical info, explain next steps',
+          voicemail: 'a voicemail message callers hear when the mailbox is reached — short, professional, request name/number/reason',
+        }
+        const guide = sectionGuide[scriptSection] || `a ${scriptSection} script for an AI answering service`
+
+        const systemPrompt = `You are an expert at writing professional answering service scripts. Write ${guide} for "${scriptBiz}"${department}, a ${scriptIndustry} business. The script should be conversational, warm, and professional. Keep it under 180 words and return only the script text — no headings or meta commentary.`
         const userMsg = custom_instructions
           ? `Additional instructions: ${custom_instructions}`
-          : `Generate a ${script_type} script.`
+          : `Write the ${scriptSection} script now.`
 
         const script = await anthropicChat(systemPrompt, userMsg, 512)
         return NextResponse.json({ script })

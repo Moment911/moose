@@ -27,12 +27,30 @@ function sb() {
 
 async function getAgentWithConfig(agentId: string) {
   const supabase = sb()
-  const { data: agent } = await supabase
+  // Select * — prod schema has drifted from answering_service.sql (missing
+  // industry_slug, llm_config, topic_boundaries, etc). Normalize below so
+  // missing columns become undefined instead of surfacing a Postgres error.
+  const { data: row, error } = await supabase
     .from('koto_inbound_agents')
-    .select('id, name, industry_slug, industry, sic_code, llm_config, topic_boundaries, business_hours, timezone, intake_questions, business_name:name')
+    .select('*')
     .eq('id', agentId)
     .maybeSingle()
-  if (!agent) return { agent: null, targets: [] }
+  if (error || !row) return { agent: null, targets: [] }
+
+  const agent = {
+    id: row.id,
+    name: row.name || row.business_name || row.agent_name || null,
+    business_name: row.business_name || row.name || row.agent_name || null,
+    industry_slug: row.industry_slug || null,
+    industry: row.industry || null,
+    sic_code: row.sic_code || null,
+    llm_config: row.llm_config || null,
+    topic_boundaries: row.topic_boundaries || null,
+    business_hours: row.business_hours || null,
+    timezone: row.timezone || null,
+    intake_questions: row.intake_questions || [],
+  }
+
   const { data: targets } = await supabase
     .from('koto_inbound_routing_targets')
     .select('id, label, phone_number, email, priority, conditions')
@@ -97,14 +115,23 @@ export async function PUT(req: NextRequest) {
   const update: Record<string, any> = { llm_config: validated, updated_at: new Date().toISOString() }
   if (industry_slug) update.industry_slug = industry_slug
 
-  const { data, error } = await supabase
-    .from('koto_inbound_agents')
-    .update(update)
-    .eq('id', agent_id)
-    .select('id, name, industry_slug, llm_config')
-    .maybeSingle()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // Retry with offending columns stripped if prod schema is missing llm_config / industry_slug.
+  let data: any = null
+  let lastError: any = null
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const res = await supabase
+      .from('koto_inbound_agents')
+      .update(update)
+      .eq('id', agent_id)
+      .select('id, name')
+      .maybeSingle()
+    if (!res.error) { data = res.data; lastError = null; break }
+    lastError = res.error
+    const m = /Could not find the '([^']+)' column/.exec(res.error.message || '')
+    if (m && m[1] in update) { delete update[m[1]]; continue }
+    break
+  }
+  if (lastError) return NextResponse.json({ error: lastError.message, hint: 'koto_inbound_agents is missing llm_config/industry_slug columns — run the industry-silo migration on this env.' }, { status: 500 })
   return NextResponse.json({ success: true, agent: data })
 }
 
