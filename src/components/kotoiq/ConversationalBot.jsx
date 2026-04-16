@@ -47,7 +47,7 @@ const SUGGESTED_PROMPTS = [
 
 const PANEL_WIDTH = 420
 
-export default function ConversationalBot({ clientId, agencyId, currentTab, onSwitchTab }) {
+export default function ConversationalBot({ clientId, clientName, agencyId, currentTab, onSwitchTab }) {
   const [open, setOpen] = useState(false)
   const [hasEverOpened, setHasEverOpened] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
@@ -326,7 +326,7 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
           writingMode: 'vertical-rl', transform: 'rotate(180deg)',
           fontFamily: FH, fontSize: 12, fontWeight: 700, letterSpacing: 1.2,
         }}>
-          KotoIQ
+          {clientName ? `KotoIQ · ${clientName}` : 'KotoIQ'}
         </div>
         <style>{`@keyframes kotoiqSidePulse { 0%,100% { box-shadow: -4px 0 14px rgba(0,0,0,0.18); } 50% { box-shadow: -4px 0 22px rgba(0,194,203,0.75); } }`}</style>
       </button>
@@ -346,7 +346,9 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH }}>KotoIQ Assistant</div>
-          <div style={{ fontSize: 11, opacity: 0.6, fontFamily: FB }}>{thinking ? 'Thinking…' : 'Ready to help'}</div>
+          <div style={{ fontSize: 11, opacity: 0.75, fontFamily: FB, display: 'flex', alignItems: 'center', gap: 4 }}>
+            {thinking ? 'Thinking…' : clientName ? <>Working on <span style={{ color: T, fontWeight: 700 }}>{clientName}</span></> : 'No client selected'}
+          </div>
         </div>
         <button onClick={startNew} title="New conversation"
           style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: 4, opacity: 0.7 }}>
@@ -389,7 +391,9 @@ export default function ConversationalBot({ clientId, agencyId, currentTab, onSw
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: T, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <Brain size={32} color="#fff" />
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: BLK, fontFamily: FH }}>Hi! Tell me what you want to do.</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: BLK, fontFamily: FH }}>
+                {clientName ? <>Hi! Let's work on <span style={{ color: T }}>{clientName}</span>.</> : 'Hi! Tell me what you want to do.'}
+              </div>
               <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4, fontFamily: FB }}>I can write briefs, audit pages, build topical maps, find backlinks — just describe it.</div>
               <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {SUGGESTED_PROMPTS.map(p => (

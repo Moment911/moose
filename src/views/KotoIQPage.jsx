@@ -4125,6 +4125,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
       {/* Conversational Bot — global overlay across all KotoIQ tabs */}
       <ConversationalBot
         clientId={clientId}
+        clientName={clients.find(c => c.id === clientId)?.name || ''}
         agencyId={agencyId}
         currentTab={tab}
         onSwitchTab={handleBotSwitchTab}
