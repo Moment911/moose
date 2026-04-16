@@ -527,7 +527,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <ArrowRight size={11} color={GRN} />
                         <span style={{ fontWeight: 600 }}>{shortUrl(s.url)}</span>
-                        {s.suggested_anchor && <span style={{ fontSize: 12, color: T, fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
+                        {s.suggested_anchor && <span style={{ fontSize: 12, color: '#0e7490', fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
                       </div>
                       {s.reason && <div style={{ fontSize: 12, color: '#1f2937', paddingLeft: 17, marginTop: 2 }}>{s.reason}</div>}
                     </div>
@@ -536,7 +536,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
               )}
               {suggestions.should_receive_links_from?.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>
                     Should receive links FROM ({suggestions.should_receive_links_from.length})
                   </div>
                   {suggestions.should_receive_links_from.map((s, i) => (
@@ -544,7 +544,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <ArrowRight size={11} color={T} style={{ transform: 'rotate(180deg)' }} />
                         <span style={{ fontWeight: 600 }}>{shortUrl(s.url)}</span>
-                        {s.suggested_anchor && <span style={{ fontSize: 12, color: T, fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
+                        {s.suggested_anchor && <span style={{ fontSize: 12, color: '#0e7490', fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
                       </div>
                       {s.reason && <div style={{ fontSize: 12, color: '#1f2937', paddingLeft: 17, marginTop: 2 }}>{s.reason}</div>}
                     </div>

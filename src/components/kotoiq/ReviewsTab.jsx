@@ -344,7 +344,9 @@ export default function ReviewsTab({ clientId, agencyId }) {
                     {camp.status}
                   </span>
                 </div>
-                <div style={{ fontSize: 11, color: '#1f2937' }}>{new Date(camp.created_at).toLocaleDateString()}</div>
+                <div style={{ fontSize: 11, color: '#374151' }} title={camp.created_at ? new Date(camp.created_at).toISOString() : ''}>
+                  {camp.created_at ? new Date(camp.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : ''}
+                </div>
               </div>
               {/* Progress bar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

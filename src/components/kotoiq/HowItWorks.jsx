@@ -438,7 +438,7 @@ export default function HowItWorks({ tool, compact = false }) {
           {/* ── SECTION 1: How It Works ── */}
           <div>
             <div style={{
-              fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase',
+              fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase',
               letterSpacing: '.06em', marginBottom: 8, fontFamily: FH,
               display: 'flex', alignItems: 'center', gap: 6,
             }}>

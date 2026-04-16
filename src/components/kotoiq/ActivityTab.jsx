@@ -73,6 +73,12 @@ function timeAgo(iso) {
   return `${d}d ago`
 }
 
+function fullStamp(iso) {
+  if (!iso) return ''
+  try { return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) }
+  catch { return '' }
+}
+
 function dayHeader(iso) {
   const d = new Date(iso)
   const today = new Date()
@@ -228,8 +234,9 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                     {prettyIntent(a.intent)}
                   </div>
                   <StatusPill status={a.status} />
-                  <div style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280', fontFamily: FB }}>
-                    {timeAgo(a.created_at)}
+                  <div style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280', fontFamily: FB, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
+                    <span>{fullStamp(a.created_at)}</span>
+                    <span style={{ fontSize: 10, color: '#9ca3af' }}>{timeAgo(a.created_at)}</span>
                   </div>
                 </div>
                 {inputSummary && (
@@ -244,7 +251,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                 )}
                 {a.status === 'reverted' && a.reverted_at && (
                   <div style={{ fontSize: 11, color: '#6b7280', fontFamily: FB, marginBottom: 10, fontStyle: 'italic' }}>
-                    Reverted {timeAgo(a.reverted_at)}
+                    Reverted {fullStamp(a.reverted_at)} ({timeAgo(a.reverted_at)})
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 6 }}>

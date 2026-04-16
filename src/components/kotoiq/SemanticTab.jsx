@@ -94,11 +94,11 @@ export default function SemanticTab({ clientId, agencyId }) {
 
   const runAnalysis = async () => {
     setRunning(true)
-    toast.loading('Analyzing semantic network (this may take a minute)...', { id: 'semantic' })
+    toast.loading('Analyzing KotoIQ network (this may take a minute)...', { id: 'semantic' })
     try {
       const res = await api('analyze_semantic_network')
       if (res.error) { toast.error(res.error, { id: 'semantic' }); setRunning(false); return }
-      toast.success('Semantic analysis complete', { id: 'semantic' })
+      toast.success('KotoIQ analysis complete', { id: 'semantic' })
       setAnalysis(res.analysis || null)
     } catch { toast.error('Analysis failed', { id: 'semantic' }) }
     setRunning(false)
@@ -120,8 +120,8 @@ export default function SemanticTab({ clientId, agencyId }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>Semantic Content Network</div>
-          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>Analyze site-wide content structure, topical coverage, and semantic health</div>
+          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>KotoAgenticIQ Content Network</div>
+          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>Analyze site-wide content structure, topical coverage, and KotoIQ health</div>
         </div>
         <button onClick={runAnalysis} disabled={running}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1 }}>
@@ -140,8 +140,8 @@ export default function SemanticTab({ clientId, agencyId }) {
       {!loading && !analysis && (
         <div style={{ ...card, textAlign: 'center', padding: 60 }}>
           <Brain size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Semantic Analysis Yet</div>
-          <div style={{ fontSize: 13, color: '#374151', marginBottom: 16 }}>Click "Run Analysis" to scan your content and build a semantic network map.</div>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No KotoIQ Analysis Yet</div>
+          <div style={{ fontSize: 13, color: '#374151', marginBottom: 16 }}>Click "Run Analysis" to scan your content and build a KotoIQ network map.</div>
         </div>
       )}
 
@@ -155,9 +155,9 @@ export default function SemanticTab({ clientId, agencyId }) {
             <div style={{ flex: 1, borderLeft: '1px solid #e5e7eb', paddingLeft: 24, marginLeft: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 4, fontFamily: FH }}>QUICK SUMMARY</div>
               <div style={{ fontSize: 13, color: BLK, lineHeight: 1.6 }}>
-                {a.overall_score >= 70 ? 'Good semantic structure. Content topics are well-organized and internally linked.' :
-                 a.overall_score >= 40 ? 'Moderate semantic health. Some content gaps and structural issues to address.' :
-                 a.overall_score > 0 ? 'Weak semantic structure. Significant improvements needed in content organization.' :
+                {a.overall_score >= 70 ? 'Good KotoIQ structure. Content topics are well-organized and internally linked.' :
+                 a.overall_score >= 40 ? 'Moderate KotoIQ health. Some content gaps and structural issues to address.' :
+                 a.overall_score > 0 ? 'Weak KotoIQ structure. Significant improvements needed in content organization.' :
                  'Analysis incomplete.'}
               </div>
               <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 11, color: '#374151' }}>
@@ -286,7 +286,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   {a.thin_content_pages.map((p, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
                       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: T, textDecoration: 'none' }} title={p.url}>
+                        <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#0e7490', textDecoration: 'none' }} title={p.url}>
                           {p.title || p.url}
                         </a>
                       </div>
@@ -340,7 +340,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                     <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{o.topic}</div>
                       <div style={{ fontSize: 12, color: '#374151', marginTop: 2 }}>
-                        Mentioned on: <span style={{ color: T }}>{o.mentioned_on}</span>
+                        Mentioned on: <span style={{ color: '#0e7490' }}>{o.mentioned_on}</span>
                       </div>
                       <div style={{ fontSize: 12, color: '#1f2937' }}>
                         Linked pages: {o.linked_pages || 0}

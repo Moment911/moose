@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
@@ -470,6 +470,17 @@ export default function KotoIQPage() {
   const [briefKeyword, setBriefKeyword] = useState('')
   const [briefPageType, setBriefPageType] = useState('service_page')
   const [activeBrief, setActiveBrief] = useState(null)
+  const briefViewerRef = useRef(null)
+  const openBrief = useCallback((b) => {
+    setActiveBrief(b)
+    // Scroll the viewer into view after state commits
+    setTimeout(() => {
+      const el = briefViewerRef.current
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 0)
+  }, [])
 
   // Unified KPIs — AI Visibility Score + Quick Win Queue
   const [aiVis, setAiVis] = useState(null)
@@ -616,7 +627,7 @@ export default function KotoIQPage() {
       const data = await res.json()
       if (data.error) { toast.error(data.error, { id: 'brief' }); setGeneratingBrief(false); return }
       toast.success('Brief generated!', { id: 'brief' })
-      setActiveBrief(data.brief)
+      openBrief(data.brief)
       setBriefKeyword('')
       loadBriefs()
     } catch { toast.error('Failed to generate brief', { id: 'brief' }) }
@@ -949,7 +960,7 @@ export default function KotoIQPage() {
                   ['topical_map', 'Topical Map', Map],
                   ['content_refresh', 'Content Health', RefreshCw],
                   ['content_decay', 'Decay Prediction', AlertCircle],
-                  ['semantic', 'Semantic Analysis', Brain],
+                  ['semantic', 'KotoIQ Network', Brain],
                   ['context_aligner', 'Context Aligner', Target],
                   ['passage_opt', 'Passage Optimizer', FileText],
                   ['plagiarism', 'Plagiarism Check', Shield],
@@ -1662,7 +1673,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {/* Active brief viewer */}
             {activeBrief && (
-              <div style={card} id="brief-printable">
+              <div ref={briefViewerRef} style={card} id="brief-printable">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                   <div>
                     <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{activeBrief.h1}</div>
@@ -1739,12 +1750,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Title + Meta */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
                   <div style={{ padding: 16, borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Title Tag</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Title Tag</div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{activeBrief.title_tag}</div>
                     <div style={{ fontSize: 12, color: activeBrief.title_tag?.length <= 60 ? GRN : R, marginTop: 4 }}>{activeBrief.title_tag?.length || 0}/60 chars</div>
                   </div>
                   <div style={{ padding: 16, borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Meta Description</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Meta Description</div>
                     <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{activeBrief.meta_description}</div>
                     <div style={{ fontSize: 12, color: activeBrief.meta_description?.length <= 155 ? GRN : R, marginTop: 4 }}>{activeBrief.meta_description?.length || 0}/155 chars</div>
                   </div>
@@ -1753,7 +1764,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Schema types */}
                 {activeBrief.schema_types?.length > 0 && (
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Required Schema Markup</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Required Schema Markup</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {activeBrief.schema_types.map((s, i) => (
                         <span key={i} style={{ padding: '4px 12px', borderRadius: 6, background: T + '12', color: T, fontSize: 12, fontWeight: 600 }}>{s}</span>
@@ -1765,7 +1776,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Content Outline */}
                 {activeBrief.outline?.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>Content Outline</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>Content Outline</div>
                     {activeBrief.outline.map((section, i) => (
                       <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', marginBottom: 8, borderLeft: `3px solid ${T}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1790,7 +1801,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* FAQ Section */}
                 {activeBrief.faq_questions?.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>FAQ Questions (FAQPage Schema)</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>FAQ Questions (FAQPage Schema)</div>
                     {activeBrief.faq_questions.map((faq, i) => (
                       <div key={i} style={{ padding: '12px 16px', borderRadius: 8, background: '#fef3c7', border: '1px solid #fcd34d', marginBottom: 6 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>Q: {faq.question}</div>
@@ -1803,7 +1814,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Target entities */}
                 {activeBrief.target_entities?.length > 0 && (
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Target Entities (NLP Coverage)</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Target Entities (NLP Coverage)</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {activeBrief.target_entities.map((e, i) => (
                         <span key={i} style={{ padding: '4px 10px', borderRadius: 6, background: '#f3f4f6', fontSize: 11, fontWeight: 600, color: '#374151' }}>{e}</span>
@@ -1921,7 +1932,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Saved Briefs</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {briefs.map((b, i) => (
-                    <div key={i} onClick={() => { setActiveBrief(b); }} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', cursor: 'pointer', transition: 'background .15s', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                    <div key={b.id || i} role="button" tabIndex={0}
+                      onClick={() => openBrief(b)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBrief(b) } }}
+                      style={{ padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', cursor: 'pointer', transition: 'background .15s', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'} onMouseLeave={e => e.currentTarget.style.background = '#f9fafb'}>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{b.target_keyword}</div>
@@ -1929,7 +1943,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <span style={{ fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: { draft: '#f3f4f6', approved: T + '15', in_progress: AMB + '15', published: GRN + '15', tracking: GRN + '15' }[b.status] || '#f3f4f6', color: { draft: '#6b7280', approved: T, in_progress: AMB, published: GRN, tracking: GRN }[b.status] || '#6b7280' }}>{b.status}</span>
-                        <div style={{ fontSize: 11, color: '#1f2937' }}>{new Date(b.created_at).toLocaleDateString()}</div>
+                        <div style={{ fontSize: 11, color: '#374151' }} title={b.created_at ? new Date(b.created_at).toISOString() : ''}>
+                          {b.created_at ? new Date(b.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : ''}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -2166,7 +2182,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Tools run badge */}
                 {enrichment.tools_run?.length > 0 && (
                   <div style={{ padding: '12px 20px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>
                       {enrichment.tools_run.length} Tools Ran · {enrichment.enriched_at ? new Date(enrichment.enriched_at).toLocaleDateString() : ''}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -2345,11 +2361,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     )}
                     {enrichment.content_gap.content_calendar?.length > 0 && (
                       <div>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', marginBottom: 8 }}>Content Calendar</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', marginBottom: 8 }}>Content Calendar</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                           {enrichment.content_gap.content_calendar.slice(0, 8).map((item, i) => (
                             <div key={i} style={{ padding: '10px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: `2px solid ${T}` }}>
-                              <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase' }}>Week {item.week}</div>
+                              <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase' }}>Week {item.week}</div>
                               <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginTop: 4 }}>{item.title}</div>
                               <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>{item.type} · "{item.keyword}"</div>
                             </div>
@@ -2851,7 +2867,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             {/* Keyword gaps — they rank, you don't */}
                             {gaps.length > 0 && (
                               <div>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Untapped Keywords — They Rank, You Don't ({gaps.length})</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Untapped Keywords — They Rank, You Don't ({gaps.length})</div>
                                 {gaps.map((kw, i) => (
                                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
                                     <div style={{ flex: 1 }}>
@@ -2965,7 +2981,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                     {/* H2 comparison */}
                     <div style={{ marginTop: 20 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>H2 Heading Comparison</div>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>H2 Heading Comparison</div>
                       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${compAnalysis.analyses.length}, 1fr)`, gap: 12 }}>
                         {compAnalysis.analyses.map((a, i) => (
                           <div key={i}>
@@ -3007,7 +3023,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     {/* Priority actions */}
                     {compAnalysis.gap_analysis.priority_actions?.length > 0 && (
                       <div style={{ marginBottom: 16 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Priority Actions</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Priority Actions</div>
                         {compAnalysis.gap_analysis.priority_actions.map((a, i) => {
                           const impColor = { high: R, medium: AMB, low: GRN }[a.impact] || '#6b7280'
                           return (
@@ -3365,7 +3381,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             {/* AI Draft Response */}
                             {isActive && reviewDraft && (
                               <div style={{ marginTop: 12, padding: '12px 16px', borderRadius: 8, background: T + '06', border: `1px solid ${T}20` }}>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI-Drafted Response</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI-Drafted Response</div>
                                 <textarea value={reviewDraft} onChange={e => setReviewDraft(e.target.value)}
                                   style={{ width: '100%', minHeight: 100, padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }} />
                                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
@@ -3377,7 +3393,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               </div>
                             )}
                             {isActive && !reviewDraft && (
-                              <div style={{ marginTop: 8, fontSize: 12, color: T, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ marginTop: 8, fontSize: 12, color: '#0e7490', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Drafting response...
                               </div>
                             )}
@@ -3471,7 +3487,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
                                     <div style={{ display: 'flex', gap: 6 }}>
                                       <span style={{ fontSize: 11, fontWeight: 700, color }}>{post.cta}</span>
-                                      {post.url && <span style={{ fontSize: 11, color: T }}>{post.url}</span>}
+                                      {post.url && <span style={{ fontSize: 11, color: '#0e7490' }}>{post.url}</span>}
                                     </div>
                                     <div style={{ display: 'flex', gap: 6 }}>
                                       <button onClick={() => { navigator.clipboard.writeText(post._editText || post.text); toast.success('Post text copied to clipboard!') }}
@@ -4297,7 +4313,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
               )}
               {result.gap_analysis.aeo_strategy && (
                 <div style={{ padding: '14px 18px', background: T + '06', borderRadius: 10, border: `1px solid ${T}20`, marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>AEO Strategy</div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>AEO Strategy</div>
                   <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{result.gap_analysis.aeo_strategy}</div>
                 </div>
               )}
@@ -4353,7 +4369,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
                   <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 900, color: r.position <= 3 ? GRN : r.position <= 10 ? AMB : R, minWidth: 30, textAlign: 'center' }}>#{r.position}</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{r.title}</div>
-                    <div style={{ fontSize: 11, color: T }}>{r.domain}</div>
+                    <div style={{ fontSize: 11, color: '#0e7490' }}>{r.domain}</div>
                   </div>
                 </div>
               ))}

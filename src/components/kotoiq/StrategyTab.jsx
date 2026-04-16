@@ -153,7 +153,7 @@ export default function StrategyTab({ clientId, agencyId }) {
         <>
           {summary && (
             <div style={{ ...card, background: 'linear-gradient(135deg,#f0f9ff 0%,#fefce8 100%)', borderLeft: `4px solid ${T}` }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Executive Summary</div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Executive Summary</div>
               <div style={{ fontSize: 14, color: BLK, lineHeight: 1.65, fontFamily: FB }}>{summary}</div>
             </div>
           )}
@@ -213,7 +213,7 @@ export default function StrategyTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {weekKeys.map(wk => (
                   <div key={wk}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, fontFamily: FH }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, fontFamily: FH }}>
                       {typeof wk === 'number' || /^\d+$/.test(String(wk)) ? `Week ${wk}` : wk}
                     </div>
                     {weeksMap[wk].map((a, i) => (

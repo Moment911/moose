@@ -292,7 +292,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
   const generateMap = async () => {
     if (!clientId || !agencyId) return
     setGenerating(true)
-    toast.loading('Generating topical map -- analyzing website, building semantic structure...', { id: 'topmap' })
+    toast.loading('Generating topical map -- analyzing website, building KotoIQ structure...', { id: 'topmap' })
     try {
       const res = await fetch('/api/kotoiq', {
         method: 'POST',
@@ -428,7 +428,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         </div>
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>No Topical Map Yet</div>
         <div style={{ fontSize: 14, color: '#374151', maxWidth: 420, margin: '0 auto 20px', lineHeight: 1.6 }}>
-          Generate a semantic topical map using KotoIQ's knowledge base. Analyzes your website, identifies the central entity, and maps every topic you should cover for maximum topical authority.
+          Generate a KotoIQ topical map using KotoIQ's knowledge base. Analyzes your website, identifies the central entity, and maps every topic you should cover for maximum topical authority.
         </div>
         <button onClick={generateMap} disabled={generating}
           style={{
@@ -527,7 +527,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
       <div style={{ ...card }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-            Semantic Identity
+            KotoIQ Identity
           </div>
           <button onClick={() => {
             if (editingIdentity) {
