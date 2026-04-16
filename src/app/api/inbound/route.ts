@@ -992,7 +992,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action } = body
+    // Retell sends {event, call} with no `action` wrapper. Detect that shape so
+    // POSTing directly to /api/inbound (legacy webhook URL on existing agents)
+    // still routes through the webhook pipeline.
+    const action = body?.action || (body?.event && body?.call ? 'webhook' : undefined)
     const supabase = getSupabase()
 
     switch (action) {
@@ -1763,6 +1766,68 @@ ${current_text}
         const res = await supabase.from('koto_inbound_calls').update({ follow_up_notes: combined }).eq('id', anId).select().maybeSingle()
         if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 })
         return NextResponse.json({ success: true, call: normalizeCallRow(res.data) })
+      }
+
+      case 'release_number': {
+        // Release a Koto-provisioned phone number — deletes from Retell + DB.
+        const { phone_number_id, phone_number, agency_id: relAgency } = body
+        if (!phone_number && !phone_number_id) return NextResponse.json({ error: 'phone_number or phone_number_id required' }, { status: 400 })
+
+        // Look up the Retell phone number ID if only the number was given.
+        let retellPhoneId = phone_number_id
+        if (!retellPhoneId && phone_number) {
+          const { data: row } = await supabase
+            .from('koto_inbound_phone_numbers')
+            .select('retell_number_id, retell_phone_number_id')
+            .eq('phone_number', phone_number)
+            .maybeSingle()
+          retellPhoneId = row?.retell_number_id || (row as any)?.retell_phone_number_id
+        }
+
+        if (retellPhoneId) {
+          try { await retellFetch(`/delete-phone-number/${retellPhoneId}`, 'DELETE') } catch (e: any) {
+            console.error('[release_number] Retell delete failed (continuing):', e?.message)
+          }
+        }
+
+        // Remove from DB. Match by either phone_number or retell id, scoped to agency if given.
+        let q = supabase.from('koto_inbound_phone_numbers').delete()
+        if (phone_number) q = q.eq('phone_number', phone_number)
+        if (retellPhoneId) q = q.or(`retell_number_id.eq.${retellPhoneId},retell_phone_number_id.eq.${retellPhoneId}`)
+        if (relAgency) q = q.eq('agency_id', relAgency)
+        await q
+
+        // Detach from any agent that had this number set on their record.
+        if (phone_number) {
+          await supabase.from('koto_inbound_agents').update({ phone_number: null }).eq('phone_number', phone_number)
+        }
+
+        return NextResponse.json({ success: true })
+      }
+
+      case 'sync_all_retell_webhooks': {
+        // Pushes the current /api/inbound/webhook URL onto every Retell agent
+        // for the given agency. Use this after rotating NEXT_PUBLIC_APP_URL or
+        // for legacy agents created before webhook_url was registered.
+        const { agency_id: syncAgency } = body
+        if (!syncAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+        const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/inbound/webhook`
+        const { data: agents } = await supabase
+          .from('koto_inbound_agents')
+          .select('id, retell_agent_id, name, business_name')
+          .eq('agency_id', syncAgency)
+        let synced = 0, failed = 0
+        for (const ag of agents || []) {
+          if (!ag.retell_agent_id) continue
+          try {
+            await retellFetch(`/update-agent/${ag.retell_agent_id}`, 'PATCH', { webhook_url: webhookUrl })
+            synced++
+          } catch (e: any) {
+            console.error('[sync_all_retell_webhooks] failed for', ag.id, e?.message)
+            failed++
+          }
+        }
+        return NextResponse.json({ success: true, synced, failed, webhook_url: webhookUrl })
       }
 
       case 'block_spam': {

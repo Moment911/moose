@@ -24,7 +24,7 @@ const TIMEZONES = [
   'America/Anchorage','Pacific/Honolulu','America/Phoenix','America/Detroit',
   'America/Indiana/Indianapolis','America/Kentucky/Louisville'
 ]
-const TABS = ['Setup','Voice & Greeting','Intake Form','Prompt Editor','Routing','Live Monitor','Call Log','Analytics']
+const TABS = ['Setup','Voice & Greeting','Intake Form','Prompt Editor','Routing','Live Monitor','Call Log','Analytics','Admin']
 
 const defaultHours = () => DAYS.reduce((a,d)=>({...a,[d]:{enabled:d!=='Sat'&&d!=='Sun',open:'09:00',close:'17:00'}}),{})
 
@@ -140,6 +140,7 @@ export default function AnsweringServicePage() {
                   {activeTab===5 && <LiveMonitorTab agent={selectedAgent} />}
                   {activeTab===6 && <CallLogTab agent={selectedAgent} />}
                   {activeTab===7 && <AnalyticsTab agent={selectedAgent} agencyId={agencyId} />}
+                  {activeTab===8 && <AdminTab agent={selectedAgent} setAgent={a=>{setSelectedAgent(a);setAgents(prev=>prev.map(x=>x.id===a.id?a:x))}} agencyId={agencyId} onDelete={()=>{setAgents(prev=>prev.filter(x=>x.id!==selectedAgent.id));setSelectedAgent(null);setActiveTab(0)}} />}
                 </div>
               </>
             )}
@@ -1611,6 +1612,287 @@ function RoutingTab({ agent }) {
             No target matches. Agent will take a message instead of attempting transfer.
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TAB — ADMIN (integrations, compliance, spam blocklist, billing, danger zone)
+// ═══════════════════════════════════════════════════════════════════════════════
+function AdminTab({ agent, setAgent, agencyId, onDelete }) {
+  const [form, setForm] = useState({
+    notification_email: agent.notification_email || '',
+    notification_phone: agent.notification_phone || '',
+    notification_emails: Array.isArray(agent.notification_emails) ? agent.notification_emails.join(', ') : '',
+    slack_webhook_url: agent.slack_webhook_url || '',
+    teams_webhook_url: agent.teams_webhook_url || '',
+    crm_webhook_url: agent.crm_webhook_url || '',
+    crm_webhook_secret: agent.crm_webhook_secret || '',
+    calendar_webhook_url: agent.calendar_webhook_url || '',
+    scheduling_link: agent.scheduling_link || '',
+    hipaa_mode: !!agent.hipaa_mode,
+    retention_days: agent.retention_days ?? '',
+    digest_schedule: agent.digest_schedule || 'weekly',
+  })
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [releasing, setReleasing] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [billing, setBilling] = useState(null)
+  const [spamList, setSpamList] = useState([])
+  const [spamInput, setSpamInput] = useState('')
+  const [confirmText, setConfirmText] = useState('')
+
+  useEffect(() => {
+    fetch(`/api/inbound?action=get_billing_summary&agency_id=${agencyId}&days=30`).then(r => r.json()).then(setBilling).catch(() => {})
+    refreshSpam()
+  }, [agencyId])
+
+  async function refreshSpam() {
+    try {
+      const { data } = await supabase.from('koto_inbound_spam_blocklist').select('id, phone_number, reason, created_at').eq('agency_id', agencyId).order('created_at', { ascending: false }).limit(100)
+      setSpamList(data || [])
+    } catch {}
+  }
+
+  async function save() {
+    setSaving(true)
+    try {
+      const payload = {
+        ...form,
+        notification_emails: form.notification_emails ? form.notification_emails.split(',').map(s => s.trim()).filter(Boolean) : [],
+        retention_days: form.retention_days === '' ? null : Number(form.retention_days),
+      }
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'update_agent', agent_id: agent.id, ...payload })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { setAgent({ ...agent, ...payload }); toast.success('Settings saved') }
+      else toast.error(d.error||'Save failed')
+    } catch { toast.error('Save failed') }
+    setSaving(false)
+  }
+
+  async function deleteAgent() {
+    if (confirmText !== agent.name && confirmText !== agent.business_name) { toast.error('Type the agent name to confirm'); return }
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'delete_agent', agent_id: agent.id })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { toast.success('Agent deleted'); onDelete?.() }
+      else toast.error(d.error||'Delete failed')
+    } catch { toast.error('Delete failed') }
+    setDeleting(false)
+  }
+
+  async function releaseNumber() {
+    if (!agent.phone_number) { toast.error('No number to release'); return }
+    if (!confirm(`Release ${agent.phone_number}? This deletes it from Retell and detaches from this agent.`)) return
+    setReleasing(true)
+    try {
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'release_number', phone_number: agent.phone_number, agency_id: agencyId })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { setAgent({ ...agent, phone_number: null }); toast.success('Number released') }
+      else toast.error(d.error||'Release failed')
+    } catch { toast.error('Release failed') }
+    setReleasing(false)
+  }
+
+  async function syncWebhooks() {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'sync_all_retell_webhooks', agency_id: agencyId })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) toast.success(`Synced ${d.synced} agent${d.synced===1?'':'s'}${d.failed?` (${d.failed} failed)`:''}`)
+      else toast.error(d.error||'Sync failed')
+    } catch { toast.error('Sync failed') }
+    setSyncing(false)
+  }
+
+  async function blockSpam() {
+    if (!spamInput.trim()) return
+    try {
+      const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'block_spam', agency_id: agencyId, phone_number: spamInput.trim(), reason: 'manual' })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { setSpamInput(''); refreshSpam(); toast.success('Blocked') }
+      else toast.error(d.error||'Block failed')
+    } catch { toast.error('Block failed') }
+  }
+
+  async function unblockSpam(id) {
+    try {
+      await supabase.from('koto_inbound_spam_blocklist').delete().eq('id', id)
+      refreshSpam()
+      toast.success('Unblocked')
+    } catch { toast.error('Unblock failed') }
+  }
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+      {/* Agent header */}
+      <div style={{ ...card, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div>
+          <h3 style={{ margin:0, fontFamily:FH, fontSize:16 }}>{agent.business_name || agent.name}</h3>
+          <p style={{ margin:'4px 0 0', fontSize:12, color:'#6b7280' }}>
+            {agent.phone_number || 'No number'} · Retell: {agent.retell_agent_id ? <code style={{ fontSize:11 }}>{agent.retell_agent_id}</code> : 'not linked'}
+          </p>
+        </div>
+        <div style={{ display:'flex', gap:8 }}>
+          {agent.phone_number && (
+            <button onClick={releaseNumber} disabled={releasing} style={btn('#fef2f2', R)}>
+              {releasing ? <Loader2 size={14} className="spin"/> : <PhoneOff size={14}/>} Release Number
+            </button>
+          )}
+          <button onClick={syncWebhooks} disabled={syncing} style={btn('#374151')}>
+            {syncing ? <Loader2 size={14} className="spin"/> : <RefreshCw size={14}/>} Sync All Agent Webhooks
+          </button>
+        </div>
+      </div>
+
+      {/* Notifications */}
+      <div style={card}>
+        <h4 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:14 }}>Notification Recipients</h4>
+        <p style={{ margin:'0 0 12px', fontSize:12, color:'#6b7280' }}>Where call summaries get delivered.</p>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Primary email</label>
+            <input style={input} value={form.notification_email} onChange={e=>setForm(p=>({...p, notification_email:e.target.value}))} placeholder="alerts@company.com"/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Notification phone (SMS)</label>
+            <input style={input} value={form.notification_phone} onChange={e=>setForm(p=>({...p, notification_phone:e.target.value}))} placeholder="+15551234567"/>
+          </div>
+          <div style={{ gridColumn:'1 / -1' }}>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Additional emails (comma-separated)</label>
+            <input style={input} value={form.notification_emails} onChange={e=>setForm(p=>({...p, notification_emails:e.target.value}))} placeholder="ops@…, billing@…, oncall@…"/>
+          </div>
+        </div>
+      </div>
+
+      {/* Integrations */}
+      <div style={card}>
+        <h4 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:14 }}>Integrations</h4>
+        <p style={{ margin:'0 0 12px', fontSize:12, color:'#6b7280' }}>Push every completed call to your existing tools.</p>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Slack webhook URL</label>
+            <input style={input} value={form.slack_webhook_url} onChange={e=>setForm(p=>({...p, slack_webhook_url:e.target.value}))} placeholder="https://hooks.slack.com/services/…"/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Microsoft Teams webhook URL</label>
+            <input style={input} value={form.teams_webhook_url} onChange={e=>setForm(p=>({...p, teams_webhook_url:e.target.value}))} placeholder="https://outlook.office.com/webhook/…"/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>CRM / Zapier webhook URL</label>
+            <input style={input} value={form.crm_webhook_url} onChange={e=>setForm(p=>({...p, crm_webhook_url:e.target.value}))} placeholder="https://hooks.zapier.com/…"/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>CRM webhook secret (optional)</label>
+            <input style={input} value={form.crm_webhook_secret} onChange={e=>setForm(p=>({...p, crm_webhook_secret:e.target.value}))} placeholder="shared secret"/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Calendar webhook (booking)</label>
+            <input style={input} value={form.calendar_webhook_url} onChange={e=>setForm(p=>({...p, calendar_webhook_url:e.target.value}))} placeholder="Cal.com / Apps Script / Zapier URL"/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Public scheduling link</label>
+            <input style={input} value={form.scheduling_link} onChange={e=>setForm(p=>({...p, scheduling_link:e.target.value}))} placeholder="https://cal.com/your-handle"/>
+          </div>
+        </div>
+      </div>
+
+      {/* Compliance + retention */}
+      <div style={card}>
+        <h4 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:14 }}>Compliance &amp; Retention</h4>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:14, marginTop:10 }}>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Digest schedule</label>
+            <select style={input} value={form.digest_schedule} onChange={e=>setForm(p=>({...p, digest_schedule:e.target.value}))}>
+              <option value="off">Off</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Retention (days, blank = forever)</label>
+            <input type="number" min="1" max="3650" style={input} value={form.retention_days} onChange={e=>setForm(p=>({...p, retention_days:e.target.value}))} placeholder="e.g. 90"/>
+          </div>
+          <div>
+            <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>HIPAA mode</label>
+            <button onClick={()=>setForm(p=>({...p, hipaa_mode:!p.hipaa_mode}))} style={{
+              width:'100%', padding:'8px 12px', borderRadius:8, border:`1px solid ${form.hipaa_mode?GRN:'#e5e7eb'}`,
+              background:form.hipaa_mode?GRN:'#fff', color:form.hipaa_mode?'#fff':BLK, cursor:'pointer', fontSize:13, fontWeight:600,
+            }}>{form.hipaa_mode ? 'On — strict mode' : 'Off'}</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Billing */}
+      {billing && (
+        <div style={card}>
+          <h4 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:14 }}>Billing — last 30 days</h4>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginTop:10 }}>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontSize:22, fontWeight:700, fontFamily:FH }}>{billing.total_calls || 0}</div>
+              <div style={{ fontSize:11, color:'#6b7280' }}>Calls</div>
+            </div>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontSize:22, fontWeight:700, fontFamily:FH }}>{billing.total_minutes || 0}</div>
+              <div style={{ fontSize:11, color:'#6b7280' }}>Minutes</div>
+            </div>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontSize:22, fontWeight:700, fontFamily:FH, color:R }}>${(billing.estimated_cost || 0).toFixed(2)}</div>
+              <div style={{ fontSize:11, color:'#6b7280' }}>Est. cost</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Spam blocklist */}
+      <div style={card}>
+        <h4 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:14 }}>Spam Blocklist (agency-wide)</h4>
+        <p style={{ margin:'0 0 12px', fontSize:12, color:'#6b7280' }}>{spamList.length} blocked number{spamList.length===1?'':'s'}. Future calls from these numbers are dropped before the agent answers.</p>
+        <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+          <input style={input} placeholder="+15551234567" value={spamInput} onChange={e=>setSpamInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&blockSpam()}/>
+          <button onClick={blockSpam} disabled={!spamInput.trim()} style={btn(R)}>Block</button>
+        </div>
+        {spamList.length > 0 && (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+            {spamList.map(s => (
+              <span key={s.id} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:99, background:'#fef2f2', color:R, fontSize:12 }}>
+                {s.phone_number}
+                <X size={12} style={{ cursor:'pointer' }} onClick={()=>unblockSpam(s.id)}/>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display:'flex', justifyContent:'flex-end' }}>
+        <button onClick={save} disabled={saving} style={btn()}>
+          {saving ? <Loader2 size={14} className="spin"/> : <Check size={14}/>} Save Admin Settings
+        </button>
+      </div>
+
+      {/* Danger zone */}
+      <div style={{ ...card, borderColor:R, background:'rgba(234,39,41,.02)' }}>
+        <h4 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:14, color:R }}>Danger Zone</h4>
+        <p style={{ margin:'0 0 12px', fontSize:12, color:'#6b7280' }}>Deletes the agent, removes the Retell agent + LLM, and releases any attached phone numbers. Call records stay archived.</p>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <input style={input} placeholder={`Type "${agent.business_name || agent.name}" to confirm`} value={confirmText} onChange={e=>setConfirmText(e.target.value)}/>
+          <button onClick={deleteAgent} disabled={deleting || (confirmText !== agent.name && confirmText !== agent.business_name)} style={{ ...btn(R), opacity:(deleting || (confirmText !== agent.name && confirmText !== agent.business_name))?.5:1 }}>
+            {deleting ? <Loader2 size={14} className="spin"/> : <Trash2 size={14}/>} Delete Agent
+          </button>
+        </div>
       </div>
     </div>
   )
