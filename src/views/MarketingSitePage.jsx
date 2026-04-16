@@ -1139,7 +1139,13 @@ export default function MarketingSitePage() {
             color: INK, maxWidth: 960, margin: '0 auto',
             paddingTop: 4,
           }}>
-            If you can think it,<br />we build it. <span style={{ color: R }}>Fast.</span>
+            If you can think it,<br />we build it.{' '}
+            <span style={{
+              color: R,
+              fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit',
+              fontStyle: 'normal', letterSpacing: 'inherit', lineHeight: 'inherit',
+              display: 'inline',
+            }}>Fast.</span>
           </h1>
 
           <p className="fade fade-2" style={{
@@ -1347,7 +1353,19 @@ export default function MarketingSitePage() {
               fontSize: 56, fontWeight: 900, fontFamily: FH,
               letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
             }}>
-              Not AI that generates.<br />AI that <span style={{ color: R }}>investigates</span>.
+              Not AI that generates.<br />
+              AI that{' '}
+              <span style={{
+                color: R,
+                fontSize: 'inherit',
+                fontWeight: 'inherit',
+                fontFamily: 'inherit',
+                fontStyle: 'normal',
+                letterSpacing: 'inherit',
+                lineHeight: 'inherit',
+                display: 'inline',
+              }}>investigates</span>
+              <span style={{ color: INK }}>.</span>
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
               KotoIQ is a full search-intelligence system we built for marketing agencies — live data from
@@ -1858,7 +1876,14 @@ export default function MarketingSitePage() {
               fontSize: 56, fontWeight: 900, fontFamily: FH,
               letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
             }}>
-              If you can describe it,<br />we can <span style={{ color: R }}>build it</span>.
+              If you can describe it,<br />we can{' '}
+              <span style={{
+                color: R,
+                fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit',
+                fontStyle: 'normal', letterSpacing: 'inherit', lineHeight: 'inherit',
+                display: 'inline',
+              }}>build it</span>
+              <span style={{ color: INK }}>.</span>
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
               Every business has a workflow that shouldn't take a human — the intake, the quoting,
