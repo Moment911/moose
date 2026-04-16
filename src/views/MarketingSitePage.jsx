@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabase';
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact';
 import PublicNav from '../components/public/PublicNav';
 import PublicFooter from '../components/public/PublicFooter';
+import ScopeBand from '../components/public/ScopeBand';
 
 /* ─── Palette aliases for readability ─── */
 const INK      = BLK;                // #111111 — near-black text
@@ -481,46 +482,67 @@ function ParticleNetwork({
 }
 
 /* ─── Demo chat — FULLY SANDBOXED, never hits real APIs or real data ─── */
+/* All numbers, names, and data are fabricated for demo purposes. */
 const DEMO_SCENARIOS = [
   {
-    triggers: ['traffic', 'down', 'drop', 'decline', 'decreas'],
-    text: 'Organic traffic is down 12% this month on your **dental** sample client. The biggest losses: **dental implants** (-34%), **invisalign near me** (-22%), and **emergency dentist** (-18%). A competitor published fresh pillar content and pushed these pages out of the AI answer citations. Refreshing those three pages would recover most of the loss — I can draft the content briefs for you.',
+    triggers: ['traffic', 'down', 'drop', 'decline', 'decreas', 'lost'],
+    text: 'Organic traffic is down 12.4% MoM for **Hartwell Dental Group** (sample client). The pages bleeding the most: **dental implants** (-34%, 4,120 → 2,720 sessions), **invisalign near me** (-22%, 3,180 → 2,480), and **emergency dentist** (-18%, 5,640 → 4,625). A competitor published fresh pillar content on Sept 14th and pushed these three pages out of the AI answer citations. Refreshing them would recover an estimated 4,400 sessions/mo — I can draft the content briefs right now.',
     sources: ['Search data', 'Website analytics', 'Live SERP'],
   },
   {
     triggers: ['keyword', 'opportunit', 'quick win', 'low hanging', 'easy win'],
-    text: 'Your top **quick wins** this week (sample client): **emergency dentist miami** (#11 → #4, est. +1,840 visits/mo), **dental implants cost** (#9 → #3, +2,110/mo), **invisalign near me** (#14 → #6, +1,220/mo). Combined estimated revenue lift: **+$12.4k/month** at current conversion rates.',
+    text: 'Top **quick wins** this week for Hartwell Dental: **emergency dentist miami** (#11 → #4, est. +1,840 visits/mo, $42 avg value), **dental implants cost** (#9 → #3, +2,110/mo, $78 avg), **invisalign near me** (#14 → #6, +1,220/mo, $95 avg), **teeth whitening brickell** (#18 → #7, +640/mo, $34 avg). Combined lift at current 3.8% conversion: **+$12.4k revenue/mo**. ETA per fix: 3–5 hours of editorial work per page.',
     sources: ['Search data', 'Keyword metrics', 'Opportunity engine'],
   },
   {
     triggers: ['competit', 'compare', 'rival', 'vs '],
-    text: 'Your top 3 competitors by share of voice (sample data): **BriteSmile** is up +14% this month — they just published 4 new service pages targeting your long-tail terms. **Miami Smile Studio** gained +6% on branded search. **Downtown Dental Clinic** dropped -3% after a site migration. BriteSmile is your priority threat.',
+    text: 'Top 3 competitors by share of voice in Miami-Dade dental: **BriteSmile Dental** +14% this month — they shipped 4 new service pages targeting your long-tail implant terms on Sept 14. **Miami Smile Studio** +6% on branded "miami smile" searches, likely from a local press mention. **Downtown Dental Clinic** -3% after a site migration on Aug 28. BriteSmile is your priority — I flagged three pages where you should out-write them first.',
     sources: ['Live SERP', 'Competitor intelligence'],
   },
   {
-    triggers: ['review', 'gmb', 'business profile', 'reputation', 'star'],
-    text: 'Sample client local listing: **4.6 stars** across **47 reviews** (+3 this month). Sentiment dipped slightly — two new 3-star reviews mention wait times. I drafted reply copy for both. Your recent positive reviews cluster around "painless" and "thorough" — great signals to lean into on your landing pages.',
+    triggers: ['review', 'gmb', 'business profile', 'reputation', 'star', 'rating'],
+    text: 'Hartwell Dental local listing: **4.6 stars** across **247 reviews** (+12 this month). Sentiment dropped 4 points on wait-time mentions — two recent 3-star reviews both cite waiting 45+ minutes past appointment time. I drafted reply copy for both. Positive reviews cluster around three themes: "painless", "thorough cleanings", and "Dr. Hartwell\'s explanations" — great proof points to weave into your landing page copy.',
     sources: ['Local listing', 'Review sentiment'],
   },
   {
-    triggers: ['local', 'grid', 'map', 'near me'],
-    text: 'The 5-mile geo-grid for **"emergency dentist"** on the sample client averages **#4.2**. Strong coverage in Brickell (avg #2) and Coconut Grove (avg #3), but weak visibility north of 79th Street (avg #11). Three neighborhood landing pages would likely close the gap.',
+    triggers: ['local', 'grid', 'map', 'near me', 'geo'],
+    text: '5-mile geo-grid for **"emergency dentist"** around Hartwell Dental averages **#4.2**. Strong coverage in Brickell (avg #2.1, top-3 in 11/12 cells) and Coconut Grove (avg #3.4). Weak visibility north of 79th St (avg #11.8) and in Key Biscayne (avg #9.2). Three neighborhood-specific landing pages (Midtown, Wynwood, Key Biscayne) would close most of the gap within 60 days.',
     sources: ['Rank grid', 'Local SERP'],
   },
   {
-    triggers: ['ads', 'ppc', 'paid', 'cpc', 'adwords', 'google ads'],
-    text: 'Sample client paid media last 30 days: **$4,217 spend**, **2.1% conversion rate**, **$47 cost-per-acquisition**. Your "emergency dentist" ad group is the star (3.8% CVR, $28 CPA). "Teeth whitening" is bleeding — zero conversions on $612 spend. I would pause that ad group and reallocate to the implant campaign.',
+    triggers: ['ads', 'ppc', 'paid', 'cpc', 'adwords', 'google ads', 'spend'],
+    text: 'Hartwell paid media, last 30 days: **$4,217 spend**, **2.1% CVR**, **$47 CPA**, 89 bookings. Your **"emergency dentist"** ad group is carrying the account — 3.8% CVR, $28 CPA, 42 bookings. **"Teeth whitening"** is bleeding — $612 spend, 0 conversions, 1.1% CTR. Recommendation: pause whitening immediately, shift the $612 to the implants RLSA campaign (currently 4.2% CVR, starved at 30% impression share).',
     sources: ['Paid media', 'Conversion tracking'],
   },
   {
-    triggers: ['content', 'brief', 'write', 'blog', 'page'],
-    text: 'Based on the sample client\'s keyword gaps, your next content priorities are: (1) a pillar page on **dental implant financing** (high commercial intent, competitors weak), (2) a comparison: **Invisalign vs. traditional braces for adults**, (3) a location page for **Coral Gables emergency dentistry**. I can generate full briefs with structure, entity coverage, and FAQ schema.',
-    sources: ['Keyword Gaps', 'Content Decay', 'SERP Analysis'],
+    triggers: ['content', 'brief', 'write', 'blog', 'page', 'idea'],
+    text: 'Based on your keyword gaps vs BriteSmile + Miami Smile Studio, next content priorities for Hartwell: (1) **pillar page: dental implant financing** — $180 avg CPC, commercial intent, competitors weak on YMYL signals. (2) **comparison: Invisalign vs traditional braces for working adults** — targets 2,900 monthly searches you don\'t rank for. (3) **location page: Coral Gables emergency dentistry** — closes your #9.2 avg rank gap. I can generate full briefs with H2/H3 structure, entity coverage, FAQ schema, and internal link plan.',
+    sources: ['Keyword gaps', 'Content decay', 'SERP analysis'],
   },
   {
-    triggers: ['score', 'visibility', 'ai visibility', 'rating'],
-    text: 'Sample client **AI Visibility Score: 72/100 (grade B+)**, up +4 points this week. Sub-scores: Semantic coverage **78**, Entity presence **65**, E-E-A-T signals **71**, SERP features **74**. The biggest lift available is on **Entity presence** — adding structured data for your services and location would likely push the overall score to A.',
+    triggers: ['score', 'visibility', 'ai visibility', 'grade', 'health'],
+    text: 'Hartwell Dental **AI Visibility Score: 72/100 (grade B+)**, up +4 points this week. Sub-scores: **Semantic coverage 78**, **Entity presence 65**, **E-E-A-T signals 71**, **SERP features 74**. The biggest lift available is **Entity presence** — you\'re missing Dentist and LocalBusiness schema on 14 pages, and your Dr. Hartwell author bio isn\'t connected via sameAs. Fixing both would push the overall score to A in about two weeks.',
     sources: ['AI Visibility Engine', 'Semantic Agents'],
+  },
+  {
+    triggers: ['backlink', 'link', 'authority', 'domain authority', 'da ', 'da:', 'backlinks'],
+    text: 'Hartwell domain metrics: **DA 34** (+2 this quarter), 412 referring domains, 1,847 total backlinks. Last 30 days: 14 new links, 2 toxic/spam (flagged for disavow). Biggest gain: a mention in a Miami Herald piece on Sept 8th (DA 91). Easiest link opportunities: 6 competitors have local chamber + Miami Dade dental association links you don\'t — I can draft the outreach.',
+    sources: ['Backlink intel', 'Toxic link monitor'],
+  },
+  {
+    triggers: ['report', 'client', 'monthly', 'weekly', 'summary'],
+    text: 'Hartwell monthly snapshot (Sept): **+4.1% organic sessions**, **+8 new patient bookings from SEO**, **$47 paid CPA**, **4.6★ reviews (+12)**. Top wins: recovered #3 for "dental implants miami", published 2 new service pages, disavowed 2 toxic backlinks. Open items: wait-time reviews, pause whitening ad group, publish implant financing pillar. Full deck ready in your client portal.',
+    sources: ['Monthly rollup', 'Client portal'],
+  },
+  {
+    triggers: ['patient', 'booking', 'lead', 'conversion', 'form'],
+    text: 'Sample restaurant client **Acme Kitchen** (different industry, same platform): 142 online reservations last week via the site booking widget, up 18% WoW. Most common party size: 4 (38% of bookings). Peak: Saturday 7–9pm, 84% fill rate. Drop-off point: the allergy/dietary question — 23% of abandoned bookings happen there. Recommendation: move allergies to post-confirmation.',
+    sources: ['Booking analytics', 'Form funnel'],
+  },
+  {
+    triggers: ['law', 'attorney', 'legal', 'case'],
+    text: 'Sample law firm client **Morales & Associates** (PI): 38 qualified intakes last month from organic, up 22% MoM. "Car accident lawyer miami" is now #2 (was #6). Average case value per qualified lead: $8,400. Biggest gap: you don\'t rank for "slip and fall lawyer coral gables" (4,100 monthly searches, all competitors are weak). Priority build: a pillar page + 3 supporting posts.',
+    sources: ['Search data', 'CRM pipeline'],
   },
 ];
 
@@ -1317,12 +1339,9 @@ export default function MarketingSitePage() {
             <div className="eyebrow" style={{ color: R }}>Inside KotoIQ</div>
             <h2 className="sec-h2" style={{
               fontSize: 56, fontWeight: 900, fontFamily: FH,
-              letterSpacing: '-.035em', color: INK, lineHeight: 1.1, marginBottom: 18,
+              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 18,
             }}>
-              <span style={{ display: 'block', fontSize: 56, fontWeight: 900, letterSpacing: '-.035em' }}>Not AI that generates.</span>
-              <span style={{ display: 'block', fontSize: 56, fontWeight: 900, letterSpacing: '-.035em' }}>
-                AI that <span style={{ color: R }}>investigates</span>.
-              </span>
+              Not AI that generates.<br />AI that <span style={{ color: R }}>investigates</span>.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
               KotoIQ is the search intelligence engine behind every Koto recommendation. It pulls live data
@@ -1747,6 +1766,9 @@ export default function MarketingSitePage() {
           </div>
         </div>
       </section>
+
+      {/* ══ SCOPE BAND — "Gone are the days of picking a tool..." ══ */}
+      <ScopeBand />
 
       {/* ══ CUSTOM-BUILD ══ */}
       <section id="custom" className="section" style={{ background: W, padding: '120px 40px 96px', borderTop: `1px solid ${HAIR}`, position: 'relative' }}>

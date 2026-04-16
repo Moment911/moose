@@ -13,6 +13,7 @@ import { R, T, BLK, GRN, AMB, W, FH, FB } from '../lib/theme'
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
+import ScopeBand from '../components/public/ScopeBand'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -186,6 +187,9 @@ export default function AIAgentsMarketingPage() {
           </div>
         </div>
       </section>
+
+      {/* SCOPE BAND — "Gone are the days..." */}
+      <ScopeBand />
 
       {/* PIPELINE */}
       <section className="m-pad" style={{ padding: '96px 40px' }}>

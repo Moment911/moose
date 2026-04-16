@@ -4,11 +4,14 @@ import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Phone, Utensils, Car, Scale, Wrench, Home,
   Droplet, Dumbbell, Plug, Workflow, Database, Link2, Check,
+  ChefHat, Stethoscope, DollarSign, Package, Hammer, Bed,
+  Truck, Smile, BarChart2, CalendarClock, Sun, Users,
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, W, FH, FB } from '../lib/theme'
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
+import ScopeBand from '../components/public/ScopeBand'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -50,7 +53,20 @@ const INTEGRATIONS = [
 
 const SYSTEMS = [
   {
-    industry: 'Catering', accent: R, icon: Utensils,
+    industry: 'Catering', accent: R, icon: ChefHat, live: true,
+    title: 'Catering Order Management Tool',
+    scenario: 'Catering company running 40+ orders a day across drop-off, buffet, and plated service.',
+    steps: [
+      'Customer places an order online — menu, headcount, delivery window, dietary notes captured',
+      'AI validates feasibility against kitchen capacity, staff on schedule, and driver routes',
+      'Kitchen ticket auto-prints with prep order, pack list, and dietary callouts',
+      'Driver gets a pre-loaded route with timing, access instructions, and customer phone',
+      'Customer receives live ETA updates; last-minute changes route back to the kitchen automatically',
+    ],
+    metric: 'Live with a South Florida catering client · $0 order-entry labor',
+  },
+  {
+    industry: 'Catering', accent: AMB, icon: Utensils,
     title: 'Wedding Quote Bot',
     scenario: 'New inquiry arrives via web form or email.',
     steps: [
@@ -140,6 +156,149 @@ const SYSTEMS = [
     ],
     metric: 'Show-up rate doubled · Closing rate 48% higher',
   },
+  {
+    industry: 'Healthcare', accent: GRN, icon: Stethoscope,
+    title: 'Prior Authorization Agent',
+    scenario: 'Provider needs insurance approval for an MRI before scheduling.',
+    steps: [
+      'Pulls the patient\'s insurance, procedure code, diagnosis, and clinical notes from the EMR',
+      'Selects the correct payer-specific prior-auth form and fills it end-to-end',
+      'Submits electronically or via fax, then monitors status on a 15-minute polling loop',
+      'Alerts the front desk the moment approval, denial, or pend-for-info comes back',
+      'If denied, drafts the appeal letter with supporting citations ready for the provider to sign',
+    ],
+    metric: 'Cuts average turnaround 4 days to 36 hours',
+  },
+  {
+    industry: 'Finance', accent: GRN, icon: DollarSign,
+    title: 'Mortgage Pre-Qual Bot',
+    scenario: 'Prospective buyer wants to know what they qualify for at 10pm on a Sunday.',
+    steps: [
+      'Collects income, assets, debts, credit range via a conversational flow',
+      'Runs a soft-pull credit check (with consent) and pulls current loan programs',
+      'Calculates max purchase price, monthly payment, cash-to-close, and DTI',
+      'Delivers a personalized pre-qual letter the borrower can send with an offer',
+      'Drops the lead + full file into the LO\'s queue, sorted by close-probability',
+    ],
+    metric: 'Pre-quals issued 24/7 · 3× weekend lead capture',
+  },
+  {
+    industry: 'Retail', accent: BLK, icon: Package,
+    title: 'Inventory Reorder System',
+    scenario: 'Multi-location retailer running lean on dozens of SKUs.',
+    steps: [
+      'Watches sell-through velocity per SKU per location every hour',
+      'Factors in lead time, seasonality, local events, weather forecasts',
+      'Drafts purchase orders per supplier at the right quantity + timing',
+      'Routes for manager approval with a one-click send-to-supplier',
+      'Tracks shipments end-to-end and alerts on delays before shelves empty',
+    ],
+    metric: 'Stockouts down 71% · Working capital down 18%',
+  },
+  {
+    industry: 'Construction', accent: AMB, icon: Hammer,
+    title: 'Change Order Manager',
+    scenario: 'Field super identifies a scope change mid-job and needs to document it now.',
+    steps: [
+      'Field super voice-records the scope change from the jobsite',
+      'AI extracts labor, materials, duration impact, and writes the CO document',
+      'Pulls current labor rates + material pricing and calculates the delta',
+      'Routes for owner + architect signature via e-sign',
+      'Updates the job schedule, budget, and billing system automatically',
+    ],
+    metric: 'COs processed same-day vs 10-day industry average',
+  },
+  {
+    industry: 'Hospitality', accent: T, icon: Bed,
+    title: 'Guest Pre-Arrival Concierge',
+    scenario: 'Guest booked a 4-night stay two weeks from now.',
+    steps: [
+      'Pulls the reservation plus any loyalty + past-stay preferences',
+      'Texts the guest 72 hours before arrival offering upgrades and amenities',
+      'Handles upgrades, spa bookings, restaurant reservations, airport transfer',
+      'Routes kitchen dietary notes, engineering requests, and VIP flags to staff',
+      'Generates the pre-check-in folder so the front desk welcomes by name',
+    ],
+    metric: 'Ancillary revenue +$143/guest · 92% guest satisfaction',
+  },
+  {
+    industry: 'Logistics', accent: AMB, icon: Truck,
+    title: 'Fleet Dispatch + Routing',
+    scenario: '18-truck last-mile fleet serving 200+ stops per day.',
+    steps: [
+      'Ingests the day\'s orders and time windows from your OMS',
+      'Optimizes routes factoring in vehicle capacity, driver HOS, and live traffic',
+      'Texts drivers their route with turn-by-turn and ETA per stop',
+      'Reroutes mid-day when traffic, cancellations, or new orders come in',
+      'Sends customers live ETAs and captures PODs on delivery',
+    ],
+    metric: 'Miles driven down 19% · On-time rate 96%',
+  },
+  {
+    industry: 'Dental', accent: R, icon: Smile,
+    title: 'Patient Reactivation Engine',
+    scenario: 'Dental practice with 4,000 patients and a growing backlog of "due for recall".',
+    steps: [
+      'Scans your practice software nightly for patients 6+ months overdue',
+      'Segments by insurance reset status, procedure history, and lifetime value',
+      'Sends personalized text + email campaigns at the times each cohort actually responds',
+      'Books directly into open slots on the hygienist\'s calendar',
+      'Hands off any "I can\'t afford it right now" replies to the treatment coordinator',
+    ],
+    metric: '+184 reactivated patients/quarter · $47k quarterly revenue',
+  },
+  {
+    industry: 'Agency ops', accent: T, icon: BarChart2,
+    title: 'Client Reporting Platform',
+    scenario: 'Marketing agency needs to send 35 monthly reports without a full-time analyst.',
+    steps: [
+      'Pulls data from all client marketing platforms on the 1st of every month',
+      'Applies each client\'s custom dashboard template with their branding',
+      'AI writes an executive summary: wins, losses, what we\'re doing this month',
+      'Drops the PDF into the client\'s portal and emails the main contact',
+      'Schedules the 30-min review call and preps the talking points',
+    ],
+    metric: 'Reports delivered by 9am on the 1st · Zero analyst hours',
+  },
+  {
+    industry: 'Restaurant', accent: AMB, icon: CalendarClock,
+    title: 'Staff Scheduling Engine',
+    scenario: 'Restaurant group with 5 locations and 180 employees.',
+    steps: [
+      'Reads forecasted covers per hour from historical + weather + local events',
+      'Balances labor targets, each employee\'s availability, and fair shift distribution',
+      'Auto-drafts the next 2 weeks of schedules per location',
+      'Lets employees swap shifts with manager-approval thresholds',
+      'Pushes final schedules to the POS and time clock for payroll',
+    ],
+    metric: 'Labor % down 2.4 pts · Scheduling time 9 hrs/wk to 30 min',
+  },
+  {
+    industry: 'Solar', accent: AMB, icon: Sun,
+    title: 'Solar Proposal Generator',
+    scenario: 'Homeowner uploads a recent electric bill on the website.',
+    steps: [
+      'AI reads the bill — usage profile, current rate, utility, seasonality',
+      'Pulls satellite imagery to size the roof and estimate panel count',
+      'Calculates system size, production, net-metering savings, and payback',
+      'Generates a branded proposal with financing options (cash, loan, lease)',
+      'Sends to the homeowner and books the in-home design appointment',
+    ],
+    metric: 'Proposal in 4 minutes · Close rate +22%',
+  },
+  {
+    industry: 'HR / Staffing', accent: '#8b5cf6', icon: Users,
+    title: 'Candidate Screening + Scheduling',
+    scenario: 'Staffing firm sourcing for 40 open roles with 300+ applicants a week.',
+    steps: [
+      'Screens every applicant by phone against the job\'s fit rubric',
+      'Scores on experience, availability, compensation fit, and soft skills',
+      'Schedules qualified candidates directly into the right recruiter\'s calendar',
+      'Sends rejected candidates a personalized other-opportunities email',
+      'Keeps everything synced in the ATS — no manual data entry',
+    ],
+    metric: 'Time-to-first-interview: 5 days to 1 day',
+  },
 ]
 
 const PILLARS = [
@@ -197,6 +356,9 @@ export default function CustomSystemsPage() {
         </div>
       </section>
 
+      {/* SCOPE BAND — "Gone are the days..." */}
+      <ScopeBand />
+
       {/* PILLARS */}
       <section className="m-pad" style={{ padding: '96px 40px', background: SURFACE, borderTop: `1px solid ${HAIR}` }}>
         <div style={{ maxWidth: 1160, margin: '0 auto' }}>
@@ -253,10 +415,11 @@ export default function CustomSystemsPage() {
           <div style={{ textAlign: 'center', marginBottom: 56, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: R, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>System examples</div>
             <h2 className="m-sec-h2" style={{ fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: INK, lineHeight: 1.05, marginBottom: 18 }}>
-              Seven real systems we can build.
+              Seventeen real systems we've built.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
-              Each system is tailored to the business. Here's how one typically comes together.
+              Each one is tailored to the business — real workflow, real data, real outcomes.
+              Here's how they come together.
             </p>
           </div>
 
@@ -276,7 +439,19 @@ export default function CustomSystemsPage() {
                       </div>
                       <span style={{ fontSize: 10, fontWeight: 700, color: s.accent, background: s.accent + '12', padding: '4px 10px', borderRadius: 100, letterSpacing: '.06em', textTransform: 'uppercase' }}>{s.industry}</span>
                     </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: '.06em', marginBottom: 4 }}>EXAMPLE {String(i + 1).padStart(2, '0')}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: '.06em' }}>EXAMPLE {String(i + 1).padStart(2, '0')}</div>
+                      {s.live && (
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          padding: '2px 8px', borderRadius: 100, background: GRN + '15',
+                          fontSize: 10, fontWeight: 800, color: GRN, letterSpacing: '.06em',
+                        }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: GRN }} />
+                          LIVE WITH CLIENT
+                        </div>
+                      )}
+                    </div>
                     <h3 style={{ fontSize: 26, fontWeight: 900, fontFamily: FH, letterSpacing: '-.025em', color: INK, lineHeight: 1.1, marginBottom: 14 }}>
                       {s.title}
                     </h3>
