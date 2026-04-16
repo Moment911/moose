@@ -556,10 +556,34 @@ const TRUST_BADGES = [
 const FOOTER_SOCIAL_ICONS = [Mail, Globe, MessageSquare];
 
 const FOOTER_COLUMNS = [
-  { title: 'Platform', links: ['AI Page Builder', 'Cold Call Agent', 'Answering Service', 'Review Management', 'Scout Leads', 'CMO Agent'] },
-  { title: 'Company', links: ['About', 'Blog', 'Careers', 'Press', 'Contact'] },
-  { title: 'Resources', links: ['Documentation', 'API', 'Case Studies', 'Webinars', 'Help Center'] },
-  { title: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'GDPR'] },
+  { title: 'Platform', links: [
+    { label: 'AI Page Builder', href: '#' },
+    { label: 'Cold Call Agent', href: '#' },
+    { label: 'Answering Service', href: '#' },
+    { label: 'Review Management', href: '#' },
+    { label: 'Scout Leads', href: '#' },
+    { label: 'CMO Agent', href: '#' },
+  ] },
+  { title: 'Company', links: [
+    { label: 'About', href: '#' },
+    { label: 'Blog', href: '#' },
+    { label: 'Careers', href: '#' },
+    { label: 'Press', href: '#' },
+    { label: 'Contact', href: '#contact' },
+  ] },
+  { title: 'Resources', links: [
+    { label: 'Documentation', href: '#' },
+    { label: 'API', href: '#' },
+    { label: 'Case Studies', href: '#' },
+    { label: 'Webinars', href: '#' },
+    { label: 'Help Center', href: '#' },
+  ] },
+  { title: 'Legal', links: [
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
+    { label: 'Cookie Policy', href: '/privacy#cookies' },
+    { label: 'CCPA', href: '/privacy#california' },
+  ] },
 ];
 
 const NAV_LINKS = ['platform', 'services', 'pricing', 'contact'];
@@ -1144,13 +1168,13 @@ export default function MarketingSitePage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {col.links.map(l => (
-                    <a key={l} href="#" style={{
+                    <a key={l.label} href={l.href} style={{
                       fontSize: 13, color: '#999999', textDecoration: 'none',
                       transition: 'color .2s',
                     }}
                       onMouseEnter={e => e.currentTarget.style.color = WHITE}
                       onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,.5)'}
-                    >{l}</a>
+                    >{l.label}</a>
                   ))}
                 </div>
               </div>
@@ -1162,8 +1186,14 @@ export default function MarketingSitePage() {
             borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 28,
             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
           }}>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,.25)' }}>
-              © 2026 Koto Technologies, Inc. All rights reserved. · hellokoto.com
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,.25)', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span>© 2026 Koto Technologies, Inc. All rights reserved. · hellokoto.com</span>
+              <a href="/privacy" style={{ color: 'rgba(255,255,255,.4)', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = WHITE}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,.4)'}>Privacy</a>
+              <a href="/terms" style={{ color: 'rgba(255,255,255,.4)', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = WHITE}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,.4)'}>Terms</a>
             </div>
             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', animation: 'pulse-red 2s ease-in-out infinite' }} />
