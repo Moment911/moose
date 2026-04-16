@@ -76,6 +76,10 @@ const BOTS = [
     scenarios: [
       { triggers: ['appointment', 'book', 'schedule', 'new patient', 'availability', 'open slot'],
         text: "Happy to help! Nearest new-patient openings: **Thursday Oct 16 · 9:30 AM** with Dr. Hartwell, **Friday Oct 17 · 2:15 PM** with Dr. Chen, or **Saturday Oct 18 · 10:00 AM** with Dr. Reyes. Visit includes cleaning, 4 bitewings, and a full exam (~60 min). Which works? I can also text you our next five openings." },
+      { triggers: ['next 5', 'next five', 'show more', 'more slot', 'more time', 'more opening', 'other option', 'other time', 'show me more', 'five opening', 'what else', 'keep going', 'any other', 'more available'],
+        text: "Sure — next 5 new-patient openings after those: **Mon Oct 20 · 11:15 AM** (Dr. Hartwell), **Tue Oct 21 · 4:30 PM** (Dr. Chen), **Wed Oct 22 · 8:00 AM** (Dr. Reyes), **Thu Oct 23 · 3:45 PM** (Dr. Hartwell), **Fri Oct 24 · 10:30 AM** (Dr. Chen). Want any of these, or should I look further out?" },
+      { triggers: ['evening', 'after work', 'after 5', 'late', '6pm', '7pm'],
+        text: "Evening slots reserved for working professionals: **Tue Oct 21 · 5:30 PM** (Dr. Chen), **Wed Oct 22 · 6:00 PM** (Dr. Reyes), **Thu Oct 23 · 5:45 PM** (Dr. Hartwell). We close at 6 PM Mon–Thu and 4 PM Fri. Which works?" },
       { triggers: ['thursday', '9:30', 'morning', 'thurs', 'oct 16'],
         text: "Great — locking in **Thursday Oct 16 at 9:30 AM with Dr. Hartwell**. To confirm I'll need: name, cell phone, DOB, and your insurance card (photo is fine). You'll get a text with our address, parking validation, and the new-patient forms to fill out before you arrive. Want me to text the forms now?" },
       { triggers: ['friday', '2:15', 'afternoon', 'oct 17'],
@@ -153,6 +157,8 @@ const BOTS = [
     scenarios: [
       { triggers: ['3 bed', '3br', 'three bedroom', 'waterfront', 'under 2', 'under $2'],
         text: "Six active matches under $2M: **1) 9821 E Bay Harbor Dr** — 3/3 townhouse, dock, $1.875M. **2) 1020 Cleveland Rd** — 3/2.5 canal-front, $1.695M. **3) 1150 93rd St** — 3/3 updated, no water, $1.495M. **4) 780 95th St** — 3/2 w/ pool, $1.799M. **5) 9340 Biscayne Rd** — 3/3 w/ boat slip, $1.990M. **6) 1227 Broadview Dr** — 3/2 fixer, $1.395M. Want to see any of them?" },
+      { triggers: ['more listing', 'more option', 'show more', 'other listing', 'what else', 'keep going', 'more homes', 'next listing'],
+        text: "Six more I can show: **7) 1033 Cleveland Rd** — 3/3 updated canal-front, $1.895M. **8) 10211 W Bay Harbor Dr** — 3/3 penthouse condo w/ dock, $1.795M. **9) 9825 Biscayne Ln** — 3/2 cottage, $1.395M. **10) 780 96th St** — 3/2.5 flip, $1.580M. **11) 1155 93rd St** — 3/3 new-build option, $1.985M. **12) 1201 Stillwater Dr** — 3/2 pool + tennis, $1.695M. Want the packets on any of these?" },
       { triggers: ['4 bed', '4br', 'four bedroom', 'large family'],
         text: "Four 4-bedroom options currently: **1) 10121 W Broadview Dr** — 4/3.5, pool, no dock, $2.850M. **2) 1255 Stillwater Dr** — 4/4 new build, $4.490M. **3) 880 99th St** — 4/3 updated kitchen, $2.150M. **4) 10250 E Broadview Dr** — 4/4 w/ dock, $3.895M. Want the listing packets with floor plans?" },
       { triggers: ['2 bed', '2br', 'two bedroom', 'condo', 'small', 'first home'],
@@ -224,6 +230,8 @@ const BOTS = [
     scenarios: [
       { triggers: ['reservation', 'reserve', 'book', 'table', 'tonight'],
         text: "Tonight (Thursday Oct 16) for 4: **5:45 PM on the patio**, **7:15 PM main room**, or **9:00 PM chef's counter** (counter max 4). Which works? I'll text a confirmation and hold the table for **15 minutes past start**." },
+      { triggers: ['more time', 'other time', 'different time', 'show more', 'what else time', 'more slot', 'another slot', 'what else avail'],
+        text: "Few more tonight: **6:30 PM bar seat** (first-come, 2-top), **8:15 PM main room** (4-top), **8:45 PM patio** (weather-dependent). Tomorrow (Fri) for 4: **6:00 PM patio**, **7:45 PM main**, **9:30 PM counter**. Saturday has a standby list. Which one?" },
       { triggers: ['saturday', 'sat night', 'weekend'],
         text: "Saturday books fast. Tonight's a wait for 4 top: **5:15 PM or 9:30 PM main room** are open, both on the first-come list. Chef's counter Saturday **8:00 PM** opening. Patio: weather-dependent, opens 5 days out — I can add you to the standby list." },
       { triggers: ['friday', 'fri'],
@@ -295,6 +303,8 @@ const BOTS = [
     scenarios: [
       { triggers: ['bmw', 'x5', 'x3', 'm3', 'm5', '5 series', '3 series'],
         text: "Current **BMW** inventory: **2022 X5 xDrive40i** (28k mi, Alpine White, $48,900), **2021 X5 M50i** (34k mi, Black Sapphire, $59,400), **2023 X5 xDrive40i CPO** (12k mi, Arctic Gray, $61,900), **2021 X3 M40i** (19k mi, Phytonic Blue, $46,500), **2022 330i** (21k mi, Alpine White, $35,800), **2020 M5** Competition (29k mi, Marina Bay Blue, $79,900). All have clean CarFax. Test drive?" },
+      { triggers: ['more inventory', 'more car', 'what else', 'show more', 'other car', 'other vehicle', 'more option', 'keep going'],
+        text: "Also in stock across other brands — say the word and I'll list them: **Mercedes** (C/E/S/GLE/GLC — 5 units), **Tesla** (Model 3/Y/S — 5 units), **Honda** (Accord/Civic/CR-V/Pilot — 4), **Toyota** (Camry/RAV4/Tacoma/4Runner/Highlander — 5), **trucks** (F-150/F-250/Silverado/Ram — 4). Which brand or body style do you want to see?" },
       { triggers: ['tesla', 'model 3', 'model y', 'model s', 'model x', 'electric', 'ev'],
         text: "**Tesla** stock: **2022 Model 3 LR AWD** (22k mi, White, $34,900), **2023 Model 3 Performance** (14k mi, Red, $41,500), **2022 Model Y LR** (Pearl White, 31k mi, $38,200), **2021 Model S Plaid** (18k mi, Black, $74,900), **2023 Model Y Performance** (9k mi, Stealth Gray, $48,500). All include remaining factory warranty. Test drives include a full charge + 45 min on I-95." },
       { triggers: ['mercedes', 'mb', 'benz', 'c-class', 'e-class', 's-class', 'gle'],
@@ -491,6 +501,24 @@ const BOTS = [
 
 const FALLBACK_TEXT = "I'm in **demo mode** with sample data for this industry. Try asking me about the topics in the chips above — or type something like \"book an appointment\", \"what's the price\", or \"I need help with X\". This demo is sandboxed so I'm not connecting to any real systems."
 
+/* Simple Levenshtein distance — used for 1-typo tolerance on scenario triggers */
+function levenshtein(a, b) {
+  if (a === b) return 0
+  if (!a.length) return b.length
+  if (!b.length) return a.length
+  let prev = new Array(b.length + 1)
+  for (let j = 0; j <= b.length; j++) prev[j] = j
+  for (let i = 1; i <= a.length; i++) {
+    const curr = [i]
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1
+      curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost)
+    }
+    prev = curr
+  }
+  return prev[b.length]
+}
+
 function renderBold(text) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g)
   return parts.map((p, i) =>
@@ -519,9 +547,9 @@ function BotDemo({ bot }) {
 
   function match(q) {
     const lower = q.toLowerCase().trim()
-    // 1. Exact-match conversational replies first ("no", "yes", "maybe", "none", etc.)
-    //    Matched against the trimmed input so "no." and "no!" also hit.
-    const normalized = lower.replace(/[.!?]+$/, '')
+    const normalized = lower.replace(/[.!?,]+$/, '')
+
+    // 1. Exact-match conversational replies first ("no", "yes", "maybe", "none")
     for (const s of (bot.conversational || [])) {
       if (s.triggers.some(t => normalized === t)) return s.text
     }
@@ -529,7 +557,21 @@ function BotDemo({ bot }) {
     for (const s of bot.scenarios) {
       if (s.triggers.some(t => lower.includes(t))) return s.text
     }
-    // 3. Bot-specific helpful fallback (if defined) instead of the generic demo line
+    // 3. Fuzzy match for single-word typos (e.g. "cleaming" -> "cleaning")
+    //    Tokenize input + compare each word against triggers of length >= 5
+    //    at edit distance <= 1.
+    const words = lower.match(/[a-z]+/g) || []
+    for (const s of bot.scenarios) {
+      for (const trigger of s.triggers) {
+        if (trigger.includes(' ') || trigger.length < 5) continue
+        for (const w of words) {
+          if (w.length >= 4 && Math.abs(w.length - trigger.length) <= 2 && levenshtein(w, trigger) <= 1) {
+            return s.text
+          }
+        }
+      }
+    }
+    // 4. Bot-specific helpful fallback
     return bot.fallback || FALLBACK_TEXT
   }
 
