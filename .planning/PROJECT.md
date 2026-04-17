@@ -30,25 +30,87 @@ Agencies run every layer of a client engagement — onboarding, discovery, propo
 - ✓ Agency-scoped data isolation enforced on all client queries — existing
 - ✓ VerifiedDataSource standard for all real-world data (source_url + fetched_at) — existing
 
+**KotoIQ semantic + content generation layer (~7,700 lines shipped — already in production):**
+
+- ✓ Scout query parser (search term → structured SEO query) — `src/lib/scoutQueryParser.ts`
+- ✓ Strategy engine (turns client situation into SEO plan) — `src/lib/strategyEngine.ts`
+- ✓ Semantic agents Tier 1 (Query Gap Analyzer, Frame Semantics, Semantic Role Labeler, Named Entity Suggester) — `src/lib/semanticAgents.ts`
+- ✓ Semantic agents Tier 2 + Tier 3 — `src/lib/semanticAgentsTier2.ts`, `semanticAgentsTier3.ts`
+- ✓ Semantic site analyzer (N-grams, headings, contextual flow, orphan contexts, thin-content detection) — `src/lib/semanticAnalyzer.ts`
+- ✓ Semantic post-processors (output refinement) — `src/lib/semanticPostProcessors.ts`
+- ✓ Hyperlocal content engine (rank-grid weak points → neighborhood clusters → auto-briefs + LocalBusiness schema) — `src/lib/hyperlocalContentEngine.ts`
+- ✓ Topical map engine — `src/lib/topicalMapEngine.ts`
+- ✓ E-E-A-T engine — `src/lib/eeatEngine.ts`
+- ✓ Query path engine — `src/lib/queryPathEngine.ts`
+- ✓ Knowledge graph exporter — `src/lib/knowledgeGraphExporter.ts`
+- ✓ Content calendar engine — `src/lib/contentCalendarEngine.ts`
+- ✓ Content refresh engine (decay detection + refresh) — `src/lib/contentRefreshEngine.ts`
+- ✓ AI visibility engine (AI/LLM visibility tracking scaffold) — `src/lib/aiVisibilityEngine.ts`
+- ✓ Plagiarism engine — `src/lib/plagiarismEngine.ts`
+- ✓ Autonomous pipeline (orchestrates multi-engine runs) — `src/lib/autonomousPipeline.ts`
+- ✓ Multi-AI blender (blends 3 AIs for output quality) — `src/lib/multiAiBlender.ts`
+- ✓ Dynamic prompt builder — `src/lib/dynamicPromptBuilder.ts`
+- ✓ Rank grid pro engine — `src/lib/rankGridProEngine.ts`
+- ✓ Competitor watch engine — `src/lib/competitorWatchEngine.ts`
+- ✓ Backlink + backlink opportunity engines — `src/lib/backlinkEngine.ts`, `backlinkOpportunityEngine.ts`
+- ✓ Brand SERP engine — `src/lib/brandSerpEngine.ts`
+- ✓ GSC audit engine, Bing audit engine, on-page engine — `src/lib/{gscAuditEngine,bingAuditEngine,onPageEngine}.ts`
+- ✓ Internal link engine — `src/lib/internalLinkEngine.ts`
+- ✓ GMB image engine — `src/lib/gmbImageEngine.ts`
+- ✓ Visitor intent scorer — `src/lib/visitorIntentScorer.ts`
+- ✓ Industry benchmark + industry LLM engines — `src/lib/{industryBenchmarkEngine,industryLLMEngine}.ts`
+- ✓ KotoIQ unified API route (`/api/kotoiq`) with 35 tabs already wired — `src/app/api/kotoiq/route.ts`, `src/components/kotoiq/*Tab.jsx`
+- ✓ Conversational Ask KotoIQ bot — `src/components/kotoiq/ConversationalBot.jsx`, `src/lib/askKotoIQEngine.ts`
+
 ### Active
 
-<!-- Current milestone v1.0 scope: KotoIQ M1 — Elementor Template-Clone Publisher. -->
+<!-- Current milestone v1.0 scope: KotoIQ M1 — Elementor Template-Clone Publisher + Closed-Loop Attribution.
 
-**Milestone v1.0 — KotoIQ M1: Elementor Template-Clone Publisher**
+IMPORTANT: The semantic + content generation layer already exists and is shipped. M1 is NOT rebuilding that — M1 is the **adapter + closed-loop layer** that bridges existing engine output into native Elementor publishing and wires attribution. -->
 
+**Milestone v1.0 — KotoIQ M1: Elementor Template-Clone Publisher + Closed-Loop Attribution**
+
+*Goal: Wire the existing semantic/content engines into a native Elementor publish + rescan + attribute loop on momentamktg.com.*
+
+**Native Elementor integration (new):**
 - [ ] WP plugin read endpoints (detect builder version, list pages, get page `_elementor_data`, scan theme tokens)
 - [ ] Koto-side API proxy for builder endpoints (extend `/api/wp` pattern)
-- [ ] Elementor v4 atomic widget schema registry (built from live captured JSON, versioned)
-- [ ] Template slot detector (identify wildcards in user-designed master template)
-- [ ] Template clone + slot-fill pipeline (N variants from 1 template)
-- [ ] WP plugin write endpoint (put `_elementor_data` back, trigger Elementor CSS regeneration)
-- [ ] AI generator for slot variants (Claude Sonnet, schema-constrained, logs to `koto_token_usage`)
-- [ ] Per-page Core Web Vitals monitoring (LCP/CLS/INP per published page)
-- [ ] IndexNow + Google Indexing API proactive submission on publish
-- [ ] Telnyx call-attribution per published page (close revenue loop from day one)
-- [ ] KotoIQ UI shell consolidating `/wordpress` + `/seo` + `/kotoiq` surfaces
-- [ ] Publish cadence controls (scheduled vs. burst)
-- [ ] Pilot: 20 real ranking local-SEO pages live on momentamktg.com
+- [ ] Elementor v4 atomic widget schema registry (built from live captured JSON from momentamktg.com, versioned per site)
+- [ ] WP plugin write endpoint (invoke Elementor's own `Document::save()` via PHP adapter — do NOT write `_elementor_data` directly per research pitfall)
+- [ ] Master template ingest (read one hand-designed Elementor page → store as master template in Supabase)
+- [ ] Template slot detector (identify variable fields in master template)
+
+**Engine → publish adapter (new — bridges existing engines):**
+- [ ] Brief-to-Elementor-tree serializer — takes output from `hyperlocalContentEngine` / `semanticAgents` and produces valid Elementor v4 atomic-widget JSON per template slot map
+- [ ] Template clone + slot-fill pipeline (N variants from 1 master template using existing engine briefs)
+- [ ] Pre-flight gate (require unique local data + populated slots + valid schema before publish — anti-deindex defense)
+- [ ] Durable publish orchestration via Vercel Workflow DevKit (batch publish, cadence, retries)
+- [ ] Publish cadence controls (scheduled drip vs. burst, conservative default ~10/day)
+
+**Closed-loop attribution + measurement (new):**
+- [ ] Per-page Core Web Vitals monitoring (CrUX API + `web-vitals` RUM library, separate lab vs field data)
+- [ ] IndexNow proactive submission on publish (Bing/Yandex/Naver/Seznam — Google Indexing API dropped per research: restricted to JobPosting/BroadcastEvent)
+- [ ] GSC sitemap ping for Google indexing
+- [ ] Telnyx per-page call attribution (per-page unique number for pilot ≤30 pages; DNI pool upgrade path)
+- [ ] Per-page KPI rollup (rank + clicks + CWV + calls + revenue joined on `page_id`)
+
+**Feedback loop (new — wires existing `contentRefreshEngine` to published pages):**
+- [ ] Weekly rescan of published pages → feed results into existing `contentRefreshEngine.ts`
+- [ ] Decay-triggered re-publish via same adapter (Claude proposes slot edits → operator approves → publish)
+
+**UI consolidation + orchestration (new):**
+- [ ] KotoIQ unified shell consolidating `/wordpress` + `/seo` + existing KotoIQ tabs into one command center
+- [ ] Publish queue dashboard (pending / publishing / live / failed per campaign)
+- [ ] Per-page detail view (KPIs, attribution, refresh history, "stop" and "unpublish" controls)
+
+**Foundations (do first — research Phase 1):**
+- [ ] Agency-isolation audit + `getAgencyScopedSupabaseClient()` helper + ESLint rule before any new table ships
+- [ ] New tables: `kotoiq_templates`, `kotoiq_slot_maps`, `kotoiq_campaigns`, `kotoiq_published_pages`, `kotoiq_page_vitals`, `kotoiq_page_crux`, `kotoiq_indexnow_submissions`, `kotoiq_elementor_schema_versions`, `kotoiq_page_call_attribution` — all carry `agency_id` + `client_id`
+- [ ] Idempotency keys on every plugin command and Workflow step
+
+**Pilot:**
+- [ ] 20 real hyperlocal landing pages published and live on momentamktg.com
+- [ ] Each page generated from existing `hyperlocalContentEngine` output, published as native Elementor, indexed, attributed
 
 ### Out of Scope
 
@@ -71,11 +133,11 @@ Agencies run every layer of a client engagement — onboarding, discovery, propo
 **Elementor v4.0.2 on the pilot.** Momentamktg.com runs Elementor + Elementor Pro 4.0.2, the brand-new atomic-widget architecture (`e-heading`, `e-button`, `e-div-block`, `e-flexbox`, CSS-class design system). LLM training data on v4 is thin — adapters must be built against live captured JSON, not documentation.
 
 **Three stacked loops drive the product vision:**
-1. Intel loop — ingest GSC/GBP/keywords/competitors/backlinks → ranked page backlog
-2. Publish loop — fingerprint site → generate theme-matching pages → schedule + push
-3. Tune loop — rescan → decay detection → Claude auto-refresh → re-publish
+1. Intel loop — ingest GSC/GBP/keywords/competitors/backlinks → ranked page backlog (**mostly shipped**: rank grid pro, competitor watch, backlinks, GSC/Bing audit, brand SERP, AI visibility engines all exist)
+2. Publish loop — fingerprint site → generate theme-matching pages → schedule + push (**partially shipped**: content generation engines exist — hyperlocal, semantic tiers 1-3, topical map, E-E-A-T, query path. **Missing**: native builder write-back, durable publish orchestration, cadence)
+3. Tune loop — rescan → decay detection → Claude auto-refresh → re-publish (**partially shipped**: `contentRefreshEngine.ts` exists. **Missing**: scheduled rescan of published pages, attribution feedback loop, auto re-publish via same adapter)
 
-M1 builds the spine of the publish loop. M2 wires the tune loop. M3 delivers KotoSEO Engine. M4 expands intel. M5 ships moat features.
+**M1's actual contribution is the adapter layer that wires existing engines into native Elementor publishing + closed-loop attribution.** The heavy-lifting content generation is already done (~7,700 lines shipped). M1 ships the bridge: engine output → Elementor v4 atomic-widget JSON → WP plugin write → IndexNow → CWV + call attribution → decay rescan. M2 wires the tune loop more deeply. M3 delivers KotoSEO Engine. M4 expands intel (AI Overview citation tracking is the big new piece). M5 ships moat features.
 
 **Google scaled-content-abuse policy is a product constraint.** Mass-publishing similar pages = deindex risk. Every generated page must carry unique local data, substantive content, real images, and perfect schema — defused by construction (not post-hoc audit).
 
@@ -101,6 +163,10 @@ M1 builds the spine of the publish loop. M2 wires the tune loop. M3 delivers Kot
 | CWV + IndexNow + Telnyx attribution baked in from M1 (not deferred) | These are table stakes for "closed loop" — deferring them makes M1 a ship-and-forget tool, which is exactly what we're differentiating against. | — Pending |
 | Rank Math clone (KotoSEO Engine) is M3, not M1 | Strategic moat but a dependency for quality at scale. M1 must prove template-clone works first; without that, KotoSEO has nothing to gate on. | — Pending |
 | Drop: Watermark Remover, standalone Plagiarism builder, Upwork Tool, standalone Brand SERP | None directly drive the closed-loop thesis. Cutting prevents scope drift. | — Pending |
+| M1 is the adapter + closed-loop layer, NOT rebuilding content generation | ~7,700 lines of semantic/content engines already ship in production (`semanticAgents`, `hyperlocalContentEngine`, `autonomousPipeline`, etc.). Re-implementing them would be wasted work. M1 only builds what doesn't exist: native Elementor write, publish orchestration, IndexNow, CWV, per-page attribution, rescan loop, unified shell. | — Pending |
+| Do NOT write `_elementor_data` postmeta directly — invoke Elementor's own `Document::save()` via PHP adapter | Research surfaced GitHub #32632/#33000/#35397 atomic-widget save bugs in v4 when bypassing the official save path. Direct writes cause CSS regen + revision + version-pinning issues. Safer to call into Elementor's save API from inside the WP plugin. | — Pending |
+| Drop Google Indexing API; use IndexNow + GSC sitemap ping only | Google's Indexing API is officially restricted to JobPosting + BroadcastEvent schemas and carries a spam warning for misuse. Using it for Service / LocalBusiness pages risks account revocation. IndexNow covers Bing/Yandex/Naver/Seznam; Google gets sitemap + GSC deep-link signals. | — Pending |
+| Use Vercel Workflow DevKit for durable publish orchestration | GA'd early 2026. Durable sleep + deterministic replay fit the publish → wait → CWV read → decay rescan loop exactly. `koto_wp_commands` queue stays as plugin-call audit log (unchanged — 131 routes depend on it); Workflow sits above it for multi-step orchestration. | — Pending |
 
 ## Evolution
 
@@ -120,4 +186,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-17 after initialization*
+*Last updated: 2026-04-17 after initialization — corrected scope to reflect ~7,700 lines of shipped semantic/content engines; M1 re-framed as adapter + closed-loop layer, not content-generation rebuild*
