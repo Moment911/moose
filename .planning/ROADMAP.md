@@ -122,4 +122,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Engine to Publish Adapter + Pre-Flight Gate | 3/3 | Code complete | - |
 | 4. Durable Publish Orchestration | 4/4 | Code complete | - |
 | 5. Closed-Loop Attribution (CWV + IndexNow + Telnyx) | 6/6 | Code complete | - |
-| 6. Feedback Loop + Unified Shell + Pilot | 0/TBD | Not started | - |
+| 6. Feedback Loop + Unified Shell + Pilot | 7/7 | Code complete (pilot pending) | - |
