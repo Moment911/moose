@@ -690,6 +690,22 @@ export default function PublicReviewPage() {
         <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100"
           style={{ padding: 24, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
           onMouseDown={() => { if (activeBubble) closeBubble() }}>
+          {/* Hidden preloader for images — mounts off-screen so the browser
+              downloads the file and fires onLoad, populating imgDims. The
+              main canvas below is gated on contentWidth > 0 for layout
+              sanity, so without this preloader an image's canvas would
+              never render (chicken-and-egg: dims require load, load
+              requires mount, mount requires dims). */}
+          {isImage && contentWidth === 0 && file?.url && (
+            <img src={file.url} alt="" aria-hidden
+              onLoad={(e) => setImgDims({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })}
+              style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+              draggable={false}
+            />
+          )}
+          {isImage && contentWidth === 0 && (
+            <div style={{ color: '#9ca3af', fontSize: 14, padding: 24 }}>Loading preview…</div>
+          )}
           {/* Outer wrapper reserves post-zoom scroll space. Sized to
               contentWidth * zoom so the scroll viewport shows exactly
               the visible area, no more, no less. flexShrink: 0 prevents
