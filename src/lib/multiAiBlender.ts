@@ -19,12 +19,12 @@ import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { logTokenUsage } from '@/lib/tokenTracker'
 
-const CLAUDE_ARM_MODEL = 'claude-sonnet-4-20250514'
+const CLAUDE_ARM_MODEL = 'claude-sonnet-4-6-20250627'
 const OPENAI_ARM_MODEL = 'gpt-4o'
-const GEMINI_ARM_MODEL = 'gemini-1.5-pro-latest'
-const SYNTHESIS_MODEL  = 'claude-opus-4-20250514'
+const GEMINI_ARM_MODEL = 'gemini-2.0-flash'
+const SYNTHESIS_MODEL  = 'claude-sonnet-4-6-20250627'
 
-const PROVIDER_TIMEOUT_MS  = 25_000
+const PROVIDER_TIMEOUT_MS  = 45_000
 const SYNTHESIS_TIMEOUT_MS = 15_000
 const DEFAULT_MAX_TOKENS   = 4_096
 
@@ -153,7 +153,7 @@ async function callGemini(input: BlendInput): Promise<ProviderOutput> {
     contents: [{ role: 'user', parts: [{ text: input.userPrompt }] }],
     generationConfig: { maxOutputTokens: input.maxTokens || DEFAULT_MAX_TOKENS },
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_ARM_MODEL}:generateContent?key=${key}`
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_ARM_MODEL}:generateContent?key=${encodeURIComponent(key)}`
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -170,7 +170,7 @@ async function callGemini(input: BlendInput): Promise<ProviderOutput> {
   const outTok = data.usageMetadata?.candidatesTokenCount || 0
   void logTokenUsage({
     feature: input.feature,
-    model: 'gemini-1.5-pro',
+    model: 'gemini-2.0-flash',
     inputTokens: inTok,
     outputTokens: outTok,
     agencyId: input.agencyId,
