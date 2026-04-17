@@ -148,6 +148,20 @@ export async function POST(req: NextRequest) {
     else q = q.eq('phone_number', phone_number)
     const { data: row } = await q.maybeSingle()
 
+    // If this number was imported into Retell as a BYOC inbound number,
+    // delete that Retell import first so Retell stops trying to route calls.
+    const retellPhoneId = (row as any)?.retell_phone_number_id
+    if (retellPhoneId) {
+      try {
+        await fetch(`https://api.retellai.com/delete-phone-number/${retellPhoneId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${process.env.RETELL_API_KEY || ''}` },
+        })
+      } catch (e: any) {
+        console.error('[telnyx/release] Retell BYOC cleanup failed (continuing):', e?.message)
+      }
+    }
+
     const telnyxPhoneId = row?.telnyx_phone_id
     if (telnyxPhoneId) {
       try {
@@ -194,6 +208,110 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   }
 
+  // ── Use this Telnyx number as the agent's inbound call number (BYOC) ──
+  // Calls Retell /create-phone-number with inbound_phone_number so calls to
+  // this Telnyx number route to the Retell AI agent. Requires a Telnyx SIP
+  // trunk already pointing at sip.retellai.com — otherwise Retell will
+  // return an error which we surface verbatim to the UI.
+  if (action === 'use_for_calls') {
+    const { id, agent_id, release_old_retell_number = true } = body
+    if (!id || !agent_id) return NextResponse.json({ error: 'id and agent_id required' }, { status: 400 })
+
+    const { data: row } = await sb().from('koto_telnyx_numbers').select('*').eq('id', id).maybeSingle()
+    if (!row) return NextResponse.json({ error: 'telnyx_number_not_found' }, { status: 404 })
+
+    const { data: agent } = await sb().from('koto_inbound_agents').select('id, retell_agent_id, phone_number, telnyx_number_id').eq('id', agent_id).maybeSingle()
+    if (!agent?.retell_agent_id) return NextResponse.json({ error: 'agent has no retell_agent_id' }, { status: 400 })
+
+    const retellKey = process.env.RETELL_API_KEY || ''
+    if (!retellKey) return NextResponse.json({ error: 'RETELL_API_KEY not configured' }, { status: 500 })
+
+    // Step 1: Import the Telnyx number into Retell as an inbound BYOC number
+    // attached to this agent. If Telnyx SIP trunk isn't set up pointing at
+    // sip.retellai.com, Retell rejects this call and we return the error as-is.
+    let retellImport: any
+    try {
+      const res = await fetch('https://api.retellai.com/create-phone-number', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${retellKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone_number: row.phone_number,
+          inbound_agent_id: agent.retell_agent_id,
+          nickname: row.nickname || undefined,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        return NextResponse.json({
+          error: data.message || `Retell import failed (${res.status})`,
+          hint: 'Telnyx SIP trunk must point at sip.retellai.com before this works. See Telnyx Mission Control → Voice → SIP Connections.',
+        }, { status: 500 })
+      }
+      retellImport = data
+    } catch (e: any) {
+      return NextResponse.json({ error: e?.message || 'retell import failed' }, { status: 500 })
+    }
+
+    // Step 2: Release the agent's previous Retell-provisioned Twilio number to
+    // stop double-billing. Only runs if the old number is different from the
+    // Telnyx number we just wired in.
+    if (release_old_retell_number && agent.phone_number && agent.phone_number !== row.phone_number) {
+      try {
+        const { data: oldPhone } = await sb()
+          .from('koto_inbound_phone_numbers')
+          .select('id, retell_number_id, retell_phone_number_id')
+          .eq('phone_number', agent.phone_number)
+          .maybeSingle()
+        const retellPhoneId = oldPhone?.retell_number_id || (oldPhone as any)?.retell_phone_number_id
+        if (retellPhoneId) {
+          try {
+            await fetch(`https://api.retellai.com/delete-phone-number/${retellPhoneId}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${retellKey}` },
+            })
+          } catch {}
+          if (oldPhone?.id) await sb().from('koto_inbound_phone_numbers').delete().eq('id', oldPhone.id)
+        }
+      } catch (e: any) {
+        console.error('[telnyx/use_for_calls] old number cleanup failed (non-fatal):', e?.message)
+      }
+    }
+
+    // Step 3: Mark the Telnyx row as now also handling inbound calls + update agent.
+    await sb().from('koto_telnyx_numbers').update({
+      agent_id,
+      byoc_enabled: true,
+      retell_phone_number_id: retellImport?.phone_number_id || null,
+    }).eq('id', id)
+    await sb().from('koto_inbound_agents').update({
+      phone_number: row.phone_number,
+      telnyx_number_id: row.telnyx_phone_id,
+    }).eq('id', agent_id)
+
+    return NextResponse.json({ success: true, phone_number: row.phone_number, retell_phone_id: retellImport?.phone_number_id })
+  }
+
+  // ── Stop using this Telnyx number for inbound calls (keep SMS only) ──
+  if (action === 'stop_for_calls') {
+    const { id } = body
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    const { data: row } = await sb().from('koto_telnyx_numbers').select('*').eq('id', id).maybeSingle()
+    if (!row) return NextResponse.json({ error: 'not_found' }, { status: 404 })
+    const retellKey = process.env.RETELL_API_KEY || ''
+    if ((row as any).retell_phone_number_id && retellKey) {
+      try {
+        await fetch(`https://api.retellai.com/delete-phone-number/${(row as any).retell_phone_number_id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${retellKey}` },
+        })
+      } catch (e: any) {
+        console.error('[telnyx/stop_for_calls] Retell delete failed (continuing):', e?.message)
+      }
+    }
+    await sb().from('koto_telnyx_numbers').update({ byoc_enabled: false, retell_phone_number_id: null }).eq('id', id)
+    return NextResponse.json({ success: true })
+  }
+
   return NextResponse.json({ error: 'unknown_action' }, { status: 400 })
 }
 
@@ -210,6 +328,17 @@ export async function DELETE(req: NextRequest) {
   else if (phone_number) q = q.eq('phone_number', phone_number)
   const { data: row } = await q.maybeSingle()
 
+  const retellPhoneId = (row as any)?.retell_phone_number_id
+  if (retellPhoneId) {
+    try {
+      await fetch(`https://api.retellai.com/delete-phone-number/${retellPhoneId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${process.env.RETELL_API_KEY || ''}` },
+      })
+    } catch (e: any) {
+      console.error('[telnyx/DELETE] Retell BYOC cleanup failed (continuing):', e?.message)
+    }
+  }
   if (row?.telnyx_phone_id) {
     try { await telnyxFetch(`/phone_numbers/${row.telnyx_phone_id}`, 'DELETE') } catch (e: any) {
       console.error('[telnyx/DELETE] release failed (continuing):', e?.message)

@@ -1784,6 +1784,31 @@ function TelnyxNumbersCard({ agent, agencyId, onAssignment }) {
     } catch { toast.error('Assign failed') }
   }
 
+  async function enableBYOC(n) {
+    const ok = confirm(`Route inbound calls for this agent to ${n.phone_number}?\n\nPrerequisites:\n• In Telnyx Mission Control → Voice → SIP Connections, create a connection pointing at sip.retellai.com\n• Attach this number to that SIP connection\n\nThis will also release the agent's current Retell-provisioned number to stop double-billing.`)
+    if (!ok) return
+    try {
+      const res = await fetch('/api/telnyx/numbers', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'use_for_calls', id: n.id, agent_id: agent.id })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { toast.success('BYOC enabled — calls now route here'); refresh(); onAssignment?.(n) }
+      else toast.error(`${d.error}${d.hint ? ` · ${d.hint}` : ''}`, { duration: 8000 })
+    } catch { toast.error('BYOC enable failed') }
+  }
+
+  async function disableBYOC(n) {
+    if (!confirm('Stop routing inbound calls to this Telnyx number? The agent will need a separate Retell-provisioned number to receive calls. SMS stays on.')) return
+    try {
+      const res = await fetch('/api/telnyx/numbers', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'stop_for_calls', id: n.id })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { toast.success('BYOC disabled'); refresh() }
+      else toast.error(d.error||'Disable failed')
+    } catch { toast.error('Disable failed') }
+  }
+
   const ownAgency = numbers.filter(n => !n.agent_id || n.agent_id === agent.id)
   const ownAgent = numbers.filter(n => n.agent_id === agent.id)
   const others = numbers.filter(n => n.agent_id && n.agent_id !== agent.id)
@@ -1827,10 +1852,21 @@ function TelnyxNumbersCard({ agent, agencyId, onAssignment }) {
         <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
           {ownAgent.length > 0 && <div style={{ fontSize:11, color:'#6b7280', fontWeight:700, textTransform:'uppercase' }}>Attached to this agent</div>}
           {ownAgent.map(n => (
-            <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', background:'rgba(22,163,74,.05)', borderRadius:8, border:'1px solid rgba(22,163,74,.2)' }}>
+            <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', background:'rgba(22,163,74,.05)', borderRadius:8, border:'1px solid rgba(22,163,74,.2)', flexWrap:'wrap' }}>
               <span style={{ fontFamily:'ui-monospace,Menlo,monospace', fontSize:13, flex:1, fontWeight:600 }}>{n.phone_number}</span>
               {n.nickname && <span style={{ fontSize:11, color:'#6b7280' }}>{n.nickname}</span>}
-              <span style={badge(GRN)}>Attached</span>
+              {n.byoc_enabled
+                ? <span style={badge(GRN)}>Calls + SMS</span>
+                : <span style={badge('#f3f4f6','#374151')}>SMS only</span>
+              }
+              {n.byoc_enabled
+                ? <button onClick={()=>disableBYOC(n)} style={btn('#e5e7eb', BLK)} title="Stop routing inbound calls here">
+                    <PhoneOff size={12}/> Stop Calls
+                  </button>
+                : <button onClick={()=>enableBYOC(n)} style={btn(PURP)} title="Route inbound calls to this number via Telnyx SIP">
+                    <PhoneIncoming size={12}/> Use for Calls
+                  </button>
+              }
               <button onClick={()=>release(n)} disabled={releasing===n.id} style={btn('#fef2f2', R)}>
                 {releasing===n.id ? <Loader2 size={12} className="spin"/> : <Trash2 size={12}/>} Release
               </button>

@@ -33,19 +33,23 @@ ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS telnyx_number_id       
 -- ── Telnyx number inventory (per agency / client / agent) ──────────────────
 -- Release a row → delete from Telnyx so billing stops.
 CREATE TABLE IF NOT EXISTS koto_telnyx_numbers (
-  id                uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  agency_id         uuid NOT NULL,
-  client_id         uuid,
-  agent_id          uuid REFERENCES koto_inbound_agents(id) ON DELETE SET NULL,
-  phone_number      text NOT NULL,
-  telnyx_phone_id   text,
-  order_id          text,
-  nickname          text,
-  status            text DEFAULT 'active',
-  features          jsonb DEFAULT '["voice","sms"]',
-  created_at        timestamptz DEFAULT now(),
+  id                     uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  agency_id              uuid NOT NULL,
+  client_id              uuid,
+  agent_id               uuid REFERENCES koto_inbound_agents(id) ON DELETE SET NULL,
+  phone_number           text NOT NULL,
+  telnyx_phone_id        text,
+  order_id               text,
+  nickname               text,
+  status                 text DEFAULT 'active',
+  features               jsonb DEFAULT '["voice","sms"]',
+  byoc_enabled           boolean DEFAULT false,   -- true once imported into Retell as inbound BYOC
+  retell_phone_number_id text,                     -- Retell's id for the BYOC import, needed for release
+  created_at             timestamptz DEFAULT now(),
   UNIQUE (phone_number)
 );
+ALTER TABLE koto_telnyx_numbers ADD COLUMN IF NOT EXISTS byoc_enabled           boolean DEFAULT false;
+ALTER TABLE koto_telnyx_numbers ADD COLUMN IF NOT EXISTS retell_phone_number_id text;
 CREATE INDEX IF NOT EXISTS idx_telnyx_numbers_agency ON koto_telnyx_numbers(agency_id);
 CREATE INDEX IF NOT EXISTS idx_telnyx_numbers_client ON koto_telnyx_numbers(client_id);
 CREATE INDEX IF NOT EXISTS idx_telnyx_numbers_agent  ON koto_telnyx_numbers(agent_id);
