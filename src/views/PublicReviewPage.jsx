@@ -146,36 +146,39 @@ export default function PublicReviewPage() {
     return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
   }, [file])
 
-  // Reset imgDims on every file swap BEFORE the sync effect runs.
-  // Without this, an image that loads after a PDF renders briefly at
-  // the previous PDF's dimensions (e.g. 900×6000), which stretches or
-  // squishes the image until the <img>'s onLoad fires and overwrites
-  // them with naturalWidth/Height. The bug got worse when pdfHeight
-  // default went 1000 → 6000 — the stretch window became huge.
+  // Reset imgDims + zoom on every file swap so the next file starts clean
+  // (avoids the previous file's dims leaking into the new one while the
+  // <img> still hasn't fired onLoad).
   useEffect(() => {
     setImgDims({ width: 0, height: 0 })
     setZoom(1)
   }, [file?.id])
 
-  // Sync annotation canvas dimensions to the active HTML/PDF size
-  useEffect(() => {
-    const isHtml = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
-    const isPdf = file?.type === 'application/pdf'
-    if (isHtml) setImgDims({ width: htmlWidth, height: htmlHeight })
-    else if (isPdf) setImgDims({ width: pdfWidth, height: pdfHeight })
-    // Images: imgDims stays {0,0} from the reset effect above until
-    // <img onLoad> fills it with naturalWidth/naturalHeight.
-  }, [file, htmlWidth, htmlHeight, pdfWidth, pdfHeight])
+  // ── File-type flags + natural content dimensions ──
+  // We derive contentWidth/Height from whichever source matches the file's
+  // type. The canvas below reserves scroll space for contentWidth * zoom
+  // and renders the file at natural size inside a scale(zoom) transform,
+  // matching the internal FileReviewPage pattern. This is what makes
+  // images render crisp at any zoom without distortion.
+  const isImage = file?.type?.startsWith('image/')
+  const isPdf = file?.type === 'application/pdf'
+  const isHtmlFile = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
+  const contentWidth = isImage ? (imgDims.width || 0)
+    : isPdf ? pdfWidth
+    : isHtmlFile ? htmlWidth
+    : 0
+  const contentHeight = isImage ? (imgDims.height || 0)
+    : isPdf ? pdfHeight
+    : isHtmlFile ? htmlHeight
+    : 0
 
-  // Live-measure the scroll container width so Fit-to-width works on every
-  // viewport and responds to window resizes + sidebar toggles.
+  // Live-measure the scroll container width — drives Fit-to-width and auto-fit.
   useEffect(() => {
     const el = scrollContainerRef.current
     if (!el) return
     const measure = () => {
-      // Subtract padding (p-2 md:p-6 → 16–48px each side). clientWidth is
-      // already content-box in React, so this is honest.
-      setContainerWidth(Math.max(320, el.clientWidth - 32))
+      // clientWidth is content-box; subtract our inline padding (24px each side).
+      setContainerWidth(Math.max(320, el.clientWidth - 48))
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -184,39 +187,36 @@ export default function PublicReviewPage() {
     return () => { ro.disconnect(); window.removeEventListener('resize', measure) }
   }, [file, status])
 
-  // Auto-fit when a file first loads so clients never land on an overflowing preview.
+  // HTML/PDF preset-width auto-fit — only runs once per file swap.
   useEffect(() => {
     if (!file || !containerWidth) return
-    const isHtml = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
-    const isPdf = file?.type === 'application/pdf'
-    if (isHtml) {
-      // Land on the closest responsive preset at or below container width
+    if (isHtmlFile) {
       const target = containerWidth >= 1280 ? 1280 : containerWidth >= 768 ? 768 : 375
       setHtmlWidth(target)
     } else if (isPdf) {
       setPdfWidth(Math.min(900, containerWidth))
     }
-    // Intentionally run only when the file swaps, not on every container tick
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file?.id])
 
-  // Auto-fit images reactively. Runs whenever imgDims or containerWidth
-  // changes — covers the case where a browser-cached image loads before
-  // the ResizeObserver has measured the container (zoom would otherwise
-  // stay at 1 and a 3000px design would render full-width).
-  //
-  // We key the "already-fit" decision on file.id + zoom === 1 so if the
-  // reviewer has manually zoomed, we don't yank them back.
+  // Universal auto-fit zoom — fits BOTH width and height within the
+  // available viewport, never zooms above 100%, rounds to 5% steps.
+  // Runs once per file (guarded by a ref) so manual zoom isn't overridden
+  // but the ResizeObserver→containerWidth race is handled correctly.
   const autofitRanForFileRef = useRef(null)
   useEffect(() => {
-    if (!file?.type?.startsWith('image/')) return
-    if (!imgDims.width || !containerWidth) return
+    if (!file || !containerWidth || !contentWidth || !contentHeight) return
     if (autofitRanForFileRef.current === file.id) return
-    if (imgDims.width > containerWidth) {
-      setZoom(Math.max(0.1, +(containerWidth / imgDims.width).toFixed(2)))
+    const el = scrollContainerRef.current
+    const availH = el ? Math.max(300, el.clientHeight - 48) : 600
+    const fitZoom = Math.min(containerWidth / contentWidth, availH / contentHeight, 1)
+    if (fitZoom > 0.05 && fitZoom < 1) {
+      setZoom(Math.round(fitZoom * 20) / 20)
+    } else {
+      setZoom(1)
     }
     autofitRanForFileRef.current = file.id
-  }, [file?.id, file?.type, imgDims.width, containerWidth])
+  }, [file?.id, contentWidth, contentHeight, containerWidth])
 
   // Realtime — no duplicates
   useEffect(() => {
@@ -687,72 +687,76 @@ export default function PublicReviewPage() {
         )}
 
         <div className="flex flex-1 overflow-hidden relative">
-        <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100 p-2 md:p-6"
+        <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100"
+          style={{ padding: 24, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
           onMouseDown={() => { if (activeBubble) closeBubble() }}>
-          {/* Outer wrapper reserves post-zoom scroll space so that zooming
-              in doesn't clip the bottom/right edges. Inner wrapper carries
-              the actual scale transform pinned top-left.
-              mx-auto centers the content when it's narrower than the
-              viewport; when wider, the browser falls back to standard
-              left-to-right flow so users can scroll through the full
-              width (flex justify-center clipped the left half).           */}
-          <div className="mx-auto" style={{
-            width: imgDims.width ? imgDims.width * zoom : undefined,
-            height: imgDims.height ? imgDims.height * zoom : undefined,
+          {/* Outer wrapper reserves post-zoom scroll space. Sized to
+              contentWidth * zoom so the scroll viewport shows exactly
+              the visible area, no more, no less. flexShrink: 0 prevents
+              flex squashing when the content is wider than the viewport. */}
+          {contentWidth > 0 && contentHeight > 0 && (
+          <div style={{
+            width: contentWidth * zoom,
+            height: contentHeight * zoom,
             position: 'relative',
+            flexShrink: 0,
           }}>
-          <div style={{ position: 'relative', transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
-            <div className="relative inline-block shadow-2xl rounded-lg overflow-hidden bg-white">
-              {file?.type?.startsWith('image/') && (
+          {/* Scaled content — sized at natural dimensions, visually scaled
+              by zoom. The img/iframe fill it at 100%/100% so they're
+              always rendered at natural aspect ratio. AnnotationCanvas
+              overlays at absolute 0,0 with matching natural dims. This
+              is the exact pattern the internal FileReviewPage uses. */}
+          <div style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top left',
+            width: contentWidth,
+            height: contentHeight,
+            position: 'relative',
+            background: '#fff',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            borderRadius: 8,
+            overflow: 'hidden',
+          }}>
+              {isImage && (
                 <img ref={imgRef} src={file.url} alt={file.name}
                   onLoad={(e) => setImgDims({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })}
-                  className="block" draggable={false}
-                  style={{ width: imgDims.width || 'auto', height: imgDims.height || 'auto' }} />
+                  draggable={false}
+                  style={{ display: 'block', width: '100%', height: '100%', pointerEvents: tool !== 'select' ? 'none' : 'auto' }} />
               )}
-              {file?.type === 'application/pdf' && (
-                <iframe src={`${file.url}#toolbar=0`} title={file.name} className="block"
-                  style={{ width: pdfWidth, height: pdfHeight, border: 'none' }} />
+              {isPdf && (
+                <iframe src={`${file.url}#toolbar=0`} title={file.name}
+                  style={{ display: 'block', width: '100%', height: '100%', border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto' }} />
               )}
-              {(file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')) && htmlBlobUrl && (
+              {isHtmlFile && htmlBlobUrl && (
                 <iframe
                   ref={htmlIframeRef}
                   src={htmlBlobUrl}
                   title={file.name}
-                  className="block"
-                  style={{ width: htmlWidth, height: htmlHeight, border: 'none' }}
+                  style={{ display: 'block', width: '100%', height: '100%', border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto' }}
                   sandbox="allow-scripts allow-same-origin"
                   onLoad={(e) => {
-                    // blob: URLs share the parent origin, so we can read
-                    // the content document and grow the iframe to fit.
-                    // Defensive: wrap in try/catch — some HTML payloads
-                    // re-write origin and trip cross-origin reads.
                     try {
                       const doc = e.currentTarget.contentDocument
                       if (!doc) return
-                      const contentHeight = Math.max(
+                      const measured = Math.max(
                         doc.documentElement.scrollHeight || 0,
                         doc.body?.scrollHeight || 0,
                       )
-                      if (contentHeight > 400) {
-                        // 80px breathing room, cap at 30k so a runaway
-                        // page can't crash the annotation canvas.
-                        setHtmlHeight(Math.min(30000, contentHeight + 80))
+                      if (measured > 400) {
+                        setHtmlHeight(Math.min(30000, measured + 80))
                       }
                     } catch { /* cross-origin — keep manual controls */ }
                   }}
                 />
               )}
-              {imgDims.width > 0 && imgDims.height > 0 && (
-                <AnnotationCanvas width={imgDims.width} height={imgDims.height} tool={roundsExhausted ? 'select' : tool} color={color}
-                  annotations={canvasAnnotations} onAddAnnotation={handleAddAnnotation}
-                  onPinPlace={handlePinPlace}
-                  onSelectAnnotation={handleAnnotationSelect} onHotspotClick={handleHotspotClick} selectedId={selectedId} />
-              )}
-            </div>
-            {/* Inline comment bubble */}
+              <AnnotationCanvas width={contentWidth} height={contentHeight} tool={roundsExhausted ? 'select' : tool} color={color}
+                annotations={canvasAnnotations} onAddAnnotation={handleAddAnnotation}
+                onPinPlace={handlePinPlace}
+                onSelectAnnotation={handleAnnotationSelect} onHotspotClick={handleHotspotClick} selectedId={selectedId} />
+          </div>
             {activeBubble && (
               <ClientBubble
-                x={bubblePos.x} y={bubblePos.y}
+                x={bubblePos.x * zoom} y={bubblePos.y * zoom}
                 text={bubbleAnnotation?.text || ''}
                 isNew={activeBubble.isNew}
                 annotation={bubbleAnnotation}
@@ -761,9 +765,9 @@ export default function PublicReviewPage() {
                 onDrag={handleBubbleDrag}
               />
             )}
-          </div>{/* /transform-wrapper */}
-          </div>{/* /scroll-space-reservation */}
-        </div>{/* /scroll-container */}
+          </div>
+          )}
+        </div>
 
         {/* Mobile floating tools */}
         {isMobile && (
@@ -817,11 +821,11 @@ export default function PublicReviewPage() {
             </div>
           )}
 
-          {/* ─── Feedback tools (top — this is the primary action) ─── */}
+          {/* ─── Name + Templates (tools live in the top AnnotationToolbar, not here) ─── */}
           <div className="px-5 pt-5 pb-4 flex-shrink-0">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">
-                Feedback tools
+                Your name
               </label>
               <button
                 onClick={() => setShowTemplates(!showTemplates)}
@@ -830,38 +834,18 @@ export default function PublicReviewPage() {
                 Templates
               </button>
             </div>
-            <p className="text-[13px] text-gray-500 leading-snug mb-3">
-              Pick a tool, then click on the design to place your comment.
+            <input
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-colors"
+              placeholder="Enter your name…"
+              value={authorName}
+              onChange={e => setAuthorName(e.target.value)}
+            />
+            <p className="text-[12px] text-gray-400 leading-snug mt-2">
+              Use the toolbar at the top to pick a tool, then click on the design to place your comment.
             </p>
-            <div className="grid grid-cols-4 gap-1.5">
-              {[
-                { key: 'pin',    icon: '📍', label: 'Pin',    title: 'Drop a comment pin' },
-                { key: 'circle', icon: '◯',  label: 'Circle', title: 'Draw a circle' },
-                { key: 'arrow',  icon: '↗',  label: 'Arrow',  title: 'Draw an arrow' },
-                { key: 'rect',   icon: '▭',  label: 'Box',    title: 'Draw a box' },
-              ].map(t => {
-                const active = tool === t.key && !roundsExhausted
-                return (
-                  <button
-                    key={t.key}
-                    onClick={() => setTool(t.key)}
-                    title={t.title}
-                    disabled={roundsExhausted}
-                    className={`flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-lg border transition-all ${
-                      active
-                        ? 'bg-brand-500 border-brand-500 text-white shadow-sm'
-                        : 'bg-white border-gray-200 text-gray-700 hover:border-brand-300 hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed'
-                    }`}
-                  >
-                    <span className="text-base leading-none">{t.icon}</span>
-                    <span className="text-[10px] font-bold tracking-wide">{t.label}</span>
-                  </button>
-                )
-              })}
-            </div>
           </div>
 
-          {/* Feedback templates (popover flows below the tool card) */}
+          {/* Feedback templates popover */}
           {showTemplates && (
             <div className="px-5 pb-4 flex-shrink-0">
               <FeedbackTemplates
@@ -870,19 +854,6 @@ export default function PublicReviewPage() {
               />
             </div>
           )}
-
-          {/* ─── Your name (below tools; secondary) ─── */}
-          <div className="px-5 pb-4 flex-shrink-0 border-t border-gray-100 pt-4 bg-gray-50/50">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-2">
-              Your name
-            </label>
-            <input
-              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-              placeholder="Enter your name…"
-              value={authorName}
-              onChange={e => setAuthorName(e.target.value)}
-            />
-          </div>
 
           {/* ─── Comments + Help (scrollable) ─── */}
           <div className="flex-1 min-h-0 overflow-y-auto border-t border-gray-200">
