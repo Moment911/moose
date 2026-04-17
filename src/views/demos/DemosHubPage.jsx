@@ -1,7 +1,7 @@
 "use client"
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowRight, Sparkles, UtensilsCrossed, Car, Scale, Wrench, DollarSign, Phone, Search,
+  ArrowRight, Sparkles, UtensilsCrossed, Car, Scale, Wrench, DollarSign, Phone, Search, Bot,
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, W, FH, FB } from '../../lib/theme'
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../../lib/contact'
@@ -58,6 +58,18 @@ const DEMOS = [
     href: '/demos/scan',
     cta: 'Try it with your URL →',
     flagship: true,
+  },
+  {
+    id: 'build-agent',
+    icon: Bot,
+    accent: R,
+    industry: 'Any business',
+    title: 'Build my AI agent.',
+    scenario: 'Describe your business in two sentences. Watch Claude Sonnet 4.5 stream a full production-grade agent spec — persona, system prompt, tool schemas, sample call, deployment recommendation with cost estimates.',
+    watchFor: ['Real-time Claude streaming right in your browser', 'Production-grade system prompt + 3–5 tool schemas', 'Sample call transcript + deployment cost estimate'],
+    duration: '~60s streamed',
+    href: '/demos/build-agent',
+    cta: 'Spec mine live →',
   },
   {
     id: 'catering',
