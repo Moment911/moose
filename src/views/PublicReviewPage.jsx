@@ -111,6 +111,7 @@ export default function PublicReviewPage() {
   const [htmlHeight, setHtmlHeight] = useState(6000)
   const [pdfWidth, setPdfWidth] = useState(900)
   const [pdfHeight, setPdfHeight] = useState(6000)
+  const [zoom, setZoom] = useState(1)
   const htmlIframeRef = useRef(null)
   const [containerWidth, setContainerWidth] = useState(0)  // measured live; drives Fit buttons
   const scrollContainerRef = useRef(null)
@@ -536,6 +537,18 @@ export default function PublicReviewPage() {
             return null
           })()}
 
+          {/* Zoom controls */}
+          <div className="hidden md:flex items-center gap-0.5 bg-gray-800 rounded-lg overflow-hidden" title="Zoom">
+            <button onClick={() => setZoom(z => Math.max(0.25, +(z - 0.25).toFixed(2)))}
+              className="text-white text-sm w-7 h-7 hover:bg-gray-700 flex items-center justify-center">−</button>
+            <button onClick={() => setZoom(1)}
+              className="text-white text-xs px-2 h-7 hover:bg-gray-700 min-w-[46px] font-semibold">
+              {Math.round(zoom * 100)}%
+            </button>
+            <button onClick={() => setZoom(z => Math.min(3, +(z + 0.25).toFixed(2)))}
+              className="text-white text-sm w-7 h-7 hover:bg-gray-700 flex items-center justify-center">+</button>
+          </div>
+
           {/* Notify Agency */}
           <button onClick={async () => {
             await supabase.functions.invoke('send-email', { body: { type: 'client_notify_agency', project_name: project?.name, client_name: authorName || 'Client', review_url: window.location.href } })
@@ -657,7 +670,16 @@ export default function PublicReviewPage() {
         <div className="flex flex-1 overflow-hidden relative">
         <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100 p-2 md:p-6 flex items-start justify-center"
           onMouseDown={() => { if (activeBubble) closeBubble() }}>
-          <div style={{ position: 'relative' }}>
+          {/* Outer wrapper reserves post-zoom scroll space so that zooming
+              in doesn't clip the bottom/right edges. Inner wrapper carries
+              the actual scale transform pinned top-left. */}
+          <div style={{
+            width: imgDims.width ? imgDims.width * zoom : undefined,
+            height: imgDims.height ? imgDims.height * zoom : undefined,
+            position: 'relative',
+            flexShrink: 0,
+          }}>
+          <div style={{ position: 'relative', transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
             <div className="relative inline-block shadow-2xl rounded-lg overflow-hidden bg-white">
               {file?.type?.startsWith('image/') && (
                 <img ref={imgRef} src={file.url} alt={file.name}
@@ -717,8 +739,9 @@ export default function PublicReviewPage() {
                 onDrag={handleBubbleDrag}
               />
             )}
-          </div>
-        </div>
+          </div>{/* /transform-wrapper */}
+          </div>{/* /scroll-space-reservation */}
+        </div>{/* /scroll-container */}
 
         {/* Mobile floating tools */}
         {isMobile && (
