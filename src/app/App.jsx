@@ -184,6 +184,7 @@ import GmailCallbackPage from '../views/GmailCallbackPage'
 import HelpPage from '../views/HelpPage'
 import IntelPage from '../views/IntelPage'
 import KotoIQPage from '../views/KotoIQPage'
+import KotoIQShellPage from '../views/kotoiq/KotoIQShellPage'
 import KotoFinPro from '../components/KotoFinPro'
 import KotoFinGuidePage from '../views/KotoFinGuidePage'
 import MarketingQuizPage from '../views/MarketingQuizPage'
@@ -360,7 +361,7 @@ function AppRoutes() {
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
           <Route path="/kotoiq/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
-                <Route path="/wordpress" element={<WordPressControlPage />} />
+                <Route path="/wordpress" element={<Navigate to="/kotoiq-shell?shell=publish" replace />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
           <Route path="/koto-proposal-builder/:clientId" element={<KotoProposalBuilderPage />} />
@@ -436,6 +437,7 @@ function AppRoutes() {
           <Route path="/intel" element={<IntelPage />} />
           <Route path="/intel/:reportId" element={<IntelPage />} />
           <Route path="/kotoiq" element={<KotoIQPage />} />
+          <Route path="/kotoiq-shell" element={<KotoIQShellPage />} />
           <Route path="/kotofin" element={<KotoFinPro />} />
           <Route path="/kotofin/guide" element={<KotoFinGuidePage />} />
           <Route path="/marketing-quiz" element={<MarketingQuizPage />} />
@@ -470,7 +472,7 @@ function AppRoutes() {
           <Route path="/perf/:clientId" element={<PerfDashboard />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/scout/settings" element={<SettingsPage />} />
-          <Route path="/seo" element={<SEOHubPage />} />
+          <Route path="/seo" element={<Navigate to="/kotoiq-shell?shell=intel" replace />} />
           <Route path="/seo/:clientId" element={<SEOHubPage />} />
           <Route path="/seo/local-rank" element={<LocalRankTrackerPage />} />
           <Route path="/seo/audit" element={<SEOAuditPage />} />
@@ -484,7 +486,7 @@ function AppRoutes() {
           <Route path="/seo/white-label" element={<WhiteLabelReportPage />} />
           <Route path="/seo/competitor-intel" element={<CompetitorIntelPage />} />
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
-          <Route path="/seo/plugin" element={<WordPressControlPage />} />
+          <Route path="/seo/plugin" element={<Navigate to="/kotoiq-shell?shell=publish" replace />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
           <Route path="/kotoiq/connect" element={<Navigate to="/kotoiq?tab=connect" replace />}/>
           <Route path="/order" element={<KotoOrderPage />} />
