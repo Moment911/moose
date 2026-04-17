@@ -31,7 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Operator can list every Elementor-edited page on momentamktg.com via `builder/pages` and fetch the raw `_elementor_data` for any one of them
   4. System captures live atomic-widget JSON from momentamktg.com and persists a pinned Zod schema in `kotoiq_elementor_schema_versions` — re-ingesting the same page detects zero drift
   5. A second ingest of a manually-edited page flags additive vs breaking schema changes before any downstream publish is attempted
-**Plans**: TBD
+**Plans**: 5 total
+  - Plan 1: Migration + Agency Helper (FND-01, FND-02, FND-03) ✅ COMPLETE
+  - Plan 2: ESLint Rule + Isolation Audit (FND-04, FND-05) ✅ COMPLETE
+  - Plan 3: WP Plugin Builder Read Endpoints (ELEM-01, ELEM-02, ELEM-03) ✅ COMPLETE
+  - Plan 4: Schema Capture + Registry (ELEM-05) ✅ COMPLETE
+  - Plan 5: Schema Drift Detection + Phase Gate (ELEM-06) ✅ COMPLETE
 **UI hint**: yes
 
 ### Phase 2: Elementor Write Path + Template Ingest + Slot Editor
@@ -108,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundations + Elementor Read Path | 0/TBD | Not started | - |
+| 1. Foundations + Elementor Read Path | 5/5 | Code complete (gate pending) | - |
 | 2. Elementor Write Path + Template Ingest + Slot Editor | 0/TBD | Not started | - |
 | 3. Engine to Publish Adapter + Pre-Flight Gate | 0/TBD | Not started | - |
 | 4. Durable Publish Orchestration | 0/TBD | Not started | - |

@@ -358,6 +358,106 @@ Rules:
       return NextResponse.json(await proxyToPlugin(site, 'rankings', 'GET'))
     }
 
+    // ── KotoIQ Builder Read Endpoints (ELEM-01, ELEM-02, ELEM-03) ──────
+
+    if (action === 'detect_builder') {
+      const result = await proxyToPlugin(site, 'builder/detect', 'POST')
+      if (result.ok && result.data) {
+        // Upsert kotoiq_builder_sites with detected info
+        await sb.from('kotoiq_builder_sites').upsert({
+          site_id, agency_id: site.agency_id,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'site_id' })
+      }
+      return NextResponse.json(result)
+    }
+
+    if (action === 'list_elementor_pages') {
+      const result = await proxyToPlugin(site, 'builder/pages', 'GET')
+      return NextResponse.json(result)
+    }
+
+    if (action === 'get_elementor_data') {
+      const { post_id } = body
+      if (!post_id) return NextResponse.json({ error: 'post_id required' }, { status: 400 })
+      const result = await proxyToPlugin(site, `builder/elementor/${post_id}`, 'GET')
+      return NextResponse.json(result)
+    }
+
+    if (action === 'capture_elementor_schema') {
+      // ELEM-05: Capture live Elementor v4 schema from a page on the connected site
+      const { post_id } = body
+      if (!post_id) return NextResponse.json({ error: 'post_id required' }, { status: 400 })
+
+      // 1. Fetch the raw elementor data via the plugin
+      const result = await proxyToPlugin(site, `builder/elementor/${post_id}`, 'GET')
+      if (!result.ok || !result.data?.elementor_data) {
+        return NextResponse.json({ error: 'Failed to fetch Elementor data', detail: result }, { status: 502 })
+      }
+
+      // 2. Capture schema from the live JSON
+      const { captureSchema, diffSchemas, detectSlots } = await import('../../../lib/builder/elementorAdapter')
+      const schema = captureSchema(
+        result.data.elementor_data,
+        result.data.elementor_version || 'unknown',
+        post_id
+      )
+
+      // 3. Check for existing pinned schema (ELEM-06: drift detection)
+      const { data: existingPinned } = await sb.from('kotoiq_elementor_schema_versions')
+        .select('*')
+        .eq('site_id', site_id)
+        .eq('is_pinned', true)
+        .maybeSingle()
+
+      let drift = null
+      if (existingPinned?.widget_schema) {
+        drift = diffSchemas(existingPinned.widget_schema, schema)
+      }
+
+      // 4. Persist the captured schema
+      const { data: schemaRow, error: schemaError } = await sb.from('kotoiq_elementor_schema_versions').upsert({
+        site_id,
+        elementor_version: schema.elementorVersion,
+        captured_from_post_id: post_id,
+        widget_schema: schema,
+        is_pinned: !existingPinned, // auto-pin if first capture
+        drift_status: drift?.status || 'clean',
+        drift_details: drift,
+        captured_at: new Date().toISOString(),
+      }, { onConflict: 'site_id,elementor_version' }).select().single()
+
+      if (schemaError) {
+        return NextResponse.json({ error: schemaError.message }, { status: 500 })
+      }
+
+      // 5. Also detect slots (preview for template ingest)
+      const slots = detectSlots(result.data.elementor_data)
+
+      return NextResponse.json({
+        ok: true,
+        schema: {
+          id: schemaRow.id,
+          elementor_version: schema.elementorVersion,
+          total_elements: schema.totalElements,
+          total_widgets: schema.totalWidgets,
+          widget_types: Object.keys(schema.widgets),
+          css_classes_count: schema.cssClasses.length,
+          is_pinned: schemaRow.is_pinned,
+        },
+        drift,
+        slots: {
+          count: slots.length,
+          items: slots,
+        },
+        page: {
+          post_id,
+          title: result.data.title,
+          url: result.data.url,
+        },
+      })
+    }
+
     if (action === 'proxy') {
       return NextResponse.json(await proxyToPlugin(site, body.endpoint, body.method || 'POST', body.payload || {}))
     }
