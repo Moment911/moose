@@ -74,6 +74,23 @@
 
 - [ ] **PILOT-01**: 20 real hyperlocal landing pages are live on momentamktg.com — each generated from `hyperlocalContentEngine` brief output, published as native Elementor v4, IndexNow-submitted, GSC-pinged, per-page Telnyx-attributed, and returning CWV field data
 
+### Client Profile Seeder v1 — Internal Ingest + Gap Finder
+
+- [ ] **PROF-01**: Operator can paste a Koto internal URL (`/onboard/:clientId`, `/onboarding-dashboard/:clientId`, or `/clients/:clientId`) and the system resolves it, extracts `clientId`, and pulls `clients` + `onboarding_answers` + `koto_discovery_engagements` + voice call transcripts + post-call analyses into the profile pipeline
+- [ ] **PROF-02**: Operator can paste raw text (voice transcript, email, meeting notes, pasted website copy, call notes) and Claude extracts structured fields against the canonical client-profile schema with per-field source citation (char offset + snippet)
+- [ ] **PROF-03**: System stores the resolved profile in a new `kotoiq_client_profile` table keyed on `client_id` + `agency_id`, with per-field `source_type`, `source_url`, `captured_at`, and confidence score per platform `VerifiedDataSource` standard
+- [ ] **PROF-04**: Gap-finder compares the populated profile against the canonical field schema + pipeline-required fields and emits 3-8 surgical follow-up questions (not 26 blind ones); low-confidence auto-fills are also surfaced for operator confirmation
+- [ ] **PROF-05**: Operator can review every auto-populated field in a review UI with confidence-weighted hints (green/amber/red), and accept, edit, or reject each field individually; rejections do not delete source provenance
+- [ ] **PROF-06**: On profile completion, the seeder feeds `pipelineOrchestrator.ts` as a Stage 0 step — the entity graph is seeded with client identity, services, USPs, target customers, and mentioned competitors before any Stage 1 keyword sync runs
+
+### Client Profile Seeder v2 — External Source Parsers
+
+- [ ] **PROF-07**: Operator can paste an external form URL (Typeform, Jotform, Google Forms public share link, or generic multi-page HTML form) → system fetches via Playwright-on-Vercel or provider API → extracts Q&A pairs → maps to canonical schema with confidence scoring
+- [ ] **PROF-08**: Operator can paste a client's existing website URL → Playwright crawls About / Services / Locations / Contact / Team pages → Claude extracts entity data (services, service-area cities, staff, USPs, founding year, certifications) → seeds both `kotoiq_client_profile` and the Stage 2 entity graph with per-page citation
+- [ ] **PROF-09**: Operator can connect a client's Google Business Profile → Google My Business API pulls LocalBusiness fields, service categories, operating hours, service area, review themes → merged into the profile with GBP as `source_url`
+- [ ] **PROF-10**: Operator can upload a PDF, DOCX, or image (proposal, brochure, sales deck, business card) → system extracts text (OCR for images), chunks it, and Claude extracts structured fields with per-chunk citation
+- [ ] **PROF-11**: All external-source ingests write to `kotoiq_client_profile.sources` with `source_type` (`typeform` / `website_scrape` / `gbp_api` / `pdf_upload` / `image_ocr`), `source_url` or upload hash, confidence per extracted field, and `captured_at` — all sources auditable from the per-client profile view
+
 ---
 
 ## Future Requirements (deferred to later milestones)
@@ -136,7 +153,7 @@
 
 ## Traceability
 
-**Coverage:** 42/42 v1.0 requirements mapped to exactly one phase. No orphans. No duplicates.
+**Coverage:** 53/53 v1.0 requirements mapped to exactly one phase. No orphans. No duplicates.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -182,6 +199,17 @@
 | UI-03 | Phase 6 | Pending |
 | UI-04 | Phase 2 | Pending |
 | PILOT-01 | Phase 6 | Pending |
+| PROF-01 | Phase 7 | Pending |
+| PROF-02 | Phase 7 | Pending |
+| PROF-03 | Phase 7 | Pending |
+| PROF-04 | Phase 7 | Pending |
+| PROF-05 | Phase 7 | Pending |
+| PROF-06 | Phase 7 | Pending |
+| PROF-07 | Phase 8 | Pending |
+| PROF-08 | Phase 8 | Pending |
+| PROF-09 | Phase 8 | Pending |
+| PROF-10 | Phase 8 | Pending |
+| PROF-11 | Phase 8 | Pending |
 
 **Phase summary counts:**
 
@@ -193,4 +221,6 @@
 | Phase 4 — Durable Publish Orchestration | 5 | ORCH-01, ORCH-02, ORCH-03, ORCH-04, ORCH-05 |
 | Phase 5 — Closed-Loop Attribution | 8 | ATTR-01, ATTR-02, ATTR-03, ATTR-04, ATTR-05, ATTR-06, ATTR-07, ATTR-08 |
 | Phase 6 — Feedback Loop + Unified Shell + Pilot | 7 | LOOP-01, LOOP-02, LOOP-03, UI-01, UI-02, UI-03, PILOT-01 |
-| **Total** | **42** | |
+| Phase 7 — Client Profile Seeder v1 | 6 | PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06 |
+| Phase 8 — Client Profile Seeder v2 | 5 | PROF-07, PROF-08, PROF-09, PROF-10, PROF-11 |
+| **Total** | **53** | |

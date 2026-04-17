@@ -2,7 +2,7 @@
 
 ## Overview
 
-KotoIQ M1 is the adapter + closed-loop layer that bridges ~7,700 lines of already-shipped semantic/content engines into native Elementor v4 publishing with per-page revenue attribution. Six phases take the project from foundation work (agency-isolated schema + live Elementor v4 JSON capture) through a single-page write round-trip, an engine-to-Elementor serializer with a construction-time anti-scaled-content gate, durable multi-step publish orchestration, closed-loop attribution (CrUX + web-vitals RUM + IndexNow + per-page Telnyx numbers), and a unified KotoIQ shell — culminating in a 20-page live pilot on momentamktg.com with per-page KPI rollup, attribution, CWV readings, and IndexNow confirmations.
+KotoIQ M1 is the adapter + closed-loop layer that bridges ~7,700 lines of already-shipped semantic/content engines into native Elementor v4 publishing with per-page revenue attribution. Eight phases total — the first six (code complete) take the project from foundation work through closed-loop attribution to a unified KotoIQ shell; Phases 7 and 8 (appended after code completion) add a Stage 0 Client Profile Seeder that turns Koto's existing onboarding, discovery, and voice interview data into a structured entity graph seed before any keyword sync runs. Final gate is `PILOT-01`: 20 live hyperlocal pages on momentamktg.com with per-page KPI rollup, attribution, CWV readings, and IndexNow confirmations.
 
 ## Phases
 
@@ -18,6 +18,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Durable Publish Orchestration** — Vercel Workflow campaign runs, cadence, idempotency, publish queue
 - [ ] **Phase 5: Closed-Loop Attribution (CWV + IndexNow + Telnyx)** — CrUX + RUM, per-page numbers, IndexNow, GSC ping, per-page KPI rollup
 - [ ] **Phase 6: Feedback Loop + Unified Shell + Pilot** — Weekly rescan, decay-refresh, KotoIQ shell, 20-page live pilot
+- [ ] **Phase 7: Client Profile Seeder v1 — Internal Ingest + Gap Finder** — Paste Koto link or raw text → populate profile → surgical follow-up questions → seed entity graph as Stage 0 (prerequisite for quality pilot)
+- [ ] **Phase 8: Client Profile Seeder v2 — External Source Parsers** — External forms, existing websites, GBP API, PDF/DOCX/image uploads → all feed the same profile with provenance
 
 ## Phase Details
 
@@ -108,10 +110,38 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 7: Client Profile Seeder v1 — Internal Ingest + Gap Finder
+**Goal**: Add a Stage 0 to the pipeline that turns Koto's existing onboarding, discovery, and voice interview data into a structured `kotoiq_client_profile` entity graph seed — before any keyword sync runs. Operator pastes an internal link or raw text; the system auto-populates fields with provenance, then emits 3-8 surgical follow-up questions for whatever's missing or low-confidence. Prerequisite for `PILOT-01` delivering real quality.
+**Depends on**: Phase 6
+**Requirements**: PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06
+**Success Criteria** (what must be TRUE):
+  1. Operator pastes a `/onboard/:clientId` or `/onboarding-dashboard/:clientId` URL → profile populates in under 10 seconds with 20+ fields resolved from the existing Koto data
+  2. Operator pastes raw text (voice transcript, email, notes, pasted website copy) → Claude extracts structured fields against the canonical schema with per-field char-offset citation
+  3. Gap-finder returns ≤ 8 surgical follow-up questions for a mostly-complete onboarding, ≤ 15 for a partial one — not the canonical 26 blind
+  4. Every field in `kotoiq_client_profile` carries `source_type` + `source_url` + `captured_at` + confidence score (VerifiedDataSource compliant)
+  5. `pipelineOrchestrator.ts` Stage 0 runs the profile seeder before Stage 1 keyword sync; entity graph is pre-seeded with client identity, services, USPs, target customers, mentioned competitors
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 8: Client Profile Seeder v2 — External Source Parsers
+**Goal**: Extend the Stage 0 profile seeder to ingest anything the client has already produced — external onboarding forms, their existing website, their Google Business Profile, uploaded proposals / brochures / sales decks / business cards. Turns onboarding from "fill out 26 fields" into "drop whatever you have, we'll figure it out."
+**Depends on**: Phase 7
+**Requirements**: PROF-07, PROF-08, PROF-09, PROF-10, PROF-11
+**Success Criteria** (what must be TRUE):
+  1. Operator pastes a Typeform / Jotform / Google Forms public share link → profile populates with Q&A pairs mapped to canonical fields, low-confidence extractions flagged for review
+  2. Operator pastes a client's existing website URL → Playwright crawls About/Services/Contact/Locations/Team → profile + Stage 2 entity graph seeded with extracted entities + per-page citations
+  3. Operator connects a client's Google Business Profile via GMB API → LocalBusiness fields, service categories, hours, service area, review themes merged into profile
+  4. Operator uploads a PDF, DOCX, or image (proposal, brochure, sales deck, business card) → OCR where needed → Claude extracts structured fields with per-chunk citation
+  5. All external-source ingests are visible in `kotoiq_client_profile.sources` with `source_type`, `source_url` (or upload hash), confidence per field, and `captured_at` — fully auditable from the per-client profile view
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+
+Phases 7 and 8 were appended after Phases 1-6 code-completed — they are prerequisites for `PILOT-01` delivering real quality, not retroactive inserts. Phase 7 must land before the pilot fires.
 
 **Parallelization:** Phase-level execution is strictly sequential (each phase gates the next). Within Phase 5, four sub-tracks (CWV, IndexNow/GSC, Telnyx attribution, KPI rollup) can parallelize safely because they touch independent surfaces. Within Phase 1, ELEM-05 schema capture and FND-01..05 isolation work can parallelize once the migration lands. Within Phase 6, LOOP and UI tracks can parallelize until the pilot gate where both must be ready.
 
@@ -123,3 +153,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 4. Durable Publish Orchestration | 4/4 | Code complete | - |
 | 5. Closed-Loop Attribution (CWV + IndexNow + Telnyx) | 6/6 | Code complete | - |
 | 6. Feedback Loop + Unified Shell + Pilot | 7/7 | Code complete (pilot pending) | - |
+| 7. Client Profile Seeder v1 — Internal Ingest + Gap Finder | 0/6 | Not started | - |
+| 8. Client Profile Seeder v2 — External Source Parsers | 0/5 | Not started | - |

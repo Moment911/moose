@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Agencies run every layer of a client engagement from a single white-label platform — now including closed-loop programmatic SEO that attributes dollars to pages.
-**Current focus:** Phase 1 — Foundations + Elementor Read Path
+**Current focus:** Phase 7 — Client Profile Seeder v1 (Stage 0 prerequisite for pilot)
 
 ## Current Position
 
-Phase: 1 of 6 (Foundations + Elementor Read Path)
-Plan: All 6 phases code complete. PILOT-01 pending (20 live pages on momentamktg.com).
-Status: M1 code complete — deploy + pilot remaining
-Last activity: 2026-04-17 — All 6 phases built and committed in one session
+Phase: 7 of 8 (Client Profile Seeder v1 — Internal Ingest + Gap Finder)
+Plan: Phases 1-6 code complete. Phases 7 + 8 appended (profile seeder v1 + v2). PILOT-01 still pending, now also gated on Phase 7.
+Status: M1 Phases 1-6 code complete — Phase 7 not started, Phase 8 not started, deploy + pilot remaining
+Last activity: 2026-04-17 — Added Phases 7 + 8 to roadmap (11 new PROF-* requirements)
 
-Progress: [██████████] 100% (code complete, pilot pending)
+Progress: [████████░░] 75% (6 of 8 phases code complete; pilot pending)
 
 ## Performance Metrics
 
