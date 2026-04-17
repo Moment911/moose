@@ -1,7 +1,7 @@
 "use client"
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowRight, Sparkles, UtensilsCrossed, Car, Scale, Wrench, DollarSign, Phone, Search, Bot,
+  ArrowRight, Sparkles, UtensilsCrossed, Car, Scale, Wrench, DollarSign, Phone, Search, Bot, FileText,
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, W, FH, FB } from '../../lib/theme'
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../../lib/contact'
@@ -70,6 +70,18 @@ const DEMOS = [
     duration: '~60s streamed',
     href: '/demos/build-agent',
     cta: 'Spec mine live →',
+  },
+  {
+    id: 'build-proposal',
+    icon: FileText,
+    accent: T,
+    industry: 'Any business',
+    title: 'Instant proposal.',
+    scenario: 'Enter business + industry + monthly budget. Claude streams a full 6-section agency proposal live — executive summary, strategy, three service tiers, ROI projections, next steps.',
+    watchFor: ['Three pricing tiers sized to the budget you enter', 'Industry-grounded ROI table — Month 1 / 3 / 6 projections', 'Concrete next steps you could actually say yes to'],
+    duration: '~60s streamed',
+    href: '/demos/build-proposal',
+    cta: 'Write one live →',
   },
   {
     id: 'catering',
