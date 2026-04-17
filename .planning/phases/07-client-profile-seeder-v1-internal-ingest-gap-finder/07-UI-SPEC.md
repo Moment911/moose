@@ -84,7 +84,7 @@ The Launch Page is prose-first. Typography must read like a document, not a form
 | Clarification card title | 14 | 700 | 1.35 | FH |
 | Clarification card body | 13 | 400 | 1.5 | FB |
 | Chat orb badge (unread count) | 11 | 700 | 1.0 | FH |
-| Live ribbon text | 12 | 600 | 1.2 | FB |
+| Live ribbon text | 12 | 700 | 1.2 | FB |
 | Field-level label (when shown) | 11 | 700 | 1.2 | FH — matches `labelStyle` |
 | Button label (primary) | 14 | 700 | 1.2 | FH — matches `buttonPrimary` |
 | Button label (small / card) | 12 | 700 | 1.2 | FH |
@@ -302,7 +302,7 @@ Subtle, ambient. Never a button.
 | Modal title | `Reject this value?` |
 | Body | `I'll drop it from the profile. The source citation stays — you can restore it from the field menu.` |
 | Cancel button | `Keep it` |
-| Confirm button (destructive red) | `Reject` |
+| Confirm button (destructive red) | `Reject this value` |
 
 ---
 
@@ -440,7 +440,7 @@ Already tabled in §3. Implementation notes:
   - ≥90%: `GRN`
   - 70-90%: `AMB`
   - <70%: `R`
-- Middle column (readout): 15px FB weight 500 for "{N}% of what I need..."; 13px FB weight 600 for "{N} soft gaps remain"; 13px FB weight 400 list items each preceded by a 4px dot in `AMB`.
+- Middle column (readout): 15px FB weight 500 for "{N}% of what I need..."; 13px FB weight 700 for "{N} soft gaps remain"; 13px FB weight 400 list items each preceded by a 4px dot in `AMB`.
 - Right column (CTA): primary button reusing `buttonPrimary` style but with background tint override:
   - ≥90%: bg `GRN`
   - 70-90%: bg `AMB`, text `#111`
@@ -515,7 +515,7 @@ Covered in §5.8c. Additional contract:
 - Height: 28px
 - Position: sticky-top directly under the shell's top navigation (taking a 28px bite out of the shell content area)
 - Background: `T + '15'` (teal 8%), border-bottom `1px solid ${T}30`
-- Text: 12px FB weight 600, `T` (darker readable teal)
+- Text: 12px FB weight 700, `T` (darker readable teal)
 - Left indicator: 8×8 teal pulsing dot (pulse period 1.2s, `opacity 0.4 ↔ 1`)
 - Right: 11px FB weight 500, `#6b7280` — relative timestamp `{step} · {elapsedSeconds}s`
 - Error override: bg `R + '15'`, left dot `R`, text `R`. Clickable to retry.
@@ -614,7 +614,7 @@ Total motion budget per state transition: **≤ 500ms**. Everything below is eit
   - Live ribbon: `aria-live="polite"` with `aria-busy` flag during steps.
   - Chat orb badge: `aria-label="{N} pending clarifications"`.
 - **Landmarks:** `<main>` wraps the briefing canvas; `<aside>` wraps margin notes and the chat panel; `<nav>` wraps the shell (already present).
-- **Color contrast (WCAG AA):** All text ≥ 4.5:1. Teal `T` on white is 3.09:1 — does NOT pass for body text. Rule: **teal text ≥ 14px uses weight 600 AND is only used for labels, chips, and secondary metadata** — never for body prose. Body prose is always `BLK` on white (21:1 ratio).
+- **Color contrast (WCAG AA):** All text ≥ 4.5:1. Teal `T` on white is 3.09:1 — does NOT pass for body text. Rule: **teal text ≥ 14px uses weight 700 AND is only used for labels, chips, and secondary metadata** — never for body prose. Body prose is always `BLK` on white (21:1 ratio).
 - **Screen-reader copy for visual-only signals:**
   - Confidence halo: editable span has `aria-describedby="halo-desc-{id}"` pointing to a hidden node reading `Confidence: 72 percent. Sourced from voice call.`
   - Pink discrepancy dot: `aria-label="Conflict between {N} sources. Open to resolve."`
