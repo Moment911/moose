@@ -318,8 +318,8 @@ function SetupTab({ agent, setAgent, agencyId, saving, setSaving }) {
           ))}
           {form.sms_notifications && (
             <div style={{ marginTop:8 }}>
-              <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>SMS Number</label>
-              <input style={input} placeholder="+1..." value={form.sms_number||''} onChange={e=>upd('sms_number',e.target.value)} />
+              <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Notification Phone (SMS)</label>
+              <input style={input} placeholder="+1..." value={form.notification_phone||''} onChange={e=>upd('notification_phone',e.target.value)} />
             </div>
           )}
           {form.email_notifications && (
@@ -329,11 +329,73 @@ function SetupTab({ agent, setAgent, agencyId, saving, setSaving }) {
             </div>
           )}
         </div>
+      </div>
 
+      {/* Bottom row — full-width content the prompt placeholders consume */}
+      <div style={{ gridColumn:'1 / -1', display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+        <div style={card}>
+          <h3 style={{ margin:'0 0 14px', fontFamily:FH, fontSize:15 }}><Globe size={16} style={{ marginRight:6 }}/>Office</h3>
+          <label style={{ fontSize:12, color:'#6b7280', display:'block', marginBottom:4 }}>Office address</label>
+          <input style={input} placeholder="5675 Coral Ridge Dr, Coral Springs, FL 33076" value={form.address||''} onChange={e=>upd('address',e.target.value)}/>
+          <p style={{ fontSize:11, color:'#9ca3af', marginTop:4 }}>Used for <code>{'{{address}}'}</code> in the prompt.</p>
+
+          <label style={{ fontSize:12, color:'#6b7280', marginTop:14, display:'block', marginBottom:4 }}>Scheduling contact</label>
+          <input style={input} placeholder="Rachel at (954) 341-2256" value={form.scheduling_contact||''} onChange={e=>upd('scheduling_contact',e.target.value)}/>
+          <label style={{ fontSize:12, color:'#6b7280', marginTop:10, display:'block', marginBottom:4 }}>Online scheduling link</label>
+          <input style={input} placeholder="https://cal.com/your-handle" value={form.scheduling_link||''} onChange={e=>upd('scheduling_link',e.target.value)}/>
+
+          <label style={{ fontSize:12, color:'#6b7280', marginTop:14, display:'block', marginBottom:4 }}>Default transfer phone</label>
+          <input style={input} placeholder="+1 (555) 123-4567" value={form.transfer_phone||''} onChange={e=>upd('transfer_phone',e.target.value)}/>
+          <p style={{ fontSize:11, color:'#9ca3af', marginTop:4 }}>Used for <code>{'{{transfer_number}}'}</code>.</p>
+        </div>
+
+        <div style={card}>
+          <h3 style={{ margin:'0 0 14px', fontFamily:FH, fontSize:15 }}><FileText size={16} style={{ marginRight:6 }}/>Services Offered</h3>
+          <textarea style={{ ...input, minHeight:90, resize:'vertical' }} placeholder="One service per line, e.g.&#10;Chiropractic care&#10;Physical therapy&#10;Massage" value={Array.isArray(form.services_list) ? form.services_list.join('\n') : (form.services_list||'')} onChange={e=>upd('services_list', e.target.value.split('\n').map(s=>s.trim()).filter(Boolean))}/>
+          <p style={{ fontSize:11, color:'#9ca3af', marginTop:4 }}>Used for <code>{'{{services_list}}'}</code>. One per line.</p>
+
+          <h3 style={{ margin:'14px 0 8px', fontFamily:FH, fontSize:15 }}><Users size={16} style={{ marginRight:6 }}/>Staff Directory</h3>
+          <StaffDirectoryEditor value={form.staff_directory || []} onChange={v => upd('staff_directory', v)}/>
+        </div>
+      </div>
+
+      <div style={{ gridColumn:'1 / -1' }}>
         <button onClick={saveAgent} disabled={saving} style={{ ...btn(), width:'100%', justifyContent:'center', padding:'12px 0', opacity:saving?.6:1 }}>
           {saving ? <Loader2 size={16} className="spin" /> : <Check size={16}/>} {saving ? 'Saving...' : 'Save Agent'}
         </button>
       </div>
+    </div>
+  )
+}
+
+function StaffDirectoryEditor({ value, onChange }) {
+  const [name, setName] = useState('')
+  const [role, setRole] = useState('')
+  function add() {
+    if (!name.trim()) return
+    onChange([...(value||[]), { name: name.trim(), role: role.trim() }])
+    setName(''); setRole('')
+  }
+  function remove(i) { onChange((value||[]).filter((_, idx) => idx !== i)) }
+  return (
+    <div>
+      {(value || []).length > 0 && (
+        <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:8 }}>
+          {value.map((s, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 10px', background:'#fafafa', borderRadius:6, border:'1px solid #f3f4f6' }}>
+              <span style={{ fontSize:13, fontWeight:600, flex:'0 0 auto' }}>{s.name}</span>
+              {s.role && <span style={{ fontSize:12, color:'#6b7280', flex:1 }}>· {s.role}</span>}
+              <Trash2 size={13} color="#9ca3af" style={{ cursor:'pointer' }} onClick={()=>remove(i)}/>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display:'flex', gap:6 }}>
+        <input style={{ ...input, flex:1 }} placeholder="Name" value={name} onChange={e=>setName(e.target.value)}/>
+        <input style={{ ...input, flex:1 }} placeholder="Role / title" value={role} onChange={e=>setRole(e.target.value)}/>
+        <button onClick={add} style={btn('#374151')}><Plus size={14}/></button>
+      </div>
+      <p style={{ fontSize:11, color:'#9ca3af', marginTop:4 }}>Used for <code>{'{{staff_directory}}'}</code>.</p>
     </div>
   )
 }

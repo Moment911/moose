@@ -23,6 +23,11 @@ ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS retention_days         
 ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS intake_templates_saved jsonb DEFAULT '[]';
 ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS calendar_webhook_url   text;
 ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS scheduling_link        text;
+ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS scheduling_contact     text;
+ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS address                text;
+ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS services_list          jsonb DEFAULT '[]';
+ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS staff_directory        jsonb DEFAULT '[]';
+ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS transfer_phone         text;
 
 -- Voice / Retell speech settings
 ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS voice_speed                numeric;

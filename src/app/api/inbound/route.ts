@@ -1229,6 +1229,9 @@ End the call once you have collected the caller's information and confirmed next
           // Delivery / integrations / compliance
           'notification_emails', 'slack_webhook_url', 'teams_webhook_url', 'crm_webhook_url',
           'crm_webhook_secret', 'digest_schedule', 'hipaa_mode', 'retention_days',
+          // Prompt-substitution source fields surfaced in the Setup tab
+          'address', 'services_list', 'staff_directory', 'scheduling_contact',
+          'scheduling_link', 'transfer_phone', 'calendar_webhook_url',
         ])
         const updates: any = {}
         for (const k of Object.keys(raw)) {
