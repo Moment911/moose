@@ -44,7 +44,7 @@ created: 2026-04-17
 
 ## 1. Spacing Scale
 
-8-point scale, all in pixels:
+4-point scale, all in pixels:
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -73,24 +73,24 @@ The Launch Page is prose-first. Typography must read like a document, not a form
 |------|------|--------|-------------|--------|
 | Briefing body (narrative prose) | 18 | 400 | 1.6 | FB (Raleway) |
 | Briefing body (editable span) | 18 | 500 | 1.6 | FB — same as prose, but weight 500 to signal interactivity |
-| Citation chip text | 11 | 700 | 1.2 | FH — uppercase, letter-spacing `.06em` (matches `labelStyle`) |
+| Citation chip text | 10 | 700 | 1.2 | FH — uppercase, letter-spacing `.06em` (matches existing `badgeStyle` helper) |
 | Streaming narration (ingest phase) | 16 | 400 | 1.55 | FB — italic during live typing, unstyled after settled |
 | Margin note body | 13 | 500 | 1.45 | FB |
 | Margin note label | 11 | 700 | 1.2 | FH — uppercase letter-spaced |
-| Section H2 (in briefing) | 22 | 800 | 1.25 | FH |
+| Section H2 (in briefing) | 22 | 700 | 1.25 | FH |
 | Page H1 (client name) | 28 | 900 | 1.15 | FH |
 | Launch gate percentage | 48 | 900 | 1.0 | FH — single number, large |
 | Launch gate readout body | 15 | 500 | 1.5 | FB |
 | Clarification card title | 14 | 700 | 1.35 | FH |
 | Clarification card body | 13 | 400 | 1.5 | FB |
-| Chat orb badge (unread count) | 11 | 800 | 1.0 | FH |
+| Chat orb badge (unread count) | 11 | 700 | 1.0 | FH |
 | Live ribbon text | 12 | 600 | 1.2 | FB |
 | Field-level label (when shown) | 11 | 700 | 1.2 | FH — matches `labelStyle` |
 | Button label (primary) | 14 | 700 | 1.2 | FH — matches `buttonPrimary` |
 | Button label (small / card) | 12 | 700 | 1.2 | FH |
 | Drop-zone banner text | 15 | 700 | 1.35 | FH |
 
-**Weights declared in use (≤4 distinct):** 400, 500, 700, 800, 900. This exceeds the "2 weights" default because the existing Koto theme uses 900 for display and 800 for card titles — Phase 7 must stay visually continuous with the shell. **Rule: No new weights beyond this list.** Italic is used only for streaming narration and margin notes; nowhere else.
+**Weights declared in use (≤4 distinct):** 400, 500, 700, 900. This exceeds the "2 weights" default because the existing Koto theme uses 900 for display — Phase 7 must stay visually continuous with the shell. **Rule: No new weights beyond this list.** Italic is used only for streaming narration and margin notes; nowhere else.
 
 **Line-height rule:** Briefing prose is 1.6 (long-read friendly). Everything ≤14px is 1.2–1.35. Everything ≥22px is 1.15–1.25. No tight 1.0 except the 48px gate percentage.
 
@@ -359,9 +359,9 @@ The 13 UI patterns in the objective, specified one by one.
 
 **Citation chip contract:**
 - Rendered as a small pill immediately after an editable span: `[📎 onboarding]`, `[📞 voice call]`, `[📄 discovery]`, `[✍️ you]`.
-- Visual: 11px FH uppercase, weight 700, letter-spacing `.06em`, padding `2px 8px`, radius `20px`, background `T + '15'`, color `T`. (Matches existing `badgeStyle(T)` pattern.)
+- Visual: 10px FH uppercase, weight 700, letter-spacing `.06em`, padding `2px 8px`, radius `20px`, background `T + '15'`, color `T`. (Matches existing `badgeStyle(T)` helper in `src/lib/theme.ts` — do not introduce an override.)
 - Hover: expands into a tooltip showing the exact `source_snippet` (≤240 chars), timestamp, and a "jump to source" link.
-- Icons: use lucide `FileText` (onboarding), `Phone` (voice), `BookOpen` (discovery), `Edit3` (operator edit). 11px icon.
+- Icons: use lucide `FileText` (onboarding), `Phone` (voice), `BookOpen` (discovery), `Edit3` (operator edit). 10px icon.
 
 **Section scroll behavior:** The briefing scrolls naturally inside the shell's content area. No sticky subsections. The launch gate is sticky-bottom (see §5.7).
 
@@ -410,7 +410,7 @@ Already tabled in §3. Implementation notes:
 **Visual contract:**
 - Pink dot anchor: 6px diameter, `R`, positioned `top:-3px; right:-3px` on the affected editable span.
 - Callout card (expanded on dot click or on paragraph hover): 360px wide, white background, 2px solid `R` border, 14px radius, shadow `0 12px 32px rgba(230,0,126,0.18)`.
-- Header row: `AlertTriangle` icon (lucide, 14px, `R`), label `MISMATCH` (11px FH uppercase weight 800 letter-spaced, `R`), spring-loaded close `X` (top-right).
+- Header row: `AlertTriangle` icon (lucide, 14px, `R`), label `MISMATCH` (11px FH uppercase weight 700 letter-spaced, `R`), spring-loaded close `X` (top-right).
 - Body: 14px FB weight 500, line-height 1.5, `BLK`. Renders the conflicting values as inline `<code>`-styled chips (monospace, 13px, `GRY` background, 4px radius) so the reader can scan the conflict in one glance.
 - Action row: **one button per source** (primary, teal-filled) + `Edit manually` (ghost) + `Ignore` (text-only link).
 
@@ -488,7 +488,7 @@ Directly inherits from `ConversationalBot.jsx` — Phase 7 EXTENDS it, does not 
 
 - **Dual purpose:** same orb handles both general-purpose KotoIQ chat AND Phase 7 clarifications. Context switches based on current route: on `/kotoiq/launch/:clientId`, the orb's first tab is "Clarifications"; elsewhere it's "Assistant".
 - **Idle size:** 56×56 teal circle (existing).
-- **Badge (new):** pink `R` 18×18 circle in top-right of orb when pending clarifications exist. Count centered, 11px FH weight 800, white text. If count > 9, show `9+`.
+- **Badge (new):** pink `R` 18×18 circle in top-right of orb when pending clarifications exist. Count centered, 11px FH weight 700, white text. If count > 9, show `9+`.
 - **Pulse (new):** when a HIGH-severity clarification arrives, orb pulses with pink shadow for 3 cycles, then steady. (Severity determines delivery — D-20.)
 - **Modal escalation (HIGH only, first appearance):** A non-blocking sheet mounts bottom-right, 360px wide, showing the full clarification. Auto-dismisses to orb state after 12s or on any interaction. Subsequent HIGH items just bump the orb badge.
 - **Keyboard:** `?` key toggles the orb open. `Esc` collapses to side-tab.
@@ -656,8 +656,8 @@ Phase 7 uses NO registry blocks. Every component is custom, built with inline st
 - [ ] Dimension 1 Copywriting: every string above matches §4 exactly (no "wow/amazing/fantastic/absolutely/certainly")
 - [ ] Dimension 2 Visuals: halo system, discrepancy catcher, ribbon, drop zone all implemented per §5
 - [ ] Dimension 3 Color: 60/30/10 ratio preserved; accent colors reserved for the lists in §3
-- [ ] Dimension 4 Typography: weights stay within {400, 500, 700, 800, 900}; body prose is 18px/1.6/FB; labels are 11px/FH/uppercase
-- [ ] Dimension 5 Spacing: 8-point scale honored; exceptions in §1 documented
+- [ ] Dimension 4 Typography: weights stay within {400, 500, 700, 900}; body prose is 18px/1.6/FB; labels are 11px/FH/uppercase
+- [ ] Dimension 5 Spacing: 4-point scale honored; exceptions in §1 documented
 - [ ] Dimension 6 Registry Safety: no shadcn introduced; no third-party blocks
 
 **Approval:** pending
