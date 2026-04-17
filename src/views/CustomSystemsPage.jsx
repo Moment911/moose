@@ -6,7 +6,7 @@ import {
   Droplet, Dumbbell, Plug, Workflow, Database, Link2, Check,
   ChefHat, Stethoscope, DollarSign, Package, Hammer, Bed,
   Truck, Smile, BarChart2, CalendarClock, Sun, Users,
-  Mail, FileText, Camera, Sparkles,
+  Mail, FileText, Camera, Sparkles, AlertCircle, Star,
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, W, FH, FB } from '../lib/theme'
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
@@ -14,6 +14,7 @@ import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import InlineSystemMock from '../components/public/InlineSystemMock'
+import PartsOrderMock from '../components/public/PartsOrderMock'
 import TrustStrip from '../components/public/TrustStrip'
 import LeadMagnet from '../components/public/LeadMagnet'
 import { usePageMeta } from '../lib/usePageMeta'
@@ -432,7 +433,7 @@ export default function CustomSystemsPage() {
               fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em',
               color: INK, lineHeight: 1.05, marginBottom: 18,
             }}>
-              Eight live builds, auto-playing.
+              Nine live builds, auto-playing.
             </h2>
             <p style={{ fontSize: 17, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>
               Animated simulations of what three different Koto systems do on every run. Real-world shape,
@@ -763,6 +764,93 @@ export default function CustomSystemsPage() {
             }} />
             <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
               <strong style={{ color: INK }}>Solar Proposal Generator.</strong> Bill → roof → system size → financing → proposal sent.
+            </div>
+          </div>
+
+          {/* Mock 9: Parts Ordering System — vendor bid matrix */}
+          <div style={{ marginBottom: 24 }}>
+            <PartsOrderMock config={{
+              browserUrl: 'coastal-bodyshop.com / parts-ordering',
+              jobTitle: 'Parts Request · Job #RE-2471',
+              jobMeta: '2019 Honda Accord EX-L · rear-end collision · insurance-approved',
+              jobTags: [
+                { label: 'OEM REQUIRED', color: R },
+                { label: 'ALLSTATE CLAIM', color: T },
+                { label: '5-DAY ETA', color: AMB },
+              ],
+              vendors: [
+                { id: 'honda-oem', name: 'Honda OEM Direct',  type: 'OEM factory' },
+                { id: 'lkq',       name: 'LKQ Corporation',   type: 'OEM + aftermarket' },
+                { id: 'iaa',       name: 'IAA Parts',         type: 'Aftermarket' },
+                { id: 'carparts',  name: 'CarParts.com',      type: 'Aftermarket' },
+              ],
+              parts: [
+                { name: 'Rear bumper cover',       partNumber: '04715-T2A-A90Z', qty: 1, appearStep: 1, winnerStep: 14, winnerIndex: 1,
+                  bids: [
+                    { step: 4,  price: 624.00, eta: '5 days',  note: 'Factory sealed', noteColor: GRN },
+                    { step: 4,  price: 549.00, eta: '3 days',  note: 'OEM · in stock', noteColor: GRN },
+                    { step: 5,  price: 398.00, eta: '2 days',  note: 'Fit risk · not OEM', noteColor: R },
+                    { step: 5,  price: 412.00, eta: '4 days',  note: 'Color-match flag', noteColor: AMB },
+                  ]},
+                { name: 'Trunk lid assembly',      partNumber: '68500-T2A-A90ZZ', qty: 1, appearStep: 2, winnerStep: 15, winnerIndex: 0,
+                  bids: [
+                    { step: 6,  price: 1280.00, eta: '5 days', note: 'Factory sealed', noteColor: GRN },
+                    { step: 6,  price: 1095.00, eta: '7 days', note: 'Warehouse WI', noteColor: AMB },
+                    { step: 7,  price: null,    eta: '' },
+                    { step: 7,  price: 989.00,  eta: '9 days', note: 'Backordered', noteColor: R },
+                  ]},
+                { name: 'Rear trim molding kit',   partNumber: '74890-T2A-A01', qty: 1, appearStep: 3, winnerStep: 16, winnerIndex: 1,
+                  bids: [
+                    { step: 8,  price: 168.00, eta: '5 days', note: 'OEM', noteColor: GRN },
+                    { step: 8,  price: 124.00, eta: '3 days', note: 'OEM · in stock', noteColor: GRN },
+                    { step: 9,  price: 78.00,  eta: '2 days', note: 'Aftermarket', noteColor: AMB },
+                    { step: 9,  price: 82.00,  eta: '4 days', note: 'Aftermarket' },
+                  ]},
+                { name: 'Tail light assembly (L)', partNumber: '33550-T2A-A21', qty: 1, appearStep: 4, winnerStep: 17, winnerIndex: 0,
+                  bids: [
+                    { step: 10, price: 342.00, eta: '3 days', note: 'OEM · in stock', noteColor: GRN },
+                    { step: 10, price: 389.00, eta: '5 days', note: 'Remfg OEM' },
+                    { step: 11, price: 198.00, eta: '2 days', note: 'Non-DOT stamp', noteColor: R },
+                    { step: 11, price: 215.00, eta: '4 days', note: 'DOT stamped', noteColor: AMB },
+                  ]},
+                { name: 'Paint · NH-797M clearcoat', partNumber: 'PPG-NH797M-1G', qty: 1, appearStep: 5, winnerStep: 18, winnerIndex: 3,
+                  bids: [
+                    { step: 12, price: 428.00, eta: '4 days', note: 'Sealed gallon' },
+                    { step: 12, price: 398.00, eta: '3 days', note: 'Match guaranteed' },
+                    { step: 13, price: 312.00, eta: '2 days', note: 'Budget tier', noteColor: AMB },
+                    { step: 13, price: 284.00, eta: '1 day',  note: 'Local PPG distro', noteColor: GRN },
+                  ]},
+              ],
+              poLines: [
+                { step: 19, label: 'PO #',                       value: 'PO-RE-2471-04' },
+                { step: 19, label: 'Vendors (multi-source)',     value: '3 suppliers' },
+                { step: 20, label: 'Net-30 terms',               value: 'Approved for $18,500 limit' },
+                { step: 20, label: 'Combined ETA',               value: 'Oct 21 · all items on-site' },
+                { step: 21, label: 'Insurance-reviewed parts',   value: 'OEM on exterior panels' },
+              ],
+              poTotal: 2051.00,
+              poTotalStep: 22,
+              logistics: [
+                { step: 19, icon: Truck,       label: 'Delivery schedule', value: '4 drops · Mon + Tue + Wed next week', color: T },
+                { step: 20, icon: Package,     label: 'Receiving bay',     value: 'Bay 3 · Technician Marcus D. notified' },
+                { step: 21, icon: AlertCircle, label: 'Insurance flag',    value: 'OEM-only memo attached to Allstate claim', color: AMB },
+                { step: 22, icon: Star,        label: 'AI savings',        value: '$347 saved + 2.1 days faster vs manual', color: GRN },
+              ],
+              outcome: {
+                step: 24,
+                text: 'POs sent to 3 vendors · Customer notified · Repair scheduled Oct 22',
+                hint: '8.2s end-to-end',
+              },
+              footerLabel: 'Parts AI · Coastal Body Shop',
+              footerStats: [
+                { label: 'Orders today',       value: '11' },
+                { label: 'Avg procurement',    value: '9s' },
+                { label: 'Savings vs manual',  value: '11.4%' },
+              ],
+              totalSteps: 30,
+            }} />
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: MUTED, fontFamily: FB }}>
+              <strong style={{ color: INK }}>Parts Ordering System.</strong> 4 vendors queried, best OEM-compliant bid per line, multi-source PO placed in 8 seconds.
             </div>
           </div>
         </div>
