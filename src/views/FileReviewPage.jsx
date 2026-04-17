@@ -92,7 +92,12 @@ export default function FileReviewPage() {
   // responsive breakpoints both work.
   const [iframeWidth, setIframeWidth] = useState(1280)
   const [iframeHeight, setIframeHeight] = useState(5000)
-  const [pdfHeight, setPdfHeight] = useState(3000)
+  // Default height is generous so multi-page PDFs have a valid annotation
+  // canvas size BEFORE the renderer reports the real totalHeight back via
+  // onDimensionsChange. Without this buffer, any annotation placed on
+  // pages 2+ during the first few hundred ms of render falls outside the
+  // canvas and is silently dropped.
+  const [pdfHeight, setPdfHeight] = useState(8000)
 
   const [authorName, setAuthorName] = useState('')
   const [showNamePrompt, setShowNamePrompt] = useState(false)
@@ -669,9 +674,73 @@ export default function FileReviewPage() {
         </div>
       )}
 
-      {/* Width/height preset controls disabled — srcdoc rendering doesn't
-          resize the inner HTML content properly with these controls.
-          Re-enable when we implement a proper responsive preview. */}
+      {/* HTML preview controls — reviewers need to test responsive
+          breakpoints and grow the canvas so annotations reach the
+          full design. The inner srcdoc is still responsive within
+          whatever width we hand the iframe, so presets work. */}
+      {(isHtml || isWebsite) && (
+        <div style={{
+          background: '#f9fafb', borderBottom: '1px solid #e5e7eb',
+          padding: '6px 16px', display: 'flex', alignItems: 'center',
+          gap: 6, flexWrap: 'wrap', fontSize: 12, color: '#6b7280',
+        }}>
+          <span style={{ fontWeight: 700, color: '#374151' }}>Preview:</span>
+          {[
+            { label: '📱 375',  width: 375 },
+            { label: '📱 768',  width: 768 },
+            { label: '🖥 1280', width: 1280 },
+            { label: '🖥 1920', width: 1920 },
+          ].map(p => (
+            <button key={p.width}
+              onClick={() => setIframeWidth(p.width)}
+              style={{
+                padding: '3px 10px', borderRadius: 6,
+                background: iframeWidth === p.width ? '#E6007E' : '#fff',
+                color: iframeWidth === p.width ? '#fff' : '#6b7280',
+                border: '1px solid #e5e7eb',
+                fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              }}>
+              {p.label}
+            </button>
+          ))}
+          <span style={{ marginLeft: 6, color: '#9ca3af' }}>·</span>
+          <span style={{ color: '#6b7280' }}>Height:</span>
+          <button onClick={() => setIframeHeight(h => Math.max(1000, h - 1000))}
+            style={{ padding: '3px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>−1k</button>
+          <span style={{ fontWeight: 800, color: '#374151', padding: '0 4px' }}>{iframeHeight}px</span>
+          <button onClick={() => setIframeHeight(h => h + 1000)}
+            style={{ padding: '3px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>+1k</button>
+          <button onClick={() => setIframeHeight(h => h + 3000)}
+            style={{ padding: '3px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>+3k</button>
+          <button
+            onClick={() => {
+              const el = canvasContainerRef.current
+              if (el) setIframeWidth(Math.max(320, el.clientWidth - 48))
+            }}
+            title="Fit to the available canvas width"
+            style={{ marginLeft: 6, padding: '3px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+            ↔ Fit width
+          </button>
+        </div>
+      )}
+
+      {/* PDF height stepper + fit for the internal reviewer — before
+          onDimensionsChange fires we still want a manual lever. */}
+      {isPdf && (
+        <div style={{
+          background: '#f9fafb', borderBottom: '1px solid #e5e7eb',
+          padding: '6px 16px', display: 'flex', alignItems: 'center',
+          gap: 6, flexWrap: 'wrap', fontSize: 12, color: '#6b7280',
+        }}>
+          <span style={{ fontWeight: 700, color: '#374151' }}>PDF canvas height:</span>
+          <button onClick={() => setPdfHeight(h => Math.max(1500, h - 2000))}
+            style={{ padding: '3px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>−2k</button>
+          <span style={{ fontWeight: 800, color: '#374151', padding: '0 4px' }}>{pdfHeight}px</span>
+          <button onClick={() => setPdfHeight(h => h + 2000)}
+            style={{ padding: '3px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>+2k</button>
+          <span style={{ marginLeft: 6, color: '#9ca3af', fontSize: 11 }}>Auto-sizes when the PDF finishes rendering</span>
+        </div>
+      )}
 
       {/* Main area — thumbs + canvas + sidebar */}
       <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
