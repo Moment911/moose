@@ -795,40 +795,79 @@ export default function PublicReviewPage() {
             </div>
           )}
 
-          <div className="p-4 border-b border-gray-100 flex-shrink-0">
-            <p className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">Your name</p>
-            <input className="input text-sm" placeholder="Enter your name\u2026" value={authorName}
-              onChange={e => setAuthorName(e.target.value)} />
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-sm text-gray-700">Click a tool, then click on the design.</p>
-              <button onClick={() => setShowTemplates(!showTemplates)} className="text-[13px] text-brand-500 hover:text-brand-700 font-medium">Templates</button>
+          {/* ─── Your name ─── */}
+          <div className="px-5 pt-5 pb-4 flex-shrink-0">
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-2">
+              Your name
+            </label>
+            <input
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-colors"
+              placeholder="Enter your name…"
+              value={authorName}
+              onChange={e => setAuthorName(e.target.value)}
+            />
+          </div>
+
+          {/* ─── Feedback tools ─── */}
+          <div className="px-5 py-4 border-t border-gray-100 bg-gray-50/50 flex-shrink-0">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">
+                Feedback tools
+              </label>
+              <button
+                onClick={() => setShowTemplates(!showTemplates)}
+                className="text-[11px] font-bold uppercase tracking-wider text-brand-500 hover:text-brand-700 transition-colors"
+              >
+                Templates
+              </button>
             </div>
-            <div className="flex gap-1 mt-3">
+            <p className="text-[13px] text-gray-500 leading-snug mb-3">
+              Pick a tool, then click on the design to place your comment.
+            </p>
+            <div className="grid grid-cols-4 gap-1.5">
               {[
-                { key: 'pin', label: '\ud83d\udccd Pin', title: 'Comment pin' },
-                { key: 'circle', label: '\u25ef Circle', title: 'Draw circle' },
-                { key: 'arrow', label: '\u2197 Arrow', title: 'Draw arrow' },
-                { key: 'rect', label: '\u25ad Box', title: 'Draw box' },
-              ].map(t => (
-                <button key={t.key} onClick={() => setTool(t.key)} title={t.title} disabled={roundsExhausted}
-                  className={`flex-1 text-sm py-1.5 rounded-lg border transition-colors ${
-                    tool === t.key && !roundsExhausted
-                      ? 'bg-brand-50 border-brand-300 text-brand-700 font-medium'
-                      : 'border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40'
-                  }`}>
-                  {t.label}
-                </button>
-              ))}
+                { key: 'pin',    icon: '📍', label: 'Pin',    title: 'Drop a comment pin' },
+                { key: 'circle', icon: '◯',  label: 'Circle', title: 'Draw a circle' },
+                { key: 'arrow',  icon: '↗',  label: 'Arrow',  title: 'Draw an arrow' },
+                { key: 'rect',   icon: '▭',  label: 'Box',    title: 'Draw a box' },
+              ].map(t => {
+                const active = tool === t.key && !roundsExhausted
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => setTool(t.key)}
+                    title={t.title}
+                    disabled={roundsExhausted}
+                    className={`flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-lg border transition-all ${
+                      active
+                        ? 'bg-brand-500 border-brand-500 text-white shadow-sm'
+                        : 'bg-white border-gray-200 text-gray-700 hover:border-brand-300 hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed'
+                    }`}
+                  >
+                    <span className="text-base leading-none">{t.icon}</span>
+                    <span className="text-[10px] font-bold tracking-wide">{t.label}</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* Feedback templates */}
-          {showTemplates && <FeedbackTemplates onSelect={text => { setPrefillComment(text); setShowTemplates(false); setTool('pin'); toast.success('Template selected \u2014 click on the design to place your comment') }} onClose={() => setShowTemplates(false)} />}
+          {/* Feedback templates (popover flows below the tool card) */}
+          {showTemplates && (
+            <div className="px-5 pb-4 flex-shrink-0">
+              <FeedbackTemplates
+                onSelect={text => { setPrefillComment(text); setShowTemplates(false); setTool('pin'); toast.success('Template selected — click on the design to place your comment') }}
+                onClose={() => setShowTemplates(false)}
+              />
+            </div>
+          )}
 
-          {/* Scrollable comment list + FAQ */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            <CommentSidebar annotations={annotations} selectedId={selectedId} onSelect={handleSidebarSelect} replies={replies} onAddReply={handleAddReply} />
-            <div className="px-3 pb-3">
+          {/* ─── Comments + Help (scrollable) ─── */}
+          <div className="flex-1 min-h-0 overflow-y-auto border-t border-gray-200">
+            <div className="px-1 pt-3">
+              <CommentSidebar annotations={annotations} selectedId={selectedId} onSelect={handleSidebarSelect} replies={replies} onAddReply={handleAddReply} />
+            </div>
+            <div className="px-4 pt-5 pb-5 border-t border-gray-200 mt-4 bg-gray-50/60">
               <FAQSection items={CLIENT_FAQ} title="Help" compact />
             </div>
           </div>
