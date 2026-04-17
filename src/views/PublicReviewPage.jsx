@@ -107,7 +107,10 @@ export default function PublicReviewPage() {
   // the preview so annotations reach the whole design.
   const [htmlWidth, setHtmlWidth] = useState(1280)
   const [htmlHeight, setHtmlHeight] = useState(2400)
+  const [pdfWidth, setPdfWidth] = useState(900)
   const [pdfHeight, setPdfHeight] = useState(1000)
+  const [containerWidth, setContainerWidth] = useState(0)  // measured live; drives Fit buttons
+  const scrollContainerRef = useRef(null)
   const [rounds, setRounds] = useState([])
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
@@ -144,8 +147,41 @@ export default function PublicReviewPage() {
     const isHtml = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
     const isPdf = file?.type === 'application/pdf'
     if (isHtml) setImgDims({ width: htmlWidth, height: htmlHeight })
-    else if (isPdf) setImgDims({ width: 900, height: pdfHeight })
-  }, [file, htmlWidth, htmlHeight, pdfHeight])
+    else if (isPdf) setImgDims({ width: pdfWidth, height: pdfHeight })
+  }, [file, htmlWidth, htmlHeight, pdfWidth, pdfHeight])
+
+  // Live-measure the scroll container width so Fit-to-width works on every
+  // viewport and responds to window resizes + sidebar toggles.
+  useEffect(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    const measure = () => {
+      // Subtract padding (p-2 md:p-6 → 16–48px each side). clientWidth is
+      // already content-box in React, so this is honest.
+      setContainerWidth(Math.max(320, el.clientWidth - 32))
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    window.addEventListener('resize', measure)
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure) }
+  }, [file, status])
+
+  // Auto-fit when a file first loads so clients never land on an overflowing preview.
+  useEffect(() => {
+    if (!file || !containerWidth) return
+    const isHtml = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
+    const isPdf = file?.type === 'application/pdf'
+    if (isHtml) {
+      // Land on the closest responsive preset at or below container width
+      const target = containerWidth >= 1280 ? 1280 : containerWidth >= 768 ? 768 : 375
+      setHtmlWidth(target)
+    } else if (isPdf) {
+      setPdfWidth(Math.min(900, containerWidth))
+    }
+    // Intentionally run only when the file swaps, not on every container tick
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file?.id])
 
   // Realtime — no duplicates
   useEffect(() => {
@@ -515,11 +551,34 @@ export default function PublicReviewPage() {
             <span className="font-bold text-gray-700">{htmlHeight}px</span>
             <button onClick={() => setHtmlHeight((h) => h + 600)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+600</button>
             <button onClick={() => setHtmlHeight((h) => h + 1200)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+1200</button>
+            <button
+              onClick={() => { if (containerWidth) setHtmlWidth(containerWidth) }}
+              title="Fit to this screen"
+              className="ml-2 px-2 py-0.5 rounded font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+            >↔ Fit width</button>
           </div>
         )}
         {file?.type === 'application/pdf' && (
-          <div className="bg-gray-50 border-b border-gray-200 px-4 py-1.5 flex items-center gap-2 text-xs text-gray-600 flex-shrink-0">
-            <span className="font-semibold text-gray-700">Page height:</span>
+          <div className="bg-gray-50 border-b border-gray-200 px-4 py-1.5 flex items-center gap-2 text-xs text-gray-600 flex-shrink-0 flex-wrap">
+            <span className="font-semibold text-gray-700">Width:</span>
+            {[
+              { label: '📱 375', width: 375 },
+              { label: '📱 768', width: 768 },
+              { label: '🖥 900', width: 900 },
+              { label: '🖥 1200', width: 1200 },
+            ].map((p) => (
+              <button key={p.width} onClick={() => setPdfWidth(p.width)}
+                className={`px-2 py-0.5 rounded font-semibold transition-colors ${pdfWidth === p.width ? 'bg-brand-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                {p.label}
+              </button>
+            ))}
+            <button
+              onClick={() => { if (containerWidth) setPdfWidth(containerWidth) }}
+              title="Fit to this screen"
+              className="px-2 py-0.5 rounded font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+            >↔ Fit</button>
+            <span className="ml-2">·</span>
+            <span className="font-semibold text-gray-700">Height:</span>
             <button onClick={() => setPdfHeight((h) => Math.max(500, h - 600))} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">−600</button>
             <span className="font-bold text-gray-700">{pdfHeight}px</span>
             <button onClick={() => setPdfHeight((h) => h + 600)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+600</button>
@@ -528,7 +587,7 @@ export default function PublicReviewPage() {
         )}
 
         <div className="flex flex-1 overflow-hidden relative">
-        <div className="flex-1 overflow-auto bg-gray-100 p-2 md:p-6 flex items-start justify-center"
+        <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100 p-2 md:p-6 flex items-start justify-center"
           onMouseDown={() => { if (activeBubble) closeBubble() }}>
           <div style={{ position: 'relative' }}>
             <div className="relative inline-block shadow-2xl rounded-lg overflow-hidden bg-white">
@@ -540,7 +599,7 @@ export default function PublicReviewPage() {
               )}
               {file?.type === 'application/pdf' && (
                 <iframe src={`${file.url}#toolbar=0`} title={file.name} className="block"
-                  style={{ width: 900, height: pdfHeight, border: 'none' }} />
+                  style={{ width: pdfWidth, height: pdfHeight, border: 'none' }} />
               )}
               {(file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')) && htmlBlobUrl && (
                 <iframe src={htmlBlobUrl} title={file.name} className="block"

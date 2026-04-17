@@ -39,6 +39,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
   const [access, setAccess] = useState(project.access_level || 'private')
   const [password, setPassword] = useState(project.access_password || '')
   const [dueDate, setDueDate] = useState(project.due_date || '')
+  const [maxRounds, setMaxRounds] = useState(project.max_rounds || 2)
   const [webhookUrl, setWebhookUrl] = useState(project.webhook_url || '')
   const [slackUrl, setSlackUrl] = useState(project.slack_webhook_url || '')
   const [slackChannel, setSlackChannel] = useState(project.slack_channel_url || '')
@@ -54,11 +55,13 @@ export default function AccessModal({ project, onClose, onUpdate }) {
     if (access === 'password' && !password.trim()) {
       toast.error('Please enter a password'); return
     }
+    const rounds = Math.max(1, Math.min(20, Number(maxRounds) || 2))
     setSaving(true)
     const { error } = await updateProject(project.id, {
       access_level: access,
       access_password: access === 'password' ? password : null,
       due_date: dueDate || null,
+      max_rounds: rounds,
       webhook_url: webhookUrl.trim() || null,
       slack_webhook_url: slackUrl.trim() || null,
       slack_channel_url: slackChannel.trim() || null,
@@ -68,7 +71,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
     })
     if (error) { toast.error('Failed to save'); setSaving(false); return }
     toast.success('Access settings saved')
-    onUpdate({ ...project, access_level: access, access_password: password, due_date: dueDate || null, webhook_url: webhookUrl.trim() || null, slack_webhook_url: slackUrl.trim() || null, slack_channel_url: slackChannel.trim() || null, brand_name: brandName.trim() || null, brand_color: brandName.trim() ? brandColor : null, brand_logo: brandLogo.trim() || null })
+    onUpdate({ ...project, access_level: access, access_password: password, due_date: dueDate || null, max_rounds: rounds, webhook_url: webhookUrl.trim() || null, slack_webhook_url: slackUrl.trim() || null, slack_channel_url: slackChannel.trim() || null, brand_name: brandName.trim() || null, brand_color: brandName.trim() ? brandColor : null, brand_logo: brandLogo.trim() || null })
     setSaving(false)
     onClose()
   }
@@ -135,6 +138,38 @@ export default function AccessModal({ project, onClose, onUpdate }) {
             <div className="text-sm font-medium text-gray-500 mb-2">Client feedback due by</div>
             <input type="date" className="input text-sm" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             {dueDate && <p className="text-[13px] text-gray-400 mt-1">Client will see a countdown on their review page</p>}
+          </div>
+
+          {/* Revision rounds — per-project; default 2 */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-xl">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-medium text-gray-500">Revision rounds included</div>
+              <span className="text-[13px] text-gray-400">1–20</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMaxRounds(r => Math.max(1, Number(r) - 1))}
+                className="px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 font-semibold text-sm"
+              >−</button>
+              <input
+                type="number"
+                min={1}
+                max={20}
+                className="input text-sm text-center flex-1"
+                value={maxRounds}
+                onChange={e => setMaxRounds(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setMaxRounds(r => Math.min(20, Number(r) + 1))}
+                className="px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 font-semibold text-sm"
+              >+</button>
+            </div>
+            <p className="text-[13px] text-gray-400 mt-2">
+              Client can submit up to {Math.max(1, Math.min(20, Number(maxRounds) || 2))} round{(Number(maxRounds) || 2) !== 1 ? 's' : ''} of feedback before the proof locks.
+              Changes apply immediately.
+            </p>
           </div>
 
           {/* White label branding */}
