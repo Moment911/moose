@@ -130,9 +130,9 @@ async function archiveRecording(retellUrl: string, callId: string): Promise<stri
 // The repo already uses Telnyx for voice infrastructure, so Telnyx messaging
 // is the natural SMS carrier. Falls back to Twilio if Telnyx isn't configured.
 // Retell is voice-only and does not send SMS.
-async function sendSmsViaTelnyx(to: string, body: string): Promise<boolean> {
+async function sendSmsViaTelnyx(to: string, body: string, fromOverride?: string): Promise<boolean> {
   const key = process.env.TELNYX_API_KEY
-  const from = process.env.TELNYX_SMS_FROM_NUMBER
+  const from = fromOverride || process.env.TELNYX_SMS_FROM_NUMBER
   const profile = process.env.TELNYX_MESSAGING_PROFILE_ID
   if (!key || (!from && !profile)) return false
   try {
@@ -182,15 +182,16 @@ async function sendSmsViaTwilio(to: string, body: string): Promise<boolean> {
   }
 }
 
-async function sendSms(to: string, body: string): Promise<boolean> {
+async function sendSms(to: string, body: string, fromOverride?: string): Promise<boolean> {
   if (!to) return false
-  // Prefer explicit provider if SMS_PROVIDER is set; otherwise try Telnyx first.
+  // Prefer explicit provider if SMS_PROVIDER is set; otherwise try Telnyx first
+  // — Telnyx gets the agent's attached number so clients see a consistent ID.
   const pref = (process.env.SMS_PROVIDER || '').toLowerCase()
   if (pref === 'twilio') {
     if (await sendSmsViaTwilio(to, body)) return true
-    return sendSmsViaTelnyx(to, body)
+    return sendSmsViaTelnyx(to, body, fromOverride)
   }
-  if (await sendSmsViaTelnyx(to, body)) return true
+  if (await sendSmsViaTelnyx(to, body, fromOverride)) return true
   if (await sendSmsViaTwilio(to, body)) return true
   console.error('[sms] no provider available — set TELNYX_API_KEY + TELNYX_SMS_FROM_NUMBER, or TWILIO_* env vars')
   return false
@@ -1269,6 +1270,7 @@ End the call once you have collected the caller's information and confirmed next
           // Prompt-substitution source fields surfaced in the Setup tab
           'address', 'services_list', 'staff_directory', 'scheduling_contact',
           'scheduling_link', 'transfer_phone', 'calendar_webhook_url',
+          'telnyx_number_id',
         ])
         const updates: any = {}
         for (const k of Object.keys(raw)) {
@@ -1626,7 +1628,10 @@ End the call once you have collected the caller's information and confirmed next
               callerDetails?.reason_for_calling ? `Re: ${callerDetails.reason_for_calling}` : null,
               `Details: ${callDetailUrl}`,
             ].filter(Boolean).join('\n')
-            await Promise.all([...smsTargets].map(to => sendSms(to, smsBody)))
+            // If the agent has a Telnyx number assigned, send SMS from that
+            // number so recipients see a consistent caller ID across channels.
+            const smsFromOverride = agentInfo?.phone_number && agentInfo?.telnyx_number_id ? agentInfo.phone_number : undefined
+            await Promise.all([...smsTargets].map(to => sendSms(to, smsBody, smsFromOverride)))
           }
 
           // Slack / Teams integrations — pure fire-and-forget, one call each
@@ -1845,11 +1850,36 @@ ${current_text}
       }
 
       case 'release_number': {
-        // Release a Koto-provisioned phone number — deletes from Retell + DB.
+        // Release any Koto-provisioned phone number. Auto-detects Retell vs
+        // Telnyx and deletes from the right carrier so billing stops.
         const { phone_number_id, phone_number, agency_id: relAgency } = body
         if (!phone_number && !phone_number_id) return NextResponse.json({ error: 'phone_number or phone_number_id required' }, { status: 400 })
 
-        // Look up the Retell phone number ID if only the number was given.
+        // Check Telnyx first — if we provisioned it there, release from Telnyx.
+        const { data: telnyxRow } = await supabase
+          .from('koto_telnyx_numbers')
+          .select('id, phone_number, telnyx_phone_id')
+          .or(phone_number ? `phone_number.eq.${phone_number}` : `telnyx_phone_id.eq.${phone_number_id}`)
+          .maybeSingle()
+
+        if (telnyxRow?.telnyx_phone_id) {
+          try {
+            await fetch(`https://api.telnyx.com/v2/phone_numbers/${telnyxRow.telnyx_phone_id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${process.env.TELNYX_API_KEY || ''}` },
+            })
+          } catch (e: any) {
+            console.error('[release_number] Telnyx delete failed (continuing):', e?.message)
+          }
+          await supabase.from('koto_telnyx_numbers').delete().eq('id', telnyxRow.id)
+          const num = telnyxRow.phone_number || phone_number
+          if (num) {
+            await supabase.from('koto_inbound_agents').update({ phone_number: null, telnyx_number_id: null }).eq('phone_number', num)
+          }
+          return NextResponse.json({ success: true, carrier: 'telnyx' })
+        }
+
+        // Otherwise it's a Retell-provisioned number — release via Retell.
         let retellPhoneId = phone_number_id
         if (!retellPhoneId && phone_number) {
           const { data: row } = await supabase
@@ -1866,19 +1896,17 @@ ${current_text}
           }
         }
 
-        // Remove from DB. Match by either phone_number or retell id, scoped to agency if given.
         let q = supabase.from('koto_inbound_phone_numbers').delete()
         if (phone_number) q = q.eq('phone_number', phone_number)
         if (retellPhoneId) q = q.or(`retell_number_id.eq.${retellPhoneId},retell_phone_number_id.eq.${retellPhoneId}`)
         if (relAgency) q = q.eq('agency_id', relAgency)
         await q
 
-        // Detach from any agent that had this number set on their record.
         if (phone_number) {
           await supabase.from('koto_inbound_agents').update({ phone_number: null }).eq('phone_number', phone_number)
         }
 
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true, carrier: 'retell' })
       }
 
       case 'sync_all_retell_webhooks': {

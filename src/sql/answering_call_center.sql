@@ -28,6 +28,30 @@ ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS address                
 ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS services_list          jsonb DEFAULT '[]';
 ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS staff_directory        jsonb DEFAULT '[]';
 ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS transfer_phone         text;
+ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS telnyx_number_id       text;
+
+-- ── Telnyx number inventory (per agency / client / agent) ──────────────────
+-- Release a row → delete from Telnyx so billing stops.
+CREATE TABLE IF NOT EXISTS koto_telnyx_numbers (
+  id                uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  agency_id         uuid NOT NULL,
+  client_id         uuid,
+  agent_id          uuid REFERENCES koto_inbound_agents(id) ON DELETE SET NULL,
+  phone_number      text NOT NULL,
+  telnyx_phone_id   text,
+  order_id          text,
+  nickname          text,
+  status            text DEFAULT 'active',
+  features          jsonb DEFAULT '["voice","sms"]',
+  created_at        timestamptz DEFAULT now(),
+  UNIQUE (phone_number)
+);
+CREATE INDEX IF NOT EXISTS idx_telnyx_numbers_agency ON koto_telnyx_numbers(agency_id);
+CREATE INDEX IF NOT EXISTS idx_telnyx_numbers_client ON koto_telnyx_numbers(client_id);
+CREATE INDEX IF NOT EXISTS idx_telnyx_numbers_agent  ON koto_telnyx_numbers(agent_id);
+ALTER TABLE koto_telnyx_numbers ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "telnyx_numbers_all" ON koto_telnyx_numbers;
+CREATE POLICY "telnyx_numbers_all" ON koto_telnyx_numbers FOR ALL USING (true) WITH CHECK (true);
 
 -- Voice / Retell speech settings
 ALTER TABLE koto_inbound_agents ADD COLUMN IF NOT EXISTS voice_speed                numeric;

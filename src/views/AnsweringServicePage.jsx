@@ -1709,6 +1709,158 @@ function RoutingTab({ agent }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// TELNYX NUMBERS CARD (per-agency inventory, assign/release to agent)
+// ═══════════════════════════════════════════════════════════════════════════════
+function TelnyxNumbersCard({ agent, agencyId, onAssignment }) {
+  const [numbers, setNumbers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [areaCode, setAreaCode] = useState('')
+  const [available, setAvailable] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [provisioning, setProvisioning] = useState(null)
+  const [releasing, setReleasing] = useState(null)
+
+  async function refresh() {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/telnyx/numbers?agency_id=${agencyId}`)
+      const d = await res.json().catch(()=>({}))
+      setNumbers(Array.isArray(d.numbers) ? d.numbers : [])
+    } catch {}
+    setLoading(false)
+  }
+  useEffect(() => { refresh() }, [agencyId])
+
+  async function search() {
+    setSearching(true); setAvailable([])
+    try {
+      const res = await fetch('/api/telnyx/numbers', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'search_available', area_code: areaCode || undefined, limit: 15 })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (Array.isArray(d.numbers)) setAvailable(d.numbers)
+      else toast.error(d.error||'Search failed')
+    } catch { toast.error('Search failed') }
+    setSearching(false)
+  }
+
+  async function provision(pn) {
+    setProvisioning(pn)
+    try {
+      const res = await fetch('/api/telnyx/numbers', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'provision', agency_id: agencyId, agent_id: agent.id, phone_number: pn })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) {
+        toast.success(`Provisioned ${pn}`)
+        setAvailable(a => a.filter(x => x.phone_number !== pn))
+        refresh()
+        onAssignment?.(d.number)
+      } else toast.error(d.error||'Provision failed')
+    } catch { toast.error('Provision failed') }
+    setProvisioning(null)
+  }
+
+  async function release(n) {
+    if (!confirm(`Release ${n.phone_number}? This permanently deletes it from your Telnyx account so billing stops.`)) return
+    setReleasing(n.id)
+    try {
+      const res = await fetch(`/api/telnyx/numbers?id=${n.id}`, { method:'DELETE' })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { toast.success('Released'); refresh() }
+      else toast.error(d.error||'Release failed')
+    } catch { toast.error('Release failed') }
+    setReleasing(null)
+  }
+
+  async function assignToThisAgent(n) {
+    try {
+      const res = await fetch('/api/telnyx/numbers', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'assign', id: n.id, agent_id: agent.id })
+      })
+      const d = await res.json().catch(()=>({}))
+      if (d.success) { toast.success('Assigned'); refresh(); onAssignment?.(n) }
+      else toast.error(d.error||'Assign failed')
+    } catch { toast.error('Assign failed') }
+  }
+
+  const ownAgency = numbers.filter(n => !n.agent_id || n.agent_id === agent.id)
+  const ownAgent = numbers.filter(n => n.agent_id === agent.id)
+  const others = numbers.filter(n => n.agent_id && n.agent_id !== agent.id)
+
+  return (
+    <div style={card}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+        <div>
+          <h4 style={{ margin:0, fontFamily:FH, fontSize:14 }}>Telnyx Numbers</h4>
+          <p style={{ margin:'4px 0 0', fontSize:12, color:'#6b7280' }}>One number per client handles both inbound calls + SMS. Release permanently deletes from Telnyx.</p>
+        </div>
+        <button onClick={refresh} style={btn('#e5e7eb', BLK)}><RefreshCw size={14}/> Refresh</button>
+      </div>
+
+      {/* Search & provision */}
+      <div style={{ padding:10, background:'#fafafa', borderRadius:8, marginBottom:14 }}>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <input style={{ ...input, width:120 }} placeholder="Area code" value={areaCode} onChange={e=>setAreaCode(e.target.value)}/>
+          <button onClick={search} disabled={searching} style={btn()}>
+            {searching ? <Loader2 size={14} className="spin"/> : <Search size={14}/>} Search Telnyx
+          </button>
+        </div>
+        {available.length > 0 && (
+          <div style={{ marginTop:10, display:'flex', flexDirection:'column', gap:4 }}>
+            {available.map(n => (
+              <div key={n.phone_number} style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 10px', background:'#fff', borderRadius:6, border:'1px solid #e5e7eb' }}>
+                <span style={{ fontFamily:'ui-monospace,Menlo,monospace', fontSize:13, flex:1 }}>{n.phone_number}</span>
+                <span style={{ fontSize:11, color:'#6b7280' }}>{n.region || ''}</span>
+                {n.cost_monthly && <span style={{ fontSize:11, color:'#6b7280' }}>${n.cost_monthly}/mo</span>}
+                <button onClick={()=>provision(n.phone_number)} disabled={provisioning===n.phone_number} style={btn(GRN)}>
+                  {provisioning===n.phone_number ? <Loader2 size={12} className="spin"/> : <Plus size={12}/>} Provision
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Current inventory */}
+      {loading ? <div style={{ textAlign:'center', padding:20 }}><Loader2 size={20} className="spin" color={R}/></div> : (
+        <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+          {ownAgent.length > 0 && <div style={{ fontSize:11, color:'#6b7280', fontWeight:700, textTransform:'uppercase' }}>Attached to this agent</div>}
+          {ownAgent.map(n => (
+            <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', background:'rgba(22,163,74,.05)', borderRadius:8, border:'1px solid rgba(22,163,74,.2)' }}>
+              <span style={{ fontFamily:'ui-monospace,Menlo,monospace', fontSize:13, flex:1, fontWeight:600 }}>{n.phone_number}</span>
+              {n.nickname && <span style={{ fontSize:11, color:'#6b7280' }}>{n.nickname}</span>}
+              <span style={badge(GRN)}>Attached</span>
+              <button onClick={()=>release(n)} disabled={releasing===n.id} style={btn('#fef2f2', R)}>
+                {releasing===n.id ? <Loader2 size={12} className="spin"/> : <Trash2 size={12}/>} Release
+              </button>
+            </div>
+          ))}
+          {ownAgency.filter(n => n.agent_id !== agent.id).length > 0 && <div style={{ fontSize:11, color:'#6b7280', fontWeight:700, textTransform:'uppercase', marginTop:8 }}>Unassigned</div>}
+          {ownAgency.filter(n => n.agent_id !== agent.id).map(n => (
+            <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', background:'#fafafa', borderRadius:8, border:'1px solid #e5e7eb' }}>
+              <span style={{ fontFamily:'ui-monospace,Menlo,monospace', fontSize:13, flex:1 }}>{n.phone_number}</span>
+              <button onClick={()=>assignToThisAgent(n)} style={btn('#374151')}>Assign here</button>
+              <button onClick={()=>release(n)} disabled={releasing===n.id} style={btn('#fef2f2', R)}>
+                {releasing===n.id ? <Loader2 size={12} className="spin"/> : <Trash2 size={12}/>} Release
+              </button>
+            </div>
+          ))}
+          {others.length > 0 && <div style={{ fontSize:11, color:'#6b7280', fontWeight:700, textTransform:'uppercase', marginTop:8 }}>On other agents in this agency</div>}
+          {others.map(n => (
+            <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', background:'#fafafa', borderRadius:8, border:'1px solid #f3f4f6', opacity:.7 }}>
+              <span style={{ fontFamily:'ui-monospace,Menlo,monospace', fontSize:13, flex:1 }}>{n.phone_number}</span>
+              <span style={{ fontSize:11, color:'#6b7280' }}>agent {String(n.agent_id).slice(0,8)}</span>
+            </div>
+          ))}
+          {numbers.length === 0 && <p style={{ color:'#9ca3af', fontSize:13, textAlign:'center', padding:20, margin:0 }}>No Telnyx numbers yet. Search above to find one.</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // TAB — ADMIN (integrations, compliance, spam blocklist, billing, danger zone)
 // ═══════════════════════════════════════════════════════════════════════════════
 function AdminTab({ agent, setAgent, agencyId, onDelete }) {
@@ -1848,6 +2000,8 @@ function AdminTab({ agent, setAgent, agencyId, onDelete }) {
           </button>
         </div>
       </div>
+
+      <TelnyxNumbersCard agent={agent} agencyId={agencyId} onAssignment={n => setAgent({ ...agent, phone_number: n.phone_number, telnyx_number_id: n.telnyx_phone_id })}/>
 
       {/* Notifications */}
       <div style={card}>
