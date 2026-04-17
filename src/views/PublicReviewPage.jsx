@@ -200,6 +200,24 @@ export default function PublicReviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file?.id])
 
+  // Auto-fit images reactively. Runs whenever imgDims or containerWidth
+  // changes — covers the case where a browser-cached image loads before
+  // the ResizeObserver has measured the container (zoom would otherwise
+  // stay at 1 and a 3000px design would render full-width).
+  //
+  // We key the "already-fit" decision on file.id + zoom === 1 so if the
+  // reviewer has manually zoomed, we don't yank them back.
+  const autofitRanForFileRef = useRef(null)
+  useEffect(() => {
+    if (!file?.type?.startsWith('image/')) return
+    if (!imgDims.width || !containerWidth) return
+    if (autofitRanForFileRef.current === file.id) return
+    if (imgDims.width > containerWidth) {
+      setZoom(Math.max(0.1, +(containerWidth / imgDims.width).toFixed(2)))
+    }
+    autofitRanForFileRef.current = file.id
+  }, [file?.id, file?.type, imgDims.width, containerWidth])
+
   // Realtime — no duplicates
   useEffect(() => {
     if (!file) return
@@ -687,20 +705,7 @@ export default function PublicReviewPage() {
             <div className="relative inline-block shadow-2xl rounded-lg overflow-hidden bg-white">
               {file?.type?.startsWith('image/') && (
                 <img ref={imgRef} src={file.url} alt={file.name}
-                  onLoad={(e) => {
-                    const w = e.currentTarget.naturalWidth
-                    const h = e.currentTarget.naturalHeight
-                    setImgDims({ width: w, height: h })
-                    // Auto-fit: if the image is wider than the scroll
-                    // container, set zoom so the full design fits the
-                    // viewport on landing. Clients were complaining that
-                    // 3000-4000px design exports looked "massively zoomed in"
-                    // because we rendered at natural size with zoom=1.
-                    // Clamp to 0.1 so tiny thumbnails don't disappear.
-                    if (containerWidth && w > containerWidth) {
-                      setZoom(Math.max(0.1, +(containerWidth / w).toFixed(2)))
-                    }
-                  }}
+                  onLoad={(e) => setImgDims({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })}
                   className="block" draggable={false}
                   style={{ width: imgDims.width || 'auto', height: imgDims.height || 'auto' }} />
               )}
