@@ -167,6 +167,7 @@ import GHLIntegrationPage from '../views/GHLIntegrationPage'
 import EmailSequencePage from '../views/EmailSequencePage'
 import IntelligenceDashboardPage from '../views/IntelligenceDashboardPage'
 import ChangelogPage from '../views/ChangelogPage'
+import SystemHealthPage from '../views/SystemHealthPage'
 import VideoVoicemailPage from '../views/VideoVoicemailPage'
 import AvatarBrowserPage from '../views/AvatarBrowserPage'
 import TradesPortalPage from '../views/TradesPortalPage'
@@ -496,6 +497,7 @@ function AppRoutes() {
           <Route path="/stripe-admin" element={<StripeDashboardPage />} />
           <Route path="/invoice-builder" element={<InvoiceBuilderPage />} />
           <Route path="/changelog" element={<ChangelogPage />} />
+          <Route path="/system-health" element={<SystemHealthPage />} />
     </Routes>
   )
 }
