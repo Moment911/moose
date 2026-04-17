@@ -380,6 +380,7 @@ export default function Sidebar() {
                 <NavLink to="/cog-report" icon={DollarSign} label="Expense Intelligence"/>
                 <NavLink to="/token-usage" icon={Zap} label="Token Usage" sub/>
                 <NavLink to="/uptime" icon={Activity} label="Uptime Monitor"/>
+                <NavLink to="/changelog" icon={BookOpen} label="Changelog" badge="NEW" badgeColor={T}/>
                 <a href="/status" target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center',gap:10,padding:'6px 14px',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:13,margin:'1px 0',transition:'all .12s ease'}}
                   onMouseEnter={e=>{e.currentTarget.style.color='#111';e.currentTarget.style.background='rgba(0,0,0,.04)'}}
                   onMouseLeave={e=>{e.currentTarget.style.color='#374151';e.currentTarget.style.background='transparent'}}>
