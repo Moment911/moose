@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: completed
+stopped_at: Phase 7 context gathered
+last_updated: "2026-04-17T20:15:47.605Z"
+last_activity: 2026-04-17 — Added Phases 7 + 8 to roadmap (11 new PROF-* requirements)
+progress:
+  total_phases: 8
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 75
+---
+
 # Project State
 
 ## Project Reference
@@ -19,6 +35,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: —
 - Total execution time: 0.0 hours
@@ -30,6 +47,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 | — | — | — | — |
 
 **Recent Trend:**
+
 - Last 5 plans: —
 - Trend: —
 
@@ -58,6 +76,7 @@ None yet.
 ### Blockers/Concerns
 
 None yet. Research called out risks that are pre-mitigated in phase gates:
+
 - Scaled-content-abuse policy → Phase 3 pre-flight gate (ADAPT-05)
 - Elementor v4 atomic-widget save bugs (#32632 / #33000 / #35397) → Phase 2 `Document::save()` adapter (ELEM-04)
 - Cross-agency data leak → Phase 1 foundation work (FND-01..05)
@@ -65,28 +84,33 @@ None yet. Research called out risks that are pre-mitigated in phase gates:
 
 ## Session Continuity
 
-Last session: 2026-04-17
-Stopped at: Phase 1 code complete. Gate pending: deploy PHP plugin to momentamktg.com, run capture_elementor_schema on a live page, verify zero drift on re-ingest.
-Resume file: None
+Last session: 2026-04-17T20:15:47.603Z
+Stopped at: Phase 7 context gathered
+Resume file: .planning/phases/07-client-profile-seeder-v1-internal-ingest-gap-finder/07-CONTEXT.md
 
 ### Plan 1 Deliverables (COMPLETE)
+
 - `supabase/migrations/20260505_kotoiq_builder.sql` — 10 tables + koto_wp_pages extensions + RLS policies
 - `src/lib/kotoiqDb.ts` — `getKotoIQDb(agencyId)` helper with typed accessors for templates, campaigns, schema versions, builder sites
 
 ### Plan 2 Deliverables (COMPLETE)
+
 - `eslint-rules/no-unscoped-kotoiq.mjs` — custom ESLint rule flagging unscoped kotoiq_* queries
 - `eslint.config.mjs` updated to wire in the rule as `kotoiq/no-unscoped-kotoiq: error`
 
 ### Plan 3 Deliverables (COMPLETE)
+
 - `wp-plugin/koto-builder-endpoints.php` — PHP endpoints: builder/detect, builder/pages, builder/elementor/{id} GET
 - `src/app/api/wp/route.ts` — added detect_builder, list_elementor_pages, get_elementor_data proxy actions
 - **Deploy note**: PHP file must be deployed to the WP plugin on momentamktg.com before endpoints work
 
 ### Plan 4 Deliverables (COMPLETE)
+
 - `src/lib/builder/jsonPathUtils.ts` — stable ID-based deep-get/set for Elementor trees (no array indices)
 - `src/lib/builder/elementorAdapter.ts` — captureSchema(), detectSlots() from live JSON
 - `src/app/api/wp/route.ts` — added capture_elementor_schema action (fetches page → captures schema → persists → detects slots)
 
 ### Plan 5 Deliverables (COMPLETE — merged into Plan 4)
+
 - `src/lib/builder/elementorAdapter.ts` — diffSchemas() classifies clean/additive/breaking drift
 - capture_elementor_schema action auto-diffs against pinned schema and stores drift_status + drift_details
