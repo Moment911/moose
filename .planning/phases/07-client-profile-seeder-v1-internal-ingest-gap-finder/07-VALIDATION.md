@@ -2,8 +2,8 @@
 phase: 7
 slug: client-profile-seeder-v1-internal-ingest-gap-finder
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-17
 ---
 
@@ -18,10 +18,10 @@ created: 2026-04-17
 
 | Property | Value |
 |----------|-------|
-| **Framework** | TBD — planner to resolve (research §14 flags: repo has no Vitest/Jest today; options are (a) install Vitest + add `npm test`, (b) ship manual-QA-only for v1) |
-| **Config file** | TBD (vitest.config.ts if installed) |
-| **Quick run command** | `npm test -- --run <file>` (if Vitest) OR `npm run build && npm run lint` (if manual-only) |
-| **Full suite command** | `npm test -- --run` (if Vitest) OR full manual QA walkthrough |
+| **Framework** | Vitest (installed in Plan 01 Task 6) — `vitest` + `@vitest/ui` + `jsdom` via `npm install --save-dev` |
+| **Config file** | `vitest.config.ts` at repo root (created in Plan 01 Task 6) — `include: ['tests/**/*.test.ts']`, `environment: 'node'` |
+| **Quick run command** | `npm test -- --run tests/<file>.test.ts` |
+| **Full suite command** | `npm test -- --run` |
 | **Estimated runtime** | <30s unit, 2-3min manual QA |
 
 ---
@@ -61,14 +61,13 @@ created: 2026-04-17
 
 ## Wave 0 Requirements
 
-Planner MUST resolve the framework question before Wave 1 executes:
+Wave 0 is RESOLVED via Plan 01 Task 6. All items below landed before Wave 1 executes:
 
-- [ ] **Decision**: install Vitest (recommended — research §14) OR commit to manual-QA-only for v1 and flag automated tests as Phase 7.5 follow-up
-- [ ] If Vitest: install `vitest`, `@vitest/ui`, `jsdom`; add `vitest.config.ts`; add `npm test` script
-- [ ] If Vitest: add `__tests__/` or `tests/` conventions (confirm with project maintainer)
-- [ ] Shared fixtures module for profile test data (one complete profile, one partial, one with discrepancies)
-- [ ] Mock module for Anthropic SDK to avoid real API calls in tests
-- [ ] `agency_isolation.test.ts` — ESLint rule that flags direct Supabase calls to `kotoiq_*` tables (enforces getKotoIQDb usage)
+- [x] **Resolved**: Vitest + `@vitest/ui` + `jsdom` installed in Plan 01 Task 6; `vitest.config.ts` + `npm test` script added
+- [x] **Resolved**: Test convention is `tests/**/*.test.ts` (confirmed in `vitest.config.ts` include pattern)
+- [x] **Resolved**: Shared fixtures module at `tests/fixtures/profiles.ts` exports `COMPLETE_PROFILE`, `PARTIAL_PROFILE`, `DISCREPANCY_PROFILE` (Plan 01 Task 6)
+- [x] **Resolved**: Anthropic mock module at `tests/fixtures/anthropicMock.ts` exports `mockAnthropicFetch`, `mockAnthropicToolUse`, `mockAnthropicStreaming` (Plan 01 Task 6)
+- [x] **Resolved**: ESLint rule `kotoiq/no-unscoped-kotoiq` pre-existing from Phase 1 (FND-04) — Plan 01 Task 5 extends DIRECT_AGENCY_TABLES to include `kotoiq_client_profile` + `kotoiq_clarifications`; Plan 05 Task 2 fix (Blocker 8 revision) routes `smsSentInLastHour` through `getKotoIQDb(agencyId).raw()` so no downstream plan triggers the rule
 
 ---
 
@@ -97,9 +96,9 @@ Planner MUST resolve the framework question before Wave 1 executes:
 - [ ] Feedback latency <60s per commit
 - [ ] All 5 ROADMAP success criteria have at least one verification row above
 - [ ] All 6 PROF-XX requirements have at least one verification row above
-- [ ] `nyquist_compliant: true` set in frontmatter once above is true
+- [x] `nyquist_compliant: true` set in frontmatter (revision 2, post-checker)
 
-**Approval:** pending
+**Approval:** approved (revision 2, post plan-checker resolution)
 
 ---
 
