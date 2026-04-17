@@ -145,12 +145,24 @@ export default function PublicReviewPage() {
     return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
   }, [file])
 
+  // Reset imgDims on every file swap BEFORE the sync effect runs.
+  // Without this, an image that loads after a PDF renders briefly at
+  // the previous PDF's dimensions (e.g. 900×6000), which stretches or
+  // squishes the image until the <img>'s onLoad fires and overwrites
+  // them with naturalWidth/Height. The bug got worse when pdfHeight
+  // default went 1000 → 6000 — the stretch window became huge.
+  useEffect(() => {
+    setImgDims({ width: 0, height: 0 })
+  }, [file?.id])
+
   // Sync annotation canvas dimensions to the active HTML/PDF size
   useEffect(() => {
     const isHtml = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
     const isPdf = file?.type === 'application/pdf'
     if (isHtml) setImgDims({ width: htmlWidth, height: htmlHeight })
     else if (isPdf) setImgDims({ width: pdfWidth, height: pdfHeight })
+    // Images: imgDims stays {0,0} from the reset effect above until
+    // <img onLoad> fills it with naturalWidth/naturalHeight.
   }, [file, htmlWidth, htmlHeight, pdfWidth, pdfHeight])
 
   // Live-measure the scroll container width so Fit-to-width works on every
