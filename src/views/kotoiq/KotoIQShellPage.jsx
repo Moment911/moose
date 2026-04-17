@@ -11,12 +11,14 @@ import PublishQueueTab from '../../components/kotoiq/PublishQueueTab'
 import CampaignComposerTab from '../../components/kotoiq/CampaignComposerTab'
 import AttributionTab from '../../components/kotoiq/AttributionTab'
 import ContentDecayTab from '../../components/kotoiq/ContentDecayTab'
+import PipelineOrchestratorTab from '../../components/kotoiq/PipelineOrchestratorTab'
 
 // ── Shell tabs ──────────────────────────────────────────────────────────────
 const SHELL_TABS = [
   { key: 'intel',    label: 'Intel',    icon: Search },
   { key: 'publish',  label: 'Publish',  icon: Send },
   { key: 'tune',     label: 'Tune',     icon: SlidersHorizontal },
+  { key: 'pipeline', label: 'Pipeline', icon: Brain },
   { key: 'settings', label: 'Settings', icon: Settings },
 ]
 
@@ -186,6 +188,13 @@ export default function KotoIQShellPage() {
                 {sub === 'attribution' && <AttributionTab agencyId={agencyId} />}
                 {sub === 'decay' && <ContentDecayTab agencyId={agencyId} />}
               </div>
+            </div>
+          )}
+
+          {/* ── Pipeline Orchestrator ─────────────────────────────── */}
+          {shell === 'pipeline' && (
+            <div style={{ padding: '40px' }}>
+              <PipelineOrchestratorTab clientId={clientId} agencyId={agencyId} />
             </div>
           )}
 
