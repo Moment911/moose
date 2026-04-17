@@ -392,6 +392,61 @@ export default function KotoProofPage() {
           {/* FILES TAB */}
           {tab === 'files' && (
             <div className="space-y-3">
+              {/* Approval summary — bulk approve-remaining when admins are
+                  ready to sign off everything clients already okayed. */}
+              {!isClient && files.length > 0 && (() => {
+                const approvedCount = files.filter(f => f.review_status === 'approved' || f.review_status === 'final').length
+                const pct = Math.round((approvedCount / files.length) * 100)
+                const allApproved = approvedCount === files.length
+                const pending = files.filter(f => f.review_status !== 'approved' && f.review_status !== 'final')
+                return (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    padding: '10px 14px',
+                    background: allApproved ? '#f0fdf4' : '#f9fafb',
+                    borderRadius: 12,
+                    border: `1px solid ${allApproved ? '#bbf7d0' : '#e5e7eb'}`,
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: allApproved ? '#166534' : '#374151' }}>
+                        {allApproved ? 'All files approved' : `${approvedCount} of ${files.length} files approved`}
+                        <span style={{ marginLeft: 6, color: '#9ca3af', fontWeight: 700 }}>{pct}%</span>
+                      </div>
+                      <div style={{ height: 4, borderRadius: 999, background: '#fff', marginTop: 6, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                        <div style={{
+                          height: '100%', width: `${pct}%`,
+                          background: allApproved ? '#16a34a' : '#E6007E',
+                          transition: 'width .3s ease',
+                        }} />
+                      </div>
+                    </div>
+                    {!allApproved && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Mark ${pending.length} remaining file${pending.length !== 1 ? 's' : ''} as approved? This is the same as clicking Approve on each one.`)) return
+                          const ids = pending.map(f => f.id)
+                          const { error } = await supabase
+                            .from('files')
+                            .update({ review_status: 'approved', approved_by: 'Admin', approved_at: new Date().toISOString() })
+                            .in('id', ids)
+                          if (error) { toast.error('Bulk approval failed'); return }
+                          setFiles(prev => prev.map(f => ids.includes(f.id) ? { ...f, review_status: 'approved' } : f))
+                          logActivity({ project_id: projectId, action: 'bulk_approved', detail: `Approved ${ids.length} file${ids.length !== 1 ? 's' : ''}`, actor: 'Admin' }).catch(() => {})
+                          toast.success(`Approved ${ids.length} file${ids.length !== 1 ? 's' : ''}`)
+                        }}
+                        style={{
+                          padding: '6px 14px', borderRadius: 8, border: 'none',
+                          background: '#16a34a', color: '#fff',
+                          fontSize: 12, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
+                          display: 'flex', alignItems: 'center', gap: 6,
+                        }}>
+                        <Check size={12} /> Approve {pending.length} remaining
+                      </button>
+                    )}
+                  </div>
+                )
+              })()}
+
               {/* Client Review Link — one link for the whole project */}
               {project?.public_token && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: '#f0fdf4', borderRadius: 12, border: '1px solid #bbf7d060', marginBottom: 4 }}>

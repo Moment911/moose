@@ -10,14 +10,17 @@
 // detail page.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FolderOpen, Plus, Clock, MessageSquare, ArrowRight, Users, X, Trash2 } from 'lucide-react'
+import { FolderOpen, Plus, Clock, MessageSquare, ArrowRight, Users, X, Trash2, CheckCircle2, AlertCircle, AlarmClock } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, differenceInDays } from 'date-fns'
 import toast from 'react-hot-toast'
+
+// Projects without client activity for this long get a "nudge" badge
+const STALE_CLIENT_DAYS = 7
 
 const TEAL = '#00C2CB'
 const PINK = '#E6007E'
@@ -26,6 +29,7 @@ export default function ProofListPage() {
   const navigate = useNavigate()
   const { agencyId, isClient } = useAuth()
   const [projects, setProjects] = useState([])
+  const [stats, setStats] = useState({})     // projectId → { total, approved, lastClient, openComments }
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [clients, setClients] = useState([])
@@ -45,10 +49,50 @@ export default function ProofListPage() {
         ? (data || []).filter((p) => !p.clients?.agency_id || p.clients.agency_id === agencyId)
         : (data || [])
       setProjects(filtered)
+      await loadStats(filtered.map(p => p.id))
     } catch (e) {
       console.warn('[ProofListPage load]', e)
     }
     setLoading(false)
+  }
+
+  // Pull approval + activity aggregates for every visible project in two
+  // bulk queries, then bucket client-side. Avoids N+1 round-trips.
+  async function loadStats(projectIds) {
+    if (!projectIds?.length) { setStats({}); return }
+    const bucket = {}
+    projectIds.forEach(id => { bucket[id] = { total: 0, approved: 0, lastClient: null, openComments: 0 } })
+
+    try {
+      const [{ data: files }, { data: acts }] = await Promise.all([
+        supabase
+          .from('files')
+          .select('project_id, review_status, open_comments')
+          .in('project_id', projectIds),
+        supabase
+          .from('activity_log')
+          .select('project_id, actor, created_at')
+          .in('project_id', projectIds)
+          .order('created_at', { ascending: false })
+          .limit(2000),
+      ])
+      ;(files || []).forEach(f => {
+        const s = bucket[f.project_id]
+        if (!s) return
+        s.total++
+        if (f.review_status === 'approved' || f.review_status === 'final') s.approved++
+        if (Number.isFinite(f.open_comments)) s.openComments += f.open_comments
+      })
+      ;(acts || []).forEach(a => {
+        const s = bucket[a.project_id]
+        if (!s) return
+        // Fields populate in desc order, so first match wins
+        if (a.actor === 'Client' && !s.lastClient) s.lastClient = a.created_at
+      })
+    } catch (e) {
+      console.warn('[ProofListPage stats]', e)
+    }
+    setStats(bucket)
   }
 
   useEffect(() => { loadProjects() }, [agencyId])
@@ -124,63 +168,130 @@ export default function ProofListPage() {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
-              {projects.map((p) => (
-                <div
-                  key={p.id}
-                  onClick={() => navigate(`/project/${p.id}`)}
-                  style={{
-                    background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
-                    padding: 18, cursor: 'pointer', transition: 'all .15s',
-                    display: 'flex', flexDirection: 'column', gap: 10,
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = TEAL; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,194,203,0.12)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, background: `${TEAL}15`, color: TEAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <FolderOpen size={18} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                      {p.clients?.name && (
-                        <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Users size={10} /> {p.clients.name}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: '#6b7280' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Clock size={11} /> {formatDistanceToNow(new Date(p.updated_at || p.created_at), { addSuffix: true })}
+              {projects.map((p) => {
+                const s = stats[p.id] || { total: 0, approved: 0, lastClient: null, openComments: 0 }
+                const pct = s.total > 0 ? Math.round((s.approved / s.total) * 100) : 0
+                const fullyApproved = s.total > 0 && s.approved === s.total
+
+                // Due date state
+                const due = p.due_date ? new Date(p.due_date) : null
+                const now = new Date()
+                const overdue = !!(due && due < now && !fullyApproved)
+                const dueSoon = !!(due && !overdue && !fullyApproved && differenceInDays(due, now) <= 3)
+
+                // Stale client state — public/password project, has files, no client activity in N days
+                const canBeStale = !!p.public_token && s.total > 0 && !fullyApproved && p.access_level !== 'private'
+                const staleDays = s.lastClient ? differenceInDays(now, new Date(s.lastClient)) : 999
+                const noClientYet = canBeStale && !s.lastClient
+                const staleClient = canBeStale && (noClientYet || staleDays >= STALE_CLIENT_DAYS)
+
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => navigate(`/project/${p.id}`)}
+                    style={{
+                      background: '#fff', borderRadius: 14,
+                      border: `1px solid ${overdue ? '#fecaca' : staleClient ? '#fde68a' : '#e5e7eb'}`,
+                      padding: 18, cursor: 'pointer', transition: 'all .15s',
+                      display: 'flex', flexDirection: 'column', gap: 10,
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = TEAL; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,194,203,0.12)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = overdue ? '#fecaca' : staleClient ? '#fde68a' : '#e5e7eb'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 8, background: fullyApproved ? '#dcfce7' : `${TEAL}15`, color: fullyApproved ? '#16a34a' : TEAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {fullyApproved ? <CheckCircle2 size={18} /> : <FolderOpen size={18} />}
                       </div>
-                      {p.access_level && (
-                        <div style={{
-                          padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700,
-                          background: p.access_level === 'public' ? '#dcfce7' : p.access_level === 'password' ? '#fef3c7' : '#f3f4f6',
-                          color: p.access_level === 'public' ? '#166534' : p.access_level === 'password' ? '#92400e' : '#374151',
-                          textTransform: 'uppercase', letterSpacing: 0.5,
-                        }}>
-                          {p.access_level}
-                        </div>
-                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                        {p.clients?.name && (
+                          <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Users size={10} /> {p.clients.name}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        if (!confirm(`Delete "${p.name}"? This will remove all files and annotations.`)) return
-                        supabase.from('projects').delete().eq('id', p.id).then(() => {
-                          toast.success('Project deleted')
-                          loadProjects()
-                        })
-                      }}
-                      style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #fecaca', background: '#fff', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, opacity: 0.6, transition: 'opacity .15s' }}
-                      onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                      onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
-                      <Trash2 size={11} /> Delete
-                    </button>
+
+                    {/* Approval progress — only shown once there are files */}
+                    {s.total > 0 && (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 4 }}>
+                          <span style={{ fontWeight: 700, color: fullyApproved ? '#16a34a' : '#374151' }}>
+                            {fullyApproved ? 'All approved' : `${s.approved} of ${s.total} approved`}
+                          </span>
+                          <span style={{ fontWeight: 700, color: fullyApproved ? '#16a34a' : '#9ca3af' }}>{pct}%</span>
+                        </div>
+                        <div style={{ height: 5, borderRadius: 999, background: '#f1f5f9', overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%', borderRadius: 999, width: `${pct}%`,
+                            background: fullyApproved ? '#16a34a' : TEAL,
+                            transition: 'width .3s ease',
+                          }} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Badge row */}
+                    {(overdue || dueSoon || staleClient || s.openComments > 0) && (
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {overdue && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 12, background: '#fef2f2', color: '#b91c1c', fontSize: 10, fontWeight: 800, letterSpacing: .4, textTransform: 'uppercase' }}>
+                            <AlarmClock size={10} /> Overdue {formatDistanceToNow(due)}
+                          </span>
+                        )}
+                        {!overdue && dueSoon && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 12, background: '#fef3c7', color: '#92400e', fontSize: 10, fontWeight: 800, letterSpacing: .4, textTransform: 'uppercase' }}>
+                            <Clock size={10} /> Due in {differenceInDays(due, now)}d
+                          </span>
+                        )}
+                        {staleClient && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 12, background: '#fef3c7', color: '#92400e', fontSize: 10, fontWeight: 800, letterSpacing: .4, textTransform: 'uppercase' }}
+                            title={noClientYet ? 'Client has not opened the review yet' : `Client last activity ${staleDays} days ago`}
+                          >
+                            <AlertCircle size={10} /> {noClientYet ? 'Client not engaged' : `Quiet ${staleDays}d`}
+                          </span>
+                        )}
+                        {s.openComments > 0 && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 12, background: '#fdf2f8', color: '#be185d', fontSize: 10, fontWeight: 800, letterSpacing: .4, textTransform: 'uppercase' }}>
+                            <MessageSquare size={10} /> {s.openComments} open
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: '#6b7280' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={11} /> {formatDistanceToNow(new Date(p.updated_at || p.created_at), { addSuffix: true })}
+                        </div>
+                        {p.access_level && (
+                          <div style={{
+                            padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700,
+                            background: p.access_level === 'public' ? '#dcfce7' : p.access_level === 'password' ? '#fef3c7' : '#f3f4f6',
+                            color: p.access_level === 'public' ? '#166534' : p.access_level === 'password' ? '#92400e' : '#374151',
+                            textTransform: 'uppercase', letterSpacing: 0.5,
+                          }}>
+                            {p.access_level}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (!confirm(`Delete "${p.name}"? This will remove all files and annotations.`)) return
+                          supabase.from('projects').delete().eq('id', p.id).then(() => {
+                            toast.success('Project deleted')
+                            loadProjects()
+                          })
+                        }}
+                        style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #fecaca', background: '#fff', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, opacity: 0.6, transition: 'opacity .15s' }}
+                        onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                        onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
+                        <Trash2 size={11} /> Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
