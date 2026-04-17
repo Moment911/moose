@@ -6,7 +6,9 @@ import { FileImage, FileText, Globe, Plus, Trash2, Clock, MessageSquare, Activit
          Users, UserPlus, Shield, Eye, Edit2, Mail, MoreHorizontal, Copy, Check, PenLine, Palette, Download, Wand2, Pen, X, Upload, GitBranch, GitCompare, Grid3X3 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
+import { useClient } from '../context/ClientContext'
 import UploadDropzone from '../components/UploadDropzone'
+import ReassignClientModal from '../components/proof/ReassignClientModal'
 import AccessModal from '../components/AccessModal'
 import AISummaryModal from '../components/proof/KotoProofAISummary'
 import VersionCompare from '../components/VersionCompare'
@@ -41,6 +43,8 @@ export default function KotoProofPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { isClient } = useAuth()
+  const { clients, selectedClient, selectClient } = useClient()
+  const [showReassign, setShowReassign] = useState(false)
   const [project, setProject] = useState(null)
   // Fallback: some routes (e.g. bare /proof) have no :projectId param,
   // so URL construction in navigate() was producing /project/undefined/...
@@ -76,6 +80,15 @@ export default function KotoProofPage() {
   const [compareFiles, setCompareFiles] = useState(null)
 
   useEffect(() => { loadAll() }, [projectId])
+
+  // Sync the app-wide ClientContext to this proof's real client so the
+  // sidebar, header, and any "currently viewing" chrome don't drift from
+  // the URL. Fires when the project loads OR after a successful reassign.
+  useEffect(() => {
+    if (!client?.id) return
+    if (selectedClient?.id === client.id) return
+    selectClient(client)
+  }, [client?.id])
 
   async function loadAll() {
     const [{ data: projectData }, { data: fileData }, { data: acts }, { data: roundData }, { data: accessData }, { data: canvasData }, { data: emailData }] = await Promise.all([
@@ -315,7 +328,15 @@ export default function KotoProofPage() {
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center gap-3 mb-3">
             <button onClick={() => navigate(`/client/${client?.id}`)} className="text-gray-700 hover:text-gray-600"><ChevronLeft size={18} /></button>
-            <div className="text-sm text-gray-700">{client?.name}</div>
+            <button
+              type="button"
+              onClick={() => setShowReassign(true)}
+              title="Reassign this proof to a different client"
+              className="text-sm text-gray-700 hover:text-brand-600 flex items-center gap-1.5 rounded px-1.5 py-0.5 hover:bg-brand-50 transition-colors"
+            >
+              {client?.name || '(unassigned)'}
+              <ChevronDown size={12} />
+            </button>
             <span className="text-gray-600">/</span>
             <h1 className="text-sm font-semibold text-gray-900">{project?.name}</h1>
           </div>
@@ -902,6 +923,20 @@ export default function KotoProofPage() {
         </div>
       </main>
       {showAccess && project && <AccessModal project={project} onClose={() => setShowAccess(false)} onUpdate={updated => setProject(updated)} />}
+      {showReassign && project && (
+        <ReassignClientModal
+          project={project}
+          clients={clients}
+          currentClient={client}
+          onClose={() => setShowReassign(false)}
+          onReassigned={(next) => {
+            setClient(next)
+            setProject(p => ({ ...p, client_id: next.id, clients: next }))
+            selectClient(next)
+            setShowReassign(false)
+          }}
+        />
+      )}
       {showAISummary && <AISummaryModal projectName={project?.name} annotations={allAnnotations} files={files} onClose={() => setShowAISummary(false)} />}
       {videoModal && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setVideoModal(null)}>
