@@ -49,7 +49,10 @@ export default function AccessModal({ project, onClose, onUpdate }) {
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const publicUrl = `${window.location.origin}/review/${project.public_token}`
+  // /proof-review/:token renders ProjectReviewPage which shows ALL files
+  // in the project. /review/:token is the per-file route — wrong thing
+  // to hand a client when they're reviewing the whole package.
+  const publicUrl = `${window.location.origin}/proof-review/${project.public_token}`
 
   async function handleSave() {
     if (access === 'password' && !password.trim()) {
@@ -57,10 +60,21 @@ export default function AccessModal({ project, onClose, onUpdate }) {
     }
     const rounds = Math.max(1, Math.min(20, Number(maxRounds) || 2))
     setSaving(true)
-    const { error } = await updateProject(project.id, {
+
+    // Core fields that have always existed on projects. These must save
+    // or the whole action fails.
+    const core = {
       access_level: access,
       access_password: access === 'password' ? password : null,
       due_date: dueDate || null,
+    }
+
+    // Extended fields that require the 20260506 migration. If any of
+    // these columns aren't in the schema yet, Supabase rejects the
+    // whole update with 'column X does not exist'. We try with the
+    // full payload first; on column-error we retry with core-only and
+    // surface a clear message about which fields didn't stick.
+    const extended = {
       max_rounds: rounds,
       webhook_url: webhookUrl.trim() || null,
       slack_webhook_url: slackUrl.trim() || null,
@@ -68,10 +82,26 @@ export default function AccessModal({ project, onClose, onUpdate }) {
       brand_name: brandName.trim() || null,
       brand_color: brandName.trim() ? brandColor : null,
       brand_logo: brandLogo.trim() || null,
-    })
-    if (error) { toast.error('Failed to save'); setSaving(false); return }
-    toast.success('Access settings saved')
-    onUpdate({ ...project, access_level: access, access_password: password, due_date: dueDate || null, max_rounds: rounds, webhook_url: webhookUrl.trim() || null, slack_webhook_url: slackUrl.trim() || null, slack_channel_url: slackChannel.trim() || null, brand_name: brandName.trim() || null, brand_color: brandName.trim() ? brandColor : null, brand_logo: brandLogo.trim() || null })
+    }
+
+    let { error } = await updateProject(project.id, { ...core, ...extended })
+    let missingColumns = false
+    if (error && /column .* does not exist|column ".*" of relation/i.test(error.message || '')) {
+      missingColumns = true
+      const retry = await updateProject(project.id, core)
+      error = retry.error
+    }
+
+    if (error) { toast.error('Failed to save: ' + (error.message || 'unknown error')); setSaving(false); return }
+
+    if (missingColumns) {
+      toast('Saved core settings. Revision rounds + branding + webhooks need the 20260506 migration applied before they\'ll stick.',
+        { duration: 7000, icon: '⚠️' })
+    } else {
+      toast.success('Access settings saved')
+    }
+
+    onUpdate({ ...project, ...core, ...(missingColumns ? {} : extended) })
     setSaving(false)
     onClose()
   }

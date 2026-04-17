@@ -44,14 +44,13 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
   )
 
+  // Select * on both tables — enumerating columns explicitly blows up
+  // any environment where one of them hasn't been migrated yet (e.g.
+  // max_rounds, brand_name, webhook_url). We filter access_password
+  // out below before anything leaves the server.
   const { data: fileRow, error } = await sb
     .from('files')
-    .select([
-      'id', 'project_id', 'name', 'type', 'url', 'storage_path',
-      'sort_order', 'public_token', 'open_comments', 'review_status',
-      'created_at', 'updated_at',
-      'projects(id, name, client_id, access_level, access_password, due_date, max_rounds, public_token, brand_name, brand_color, brand_logo, clients(id, name))',
-    ].join(', '))
+    .select('*, projects(*, clients(id, name))')
     .eq('public_token', token)
     .maybeSingle()
 
