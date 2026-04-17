@@ -644,6 +644,164 @@ Rules:
       return NextResponse.json({ templates: templates || [] })
     }
 
+    // ── Phase 3: Engine → Publish Adapter (ADAPT-01 through ADAPT-06) ───
+
+    if (action === 'generate_variants') {
+      const { campaign_id } = body
+      if (!campaign_id) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+
+      const { getKotoIQDb } = await import('../../../lib/kotoiqDb')
+      const db = getKotoIQDb(site.agency_id)
+
+      const { data: campaign, error: campErr } = await db.campaigns.get(campaign_id)
+      if (campErr || !campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+
+      const { data: template } = await db.templates.get(campaign.template_id)
+      if (!template) return NextResponse.json({ error: 'Template not found for campaign' }, { status: 404 })
+
+      const { data: slotRows } = await db.from('kotoiq_template_slots')
+        .select('*').eq('template_id', template.id)
+      if (!slotRows?.length) return NextResponse.json({ error: 'No slots defined for template' }, { status: 400 })
+
+      const seedRows = campaign.seed_rows || []
+      if (!seedRows.length) return NextResponse.json({ error: 'No seed rows in campaign' }, { status: 400 })
+
+      const { generateVariants } = await import('../../../lib/builder/variantGenerator')
+
+      const slots = slotRows.map((s: any) => ({
+        json_path: s.json_path,
+        slot_kind: s.slot_kind,
+        label: s.label,
+        required: s.required,
+        constraints: s.constraints,
+      }))
+
+      const variants = await generateVariants(template.elementor_data, slots, seedRows, {
+        agencyId: site.agency_id,
+        clientId: campaign.client_id,
+        campaignId: campaign_id,
+        templateId: template.id,
+      })
+
+      const variantRows = variants.map(v => ({
+        campaign_id,
+        template_id: template.id,
+        seed_row: v.seed_row,
+        rendered_elementor_data: v.rendered_elementor_data,
+        body_hash: v.body_hash,
+        idempotency_key: v.idempotency_key,
+        filled_slots: v.filled_slots,
+        status: 'draft',
+      }))
+
+      const { data: inserted, error: insertErr } = await db.from('kotoiq_variants')
+        .upsert(variantRows, { onConflict: 'idempotency_key' }).select()
+
+      if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 })
+
+      return NextResponse.json({
+        ok: true,
+        variant_count: inserted?.length || 0,
+        variants: (inserted || []).map((v: any) => ({
+          id: v.id,
+          idempotency_key: v.idempotency_key,
+          body_hash: v.body_hash,
+          status: v.status,
+        })),
+      })
+    }
+
+    if (action === 'preflight_check') {
+      const { campaign_id } = body
+      if (!campaign_id) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+
+      const { getKotoIQDb } = await import('../../../lib/kotoiqDb')
+      const db = getKotoIQDb(site.agency_id)
+
+      const { data: variants } = await db.from('kotoiq_variants')
+        .select('*').eq('campaign_id', campaign_id)
+      if (!variants?.length) return NextResponse.json({ error: 'No variants found for campaign' }, { status: 404 })
+
+      const { data: campaign } = await db.campaigns.get(campaign_id)
+      if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+
+      const { data: template } = await db.templates.get(campaign.template_id)
+      const { data: slotRows } = await db.from('kotoiq_template_slots')
+        .select('*').eq('template_id', campaign.template_id)
+
+      const requiredPaths = new Set<string>(
+        (slotRows || []).filter((s: any) => s.required).map((s: any) => s.json_path)
+      )
+
+      let pinnedSchema = null
+      if (template?.schema_version_id) {
+        const { data: schemaRow } = await sb.from('kotoiq_elementor_schema_versions')
+          .select('widget_schema').eq('id', template.schema_version_id).single()
+        pinnedSchema = schemaRow?.widget_schema || null
+      }
+
+      const { runPreflight } = await import('../../../lib/builder/preflightGate')
+
+      const variantInputs = variants.map((v: any) => ({
+        seed_row: v.seed_row,
+        rendered_elementor_data: v.rendered_elementor_data,
+        body_text: '',
+        body_hash: v.body_hash,
+        idempotency_key: v.idempotency_key,
+        filled_slots: v.filled_slots || [],
+      }))
+
+      const result = runPreflight(variantInputs, pinnedSchema, requiredPaths)
+
+      await db.campaigns.update(campaign_id, {
+        preflight_status: result.passed ? 'passed' : 'failed',
+        preflight_result: result,
+      })
+
+      return NextResponse.json({ ok: true, ...result })
+    }
+
+    if (action === 'preview_variant') {
+      const { variant_id } = body
+      if (!variant_id) return NextResponse.json({ error: 'variant_id required' }, { status: 400 })
+
+      const { data: variant } = await sb.from('kotoiq_variants')
+        .select('*, kotoiq_campaigns!inner(template_id, agency_id)')
+        .eq('id', variant_id)
+        .single()
+      if (!variant) return NextResponse.json({ error: 'Variant not found' }, { status: 404 })
+
+      const campaign = (variant as any).kotoiq_campaigns
+      if (campaign.agency_id !== site.agency_id) {
+        return NextResponse.json({ error: 'Variant does not belong to this agency' }, { status: 403 })
+      }
+
+      const { data: template } = await sb.from('kotoiq_templates')
+        .select('source_post_id, page_settings')
+        .eq('id', campaign.template_id)
+        .single()
+      if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 })
+
+      const seedLabel = variant.seed_row?.city || variant.seed_row?.neighborhood || variant.seed_row?.name || 'preview'
+      const result = await proxyToPlugin(site, 'builder/clone', 'POST', {
+        source_post_id: template.source_post_id,
+        title: `[Preview] ${seedLabel}`,
+        slug: `preview-${variant.idempotency_key.slice(0, 12)}`,
+        status: 'draft',
+        elementor_data: variant.rendered_elementor_data,
+        idempotency_key: variant.idempotency_key,
+      })
+
+      if (result.ok && result.data?.post_id) {
+        await sb.from('kotoiq_variants').update({
+          preview_post_id: result.data.post_id,
+          preview_url: result.data.url || null,
+        }).eq('id', variant_id)
+      }
+
+      return NextResponse.json(result)
+    }
+
     if (action === 'proxy') {
       return NextResponse.json(await proxyToPlugin(site, body.endpoint, body.method || 'POST', body.payload || {}))
     }
