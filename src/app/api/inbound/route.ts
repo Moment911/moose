@@ -126,19 +126,41 @@ async function archiveRecording(retellUrl: string, callId: string): Promise<stri
   }
 }
 
-// ── Twilio SMS (used when notification_phone is set on the agent) ───────────
-// Reads TWILIO_PHONE_NUMBER first (matches the rest of the repo), falls back
-// to TWILIO_FROM_NUMBER for forward compat. Logs the failure mode so silent
-// no-ops are visible in Vercel logs.
-async function sendSms(to: string, body: string): Promise<boolean> {
+// ── SMS — Telnyx preferred, Twilio fallback ─────────────────────────────────
+// The repo already uses Telnyx for voice infrastructure, so Telnyx messaging
+// is the natural SMS carrier. Falls back to Twilio if Telnyx isn't configured.
+// Retell is voice-only and does not send SMS.
+async function sendSmsViaTelnyx(to: string, body: string): Promise<boolean> {
+  const key = process.env.TELNYX_API_KEY
+  const from = process.env.TELNYX_SMS_FROM_NUMBER
+  const profile = process.env.TELNYX_MESSAGING_PROFILE_ID
+  if (!key || (!from && !profile)) return false
+  try {
+    const payload: any = { to, text: body.slice(0, 1500) }
+    if (from) payload.from = from
+    if (profile) payload.messaging_profile_id = profile
+    const res = await fetch('https://api.telnyx.com/v2/messages', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      console.error('[sms/telnyx] rejected:', res.status, errText.slice(0, 300))
+      return false
+    }
+    return true
+  } catch (e: any) {
+    console.error('[sms/telnyx] send error:', e?.message)
+    return false
+  }
+}
+
+async function sendSmsViaTwilio(to: string, body: string): Promise<boolean> {
   const sid = process.env.TWILIO_ACCOUNT_SID
   const token = process.env.TWILIO_AUTH_TOKEN
   const from = process.env.TWILIO_PHONE_NUMBER || process.env.TWILIO_FROM_NUMBER
-  if (!sid || !token || !from) {
-    console.error('[sms] not configured — missing', !sid && 'TWILIO_ACCOUNT_SID', !token && 'TWILIO_AUTH_TOKEN', !from && 'TWILIO_PHONE_NUMBER')
-    return false
-  }
-  if (!to) return false
+  if (!sid || !token || !from) return false
   try {
     const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
       method: 'POST',
@@ -150,13 +172,28 @@ async function sendSms(to: string, body: string): Promise<boolean> {
     })
     if (!res.ok) {
       const errText = await res.text().catch(() => '')
-      console.error('[sms] Twilio rejected:', res.status, errText.slice(0, 200))
+      console.error('[sms/twilio] rejected:', res.status, errText.slice(0, 300))
+      return false
     }
-    return res.ok
+    return true
   } catch (e: any) {
-    console.error('[sms] send error:', e?.message)
+    console.error('[sms/twilio] send error:', e?.message)
     return false
   }
+}
+
+async function sendSms(to: string, body: string): Promise<boolean> {
+  if (!to) return false
+  // Prefer explicit provider if SMS_PROVIDER is set; otherwise try Telnyx first.
+  const pref = (process.env.SMS_PROVIDER || '').toLowerCase()
+  if (pref === 'twilio') {
+    if (await sendSmsViaTwilio(to, body)) return true
+    return sendSmsViaTelnyx(to, body)
+  }
+  if (await sendSmsViaTelnyx(to, body)) return true
+  if (await sendSmsViaTwilio(to, body)) return true
+  console.error('[sms] no provider available — set TELNYX_API_KEY + TELNYX_SMS_FROM_NUMBER, or TWILIO_* env vars')
+  return false
 }
 
 const EMAIL_FROM = process.env.DESK_EMAIL_FROM || 'Koto Answering Service <notifications@hellokoto.com>'
