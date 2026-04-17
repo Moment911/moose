@@ -287,27 +287,43 @@ const TEXT_WIDGET_TYPES = new Set([
   'image-box', 'call-to-action',
 ])
 
-/** Settings keys that are likely fillable slots */
-const SLOT_SETTINGS: Record<string, string> = {
-  'title': 'heading',
-  'editor': 'paragraph',
-  'text': 'button_text',
-  'link.url': 'button_url',
-  'image.url': 'image_url',
-  'image.alt': 'image_alt',
-  'url.url': 'link_url',
-  'description_text': 'paragraph',
-  'title_text': 'heading',
-  'button_text': 'button_text',
-  'button_url': 'button_url',
+/**
+ * Widget type → default slot mappings.
+ * Slots are detected by widget type, NOT by whether content exists.
+ * Empty widgets still get slots — content comes from the engines (PageIQ, hyperlocalContentEngine, etc.)
+ */
+const WIDGET_SLOT_MAP: Record<string, Array<{ settingKey: string; slotKind: string }>> = {
+  // v4 atomic widgets
+  'e-heading':     [{ settingKey: 'title', slotKind: 'heading' }],
+  'e-text-editor': [{ settingKey: 'editor', slotKind: 'paragraph' }],
+  'e-button':      [{ settingKey: 'text', slotKind: 'button_text' }, { settingKey: 'url.url', slotKind: 'button_url' }],
+  'e-image':       [{ settingKey: 'image.url', slotKind: 'image_url' }, { settingKey: 'image.alt', slotKind: 'image_alt' }],
+  'e-icon-box':    [{ settingKey: 'title_text', slotKind: 'heading' }, { settingKey: 'description_text', slotKind: 'paragraph' }],
+  // v3 legacy widgets
+  'heading':       [{ settingKey: 'title', slotKind: 'heading' }],
+  'text-editor':   [{ settingKey: 'editor', slotKind: 'paragraph' }],
+  'button':        [{ settingKey: 'text', slotKind: 'button_text' }, { settingKey: 'link.url', slotKind: 'button_url' }],
+  'image':         [{ settingKey: 'image.url', slotKind: 'image_url' }, { settingKey: 'image.alt', slotKind: 'image_alt' }],
+  'image-box':     [{ settingKey: 'title_text', slotKind: 'heading' }, { settingKey: 'description_text', slotKind: 'paragraph' }, { settingKey: 'image.url', slotKind: 'image_url' }],
+  'icon-box':      [{ settingKey: 'title_text', slotKind: 'heading' }, { settingKey: 'description_text', slotKind: 'paragraph' }],
+  'call-to-action':[{ settingKey: 'title', slotKind: 'heading' }, { settingKey: 'description', slotKind: 'paragraph' }, { settingKey: 'button_text', slotKind: 'button_text' }, { settingKey: 'link.url', slotKind: 'button_url' }],
 }
+
+/** Fallback: settings keys to check on any unrecognized widget */
+const FALLBACK_SLOT_SETTINGS: Array<{ settingKey: string; slotKind: string }> = [
+  { settingKey: 'title', slotKind: 'heading' },
+  { settingKey: 'editor', slotKind: 'paragraph' },
+  { settingKey: 'text', slotKind: 'button_text' },
+  { settingKey: 'description_text', slotKind: 'paragraph' },
+  { settingKey: 'title_text', slotKind: 'heading' },
+]
 
 export interface DetectedSlot {
   /** Stable path: "elementId:settings.property" */
   jsonPath: string
   /** Classification */
   slotKind: string
-  /** Current value in the template */
+  /** Current value in the template (empty string if widget has no content yet) */
   currentValue: any
   /** Widget type this belongs to */
   widgetType: string
@@ -317,26 +333,43 @@ export interface DetectedSlot {
 
 /**
  * Auto-detect fillable slots in an Elementor template.
- * Returns slots sorted by document order (depth-first).
+ *
+ * Detects by WIDGET TYPE, not by content presence.
+ * Empty widgets get slots — content comes from the engines (PageIQ, hyperlocalContentEngine, etc.)
  */
 export function detectSlots(elementorData: ElementorElement[]): DetectedSlot[] {
   const slots: DetectedSlot[] = []
   let order = 0
 
   walkElements(elementorData, (el) => {
-    const wt = el.widgetType || el.elType
-    if (!el.settings) return
+    if (!el.widgetType) return // only widgets, not structural elements
 
-    // Check each known slot setting
-    for (const [settingKey, slotKind] of Object.entries(SLOT_SETTINGS)) {
-      const value = getSettingValue(el.settings, settingKey)
-      if (value !== undefined && value !== null && value !== '') {
-        // Only include text-bearing widgets
-        if (el.widgetType && (TEXT_WIDGET_TYPES.has(el.widgetType) || typeof value === 'string')) {
+    const wt = el.widgetType
+    const settings = el.settings || {}
+
+    // Get slot mappings for this widget type
+    const mappings = WIDGET_SLOT_MAP[wt]
+
+    if (mappings) {
+      // Known widget type — create a slot for each mapping
+      for (const { settingKey, slotKind } of mappings) {
+        const value = getSettingValue(settings, settingKey)
+        slots.push({
+          jsonPath: `${el.id}:settings.${settingKey}`,
+          slotKind,
+          currentValue: value ?? '',
+          widgetType: wt,
+          suggestedLabel: `${wt}_${slotKind}_${++order}`,
+        })
+      }
+    } else if (TEXT_WIDGET_TYPES.has(wt)) {
+      // Known text-capable type without explicit mapping — try fallbacks
+      for (const { settingKey, slotKind } of FALLBACK_SLOT_SETTINGS) {
+        if (settingKey in settings || getSettingValue(settings, settingKey) !== undefined) {
           slots.push({
             jsonPath: `${el.id}:settings.${settingKey}`,
             slotKind,
-            currentValue: value,
+            currentValue: getSettingValue(settings, settingKey) ?? '',
             widgetType: wt,
             suggestedLabel: `${wt}_${slotKind}_${++order}`,
           })
