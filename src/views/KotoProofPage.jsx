@@ -138,16 +138,19 @@ export default function KotoProofPage() {
     setFiles(f => [...newFiles, ...f])
     setShowUpload(false)
     setRefresh(r => r + 1)
-    // Auto-enable public access + generate token if missing so client link works
-    if (project && (project.access_level === 'private' || !project.public_token)) {
-      const token = project.public_token || crypto.randomUUID().replace(/-/g, '')
+    // Auto-enable public access + generate token if missing so client link works.
+    // The token we resolve here is what the toast below uses; `project` state
+    // hasn't re-rendered yet so we can't read it back.
+    let token = project?.public_token
+    if (project && (project.access_level === 'private' || !token)) {
+      token = token || crypto.randomUUID().replace(/-/g, '')
       await supabase.from('projects').update({ access_level: 'public', public_token: token }).eq('id', resolvedProjectId)
       setProject(prev => prev ? { ...prev, access_level: 'public', public_token: token } : prev)
     }
-    // Show the share link
-    const token = project?.public_token || ''
+    // Client link — /proof-review/:token is the project landing page (all files).
+    // /review/:token only shows a single file.
     if (token) {
-      const url = `${window.location.origin}/review/${token}`
+      const url = `${window.location.origin}/proof-review/${token}`
       toast.success(<span>Files uploaded! <b style={{cursor:'pointer',textDecoration:'underline'}} onClick={()=>{navigator.clipboard.writeText(url);toast.success('Link copied')}}>Copy client link</b></span>, { duration: 8000 })
     }
   }

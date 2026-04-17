@@ -49,10 +49,18 @@ export default function AccessModal({ project, onClose, onUpdate }) {
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
 
+  // Legacy projects may have no public_token (it only started being
+  // generated on file upload later in the product's life). Without it the
+  // /proof-review/:token landing link is broken. Mint one lazily and
+  // persist on save so old projects heal without a manual migration.
+  const [publicToken, setPublicToken] = useState(
+    project.public_token || (typeof crypto !== 'undefined' ? crypto.randomUUID().replace(/-/g, '') : '')
+  )
+
   // /proof-review/:token renders ProjectReviewPage which shows ALL files
   // in the project. /review/:token is the per-file route — wrong thing
   // to hand a client when they're reviewing the whole package.
-  const publicUrl = `${window.location.origin}/proof-review/${project.public_token}`
+  const publicUrl = `${window.location.origin}/proof-review/${publicToken}`
 
   async function handleSave() {
     if (access === 'password' && !password.trim()) {
@@ -62,11 +70,13 @@ export default function AccessModal({ project, onClose, onUpdate }) {
     setSaving(true)
 
     // Core fields that have always existed on projects. These must save
-    // or the whole action fails.
+    // or the whole action fails. Include public_token so legacy projects
+    // without one get a valid share link on first save.
     const core = {
       access_level: access,
       access_password: access === 'password' ? password : null,
       due_date: dueDate || null,
+      public_token: publicToken,
     }
 
     // Extended fields that require the 20260506 migration. If any of

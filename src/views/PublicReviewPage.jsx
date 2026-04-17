@@ -154,6 +154,7 @@ export default function PublicReviewPage() {
   // default went 1000 → 6000 — the stretch window became huge.
   useEffect(() => {
     setImgDims({ width: 0, height: 0 })
+    setZoom(1)
   }, [file?.id])
 
   // Sync annotation canvas dimensions to the active HTML/PDF size
@@ -686,7 +687,20 @@ export default function PublicReviewPage() {
             <div className="relative inline-block shadow-2xl rounded-lg overflow-hidden bg-white">
               {file?.type?.startsWith('image/') && (
                 <img ref={imgRef} src={file.url} alt={file.name}
-                  onLoad={(e) => setImgDims({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })}
+                  onLoad={(e) => {
+                    const w = e.currentTarget.naturalWidth
+                    const h = e.currentTarget.naturalHeight
+                    setImgDims({ width: w, height: h })
+                    // Auto-fit: if the image is wider than the scroll
+                    // container, set zoom so the full design fits the
+                    // viewport on landing. Clients were complaining that
+                    // 3000-4000px design exports looked "massively zoomed in"
+                    // because we rendered at natural size with zoom=1.
+                    // Clamp to 0.1 so tiny thumbnails don't disappear.
+                    if (containerWidth && w > containerWidth) {
+                      setZoom(Math.max(0.1, +(containerWidth / w).toFixed(2)))
+                    }
+                  }}
                   className="block" draggable={false}
                   style={{ width: imgDims.width || 'auto', height: imgDims.height || 'auto' }} />
               )}
