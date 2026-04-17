@@ -11,7 +11,7 @@ const ADMIN_PATHS = [
   '/', '/dashboard', '/platform-admin', '/master-admin', '/koto-admin',
   '/billing-admin', '/stripe-admin', '/debug', '/qa', '/uptime',
   '/token-usage', '/cog-report', '/test-data', '/onboarding-simulator',
-  '/status', '/db-setup', '/settings',
+  '/status', '/db-setup', '/settings', '/changelog', '/system-health',
 ]
 
 export default function RequireAgency({ children }) {
