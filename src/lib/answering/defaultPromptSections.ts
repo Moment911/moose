@@ -360,3 +360,123 @@ export function compilePromptSections(
 export function getDefaultSections(): Record<string, string> {
   return Object.fromEntries(DEFAULT_PROMPT_SECTIONS.map(s => [s.id, s.default_text]))
 }
+
+// ── Placeholder catalog ─────────────────────────────────────────────────────
+// Every {{token}} the prompt sections support, with where the value comes from
+// and a description for the UI reference card.
+export interface PlaceholderDef {
+  token: string
+  source: string
+  example: string
+  description: string
+}
+
+export const PROMPT_PLACEHOLDERS: PlaceholderDef[] = [
+  { token: 'agent_name', source: 'Agent.name (Setup tab)', example: 'Jenny', description: 'The receptionist persona name.' },
+  { token: 'company_name', source: 'Agent.business_name (Setup tab)', example: 'Spine and Wellness Center', description: 'Business the agent represents.' },
+  { token: 'department', source: 'Agent.department (Setup tab)', example: 'Front Desk', description: 'Optional department label.' },
+  { token: 'phone_number', source: 'Agent.phone_number (Setup tab)', example: '+15551234567', description: 'The Koto/forwarded number callers reach you at.' },
+  { token: 'transfer_number', source: 'Agent.transfer_phone (Admin tab)', example: '+15551234567', description: 'Default human-handoff number.' },
+  { token: 'address', source: 'Agent.address (Setup tab)', example: '5675 Coral Ridge Dr…', description: 'Office address.' },
+  { token: 'timezone', source: 'Agent.timezone (Setup tab)', example: 'America/New_York', description: 'Used for time-of-day greeting + open/closed calc.' },
+  { token: 'business_hours', source: 'Agent.business_hours (Setup tab)', example: 'Mon: 7a–7p…', description: 'Formatted weekly hours block.' },
+  { token: 'open_or_closed', source: 'Computed at call time', example: 'OPEN', description: 'OPEN or CLOSED based on hours + caller\'s timezone.' },
+  { token: 'time_greeting', source: 'Computed at call time', example: 'Good morning', description: 'Good morning / afternoon / evening per timezone.' },
+  { token: 'services_list', source: 'Agent.services_list (Setup tab)', example: '- Chiropractic Care…', description: 'Bullet list of services offered.' },
+  { token: 'staff_directory', source: 'Agent.staff_directory (Setup tab)', example: '- Dr. Cohen: Owner…', description: 'Bullet list of staff and roles.' },
+  { token: 'scheduling_contact', source: 'Agent.scheduling_contact (Admin tab)', example: 'Rachel at (954) 341-2256', description: 'Person + number for scheduling.' },
+  { token: 'scheduling_link', source: 'Agent.scheduling_link (Admin tab)', example: 'https://cal.com/…', description: 'Public booking URL.' },
+  { token: 'emergency_keywords', source: 'Agent.emergency_keywords (Admin tab)', example: 'emergency, urgent', description: 'Words that trigger emergency routing.' },
+  { token: 'caller_name', source: 'Caller history (auto)', example: 'Sarah', description: 'Name from a prior call by this number, if known.' },
+  { token: 'last_call_summary', source: 'Caller history (auto)', example: 'Called about an appointment…', description: 'Summary of this caller\'s last call.' },
+]
+
+// ── Placeholder resolver ────────────────────────────────────────────────────
+// Substitutes {{token}} occurrences with values from the agent + runtime
+// context. Unknown tokens are left in place so they\'re visible (and easy to
+// spot in the Retell prompt preview).
+export function resolveSectionPlaceholders(
+  text: string,
+  agent: Record<string, any>,
+  runtime: Record<string, any> = {}
+): string {
+  if (!text) return text
+  const values: Record<string, string> = {
+    agent_name: String(agent.name || agent.business_name || 'the assistant'),
+    company_name: String(agent.business_name || agent.name || 'our office'),
+    department: String(agent.department || ''),
+    phone_number: String(agent.phone_number || ''),
+    transfer_number: String(agent.transfer_phone || agent.notification_phone || ''),
+    address: String(agent.address || ''),
+    timezone: String(agent.timezone || 'America/New_York'),
+    business_hours: formatBusinessHours(agent.business_hours),
+    services_list: formatBulletList(agent.services_list || agent.services),
+    staff_directory: formatStaffDirectory(agent.staff_directory),
+    scheduling_contact: String(agent.scheduling_contact || ''),
+    scheduling_link: String(agent.scheduling_link || ''),
+    emergency_keywords: Array.isArray(agent.emergency_keywords) ? agent.emergency_keywords.join(', ') : String(agent.emergency_keywords || 'emergency, urgent'),
+    open_or_closed: runtime.open_or_closed || computeOpenClosed(agent),
+    time_greeting: runtime.time_greeting || computeTimeGreeting(agent.timezone || 'America/New_York'),
+    caller_name: runtime.caller_name || '',
+    last_call_summary: runtime.last_call_summary || '',
+    day: runtime.day || '',
+  }
+  return text.replace(/\{\{(\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)\}\}/g, (_, raw) => {
+    const key = String(raw).trim()
+    return key in values ? values[key] : `{{${key}}}`
+  })
+}
+
+function formatBulletList(input: any): string {
+  if (!input) return ''
+  if (Array.isArray(input)) return input.map(s => `- ${s}`).join('\n')
+  if (typeof input === 'string') return input.split(/[,\n]/).map(s => s.trim()).filter(Boolean).map(s => `- ${s}`).join('\n')
+  return ''
+}
+
+function formatStaffDirectory(input: any): string {
+  if (!input) return ''
+  if (Array.isArray(input)) {
+    return input.map((s: any) => {
+      if (typeof s === 'string') return `- ${s}`
+      const name = s.name || s.full_name || ''
+      const role = s.role || s.title || ''
+      return name ? `- ${name}${role ? `: ${role}` : ''}` : ''
+    }).filter(Boolean).join('\n')
+  }
+  if (typeof input === 'string') return input
+  return ''
+}
+
+function formatBusinessHours(hours: any): string {
+  if (!hours || typeof hours !== 'object') return ''
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+  return days.map(d => {
+    const h = hours[d] || hours[d.charAt(0).toUpperCase() + d.slice(1, 3)]
+    if (!h || h.enabled === false) return `  ${d.charAt(0).toUpperCase() + d.slice(1)}: Closed`
+    const open = h.open || h.start || ''
+    const close = h.close || h.end || ''
+    return `  ${d.charAt(0).toUpperCase() + d.slice(1)}: ${open} – ${close}`
+  }).join('\n')
+}
+
+function computeOpenClosed(agent: any): string {
+  try {
+    const tz = agent.timezone || 'America/New_York'
+    const now = new Date()
+    const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: tz }).format(now).toLowerCase()
+    const time = new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz }).format(now)
+    const h = (agent.business_hours || {})[dayName]
+    if (!h || h.enabled === false) return 'CLOSED'
+    return time >= (h.open || '00:00') && time <= (h.close || '23:59') ? 'OPEN' : 'CLOSED'
+  } catch { return 'OPEN' }
+}
+
+function computeTimeGreeting(tz: string): string {
+  try {
+    const hour = parseInt(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: tz }).format(new Date()), 10)
+    if (hour < 12) return 'Good morning'
+    if (hour < 17) return 'Good afternoon'
+    return 'Good evening'
+  } catch { return 'Hello' }
+}

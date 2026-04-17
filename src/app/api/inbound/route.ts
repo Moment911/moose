@@ -4,8 +4,10 @@ import { createClient } from '@supabase/supabase-js'
 import { buildFrontDeskPromptForClient } from '@/lib/frontDeskPromptBuilder'
 import {
   DEFAULT_PROMPT_SECTIONS,
+  PROMPT_PLACEHOLDERS,
   compilePromptSections,
   getDefaultSections,
+  resolveSectionPlaceholders,
 } from '@/lib/answering/defaultPromptSections'
 
 const RETELL_API_KEY = process.env.RETELL_API_KEY || ''
@@ -976,7 +978,8 @@ export async function GET(request: NextRequest) {
       case 'get_prompt_sections': {
         // Shape consumed by the Prompt Editor tab. If the agent has saved a
         // `prompt_sections` jsonb, merge it with defaults so new sections still
-        // appear even on agents saved before they were introduced.
+        // appear even on agents saved before they were introduced. Includes
+        // a resolved preview so editors can see what the AI will actually read.
         if (!agent_id) return NextResponse.json({ error: 'agent_id required' }, { status: 400 })
         const { data: row } = await supabase
           .from('koto_inbound_agents')
@@ -985,11 +988,23 @@ export async function GET(request: NextRequest) {
           .maybeSingle()
 
         const saved: Record<string, string> = (row && (row as any).prompt_sections) || {}
-        const sections = DEFAULT_PROMPT_SECTIONS.map(s => ({
-          ...s,
-          text: (saved[s.id] ?? s.default_text) || '',
-        }))
-        return NextResponse.json({ sections, hasSaved: Object.keys(saved).length > 0 })
+        const sections = DEFAULT_PROMPT_SECTIONS.map(s => {
+          const text = (saved[s.id] ?? s.default_text) || ''
+          return {
+            ...s,
+            text,
+            resolved_preview: row ? resolveSectionPlaceholders(text, row as any) : text,
+          }
+        })
+        return NextResponse.json({
+          sections,
+          hasSaved: Object.keys(saved).length > 0,
+          placeholders: PROMPT_PLACEHOLDERS,
+        })
+      }
+
+      case 'get_prompt_placeholders': {
+        return NextResponse.json({ placeholders: PROMPT_PLACEHOLDERS })
       }
 
       default:
@@ -1667,7 +1682,12 @@ ${current_text}
         if (rowErr || !row) return NextResponse.json({ error: 'agent_not_found' }, { status: 404 })
 
         const sections: Record<string, string> = { ...getDefaultSections(), ...((row as any).prompt_sections || {}) }
-        const compiled = compilePromptSections(sections)
+        // Substitute {{placeholders}} with values from the agent record so the
+        // Retell LLM gets a fully resolved prompt — no literal {{tokens}} left.
+        const resolvedSections: Record<string, string> = Object.fromEntries(
+          Object.entries(sections).map(([id, text]) => [id, resolveSectionPlaceholders(text, row as any)])
+        )
+        const compiled = compilePromptSections(resolvedSections)
 
         const retellAgentId = (row as any).retell_agent_id
         const retellLlmId = (row as any).retell_llm_id

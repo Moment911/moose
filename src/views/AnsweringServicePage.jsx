@@ -1304,6 +1304,8 @@ function AnalyticsTab({ agent, agencyId }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function PromptComplianceTab({ agent, setAgent }) {
   const [sections, setSections] = useState([])
+  const [placeholders, setPlaceholders] = useState([])
+  const [showPlaceholders, setShowPlaceholders] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState(false)
@@ -1317,10 +1319,16 @@ function PromptComplianceTab({ agent, setAgent }) {
         const res = await fetch(`/api/inbound?action=get_prompt_sections&agent_id=${agent.id}`)
         const d = await res.json().catch(()=>({}))
         if (Array.isArray(d.sections)) setSections(d.sections)
+        if (Array.isArray(d.placeholders)) setPlaceholders(d.placeholders)
       } catch (e) { console.error(e) }
       setLoading(false)
     })()
   }, [agent.id])
+
+  function copyToken(t) {
+    const text = `{{${t}}}`
+    navigator.clipboard?.writeText(text).then(() => toast.success(`Copied ${text}`))
+  }
 
   function updSection(id, text) { setSections(prev => prev.map(s => s.id===id ? { ...s, text } : s)) }
   function resetSection(id) {
@@ -1406,6 +1414,9 @@ function PromptComplianceTab({ agent, setAgent }) {
             <p style={{ margin:0, fontSize:12, color:'#6b7280' }}>Each section below is a piece of the full system prompt. Edit in place, or click "Customize with AI" to rewrite for this business.</p>
           </div>
           <div style={{ display:'flex', gap:8, flexShrink:0 }}>
+            <button onClick={()=>setShowPlaceholders(s=>!s)} style={btn('#e5e7eb', BLK)}>
+              <FileText size={14}/> {showPlaceholders ? 'Hide' : 'Show'} Tokens
+            </button>
             <button onClick={saveAll} disabled={saving} style={btn('#374151')}>
               {saving ? <Loader2 size={14} className="spin"/> : <Check size={14}/>} Save Draft
             </button>
@@ -1415,6 +1426,24 @@ function PromptComplianceTab({ agent, setAgent }) {
           </div>
         </div>
       </div>
+
+      {showPlaceholders && (
+        <div style={card}>
+          <h4 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:14 }}>Available tokens</h4>
+          <p style={{ margin:'0 0 12px', fontSize:12, color:'#6b7280' }}>Drop these <code style={{ background:'#f3f4f6', padding:'1px 5px', borderRadius:4, fontSize:11 }}>{'{{like_this}}'}</code> into any section. They get replaced with real values when you Sync to Retell. Click a token to copy.</p>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:8 }}>
+            {placeholders.map(p => (
+              <div key={p.token} onClick={()=>copyToken(p.token)} style={{ padding:'10px 12px', background:'#fafafa', borderRadius:8, border:'1px solid #e5e7eb', cursor:'pointer', transition:'all .15s' }}
+                onMouseEnter={e=>{ e.currentTarget.style.background='#fff'; e.currentTarget.style.borderColor=R }}
+                onMouseLeave={e=>{ e.currentTarget.style.background='#fafafa'; e.currentTarget.style.borderColor='#e5e7eb' }}>
+                <code style={{ fontSize:12, fontWeight:700, color:R }}>{`{{${p.token}}}`}</code>
+                <div style={{ fontSize:11, color:'#6b7280', marginTop:3 }}>{p.description}</div>
+                <div style={{ fontSize:10, color:'#9ca3af', marginTop:3 }}>Edit at: {p.source}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {CATEGORY_ORDER.map(cat => {
         const items = byCategory[cat] || []
