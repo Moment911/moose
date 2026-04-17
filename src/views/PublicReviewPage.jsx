@@ -788,7 +788,7 @@ export default function PublicReviewPage() {
         {/* Sidebar — desktop: fixed right, mobile: bottom sheet */}
         <div className={`${isMobile
           ? `fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 ${sidebarOpen ? 'translate-y-0' : 'translate-y-full'}`
-          : 'w-72 bg-white border-l border-gray-200 flex-shrink-0'
+          : 'w-80 bg-white border-l border-gray-200 flex-shrink-0'
         } flex flex-col`} style={isMobile ? { maxHeight: '75vh' } : {}}>
 
           {/* Mobile drag handle */}
@@ -798,21 +798,8 @@ export default function PublicReviewPage() {
             </div>
           )}
 
-          {/* ─── Your name ─── */}
+          {/* ─── Feedback tools (top — this is the primary action) ─── */}
           <div className="px-5 pt-5 pb-4 flex-shrink-0">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-2">
-              Your name
-            </label>
-            <input
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-colors"
-              placeholder="Enter your name…"
-              value={authorName}
-              onChange={e => setAuthorName(e.target.value)}
-            />
-          </div>
-
-          {/* ─── Feedback tools ─── */}
-          <div className="px-5 py-4 border-t border-gray-100 bg-gray-50/50 flex-shrink-0">
             <div className="flex items-center justify-between mb-3">
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">
                 Feedback tools
@@ -865,9 +852,22 @@ export default function PublicReviewPage() {
             </div>
           )}
 
+          {/* ─── Your name (below tools; secondary) ─── */}
+          <div className="px-5 pb-4 flex-shrink-0 border-t border-gray-100 pt-4 bg-gray-50/50">
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-2">
+              Your name
+            </label>
+            <input
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+              placeholder="Enter your name…"
+              value={authorName}
+              onChange={e => setAuthorName(e.target.value)}
+            />
+          </div>
+
           {/* ─── Comments + Help (scrollable) ─── */}
           <div className="flex-1 min-h-0 overflow-y-auto border-t border-gray-200">
-            <div className="px-1 pt-3">
+            <div className="px-4 pt-3">
               <CommentSidebar annotations={annotations} selectedId={selectedId} onSelect={handleSidebarSelect} replies={replies} onAddReply={handleAddReply} />
             </div>
             <div className="px-4 pt-5 pb-5 border-t border-gray-200 mt-4 bg-gray-50/60">
