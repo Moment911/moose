@@ -199,14 +199,42 @@ export default function PublicReviewPage() {
     return () => supabase.removeChannel(channel)
   }, [file])
 
-  async function loadFileByToken() {
-    const { data: fileData } = await supabase.from('files').select('*, projects(*, clients(*))').eq('public_token', token).single()
-    if (!fileData) { setStatus('denied'); return }
-    const proj = fileData.projects
-    setFile(fileData); setProject(proj)
-    if (proj.access_level === 'private') { setStatus('denied'); return }
-    if (proj.access_level === 'password') { setStatus('password'); return }
-    await loadReady(fileData)
+  async function loadFileByToken(password) {
+    // Always go through /api/proof/verify-token — it does the access
+    // check with the service-role key server-side so access_password
+    // never lands in the browser. We only hydrate React state once
+    // the server confirms the request is allowed.
+    try {
+      const res = await fetch('/api/proof/verify-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: password || undefined }),
+      })
+      if (res.status === 401) {
+        const { needs_password } = await res.json().catch(() => ({}))
+        if (needs_password) {
+          // Minimal state so the password form renders — no file data yet.
+          setStatus('password')
+          return
+        }
+      }
+      if (res.status === 403 || res.status === 404) {
+        setStatus('denied')
+        return
+      }
+      if (!res.ok) { setStatus('denied'); return }
+      const { file: fileData, project: proj } = await res.json()
+      if (!fileData || !proj) { setStatus('denied'); return }
+      // Expose the project shape callers downstream expect.
+      const projForFile = { ...proj, clients: proj.clients }
+      const hydratedFile = { ...fileData, projects: projForFile }
+      setFile(hydratedFile)
+      setProject(projForFile)
+      await loadReady(hydratedFile)
+    } catch (e) {
+      console.warn('[loadFileByToken]', e)
+      setStatus('denied')
+    }
   }
 
   async function loadReady(fileData) {
@@ -223,8 +251,33 @@ export default function PublicReviewPage() {
 
   async function handlePasswordSubmit(e) {
     e.preventDefault()
-    if (password === project.access_password) { await loadReady(); setStatus('ready') }
-    else setPwError('Incorrect password. Please try again.')
+    setPwError('')
+    // Re-run the server-side access check with the submitted password.
+    // loadFileByToken will hydrate file + project and flip to 'ready'
+    // if the password matches, or stay on 'password' with an error if not.
+    try {
+      const res = await fetch('/api/proof/verify-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
+      })
+      if (res.status === 401) {
+        setPwError('Incorrect password. Please try again.')
+        return
+      }
+      if (!res.ok) {
+        setPwError('Could not open this review. Please try again.')
+        return
+      }
+      const { file: fileData, project: proj } = await res.json()
+      const projForFile = { ...proj, clients: proj.clients }
+      const hydratedFile = { ...fileData, projects: projForFile }
+      setFile(hydratedFile)
+      setProject(projForFile)
+      await loadReady(hydratedFile)
+    } catch (e) {
+      setPwError('Network error. Please try again.')
+    }
   }
 
   async function loadAnnotations(fileId) {
