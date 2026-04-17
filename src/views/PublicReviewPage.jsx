@@ -668,16 +668,19 @@ export default function PublicReviewPage() {
         )}
 
         <div className="flex flex-1 overflow-hidden relative">
-        <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100 p-2 md:p-6 flex items-start justify-center"
+        <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100 p-2 md:p-6"
           onMouseDown={() => { if (activeBubble) closeBubble() }}>
           {/* Outer wrapper reserves post-zoom scroll space so that zooming
               in doesn't clip the bottom/right edges. Inner wrapper carries
-              the actual scale transform pinned top-left. */}
-          <div style={{
+              the actual scale transform pinned top-left.
+              mx-auto centers the content when it's narrower than the
+              viewport; when wider, the browser falls back to standard
+              left-to-right flow so users can scroll through the full
+              width (flex justify-center clipped the left half).           */}
+          <div className="mx-auto" style={{
             width: imgDims.width ? imgDims.width * zoom : undefined,
             height: imgDims.height ? imgDims.height * zoom : undefined,
             position: 'relative',
-            flexShrink: 0,
           }}>
           <div style={{ position: 'relative', transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
             <div className="relative inline-block shadow-2xl rounded-lg overflow-hidden bg-white">
