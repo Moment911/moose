@@ -49,7 +49,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Operator can rename, add, remove, and constrain slots in the Slot Editor UI before any campaign runs
   4. Operator can publish a cloned draft back to WordPress via `Document::save()` and the rendered page is visually pixel-identical to the master in both Elementor editor and front-end view
   5. Elementor CSS regenerates automatically after every successful write, wrapped in `class_exists` / `method_exists` guards — no stale CSS on any round-trip
-**Plans**: TBD
+**Plans**: 4 total
+  - Plan 1: WP Plugin Write Endpoint — Document::save() (ELEM-04, ELEM-10) ✅ COMPLETE
+  - Plan 2: Template Ingest API + Slot Detection (ELEM-07, ELEM-08) ✅ COMPLETE
+  - Plan 3: Write Proxy + Clone Action ✅ COMPLETE
+  - Plan 4: Template Ingest + Slot Editor UI (ELEM-09, UI-04) ✅ COMPLETE
 **UI hint**: yes
 
 ### Phase 3: Engine to Publish Adapter + Pre-Flight Gate
@@ -114,7 +118,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundations + Elementor Read Path | 5/5 | Code complete (gate pending) | - |
-| 2. Elementor Write Path + Template Ingest + Slot Editor | 0/TBD | Not started | - |
+| 2. Elementor Write Path + Template Ingest + Slot Editor | 4/4 | Code complete (gate pending) | - |
 | 3. Engine to Publish Adapter + Pre-Flight Gate | 0/TBD | Not started | - |
 | 4. Durable Publish Orchestration | 0/TBD | Not started | - |
 | 5. Closed-Loop Attribution (CWV + IndexNow + Telnyx) | 0/TBD | Not started | - |

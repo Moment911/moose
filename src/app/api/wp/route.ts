@@ -458,6 +458,192 @@ Rules:
       })
     }
 
+    // ── KotoIQ Builder Write Endpoints (ELEM-04, ELEM-07, ELEM-08) ─────
+
+    if (action === 'put_elementor_data') {
+      // ELEM-04: Write Elementor data via Document::save()
+      const { post_id, elementor_data, page_settings, status: postStatus, idempotency_key } = body
+      if (!post_id) return NextResponse.json({ error: 'post_id required (int or "new")' }, { status: 400 })
+      if (!elementor_data) return NextResponse.json({ error: 'elementor_data required' }, { status: 400 })
+      const result = await proxyToPlugin(site, `builder/elementor/${post_id}`, 'PUT', {
+        elementor_data, page_settings, status: postStatus, idempotency_key,
+      })
+      return NextResponse.json(result)
+    }
+
+    if (action === 'clone_elementor_page') {
+      // Clone an existing Elementor page as a new draft
+      const { source_post_id, title, slug, status: cloneStatus, elementor_data, idempotency_key } = body
+      if (!source_post_id) return NextResponse.json({ error: 'source_post_id required' }, { status: 400 })
+      const result = await proxyToPlugin(site, 'builder/clone', 'POST', {
+        source_post_id, title, slug, status: cloneStatus || 'draft',
+        elementor_data, idempotency_key,
+      })
+      return NextResponse.json(result)
+    }
+
+    if (action === 'ingest_template') {
+      // ELEM-07 + ELEM-08: Pull a page, store as master template, auto-detect slots
+      const { post_id } = body
+      if (!post_id) return NextResponse.json({ error: 'post_id required' }, { status: 400 })
+
+      // 1. Fetch the raw Elementor data
+      const pageResult = await proxyToPlugin(site, `builder/elementor/${post_id}`, 'GET')
+      if (!pageResult.ok || !pageResult.data?.elementor_data) {
+        return NextResponse.json({ error: 'Failed to fetch page', detail: pageResult }, { status: 502 })
+      }
+
+      const { elementor_data, elementor_version, page_settings, title, url } = pageResult.data
+
+      // 2. Capture/check schema
+      const { captureSchema, diffSchemas, detectSlots } = await import('../../../lib/builder/elementorAdapter')
+      const schema = captureSchema(elementor_data, elementor_version || 'unknown', post_id)
+
+      // Check for existing pinned schema
+      const { data: pinnedSchema } = await sb.from('kotoiq_elementor_schema_versions')
+        .select('*').eq('site_id', site_id).eq('is_pinned', true).maybeSingle()
+
+      let schemaVersionId = pinnedSchema?.id
+      if (!pinnedSchema) {
+        // First capture — persist and pin
+        const { data: newSchema } = await sb.from('kotoiq_elementor_schema_versions').insert({
+          site_id, elementor_version: schema.elementorVersion,
+          captured_from_post_id: post_id, widget_schema: schema,
+          is_pinned: true, drift_status: 'clean',
+        }).select().single()
+        schemaVersionId = newSchema?.id
+      }
+
+      // 3. Auto-detect slots
+      const slots = detectSlots(elementor_data)
+
+      // 4. Store as master template in kotoiq_templates
+      const { data: template, error: templateError } = await sb.from('kotoiq_templates').insert({
+        agency_id: site.agency_id,
+        client_id: body.client_id || site.client_id || null,
+        site_id,
+        source_post_id: post_id,
+        source_title: title,
+        schema_version_id: schemaVersionId,
+        elementor_data,
+        elementor_version: elementor_version || 'unknown',
+        page_settings: page_settings || {},
+        status: 'draft',
+        slot_count: slots.length,
+        token_estimate: JSON.stringify(elementor_data).length, // rough byte count
+      }).select().single()
+
+      if (templateError) {
+        return NextResponse.json({ error: templateError.message }, { status: 500 })
+      }
+
+      // 5. Persist auto-detected slots
+      if (slots.length > 0) {
+        const slotRows = slots.map(s => ({
+          template_id: template.id,
+          json_path: s.jsonPath,
+          slot_kind: s.slotKind,
+          label: s.suggestedLabel,
+          required: true,
+        }))
+        await sb.from('kotoiq_template_slots').insert(slotRows)
+      }
+
+      return NextResponse.json({
+        ok: true,
+        template: {
+          id: template.id,
+          source_title: title,
+          source_url: url,
+          slot_count: slots.length,
+          elementor_version,
+          status: 'draft',
+        },
+        slots: slots.map(s => ({
+          json_path: s.jsonPath,
+          slot_kind: s.slotKind,
+          label: s.suggestedLabel,
+          current_value: s.currentValue,
+          widget_type: s.widgetType,
+        })),
+      })
+    }
+
+    if (action === 'update_template_slots') {
+      // ELEM-09: Update slots (rename, add, remove, constrain)
+      const { template_id, slots: slotUpdates } = body
+      if (!template_id) return NextResponse.json({ error: 'template_id required' }, { status: 400 })
+
+      // Verify template belongs to this agency
+      const { data: tmpl } = await sb.from('kotoiq_templates')
+        .select('id, agency_id').eq('id', template_id).single()
+      if (!tmpl || tmpl.agency_id !== site.agency_id) {
+        return NextResponse.json({ error: 'Template not found or not yours' }, { status: 404 })
+      }
+
+      if (Array.isArray(slotUpdates)) {
+        for (const slot of slotUpdates) {
+          if (slot.delete && slot.id) {
+            await sb.from('kotoiq_template_slots').delete().eq('id', slot.id)
+          } else if (slot.id) {
+            // Update existing
+            const { id, delete: _, ...updates } = slot
+            await sb.from('kotoiq_template_slots').update(updates).eq('id', id)
+          } else {
+            // Add new slot
+            await sb.from('kotoiq_template_slots').insert({
+              template_id,
+              json_path: slot.json_path,
+              slot_kind: slot.slot_kind,
+              label: slot.label,
+              wildcard_key: slot.wildcard_key,
+              constraints: slot.constraints || {},
+              required: slot.required ?? true,
+            })
+          }
+        }
+      }
+
+      // Update slot count
+      const { count } = await sb.from('kotoiq_template_slots')
+        .select('*', { count: 'exact', head: true }).eq('template_id', template_id)
+      await sb.from('kotoiq_templates').update({
+        slot_count: count || 0, updated_at: new Date().toISOString(),
+      }).eq('id', template_id)
+
+      // Fetch updated slots
+      const { data: updatedSlots } = await sb.from('kotoiq_template_slots')
+        .select('*').eq('template_id', template_id).order('created_at')
+
+      return NextResponse.json({ ok: true, slots: updatedSlots, slot_count: count })
+    }
+
+    if (action === 'get_template') {
+      // Fetch template + its slots
+      const { template_id } = body
+      if (!template_id) return NextResponse.json({ error: 'template_id required' }, { status: 400 })
+
+      const [templateRes, slotsRes] = await Promise.all([
+        sb.from('kotoiq_templates').select('*').eq('id', template_id).eq('agency_id', site.agency_id).single(),
+        sb.from('kotoiq_template_slots').select('*').eq('template_id', template_id).order('created_at'),
+      ])
+
+      if (!templateRes.data) return NextResponse.json({ error: 'Template not found' }, { status: 404 })
+
+      return NextResponse.json({
+        template: templateRes.data,
+        slots: slotsRes.data || [],
+      })
+    }
+
+    if (action === 'list_templates') {
+      const { data: templates } = await sb.from('kotoiq_templates')
+        .select('id, source_title, elementor_version, status, slot_count, site_id, ingested_at')
+        .eq('agency_id', site.agency_id)
+        .order('ingested_at', { ascending: false })
+      return NextResponse.json({ templates: templates || [] })
+    }
+
     if (action === 'proxy') {
       return NextResponse.json(await proxyToPlugin(site, body.endpoint, body.method || 'POST', body.payload || {}))
     }

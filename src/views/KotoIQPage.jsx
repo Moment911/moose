@@ -55,6 +55,7 @@ import SitemapCrawlerTab from '../components/kotoiq/SitemapCrawlerTab'
 import ProcessingJobsTab from '../components/kotoiq/ProcessingJobsTab'
 import ConversationalBot from '../components/kotoiq/ConversationalBot'
 import ActivityTab from '../components/kotoiq/ActivityTab'
+import BuilderTab from '../components/kotoiq/BuilderTab'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -1001,6 +1002,9 @@ export default function KotoIQPage() {
                   ['gmb_images', 'GMB Images', ImageIcon],
                   ['rank_grid', 'Rank Grid Pro', Grid],
                   ['reviews', 'Reviews', Star],
+                ]},
+                { group: 'Builder', items: [
+                  ['builder', 'Template Builder', Layers],
                 ]},
                 { group: 'Reports & Tools', items: [
                   ['reports', 'Reports', BarChart2],
@@ -2686,6 +2690,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ NEW: KNOWLEDGE GRAPH EXPORT ══ */}
         {clientId && tab === 'knowledge_graph' && (
           <KnowledgeGraphTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ BUILDER — Template Ingest + Slot Editor ══ */}
+        {tab === 'builder' && (
+          <BuilderTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ NEW: HYPERLOCAL CONTENT ══ */}
