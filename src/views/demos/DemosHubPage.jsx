@@ -1,7 +1,7 @@
 "use client"
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowRight, Sparkles, UtensilsCrossed, Car, Scale, Wrench, DollarSign, Phone,
+  ArrowRight, Sparkles, UtensilsCrossed, Car, Scale, Wrench, DollarSign, Phone, Search,
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, W, FH, FB } from '../../lib/theme'
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../../lib/contact'
@@ -47,17 +47,29 @@ const CSS = `
 
 const DEMOS = [
   {
+    id: 'scan',
+    icon: Search,
+    accent: R,
+    industry: 'Any business',
+    title: 'Scan your business — live.',
+    scenario: 'Paste any URL. In 20 seconds we pull SEO, social, technical, and conversion signals from the live page, then Claude writes the 3 fixes that\'ll move your needle most.',
+    watchFor: ['Real-time homepage fetch + signal extraction', 'Scorecard across SEO, social, technical, conversion', 'Claude-written audit + top 3 fixes ranked by impact'],
+    duration: 'interactive',
+    href: '/demos/scan',
+    cta: 'Try it with your URL →',
+    flagship: true,
+  },
+  {
     id: 'catering',
     icon: UtensilsCrossed,
-    accent: R,
+    accent: T,
     industry: 'Catering',
     title: 'Boxed-Lunch Order Builder',
     scenario: 'A corporate catering platform takes an order request and fills out the full build — meals, extras, containers, shipping logistics, pricing — in seconds.',
     watchFor: ['Three meals auto-configured with sides + drinks + extras', 'Shipping boxes + pallets + vehicle sized in real time', 'Gross margin computed live against COGS'],
-    duration: '~12s',
+    duration: '~12s animation',
     href: '/demos/catering',
     cta: 'Watch it fill itself →',
-    flagship: true,
   },
   {
     id: 'estimate',
