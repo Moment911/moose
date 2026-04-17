@@ -134,6 +134,63 @@
 
 ---
 
-## Traceability (filled in by roadmapper)
+## Traceability
 
-<!-- The roadmapper will map every REQ-ID above to exactly one phase. -->
+**Coverage:** 42/42 v1.0 requirements mapped to exactly one phase. No orphans. No duplicates.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| FND-01 | Phase 1 | Pending |
+| FND-02 | Phase 1 | Pending |
+| FND-03 | Phase 1 | Pending |
+| FND-04 | Phase 1 | Pending |
+| FND-05 | Phase 1 | Pending |
+| ELEM-01 | Phase 1 | Pending |
+| ELEM-02 | Phase 1 | Pending |
+| ELEM-03 | Phase 1 | Pending |
+| ELEM-04 | Phase 2 | Pending |
+| ELEM-05 | Phase 1 | Pending |
+| ELEM-06 | Phase 1 | Pending |
+| ELEM-07 | Phase 2 | Pending |
+| ELEM-08 | Phase 2 | Pending |
+| ELEM-09 | Phase 2 | Pending |
+| ELEM-10 | Phase 2 | Pending |
+| ADAPT-01 | Phase 3 | Pending |
+| ADAPT-02 | Phase 3 | Pending |
+| ADAPT-03 | Phase 3 | Pending |
+| ADAPT-04 | Phase 3 | Pending |
+| ADAPT-05 | Phase 3 | Pending |
+| ADAPT-06 | Phase 3 | Pending |
+| ORCH-01 | Phase 4 | Pending |
+| ORCH-02 | Phase 4 | Pending |
+| ORCH-03 | Phase 4 | Pending |
+| ORCH-04 | Phase 4 | Pending |
+| ORCH-05 | Phase 4 | Pending |
+| ATTR-01 | Phase 5 | Pending |
+| ATTR-02 | Phase 5 | Pending |
+| ATTR-03 | Phase 5 | Pending |
+| ATTR-04 | Phase 5 | Pending |
+| ATTR-05 | Phase 5 | Pending |
+| ATTR-06 | Phase 5 | Pending |
+| ATTR-07 | Phase 5 | Pending |
+| ATTR-08 | Phase 5 | Pending |
+| LOOP-01 | Phase 6 | Pending |
+| LOOP-02 | Phase 6 | Pending |
+| LOOP-03 | Phase 6 | Pending |
+| UI-01 | Phase 6 | Pending |
+| UI-02 | Phase 6 | Pending |
+| UI-03 | Phase 6 | Pending |
+| UI-04 | Phase 2 | Pending |
+| PILOT-01 | Phase 6 | Pending |
+
+**Phase summary counts:**
+
+| Phase | Requirement count | Requirements |
+|-------|-------------------|--------------|
+| Phase 1 — Foundations + Elementor Read Path | 10 | FND-01, FND-02, FND-03, FND-04, FND-05, ELEM-01, ELEM-02, ELEM-03, ELEM-05, ELEM-06 |
+| Phase 2 — Elementor Write Path + Template Ingest + Slot Editor | 6 | ELEM-04, ELEM-07, ELEM-08, ELEM-09, ELEM-10, UI-04 |
+| Phase 3 — Engine to Publish Adapter + Pre-Flight Gate | 6 | ADAPT-01, ADAPT-02, ADAPT-03, ADAPT-04, ADAPT-05, ADAPT-06 |
+| Phase 4 — Durable Publish Orchestration | 5 | ORCH-01, ORCH-02, ORCH-03, ORCH-04, ORCH-05 |
+| Phase 5 — Closed-Loop Attribution | 8 | ATTR-01, ATTR-02, ATTR-03, ATTR-04, ATTR-05, ATTR-06, ATTR-07, ATTR-08 |
+| Phase 6 — Feedback Loop + Unified Shell + Pilot | 7 | LOOP-01, LOOP-02, LOOP-03, UI-01, UI-02, UI-03, PILOT-01 |
+| **Total** | **42** | |
