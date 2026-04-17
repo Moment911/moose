@@ -104,11 +104,14 @@ export default function PublicReviewPage() {
   const [imgDims, setImgDims] = useState({ width: 0, height: 0 })
   const [htmlBlobUrl, setHtmlBlobUrl] = useState(null)
   // Tall-page controls for HTML/PDF — clients can widen/lengthen
-  // the preview so annotations reach the whole design.
+  // the preview so annotations reach the whole design. Defaults are
+  // generous so a typical multi-page document isn't clipped before
+  // auto-size kicks in; users can still resize with the buttons.
   const [htmlWidth, setHtmlWidth] = useState(1280)
-  const [htmlHeight, setHtmlHeight] = useState(2400)
+  const [htmlHeight, setHtmlHeight] = useState(6000)
   const [pdfWidth, setPdfWidth] = useState(900)
-  const [pdfHeight, setPdfHeight] = useState(1000)
+  const [pdfHeight, setPdfHeight] = useState(6000)
+  const htmlIframeRef = useRef(null)
   const [containerWidth, setContainerWidth] = useState(0)  // measured live; drives Fit buttons
   const scrollContainerRef = useRef(null)
   const [rounds, setRounds] = useState([])
@@ -655,8 +658,33 @@ export default function PublicReviewPage() {
                   style={{ width: pdfWidth, height: pdfHeight, border: 'none' }} />
               )}
               {(file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')) && htmlBlobUrl && (
-                <iframe src={htmlBlobUrl} title={file.name} className="block"
-                  style={{ width: htmlWidth, height: htmlHeight, border: 'none' }} sandbox="allow-scripts allow-same-origin" />
+                <iframe
+                  ref={htmlIframeRef}
+                  src={htmlBlobUrl}
+                  title={file.name}
+                  className="block"
+                  style={{ width: htmlWidth, height: htmlHeight, border: 'none' }}
+                  sandbox="allow-scripts allow-same-origin"
+                  onLoad={(e) => {
+                    // blob: URLs share the parent origin, so we can read
+                    // the content document and grow the iframe to fit.
+                    // Defensive: wrap in try/catch — some HTML payloads
+                    // re-write origin and trip cross-origin reads.
+                    try {
+                      const doc = e.currentTarget.contentDocument
+                      if (!doc) return
+                      const contentHeight = Math.max(
+                        doc.documentElement.scrollHeight || 0,
+                        doc.body?.scrollHeight || 0,
+                      )
+                      if (contentHeight > 400) {
+                        // 80px breathing room, cap at 30k so a runaway
+                        // page can't crash the annotation canvas.
+                        setHtmlHeight(Math.min(30000, contentHeight + 80))
+                      }
+                    } catch { /* cross-origin — keep manual controls */ }
+                  }}
+                />
               )}
               {imgDims.width > 0 && imgDims.height > 0 && (
                 <AnnotationCanvas width={imgDims.width} height={imgDims.height} tool={roundsExhausted ? 'select' : tool} color={color}
