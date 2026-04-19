@@ -1,6 +1,16 @@
 // ── KotoIQ Pipeline Orchestrator ────────────────────────────────────────────
-// Chains all 6 stages of the KotoIQ pipeline: Ingest → Graph → Plan → Generate → Ship → Measure
+// Chains all 7 stages of the KotoIQ pipeline:
+//   Profile → Ingest → Graph → Plan → Generate → Ship → Measure
 // Each stage calls the KotoIQ API via internal fetch, keeping the orchestrator decoupled.
+//
+// Phase 7 / Plan 4 added Stage 0 (Profile) IN FRONT of the original 6 stages
+// and durable kotoiq_pipeline_runs writes around every stage transition so the
+// D-23 live ribbon survives a cold start.  Existing runStage* functions had
+// their hard-coded `const si = N` bumped by 1 (Ingest 0→1, Graph 1→2, etc.).
+//
+// Cross-agency isolation: kotoiq_pipeline_runs is NOT in DIRECT_AGENCY_TABLES
+// (it predates the kotoiqDb agency-scoping helper).  Every write below
+// includes an explicit `.eq('agency_id', agencyId)` per CLAUDE.md isolation rule.
 
 import { createClient } from '@supabase/supabase-js'
 
@@ -180,25 +190,44 @@ async function runStep(
 
 // ── Stage definitions ──────────────────────────────────────────────────────
 
-const STAGE_NAMES = ['Ingest', 'Graph', 'Plan', 'Generate', 'Ship', 'Measure']
-const STAGE_STEP_COUNTS = [6, 5, 5, -1, -1, 3] // -1 = dynamic (per-keyword)
+// STAGE_NAMES: Phase 7 / Plan 4 prepended 'Profile' (Stage 0). The 6 original
+// stages keep their names but each `runStage* `'s `const si = N` was bumped
+// by 1 to match the new STAGE_NAMES indices.
+const STAGE_NAMES = [
+  'Profile',
+  'Ingest',
+  'Graph',
+  'Plan',
+  'Generate',
+  'Ship',
+  'Measure',
+]
+const STAGE_STEP_COUNTS = [2, 6, 5, 5, -1, -1, 3] // -1 = dynamic (per-keyword)
 
 function buildInitialStages(config: PipelineConfig): StageProgress[] {
-  const stagesToRun = config.stages_to_run || [1, 2, 3, 4, 5, 6]
+  // Default: run all 7 stages (1..7). Existing callers passing [1,2,3,4,5,6]
+  // get those mapped to the new Ingest..Measure stages (which retain their
+  // names; the indices shift to 2..7). Stage 1 (Profile) runs by default for
+  // any caller that doesn't explicitly pass stages_to_run.
+  const stagesToRun = config.stages_to_run || [1, 2, 3, 4, 5, 6, 7]
   const kwCount = config.target_keywords.length
 
   return STAGE_NAMES.map((name, i) => {
     const stageNum = i + 1
     const isActive = stagesToRun.includes(stageNum)
     let stepsTotal: number
-    if (stageNum === 4) stepsTotal = kwCount * 5 // 5 steps per keyword
-    else if (stageNum === 5) stepsTotal = kwCount + 2 // per-page pipeline + 2 bulk steps
+    // Stage 5 = Generate (5 steps per keyword), Stage 6 = Ship (kw + 2 bulk).
+    // (After the Plan-4 shift: Generate moved from stage 4 → 5, Ship from 5 → 6.)
+    if (stageNum === 5)
+      stepsTotal = kwCount * 5 // 5 steps per keyword
+    else if (stageNum === 6)
+      stepsTotal = kwCount + 2 // per-page pipeline + 2 bulk steps
     else stepsTotal = STAGE_STEP_COUNTS[i]
 
     return {
       stage: stageNum,
       stage_name: name,
-      status: isActive ? 'waiting' as const : 'skipped' as const,
+      status: isActive ? ('waiting' as const) : ('skipped' as const),
       steps_complete: 0,
       steps_total: stepsTotal,
       steps: [],
@@ -206,10 +235,165 @@ function buildInitialStages(config: PipelineConfig): StageProgress[] {
   })
 }
 
-// ── Stage 1: Ingest ────────────────────────────────────────────────────────
+// ── kotoiq_pipeline_runs durable writes (D-23 ribbon) ──────────────────────
+//
+// IMPORTANT: kotoiq_pipeline_runs is one of the 7 backlog migrations not yet
+// applied to live Supabase (defined in 20260419_kotoiq_automation.sql, see
+// Phase 07-01-SUMMARY "Known follow-ups"). Every write below is wrapped in
+// try/catch so the orchestrator continues working against the current live
+// DB; the ribbon will not light up until the backlog is applied. Once the
+// migration lands, the try/catch guards may be relaxed.
+//
+// Schema actually present in 20260419_kotoiq_automation.sql:
+//   id (uuid PK), client_id, agency_id, keyword, status, ..., steps jsonb,
+//   created_at, completed_at
+// Note: the table does NOT have current_stage / current_step / started_at /
+// updated_at columns. We track stage/step transitions inside the `steps`
+// jsonb column (append-only event log) rather than dedicated columns.
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function pipelineRunsTable(): any {
+  // Use the local sb() service-role client (line 86) — kotoiq_pipeline_runs
+  // is not in DIRECT_AGENCY_TABLES so the kotoiqDb scoping helper would
+  // refuse to inject agency_id automatically. We add `.eq('agency_id', ...)`
+  // explicitly on every read/write.
+  return sb().from('kotoiq_pipeline_runs')
+}
+
+async function pipelineRunInsert(
+  runId: string,
+  config: PipelineConfig,
+): Promise<void> {
+  try {
+    await pipelineRunsTable().insert({
+      id: runId,
+      agency_id: config.agency_id,
+      client_id: config.client_id,
+      status: 'running',
+      steps: [
+        {
+          stage: 'Profile',
+          step: 'Load profile',
+          status: 'running',
+          at: new Date().toISOString(),
+        },
+      ],
+      created_at: new Date().toISOString(),
+    })
+  } catch (err) {
+    console.error('[pipelineOrchestrator] kotoiq_pipeline_runs insert failed', err)
+  }
+}
+
+async function pipelineRunUpdateStage(
+  runId: string,
+  agencyId: string,
+  stageName: string,
+  stepName: string | null,
+  status: 'running' | 'completed' | 'failed' | 'cancelled',
+): Promise<void> {
+  try {
+    // Read current steps jsonb so we can append the new event.
+    const { data: row } = await pipelineRunsTable()
+      .select('id, steps')
+      .eq('id', runId)
+      .eq('agency_id', agencyId) // mandatory cross-agency guard
+      .maybeSingle()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingSteps: any[] = Array.isArray(row?.steps) ? row.steps : []
+    existingSteps.push({
+      stage: stageName,
+      step: stepName,
+      status,
+      at: new Date().toISOString(),
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const patch: Record<string, any> = { steps: existingSteps }
+    if (status === 'completed' || status === 'failed' || status === 'cancelled') {
+      patch.status = status
+      patch.completed_at = new Date().toISOString()
+    } else if (status === 'running') {
+      patch.status = 'running'
+    }
+
+    await pipelineRunsTable()
+      .update(patch)
+      .eq('id', runId)
+      .eq('agency_id', agencyId) // mandatory
+  } catch (err) {
+    console.error('[pipelineOrchestrator] kotoiq_pipeline_runs update failed', err)
+  }
+}
+
+// ── Stage 1 (NEW — Plan 4): Profile (Stage 0 → si=0) ───────────────────────
+//
+// Composes the Plan 2 + Plan 3 + Plan 4 modules into a single seed call,
+// then serializes the entity graph (D-22) into kotoiq_client_profile so
+// Stage 3 (Graph) can consume it.
+//
+// Lazy imports are required because pipelineOrchestrator.ts → profileSeeder
+// → kotoiqDb → @supabase/supabase-js builds a dependency tree that's heavy
+// to instantiate at module load. Loading on first use also avoids a circular
+// import risk if the seeder ever needs to reach back into the orchestrator.
+
+async function runStageSeedProfile(
+  run: PipelineRun,
+  config: PipelineConfig,
+): Promise<void> {
+  const si = 0
+  await runStep(
+    run,
+    si,
+    'Load profile',
+    'load_profile',
+    { client_id: config.client_id, agency_id: config.agency_id },
+    async () => {
+      const { seedProfile } = await import('../kotoiq/profileSeeder')
+      const result = await seedProfile({
+        clientId: config.client_id,
+        agencyId: config.agency_id,
+        forceRebuild: false,
+      })
+      return {
+        client_id: config.client_id,
+        fields_resolved: Object.keys(result.profile.fields || {}).length,
+        discrepancies: result.discrepancies.length,
+      }
+    },
+  )
+  if (cancelFlags.get(run.id)) return
+
+  await runStep(
+    run,
+    si,
+    'Serialize entity graph',
+    'serialize_graph',
+    { client_id: config.client_id },
+    async () => {
+      const { getKotoIQDb } = await import('../kotoiqDb')
+      const { profileToEntityGraphSeed } = await import(
+        '../kotoiq/profileGraphSerializer'
+      )
+      const db = getKotoIQDb(config.agency_id)
+      const { data: profile } = await db.clientProfile.get(config.client_id)
+      if (!profile) return { seed: null }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const seed = profileToEntityGraphSeed(profile as any)
+      await db.clientProfile.upsert({
+        client_id: config.client_id,
+        entity_graph_seed: seed,
+      })
+      return { nodes: Object.keys(seed.confidence_by_node).length }
+    },
+  )
+}
+
+// ── Stage 2: Ingest (was Stage 1 pre-Plan-4 — si bumped 0 → 1) ─────────────
 
 async function runStageIngest(run: PipelineRun, config: PipelineConfig) {
-  const si = 0
+  const si = 1
   const p = { client_id: config.client_id, agency_id: config.agency_id }
 
   await runStep(run, si, 'Sync data sources', 'sync', p)
@@ -250,10 +434,10 @@ async function runStageIngest(run: PipelineRun, config: PipelineConfig) {
   run.stages[si].steps_complete = run.stages[si].steps_total
 }
 
-// ── Stage 2: Graph ─────────────────────────────────────────────────────────
+// ── Stage 3: Graph (was Stage 2 pre-Plan-4 — si bumped 1 → 2) ──────────────
 
 async function runStageGraph(run: PipelineRun, config: PipelineConfig) {
-  const si = 1
+  const si = 2
   const p = { client_id: config.client_id, agency_id: config.agency_id }
 
   await runStep(run, si, 'Generate topical map', 'generate_topical_map', p)
@@ -271,10 +455,10 @@ async function runStageGraph(run: PipelineRun, config: PipelineConfig) {
   await runStep(run, si, 'Export knowledge graph', 'export_knowledge_graph', { client_id: config.client_id })
 }
 
-// ── Stage 3: Plan ──────────────────────────────────────────────────────────
+// ── Stage 4: Plan (was Stage 3 pre-Plan-4 — si bumped 2 → 3) ───────────────
 
 async function runStagePlan(run: PipelineRun, config: PipelineConfig) {
-  const si = 2
+  const si = 3
   const p = { client_id: config.client_id, agency_id: config.agency_id }
 
   await runStep(run, si, 'Analyze query paths', 'analyze_query_paths', p)
@@ -292,10 +476,11 @@ async function runStagePlan(run: PipelineRun, config: PipelineConfig) {
   await runStep(run, si, 'Generate quick wins', 'generate_quick_win_queue', { client_id: config.client_id })
 }
 
-// ── Stage 4: Generate (parallel per keyword, concurrency 3) ────────────────
+// ── Stage 5: Generate — parallel per keyword, concurrency 3 ───────────────
+// (was Stage 4 pre-Plan-4 — si bumped 3 → 4)
 
 async function runStageGenerate(run: PipelineRun, config: PipelineConfig): Promise<any[]> {
-  const si = 3
+  const si = 4
   const generatedPages: any[] = []
 
   const tasks = config.target_keywords.map((keyword) => async () => {
@@ -357,14 +542,14 @@ async function runStageGenerate(run: PipelineRun, config: PipelineConfig): Promi
   return generatedPages
 }
 
-// ── Stage 5: Ship ──────────────────────────────────────────────────────────
+// ── Stage 6: Ship (was Stage 5 pre-Plan-4 — si bumped 4 → 5) ──────────────
 
 async function runStageShip(
   run: PipelineRun,
   config: PipelineConfig,
   generatedPages: any[]
 ): Promise<string[]> {
-  const si = 4
+  const si = 5
   const publishedUrls: string[] = []
 
   // Run autonomous pipeline for each keyword/page
@@ -399,14 +584,14 @@ async function runStageShip(
   return publishedUrls
 }
 
-// ── Stage 6: Measure ───────────────────────────────────────────────────────
+// ── Stage 7: Measure (was Stage 6 pre-Plan-4 — si bumped 5 → 6) ───────────
 
 async function runStageMeasure(
   run: PipelineRun,
   config: PipelineConfig,
   publishedUrls: string[]
 ) {
-  const si = 5
+  const si = 6
 
   // Fetch CWV for each published URL
   for (const url of publishedUrls) {
@@ -436,7 +621,11 @@ async function runStageMeasure(
 
 export async function runFullPipeline(config: PipelineConfig): Promise<string> {
   const runId = `pipe_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-  const stagesToRun = config.stages_to_run || [1, 2, 3, 4, 5, 6]
+  // Default expanded to 7 stages now that Stage 1 = Profile (Plan 4).
+  // Existing callers passing [1,2,3,4,5,6] still get a valid run; they just
+  // won't trigger the new Profile stage. Pass [1,2,3,4,5,6,7] (or omit) for
+  // the full pipeline including Stage 0 / Profile.
+  const stagesToRun = config.stages_to_run || [1, 2, 3, 4, 5, 6, 7]
 
   const run: PipelineRun = {
     id: runId,
@@ -451,30 +640,47 @@ export async function runFullPipeline(config: PipelineConfig): Promise<string> {
   activeRuns.set(runId, run)
   cancelFlags.set(runId, false)
 
+  // D-23 ribbon — insert the run row up front so a fresh ribbon subscriber
+  // always sees the row, even if the in-memory map cold-starts away later.
+  // Wrapped in try/catch inside pipelineRunInsert (table may not exist on
+  // remote yet — see Phase 07-01 SUMMARY follow-ups).
+  await pipelineRunInsert(runId, config)
+
   // Fire-and-forget — the caller gets the run_id immediately
   ;(async () => {
     let generatedPages: any[] = []
     let publishedUrls: string[] = []
     const errors: string[] = []
 
+    // 7 stage functions in execution order. The 6 original stage functions
+    // are unchanged in shape; runStageSeedProfile (Plan 4) prepends Stage 0.
     const stageFns: Array<() => Promise<void>> = [
-      // Stage 1
+      // Stage 1 — Profile (NEW)
+      async () => { await runStageSeedProfile(run, config) },
+      // Stage 2 — Ingest
       async () => { await runStageIngest(run, config) },
-      // Stage 2
+      // Stage 3 — Graph
       async () => { await runStageGraph(run, config) },
-      // Stage 3
+      // Stage 4 — Plan
       async () => { await runStagePlan(run, config) },
-      // Stage 4
+      // Stage 5 — Generate
       async () => { generatedPages = await runStageGenerate(run, config) },
-      // Stage 5
+      // Stage 6 — Ship
       async () => { publishedUrls = await runStageShip(run, config, generatedPages) },
-      // Stage 6
+      // Stage 7 — Measure
       async () => { await runStageMeasure(run, config, publishedUrls) },
     ]
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       if (cancelFlags.get(runId)) {
         run.status = 'cancelled'
+        await pipelineRunUpdateStage(
+          runId,
+          config.agency_id,
+          STAGE_NAMES[i] || 'Unknown',
+          null,
+          'cancelled',
+        )
         break
       }
 
@@ -483,6 +689,14 @@ export async function runFullPipeline(config: PipelineConfig): Promise<string> {
 
       run.stages[i].status = 'running'
       run.stages[i].started_at = new Date().toISOString()
+      // Durable: stage start
+      await pipelineRunUpdateStage(
+        runId,
+        config.agency_id,
+        STAGE_NAMES[i],
+        null,
+        'running',
+      )
 
       try {
         await stageFns[i]()
@@ -490,6 +704,14 @@ export async function runFullPipeline(config: PipelineConfig): Promise<string> {
       } catch (err: any) {
         run.stages[i].status = 'error'
         errors.push(`Stage ${stageNum} (${STAGE_NAMES[i]}): ${err?.message || 'Unknown error'}`)
+        // Durable: stage failure
+        await pipelineRunUpdateStage(
+          runId,
+          config.agency_id,
+          STAGE_NAMES[i],
+          null,
+          'failed',
+        )
       }
 
       run.stages[i].finished_at = new Date().toISOString()
@@ -518,6 +740,18 @@ export async function runFullPipeline(config: PipelineConfig): Promise<string> {
     if (run.status === 'running') {
       run.status = errors.length > 0 && generatedPages.length === 0 ? 'error' : 'done'
     }
+    // Durable: terminal state
+    await pipelineRunUpdateStage(
+      runId,
+      config.agency_id,
+      STAGE_NAMES[STAGE_NAMES.length - 1],
+      null,
+      run.status === 'done'
+        ? 'completed'
+        : run.status === 'cancelled'
+          ? 'cancelled'
+          : 'failed',
+    )
   })()
 
   return runId
