@@ -5,12 +5,12 @@ import { supabase, getAnnotations, getFiles, createAnnotation, updateAnnotation,
 import AnnotationCanvas from '../components/AnnotationCanvas'
 import CommentSidebar from '../components/CommentSidebar'
 import RoundSummaryModal from '../components/RoundSummaryModal'
-import { Lock, KeyRound, Eye, Send, X, GripHorizontal, Check, Trash2, CheckCircle, HelpCircle, AlertTriangle, Calendar, MessageSquare, Video, StopCircle } from 'lucide-react'
+import { Lock, KeyRound, Eye, Send, X, GripHorizontal, Check, Trash2, CheckCircle, HelpCircle, AlertTriangle, Calendar, MessageSquare, Video, StopCircle, Pin, ArrowUpRight, Circle, Square, MousePointer2, Undo2, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import ColorPicker from '../components/ColorPicker'
 import { differenceInDays, format as formatDate } from 'date-fns'
 import FAQSection, { CLIENT_FAQ } from '../components/FAQSection'
 import ClientOnboarding from '../components/ClientOnboarding'
 import FeedbackTemplates from '../components/FeedbackTemplates'
-import AnnotationToolbar from '../components/AnnotationToolbar'
 import SatisfactionSurvey from '../components/SatisfactionSurvey'
 import toast, { Toaster } from 'react-hot-toast'
 
@@ -104,7 +104,18 @@ export default function PublicReviewPage() {
   const [color, setColor] = useState('#E6007E')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  const [authorName, setAuthorName] = useState(() => localStorage.getItem('mm_client_author') || '')
+  // Name source order: sessionStorage key the landing page set → keyed
+  // per-token session key → empty (forces prompt). Do NOT read localStorage
+  // here — it persists across deleted/new projects, causing bug where a
+  // reviewer who typed their name on an old project saw the new project
+  // auto-use the stale name. sessionStorage clears on tab close so a
+  // colleague opening the same link on the same machine gets a fresh prompt.
+  const [authorName, setAuthorName] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return sessionStorage.getItem('mm_proof_reviewer_current')
+      || sessionStorage.getItem(`mm_proof_reviewer__${token}`)
+      || ''
+  })
   const [imgDims, setImgDims] = useState({ width: 0, height: 0 })
   const [htmlBlobUrl, setHtmlBlobUrl] = useState(null)
   // Tall-page controls for HTML/PDF — clients can widen/lengthen
@@ -136,7 +147,13 @@ export default function PublicReviewPage() {
     window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize)
   }, [])
   useEffect(() => { loadFileByToken() }, [token])
-  useEffect(() => { localStorage.setItem('mm_client_author', authorName) }, [authorName])
+  // Persist name per-tab only — sessionStorage clears on tab close so a
+  // colleague reviewing the same link later is treated as a new reviewer.
+  useEffect(() => {
+    if (!authorName) return
+    sessionStorage.setItem('mm_proof_reviewer_current', authorName)
+    if (token) sessionStorage.setItem(`mm_proof_reviewer__${token}`, authorName)
+  }, [authorName, token])
 
   // ?submit=1 from the landing page's "Submit round" CTA — open the
   // RoundSummaryModal automatically once the file is ready, then strip
@@ -602,207 +619,281 @@ export default function PublicReviewPage() {
     <div className="flex h-screen overflow-hidden flex-col">
       <Toaster position="top-right" />
 
-      {/* Client header — responsive */}
-      <div className="text-white px-3 md:px-5 py-3 flex items-center gap-2 md:gap-4 flex-shrink-0" style={{ background: '#231f20' }}>
-        <div className="flex items-center gap-2 flex-shrink-0">
+      {/* ── Top header ────────────────────────────────────────────────
+          White enterprise chrome — matches the rest of Koto, not the
+          dark viewer chrome the old version shipped. Brand colors only:
+          Koto pink for primary CTA, teal as accent, grayscale for
+          everything else. No orange, no amber, no green.           */}
+      {(() => {
+        const BRAND = project?.brand_color || '#E6007E'
+        return (
+      <div className="bg-white border-b border-gray-200 px-3 md:px-5 py-2.5 flex items-center gap-3 flex-shrink-0">
+        {/* Brand + project label */}
+        <div className="flex items-center gap-2.5 flex-shrink-0">
           {project?.brand_logo ? (
-            <img src={project.brand_logo} alt="" className="h-6 object-contain" />
+            <img src={project.brand_logo} alt="" className="h-7 object-contain max-w-[120px]" />
           ) : (
-            <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: project?.brand_color || '#E6007E' }}>
-              <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
+            <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: BRAND }}>
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
             </div>
           )}
-          <span className="text-sm font-medium hidden md:inline">{project?.brand_name || 'Koto'}</span>
+          <div className="hidden md:flex flex-col leading-none">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em]">{project?.brand_name || 'Koto'}</span>
+            <span className="text-sm font-semibold text-gray-900 mt-0.5 truncate max-w-[200px]" title={project?.name}>{project?.name}</span>
+          </div>
         </div>
-        {/* File name + project navigation. The reviewer sees exactly where
-            they are in the proof ("File 2 of 5") and can jump anywhere
-            without bouncing back to the landing. */}
+
+        <div className="hidden md:block w-px h-7 bg-gray-200 flex-shrink-0" />
+
+        {/* Breadcrumb / file navigation */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {project?.public_token && (
             <button
               onClick={() => navigate(`/proof-review/${project.public_token}`)}
               title="Back to all files"
-              className="hidden md:flex items-center gap-1 text-[11px] text-gray-400 hover:text-white bg-gray-800 px-2 h-7 rounded-lg"
-            >← All files</button>
+              className="hidden md:flex items-center gap-1.5 text-[13px] text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+            ><ArrowLeft size={14} /> All files</button>
           )}
           {projectFiles.length > 1 && (
-            <div className="hidden md:flex items-center gap-0.5 bg-gray-800 rounded-lg overflow-hidden">
-              <button
-                onClick={() => prevFile && navigate(`/review/${prevFile.public_token}`)}
-                disabled={!prevFile}
-                title={prevFile ? `Previous: ${prevFile.name}` : 'First file'}
-                className="text-white text-sm w-7 h-7 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
-              >‹</button>
-              <span className="text-white text-[11px] px-2 h-7 flex items-center font-semibold whitespace-nowrap">
-                {currentIndex >= 0 ? currentIndex + 1 : '–'} / {projectFiles.length}
-              </span>
-              <button
-                onClick={() => nextFile && navigate(`/review/${nextFile.public_token}`)}
-                disabled={!nextFile}
-                title={nextFile ? `Next: ${nextFile.name}` : 'Last file'}
-                className="text-white text-sm w-7 h-7 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
-              >›</button>
-            </div>
+            <>
+              <span className="hidden md:inline text-gray-300">/</span>
+              <div className="hidden md:flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+                <button
+                  onClick={() => prevFile && navigate(`/review/${prevFile.public_token}`)}
+                  disabled={!prevFile}
+                  title={prevFile ? `Previous: ${prevFile.name}` : 'First file'}
+                  className="text-gray-600 hover:text-gray-900 w-8 h-8 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                ><ChevronLeft size={16} /></button>
+                <span className="text-[12px] px-2.5 h-8 flex items-center font-semibold text-gray-700 border-x border-gray-200 bg-gray-50 whitespace-nowrap">
+                  {currentIndex >= 0 ? currentIndex + 1 : '–'} of {projectFiles.length}
+                </span>
+                <button
+                  onClick={() => nextFile && navigate(`/review/${nextFile.public_token}`)}
+                  disabled={!nextFile}
+                  title={nextFile ? `Next: ${nextFile.name}` : 'Last file'}
+                  className="text-gray-600 hover:text-gray-900 w-8 h-8 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                ><ChevronRight size={16} /></button>
+              </div>
+            </>
           )}
-          <div className="text-sm text-white font-medium truncate">{file?.name}</div>
+          <div className="text-sm text-gray-800 font-medium truncate min-w-0" title={file?.name}>{file?.name}</div>
         </div>
 
+        {/* Right: round badge + due + record + notify + next + submit */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-[13px] md:text-sm text-gray-700 bg-gray-800 px-2 py-1 rounded-lg">
-            R{Math.min(currentRound, maxRounds)}/{maxRounds}
+          <span className="text-[11px] font-bold uppercase tracking-wide text-gray-600 bg-gray-100 border border-gray-200 px-2 py-1 rounded-md whitespace-nowrap">
+            Round {Math.min(currentRound, maxRounds)} / {maxRounds}
           </span>
 
           {project?.due_date && (() => {
             const days = differenceInDays(new Date(project.due_date), new Date())
-            if (days < 0) return <span className="text-[13px] bg-red-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 animate-pulse"><AlertTriangle size={9} /> Overdue</span>
-            if (days === 0) return <span className="text-[13px] bg-red-500 text-white px-2 py-1 rounded-lg animate-pulse">Due today!</span>
-            if (days <= 3) return <span className="text-[13px] bg-amber-500 text-white px-2 py-1 rounded-lg">{days}d left</span>
+            if (days < 0) return <span className="text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded-md flex items-center gap-1"><AlertTriangle size={10} /> Overdue</span>
+            if (days === 0) return <span className="text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded-md">Due today</span>
+            if (days <= 3) return <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 border border-gray-200 px-2 py-1 rounded-md">{days}d left</span>
             return null
           })()}
 
-          {/* Zoom controls — Fit returns to the computed auto-fit, 100%
-              resets to natural size, −/+ step in 25% increments. */}
-          <div className="hidden md:flex items-center gap-0.5 bg-gray-800 rounded-lg overflow-hidden" title="Zoom">
-            <button onClick={() => setZoom(z => Math.max(0.1, +(z - 0.25).toFixed(2)))}
-              className="text-white text-sm w-7 h-7 hover:bg-gray-700 flex items-center justify-center" title="Zoom out">−</button>
-            <button onClick={handleFitToScreen}
-              className="text-white text-[11px] px-2 h-7 hover:bg-gray-700 font-semibold uppercase tracking-wide" title="Fit to screen">Fit</button>
-            <button onClick={() => setZoom(1)}
-              className="text-white text-xs px-2 h-7 hover:bg-gray-700 min-w-[46px] font-semibold" title="Actual size">
-              {Math.round(zoom * 100)}%
-            </button>
-            <button onClick={() => setZoom(z => Math.min(3, +(z + 0.25).toFixed(2)))}
-              className="text-white text-sm w-7 h-7 hover:bg-gray-700 flex items-center justify-center" title="Zoom in">+</button>
-          </div>
-
-          {/* Notify Agency */}
-          <button onClick={async () => {
-            await supabase.functions.invoke('send-email', { body: { type: 'client_notify_agency', project_name: project?.name, client_name: authorName || 'Client', review_url: window.location.href } })
-            toast.success('Agency notified!')
-          }} className="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-            <Send size={11} /> Notify Agency
-          </button>
-
-          {/* Record button */}
           {recording ? (
-            <button onClick={stopRecording} className="bg-red-500 text-white text-sm font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 animate-pulse">
-              <StopCircle size={11} /> {formatRecTime(recordingTime)}
+            <button onClick={stopRecording} className="text-[13px] font-semibold text-red-700 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 animate-pulse">
+              <StopCircle size={12} /> {formatRecTime(recordingTime)}
             </button>
           ) : (
-            <button onClick={startRecording} className="text-sm text-gray-700 bg-gray-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1 hover:bg-gray-700 transition-colors">
-              <Video size={11} /> <span className="hidden md:inline">Record</span>
+            <button onClick={startRecording} className="text-[13px] font-medium text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+              <Video size={12} /> <span className="hidden lg:inline">Record</span>
             </button>
           )}
 
-          {/* When there are more files to review, lead with Next file.
-              When they're on the last file (or any file with pending
-              project-wide comments), show Submit Round. */}
+          <button onClick={async () => {
+            await supabase.functions.invoke('send-email', { body: { type: 'client_notify_agency', project_name: project?.name, client_name: authorName || 'Client', review_url: window.location.href } })
+            toast.success('Agency notified!')
+          }} className="text-[13px] font-medium text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+            <Send size={12} /> <span className="hidden lg:inline">Notify</span>
+          </button>
+
           {!roundsExhausted && !isMobile && nextFile && (
             <button onClick={() => navigate(`/review/${nextFile.public_token}`)}
               title={`Next: ${nextFile.name}`}
-              className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-              Next file ›
+              className="text-[13px] font-semibold text-gray-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap">
+              Next file <ChevronRight size={14} />
             </button>
           )}
           {!roundsExhausted && !isMobile && (
             <button onClick={() => setShowSubmitModal(true)} disabled={unsubmittedCount === 0}
+              style={{ background: unsubmittedCount > 0 ? BRAND : undefined }}
               title={unsubmittedCount > 0 ? `Submit ${unsubmittedCount} comments across ${fileCountWithUnsubmitted} file${fileCountWithUnsubmitted !== 1 ? 's' : ''}` : 'Add comments first'}
-              className="bg-green-500 hover:bg-green-600 disabled:opacity-40 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap">
-              <Send size={11} /> Submit round ({unsubmittedCount})
+              className={`text-[13px] font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                unsubmittedCount > 0
+                  ? 'text-white hover:brightness-110 shadow-sm'
+                  : 'text-gray-400 bg-gray-100 cursor-not-allowed'
+              }`}>
+              <Send size={12} /> Submit round ({unsubmittedCount})
             </button>
           )}
         </div>
       </div>
+        )
+      })()}
 
-      {/* Tool hint bar — hide on mobile */}
-      <div className="text-white px-5 py-2 items-center gap-3 text-sm flex-shrink-0 hidden md:flex" style={{ background: project?.brand_color || '#E6007E' }}>
-        <span className="font-medium">How to leave feedback:</span>
-        <span className="text-brand-100">1. Enter your name below &middot; 2. Click a tool and click on the design &middot; 3. Type your comment and hit Enter</span>
+      {/* ── Consolidated toolbar ──────────────────────────────────────
+          Tools + color + undo/clear + zoom + file-type-specific width
+          and height controls. One row, one place. Mobile collapses to
+          the floating tool palette (preserved below).                */}
+      {!roundsExhausted && (() => {
+        const BRAND = project?.brand_color || '#E6007E'
+        const TOOLS = [
+          { key: 'select', icon: MousePointer2, label: 'Select (V)' },
+          { key: 'pin',    icon: Pin,           label: 'Pin (C)' },
+          { key: 'arrow',  icon: ArrowUpRight,  label: 'Arrow (A)' },
+          { key: 'circle', icon: Circle,        label: 'Circle (O)' },
+          { key: 'rect',   icon: Square,        label: 'Box (R)' },
+        ]
+        return (
+      <div className="bg-white border-b border-gray-200 px-3 md:px-5 py-2 hidden md:flex items-center gap-2 flex-shrink-0 flex-wrap">
+        {/* Tool buttons */}
+        <div className="flex items-center gap-1">
+          {TOOLS.map(t => {
+            const Icon = t.icon
+            const active = tool === t.key
+            return (
+              <button key={t.key} title={t.label}
+                onClick={() => setTool(t.key)}
+                style={active ? { background: BRAND + '1a', color: BRAND, outline: `1.5px solid ${BRAND}40` } : {}}
+                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
+                  active ? '' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                }`}>
+                <Icon size={18} />
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="w-px h-6 bg-gray-200" />
+        <ColorPicker mode="inline" value={color} onChange={setColor} />
+        <div className="w-px h-6 bg-gray-200" />
+
+        {/* Undo / Clear */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={async () => {
+              const unsubmitted = annotations.filter(a => !a.round_number && !a.pending)
+              if (!unsubmitted.length) return
+              const last = unsubmitted[unsubmitted.length - 1]
+              const ok = await deleteAnnotation(last.id)
+              if (ok) {
+                setAnnotations(prev => prev.filter(a => a.id !== last.id))
+                closeBubble(); refreshProjectAnnotations(); await updateCommentCount()
+              }
+            }}
+            disabled={currentFileUnsubmitted === 0}
+            title="Undo last comment"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+            <Undo2 size={17} />
+          </button>
+          <button
+            onClick={async () => {
+              const unsubmitted = annotations.filter(a => !a.round_number && !a.pending)
+              if (!unsubmitted.length) return
+              if (!window.confirm(`Delete all ${unsubmitted.length} comment${unsubmitted.length !== 1 ? 's' : ''} on this file? (Submitted comments are kept.)`)) return
+              await Promise.all(unsubmitted.map(a => deleteAnnotation(a.id)))
+              setAnnotations(prev => prev.filter(a => a.round_number))
+              closeBubble(); refreshProjectAnnotations(); await updateCommentCount()
+            }}
+            disabled={currentFileUnsubmitted === 0}
+            title="Clear all comments on this file"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+            <Trash2 size={16} />
+          </button>
+        </div>
+
+        <div className="w-px h-6 bg-gray-200" />
+
+        {/* Zoom */}
+        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white" title="Zoom">
+          <button onClick={() => setZoom(z => Math.max(0.1, +(z - 0.25).toFixed(2)))}
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 w-8 h-8 flex items-center justify-center" title="Zoom out">−</button>
+          <button onClick={handleFitToScreen}
+            className="text-[11px] font-bold uppercase tracking-wide px-2.5 h-8 flex items-center text-gray-700 hover:bg-gray-50 border-x border-gray-200" title="Fit to screen">Fit</button>
+          <button onClick={() => setZoom(1)}
+            className="text-[12px] font-semibold px-2.5 h-8 flex items-center text-gray-700 hover:bg-gray-50 min-w-[46px] justify-center" title="Actual size">
+            {Math.round(zoom * 100)}%
+          </button>
+          <button onClick={() => setZoom(z => Math.min(3, +(z + 0.25).toFixed(2)))}
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 w-8 h-8 flex items-center justify-center border-l border-gray-200" title="Zoom in">+</button>
+        </div>
+
+        {/* PDF / HTML view-size controls — shown only when relevant */}
+        {isPdf && (
+          <>
+            <div className="w-px h-6 bg-gray-200" />
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Width</span>
+              {[375, 768, 900, 1200].map(w => {
+                const active = pdfWidth === w
+                return (
+                  <button key={w} onClick={() => setPdfWidth(w)}
+                    style={active ? { background: BRAND, color: '#fff', borderColor: BRAND } : {}}
+                    className={`px-2 h-8 rounded-md border text-[12px] font-semibold transition-colors ${active ? '' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                    {w}
+                  </button>
+                )
+              })}
+              <button onClick={() => { if (containerWidth) setPdfWidth(containerWidth) }}
+                title="Fit width to screen"
+                className="px-2 h-8 rounded-md border bg-white border-gray-200 text-gray-600 hover:bg-gray-50 text-[11px] font-bold uppercase tracking-wide">Fit</button>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide ml-1">Height</span>
+              <button onClick={() => setPdfHeight((h) => Math.max(500, h - 600))}
+                className="w-8 h-8 rounded-md border bg-white border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold">−</button>
+              <span className="text-[12px] font-semibold text-gray-700 px-1 tabular-nums">{pdfHeight}</span>
+              <button onClick={() => setPdfHeight((h) => h + 600)}
+                className="w-8 h-8 rounded-md border bg-white border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold">+</button>
+            </div>
+          </>
+        )}
+        {isHtmlFile && (
+          <>
+            <div className="w-px h-6 bg-gray-200" />
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Preview</span>
+              {[{ l: 'Mobile', w: 375 }, { l: 'Tablet', w: 768 }, { l: 'Desktop', w: 1280 }, { l: 'Wide', w: 1920 }].map(p => {
+                const active = htmlWidth === p.w
+                return (
+                  <button key={p.w} onClick={() => setHtmlWidth(p.w)}
+                    style={active ? { background: BRAND, color: '#fff', borderColor: BRAND } : {}}
+                    className={`px-2 h-8 rounded-md border text-[12px] font-semibold transition-colors ${active ? '' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                    {p.l}
+                  </button>
+                )
+              })}
+              <button onClick={() => { if (containerWidth) setHtmlWidth(containerWidth) }}
+                title="Fit width to screen"
+                className="px-2 h-8 rounded-md border bg-white border-gray-200 text-gray-600 hover:bg-gray-50 text-[11px] font-bold uppercase tracking-wide">Fit</button>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide ml-1">Height</span>
+              <button onClick={() => setHtmlHeight((h) => Math.max(600, h - 600))}
+                className="w-8 h-8 rounded-md border bg-white border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold">−</button>
+              <span className="text-[12px] font-semibold text-gray-700 px-1 tabular-nums">{htmlHeight}</span>
+              <button onClick={() => setHtmlHeight((h) => h + 600)}
+                className="w-8 h-8 rounded-md border bg-white border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold">+</button>
+            </div>
+          </>
+        )}
       </div>
-
-      {/* Annotation toolbar — same as internal review */}
-      {!roundsExhausted && (
-        <AnnotationToolbar
-          tool={tool}
-          setTool={setTool}
-          color={color || '#E6007E'}
-          setColor={setColor || (() => {})}
-          onUndo={() => {}}
-          onClearAll={() => {}}
-          annotationCount={annotations?.length || 0}
-          clientMode={true}
-        />
-      )}
+        )
+      })()}
 
       {roundsExhausted && (
-        <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: 'linear-gradient(135deg, #E6007E, #dc2626)' }}>
+        <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: project?.brand_color || '#E6007E' }}>
           <span>All {maxRounds} revision round{maxRounds !== 1 ? 's' : ''} complete</span>
-          <a href="https://www.hellokoto.com/contact" target="_blank" rel="noreferrer" className="bg-white text-brand-600 font-semibold text-sm px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Contact Us</a>
+          <a href="https://www.hellokoto.com/contact" target="_blank" rel="noreferrer" className="bg-white text-gray-900 font-semibold text-sm px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Contact Us</a>
           <a href="https://www.hellokoto.com/pricing" target="_blank" rel="noreferrer" className="bg-white/20 text-white font-medium text-sm px-4 py-1.5 rounded-lg hover:bg-white/30 transition-colors">View Pricing</a>
         </div>
       )}
 
       {/* Canvas + sidebar */}
       <div className="flex flex-1 overflow-hidden relative flex-col">
-        {/* Tall page controls — HTML and PDF only */}
-        {(file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')) && (
-          <div className="bg-gray-50 border-b border-gray-200 px-4 py-1.5 flex items-center gap-2 text-xs text-gray-600 flex-shrink-0 flex-wrap">
-            <span className="font-semibold text-gray-700">Preview:</span>
-            {[
-              { label: '📱 Mobile', width: 375 },
-              { label: '📱 Tablet', width: 768 },
-              { label: '🖥 Desktop', width: 1280 },
-              { label: '🖥 Wide', width: 1920 },
-            ].map((p) => (
-              <button
-                key={p.width}
-                onClick={() => setHtmlWidth(p.width)}
-                className={`px-2 py-0.5 rounded font-semibold transition-colors ${
-                  htmlWidth === p.width ? 'bg-brand-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                }`}>
-                {p.label}
-              </button>
-            ))}
-            <span className="ml-2">·</span>
-            <span className="text-gray-500">Height:</span>
-            <button onClick={() => setHtmlHeight((h) => Math.max(600, h - 600))} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">−600</button>
-            <span className="font-bold text-gray-700">{htmlHeight}px</span>
-            <button onClick={() => setHtmlHeight((h) => h + 600)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+600</button>
-            <button onClick={() => setHtmlHeight((h) => h + 1200)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+1200</button>
-            <button
-              onClick={() => { if (containerWidth) setHtmlWidth(containerWidth) }}
-              title="Fit to this screen"
-              className="ml-2 px-2 py-0.5 rounded font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-            >↔ Fit width</button>
-          </div>
-        )}
-        {file?.type === 'application/pdf' && (
-          <div className="bg-gray-50 border-b border-gray-200 px-4 py-1.5 flex items-center gap-2 text-xs text-gray-600 flex-shrink-0 flex-wrap">
-            <span className="font-semibold text-gray-700">Width:</span>
-            {[
-              { label: '📱 375', width: 375 },
-              { label: '📱 768', width: 768 },
-              { label: '🖥 900', width: 900 },
-              { label: '🖥 1200', width: 1200 },
-            ].map((p) => (
-              <button key={p.width} onClick={() => setPdfWidth(p.width)}
-                className={`px-2 py-0.5 rounded font-semibold transition-colors ${pdfWidth === p.width ? 'bg-brand-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                {p.label}
-              </button>
-            ))}
-            <button
-              onClick={() => { if (containerWidth) setPdfWidth(containerWidth) }}
-              title="Fit to this screen"
-              className="px-2 py-0.5 rounded font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-            >↔ Fit</button>
-            <span className="ml-2">·</span>
-            <span className="font-semibold text-gray-700">Height:</span>
-            <button onClick={() => setPdfHeight((h) => Math.max(500, h - 600))} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">−600</button>
-            <span className="font-bold text-gray-700">{pdfHeight}px</span>
-            <button onClick={() => setPdfHeight((h) => h + 600)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+600</button>
-            <button onClick={() => setPdfHeight((h) => h + 1200)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+1200</button>
-          </div>
-        )}
 
         <div className="flex flex-1 overflow-hidden relative">
         <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100"
@@ -1015,12 +1106,14 @@ export default function PublicReviewPage() {
       </div>
       </div>
 
-      {/* Sticky submit CTA bar — reflects project-wide pending count and
-          nudges to Next file if there's one left to review. */}
+      {/* Sticky submit CTA bar — Koto ink (black/gray) with brand pink
+          primary. Matches the rest of the product instead of the
+          Facebook-green gradient that used to live here. */}
       {unsubmittedCount > 0 && !roundsExhausted && (
-        <div className="bg-gradient-to-r from-green-600 to-green-500 text-white py-3 px-6 flex items-center justify-center gap-4 flex-shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] flex-wrap">
+        <div className="text-white py-3 px-6 flex items-center justify-center gap-4 flex-shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.12)] flex-wrap"
+          style={{ background: '#111111' }}>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: (project?.brand_color || '#E6007E') + '33' }}>
               <Send size={12} />
             </div>
             <span className="text-sm font-medium">
@@ -1031,12 +1124,13 @@ export default function PublicReviewPage() {
           <div className="flex items-center gap-2">
             {nextFile && (
               <button onClick={() => navigate(`/review/${nextFile.public_token}`)}
-                className="bg-white/20 hover:bg-white/30 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-colors">
+                className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-colors">
                 Next file ›
               </button>
             )}
             <button onClick={() => setShowSubmitModal(true)}
-              className="bg-white text-green-700 font-bold text-sm px-6 py-2 rounded-xl hover:bg-green-50 transition-colors shadow-lg">
+              style={{ background: project?.brand_color || '#E6007E' }}
+              className="text-white font-bold text-sm px-6 py-2 rounded-xl hover:brightness-110 transition-all shadow-lg">
               Submit round →
             </button>
           </div>

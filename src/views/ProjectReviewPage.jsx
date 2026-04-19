@@ -314,7 +314,7 @@ export default function ProjectReviewPage() {
                   <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111' }}>{file.name}</div>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                     {forFile?.pending > 0 && (
-                      <span style={{ color: '#f59e0b', fontWeight: 700, background: '#fef3c7', padding: '2px 8px', borderRadius: 999 }}>
+                      <span style={{ color: brandColor, fontWeight: 700, background: brandColor + '14', padding: '2px 8px', borderRadius: 999 }}>
                         {forFile.pending} pending
                       </span>
                     )}
@@ -342,16 +342,16 @@ export default function ProjectReviewPage() {
             workflow front and center. */}
         {files.length > 0 && summary.pending > 0 && (
           <div style={{
-            padding: '16px 20px', background: '#064e3b', color: '#fff',
+            padding: '16px 20px', background: '#111111', color: '#fff',
             borderRadius: 14, marginBottom: 12,
             display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
-            boxShadow: '0 6px 18px rgba(6,78,59,0.35)',
+            boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
           }}>
             <div style={{ flex: 1, minWidth: 220 }}>
               <div style={{ fontSize: 15, fontWeight: 800 }}>
                 {summary.pending} pending comment{summary.pending !== 1 ? 's' : ''} across {summary.pendingFileCount} file{summary.pendingFileCount !== 1 ? 's' : ''}
               </div>
-              <div style={{ fontSize: 13, color: '#a7f3d0', marginTop: 2 }}>
+              <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>
                 Keep reviewing, or submit them all as one round.
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function ProjectReviewPage() {
                 if (target?.public_token) navigate(`/review/${target.public_token}`)
               }}
               style={{
-                background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none',
+                background: 'rgba(255,255,255,0.12)', color: '#fff', border: 'none',
                 padding: '10px 16px', borderRadius: 10, fontSize: 14, fontWeight: 700,
                 cursor: 'pointer', whiteSpace: 'nowrap',
               }}
@@ -374,10 +374,10 @@ export default function ProjectReviewPage() {
                 if (target?.public_token) navigate(`/review/${target.public_token}?submit=1`)
               }}
               style={{
-                background: '#10b981', color: '#fff', border: 'none',
+                background: brandColor, color: '#fff', border: 'none',
                 padding: '10px 18px', borderRadius: 10, fontSize: 14, fontWeight: 800,
                 cursor: 'pointer', whiteSpace: 'nowrap',
-                boxShadow: '0 4px 12px rgba(16,185,129,0.4)',
+                boxShadow: `0 4px 12px ${brandColor}55`,
               }}
             >Submit round →</button>
           </div>
@@ -411,8 +411,8 @@ export default function ProjectReviewPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 20 }}>
               <Stat label="Files" value={summary.totalFiles} />
               <Stat label="Total comments" value={summary.totalComments} />
-              <Stat label="Open" value={summary.open} color="#f59e0b" icon={<AlertCircle size={14} />} />
-              <Stat label="Resolved" value={summary.resolved} color="#16a34a" icon={<CheckCircle2 size={14} />} />
+              <Stat label="Open" value={summary.open} color={brandColor} icon={<AlertCircle size={14} />} />
+              <Stat label="Resolved" value={summary.resolved} color="#00C2CB" icon={<CheckCircle2 size={14} />} />
             </div>
 
             {summary.totalComments === 0 ? (
@@ -433,7 +433,7 @@ export default function ProjectReviewPage() {
                     >
                       <FileIcon type={b.file.type} size={16} />
                       <div style={{ fontSize: 13.5, fontWeight: 600, color: '#111', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.file.name}</div>
-                      {b.open > 0 && <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 700 }}>{b.open} open</span>}
+                      {b.open > 0 && <span style={{ fontSize: 12, color: brandColor, fontWeight: 700 }}>{b.open} open</span>}
                       <span style={{ fontSize: 12, color: '#6b7280' }}>{b.total} total</span>
                       <ChevronRight size={14} style={{ color: '#9ca3af' }} />
                     </div>
@@ -444,7 +444,7 @@ export default function ProjectReviewPage() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>Most recent</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {summary.recent.map(a => (
-                    <div key={a.id} style={{ padding: '10px 14px', background: '#f9fafb', borderRadius: 10, borderLeft: `3px solid ${a.resolved ? '#16a34a' : '#f59e0b'}` }}>
+                    <div key={a.id} style={{ padding: '10px 14px', background: '#f9fafb', borderRadius: 10, borderLeft: `3px solid ${a.resolved ? '#00C2CB' : brandColor}` }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 4 }}>
                         <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111' }}>
                           {a.author || 'Anonymous'} <span style={{ color: '#9ca3af', fontWeight: 500 }}>· {a.fileName}</span>
