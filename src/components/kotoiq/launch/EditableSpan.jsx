@@ -54,6 +54,7 @@ export default function EditableSpan({
   onReject,
   sourceLabel,
   ariaLabel,
+  fieldPath,
   children,
 }) {
   // "Adjusting state on prop change" — React's recommended approach (no
@@ -147,6 +148,10 @@ export default function EditableSpan({
       }}
       aria-label={ariaLabel}
       aria-describedby={sourceLabel ? describedById : undefined}
+      // Plan 07-08: ClarificationsOverlay queries `[data-field-path]` to anchor
+      // HotspotDots over the matching EditableSpan. Falls back to ariaLabel if
+      // the parent didn't thread an explicit fieldPath through.
+      data-field-path={fieldPath || ariaLabel}
       style={spanStyle}
     >
       {children ?? value ?? <em style={{ color: '#9ca3af' }}>missing</em>}

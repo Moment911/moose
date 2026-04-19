@@ -50,10 +50,13 @@ export default function BriefingDoc({
         discrepancy={hasDisc}
         sourceLabel={label ?? top?.source_type ?? ''}
         ariaLabel={field.replace(/_/g, ' ')}
+        // Plan 07-08: thread the canonical field name down so
+        // ClarificationsOverlay can anchor HotspotDots accurately.
+        fieldPath={field}
         onSave={(nv) => onFieldSave?.(field, nv)}
         onReject={() => onFieldReject?.(field)}
       >
-        <span data-field-path={field}>{displayValue || fallback}</span>
+        {displayValue || fallback}
       </EditableSpan>
     )
   }

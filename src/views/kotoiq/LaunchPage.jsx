@@ -16,6 +16,7 @@ import DropZone from '../../components/kotoiq/launch/DropZone'
 import DiscrepancyCallout from '../../components/kotoiq/launch/DiscrepancyCallout'
 import MarginNote from '../../components/kotoiq/launch/MarginNote'
 import RejectFieldModal from '../../components/kotoiq/launch/RejectFieldModal'
+import ClarificationsOverlay from '../../components/kotoiq/launch/ClarificationsOverlay'
 
 // ── Global keyframes (UI-SPEC §8 motion contract) ──────────────────────────
 // Inlined here so the components in src/components/kotoiq/launch/* can rely
@@ -27,6 +28,8 @@ const KEYFRAMES = `
 @keyframes kotoCursorBlink { 0%,100% { opacity: 1 } 50% { opacity: 0.3 } }
 @keyframes kotoiqBotFadeIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: translateY(0) } }
 @keyframes spin { to { transform: rotate(360deg) } }
+/* Plan 07-08 — pulses the HotspotDot for HIGH-severity clarifications (UI-SPEC §5.11). */
+@keyframes kotoHotspotPulse { 0%,100% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.3); opacity: 0.6 } }
 @media (prefers-reduced-motion: reduce) {
   .koto-no-motion, .koto-no-motion * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
@@ -325,6 +328,40 @@ export default function LaunchPage() {
           onCancel={() => setRejectField(null)}
           onConfirm={confirmReject}
         />
+
+        {/* Plan 07-08: in-context hotspots + HIGH-severity escalation sheet.
+            Realtime-subscribed to kotoiq_clarifications for this client. */}
+        {clientId && profile && (
+          <ClarificationsOverlay
+            clientId={clientId}
+            agencyId={agencyId}
+            onAnswer={async (id, text) => {
+              await postProfile({
+                action: 'answer_clarification',
+                clarification_id: id,
+                answer_text: text,
+              })
+              refresh()
+            }}
+            onForward={async (id, channel) => {
+              await postProfile({
+                action: 'forward_to_client',
+                clarification_id: id,
+                channel,
+              })
+            }}
+            onSkip={async (id) => {
+              // v1: model "skip" as an empty answer with update_field=false so the
+              // row goes to status='answered' without polluting the profile field.
+              await postProfile({
+                action: 'answer_clarification',
+                clarification_id: id,
+                answer_text: '[skipped]',
+                update_field: false,
+              })
+            }}
+          />
+        )}
       </div>
     </div>
   )
