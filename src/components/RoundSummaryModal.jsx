@@ -135,7 +135,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
                 </p>
               )}
               {roundNumber >= maxRounds && (
-                <div className="mt-4 bg-amber-50 text-amber-800 text-sm px-4 py-3 rounded-xl">
+                <div className="mt-4 bg-brand-50 text-brand-800 text-sm px-4 py-3 rounded-xl">
                   All revision rounds complete. Contact Koto for additional revisions.
                 </div>
               )}
@@ -143,7 +143,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
           ) : !canSubmit ? (
             /* Max rounds reached */
             <div className="text-center py-8">
-              <AlertTriangle size={40} className="text-amber-500 mx-auto mb-4" />
+              <AlertTriangle size={40} className="text-brand-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Revision Rounds Complete</h3>
               <p className="text-sm text-gray-600">
                 All {maxRounds} revision round{maxRounds !== 1 ? 's' : ''} have been used.
