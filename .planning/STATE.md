@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 07-02-PLAN.md (TDD: 22/22 vitest cases green; 4 internal-source pullers + central config module)"
-last_updated: "2026-04-19T15:27:02.085Z"
+stopped_at: Completed 07-03-PLAN.md (5 Claude extractors + discrepancy detector + SSE narration; 17 new vitest cases — 39/39 project total green)
+last_updated: "2026-04-19T15:56:05.087Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 8
-  completed_plans: 2
-  percent: 25
+  completed_plans: 3
+  percent: 38
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 07 (client-profile-seeder-v1-internal-ingest-gap-finder) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -54,6 +54,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 *Updated after each plan completion*
 | Phase 07 P01 | 30min | 6 tasks | 10 files |
 | Phase 07 P02 | 35min | 2 tasks | 4 files |
+| Phase 07 P03 | 20min | 5 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 07]: Plan 2: Reused Plan 1's Record<string, any> jsonb-row idiom (with eslint-disable) instead of unknown narrowing — keeps profileIngestInternal consistent with kotoiqDb.ts (70+ same-style sites)
 - [Phase 07]: Plan 2: pain_point_emphasis appended from BOTH hot_lead_reasons AND notable_insights (two ProvenanceRecord entries, not merged) — preserves source attribution for the chat-widget 'where did this come from?' UX
 - [Phase 07]: Plan 2: Voice _call_analysis array values stored as ProvenanceRecord.value: string[] (not joined) so Plan 3 discrepancy catcher can do list-symmetric-diff per DISCREPANCY_TOLERANCE = 0.5
+- [Phase 07]: Plan 3: Year-shaped numeric discrepancy uses absolute window (tolerance × 25 years) instead of relative spread — literal formula gives 404-year window for founding_year, fails plan's stated test outcomes
+- [Phase 07]: Plan 3: ExtractedFieldRecord tuple shape ({field_name, record}) keeps ProvenanceRecord byte-identical to Plan 2 deterministic-puller output; seeder groups by field_name before merging
+- [Phase 07]: Plan 3: profileDiscrepancy.ts intentionally NOT server-only (pure function) so Plan 7 operator UI can run live discrepancy previews without HTTP roundtrip
 
 ### Pending Todos
 
@@ -93,8 +97,8 @@ yet. Research called out risks that are pre-mitigated in phase gates:
 
 ## Session Continuity
 
-Last session: 2026-04-19T15:27:02.081Z
-Stopped at: Completed 07-02-PLAN.md (TDD: 22/22 vitest cases green; 4 internal-source pullers + central config module)
+Last session: 2026-04-19T15:56:05.084Z
+Stopped at: Completed 07-03-PLAN.md (5 Claude extractors + discrepancy detector + SSE narration; 17 new vitest cases — 39/39 project total green)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
