@@ -12,6 +12,7 @@ import CampaignComposerTab from '../../components/kotoiq/CampaignComposerTab'
 import AttributionTab from '../../components/kotoiq/AttributionTab'
 import ContentDecayTab from '../../components/kotoiq/ContentDecayTab'
 import PipelineOrchestratorTab from '../../components/kotoiq/PipelineOrchestratorTab'
+import ClarificationsTab from '../../components/kotoiq/launch/ClarificationsTab'
 
 // ── Shell tabs ──────────────────────────────────────────────────────────────
 const SHELL_TABS = [
@@ -35,6 +36,12 @@ const TUNE_SUBS = [
   { key: 'decay',       label: 'Content Decay' },
 ]
 
+// ── Pipeline sub-tabs (Plan 07-08 — UI-SPEC §5.8b "Needs Clarity") ─────────
+const PIPELINE_SUBS = [
+  { key: 'orchestrator', label: 'Orchestrator' },
+  { key: 'clarity',      label: 'Needs Clarity' },
+]
+
 export default function KotoIQShellPage() {
   const { agencyId, user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -49,13 +56,41 @@ export default function KotoIQShellPage() {
     setSearchParams(next, { replace: true })
   }
 
-  // Sub-tab for publish / tune
-  const sub = searchParams.get('sub') || (shell === 'publish' ? 'builder' : shell === 'tune' ? 'attribution' : '')
+  // Sub-tab for publish / tune / pipeline
+  const sub =
+    searchParams.get('sub') ||
+    (shell === 'publish' ? 'builder'
+      : shell === 'tune' ? 'attribution'
+      : shell === 'pipeline' ? 'orchestrator'
+      : '')
   const setSub = (v) => {
     const next = new URLSearchParams(searchParams)
     next.set('sub', v)
     setSearchParams(next, { replace: true })
   }
+
+  // Plan 07-08 — badge count for the "Needs Clarity" sub-tab.
+  const [clarityCount, setClarityCount] = useState(0)
+  useEffect(() => {
+    if (shell !== 'pipeline' || !agencyId) return undefined
+    let cancelled = false
+    const load = async () => {
+      try {
+        const res = await fetch('/api/kotoiq/profile', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'list_clarifications', status: 'open' }),
+        })
+        const j = await res.json()
+        if (!cancelled) setClarityCount(Array.isArray(j.clarifications) ? j.clarifications.length : 0)
+      } catch {
+        // Non-blocking — badge stays at last-known value.
+      }
+    }
+    load()
+    const t = setInterval(load, 30000) // refresh every 30s while Pipeline shell is open
+    return () => { cancelled = true; clearInterval(t) }
+  }, [shell, agencyId])
 
   // Impersonation bar offset
   const [impersonating, setImpersonating] = useState(false)
@@ -191,10 +226,39 @@ export default function KotoIQShellPage() {
             </div>
           )}
 
-          {/* ── Pipeline Orchestrator ─────────────────────────────── */}
+          {/* ── Pipeline (Orchestrator + Needs Clarity) ──────────── */}
           {shell === 'pipeline' && (
-            <div style={{ padding: '40px' }}>
-              <PipelineOrchestratorTab clientId={clientId} agencyId={agencyId} />
+            <div>
+              {/* Sub-tabs */}
+              <div style={{ padding: '12px 40px 0', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 0 }}>
+                {PIPELINE_SUBS.map(s => {
+                  const active = sub === s.key
+                  const labelWithBadge = s.key === 'clarity' && clarityCount > 0
+                    ? `${s.label} (${clarityCount})`
+                    : s.label
+                  return (
+                    <button key={s.key} onClick={() => setSub(s.key)} style={{
+                      padding: '8px 18px', fontSize: 13, fontWeight: active ? 700 : 500,
+                      fontFamily: FH, color: active ? BLK : '#9ca3af',
+                      background: 'none', border: 'none',
+                      borderBottom: active ? `2px solid ${BLK}` : '2px solid transparent',
+                      cursor: 'pointer', transition: 'all .15s',
+                    }}>
+                      {labelWithBadge}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Sub content */}
+              {sub === 'orchestrator' && (
+                <div style={{ padding: '40px' }}>
+                  <PipelineOrchestratorTab clientId={searchParams.get('client')} agencyId={agencyId} />
+                </div>
+              )}
+              {sub === 'clarity' && (
+                <ClarificationsTab agencyId={agencyId} clientId={searchParams.get('client')} />
+              )}
             </div>
           )}
 
