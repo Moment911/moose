@@ -27,6 +27,10 @@
     {
       "path": "/api/cron/answering-digest",
       "schedule": "0 14 * * 1"
+    },
+    {
+      "path": "/api/cron/scout-persona",
+      "schedule": "0 3 * * *"
     }
   ],
   "functions": {
@@ -73,6 +77,9 @@
       "maxDuration": 300
     },
     "src/app/api/cron/industry-benchmarks/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/scout-persona/route.ts": {
       "maxDuration": 300
     },
     "src/app/api/kotoiq/route.ts": {
