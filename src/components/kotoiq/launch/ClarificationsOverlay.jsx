@@ -20,12 +20,14 @@ import ClarificationCard from './ClarificationCard'
  *
  * Props:
  *   clientId    — used as the realtime channel filter
- *   agencyId    — passed-through context (RLS handles isolation; we don't query
- *                 by agency_id from the client — the route + RLS already do)
+ *   agencyId?   — accepted for API symmetry; isolation is enforced by RLS +
+ *                 the /api/kotoiq/profile route's session-scoped agencyId.
+ *                 The client component never sends agency_id in any payload.
  *   onAnswer(id, text)   — wired by LaunchPage to /api/kotoiq/profile
  *   onForward(id, ch?)   — wired by LaunchPage to /api/kotoiq/profile
  *   onSkip(id)           — wired by LaunchPage to /api/kotoiq/profile
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function ClarificationsOverlay({ clientId, agencyId, onAnswer, onForward, onSkip }) {
   const [clarifications, setClarifications] = useState([])
   const [modalTarget, setModalTarget] = useState(null)   // 12s HIGH-severity sheet

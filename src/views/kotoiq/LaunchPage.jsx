@@ -17,6 +17,7 @@ import DiscrepancyCallout from '../../components/kotoiq/launch/DiscrepancyCallou
 import MarginNote from '../../components/kotoiq/launch/MarginNote'
 import RejectFieldModal from '../../components/kotoiq/launch/RejectFieldModal'
 import ClarificationsOverlay from '../../components/kotoiq/launch/ClarificationsOverlay'
+import AskOwnQuestion from '../../components/kotoiq/launch/AskOwnQuestion'
 import ConversationalBot from '../../components/kotoiq/ConversationalBot'
 
 // ── Global keyframes (UI-SPEC §8 motion contract) ──────────────────────────
@@ -282,6 +283,25 @@ export default function LaunchPage() {
                 onFieldReject={handleFieldReject}
                 onOpenDiscrepancy={setActiveCallout}
               />
+
+              {/* D-12 — operator-authored question composer. New rows land in
+                  the queue immediately via ClarificationsOverlay realtime
+                  + the 20s LaunchPage badge poll. */}
+              {clientId && (
+                <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 40px 12px' }}>
+                  <AskOwnQuestion
+                    onAdd={async ({ question, target_field_path, severity }) => {
+                      await postProfile({
+                        action: 'add_question',
+                        client_id: clientId,
+                        question,
+                        target_field_path,
+                        severity,
+                      })
+                    }}
+                  />
+                </div>
+              )}
 
               {/* D-10 margin notes — Plan 04 profileSeeder derives up to 4. */}
               {pendingMarginNotes.length > 0 && (

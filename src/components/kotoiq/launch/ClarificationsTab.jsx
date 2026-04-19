@@ -105,9 +105,10 @@ export default function ClarificationsTab({ agencyId, clientId }) {
   }
 
   const bulkForward = async () => {
+    // Sequential dispatch — Plan 5 enforces a per-client SMS rate limit.
+    // Parallelizing here would race that limit and produce 429s; sequential
+    // keeps the UX honest.
     for (const id of selected) {
-      // sequential to respect SMS rate limits surfaced by Plan 5
-      // eslint-disable-next-line no-await-in-loop
       await onForward(id)
     }
     setSelected(new Set())
