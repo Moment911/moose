@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-03-PLAN.md (5 Claude extractors + discrepancy detector + SSE narration; 17 new vitest cases — 39/39 project total green)
-last_updated: "2026-04-19T15:56:05.087Z"
+stopped_at: Completed 07-04-PLAN.md (Stage 0 composition + Sonnet completeness gate + Retell pull + entity-graph serializer + pipelineOrchestrator Stage 0 wire-in + SSE narration endpoint; 11 new vitest cases — 50/50 project total green)
+last_updated: "2026-04-19T16:30:26.795Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 8
-  completed_plans: 3
-  percent: 38
+  completed_plans: 4
+  percent: 50
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 07 (client-profile-seeder-v1-internal-ingest-gap-finder) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -55,6 +55,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 | Phase 07 P01 | 30min | 6 tasks | 10 files |
 | Phase 07 P02 | 35min | 2 tasks | 4 files |
 | Phase 07 P03 | 20min | 5 tasks | 9 files |
+| Phase 07 P04 | 21min | 6 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,10 @@ Recent decisions affecting current work:
 - [Phase 07]: Plan 3: Year-shaped numeric discrepancy uses absolute window (tolerance × 25 years) instead of relative spread — literal formula gives 404-year window for founding_year, fails plan's stated test outcomes
 - [Phase 07]: Plan 3: ExtractedFieldRecord tuple shape ({field_name, record}) keeps ProvenanceRecord byte-identical to Plan 2 deterministic-puller output; seeder groups by field_name before merging
 - [Phase 07]: Plan 3: profileDiscrepancy.ts intentionally NOT server-only (pure function) so Plan 7 operator UI can run live discrepancy previews without HTTP roundtrip
+- [Phase 07]: Plan 4: kotoiq_pipeline_runs schema mismatch — plan assumed columns (current_stage, current_step, started_at, updated_at) that don't exist; refactored to append events to steps jsonb column instead
+- [Phase 07]: Plan 4: Used getKotoIQDb.client (not .raw()) — KotoIQDb interface has no raw() method; relies on local sb() helper + explicit .eq('agency_id',...) since kotoiq_pipeline_runs is not in DIRECT_AGENCY_TABLES
+- [Phase 07]: Plan 4: D-10 margin notes derived rule-based (no extra LLM call) inside seedProfile — keeps Stage 0 cost flat; v2 may swap to Haiku one-shot if rule-based misses too many notable insights
+- [Phase 07]: Plan 4: Concurrency cap = 3 for both per-section discovery + per-call voice extraction — balances Anthropic rate limits against PROF-01 <10s seed target
 
 ### Pending Todos
 
@@ -94,11 +99,12 @@ yet. Research called out risks that are pre-mitigated in phase gates:
 - Cross-agency data leak → Phase 1 foundation work (FND-01..05)
 - Vercel function timeouts on bulk publish → Phase 4 Workflow orchestration (ORCH-01..05)
 - kotoiq_pipeline_runs realtime publication ADD deferred — table doesn't exist on remote yet (in 20260419_kotoiq_automation.sql backlog); blocks D-23 live ribbon work in 07-04..07-08
+- kotoiq_pipeline_runs writes will fail silently against current live DB until 7-migration prod backlog is applied — wrapped in try/catch + console.error; pipeline continues working but D-23 ribbon won't reflect durable state until backlog migration lands
 
 ## Session Continuity
 
-Last session: 2026-04-19T15:56:05.084Z
-Stopped at: Completed 07-03-PLAN.md (5 Claude extractors + discrepancy detector + SSE narration; 17 new vitest cases — 39/39 project total green)
+Last session: 2026-04-19T16:29:15.393Z
+Stopped at: Completed 07-04-PLAN.md (Stage 0 composition + Sonnet completeness gate + Retell pull + entity-graph serializer + pipelineOrchestrator Stage 0 wire-in + SSE narration endpoint; 11 new vitest cases — 50/50 project total green)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)

@@ -124,7 +124,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   - [x] 07-01-PLAN.md — Data layer: migration + kotoiqDb helpers + types + Vitest bootstrap + DST token (PROF-03, PROF-04)
   - [x] 07-02-PLAN.md — Internal source pullers + profileConfig single source of truth (PROF-01, PROF-04)
   - [x] 07-03-PLAN.md — Claude extractors (Sonnet tool-use, Haiku voice/discovery) + discrepancy detector + narration helper (PROF-02, PROF-04)
-  - [ ] 07-04-PLAN.md — Seeder composition + launch gate + graph serializer + Stage 0 wire-in + durable pipeline_runs writes + stream_seed SSE endpoint (PROF-01, PROF-02, PROF-04, PROF-06)
+  - [x] 07-04-PLAN.md — Seeder composition + launch gate + graph serializer + Stage 0 wire-in + durable pipeline_runs writes + stream_seed SSE endpoint (PROF-01, PROF-02, PROF-04, PROF-06)
   - [ ] 07-05-PLAN.md — Clarification generator + severity/channel classifiers + SMS/email/portal forwarders (PROF-04, PROF-05)
   - [ ] 07-06-PLAN.md — /api/kotoiq/profile 14-action JSON dispatcher (PROF-01..PROF-06)
   - [ ] 07-07-PLAN.md — Launch Page UI: ingest, briefing, halos, gate, ribbon, drop zone, auto-save, reject modal (PROF-01, PROF-02, PROF-05)
