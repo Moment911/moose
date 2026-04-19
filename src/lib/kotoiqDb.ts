@@ -40,6 +40,8 @@ const DIRECT_AGENCY_TABLES = new Set([
   'kotoiq_builder_sites',
   'kotoiq_templates',
   'kotoiq_campaigns',
+  'kotoiq_client_profile',      // Phase 7 — D-01..D-05
+  'kotoiq_clarifications',      // Phase 7 — D-16
 ])
 
 /** Tables where agency_id is transitive (through a parent FK) */
@@ -101,6 +103,54 @@ export interface KotoIQDb {
   builderSites: {
     get: (siteId: string) => Promise<any>
     upsert: (data: Record<string, any>) => Promise<any>
+  }
+
+  // ── Phase 7 — Client Profile Seeder ────────────────────────────────────────
+  // See src/lib/kotoiq/profileTypes.ts for the row shapes these helpers
+  // surface.  All seven kotoiq_client_profile.* methods + seven
+  // kotoiq_clarifications.* methods route through scopedFrom / scopedInsert
+  // so agency_id is always injected — never use sb.from('kotoiq_client_*')
+  // directly (caught at lint time by kotoiq/no-unscoped-kotoiq).
+
+  clientProfile: {
+    get: (clientId: string) => Promise<any>
+    upsert: (data: Record<string, any>) => Promise<any>
+    updateField: (
+      profileId: string,
+      fieldName: string,
+      newRecord: Record<string, any>,
+    ) => Promise<any>
+    addField: (
+      profileId: string,
+      fieldName: string,
+      value: any,
+      sourceMeta: Record<string, any>,
+    ) => Promise<any>
+    deleteField: (profileId: string, fieldName: string) => Promise<any>
+    list: (filters?: { client_id?: string; launched?: boolean }) => Promise<any>
+    markLaunched: (profileId: string, runId: string) => Promise<any>
+  }
+
+  clarifications: {
+    list: (filters?: {
+      client_id?: string
+      status?: string
+      severity?: string
+      limit?: number
+    }) => Promise<any>
+    get: (id: string) => Promise<any>
+    create: (data: Record<string, any>) => Promise<any>
+    update: (id: string, patch: Record<string, any>) => Promise<any>
+    markAnswered: (
+      id: string,
+      answerText: string,
+      answeredBy: string,
+    ) => Promise<any>
+    markForwarded: (
+      id: string,
+      channel: 'sms' | 'email' | 'portal',
+    ) => Promise<any>
+    markSkipped: (id: string) => Promise<any>
   }
 }
 
@@ -249,6 +299,237 @@ export function getKotoIQDb(agencyId: string): KotoIQDb {
     },
   }
 
+  // ── Phase 7 — Client Profile Seeder helpers ──────────────────────────────
+  // Hot columns kept in sync with the migration + CANONICAL_FIELD_NAMES first
+  // 11 entries (src/lib/kotoiq/profileTypes.ts).  When fieldName is a hot
+  // column, updateField / addField / deleteField also update the indexed
+  // text column on the row so the launch-page list query stays fast.
+  const PROFILE_HOT_COLUMNS = new Set([
+    'business_name',
+    'website',
+    'primary_service',
+    'target_customer',
+    'service_area',
+    'phone',
+    'founding_year',
+    'unique_selling_prop',
+    'industry',
+    'city',
+    'state',
+  ])
+
+  // Sort ProvenanceRecord[] so that operator_edit always wins ties, then
+  // by descending numeric confidence (higher wins).  Used inside the helpers
+  // to recompute the winning value after every mutation.
+  function sortProvenanceRecords(arr: any[]): any[] {
+    return [...arr].sort((a, b) => {
+      const aOp = a?.source_type === 'operator_edit'
+      const bOp = b?.source_type === 'operator_edit'
+      if (aOp && !bOp) return -1
+      if (bOp && !aOp) return 1
+      return (b?.confidence ?? 0) - (a?.confidence ?? 0)
+    })
+  }
+
+  const clientProfile = {
+    async get(clientId: string) {
+      return scopedFrom('kotoiq_client_profile')
+        .select('*')
+        .eq('client_id', clientId)
+        .maybeSingle()
+    },
+    async upsert(data: Record<string, any>) {
+      // data MUST include client_id; agency_id is injected here.
+      return sb.from('kotoiq_client_profile')
+        .upsert(
+          {
+            ...data,
+            agency_id: agencyId,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'agency_id,client_id' },
+        )
+        .select()
+        .single()
+    },
+    async updateField(
+      profileId: string,
+      fieldName: string,
+      newRecord: Record<string, any>,
+    ) {
+      const { data: current, error: readErr } = await scopedFrom('kotoiq_client_profile')
+        .select('id,fields')
+        .eq('id', profileId)
+        .single()
+      if (readErr || !current) {
+        return { data: null, error: readErr || new Error('profile not found') }
+      }
+      const fields = ((current as any).fields || {}) as Record<string, any[]>
+      const arr = Array.isArray(fields[fieldName]) ? [...fields[fieldName]] : []
+      arr.push(newRecord)
+      fields[fieldName] = sortProvenanceRecords(arr)
+
+      const patch: Record<string, any> = {
+        fields,
+        last_edited_at: new Date().toISOString(),
+        completeness_score: null,        // re-score on next pipeline tick
+      }
+      if (PROFILE_HOT_COLUMNS.has(fieldName)) {
+        patch[fieldName] = fields[fieldName][0]?.value ?? null
+      }
+      return scopedFrom('kotoiq_client_profile')
+        .update(patch)
+        .eq('id', profileId)
+        .select()
+        .single()
+    },
+    async addField(
+      profileId: string,
+      fieldName: string,
+      value: any,
+      sourceMeta: Record<string, any>,
+    ) {
+      // D-05 — operator-added field. Confidence pinned to 1.0,
+      // source_type = 'operator_edit'. Never appends to an existing array;
+      // operator-added means "this is the truth, replace what was there".
+      const { data: current, error: readErr } = await scopedFrom('kotoiq_client_profile')
+        .select('id,fields')
+        .eq('id', profileId)
+        .single()
+      if (readErr || !current) {
+        return { data: null, error: readErr || new Error('profile not found') }
+      }
+      const fields = ((current as any).fields || {}) as Record<string, any[]>
+      fields[fieldName] = [
+        {
+          value,
+          source_type: 'operator_edit',
+          confidence: 1.0,
+          captured_at: new Date().toISOString(),
+          ...sourceMeta,
+        },
+      ]
+      const patch: Record<string, any> = {
+        fields,
+        last_edited_at: new Date().toISOString(),
+        completeness_score: null,
+      }
+      if (PROFILE_HOT_COLUMNS.has(fieldName)) {
+        patch[fieldName] = value
+      }
+      return scopedFrom('kotoiq_client_profile')
+        .update(patch)
+        .eq('id', profileId)
+        .select()
+        .single()
+    },
+    async deleteField(profileId: string, fieldName: string) {
+      const { data: current, error: readErr } = await scopedFrom('kotoiq_client_profile')
+        .select('id,fields')
+        .eq('id', profileId)
+        .single()
+      if (readErr || !current) {
+        return { data: null, error: readErr || new Error('profile not found') }
+      }
+      const fields = ((current as any).fields || {}) as Record<string, any[]>
+      delete fields[fieldName]
+      const patch: Record<string, any> = {
+        fields,
+        last_edited_at: new Date().toISOString(),
+        completeness_score: null,
+      }
+      if (PROFILE_HOT_COLUMNS.has(fieldName)) {
+        patch[fieldName] = null
+      }
+      return scopedFrom('kotoiq_client_profile')
+        .update(patch)
+        .eq('id', profileId)
+        .select()
+        .single()
+    },
+    async list(filters?: { client_id?: string; launched?: boolean }) {
+      let q = scopedFrom('kotoiq_client_profile').select('*')
+      if (filters?.client_id) q = q.eq('client_id', filters.client_id)
+      if (filters?.launched === true) q = q.not('launched_at', 'is', null)
+      if (filters?.launched === false) q = q.is('launched_at', null)
+      return q.order('updated_at', { ascending: false })
+    },
+    async markLaunched(profileId: string, runId: string) {
+      return scopedFrom('kotoiq_client_profile')
+        .update({
+          launched_at: new Date().toISOString(),
+          last_pipeline_run_id: runId,
+        })
+        .eq('id', profileId)
+        .select()
+        .single()
+    },
+  }
+
+  const clarifications = {
+    async list(filters?: {
+      client_id?: string
+      status?: string
+      severity?: string
+      limit?: number
+    }) {
+      let q = scopedFrom('kotoiq_clarifications').select('*')
+      if (filters?.client_id) q = q.eq('client_id', filters.client_id)
+      if (filters?.status) q = q.eq('status', filters.status)
+      if (filters?.severity) q = q.eq('severity', filters.severity)
+      // High-severity first, then oldest first within a severity bucket so
+      // the dashboard surfaces the longest-pending blocker at the top.
+      q = q.order('severity', { ascending: false }).order('created_at', { ascending: true })
+      if (filters?.limit) q = q.limit(filters.limit)
+      return q
+    },
+    async get(id: string) {
+      return scopedFrom('kotoiq_clarifications').select('*').eq('id', id).single()
+    },
+    async create(data: Record<string, any>) {
+      return scopedInsert('kotoiq_clarifications', data)
+    },
+    async update(id: string, patch: Record<string, any>) {
+      return scopedFrom('kotoiq_clarifications')
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single()
+    },
+    async markAnswered(id: string, answerText: string, answeredBy: string) {
+      return scopedFrom('kotoiq_clarifications')
+        .update({
+          status: 'answered',
+          answer_text: answerText,
+          answered_by: answeredBy,
+          answered_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single()
+    },
+    async markForwarded(id: string, channel: 'sms' | 'email' | 'portal') {
+      return scopedFrom('kotoiq_clarifications')
+        .update({
+          status: 'asked_client',
+          asked_channel: channel,
+          asked_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single()
+    },
+    async markSkipped(id: string) {
+      return scopedFrom('kotoiq_clarifications')
+        .update({ status: 'skipped', updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single()
+    },
+  }
+
   return {
     agencyId,
     client: sb,
@@ -258,5 +539,7 @@ export function getKotoIQDb(agencyId: string): KotoIQDb {
     campaigns,
     schemaVersions,
     builderSites,
+    clientProfile,
+    clarifications,
   }
 }
