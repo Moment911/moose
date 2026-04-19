@@ -631,18 +631,22 @@ export default function PublicReviewPage() {
         const BRAND = project?.brand_color || '#E6007E'
         return (
       <div className="bg-white border-b border-gray-200 px-3 md:px-5 py-2.5 flex items-center gap-3 flex-shrink-0">
-        {/* Brand + project label */}
+        {/* Brand + project label. Default projects show the real Koto
+            wordmark (/koto_logo.svg) instead of a generic hamburger SVG —
+            clients should always be able to tell the surface is Koto. */}
         <div className="flex items-center gap-2.5 flex-shrink-0">
           {project?.brand_logo ? (
-            <img src={project.brand_logo} alt="" className="h-7 object-contain max-w-[120px]" />
+            <img src={project.brand_logo} alt={project.brand_name || ''} className="h-7 object-contain max-w-[140px]" />
           ) : (
-            <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: BRAND }}>
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
-            </div>
+            <a href="https://hellokoto.com" target="_blank" rel="noreferrer" title="Koto" className="flex items-center">
+              <img src="/koto_logo.svg" alt="Koto" className="h-6 block" />
+            </a>
           )}
           <div className="hidden md:flex flex-col leading-none">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em]">{project?.brand_name || 'Koto'}</span>
-            <span className="text-sm font-semibold text-gray-900 mt-0.5 truncate max-w-[200px]" title={project?.name}>{project?.name}</span>
+            {project?.brand_logo && project?.brand_name && project.brand_name !== 'Koto' ? (
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em]">Proof</span>
+            ) : null}
+            <span className={`text-sm font-semibold text-gray-900 truncate max-w-[200px] ${project?.brand_logo && project?.brand_name && project.brand_name !== 'Koto' ? 'mt-0.5' : ''}`} title={project?.name}>{project?.name}</span>
           </div>
         </div>
 

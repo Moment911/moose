@@ -241,20 +241,28 @@ export default function ProjectReviewPage() {
           [brand mark] [KOTO / project name] ··· [reviewing as …] */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 24px' }}>
         <div style={{ maxWidth: 980, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             {project?.brand_logo ? (
-              <img src={project.brand_logo} alt={brandName} style={{ height: 32, maxWidth: 120, objectFit: 'contain' }} />
+              // White-label: show the agency's logo
+              <img src={project.brand_logo} alt={brandName} style={{ height: 32, maxWidth: 140, objectFit: 'contain' }} />
             ) : (
-              <div style={{
-                width: 32, height: 32, borderRadius: 8, background: brandColor,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
-              </div>
+              // Default: real Koto wordmark from /public/koto_logo.svg.
+              // The old placeholder was a 3-line hamburger SVG that didn't
+              // say "Koto" at all — caller couldn't tell the page was Koto.
+              <a href="https://hellokoto.com" target="_blank" rel="noreferrer" title="Koto">
+                <img src="/koto_logo.svg" alt="Koto" style={{ height: 28, display: 'block' }} />
+              </a>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-              <span style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1.2 }}>{brandName}</span>
-              <span style={{ fontSize: 17, fontWeight: 800, color: '#111', marginTop: 4 }}>{project?.name}</span>
+            {/* Project name pill — separated from the brand mark with a
+                divider so the two identities never blur. When white-labeled
+                we still show "Koto" as an eyebrow so the client knows the
+                surface they're on. */}
+            <div style={{ width: 1, height: 28, background: '#e5e7eb' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1, minWidth: 0 }}>
+              {project?.brand_logo && brandName !== 'Koto' && (
+                <span style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1.2 }}>Proof</span>
+              )}
+              <span style={{ fontSize: 17, fontWeight: 800, color: '#111', marginTop: project?.brand_logo && brandName !== 'Koto' ? 4 : 0 }} title={project?.name}>{project?.name}</span>
             </div>
           </div>
           {clientLogo && (
