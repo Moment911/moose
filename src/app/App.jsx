@@ -119,6 +119,8 @@ import ReviewCampaignsPage from '../views/ReviewCampaignsPage'
 import OnboardingDashboardPage from '../views/OnboardingDashboardPage'
 import ClientProfilePage from '../views/ClientProfilePage'
 import ScoutPipelinePage from '../views/scout/ScoutPipelinePage'
+import ScoutDashboardPage from '../views/scout/ScoutDashboardPage'
+import ScoutOpportunityDetailPage from '../views/scout/ScoutOpportunityDetailPage'
 import MarketplacePage from '../views/MarketplacePage'
 import PageBuilderPage from '../views/PageBuilderPage'
 import WordPressControlPage from '../views/WordPressControlPage'
@@ -460,6 +462,8 @@ function AppRoutes() {
           <Route path="/phones" element={<PhoneNumbersPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/scout" element={<ScoutPage />} />
+          <Route path="/scout/dashboard" element={<ScoutDashboardPage />} />
+          <Route path="/scout/opportunities/:id" element={<ScoutOpportunityDetailPage />} />
           <Route path="/scout/leads" element={<ScoutLeadsPage />} />
           <Route path="/scout/saved" element={<ScoutSavedPage />} />
           <Route path="/scout/company/:id" element={<CompanyProfilePage />} />
