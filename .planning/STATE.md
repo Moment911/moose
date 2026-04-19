@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-04-PLAN.md (Stage 0 composition + Sonnet completeness gate + Retell pull + entity-graph serializer + pipelineOrchestrator Stage 0 wire-in + SSE narration endpoint; 11 new vitest cases — 50/50 project total green)
-last_updated: "2026-04-19T16:30:26.795Z"
+stopped_at: "Completed 07-05-PLAN.md (clarification queue engine: severity classifier + 4-channel router + SMS/email/portal forwarders + Alex-voice email template; 9 new vitest cases — 59/59 project total green)"
+last_updated: "2026-04-19T16:50:14.500Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 8
-  completed_plans: 4
-  percent: 50
+  completed_plans: 5
+  percent: 63
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 07 (client-profile-seeder-v1-internal-ingest-gap-finder) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -56,6 +56,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 | Phase 07 P02 | 35min | 2 tasks | 4 files |
 | Phase 07 P03 | 20min | 5 tasks | 9 files |
 | Phase 07 P04 | 21min | 6 tasks | 9 files |
+| Phase 07 P05 | 8min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,10 @@ Recent decisions affecting current work:
 - [Phase 07]: Plan 4: Used getKotoIQDb.client (not .raw()) — KotoIQDb interface has no raw() method; relies on local sb() helper + explicit .eq('agency_id',...) since kotoiq_pipeline_runs is not in DIRECT_AGENCY_TABLES
 - [Phase 07]: Plan 4: D-10 margin notes derived rule-based (no extra LLM call) inside seedProfile — keeps Stage 0 cost flat; v2 may swap to Haiku one-shot if rule-based misses too many notable insights
 - [Phase 07]: Plan 4: Concurrency cap = 3 for both per-section discovery + per-call voice extraction — balances Anthropic rate limits against PROF-01 <10s seed target
+- [Phase 07]: Plan 5: Used getKotoIQDb.client + .from() instead of .raw() — KotoIQDb interface has no raw() method (mirrors Plan 4 deviation)
+- [Phase 07]: Plan 5: createNotification called with positional signature (sb, agencyId, type, title, body, link, icon, metadata) — actual helper is positional, NOT object-args as plan assumed
+- [Phase 07]: Plan 5: buildQuestionFromGap is rule-based via 20-template table (no extra Haiku call) — keeps per-clarification cost bounded; v2 may swap to Haiku phrasing
+- [Phase 07]: Plan 5: All forwarders return {ok, error?} and never throw (D-19 non-blocking) — pipeline never blocks on dispatch failure
 
 ### Pending Todos
 
@@ -103,8 +108,8 @@ yet. Research called out risks that are pre-mitigated in phase gates:
 
 ## Session Continuity
 
-Last session: 2026-04-19T16:29:15.393Z
-Stopped at: Completed 07-04-PLAN.md (Stage 0 composition + Sonnet completeness gate + Retell pull + entity-graph serializer + pipelineOrchestrator Stage 0 wire-in + SSE narration endpoint; 11 new vitest cases — 50/50 project total green)
+Last session: 2026-04-19T16:50:14.496Z
+Stopped at: Completed 07-05-PLAN.md (clarification queue engine: severity classifier + 4-channel router + SMS/email/portal forwarders + Alex-voice email template; 9 new vitest cases — 59/59 project total green)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
