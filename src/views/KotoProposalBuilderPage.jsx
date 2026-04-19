@@ -21,6 +21,7 @@ import { useAuth } from '../hooks/useAuth'
 import Sidebar from '../components/Sidebar'
 import { ArrowLeft, Sparkles, Download, Copy, Check, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { pick } from '../lib/kotoClientPick'
 
 const TEAL = '#00C2CB'
 const PINK = '#E6007E'
@@ -38,27 +39,9 @@ const SERVICE_OPTIONS = [
   'Conversion Optimization',
 ]
 
-// ── Field resolver ────────────────────────────────────────────
-// Client data lives in two places: dedicated columns (primary_service,
-// target_customer, marketing_budget…) set by the FIELD_MAP, and the
-// onboarding_answers jsonb spillover from the web form which uses
-// different names (products_services, ideal_customer_desc,
-// budget_for_agency…). Always pass multiple aliases.
-function pick(client, ...keys) {
-  if (!client) return ''
-  const answers = client.onboarding_answers || client.onboarding_data || {}
-  for (const k of keys) {
-    const direct = client[k]
-    if (direct !== null && direct !== undefined && String(direct).trim() !== '') {
-      return Array.isArray(direct) ? direct.filter(Boolean).join(', ') : String(direct)
-    }
-    const jsonb = answers[k]
-    if (jsonb !== null && jsonb !== undefined && String(jsonb).trim() !== '') {
-      return Array.isArray(jsonb) ? jsonb.filter(Boolean).join(', ') : String(jsonb)
-    }
-  }
-  return ''
-}
+// ── Field resolver: pick() lives in src/lib/kotoClientPick.ts ─────────
+// Imported above. Resolves client[key] / onboarding_answers[key] /
+// onboarding_data[key] in that priority order; arrays joined with ', '.
 
 export default function KotoProposalBuilderPage() {
   const { agencyId } = useAuth()
