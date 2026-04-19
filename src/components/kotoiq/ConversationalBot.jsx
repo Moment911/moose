@@ -7,6 +7,8 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { MessageCircle, X, Minimize2, Send, Mic, Brain, Sparkles, ChevronRight, Loader, History, Plus, CheckCircle2, AlertCircle, Paperclip, Search, UserPlus } from 'lucide-react'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import { supabase } from '../../lib/supabase'
+// Plan 07-08: shared clarification card primitive (variant='chat' here).
+import ClarificationCard from './launch/ClarificationCard'
 
 const INTENT_PROGRESS_STEPS = {
   run_on_page_audit: ['Fetching page HTML', 'Analyzing headings', 'Checking meta tags', 'Scoring on-page signals', 'Finalizing report'],
@@ -62,7 +64,23 @@ function resolvePath(obj, path) {
   return path.split('.').reduce((a, k) => (a == null ? a : a[k]), obj)
 }
 
-export default function ConversationalBot({ clientId, clientName, agencyId, currentTab, onSwitchTab, onSwitchClient, clients, onRequestNewClient }) {
+export default function ConversationalBot({
+  clientId,
+  clientName,
+  agencyId,
+  currentTab,
+  onSwitchTab,
+  onSwitchClient,
+  clients,
+  onRequestNewClient,
+  // ── Plan 07-08 extension props (all optional, backward-compatible) ─────
+  mode = 'assistant',                   // 'assistant' | 'clarifications'
+  pendingClarifications = 0,            // number — drives the orb badge
+  highSeverityPending = false,          // boolean — drives the orb pulse
+  onAnswerClarification,                // async (id, text) => void
+  onForwardClarification,               // async (id, channel?) => void
+  onSkipClarification,                  // async (id) => void
+}) {
   const [open, setOpen] = useState(false)
   const [hasEverOpened, setHasEverOpened] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
@@ -79,6 +97,9 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
   // so that once the client switch flushes through React we can resume the original request
   // without asking the LLM again. Shape: { intent, fields, clientId, fromMsgIdx }
   const [pendingResumption, setPendingResumption] = useState(null)
+  // Plan 07-08 — clarifications-mode local state
+  const [clarifList, setClarifList] = useState([])
+  const [clarifLoading, setClarifLoading] = useState(false)
   const scrollRef = useRef(null)
   const textareaRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -498,6 +519,50 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
   const openPanel = () => { setOpen(true); setHasEverOpened(true) }
   const collapsePanel = () => { setOpen(false); setHasEverOpened(true) }
 
+  // ── Plan 07-08 — clarifications fetch + actions ────────────────────────
+  const loadClarifications = useCallback(async () => {
+    if (mode !== 'clarifications' || !clientId) return
+    setClarifLoading(true)
+    try {
+      const res = await fetch('/api/kotoiq/profile', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'list_clarifications', client_id: clientId, status: 'open' }),
+      })
+      const j = await res.json()
+      setClarifList(Array.isArray(j.clarifications) ? j.clarifications : [])
+    } catch {
+      setClarifList([])
+    } finally {
+      setClarifLoading(false)
+    }
+  }, [mode, clientId])
+
+  // Reload when the user opens the panel in clarifications mode.
+  useEffect(() => {
+    if (open && mode === 'clarifications') loadClarifications()
+  }, [open, mode, loadClarifications])
+
+  const handleClarifAnswer = useCallback(async (id, text) => {
+    if (onAnswerClarification) await onAnswerClarification(id, text)
+    loadClarifications()
+  }, [onAnswerClarification, loadClarifications])
+  const handleClarifForward = useCallback(async (id, channel) => {
+    if (onForwardClarification) await onForwardClarification(id, channel)
+    loadClarifications()
+  }, [onForwardClarification, loadClarifications])
+  const handleClarifSkip = useCallback(async (id) => {
+    if (onSkipClarification) await onSkipClarification(id)
+    loadClarifications()
+  }, [onSkipClarification, loadClarifications])
+
+  // Plan 07-08 — orb tooltip + badge label
+  const orbTitle = mode === 'clarifications' ? 'Clarifications' : 'KotoIQ Assistant'
+  const showBadge = pendingClarifications > 0
+  const badgeText = pendingClarifications > 9 ? '9+' : String(pendingClarifications)
+  // Pink-shadow pulse 3 cycles when a HIGH-severity clarification is pending (UI-SPEC §5.9)
+  const pinkPulse = highSeverityPending ? 'kotoOrbPinkPulse 1.6s ease-in-out 3' : null
+
   // ── Render ──────────────────────────────────────────────────────────────
   if (!open) {
     // Before user has ever opened → show big circular launcher (bottom-right)
@@ -505,18 +570,36 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
       return (
         <button
           onClick={openPanel}
-          title="KotoIQ Assistant"
+          title={orbTitle}
+          aria-label={orbTitle}
           style={{
             position: 'fixed', bottom: 24, right: 24, width: 56, height: 56, borderRadius: '50%',
             background: T, color: '#fff', border: 'none', cursor: 'pointer',
             boxShadow: '0 6px 20px rgba(0,194,203,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 9999, transition: 'transform .15s', animation: hasNewSuggestion ? 'kotoiqBotPulse 1.6s infinite' : 'none',
+            zIndex: 9999, transition: 'transform .15s',
+            animation: pinkPulse || (hasNewSuggestion ? 'kotoiqBotPulse 1.6s infinite' : 'none'),
           }}
           onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
         >
           <MessageCircle size={26} />
-          <style>{`@keyframes kotoiqBotPulse { 0%,100% { box-shadow: 0 6px 20px rgba(0,194,203,0.45); } 50% { box-shadow: 0 6px 30px rgba(0,194,203,0.85); } }`}</style>
+          {showBadge ? (
+            <span
+              aria-label={`${pendingClarifications} pending clarification${pendingClarifications === 1 ? '' : 's'}`}
+              style={{
+                position: 'absolute', top: -2, right: -2,
+                width: 18, height: 18, borderRadius: 9,
+                background: R, color: '#fff',
+                fontFamily: FH, fontSize: 11, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '2px solid #fff',
+              }}
+            >{badgeText}</span>
+          ) : null}
+          <style>{`
+            @keyframes kotoiqBotPulse { 0%,100% { box-shadow: 0 6px 20px rgba(0,194,203,0.45); } 50% { box-shadow: 0 6px 30px rgba(0,194,203,0.85); } }
+            @keyframes kotoOrbPinkPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(230,0,126,0); } 50% { box-shadow: 0 0 0 12px rgba(230,0,126,0.25); } }
+          `}</style>
         </button>
       )
     }
@@ -524,7 +607,8 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
     return (
       <button
         onClick={openPanel}
-        title="KotoIQ Assistant"
+        title={orbTitle}
+        aria-label={orbTitle}
         style={{
           position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)',
           width: 44, height: '80vh', borderTopLeftRadius: 12, borderBottomLeftRadius: 12,
@@ -532,19 +616,37 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
           boxShadow: '-4px 0 14px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px 0',
           zIndex: 9999,
-          animation: hasNewSuggestion ? 'kotoiqSidePulse 1.6s infinite' : 'none',
+          animation: pinkPulse || (hasNewSuggestion ? 'kotoiqSidePulse 1.6s infinite' : 'none'),
         }}
       >
-        <div style={{ width: 28, height: 28, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'relative', width: 28, height: 28, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Brain size={16} color="#fff" />
+          {showBadge ? (
+            <span
+              aria-label={`${pendingClarifications} pending clarification${pendingClarifications === 1 ? '' : 's'}`}
+              style={{
+                position: 'absolute', top: -6, right: -6,
+                width: 18, height: 18, borderRadius: 9,
+                background: R, color: '#fff',
+                fontFamily: FH, fontSize: 10, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '2px solid #fff',
+              }}
+            >{badgeText}</span>
+          ) : null}
         </div>
         <div style={{
           writingMode: 'vertical-rl', transform: 'rotate(180deg)',
           fontFamily: FH, fontSize: 12, fontWeight: 700, letterSpacing: 1.2,
         }}>
-          {clientName ? `KotoIQ · ${clientName}` : 'KotoIQ'}
+          {mode === 'clarifications'
+            ? (clientName ? `Clarifications · ${clientName}` : 'Clarifications')
+            : (clientName ? `KotoIQ · ${clientName}` : 'KotoIQ')}
         </div>
-        <style>{`@keyframes kotoiqSidePulse { 0%,100% { box-shadow: -4px 0 14px rgba(0,0,0,0.18); } 50% { box-shadow: -4px 0 22px rgba(0,194,203,0.75); } }`}</style>
+        <style>{`
+          @keyframes kotoiqSidePulse { 0%,100% { box-shadow: -4px 0 14px rgba(0,0,0,0.18); } 50% { box-shadow: -4px 0 22px rgba(0,194,203,0.75); } }
+          @keyframes kotoOrbPinkPulse { 0%,100% { box-shadow: -4px 0 14px rgba(0,0,0,0.18); } 50% { box-shadow: 0 0 0 12px rgba(230,0,126,0.25); } }
+        `}</style>
       </button>
     )
   }
@@ -561,7 +663,9 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
           <Brain size={18} color="#fff" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH }}>KotoIQ Assistant</div>
+          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH }}>
+            {mode === 'clarifications' ? 'Clarifications' : 'KotoIQ Assistant'}
+          </div>
           <div style={{ fontSize: 11, opacity: 0.75, fontFamily: FB, display: 'flex', alignItems: 'center', gap: 4 }}>
             {thinking ? 'Thinking…' : clientName ? <>Working on <span style={{ color: T, fontWeight: 700 }}>{clientName}</span></> : 'No client selected'}
           </div>
@@ -584,7 +688,43 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
         </button>
       </div>
 
-      {showHistory ? (
+      {/* Plan 07-08 — clarifications-mode body. Renders the open-clarifications
+          list as ClarificationCard variant='chat'. Falls through to the
+          existing assistant body otherwise (backward compat). */}
+      {mode === 'clarifications' && !showHistory ? (
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16, background: GRY }}>
+          {clarifLoading ? (
+            <div style={{ textAlign: 'center', padding: '24px 8px', color: '#6b7280', fontSize: 13, fontFamily: FB }}>
+              Loading clarifications…
+            </div>
+          ) : clarifList.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 12px' }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: T, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <CheckCircle2 size={28} color="#fff" />
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: BLK, fontFamily: FH, marginBottom: 6 }}>
+                All clear.
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB }}>
+                I&apos;ll ping you the second I need something.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {clarifList.map((c) => (
+                <ClarificationCard
+                  key={c.id}
+                  clarification={c}
+                  variant="chat"
+                  onAnswer={handleClarifAnswer}
+                  onForward={handleClarifForward}
+                  onSkip={handleClarifSkip}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : showHistory ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, padding: '4px 8px', fontFamily: FH }}>Past Conversations</div>
           {conversations.length === 0 && (
@@ -659,8 +799,10 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
         </div>
       )}
 
-      {/* Input bar */}
-      {!showHistory && (
+      {/* Input bar — hidden in clarifications mode (action-driven only).
+          Plan 07-08: ClarificationCard renders its own answer textarea +
+          three actions; the chat composer would be redundant here. */}
+      {!showHistory && mode !== 'clarifications' && (
         <div style={{ padding: 12, borderTop: '1px solid #e5e7eb', background: '#fff' }}>
           {pendingFile && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#f0fdfe', border: `1px solid ${T}`, borderRadius: 8, marginBottom: 8, fontSize: 12, fontFamily: FB, color: BLK, maxWidth: '100%' }}>

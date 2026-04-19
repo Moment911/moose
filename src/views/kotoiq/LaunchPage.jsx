@@ -17,6 +17,7 @@ import DiscrepancyCallout from '../../components/kotoiq/launch/DiscrepancyCallou
 import MarginNote from '../../components/kotoiq/launch/MarginNote'
 import RejectFieldModal from '../../components/kotoiq/launch/RejectFieldModal'
 import ClarificationsOverlay from '../../components/kotoiq/launch/ClarificationsOverlay'
+import ConversationalBot from '../../components/kotoiq/ConversationalBot'
 
 // ── Global keyframes (UI-SPEC §8 motion contract) ──────────────────────────
 // Inlined here so the components in src/components/kotoiq/launch/* can rely
@@ -97,6 +98,9 @@ export default function LaunchPage() {
   const [launched, setLaunched] = useState(false)
   const [softGaps, setSoftGaps] = useState([])
   const [completenessScore, setCompletenessScore] = useState(null)
+  // Plan 07-08 — chat orb badge + pulse derived from open clarifications
+  const [pendingCount, setPendingCount] = useState(0)
+  const [highPending, setHighPending] = useState(false)
 
   const refresh = useCallback(async (cid) => {
     const id = cid || clientId
@@ -117,6 +121,34 @@ export default function LaunchPage() {
       refresh(routeClientId)
     }
   }, [routeClientId, refresh])
+
+  // Plan 07-08 — fallback poll for clarifications count to drive the orb
+  // badge + pulse. ClarificationsOverlay already runs realtime for hotspots;
+  // this is a coarse 20s catch-up so the badge updates even if realtime is
+  // momentarily disconnected.
+  useEffect(() => {
+    if (!clientId) return undefined
+    let cancelled = false
+    const load = async () => {
+      try {
+        const res = await fetch('/api/kotoiq/profile', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'list_clarifications', client_id: clientId, status: 'open' }),
+        })
+        const j = await res.json()
+        if (cancelled) return
+        const list = Array.isArray(j.clarifications) ? j.clarifications : []
+        setPendingCount(list.length)
+        setHighPending(list.some((c) => c.severity === 'high'))
+      } catch {
+        // Non-blocking — keep last known badge state.
+      }
+    }
+    load()
+    const t = setInterval(load, 20000)
+    return () => { cancelled = true; clearInterval(t) }
+  }, [clientId])
 
   const runIngest = async ({ url, pasted_text, force_rebuild } = {}) => {
     let id = clientId
@@ -353,6 +385,42 @@ export default function LaunchPage() {
             onSkip={async (id) => {
               // v1: model "skip" as an empty answer with update_field=false so the
               // row goes to status='answered' without polluting the profile field.
+              await postProfile({
+                action: 'answer_clarification',
+                clarification_id: id,
+                answer_text: '[skipped]',
+                update_field: false,
+              })
+            }}
+          />
+        )}
+
+        {/* Plan 07-08: floating chat orb in clarifications mode (D-16 / §5.9).
+            Same orb the rest of KotoIQ uses, just driven into a different mode. */}
+        {clientId && profile && (
+          <ConversationalBot
+            clientId={clientId}
+            clientName={profile.business_name || 'this client'}
+            agencyId={agencyId}
+            mode="clarifications"
+            pendingClarifications={pendingCount}
+            highSeverityPending={highPending}
+            onAnswerClarification={async (id, text) => {
+              await postProfile({
+                action: 'answer_clarification',
+                clarification_id: id,
+                answer_text: text,
+              })
+              refresh()
+            }}
+            onForwardClarification={async (id, channel) => {
+              await postProfile({
+                action: 'forward_to_client',
+                clarification_id: id,
+                channel,
+              })
+            }}
+            onSkipClarification={async (id) => {
               await postProfile({
                 action: 'answer_clarification',
                 clarification_id: id,
