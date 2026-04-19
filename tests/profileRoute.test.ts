@@ -409,10 +409,12 @@ describe('POST /api/kotoiq/profile', () => {
       }) as never,
     )
     expect(res.status).toBe(200)
+    // agency_id is auto-injected by db.clientProfile.upsert (Plan 1 helper);
+    // the route MUST NOT pass it (defense in depth — only the helper writes
+    // agency_id, which keeps cross-agency writes structurally impossible).
     expect(clientProfile.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         client_id: 'c',
-        agency_id: 'a',
         sources: expect.arrayContaining([
           expect.objectContaining({ source_type: 'uploaded_doc', added_by: 'op-1' }),
         ]),
