@@ -61,14 +61,13 @@ export default function ProjectReviewPage() {
   const [loading, setLoading] = useState(true)
   const [denied, setDenied] = useState(false)
 
-  // Name is scoped to the TAB session, not mount. Within a single tab,
-  // navigating Landing → File → Back should not re-ask. A new tab or a
-  // closed browser clears sessionStorage and a fresh reviewer gets
-  // prompted. Covers the colleague-opens-the-same-link case correctly.
+  // Name is scoped to THIS PROJECT within the tab session. We do NOT
+  // read a project-agnostic key — that leaked names across newly-created
+  // projects (delete a project, make a new one, and whoever last used
+  // the tab kept auto-populating). Keyed strictly on this token. New
+  // tab, new project, or closed browser = fresh prompt.
   const initialName = typeof window !== 'undefined'
-    ? (sessionStorage.getItem('mm_proof_reviewer_current')
-       || sessionStorage.getItem(`mm_proof_reviewer__${token}`)
-       || '')
+    ? (sessionStorage.getItem(`mm_proof_reviewer__${token}`) || '')
     : ''
   const [authorName, setAuthorName] = useState(initialName)
   const [nameInput, setNameInput] = useState('')
@@ -79,6 +78,11 @@ export default function ProjectReviewPage() {
   const dragFromIdx = useRef(null)
 
   useEffect(() => { loadProject() }, [token])
+
+  // One-time cleanup of the legacy project-agnostic key so any tab that
+  // still has it kicking around doesn't leak a stale name into a new
+  // project on next load.
+  useEffect(() => { try { sessionStorage.removeItem('mm_proof_reviewer_current') } catch {} }, [])
 
   async function loadProject() {
     setLoading(true)
@@ -148,10 +152,11 @@ export default function ProjectReviewPage() {
   function submitName() {
     const n = nameInput.trim()
     if (!n) return
+    // Write ONLY the per-project key. PublicReviewPage picks it up after
+    // its project loads and keys on project.public_token, which equals
+    // the landing token. No global "current reviewer" key — that leaked
+    // names across different projects in the same tab.
     sessionStorage.setItem(nameKey(token), n)
-    // Also write into the per-file review key so PublicReviewPage picks
-    // it up without a second prompt inside the review flow.
-    sessionStorage.setItem('mm_proof_reviewer_current', n)
     setAuthorName(n)
     setShowNamePrompt(false)
   }

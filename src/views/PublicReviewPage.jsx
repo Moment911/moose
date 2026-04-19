@@ -104,18 +104,17 @@ export default function PublicReviewPage() {
   const [color, setColor] = useState('#E6007E')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  // Name source order: sessionStorage key the landing page set → keyed
-  // per-token session key → empty (forces prompt). Do NOT read localStorage
-  // here — it persists across deleted/new projects, causing bug where a
-  // reviewer who typed their name on an old project saw the new project
-  // auto-use the stale name. sessionStorage clears on tab close so a
-  // colleague opening the same link on the same machine gets a fresh prompt.
-  const [authorName, setAuthorName] = useState(() => {
-    if (typeof window === 'undefined') return ''
-    return sessionStorage.getItem('mm_proof_reviewer_current')
-      || sessionStorage.getItem(`mm_proof_reviewer__${token}`)
-      || ''
-  })
+  // Name is scoped strictly to the PROJECT the reviewer is looking at.
+  // We used to fall back to a "current reviewer" key that was project-
+  // agnostic, which meant: delete a project, create a new one, and the
+  // new project's reviewer auto-populated with whoever last typed in
+  // the tab — including the agency user who tested it ("adam").
+  // The per-file route uses the file's public_token, so we can't key
+  // off that; we wait until the project loads and then pull the name
+  // from `mm_proof_reviewer__${project.public_token}` (set by the
+  // landing page for THIS project only). Different project = different
+  // key = no leak.
+  const [authorName, setAuthorName] = useState('')
   const [imgDims, setImgDims] = useState({ width: 0, height: 0 })
   const [htmlBlobUrl, setHtmlBlobUrl] = useState(null)
   // Tall-page controls for HTML/PDF — clients can widen/lengthen
@@ -147,13 +146,26 @@ export default function PublicReviewPage() {
     window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize)
   }, [])
   useEffect(() => { loadFileByToken() }, [token])
-  // Persist name per-tab only — sessionStorage clears on tab close so a
-  // colleague reviewing the same link later is treated as a new reviewer.
+
+  // Hydrate name from the project's sessionStorage key the moment the
+  // project finishes loading. Keyed on project.public_token so switching
+  // projects (or creating a new one) never auto-populates with a
+  // previous reviewer's name.
   useEffect(() => {
-    if (!authorName) return
-    sessionStorage.setItem('mm_proof_reviewer_current', authorName)
-    if (token) sessionStorage.setItem(`mm_proof_reviewer__${token}`, authorName)
-  }, [authorName, token])
+    if (!project?.public_token) return
+    if (authorName) return // already have a name in this session
+    const stored = sessionStorage.getItem(`mm_proof_reviewer__${project.public_token}`)
+    if (stored) setAuthorName(stored)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project?.public_token])
+
+  // Persist name per-project (not per-file token, not globally). Keyed
+  // on project.public_token which stays stable across every file in
+  // the same proof.
+  useEffect(() => {
+    if (!authorName || !project?.public_token) return
+    sessionStorage.setItem(`mm_proof_reviewer__${project.public_token}`, authorName)
+  }, [authorName, project?.public_token])
 
   // ?submit=1 from the landing page's "Submit round" CTA — open the
   // RoundSummaryModal automatically once the file is ready, then strip
