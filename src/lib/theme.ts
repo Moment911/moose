@@ -90,3 +90,10 @@ export const buttonSecondary = {
   fontFamily: FH,
   cursor: 'pointer',
 } as const
+
+// ── Phase 7 destructive action token (UI-SPEC §3) ────────────────────────────
+// Used ONLY for field-rejection confirmation in the Launch Page (D-05 delete
+// flow + D-10 margin-note "reject" action).  Koto Pink (R) stays reserved for
+// accent + the D-11 discrepancy callout; reusing it for destructive would
+// collide visually with discrepancy dots.
+export const DST = '#DC2626'
