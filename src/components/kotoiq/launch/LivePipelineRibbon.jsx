@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { useAuth } from '../../../hooks/useAuth'
 import { T, R, GRN, FB } from '../../../lib/theme'
 
 /**
@@ -21,13 +22,20 @@ import { T, R, GRN, FB } from '../../../lib/theme'
  *   - clientId: string — used for the realtime filter
  */
 export default function LivePipelineRibbon({ clientId }) {
+  const { agencyId } = useAuth()
   const [run, setRun] = useState(null)     // latest pipeline_runs row
   const [tick, setTick] = useState(0)      // forces re-render every second so elapsed updates
+  const [now, setNow] = useState(() => Date.now())  // captured ref-time for impure-Date.now()
   const debounce = useRef(null)
 
-  // Re-render every second so the elapsed-seconds counter stays live
+  // Re-render every second so the elapsed-seconds counter stays live.
+  // Captures Date.now() in state instead of reading it during render
+  // (react-hooks/purity).
   useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 1000)
+    const t = setInterval(() => {
+      setTick((n) => n + 1)
+      setNow(Date.now())
+    }, 1000)
     return () => clearInterval(t)
   }, [])
   void tick
@@ -37,12 +45,19 @@ export default function LivePipelineRibbon({ clientId }) {
     let mounted = true
     let channel = null
 
-    // Initial fetch — latest row
+    // Initial fetch — latest row. Agency-scoped via .eq('agency_id', agencyId)
+    // so the kotoiq/no-unscoped-kotoiq lint rule passes AND we get
+    // defense-in-depth on top of RLS. agencyId is gated by the LaunchPage
+    // auth guard so it is non-null by the time this component mounts; we
+    // pass an impossible sentinel ('-' is not a valid uuid) when missing
+    // so the lint rule sees a textual .eq('agency_id', ...) and the query
+    // returns zero rows rather than leaking cross-agency data.
     ;(async () => {
       try {
         const { data } = await supabase
           .from('kotoiq_pipeline_runs')
           .select('*')
+          .eq('agency_id', agencyId || '00000000-0000-0000-0000-000000000000')
           .eq('client_id', clientId)
           .order('updated_at', { ascending: false })
           .limit(1)
@@ -74,12 +89,13 @@ export default function LivePipelineRibbon({ clientId }) {
             }, 200)
           }
         )
-        .subscribe((status, err) => {
-          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            // Silent — table not in supabase_realtime publication yet
-            // eslint-disable-next-line no-console
-            if (err) console.debug('[LivePipelineRibbon] subscribe degraded:', err.message)
-          }
+        .subscribe((status) => {
+          // CHANNEL_ERROR / TIMED_OUT here is expected when
+          // kotoiq_pipeline_runs is not yet in the supabase_realtime
+          // publication on remote. Silent degradation — the ribbon stays
+          // on whatever the initial fetch returned (or stays hidden if
+          // there is no row yet).
+          void status
         })
     } catch {
       // Silent degradation — supabase realtime not configured
@@ -92,7 +108,7 @@ export default function LivePipelineRibbon({ clientId }) {
         try { supabase.removeChannel(channel) } catch { /* noop */ }
       }
     }
-  }, [clientId])
+  }, [clientId, agencyId])
 
   if (!run) return null
 
@@ -106,8 +122,10 @@ export default function LivePipelineRibbon({ clientId }) {
   const stage = run.current_stage || lastEvent?.stage_name || lastEvent?.stage || 'Starting'
   const step = run.current_step || lastEvent?.step_name || lastEvent?.step || ''
   const startedAt = run.started_at || run.created_at
+  // `now` is updated by a 1s interval (and at mount) so this read is pure
+  // during render — react-hooks/purity.
   const elapsedSec = startedAt
-    ? Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000))
+    ? Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000))
     : 0
 
   const isError = status === 'failed' || status === 'error'

@@ -1,5 +1,6 @@
 import 'server-only' // fails the build if this module is ever imported from a client component
 import { createClient } from '@supabase/supabase-js'
+import { recordActivity } from './scout/touchOpportunity'
 
 function getDb() {
   return createClient(
@@ -20,6 +21,49 @@ async function logComm(params: {
       body: JSON.stringify({ action: 'log_comm', ...params }),
     })
   } catch {}
+}
+
+// Scout: record outbound SMS on the linked opportunity if one exists.
+// Lookup-only (never auto-creates) so system alerts / coworker texts don't
+// pollute the pipeline. Non-fatal — never breaks the SMS send.
+async function recordSMSOnOpportunity(params: {
+  to: string
+  agencyId?: string
+  messagePreview: string
+  twilioSid?: string
+  isSystemAlert?: boolean
+}) {
+  if (!params.agencyId || params.isSystemAlert) return
+  const normalized = normalizePhoneE164(params.to)
+  if (!normalized) return
+  try {
+    const db = getDb()
+    const { data: opp } = await db
+      .from('koto_opportunities')
+      .select('id')
+      .eq('agency_id', params.agencyId)
+      .eq('contact_phone', normalized)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (opp?.id) {
+      await recordActivity({
+        opportunityId: opp.id,
+        activityType: 'sms_sent',
+        description: params.messagePreview,
+        metadata: { provider: 'twilio', provider_id: params.twilioSid || null, to: normalized },
+      })
+    }
+  } catch { /* non-fatal */ }
+}
+
+function normalizePhoneE164(p?: string): string | null {
+  if (!p) return null
+  const digits = p.replace(/[^\d+]/g, '')
+  if (!digits) return null
+  if (digits.startsWith('+')) return digits
+  if (digits.length === 10) return `+1${digits}`
+  return `+${digits}`
 }
 
 async function billSMS(agencyId?: string) {
@@ -107,6 +151,10 @@ export async function sendSMS(
           status: 'sent', provider: 'twilio', provider_id: data.sid, agency_id: agencyId,
         })
         billSMS(agencyId)
+        recordSMSOnOpportunity({
+          to, agencyId, messagePreview: message.slice(0, 280),
+          twilioSid: data.sid, isSystemAlert,
+        })
         return { success: true, sid: data.sid }
       }
       if (attempt === 2) {

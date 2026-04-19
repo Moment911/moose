@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { resolveAgencyId } from '@/lib/apiAuth'
 import { createNotification } from '@/lib/notifications'
+import { recordDocument } from '@/lib/scout/touchOpportunity'
 
 function sb() {
   return createClient(
@@ -101,6 +102,35 @@ export async function GET(req: NextRequest) {
           '📄',
           { proposal_id: proposal.id, device },
         ).catch(() => {})
+      }
+
+      // Scout: record the view onto the unified opportunity timeline.
+      // Links via proposal.client_id → koto_opportunities.client_id. Skips
+      // silently when no opportunity is linked (proposal sent outside Scout).
+      if (proposal.agency_id && proposal.client_id) {
+        try {
+          const { data: opp } = await s
+            .from('koto_opportunities')
+            .select('id')
+            .eq('agency_id', proposal.agency_id)
+            .eq('client_id', proposal.client_id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (opp?.id) {
+            await recordDocument({
+              opportunityId: opp.id,
+              documentType: 'proposal',
+              documentId: proposal.id,
+              title: proposal.title || null,
+              status: 'viewed',
+              totalValue: proposal.total_value ?? null,
+              viewedAt: nowISO,
+              sentAt: proposal.sent_at || null,
+              metadata: { device, view_count: (proposal.view_count || 0) + 1 },
+            })
+          }
+        } catch { /* non-fatal */ }
       }
 
       return Response.json({
@@ -204,11 +234,38 @@ export async function POST(req: NextRequest) {
         }).eq('id', proposal_id)
       }
 
+      const shareTimestamp = new Date().toISOString()
       await s.from('proposals').update({
-        share_sent_at: new Date().toISOString(),
+        share_sent_at: shareTimestamp,
         status: proposal.status === 'draft' ? 'sent' : proposal.status,
-        sent_at: proposal.sent_at || new Date().toISOString(),
+        sent_at: proposal.sent_at || shareTimestamp,
       }).eq('id', proposal_id)
+
+      // Scout: record send onto unified timeline if opportunity is linked.
+      if (proposal.agency_id && proposal.client_id) {
+        try {
+          const { data: opp } = await s
+            .from('koto_opportunities')
+            .select('id')
+            .eq('agency_id', proposal.agency_id)
+            .eq('client_id', proposal.client_id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (opp?.id) {
+            await recordDocument({
+              opportunityId: opp.id,
+              documentType: 'proposal',
+              documentId: proposal.id,
+              title: proposal.title || null,
+              status: 'sent',
+              totalValue: proposal.total_value ?? null,
+              sentAt: shareTimestamp,
+              metadata: { recipient_email: recipient_email || null, share_token: shareToken },
+            })
+          }
+        } catch { /* non-fatal */ }
+      }
 
       const origin = req.headers.get('origin')
         || req.headers.get('referer')?.replace(/\/(?:proposals|api).*/, '')

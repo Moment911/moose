@@ -18,8 +18,7 @@ import { GRN, AMB, R, BLK, FH, FB } from '../../../lib/theme'
  *   - onLaunch(): Promise<void>
  *   - launching: boolean — disables ONLY when in-flight (not based on score)
  */
-// eslint-disable-next-line no-unused-vars
-export default function LaunchGate({ score, reasoning, softGaps = [], onLaunch, launching = false }) {
+export default function LaunchGate({ score, softGaps = [], onLaunch, launching = false }) {
   const pct = score == null ? 0 : Math.round(score * 100)
   const tint = score == null
     ? '#9ca3af'

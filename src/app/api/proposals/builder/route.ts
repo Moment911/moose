@@ -23,6 +23,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import PDFDocument from 'pdfkit'
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { recordDocument } from '@/lib/scout/touchOpportunity'
 import { enrichProposalWithSEOData } from '@/lib/proposalDataEnricher'
 
 export const maxDuration = 120
@@ -364,10 +365,11 @@ Return ONLY valid JSON (no markdown fences, no preamble) with this exact shape:
     if (action === 'mark_accepted') {
       const { id } = body
       if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+      const acceptedAt = new Date().toISOString()
       const { data: proposal } = await sb.from('koto_proposals').update({
-        accepted_at: new Date().toISOString(),
+        accepted_at: acceptedAt,
         status: 'accepted',
-      }).eq('id', id).select('id, agency_id, client_id').maybeSingle()
+      }).eq('id', id).select('id, agency_id, client_id, title, total_value').maybeSingle()
 
       if (proposal?.agency_id) {
         try {
@@ -381,6 +383,33 @@ Return ONLY valid JSON (no markdown fences, no preamble) with this exact shape:
             metadata: { proposal_id: id, client_id: proposal.client_id },
           })
         } catch { /* non-fatal */ }
+
+        // Scout: proposal_accepted activity + document status upgrade.
+        // Resolves opportunity via (agency_id, client_id). Skips silently
+        // if no linked opportunity.
+        if (proposal.client_id) {
+          try {
+            const { data: opp } = await sb
+              .from('koto_opportunities')
+              .select('id')
+              .eq('agency_id', proposal.agency_id)
+              .eq('client_id', proposal.client_id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle()
+            if (opp?.id) {
+              await recordDocument({
+                opportunityId: opp.id,
+                documentType: 'proposal',
+                documentId: (proposal as any).id,
+                title: (proposal as any).title || null,
+                status: 'accepted',
+                totalValue: (proposal as any).total_value ?? null,
+                acceptedAt,
+              })
+            }
+          } catch { /* non-fatal */ }
+        }
       }
 
       return NextResponse.json({ ok: true })

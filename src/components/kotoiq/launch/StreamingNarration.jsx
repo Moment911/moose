@@ -13,14 +13,23 @@ import { T, BLK, FB } from '../../../lib/theme'
  *   - lines: string[] (accumulated narration lines)
  *   - streaming: boolean (true while the SSE reader is active)
  */
+// Read the OS reduced-motion preference outside of render so the effect
+// only subscribes to changes — no setState during effect setup. Default
+// false on the server (SSR-safe).
+function getInitialReducedMotion() {
+  if (typeof window === 'undefined' || !window.matchMedia) return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 export default function StreamingNarration({ lines = [], streaming = false }) {
   const containerRef = useRef(null)
-  const [reducedMotion, setReducedMotion] = useState(false)
+  const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion)
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReducedMotion(mq.matches)
+    // Subscribe to changes only — initial value already came from
+    // getInitialReducedMotion() to avoid setState-in-effect cascades.
     const onChange = (e) => setReducedMotion(e.matches)
     if (mq.addEventListener) mq.addEventListener('change', onChange)
     else if (mq.addListener) mq.addListener(onChange)

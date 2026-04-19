@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { touch as scoutTouch } from '@/lib/scout/touchOpportunity'
 
 function getSupabase() {
   return createClient(
@@ -338,6 +339,38 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: 'Failed to save appointment', details: error.message }, { status: 500 })
+    }
+
+    // Scout: record the meeting on the unified opportunity timeline.
+    // Resolves the opportunity by voice_lead_id / phone / email in that order,
+    // creating one if none exists (meetings are high-signal — always worth tracking).
+    if (agency_id && agency_id !== 'default') {
+      try {
+        const touched = await scoutTouch({
+          agencyId: agency_id,
+          source: 'manual',
+          voiceLeadId: lead_id || undefined,
+          contactPhone: prospect_phone || undefined,
+          contactEmail: prospect_email || undefined,
+          contactName: prospect_name || undefined,
+          activityType: 'meeting_scheduled',
+          description: summary,
+          metadata: {
+            appointment_id: appointment?.id,
+            start,
+            end,
+            google_event_id: googleEvent?.id || null,
+            attendees,
+          },
+        })
+        // Link the newest appointment onto the opportunity for quick lookup
+        if (touched.ok && appointment?.id) {
+          await sb
+            .from('koto_opportunities')
+            .update({ appointment_id: appointment.id })
+            .eq('id', touched.opportunityId)
+        }
+      } catch { /* non-fatal */ }
     }
 
     // Generate .ics content

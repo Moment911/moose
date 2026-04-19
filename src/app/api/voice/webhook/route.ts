@@ -8,6 +8,7 @@ import { triggerFollowUpSequence } from '@/lib/followUpSequencer'
 import { createVideoVoicemail } from '@/lib/heygenVideoEngine'
 import { createNotification } from '@/lib/notifications'
 import { syncLeadToGHL, syncCallToGHL, addGHLTags } from '@/lib/goHighLevelSync'
+import { touch as scoutTouch } from '@/lib/scout/touchOpportunity'
 
 function sb() {
   return createClient(
@@ -209,6 +210,56 @@ export async function POST(req: NextRequest) {
             }, { onConflict: 'retell_call_id', ignoreDuplicates: false })
           } catch { /* non-fatal */ }
         }
+
+        // Scout: record the call onto the unified opportunity spine.
+        // Non-fatal — telemetry must never fail the webhook.
+        try {
+          const scoutAgencyId = body.metadata?.agency_id || call.metadata?.agency_id
+          if (scoutAgencyId) {
+            const direction = (call.direction || '').toLowerCase()
+            const isInbound = direction === 'inbound'
+            const isVoicemail = call.disconnection_reason === 'voicemail_reached' || call.call_type === 'voicemail_detected'
+            const activityType = isVoicemail
+              ? 'call_voicemail'
+              : !answered
+                ? 'call_missed'
+                : isInbound ? 'call_inbound' : 'call_outbound'
+
+            const contactPhone = isInbound ? (call.from_number || '') : (call.to_number || '')
+            const companyName = call.call_analysis?.custom_analysis_data?.company_name
+              || call.metadata?.business_name
+              || body.metadata?.business_name
+              || undefined
+            const contactName = call.call_analysis?.custom_analysis_data?.contact_name
+              || call.metadata?.prospect_name
+              || body.metadata?.prospect_name
+              || undefined
+
+            const summary = call.call_analysis?.call_summary || ''
+            const sentiment = call.call_analysis?.user_sentiment || 'neutral'
+
+            await scoutTouch({
+              agencyId: scoutAgencyId,
+              source: isInbound ? 'inbound_call' : 'voice_call',
+              voiceCallId: callId || undefined,
+              contactPhone: contactPhone || undefined,
+              companyName,
+              contactName,
+              activityType,
+              description: summary ? summary.slice(0, 280) : undefined,
+              metadata: {
+                retell_call_id: callId,
+                duration_seconds: duration,
+                sentiment,
+                disconnection_reason: call.disconnection_reason || null,
+                transcript: call.transcript || null,
+                recording_url: call.recording_url || null,
+                appointment_set: call.call_analysis?.custom_analysis_data?.appointment_set ?? null,
+                stage_reached: call.call_analysis?.custom_analysis_data?.stage_reached ?? null,
+              },
+            })
+          }
+        } catch { /* non-fatal — scout telemetry must not break webhook */ }
 
         // Also update voice lead if exists
         await s.from('koto_voice_leads').update({

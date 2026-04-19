@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { resolveAgencyId } from '../../../lib/apiAuth'
 import { createClient } from '@supabase/supabase-js'
+import { recordDocument } from '../../../lib/scout/touchOpportunity'
 
 function sb() {
   return createClient(
@@ -361,6 +362,30 @@ export async function POST(req: NextRequest) {
       due_date: due_date || new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
     }).select().single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Scout: register the invoice on the unified timeline (draft).
+    try {
+      const { data: opp } = await s
+        .from('koto_opportunities')
+        .select('id')
+        .eq('agency_id', agency_id)
+        .eq('client_id', client_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (opp?.id && data?.id) {
+        await recordDocument({
+          opportunityId: opp.id,
+          documentType: 'invoice',
+          documentId: data.id,
+          title: invNum,
+          status: 'draft',
+          totalValue: total,
+          metadata: { invoice_number: invNum, due_date: data.due_date },
+        })
+      }
+    } catch { /* non-fatal */ }
+
     return NextResponse.json(data)
   }
 
@@ -383,7 +408,35 @@ export async function POST(req: NextRequest) {
         }),
       })
     }
-    await s.from('koto_client_invoices').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', invoice_id)
+    const sentAt = new Date().toISOString()
+    await s.from('koto_client_invoices').update({ status: 'sent', sent_at: sentAt }).eq('id', invoice_id)
+
+    // Scout: invoice_sent
+    try {
+      if (inv?.agency_id && inv?.client_id) {
+        const { data: opp } = await s
+          .from('koto_opportunities')
+          .select('id')
+          .eq('agency_id', inv.agency_id)
+          .eq('client_id', inv.client_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (opp?.id) {
+          await recordDocument({
+            opportunityId: opp.id,
+            documentType: 'invoice',
+            documentId: inv.id,
+            title: inv.invoice_number,
+            status: 'sent',
+            totalValue: Number(inv.total) || 0,
+            sentAt,
+            metadata: { to_email, invoice_number: inv.invoice_number, due_date: inv.due_date },
+          })
+        }
+      }
+    } catch { /* non-fatal */ }
+
     return NextResponse.json({ success: true })
   }
 
@@ -391,8 +444,35 @@ export async function POST(req: NextRequest) {
     const { invoice_id, invoice_type } = body
     if (!invoice_id) return NextResponse.json({ error: 'invoice_id required' }, { status: 400 })
     const table = invoice_type === 'client' ? 'koto_client_invoices' : 'koto_agency_invoices'
-    const { data: inv } = await s.from(table).select('total').eq('id', invoice_id).single()
-    await s.from(table).update({ status: 'paid', amount_paid: inv?.total || 0, amount_due: 0, paid_at: new Date().toISOString() }).eq('id', invoice_id)
+    const { data: inv } = await s.from(table).select('id, total, agency_id, client_id, invoice_number').eq('id', invoice_id).single()
+    const paidAt = new Date().toISOString()
+    await s.from(table).update({ status: 'paid', amount_paid: inv?.total || 0, amount_due: 0, paid_at: paidAt }).eq('id', invoice_id)
+
+    // Scout: invoice_paid — only for client invoices (agency invoices aren't in the opportunity pipeline).
+    if (invoice_type === 'client' && inv?.agency_id && inv?.client_id) {
+      try {
+        const { data: opp } = await s
+          .from('koto_opportunities')
+          .select('id')
+          .eq('agency_id', inv.agency_id)
+          .eq('client_id', inv.client_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (opp?.id) {
+          await recordDocument({
+            opportunityId: opp.id,
+            documentType: 'invoice',
+            documentId: inv.id,
+            title: inv.invoice_number,
+            status: 'paid',
+            totalValue: Number(inv.total) || 0,
+            metadata: { paid_at: paidAt, invoice_number: inv.invoice_number },
+          })
+        }
+      } catch { /* non-fatal */ }
+    }
+
     return NextResponse.json({ success: true })
   }
 

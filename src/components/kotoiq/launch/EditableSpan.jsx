@@ -56,12 +56,23 @@ export default function EditableSpan({
   ariaLabel,
   children,
 }) {
+  // "Adjusting state on prop change" — React's recommended approach (no
+  // useEffect setState cascade and no ref-during-render). When `value`
+  // differs from the snapshot we hold in `prevValue`, update both
+  // `prevValue` and `draft` in the same render pass. React optimises
+  // these same-render setState calls into a single re-render.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
   const [editing, setEditing] = useState(false)
+  const [prevValue, setPrevValue] = useState(value)
   const [draft, setDraft] = useState(value ?? '')
   const [saveState, setSaveState] = useState('idle')   // idle | saving | saved | error
   const inputRef = useRef(null)
 
-  useEffect(() => { setDraft(value ?? '') }, [value])
+  if (prevValue !== value) {
+    setPrevValue(value)
+    setDraft(value ?? '')
+  }
+
   useEffect(() => { if (editing) inputRef.current?.focus() }, [editing])
 
   const commit = async () => {

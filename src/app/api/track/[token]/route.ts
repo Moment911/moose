@@ -13,6 +13,7 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createNotification } from '@/lib/notifications'
+import { recordActivity } from '@/lib/scout/touchOpportunity'
 
 // 1×1 transparent GIF — base64 decoded once at module load
 const PIXEL_GIF = Buffer.from(
@@ -441,6 +442,44 @@ async function processOpen(
       open_type: isLikelyForward ? 'forward_detected' : 'pixel',
     })
   } catch { /* swallow */ }
+
+  // ── Scout: attach to existing opportunity (never auto-create) ──────────
+  // Cold-email recipients shouldn't pollute the pipeline; only record if
+  // this email address already maps to a known opportunity in this agency.
+  try {
+    const recipEmail: string = ((pixel as any).recipient_email || '').trim().toLowerCase()
+    if (agencyId && recipEmail) {
+      const { data: opp } = await s
+        .from('koto_opportunities')
+        .select('id')
+        .eq('agency_id', agencyId)
+        .eq('contact_email', recipEmail)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (opp?.id) {
+        await recordActivity({
+          opportunityId: opp.id,
+          activityType: isLikelyForward ? 'email_forwarded' : 'email_opened',
+          description: isLikelyForward && enrichment.company_name
+            ? `Forwarded to ${enrichment.company_name}`
+            : undefined,
+          metadata: {
+            tracked_email_id: email.id,
+            pixel_token: token,
+            device,
+            email_client: emailClient,
+            location_city: enrichment.city,
+            location_country: enrichment.country,
+            forward_confidence: isLikelyForward ? forwardConfidence : null,
+            forward_company: isLikelyForward ? enrichment.company_name : null,
+            forward_domain: isLikelyForward ? enrichment.company_domain : null,
+            proxy_type: proxyType,
+          },
+        })
+      }
+    }
+  } catch { /* non-fatal */ }
 
   // ── Update aggregate stats on the parent email ─────────
   const priorTotal = email.total_opens || 0
