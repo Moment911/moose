@@ -163,14 +163,20 @@ export default function PublicReviewPage() {
   const isImage = file?.type?.startsWith('image/')
   const isPdf = file?.type === 'application/pdf'
   const isHtmlFile = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
-  const contentWidth = isImage ? (imgDims.width || 0)
+  // Fallback dims are critical: they give the SVG annotation overlay a
+  // valid size so it always renders. When an image loads, the <img>
+  // inside fills this box at 100%/100%, and its onLoad swaps imgDims to
+  // natural — at which point the wrapper reflows and the overlay
+  // reflows with it. This exact pattern is what keeps FileReviewPage
+  // stable. (See /src/views/FileReviewPage.jsx:125–138.)
+  const contentWidth = isImage ? (imgDims.width || 1024)
     : isPdf ? pdfWidth
     : isHtmlFile ? htmlWidth
-    : 0
-  const contentHeight = isImage ? (imgDims.height || 0)
+    : 1024
+  const contentHeight = isImage ? (imgDims.height || 768)
     : isPdf ? pdfHeight
     : isHtmlFile ? htmlHeight
-    : 0
+    : 768
 
   // Live-measure the scroll container width — drives Fit-to-width and auto-fit.
   useEffect(() => {
@@ -199,24 +205,33 @@ export default function PublicReviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file?.id])
 
-  // Universal auto-fit zoom — fits BOTH width and height within the
-  // available viewport, never zooms above 100%, rounds to 5% steps.
-  // Runs once per file (guarded by a ref) so manual zoom isn't overridden
-  // but the ResizeObserver→containerWidth race is handled correctly.
+  // Universal auto-fit zoom — fits BOTH width and height into the
+  // available viewport, rounds to 5% steps, never zooms above 100%.
+  //
+  // For images, we intentionally wait until imgDims.width is populated
+  // from onLoad so we fit the NATURAL size, not the 1024 fallback.
+  // Otherwise a 3000px design would "fit" to the 1024 fallback and still
+  // look wildly zoomed in once the real image loads.
   const autofitRanForFileRef = useRef(null)
-  useEffect(() => {
-    if (!file || !containerWidth || !contentWidth || !contentHeight) return
-    if (autofitRanForFileRef.current === file.id) return
+  function computeFitZoom() {
     const el = scrollContainerRef.current
-    const availH = el ? Math.max(300, el.clientHeight - 48) : 600
-    const fitZoom = Math.min(containerWidth / contentWidth, availH / contentHeight, 1)
-    if (fitZoom > 0.05 && fitZoom < 1) {
-      setZoom(Math.round(fitZoom * 20) / 20)
-    } else {
-      setZoom(1)
-    }
+    if (!el || !contentWidth || !contentHeight) return 1
+    const availW = Math.max(200, el.clientWidth - 48)
+    const availH = Math.max(200, el.clientHeight - 48)
+    const fit = Math.min(availW / contentWidth, availH / contentHeight, 1)
+    return Math.max(0.1, Math.round(fit * 20) / 20)
+  }
+  useEffect(() => {
+    if (!file || !containerWidth) return
+    if (isImage && !imgDims.width) return              // wait for real natural dims
+    if (autofitRanForFileRef.current === file.id) return
+    setZoom(computeFitZoom())
     autofitRanForFileRef.current = file.id
-  }, [file?.id, contentWidth, contentHeight, containerWidth])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file?.id, isImage, imgDims.width, contentWidth, contentHeight, containerWidth])
+
+  // Manual Fit button — recomputes fit zoom from current container + content.
+  function handleFitToScreen() { setZoom(computeFitZoom()) }
 
   // Realtime — no duplicates
   useEffect(() => {
@@ -556,16 +571,19 @@ export default function PublicReviewPage() {
             return null
           })()}
 
-          {/* Zoom controls */}
+          {/* Zoom controls — Fit returns to the computed auto-fit, 100%
+              resets to natural size, −/+ step in 25% increments. */}
           <div className="hidden md:flex items-center gap-0.5 bg-gray-800 rounded-lg overflow-hidden" title="Zoom">
-            <button onClick={() => setZoom(z => Math.max(0.25, +(z - 0.25).toFixed(2)))}
-              className="text-white text-sm w-7 h-7 hover:bg-gray-700 flex items-center justify-center">−</button>
+            <button onClick={() => setZoom(z => Math.max(0.1, +(z - 0.25).toFixed(2)))}
+              className="text-white text-sm w-7 h-7 hover:bg-gray-700 flex items-center justify-center" title="Zoom out">−</button>
+            <button onClick={handleFitToScreen}
+              className="text-white text-[11px] px-2 h-7 hover:bg-gray-700 font-semibold uppercase tracking-wide" title="Fit to screen">Fit</button>
             <button onClick={() => setZoom(1)}
-              className="text-white text-xs px-2 h-7 hover:bg-gray-700 min-w-[46px] font-semibold">
+              className="text-white text-xs px-2 h-7 hover:bg-gray-700 min-w-[46px] font-semibold" title="Actual size">
               {Math.round(zoom * 100)}%
             </button>
             <button onClick={() => setZoom(z => Math.min(3, +(z + 0.25).toFixed(2)))}
-              className="text-white text-sm w-7 h-7 hover:bg-gray-700 flex items-center justify-center">+</button>
+              className="text-white text-sm w-7 h-7 hover:bg-gray-700 flex items-center justify-center" title="Zoom in">+</button>
           </div>
 
           {/* Notify Agency */}
@@ -690,27 +708,9 @@ export default function PublicReviewPage() {
         <div ref={scrollContainerRef} className="flex-1 overflow-auto bg-gray-100"
           style={{ padding: 24, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
           onMouseDown={() => { if (activeBubble) closeBubble() }}>
-          {/* Hidden preloader for images — mounts off-screen so the browser
-              downloads the file and fires onLoad, populating imgDims. The
-              main canvas below is gated on contentWidth > 0 for layout
-              sanity, so without this preloader an image's canvas would
-              never render (chicken-and-egg: dims require load, load
-              requires mount, mount requires dims). */}
-          {isImage && contentWidth === 0 && file?.url && (
-            <img src={file.url} alt="" aria-hidden
-              onLoad={(e) => setImgDims({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })}
-              style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
-              draggable={false}
-            />
-          )}
-          {isImage && contentWidth === 0 && (
-            <div style={{ color: '#9ca3af', fontSize: 14, padding: 24 }}>Loading preview…</div>
-          )}
-          {/* Outer wrapper reserves post-zoom scroll space. Sized to
-              contentWidth * zoom so the scroll viewport shows exactly
-              the visible area, no more, no less. flexShrink: 0 prevents
-              flex squashing when the content is wider than the viewport. */}
-          {contentWidth > 0 && contentHeight > 0 && (
+          {/* Outer wrapper reserves post-zoom scroll space. contentWidth
+              is always > 0 thanks to fallback dims, so the canvas always
+              mounts and images get a valid box to load into. */}
           <div style={{
             width: contentWidth * zoom,
             height: contentHeight * zoom,
@@ -782,7 +782,6 @@ export default function PublicReviewPage() {
               />
             )}
           </div>
-          )}
         </div>
 
         {/* Mobile floating tools */}
