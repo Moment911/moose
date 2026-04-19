@@ -127,7 +127,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   - [x] 07-04-PLAN.md — Seeder composition + launch gate + graph serializer + Stage 0 wire-in + durable pipeline_runs writes + stream_seed SSE endpoint (PROF-01, PROF-02, PROF-04, PROF-06)
   - [x] 07-05-PLAN.md — Clarification generator + severity/channel classifiers + SMS/email/portal forwarders (PROF-04, PROF-05)
   - [x] 07-06-PLAN.md — /api/kotoiq/profile 14-action JSON dispatcher (PROF-01..PROF-06)
-  - [ ] 07-07-PLAN.md — Launch Page UI: ingest, briefing, halos, gate, ribbon, drop zone, auto-save, reject modal (PROF-01, PROF-02, PROF-05)
+  - [x] 07-07-PLAN.md — Launch Page UI: ingest, briefing, halos, gate, ribbon, drop zone, auto-save, reject modal (PROF-01, PROF-02, PROF-05)
   - [ ] 07-08-PLAN.md — Clarifications UI: hotspots + chat widget extension + Needs Clarity dashboard sub-tab + operator-authored questions (PROF-04, PROF-05)
 **UI hint**: yes
 
