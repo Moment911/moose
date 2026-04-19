@@ -449,13 +449,47 @@ export async function POST(req: NextRequest) {
     const { data: agency } = await s.from('agencies').select('name, brand_name, scout_voice_from_number').eq('id', call.agency_id).single()
     const agencyName = agency?.brand_name || agency?.name || 'our company'
 
-    // Industry knowledge snippets for the prompt
-    const { data: knowledge } = await s.from('scout_voice_knowledge').select('fact')
-      .or(`agency_id.is.null,agency_id.eq.${call.agency_id}`)
-      .in('scope', ['industry', 'sic', 'gap'])
-      .eq('scope_value', call.industry || call.sic_code || call.biggest_gap || '___none___')
-      .order('confidence_score', { ascending: false })
-      .limit(8)
+    // ── BRAIN FETCH ───────────────────────────────────────────────────────
+    // Compose the call's system prompt from the unified voice brain:
+    //   1. global_pattern facts (platform-wide, universal)
+    //   2. industry-scoped facts (this industry only)
+    //   3. sic-scoped facts (narrower silo)
+    //   4. gap-scoped facts (e.g., "prospects without GA4 react to X")
+    //   5. company-scoped facts (specific prior notes on this prospect)
+    // direction=outbound_only OR both — never inbound_only on a Scout call.
+    // Uses the voice_brain_for_call() Postgres function for ranking.
+    let brainFacts: Array<{ scope: string; fact: string }> = []
+    try {
+      const { data: brain } = await s.rpc('voice_brain_for_call', {
+        p_agency_id: call.agency_id,
+        p_direction: 'outbound_only',
+        p_industry: call.industry || null,
+        p_sic_code: call.sic_code || null,
+        p_naics_code: null,
+        p_gap: call.biggest_gap || null,
+        p_opportunity_id: call.opportunity_id || null,
+        p_limit: 15,
+      })
+      brainFacts = (brain as any[])?.map(b => ({ scope: b.scope, fact: b.fact })) || []
+    } catch {
+      // RPC may not be deployed yet — fall back to direct query with OR filter
+      const { data: fallback } = await s.from('scout_voice_knowledge').select('scope, fact')
+        .or(`agency_id.is.null,agency_id.eq.${call.agency_id}`)
+        .in('direction', ['outbound_only', 'both'])
+        .or([
+          `scope.eq.global_pattern`,
+          call.industry ? `and(scope.eq.industry,scope_value.eq.${call.industry})` : null,
+          call.sic_code ? `and(scope.eq.sic,scope_value.eq.${call.sic_code})` : null,
+          call.biggest_gap ? `and(scope.eq.gap,scope_value.eq.${call.biggest_gap})` : null,
+        ].filter(Boolean).join(','))
+        .order('confidence_score', { ascending: false })
+        .limit(15)
+      brainFacts = fallback || []
+    }
+
+    // Keep the old shape for buildScoutPrompt — it expects a simple array of facts.
+    // Ordering from brain is already global_pattern first, then industry, etc.
+    const knowledge = brainFacts.map(b => ({ fact: b.fact }))
 
     const systemPrompt = buildScoutPrompt({
       agencyName,
