@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 07-05-PLAN.md (clarification queue engine: severity classifier + 4-channel router + SMS/email/portal forwarders + Alex-voice email template; 9 new vitest cases — 59/59 project total green)"
-last_updated: "2026-04-19T16:50:14.500Z"
+stopped_at: Completed 07-06-PLAN.md (/api/kotoiq/profile 14-action JSON dispatcher; auth-first agency-isolation; 15 new vitest cases — 74/74 project total green)
+last_updated: "2026-04-19T17:11:11.200Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 8
-  completed_plans: 5
-  percent: 63
+  completed_plans: 6
+  percent: 75
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 07 (client-profile-seeder-v1-internal-ingest-gap-finder) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -57,6 +57,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 | Phase 07 P03 | 20min | 5 tasks | 9 files |
 | Phase 07 P04 | 21min | 6 tasks | 9 files |
 | Phase 07 P05 | 8min | 2 tasks | 4 files |
+| Phase 07 P06 | 10min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,10 @@ Recent decisions affecting current work:
 - [Phase 07]: Plan 5: createNotification called with positional signature (sb, agencyId, type, title, body, link, icon, metadata) — actual helper is positional, NOT object-args as plan assumed
 - [Phase 07]: Plan 5: buildQuestionFromGap is rule-based via 20-template table (no extra Haiku call) — keeps per-clarification cost bounded; v2 may swap to Haiku phrasing
 - [Phase 07]: Plan 5: All forwarders return {ok, error?} and never throw (D-19 non-blocking) — pipeline never blocks on dispatch failure
+- [Phase 07]: Plan 6: Used db.client.from(...) + explicit .eq('agency_id', agencyId) for non-kotoiq tables — KotoIQDb has no raw() method (3rd plan to hit + standardise this; canonical Phase 7 pattern now)
+- [Phase 07]: Plan 6: Imported CANONICAL_FIELD_NAMES from profileTypes (NOT profileConfig — only HOT_COLUMNS lives there). Full 26-name list is the canonical baseline schema.
+- [Phase 07]: Plan 6: Defense in depth — route NEVER passes agency_id to db.clientProfile.upsert. The Plan 1 helper auto-injects it (kotoiqDb.ts:343-352), making cross-agency writes structurally impossible.
+- [Phase 07]: Plan 6: Established canonical kotoiq HTTP route shape — verifySession FIRST → 401 if !verified || !agencyId → ALLOWED_ACTIONS validation → action chain → typed db helpers. Future Plan 7/8 routes mirror this verbatim.
 
 ### Pending Todos
 
@@ -108,8 +113,8 @@ yet. Research called out risks that are pre-mitigated in phase gates:
 
 ## Session Continuity
 
-Last session: 2026-04-19T16:50:14.496Z
-Stopped at: Completed 07-05-PLAN.md (clarification queue engine: severity classifier + 4-channel router + SMS/email/portal forwarders + Alex-voice email template; 9 new vitest cases — 59/59 project total green)
+Last session: 2026-04-19T17:10:43.453Z
+Stopped at: Completed 07-06-PLAN.md (/api/kotoiq/profile 14-action JSON dispatcher; auth-first agency-isolation; 15 new vitest cases — 74/74 project total green)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
