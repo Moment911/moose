@@ -187,6 +187,7 @@ import HelpPage from '../views/HelpPage'
 import IntelPage from '../views/IntelPage'
 import KotoIQPage from '../views/KotoIQPage'
 import KotoIQShellPage from '../views/kotoiq/KotoIQShellPage'
+import LaunchPage from '../views/kotoiq/LaunchPage'
 import KotoFinPro from '../components/KotoFinPro'
 import KotoFinGuidePage from '../views/KotoFinGuidePage'
 import MarketingQuizPage from '../views/MarketingQuizPage'
@@ -439,6 +440,7 @@ function AppRoutes() {
           <Route path="/intel" element={<IntelPage />} />
           <Route path="/intel/:reportId" element={<IntelPage />} />
           <Route path="/kotoiq" element={<KotoIQPage />} />
+          <Route path="/kotoiq/launch/:clientId" element={<LaunchPage />} />
           <Route path="/kotoiq-shell" element={<KotoIQShellPage />} />
           <Route path="/kotofin" element={<KotoFinPro />} />
           <Route path="/kotofin/guide" element={<KotoFinGuidePage />} />
