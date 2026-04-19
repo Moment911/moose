@@ -76,7 +76,7 @@
 
 ### Client Profile Seeder v1 — Internal Ingest + Gap Finder
 
-- [ ] **PROF-01**: Operator can paste a Koto internal URL (`/onboard/:clientId`, `/onboarding-dashboard/:clientId`, or `/clients/:clientId`) and the system resolves it, extracts `clientId`, and pulls `clients` + `onboarding_answers` + `koto_discovery_engagements` + voice call transcripts + post-call analyses into the profile pipeline
+- [x] **PROF-01**: Operator can paste a Koto internal URL (`/onboard/:clientId`, `/onboarding-dashboard/:clientId`, or `/clients/:clientId`) and the system resolves it, extracts `clientId`, and pulls `clients` + `onboarding_answers` + `koto_discovery_engagements` + voice call transcripts + post-call analyses into the profile pipeline
 - [ ] **PROF-02**: Operator can paste raw text (voice transcript, email, meeting notes, pasted website copy, call notes) and Claude extracts structured fields against the canonical client-profile schema with per-field source citation (char offset + snippet)
 - [x] **PROF-03**: System stores the resolved profile in a new `kotoiq_client_profile` table keyed on `client_id` + `agency_id`, with per-field `source_type`, `source_url`, `captured_at`, and confidence score per platform `VerifiedDataSource` standard
 - [x] **PROF-04**: Gap-finder compares the populated profile against the canonical field schema + pipeline-required fields and emits 3-8 surgical follow-up questions (not 26 blind ones); low-confidence auto-fills are also surfaced for operator confirmation
@@ -199,7 +199,7 @@
 | UI-03 | Phase 6 | Pending |
 | UI-04 | Phase 2 | Pending |
 | PILOT-01 | Phase 6 | Pending |
-| PROF-01 | Phase 7 | Pending |
+| PROF-01 | Phase 7 | Complete |
 | PROF-02 | Phase 7 | Pending |
 | PROF-03 | Phase 7 | Complete |
 | PROF-04 | Phase 7 | Complete |

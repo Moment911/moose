@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-01-PLAN.md (Tasks 3-6 in continuation agent; Tasks 1-2 prior agent + operator)
-last_updated: "2026-04-19T14:42:53.501Z"
+stopped_at: "Completed 07-02-PLAN.md (TDD: 22/22 vitest cases green; 4 internal-source pullers + central config module)"
+last_updated: "2026-04-19T15:27:02.085Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 8
-  completed_plans: 1
-  percent: 13
+  completed_plans: 2
+  percent: 25
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 07 (client-profile-seeder-v1-internal-ingest-gap-finder) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -53,6 +53,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 
 *Updated after each plan completion*
 | Phase 07 P01 | 30min | 6 tasks | 10 files |
+| Phase 07 P02 | 35min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 07]: Plan 1: Per-table updated_at trigger function pattern (one CREATE FUNCTION per table) — repo never had a shared set_updated_at helper; followed 20260461 precedent
 - [Phase 07]: Plan 1: Pinned model IDs claude-sonnet-4-5-20250929 + claude-haiku-4-5-20251001 as canonical; CONTEXT 'Sonnet 4.6 / Haiku 4.5' is aspirational
 - [Phase 07]: Plan 1: Vitest resolve.conditions includes 'react-server' so server-only resolves to its empty stub at test time (mirrors Next.js)
+- [Phase 07]: Plan 2: Reused Plan 1's Record<string, any> jsonb-row idiom (with eslint-disable) instead of unknown narrowing — keeps profileIngestInternal consistent with kotoiqDb.ts (70+ same-style sites)
+- [Phase 07]: Plan 2: pain_point_emphasis appended from BOTH hot_lead_reasons AND notable_insights (two ProvenanceRecord entries, not merged) — preserves source attribution for the chat-widget 'where did this come from?' UX
+- [Phase 07]: Plan 2: Voice _call_analysis array values stored as ProvenanceRecord.value: string[] (not joined) so Plan 3 discrepancy catcher can do list-symmetric-diff per DISCREPANCY_TOLERANCE = 0.5
 
 ### Pending Todos
 
@@ -89,8 +93,8 @@ yet. Research called out risks that are pre-mitigated in phase gates:
 
 ## Session Continuity
 
-Last session: 2026-04-19T14:42:53.498Z
-Stopped at: Completed 07-01-PLAN.md (Tasks 3-6 in continuation agent; Tasks 1-2 prior agent + operator)
+Last session: 2026-04-19T15:27:02.081Z
+Stopped at: Completed 07-02-PLAN.md (TDD: 22/22 vitest cases green; 4 internal-source pullers + central config module)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
