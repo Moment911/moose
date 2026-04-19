@@ -40,6 +40,11 @@ export default function AccessModal({ project, onClose, onUpdate }) {
   const [password, setPassword] = useState(project.access_password || '')
   const [dueDate, setDueDate] = useState(project.due_date || '')
   const [maxRounds, setMaxRounds] = useState(project.max_rounds || 2)
+  // Default ON for projects that haven't had the column migrated yet —
+  // matches the legacy behavior where recording was always available.
+  const [screenRecording, setScreenRecording] = useState(
+    project.screen_recording_enabled === undefined ? true : !!project.screen_recording_enabled
+  )
   const [webhookUrl, setWebhookUrl] = useState(project.webhook_url || '')
   const [slackUrl, setSlackUrl] = useState(project.slack_webhook_url || '')
   const [slackChannel, setSlackChannel] = useState(project.slack_channel_url || '')
@@ -86,6 +91,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
     // surface a clear message about which fields didn't stick.
     const extended = {
       max_rounds: rounds,
+      screen_recording_enabled: screenRecording,
       webhook_url: webhookUrl.trim() || null,
       slack_webhook_url: slackUrl.trim() || null,
       slack_channel_url: slackChannel.trim() || null,
@@ -210,6 +216,36 @@ export default function AccessModal({ project, onClose, onUpdate }) {
               Client can submit up to {Math.max(1, Math.min(20, Number(maxRounds) || 2))} round{(Number(maxRounds) || 2) !== 1 ? 's' : ''} of feedback before the proof locks.
               Changes apply immediately.
             </p>
+          </div>
+
+          {/* Client-facing feature toggles — per-project. Keep this section
+              open for future toggles (templates, AI suggestions, etc.)   */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-xl">
+            <div className="text-sm font-medium text-gray-500 mb-2">Client features</div>
+            <label className="flex items-start justify-between gap-3 cursor-pointer select-none">
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-700">Screen recording</div>
+                <div className="text-[13px] text-gray-500 mt-0.5">
+                  Lets clients record their screen + voice while reviewing. Recording uploads to this project as a video file.
+                </div>
+              </div>
+              <div
+                role="switch"
+                aria-checked={screenRecording}
+                tabIndex={0}
+                onClick={() => setScreenRecording(v => !v)}
+                onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setScreenRecording(v => !v) } }}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors mt-0.5 ${
+                  screenRecording ? 'bg-brand-500' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform mt-0.5 ${
+                    screenRecording ? 'translate-x-5' : 'translate-x-0.5'
+                  }`}
+                />
+              </div>
+            </label>
           </div>
 
           {/* White label branding */}

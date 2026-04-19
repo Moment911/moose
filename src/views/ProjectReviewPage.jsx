@@ -61,11 +61,18 @@ export default function ProjectReviewPage() {
   const [loading, setLoading] = useState(true)
   const [denied, setDenied] = useState(false)
 
-  // Always prompt on mount — we don't carry the name across tab sessions.
-  // A returning colleague reusing the link is treated as a new reviewer.
-  const [authorName, setAuthorName] = useState('')
+  // Name is scoped to the TAB session, not mount. Within a single tab,
+  // navigating Landing → File → Back should not re-ask. A new tab or a
+  // closed browser clears sessionStorage and a fresh reviewer gets
+  // prompted. Covers the colleague-opens-the-same-link case correctly.
+  const initialName = typeof window !== 'undefined'
+    ? (sessionStorage.getItem('mm_proof_reviewer_current')
+       || sessionStorage.getItem(`mm_proof_reviewer__${token}`)
+       || '')
+    : ''
+  const [authorName, setAuthorName] = useState(initialName)
   const [nameInput, setNameInput] = useState('')
-  const [showNamePrompt, setShowNamePrompt] = useState(true)
+  const [showNamePrompt, setShowNamePrompt] = useState(!initialName)
   const [showSummary, setShowSummary] = useState(false)
 
   // Drag-reorder state

@@ -201,6 +201,7 @@ export default function PublicReviewPage() {
   const isImage = file?.type?.startsWith('image/')
   const isPdf = file?.type === 'application/pdf'
   const isHtmlFile = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
+  const isVideo = file?.type?.startsWith('video/') || /\.(webm|mp4|mov)$/i.test(file?.name || '')
   // Fallback dims are critical: they give the SVG annotation overlay a
   // valid size so it always renders. When an image loads, the <img>
   // inside fills this box at 100%/100%, and its onLoad swaps imgDims to
@@ -210,10 +211,12 @@ export default function PublicReviewPage() {
   const contentWidth = isImage ? (imgDims.width || 1024)
     : isPdf ? pdfWidth
     : isHtmlFile ? htmlWidth
+    : isVideo ? 960
     : 1024
   const contentHeight = isImage ? (imgDims.height || 768)
     : isPdf ? pdfHeight
     : isHtmlFile ? htmlHeight
+    : isVideo ? 540
     : 768
 
   // Live-measure the scroll container width — drives Fit-to-width and auto-fit.
@@ -693,14 +696,19 @@ export default function PublicReviewPage() {
             return null
           })()}
 
-          {recording ? (
-            <button onClick={stopRecording} className="text-[13px] font-semibold text-red-700 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 animate-pulse">
-              <StopCircle size={12} /> {formatRecTime(recordingTime)}
-            </button>
-          ) : (
-            <button onClick={startRecording} className="text-[13px] font-medium text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
-              <Video size={12} /> <span className="hidden lg:inline">Record</span>
-            </button>
+          {/* Screen recording — gated per-project by the agency. Default
+              ON (legacy projects & any project without the column read as
+              true). Agencies can disable it in Access Settings. */}
+          {project?.screen_recording_enabled !== false && (
+            recording ? (
+              <button onClick={stopRecording} className="text-[13px] font-semibold text-red-700 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 animate-pulse">
+                <StopCircle size={12} /> {formatRecTime(recordingTime)}
+              </button>
+            ) : (
+              <button onClick={startRecording} className="text-[13px] font-medium text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                <Video size={12} /> <span className="hidden lg:inline">Record</span>
+              </button>
+            )
           )}
 
           <button onClick={async () => {
@@ -956,10 +964,25 @@ export default function PublicReviewPage() {
                   }}
                 />
               )}
-              <AnnotationCanvas width={contentWidth} height={contentHeight} tool={roundsExhausted ? 'select' : tool} color={color}
-                annotations={canvasAnnotations} onAddAnnotation={handleAddAnnotation}
-                onPinPlace={handlePinPlace}
-                onSelectAnnotation={handleAnnotationSelect} onHotspotClick={handleHotspotClick} selectedId={selectedId} />
+              {isVideo && (
+                <video
+                  src={file.url}
+                  controls
+                  preload="metadata"
+                  playsInline
+                  style={{ display: 'block', width: '100%', height: '100%', background: '#000', objectFit: 'contain' }}
+                />
+              )}
+              {/* Annotation overlay — not rendered for videos; annotating
+                  video frames would require per-frame anchoring, which
+                  the current data model doesn't support. Images/PDF/HTML
+                  get the overlay as before. */}
+              {!isVideo && (
+                <AnnotationCanvas width={contentWidth} height={contentHeight} tool={roundsExhausted ? 'select' : tool} color={color}
+                  annotations={canvasAnnotations} onAddAnnotation={handleAddAnnotation}
+                  onPinPlace={handlePinPlace}
+                  onSelectAnnotation={handleAnnotationSelect} onHotspotClick={handleHotspotClick} selectedId={selectedId} />
+              )}
           </div>
             {activeBubble && (
               <ClientBubble
