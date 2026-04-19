@@ -228,18 +228,48 @@ export default function ProjectReviewPage() {
 
   const clientName = project?.clients?.name || ''
   const clientLogo = project?.clients?.logo_url
-  const brandColor = project?.brand_color || '#00C2CB'
+  // Koto primary brand is pink #E6007E. White-labeled tenants override via
+  // project.brand_color. The teal default on this page was an older
+  // pick that left the landing feeling un-Koto — pink matches
+  // hellokoto.com + the rest of the product.
+  const brandColor = project?.brand_color || '#E6007E'
+  const brandName = project?.brand_name || 'Koto'
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif" }}>
-      {/* Header */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '18px 24px' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          {clientLogo && <img src={clientLogo} alt={clientName} style={{ height: 36, maxWidth: 120, objectFit: 'contain' }} />}
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#111' }}>{project?.name}</div>
-            {clientName && <div style={{ fontSize: 13, color: '#6b7280' }}>for {clientName}</div>}
+      {/* Header — matches the per-file PublicReviewPage chrome:
+          [brand mark] [KOTO / project name] ··· [reviewing as …] */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 24px' }}>
+        <div style={{ maxWidth: 980, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+            {project?.brand_logo ? (
+              <img src={project.brand_logo} alt={brandName} style={{ height: 32, maxWidth: 120, objectFit: 'contain' }} />
+            ) : (
+              <div style={{
+                width: 32, height: 32, borderRadius: 8, background: brandColor,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1.2 }}>{brandName}</span>
+              <span style={{ fontSize: 17, fontWeight: 800, color: '#111', marginTop: 4 }}>{project?.name}</span>
+            </div>
           </div>
+          {clientLogo && (
+            <>
+              <div style={{ width: 1, height: 28, background: '#e5e7eb', flexShrink: 0 }} />
+              <img src={clientLogo} alt={clientName} style={{ height: 28, maxWidth: 120, objectFit: 'contain', flexShrink: 0 }} />
+            </>
+          )}
+          {!clientLogo && clientName && (
+            <>
+              <div style={{ width: 1, height: 20, background: '#e5e7eb', flexShrink: 0 }} />
+              <div style={{ fontSize: 13, color: '#6b7280' }}>for <strong style={{ color: '#374151' }}>{clientName}</strong></div>
+            </>
+          )}
+          <div style={{ flex: 1 }} />
           {authorName && (
             <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Users size={14} />
@@ -466,6 +496,23 @@ export default function ProjectReviewPage() {
             )}
           </div>
         )}
+
+        {/* Powered-by footer — quiet Koto attribution on the landing */}
+        <div style={{ textAlign: 'center', marginTop: 32, paddingTop: 20, borderTop: '1px solid #f3f4f6', fontSize: 12, color: '#9ca3af' }}>
+          {project?.brand_name && project.brand_name !== 'Koto' ? (
+            <span>Powered by <a href="https://hellokoto.com" target="_blank" rel="noreferrer" style={{ color: '#E6007E', fontWeight: 700, textDecoration: 'none' }}>Koto</a></span>
+          ) : (
+            <span>
+              <a href="https://hellokoto.com" target="_blank" rel="noreferrer" style={{ color: '#E6007E', fontWeight: 700, textDecoration: 'none' }}>Koto</a>
+              {' · '}
+              <a href="https://hellokoto.com/services/crm" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>CRM</a>
+              {' · '}
+              <a href="https://hellokoto.com/services/lead-generation" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>Lead Gen</a>
+              {' · '}
+              <a href="https://hellokoto.com/services/website-design" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>Websites</a>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Name prompt — every new visit starts here */}
