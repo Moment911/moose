@@ -83,7 +83,7 @@ export async function extractFromPastedText(
   }
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY
   if (!ANTHROPIC_KEY) {
-    // eslint-disable-next-line no-console
+     
     console.error('[profileExtractClaude] ANTHROPIC_API_KEY missing')
     return []
   }
@@ -145,12 +145,12 @@ export async function extractFromPastedText(
       signal: AbortSignal.timeout(30000),
     })
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error('[profileExtractClaude] fetch failed', err)
     return []
   }
   if (!res.ok) {
-    // eslint-disable-next-line no-console
+     
     console.error('[profileExtractClaude] API returned', res.status)
     return []
   }

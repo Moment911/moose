@@ -10,7 +10,7 @@ process.env.ANTHROPIC_API_KEY = 'sk-test'
 
 describe('extractFromPastedText', () => {
   it('returns 3 ExtractedFieldRecord for a tool-use response with 3 fields', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     globalThis.fetch = mockAnthropicToolUse([
       {
         field_name: 'primary_service',

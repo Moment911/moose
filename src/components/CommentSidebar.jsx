@@ -3,7 +3,10 @@ import { useState } from 'react'
 import { MessageSquare, ChevronDown, ChevronUp, Reply, Send, CheckCircle, Check, Paperclip, ListTodo, Image as ImageIcon } from 'lucide-react'
 import { format } from 'date-fns'
 
-const AVATAR_COLORS = ['#E6007E', '#59c6d0', '#185FA5', '#7C3ABF', '#3B6D11', '#f59e0b', '#0E7490', '#ec4899']
+// Palette tuned to Koto brand — pink + teal first, then supporting
+// tones. No orange/amber (used to be #f59e0b — showed up as an off-brand
+// blip for certain reviewer names on the public review page).
+const AVATAR_COLORS = ['#E6007E', '#00C2CB', '#185FA5', '#7C3ABF', '#3B6D11', '#ec4899', '#0E7490', '#59c6d0']
 
 function getInitials(name) { return (name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() }
 function getAvatarColor(name) { let hash = 0; for (const c of (name || '')) hash = c.charCodeAt(0) + ((hash << 5) - hash); return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] }
@@ -59,7 +62,13 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
   }
 
   return (
-    <div className="w-80 bg-white border-l border-gray-200 flex flex-col flex-1 min-h-0 flex-shrink-0">
+    // Width + borders are owned by the parent (FileReviewPage and
+    // PublicReviewPage each wrap this in a 320px container with
+    // borderLeft). Setting w-80 here AGAIN means the comment list renders
+    // 320px wide regardless of the parent's real inner width — any
+    // padding or border on the parent shoves author names and comment
+    // text past the right edge, which is the cutoff the reviewer sees.
+    <div className="w-full min-w-0 flex flex-col flex-1 min-h-0">
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-100">
         <div className="flex items-center justify-between mb-2.5">

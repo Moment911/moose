@@ -94,7 +94,7 @@ export async function extractFromVoiceTranscript(
       signal: AbortSignal.timeout(15000),
     })
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error('[profileVoiceExtract] fetch failed', err)
     return { fields: {}, raw: empty }
   }
