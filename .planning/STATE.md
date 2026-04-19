@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-06-PLAN.md (/api/kotoiq/profile 14-action JSON dispatcher; auth-first agency-isolation; 15 new vitest cases — 74/74 project total green)
-last_updated: "2026-04-19T17:11:11.200Z"
+stopped_at: Completed 07-08-PLAN.md (clarifications UI — three coordinated surfaces; ConversationalBot extended; AskOwnQuestion D-12 composer; phase 07 complete)
+last_updated: "2026-04-19T23:47:36.400Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 07 (client-profile-seeder-v1-internal-ingest-gap-finder) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 | Phase 07 P04 | 21min | 6 tasks | 9 files |
 | Phase 07 P05 | 8min | 2 tasks | 4 files |
 | Phase 07 P06 | 10min | 1 tasks | 2 files |
+| Phase 07 P08 | 25min | 6 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,10 @@ Recent decisions affecting current work:
 - [Phase 07]: Plan 6: Imported CANONICAL_FIELD_NAMES from profileTypes (NOT profileConfig — only HOT_COLUMNS lives there). Full 26-name list is the canonical baseline schema.
 - [Phase 07]: Plan 6: Defense in depth — route NEVER passes agency_id to db.clientProfile.upsert. The Plan 1 helper auto-injects it (kotoiqDb.ts:343-352), making cross-agency writes structurally impossible.
 - [Phase 07]: Plan 6: Established canonical kotoiq HTTP route shape — verifySession FIRST → 401 if !verified || !agencyId → ALLOWED_ACTIONS validation → action chain → typed db helpers. Future Plan 7/8 routes mirror this verbatim.
+- [Phase 07]: Plan 8: Variant-driven ClarificationCard (chat/dashboard/hotspot) — single source of truth for severity copy + handlers across 3 surfaces
+- [Phase 07]: Plan 8: ConversationalBot extension via 5 optional props w/ safe defaults — existing KotoIQPage caller untouched (backward-compat extension contract)
+- [Phase 07]: Plan 8: position:fixed + raw getBoundingClientRect (no scrollX/Y) + capture-phase scroll listener — keeps HotspotDots anchored when scrolling inside scrollable shells
+- [Phase 07]: Plan 8: Worst-severity-per-field grouping in ClarificationsOverlay — ONE HotspotDot per field with count badge mitigates T-07-26 by construction
 
 ### Pending Todos
 
@@ -113,8 +118,8 @@ yet. Research called out risks that are pre-mitigated in phase gates:
 
 ## Session Continuity
 
-Last session: 2026-04-19T17:10:43.453Z
-Stopped at: Completed 07-06-PLAN.md (/api/kotoiq/profile 14-action JSON dispatcher; auth-first agency-isolation; 15 new vitest cases — 74/74 project total green)
+Last session: 2026-04-19T23:47:36.397Z
+Stopped at: Completed 07-08-PLAN.md (clarifications UI — three coordinated surfaces; ConversationalBot extended; AskOwnQuestion D-12 composer; phase 07 complete)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)

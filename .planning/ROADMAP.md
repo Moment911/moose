@@ -128,7 +128,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   - [x] 07-05-PLAN.md — Clarification generator + severity/channel classifiers + SMS/email/portal forwarders (PROF-04, PROF-05)
   - [x] 07-06-PLAN.md — /api/kotoiq/profile 14-action JSON dispatcher (PROF-01..PROF-06)
   - [x] 07-07-PLAN.md — Launch Page UI: ingest, briefing, halos, gate, ribbon, drop zone, auto-save, reject modal (PROF-01, PROF-02, PROF-05)
-  - [ ] 07-08-PLAN.md — Clarifications UI: hotspots + chat widget extension + Needs Clarity dashboard sub-tab + operator-authored questions (PROF-04, PROF-05)
+  - [x] 07-08-PLAN.md — Clarifications UI: hotspots + chat widget extension + Needs Clarity dashboard sub-tab + operator-authored questions (PROF-04, PROF-05)
 **UI hint**: yes
 
 ### Phase 8: Client Profile Seeder v2 — External Source Parsers
