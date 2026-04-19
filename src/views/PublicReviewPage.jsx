@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase, getAnnotations, getFiles, createAnnotation, updateAnnotation, deleteAnnotation, logActivity, getRounds, fireWebhook, getRepliesForAnnotations, createReply } from '../lib/supabase'
+import { supabase, getAnnotations, getFiles, createAnnotation, updateAnnotation, deleteAnnotation, logActivity, getRounds, fireWebhook, getRepliesForAnnotations, createReply, getProjectAnnotations } from '../lib/supabase'
 import AnnotationCanvas from '../components/AnnotationCanvas'
 import CommentSidebar from '../components/CommentSidebar'
 import RoundSummaryModal from '../components/RoundSummaryModal'
@@ -88,6 +88,10 @@ export default function PublicReviewPage() {
   const [file, setFile] = useState(null)
   const [project, setProject] = useState(null)
   const [projectFiles, setProjectFiles] = useState([])
+  // Project-wide annotations — the source of truth for "how many pending
+  // comments across this review" so the Submit button and progress
+  // indicators reflect the whole project, not just this file.
+  const [projectAnnotations, setProjectAnnotations] = useState([])
   const [status, setStatus] = useState('loading')
   const [password, setPassword] = useState('')
   const [pwError, setPwError] = useState('')
@@ -133,6 +137,23 @@ export default function PublicReviewPage() {
   }, [])
   useEffect(() => { loadFileByToken() }, [token])
   useEffect(() => { localStorage.setItem('mm_client_author', authorName) }, [authorName])
+
+  // ?submit=1 from the landing page's "Submit round" CTA — open the
+  // RoundSummaryModal automatically once the file is ready, then strip
+  // the query param so refresh doesn't re-trigger.
+  const [status_snapshot_for_submit_effect] = [null] // eslint-disable-line
+  useEffect(() => {
+    // Local function to avoid recreating lint-required deps list
+    function maybeOpenSubmit() {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('submit') !== '1') return
+      setShowSubmitModal(true)
+      params.delete('submit')
+      const qs = params.toString()
+      window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''))
+    }
+    if (file && project) maybeOpenSubmit()
+  }, [file?.id, project?.id])
 
   // HTML blob + keep annotation canvas dims in sync with htmlWidth/height
   useEffect(() => {
@@ -289,14 +310,28 @@ export default function PublicReviewPage() {
 
   async function loadReady(fileData) {
     const f = fileData || file
-    const [, { data: filesData }, { data: roundData }] = await Promise.all([
+    const projectId = f.projects?.id || project?.id
+    const [, { data: filesData }, { data: roundData }, projAnns] = await Promise.all([
       loadAnnotations(f.id),
-      getFiles(f.projects?.id || project?.id),
-      getRounds(f.projects?.id || project?.id),
+      getFiles(projectId),
+      getRounds(projectId),
+      getProjectAnnotations(projectId).catch(() => ({ data: [] })),
     ])
     setProjectFiles(filesData || [])
     setRounds(roundData || [])
+    setProjectAnnotations(projAnns?.data || [])
     setStatus('ready')
+  }
+
+  // Refresh project-wide annotation counts whenever the current file's
+  // annotation list changes locally (add, delete, round submit). This keeps
+  // the "Submit all feedback (X)" counter honest without needing a realtime
+  // channel on every file in the project.
+  async function refreshProjectAnnotations() {
+    const projectId = file?.projects?.id || project?.id
+    if (!projectId) return
+    const { data } = await getProjectAnnotations(projectId)
+    setProjectAnnotations(data || [])
   }
 
   async function handlePasswordSubmit(e) {
@@ -407,6 +442,7 @@ export default function PublicReviewPage() {
     }
     setActiveBubble(null)
     await updateCommentCount()
+    refreshProjectAnnotations()
   }
 
   async function handleAddAnnotation(shape) {
@@ -425,6 +461,7 @@ export default function PublicReviewPage() {
     setBubblePos(anchor)
     setTool('select')
     await updateCommentCount()
+    refreshProjectAnnotations()
   }
 
   function handleAnnotationSelect(ann) {
@@ -491,7 +528,28 @@ export default function PublicReviewPage() {
   const currentRound = rounds.length + 1
   const maxRounds = project?.max_rounds || 2
   const roundsExhausted = rounds.length >= maxRounds
-  const unsubmittedCount = annotations.filter(a => !a.round_number && !a.pending).length
+
+  // Unsubmitted counts — project-wide, because a client reviews the
+  // whole proof and submits ONE round across all files. Per-file
+  // fallback uses the live annotations array so new comments show up
+  // in the counter before refreshProjectAnnotations() returns.
+  const projectUnsubmittedRaw = projectAnnotations.filter(a => !a.round_number).length
+  const currentFileUnsubmitted = annotations.filter(a => !a.round_number && !a.pending).length
+  // If we haven't refreshed yet after a local add, trust the higher number.
+  const unsubmittedCount = Math.max(projectUnsubmittedRaw, currentFileUnsubmitted)
+  const filesWithUnsubmitted = new Set(
+    projectAnnotations.filter(a => !a.round_number).map(a => a.file_id)
+  )
+  if (currentFileUnsubmitted > 0 && file?.id) filesWithUnsubmitted.add(file.id)
+  const fileCountWithUnsubmitted = filesWithUnsubmitted.size
+
+  // File navigation — lets reviewers step through every file in the
+  // project without bouncing back to the landing page. currentIndex is
+  // derived from projectFiles (already loaded in loadReady), so prev/
+  // next are cheap.
+  const currentIndex = projectFiles.findIndex(f => f.id === file?.id)
+  const prevFile = currentIndex > 0 ? projectFiles[currentIndex - 1] : null
+  const nextFile = currentIndex >= 0 && currentIndex < projectFiles.length - 1 ? projectFiles[currentIndex + 1] : null
 
   // ── Loading / Denied / Password states ──
   if (status === 'loading') {
@@ -556,7 +614,38 @@ export default function PublicReviewPage() {
           )}
           <span className="text-sm font-medium hidden md:inline">{project?.brand_name || 'Koto'}</span>
         </div>
-        <div className="text-sm text-white font-medium truncate flex-1">{file?.name}</div>
+        {/* File name + project navigation. The reviewer sees exactly where
+            they are in the proof ("File 2 of 5") and can jump anywhere
+            without bouncing back to the landing. */}
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {project?.public_token && (
+            <button
+              onClick={() => navigate(`/proof-review/${project.public_token}`)}
+              title="Back to all files"
+              className="hidden md:flex items-center gap-1 text-[11px] text-gray-400 hover:text-white bg-gray-800 px-2 h-7 rounded-lg"
+            >← All files</button>
+          )}
+          {projectFiles.length > 1 && (
+            <div className="hidden md:flex items-center gap-0.5 bg-gray-800 rounded-lg overflow-hidden">
+              <button
+                onClick={() => prevFile && navigate(`/review/${prevFile.public_token}`)}
+                disabled={!prevFile}
+                title={prevFile ? `Previous: ${prevFile.name}` : 'First file'}
+                className="text-white text-sm w-7 h-7 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+              >‹</button>
+              <span className="text-white text-[11px] px-2 h-7 flex items-center font-semibold whitespace-nowrap">
+                {currentIndex >= 0 ? currentIndex + 1 : '–'} / {projectFiles.length}
+              </span>
+              <button
+                onClick={() => nextFile && navigate(`/review/${nextFile.public_token}`)}
+                disabled={!nextFile}
+                title={nextFile ? `Next: ${nextFile.name}` : 'Last file'}
+                className="text-white text-sm w-7 h-7 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+              >›</button>
+            </div>
+          )}
+          <div className="text-sm text-white font-medium truncate">{file?.name}</div>
+        </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-[13px] md:text-sm text-gray-700 bg-gray-800 px-2 py-1 rounded-lg">
@@ -605,10 +694,21 @@ export default function PublicReviewPage() {
             </button>
           )}
 
+          {/* When there are more files to review, lead with Next file.
+              When they're on the last file (or any file with pending
+              project-wide comments), show Submit Round. */}
+          {!roundsExhausted && !isMobile && nextFile && (
+            <button onClick={() => navigate(`/review/${nextFile.public_token}`)}
+              title={`Next: ${nextFile.name}`}
+              className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+              Next file ›
+            </button>
+          )}
           {!roundsExhausted && !isMobile && (
             <button onClick={() => setShowSubmitModal(true)} disabled={unsubmittedCount === 0}
-              className="bg-green-500 hover:bg-green-600 disabled:opacity-40 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-              <Send size={11} /> Submit ({unsubmittedCount})
+              title={unsubmittedCount > 0 ? `Submit ${unsubmittedCount} comments across ${fileCountWithUnsubmitted} file${fileCountWithUnsubmitted !== 1 ? 's' : ''}` : 'Add comments first'}
+              className="bg-green-500 hover:bg-green-600 disabled:opacity-40 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap">
+              <Send size={11} /> Submit round ({unsubmittedCount})
             </button>
           )}
         </div>
@@ -880,18 +980,29 @@ export default function PublicReviewPage() {
             </div>
           </div>
 
-          {/* Submit section — ALWAYS visible, pinned to bottom */}
+          {/* Submit section — ALWAYS visible, pinned to bottom.
+              When there's a next file to review, we lead with Next; the
+              project-wide Submit lives right under it so the reviewer
+              can submit whenever they're ready. */}
           {!roundsExhausted ? (
-            <div className="p-4 border-t-2 border-brand-200 bg-brand-50 flex-shrink-0">
+            <div className="p-4 border-t-2 border-brand-200 bg-brand-50 flex-shrink-0 space-y-2">
+              {nextFile && (
+                <button onClick={() => navigate(`/review/${nextFile.public_token}`)}
+                  className="w-full bg-gray-900 hover:bg-black text-white font-bold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                  Next file › <span className="opacity-70 font-normal truncate max-w-[160px]">{nextFile.name}</span>
+                </button>
+              )}
               <button onClick={() => setShowSubmitModal(true)} disabled={unsubmittedCount === 0}
                 className="w-full bg-brand-500 hover:bg-brand-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-sm py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg">
                 <Send size={15} />
-                {unsubmittedCount > 0 ? `SUBMIT CHANGES (${unsubmittedCount})` : 'Add comments, then submit'}
-              </button>
-              <p className="text-[13px] text-brand-600 text-center mt-2 font-medium">
                 {unsubmittedCount > 0
-                  ? `Click to review and submit your feedback to ${project?.brand_name || 'Koto'}`
-                  : 'Use the tools above to add your feedback first'}
+                  ? `Submit round — ${unsubmittedCount} comment${unsubmittedCount !== 1 ? 's' : ''}`
+                  : 'Add comments, then submit'}
+              </button>
+              <p className="text-[13px] text-brand-600 text-center font-medium">
+                {unsubmittedCount > 0
+                  ? `Across ${fileCountWithUnsubmitted} file${fileCountWithUnsubmitted !== 1 ? 's' : ''} — sends everything to ${project?.brand_name || 'Koto'} as Round ${currentRound}`
+                  : 'Comments on any file in this project count toward your round'}
               </p>
             </div>
           ) : (
@@ -904,19 +1015,31 @@ export default function PublicReviewPage() {
       </div>
       </div>
 
-      {/* Sticky submit CTA bar */}
+      {/* Sticky submit CTA bar — reflects project-wide pending count and
+          nudges to Next file if there's one left to review. */}
       {unsubmittedCount > 0 && !roundsExhausted && (
-        <div className="bg-gradient-to-r from-green-600 to-green-500 text-white py-3 px-6 flex items-center justify-center gap-4 flex-shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.15)]">
+        <div className="bg-gradient-to-r from-green-600 to-green-500 text-white py-3 px-6 flex items-center justify-center gap-4 flex-shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
               <Send size={12} />
             </div>
-            <span className="text-sm font-medium">You have {unsubmittedCount} comment{unsubmittedCount !== 1 ? 's' : ''} ready</span>
+            <span className="text-sm font-medium">
+              {unsubmittedCount} comment{unsubmittedCount !== 1 ? 's' : ''} across {fileCountWithUnsubmitted} file{fileCountWithUnsubmitted !== 1 ? 's' : ''}
+              {nextFile ? ' — keep going or submit now' : ' — ready to submit'}
+            </span>
           </div>
-          <button onClick={() => setShowSubmitModal(true)}
-            className="bg-white text-green-700 font-bold text-sm px-6 py-2 rounded-xl hover:bg-green-50 transition-colors shadow-lg">
-            Submit Changes &rarr;
-          </button>
+          <div className="flex items-center gap-2">
+            {nextFile && (
+              <button onClick={() => navigate(`/review/${nextFile.public_token}`)}
+                className="bg-white/20 hover:bg-white/30 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-colors">
+                Next file ›
+              </button>
+            )}
+            <button onClick={() => setShowSubmitModal(true)}
+              className="bg-white text-green-700 font-bold text-sm px-6 py-2 rounded-xl hover:bg-green-50 transition-colors shadow-lg">
+              Submit round →
+            </button>
+          </div>
         </div>
       )}
 
@@ -927,11 +1050,13 @@ export default function PublicReviewPage() {
           onSubmitted={(roundNum) => {
             setRounds(prev => {
               const updated = [...prev, { round_number: roundNum, id: 'round-' + roundNum }]
-              // Show satisfaction survey after round submission
               setTimeout(() => setShowSurvey({ roundId: updated[updated.length - 1]?.id, roundNumber: roundNum }), 500)
               return updated
             })
+            // Mark every local annotation as submitted and refresh the
+            // project-wide list so the counter flips to zero immediately.
             setAnnotations(prev => prev.map(a => a.round_number ? a : { ...a, round_number: roundNum }))
+            refreshProjectAnnotations()
           }}
         />
       )}

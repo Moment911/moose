@@ -175,17 +175,24 @@ export default function ProjectReviewPage() {
     const fileMap = new Map(files.map(f => [f.id, f]))
     const open = annotations.filter(a => !a.resolved)
     const resolved = annotations.filter(a => a.resolved)
+    // "Pending" = not yet submitted as part of a round — this is the
+    // bucket the reviewer is actively building, across every file.
+    const pending = annotations.filter(a => !a.round_number)
+    const pendingFileIds = new Set(pending.map(a => a.file_id))
     return {
       totalFiles: files.length,
       totalComments: annotations.length,
       open: open.length,
       resolved: resolved.length,
+      pending: pending.length,
+      pendingFileCount: pendingFileIds.size,
       byFile: files.map(f => {
         const forFile = annotations.filter(a => a.file_id === f.id)
         return {
           file: f,
           total: forFile.length,
           open: forFile.filter(a => !a.resolved).length,
+          pending: forFile.filter(a => !a.round_number).length,
         }
       }),
       recent: annotations.slice(0, 8).map(a => ({ ...a, fileName: fileMap.get(a.file_id)?.name })),
@@ -306,7 +313,11 @@ export default function ProjectReviewPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111' }}>{file.name}</div>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                    {forFile?.open > 0 && <span style={{ color: '#f59e0b', fontWeight: 600 }}>{forFile.open} open</span>}
+                    {forFile?.pending > 0 && (
+                      <span style={{ color: '#f59e0b', fontWeight: 700, background: '#fef3c7', padding: '2px 8px', borderRadius: 999 }}>
+                        {forFile.pending} pending
+                      </span>
+                    )}
                     {forFile?.total > 0 && <span style={{ color: '#374151' }}>{forFile.total} comments</span>}
                     {!forFile?.total && <span>No comments yet</span>}
                   </div>
@@ -325,8 +336,55 @@ export default function ProjectReviewPage() {
           )}
         </div>
 
-        {/* Start review CTA */}
-        {files.length > 0 && (
+        {/* Pending-round banner — when the reviewer has unsubmitted
+            comments across any file, give them both paths: keep reviewing
+            or submit everything as one round. Keeps the whole-project
+            workflow front and center. */}
+        {files.length > 0 && summary.pending > 0 && (
+          <div style={{
+            padding: '16px 20px', background: '#064e3b', color: '#fff',
+            borderRadius: 14, marginBottom: 12,
+            display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+            boxShadow: '0 6px 18px rgba(6,78,59,0.35)',
+          }}>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ fontSize: 15, fontWeight: 800 }}>
+                {summary.pending} pending comment{summary.pending !== 1 ? 's' : ''} across {summary.pendingFileCount} file{summary.pendingFileCount !== 1 ? 's' : ''}
+              </div>
+              <div style={{ fontSize: 13, color: '#a7f3d0', marginTop: 2 }}>
+                Keep reviewing, or submit them all as one round.
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                const firstWithPending = summary.byFile.find(b => b.pending > 0)
+                const target = firstWithPending?.file || files[0]
+                if (target?.public_token) navigate(`/review/${target.public_token}`)
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none',
+                padding: '10px 16px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}
+            >Keep reviewing</button>
+            <button
+              onClick={() => {
+                const firstWithPending = summary.byFile.find(b => b.pending > 0)
+                const target = firstWithPending?.file || files[0]
+                if (target?.public_token) navigate(`/review/${target.public_token}?submit=1`)
+              }}
+              style={{
+                background: '#10b981', color: '#fff', border: 'none',
+                padding: '10px 18px', borderRadius: 10, fontSize: 14, fontWeight: 800,
+                cursor: 'pointer', whiteSpace: 'nowrap',
+                boxShadow: '0 4px 12px rgba(16,185,129,0.4)',
+              }}
+            >Submit round →</button>
+          </div>
+        )}
+
+        {/* Start review CTA — only when there are no pending comments yet */}
+        {files.length > 0 && summary.pending === 0 && (
           <button
             onClick={startReview}
             style={{
