@@ -121,7 +121,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Every field in `kotoiq_client_profile` carries `source_type` + `source_url` + `captured_at` + confidence score (VerifiedDataSource compliant)
   5. `pipelineOrchestrator.ts` Stage 0 runs the profile seeder before Stage 1 keyword sync; entity graph is pre-seeded with client identity, services, USPs, target customers, mentioned competitors
 **Plans**: 8 total
-  - [ ] 07-01-PLAN.md — Data layer: migration + kotoiqDb helpers + types + Vitest bootstrap + DST token (PROF-03, PROF-04)
+  - [x] 07-01-PLAN.md — Data layer: migration + kotoiqDb helpers + types + Vitest bootstrap + DST token (PROF-03, PROF-04)
   - [ ] 07-02-PLAN.md — Internal source pullers + profileConfig single source of truth (PROF-01, PROF-04)
   - [ ] 07-03-PLAN.md — Claude extractors (Sonnet tool-use, Haiku voice/discovery) + discrepancy detector + narration helper (PROF-02, PROF-04)
   - [ ] 07-04-PLAN.md — Seeder composition + launch gate + graph serializer + Stage 0 wire-in + durable pipeline_runs writes + stream_seed SSE endpoint (PROF-01, PROF-02, PROF-04, PROF-06)

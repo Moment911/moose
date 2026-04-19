@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: "Phase 7 UI-SPEC approved (force-approved: 6-tier prose scale exemption)"
-last_updated: "2026-04-17T20:40:06.780Z"
-last_activity: 2026-04-17 — Added Phases 7 + 8 to roadmap (11 new PROF-* requirements)
+status: executing
+stopped_at: Completed 07-01-PLAN.md (Tasks 3-6 in continuation agent; Tasks 1-2 prior agent + operator)
+last_updated: "2026-04-19T14:42:53.501Z"
+last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 75
+  total_plans: 8
+  completed_plans: 1
+  percent: 13
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Agencies run every layer of a client engagement from a single white-label platform — now including closed-loop programmatic SEO that attributes dollars to pages.
-**Current focus:** Phase 7 — Client Profile Seeder v1 (Stage 0 prerequisite for pilot)
+**Current focus:** Phase 07 — client-profile-seeder-v1-internal-ingest-gap-finder
 
 ## Current Position
 
-Phase: 7 of 8 (Client Profile Seeder v1 — Internal Ingest + Gap Finder)
-Plan: Phases 1-6 code complete. Phases 7 + 8 appended (profile seeder v1 + v2). PILOT-01 still pending, now also gated on Phase 7.
-Status: M1 Phases 1-6 code complete — Phase 7 not started, Phase 8 not started, deploy + pilot remaining
-Last activity: 2026-04-17 — Added Phases 7 + 8 to roadmap (11 new PROF-* requirements)
+Phase: 07 (client-profile-seeder-v1-internal-ingest-gap-finder) — EXECUTING
+Plan: 2 of 8
+Status: Ready to execute
+Last activity: 2026-04-19
 
 Progress: [████████░░] 75% (6 of 8 phases code complete; pilot pending)
 
@@ -52,6 +52,7 @@ Progress: [████████░░] 75% (6 of 8 phases code complete; pil
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 07 P01 | 30min | 6 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - Phase 3: Pre-flight gate refuses rather than warns — construction-time defense against Google's scaled-content-abuse policy
 - Phase 4: Vercel Workflow DevKit for durable publish orchestration; `koto_wp_commands` stays as plugin-call audit log
 - Phase 5: IndexNow + GSC sitemap ping only — Google Indexing API excluded (restricted to JobPosting/BroadcastEvent)
+- [Phase 07]: Plan 1: Per-table updated_at trigger function pattern (one CREATE FUNCTION per table) — repo never had a shared set_updated_at helper; followed 20260461 precedent
+- [Phase 07]: Plan 1: Pinned model IDs claude-sonnet-4-5-20250929 + claude-haiku-4-5-20251001 as canonical; CONTEXT 'Sonnet 4.6 / Haiku 4.5' is aspirational
+- [Phase 07]: Plan 1: Vitest resolve.conditions includes 'react-server' so server-only resolves to its empty stub at test time (mirrors Next.js)
 
 ### Pending Todos
 
@@ -75,18 +79,19 @@ None yet.
 
 ### Blockers/Concerns
 
-None yet. Research called out risks that are pre-mitigated in phase gates:
+yet. Research called out risks that are pre-mitigated in phase gates:
 
 - Scaled-content-abuse policy → Phase 3 pre-flight gate (ADAPT-05)
 - Elementor v4 atomic-widget save bugs (#32632 / #33000 / #35397) → Phase 2 `Document::save()` adapter (ELEM-04)
 - Cross-agency data leak → Phase 1 foundation work (FND-01..05)
 - Vercel function timeouts on bulk publish → Phase 4 Workflow orchestration (ORCH-01..05)
+- kotoiq_pipeline_runs realtime publication ADD deferred — table doesn't exist on remote yet (in 20260419_kotoiq_automation.sql backlog); blocks D-23 live ribbon work in 07-04..07-08
 
 ## Session Continuity
 
-Last session: 2026-04-17T20:40:06.777Z
-Stopped at: Phase 7 UI-SPEC approved (force-approved: 6-tier prose scale exemption)
-Resume file: .planning/phases/07-client-profile-seeder-v1-internal-ingest-gap-finder/07-UI-SPEC.md
+Last session: 2026-04-19T14:42:53.498Z
+Stopped at: Completed 07-01-PLAN.md (Tasks 3-6 in continuation agent; Tasks 1-2 prior agent + operator)
+Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
 

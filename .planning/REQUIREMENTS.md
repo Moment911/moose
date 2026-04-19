@@ -78,8 +78,8 @@
 
 - [ ] **PROF-01**: Operator can paste a Koto internal URL (`/onboard/:clientId`, `/onboarding-dashboard/:clientId`, or `/clients/:clientId`) and the system resolves it, extracts `clientId`, and pulls `clients` + `onboarding_answers` + `koto_discovery_engagements` + voice call transcripts + post-call analyses into the profile pipeline
 - [ ] **PROF-02**: Operator can paste raw text (voice transcript, email, meeting notes, pasted website copy, call notes) and Claude extracts structured fields against the canonical client-profile schema with per-field source citation (char offset + snippet)
-- [ ] **PROF-03**: System stores the resolved profile in a new `kotoiq_client_profile` table keyed on `client_id` + `agency_id`, with per-field `source_type`, `source_url`, `captured_at`, and confidence score per platform `VerifiedDataSource` standard
-- [ ] **PROF-04**: Gap-finder compares the populated profile against the canonical field schema + pipeline-required fields and emits 3-8 surgical follow-up questions (not 26 blind ones); low-confidence auto-fills are also surfaced for operator confirmation
+- [x] **PROF-03**: System stores the resolved profile in a new `kotoiq_client_profile` table keyed on `client_id` + `agency_id`, with per-field `source_type`, `source_url`, `captured_at`, and confidence score per platform `VerifiedDataSource` standard
+- [x] **PROF-04**: Gap-finder compares the populated profile against the canonical field schema + pipeline-required fields and emits 3-8 surgical follow-up questions (not 26 blind ones); low-confidence auto-fills are also surfaced for operator confirmation
 - [ ] **PROF-05**: Operator can review every auto-populated field in a review UI with confidence-weighted hints (green/amber/red), and accept, edit, or reject each field individually; rejections do not delete source provenance
 - [ ] **PROF-06**: On profile completion, the seeder feeds `pipelineOrchestrator.ts` as a Stage 0 step — the entity graph is seeded with client identity, services, USPs, target customers, and mentioned competitors before any Stage 1 keyword sync runs
 
@@ -201,8 +201,8 @@
 | PILOT-01 | Phase 6 | Pending |
 | PROF-01 | Phase 7 | Pending |
 | PROF-02 | Phase 7 | Pending |
-| PROF-03 | Phase 7 | Pending |
-| PROF-04 | Phase 7 | Pending |
+| PROF-03 | Phase 7 | Complete |
+| PROF-04 | Phase 7 | Complete |
 | PROF-05 | Phase 7 | Pending |
 | PROF-06 | Phase 7 | Pending |
 | PROF-07 | Phase 8 | Pending |
