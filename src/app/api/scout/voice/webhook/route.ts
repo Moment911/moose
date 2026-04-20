@@ -237,6 +237,7 @@ export async function POST(req: NextRequest) {
         const prospectEmail = String(fnArgs.prospect_email || '').trim().toLowerCase()
         const prospectPhone = String(fnArgs.prospect_phone || '').trim()
         const prospectName = String(fnArgs.prospect_name || '').trim()
+        const smsOptedIn = fnArgs.sms_opted_in === true || fnArgs.sms_opted_in === 'true'
         const attendeeEmails = String(fnArgs.attendee_emails || '').split(',').map((e: string) => e.trim()).filter(Boolean)
 
         if (scoutCallId) {
@@ -265,9 +266,38 @@ export async function POST(req: NextRequest) {
               disc._appointment = {
                 when: whenIso, type: meetingType, notes, set_at: new Date().toISOString(),
                 prospect_email: contactEmail, prospect_phone: contactPhone, prospect_name: contactName,
-                attendee_emails: attendeeEmails,
+                attendee_emails: attendeeEmails, sms_opted_in: smsOptedIn,
               }
               await s.from('scout_voice_calls').update({ discovery_data: disc }).eq('id', scoutCallId)
+
+              // 2b. Record SMS voice opt-in in TCPA records + persona
+              if (smsOptedIn && contactPhone && agency_id) {
+                // TCPA consent record — verbal opt-in for SMS
+                await s.from('koto_voice_tcpa_records').upsert({
+                  agency_id,
+                  phone: contactPhone,
+                  consent_status: 'express_oral',
+                  consent_source: 'voice_call',
+                  consent_timestamp: new Date().toISOString(),
+                  consent_evidence_url: null,
+                  opt_out: false,
+                  sms_opted_in: true,
+                  sms_opt_in_at: new Date().toISOString(),
+                  sms_opt_in_source: 'scout_voice_call',
+                  sms_opt_in_call_id: scoutCallId,
+                }, { onConflict: 'agency_id,phone' }).then(() => {}, () => {})
+
+                // Update persona if linked
+                if (callRow && (callRow as any).persona_id) {
+                  await s.from('scout_voice_personas').update({
+                    sms_opted_in: true,
+                    sms_opt_in_at: new Date().toISOString(),
+                    email: contactEmail || undefined,
+                    phone: contactPhone || undefined,
+                    updated_at: new Date().toISOString(),
+                  }).eq('id', (callRow as any).persona_id).then(() => {}, () => {})
+                }
+              }
 
               // 3. Save to koto_voice_appointments
               const startTime = whenIso ? new Date(whenIso) : new Date(Date.now() + 86400000)
@@ -303,14 +333,22 @@ export async function POST(req: NextRequest) {
                   }
 
                   // 4a. Create or find GHL contact
+                  const tags = ['scout-voice', meetingType]
+                  if (smsOptedIn) tags.push('sms-opted-in')
+
                   const contactBody: Record<string, any> = {
                     locationId,
                     name: contactName || companyName,
                     email: contactEmail || undefined,
                     phone: contactPhone || undefined,
                     companyName: companyName || undefined,
-                    tags: ['scout-voice', meetingType],
+                    tags,
                     source: 'Scout Voice AI',
+                    customFields: smsOptedIn ? [
+                      { key: 'sms_voice_opt_in', field_value: 'true' },
+                      { key: 'sms_opt_in_date', field_value: new Date().toISOString().split('T')[0] },
+                      { key: 'sms_opt_in_source', field_value: 'Scout Voice AI — verbal consent on call' },
+                    ] : [],
                   }
 
                   // Search for existing contact by email or phone
@@ -324,10 +362,18 @@ export async function POST(req: NextRequest) {
 
                   if (existingContact) {
                     ghlContactId = existingContact.id
-                    // Update with latest info
+                    // Update with latest info + SMS opt-in
+                    const updateBody: Record<string, any> = { name: contactName || undefined, phone: contactPhone || undefined, tags }
+                    if (smsOptedIn) {
+                      updateBody.customFields = [
+                        { key: 'sms_voice_opt_in', field_value: 'true' },
+                        { key: 'sms_opt_in_date', field_value: new Date().toISOString().split('T')[0] },
+                        { key: 'sms_opt_in_source', field_value: 'Scout Voice AI — verbal consent on call' },
+                      ]
+                    }
                     await fetch(`https://services.leadconnectorhq.com/contacts/${ghlContactId}`, {
                       method: 'PUT', headers: ghlHeaders,
-                      body: JSON.stringify({ name: contactName || undefined, phone: contactPhone || undefined, tags: ['scout-voice', meetingType] }),
+                      body: JSON.stringify(updateBody),
                     }).catch(() => {})
                   } else {
                     const createRes = await fetch('https://services.leadconnectorhq.com/contacts/', {

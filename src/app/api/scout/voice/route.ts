@@ -123,15 +123,16 @@ function buildScoutTools(webhookUrl: string) {
     {
       type: 'custom',
       name: 'set_appointment',
-      description: 'Book a follow-up meeting when the prospect agrees to a time. IMPORTANT: Before calling this, you MUST ask for their email address so we can send a calendar invite. Also confirm their phone number. Say something like: "Perfect — what email should I send the invite to?" then "And is this the best number to reach you on?"',
+      description: 'Book a follow-up meeting when the prospect agrees to a time. IMPORTANT: Before calling this tool, collect ALL of these in a natural flow: 1) Email: "Perfect — what email should I send the calendar invite to?" 2) Cell phone: "And what\'s the best cell number to text you a reminder on?" 3) SMS opt-in: "Is it cool if we shoot you a text reminder the day before?" If they say yes, set sms_opted_in to true. Keep it conversational — weave these into the booking confirmation, don\'t interrogate.',
       url: webhookUrl,
       speak_during_execution: true,
       parameters: { type: 'object', properties: {
         when_iso: { type: 'string', description: 'ISO timestamp of the scheduled meeting' },
         meeting_type: { type: 'string', description: 'demo | discovery | proposal_review' },
         prospect_email: { type: 'string', description: 'Email address for the calendar invite — ask if not provided' },
-        prospect_phone: { type: 'string', description: 'Best phone number to reach them' },
+        prospect_phone: { type: 'string', description: 'Cell phone number for text reminders' },
         prospect_name: { type: 'string', description: 'Full name of the person who will attend' },
+        sms_opted_in: { type: 'boolean', description: 'true if prospect verbally agreed to receive SMS reminders' },
         attendee_emails: { type: 'string', description: 'Comma-separated emails of additional attendees if mentioned' },
         notes: { type: 'string' },
       }, required: ['when_iso', 'prospect_email'] },
