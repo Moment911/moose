@@ -631,7 +631,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     try {
       const llm = await retellFetch('/create-retell-llm', 'POST', {
-        model: 'claude-haiku-4.5',
+        model: 'claude-4.5-haiku',
         general_prompt: 'You are a Scout SDR. The system prompt will be provided at call time via dynamic variables. Use the tools liberally.',
         general_tools: buildScoutTools(webhookUrl),
       })
@@ -693,7 +693,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     try {
       const llm = await retellFetch('/create-retell-llm', 'POST', {
-        model: 'claude-haiku-4.5',
+        model: 'claude-4.5-haiku',
         general_prompt: 'You are a Scout SDR. System prompt arrives via dynamic vars.',
         general_tools: buildScoutTools(webhookUrl),
       })
