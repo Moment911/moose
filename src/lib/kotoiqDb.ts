@@ -42,6 +42,7 @@ const DIRECT_AGENCY_TABLES = new Set([
   'kotoiq_campaigns',
   'kotoiq_client_profile',      // Phase 7 — D-01..D-05
   'kotoiq_clarifications',      // Phase 7 — D-16
+  'koto_agency_integrations',   // Phase 8 — D-02, D-32 (encryption at rest in Plan 03)
 ])
 
 /** Tables where agency_id is transitive (through a parent FK) */
@@ -151,6 +152,18 @@ export interface KotoIQDb {
       channel: 'sms' | 'email' | 'portal',
     ) => Promise<any>
     markSkipped: (id: string) => Promise<any>
+  }
+
+  // ── Phase 8 — Agency Integrations (D-02, D-32) ────────────────────────────
+  // Encryption is NOT handled here — Plan 03 ships profileIntegrationsVault.ts
+  // which encrypts/decrypts the payload before calling upsert/after calling get.
+  agencyIntegrations: {
+    list: (filters?: { integration_kind?: string; scope_client_id?: string | null }) => Promise<any>
+    get: (id: string) => Promise<any>
+    getByKind: (kind: string, scopeClientId?: string | null) => Promise<any>
+    upsert: (row: Record<string, any>) => Promise<any>
+    delete: (id: string) => Promise<any>
+    markTested: (id: string, ok: boolean, error?: string | null) => Promise<any>
   }
 }
 
@@ -530,6 +543,59 @@ export function getKotoIQDb(agencyId: string): KotoIQDb {
     },
   }
 
+  // ── Phase 8 — Agency Integrations helper ───────────────────────────────────
+  // This helper does NOT encrypt — Plan 03 ships profileIntegrationsVault.ts
+  // and call sites there encrypt the payload before handing to upsert.
+  const agencyIntegrations = {
+    async list(filters?: { integration_kind?: string; scope_client_id?: string | null }) {
+      let q = scopedFrom('koto_agency_integrations').select('*')
+      if (filters?.integration_kind) q = q.eq('integration_kind', filters.integration_kind)
+      if (filters?.scope_client_id !== undefined) {
+        if (filters.scope_client_id === null) {
+          q = q.is('scope_client_id', null)
+        } else {
+          q = q.eq('scope_client_id', filters.scope_client_id)
+        }
+      }
+      return q.order('created_at', { ascending: false })
+    },
+    async get(id: string) {
+      return scopedFrom('koto_agency_integrations').select('*').eq('id', id).single()
+    },
+    async getByKind(kind: string, scopeClientId?: string | null) {
+      let q = scopedFrom('koto_agency_integrations').select('*').eq('integration_kind', kind)
+      if (scopeClientId === null || scopeClientId === undefined) {
+        q = q.is('scope_client_id', null)
+      } else {
+        q = q.eq('scope_client_id', scopeClientId)
+      }
+      return q.maybeSingle()
+    },
+    async upsert(row: Record<string, any>) {
+      return sb.from('koto_agency_integrations')
+        .upsert(
+          { ...row, agency_id: agencyId, updated_at: new Date().toISOString() },
+          { onConflict: 'agency_id,integration_kind,scope_client_id' },
+        )
+        .select()
+        .single()
+    },
+    async delete(id: string) {
+      return scopedFrom('koto_agency_integrations').delete().eq('id', id)
+    },
+    async markTested(id: string, ok: boolean, error?: string | null) {
+      return scopedFrom('koto_agency_integrations')
+        .update({
+          last_tested_at: new Date().toISOString(),
+          last_tested_ok: ok,
+          last_test_error: error ?? null,
+        })
+        .eq('id', id)
+        .select()
+        .single()
+    },
+  }
+
   return {
     agencyId,
     client: sb,
@@ -541,5 +607,6 @@ export function getKotoIQDb(agencyId: string): KotoIQDb {
     builderSites,
     clientProfile,
     clarifications,
+    agencyIntegrations,
   }
 }
