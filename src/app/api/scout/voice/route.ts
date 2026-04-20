@@ -257,7 +257,40 @@ export async function GET(req: NextRequest) {
   const s = sb()
 
   if (action === 'get_voice_roster') {
-    return NextResponse.json({ data: SCOUT_VOICE_ROSTER })
+    // Try the live Retell catalog first, fall back to the static curated
+    // roster if the API is unreachable or the token is missing. The live
+    // list is authoritative — our static list can go stale when Retell
+    // adds/removes voices from the 11labs integration.
+    try {
+      if (RETELL_API_KEY) {
+        const resp = await fetch(`${RETELL_BASE}/list-voices`, {
+          headers: { 'Authorization': `Bearer ${RETELL_API_KEY}` },
+        })
+        if (resp.ok) {
+          const live: any[] = await resp.json()
+          if (Array.isArray(live) && live.length > 0) {
+            const enriched = live.map((v: any) => {
+              const id = v.voice_id || v.id
+              const fromStatic = SCOUT_VOICE_ROSTER.find(sv => sv.id === id)
+              return {
+                id,
+                name: v.voice_name || v.name || fromStatic?.name || id,
+                gender: (v.gender || fromStatic?.gender || 'unknown').toLowerCase(),
+                accent: v.accent || fromStatic?.accent || 'Unknown',
+                style: fromStatic?.style || (v.age ? `${v.age}` : 'Professional'),
+                provider: v.provider || v.voice_type || null,
+                preview_audio_url: v.preview_audio_url || null,
+                sample_note: fromStatic?.sample_note || null,
+              }
+            })
+            return NextResponse.json({ data: enriched, source: 'retell_live' })
+          }
+        }
+      }
+    } catch {
+      // fall through to static
+    }
+    return NextResponse.json({ data: SCOUT_VOICE_ROSTER, source: 'static_fallback' })
   }
 
   if (action === 'get_cadence_presets') {
