@@ -437,30 +437,42 @@ async function runPostCallAnalysis(
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
+        max_tokens: 2000,
         temperature: 0.1,
         messages: [{ role: 'user', content: `Analyze this outbound cold call transcript. The AI SDR called ${scoutCall?.company_name || 'a prospect'}${scoutCall?.contact_name ? ` (${scoutCall.contact_name})` : ''} in the ${scoutCall?.industry || 'unknown'} industry.
 
 Transcript:
 ${transcript.slice(0, 6000)}
 
-Return ONLY valid JSON:
+Extract EVERY piece of structured data from this conversation. Return ONLY valid JSON:
 {
-  "call_summary": "2-3 sentence summary of what happened",
+  "call_summary": "2-3 sentence summary",
   "outcome_label": "dm_reached_direct | dm_reached_via_gatekeeper | dm_reached_via_ivr | gatekeeper_blocked | wrong_person_redirect | voicemail_left | ivr_deadend | no_answer | opt_out_requested | appointment_set | qualified_no_appointment | not_interested",
   "sentiment": "positive | neutral | negative | hostile",
   "talk_ratio_agent": 0.0 to 1.0,
   "talk_ratio_prospect": 0.0 to 1.0,
-  "pain_points_disclosed": ["list of pain points mentioned by prospect"],
-  "objections_raised": ["list of objections"],
-  "buying_signals": ["list of buying signals"],
-  "names_mentioned": ["names of people mentioned"],
-  "current_vendor_mentioned": "vendor name or null",
-  "budget_signal": "string or null",
-  "timeline_signal": "string or null",
-  "coaching_notes": ["1-3 specific things the AI agent could improve"],
+
+  "names_mentioned": [{"name": "string", "title": "string or null", "role_context": "dm | gatekeeper | referral | unknown"}],
+  "titles_mentioned": ["title strings mentioned in conversation"],
+  "emails_given": ["email addresses mentioned"],
+  "phones_given": ["phone numbers or extensions mentioned"],
+  "best_callback_time": "string describing best time to call back, or null",
+
+  "pain_points_disclosed": [{"text": "the pain point", "severity": "high | medium | low"}],
+  "objections_raised": [{"text": "the objection", "agent_response": "how the agent responded or null", "resolved": true/false}],
+  "buying_signals": [{"type": "price_inquiry | urgency | competitor_mention | demo_request | budget_confirm | timeline_given | other", "quote": "what they said"}],
+
+  "current_vendors": ["vendor/tool names the prospect mentioned using"],
+  "budget_signals": [{"amount_or_range": "string", "context": "what was said"}],
+  "timeline_signals": [{"signal": "string", "urgency": "high | medium | low"}],
+
+  "commitments_agent": [{"text": "what the agent promised", "type": "send_info | follow_up | demo | other"}],
+  "commitments_prospect": [{"text": "what the prospect committed to", "type": "meeting | review | callback | other"}],
+
+  "do_not_contact_requested": false,
   "follow_up_recommended": true/false,
-  "follow_up_reason": "why or null"
+  "follow_up_reason": "why or null",
+  "coaching_notes": ["1-3 specific improvements for the AI agent"]
 }` }],
       }),
     })
@@ -474,6 +486,7 @@ Return ONLY valid JSON:
 
     const analysis = JSON.parse(jsonMatch[0])
 
+    // ── Update call record ──
     const updates: Record<string, any> = {
       post_call_analysis: analysis,
       sentiment: analysis.sentiment || null,
@@ -487,7 +500,37 @@ Return ONLY valid JSON:
       updates.outcome = analysis.outcome_label
     }
 
+    // Store coaching report separately for dashboard access
+    if (analysis.coaching_notes?.length) {
+      updates.coaching_report = {
+        notes: analysis.coaching_notes,
+        talk_ratio: { agent: analysis.talk_ratio_agent, prospect: analysis.talk_ratio_prospect },
+        analyzed_at: new Date().toISOString(),
+      }
+    }
+
     await s.from('scout_voice_calls').update(updates).eq('id', scoutCallId)
+
+    // ── Write extracted insights back to persona ──
+    if (scoutCall?.persona_id) {
+      void writeBackToPersona(s, scoutCall.persona_id, scoutCallId, analysis)
+    }
+
+    // ── Handle DNC flag from transcript ──
+    if (analysis.do_not_contact_requested && scoutCall?.agency_id) {
+      const { data: callRow } = await s.from('scout_voice_calls')
+        .select('to_number').eq('id', scoutCallId).single()
+      if (callRow?.to_number) {
+        await s.from('koto_voice_tcpa_records').upsert({
+          agency_id: scoutCall.agency_id,
+          phone: callRow.to_number,
+          opt_out: true,
+          opt_out_at: new Date().toISOString(),
+          opt_out_source: 'transcript_analysis',
+          consent_status: 'revoked',
+        }, { onConflict: 'agency_id,phone' })
+      }
+    }
 
     // Log token usage
     const inputTokens = data?.usage?.input_tokens || 0
@@ -504,5 +547,94 @@ Return ONLY valid JSON:
     }
   } catch (e) {
     console.error('[scout/webhook] post-call analysis error:', e)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Write extracted insights from post-call analysis back to the
+// persona record. Appends to the persona's jsonb insight arrays
+// so intelligence accumulates across calls.
+// ─────────────────────────────────────────────────────────────
+async function writeBackToPersona(
+  s: ReturnType<typeof sb>,
+  personaId: string,
+  callId: string,
+  analysis: any,
+) {
+  try {
+    const { data: persona } = await s.from('scout_voice_personas')
+      .select('pain_points, objections, buying_signals, budget_signals, timeline_signals, competitors_mentioned')
+      .eq('id', personaId).single()
+    if (!persona) return
+
+    const now = new Date().toISOString()
+    const updates: Record<string, any> = {}
+
+    // Pain points
+    const pains = Array.isArray(analysis.pain_points_disclosed) ? analysis.pain_points_disclosed : []
+    if (pains.length > 0) {
+      const arr = Array.isArray(persona.pain_points) ? [...persona.pain_points] : []
+      for (const p of pains) {
+        arr.push({ text: typeof p === 'string' ? p : p.text, severity: p.severity || null, call_id: callId, captured_at: now })
+      }
+      updates.pain_points = arr
+    }
+
+    // Objections
+    const objs = Array.isArray(analysis.objections_raised) ? analysis.objections_raised : []
+    if (objs.length > 0) {
+      const arr = Array.isArray(persona.objections) ? [...persona.objections] : []
+      for (const o of objs) {
+        arr.push({ text: typeof o === 'string' ? o : o.text, agent_response: o.agent_response || null, resolution_status: o.resolved ? 'resolved' : 'unresolved', call_id: callId, captured_at: now })
+      }
+      updates.objections = arr
+    }
+
+    // Buying signals
+    const buys = Array.isArray(analysis.buying_signals) ? analysis.buying_signals : []
+    if (buys.length > 0) {
+      const arr = Array.isArray(persona.buying_signals) ? [...persona.buying_signals] : []
+      for (const b of buys) {
+        arr.push({ type: b.type || 'other', quote: b.quote || '', call_id: callId, captured_at: now })
+      }
+      updates.buying_signals = arr
+    }
+
+    // Budget signals
+    const budgets = Array.isArray(analysis.budget_signals) ? analysis.budget_signals : []
+    if (budgets.length > 0) {
+      const arr = Array.isArray(persona.budget_signals) ? [...persona.budget_signals] : []
+      for (const b of budgets) {
+        arr.push({ amount_or_range: b.amount_or_range || '', context: b.context || '', call_id: callId, captured_at: now })
+      }
+      updates.budget_signals = arr
+    }
+
+    // Timeline signals
+    const timelines = Array.isArray(analysis.timeline_signals) ? analysis.timeline_signals : []
+    if (timelines.length > 0) {
+      const arr = Array.isArray(persona.timeline_signals) ? [...persona.timeline_signals] : []
+      for (const t of timelines) {
+        arr.push({ signal: t.signal || '', urgency: t.urgency || null, call_id: callId, captured_at: now })
+      }
+      updates.timeline_signals = arr
+    }
+
+    // Competitors / current vendors
+    const vendors = Array.isArray(analysis.current_vendors) ? analysis.current_vendors : []
+    if (vendors.length > 0) {
+      const arr = Array.isArray(persona.competitors_mentioned) ? [...persona.competitors_mentioned] : []
+      for (const v of vendors) {
+        arr.push({ vendor: typeof v === 'string' ? v : v.name, context: 'current vendor', call_id: callId, captured_at: now })
+      }
+      updates.competitors_mentioned = arr
+    }
+
+    if (Object.keys(updates).length > 0) {
+      updates.updated_at = now
+      await s.from('scout_voice_personas').update(updates).eq('id', personaId)
+    }
+  } catch (e) {
+    console.error('[scout/webhook] persona writeback error:', e)
   }
 }
