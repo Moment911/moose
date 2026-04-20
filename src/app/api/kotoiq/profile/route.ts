@@ -76,6 +76,49 @@ const ALLOWED_ACTIONS = [
 // columns on kotoiq_client_profile (must match kotoiqDb.PROFILE_HOT_COLUMNS).
 const HOT_COLUMNS_SET = new Set(CANONICAL_FIELD_NAMES.slice(0, 11))
 
+// CR-01 mitigation — uniform field_name shape + size validation applied to
+// every action that writes into the kotoiq_client_profile.fields jsonb
+// (update_field, add_field, delete_field, reject_field).  Without this an
+// authenticated operator could pollute the jsonb with arbitrary keys
+// (`__proto__`, megabyte-long strings, etc.).
+const FIELD_NAME_RE = /^[a-z][a-z0-9_]*$/i
+const MAX_FIELD_NAME_LEN = 80
+const MAX_FIELD_VALUE_LEN = 8000
+
+function validateFieldNameShape(fieldName: unknown):
+  | { ok: true; name: string }
+  | { ok: false; error: string } {
+  if (typeof fieldName !== 'string') return { ok: false, error: 'field_name must be a string' }
+  if (fieldName.length === 0 || fieldName.length > MAX_FIELD_NAME_LEN) {
+    return { ok: false, error: `field_name must be 1-${MAX_FIELD_NAME_LEN} chars` }
+  }
+  if (!FIELD_NAME_RE.test(fieldName)) {
+    return { ok: false, error: 'field_name must be alphanumeric/underscore (regex: ^[a-z][a-z0-9_]*$/i)' }
+  }
+  return { ok: true, name: fieldName }
+}
+
+function validateFieldValueSize(value: unknown):
+  | { ok: true }
+  | { ok: false; error: string } {
+  if (typeof value === 'string' && value.length > MAX_FIELD_VALUE_LEN) {
+    return { ok: false, error: `value exceeds ${MAX_FIELD_VALUE_LEN} chars` }
+  }
+  // Best-effort size check for non-string payloads — JSON.stringify gives an
+  // upper bound that catches accidentally huge arrays / objects.
+  if (value !== null && value !== undefined && typeof value !== 'string') {
+    try {
+      const s = JSON.stringify(value)
+      if (s && s.length > MAX_FIELD_VALUE_LEN) {
+        return { ok: false, error: `value exceeds ${MAX_FIELD_VALUE_LEN} chars (serialized)` }
+      }
+    } catch {
+      return { ok: false, error: 'value is not JSON-serializable' }
+    }
+  }
+  return { ok: true }
+}
+
 function err(status: number, error: string, extra?: Record<string, unknown>) {
   return NextResponse.json({ error, ...(extra || {}) }, { status })
 }
@@ -209,8 +252,28 @@ export async function POST(req: NextRequest) {
       if (!body.client_id || !body.field_name) {
         return err(400, 'client_id and field_name required')
       }
+      // CR-01 — shape + length guard before any DB read.
+      const nameCheck = validateFieldNameShape(body.field_name)
+      if (nameCheck.ok === false) return err(400, nameCheck.error)
+      const fieldName = nameCheck.name
+      const valueCheck = validateFieldValueSize(body.value)
+      if (valueCheck.ok === false) return err(413, valueCheck.error)
+
       const { data: profile } = await db.clientProfile.get(body.client_id)
       if (!profile) return err(404, 'Profile not found')
+
+      // CR-01 — allowlist: must be a canonical name OR an existing custom
+      // field on this profile. Operators must use add_field for new custom
+      // fields so the create vs. edit boundary stays explicit.
+      const isCanonical = (CANONICAL_FIELD_NAMES as readonly string[]).includes(fieldName)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const existingFields = (((profile as any).fields) || {}) as Record<string, unknown>
+      if (!isCanonical && !(fieldName in existingFields)) {
+        return err(400, 'unknown field — use add_field to create a custom field first', {
+          hint: 'update_field only edits canonical or already-added custom fields',
+        })
+      }
+
       const isOperatorEdit = body.source_type !== 'claude_inference'
       const record: ProvenanceRecord = {
         value: body.value ?? null,
@@ -224,7 +287,7 @@ export async function POST(req: NextRequest) {
       const { error: updateErr } = await db.clientProfile.updateField(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (profile as any).id,
-        body.field_name,
+        fieldName,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         record as any,
       )
@@ -272,7 +335,14 @@ export async function POST(req: NextRequest) {
       if (!body.client_id || !body.field_name) {
         return err(400, 'client_id and field_name required')
       }
-      if ((CANONICAL_FIELD_NAMES as readonly string[]).includes(body.field_name)) {
+      // CR-01 — uniform shape + length guard.
+      const nameCheck = validateFieldNameShape(body.field_name)
+      if (nameCheck.ok === false) return err(400, nameCheck.error)
+      const fieldName = nameCheck.name
+      const valueCheck = validateFieldValueSize(body.value)
+      if (valueCheck.ok === false) return err(413, valueCheck.error)
+
+      if ((CANONICAL_FIELD_NAMES as readonly string[]).includes(fieldName)) {
         return err(400, 'field_name already in canonical schema — use update_field', {
           hint: 'D-05 add_field is for NEW custom operator fields',
         })
@@ -282,7 +352,7 @@ export async function POST(req: NextRequest) {
       const { error: addErr } = await db.clientProfile.addField(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (profile as any).id,
-        body.field_name,
+        fieldName,
         body.value,
         { source_ref: 'operator_custom_field' },
       )
@@ -295,12 +365,17 @@ export async function POST(req: NextRequest) {
       if (!body.client_id || !body.field_name) {
         return err(400, 'client_id and field_name required')
       }
+      // CR-01 — uniform shape + length guard.
+      const nameCheck = validateFieldNameShape(body.field_name)
+      if (nameCheck.ok === false) return err(400, nameCheck.error)
+      const fieldName = nameCheck.name
+
       const { data: profile } = await db.clientProfile.get(body.client_id)
       if (!profile) return err(404, 'Profile not found')
       const { error: delErr } = await db.clientProfile.deleteField(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (profile as any).id,
-        body.field_name,
+        fieldName,
       )
       if (delErr) return err(500, 'Delete failed')
       return NextResponse.json({ ok: true })
@@ -311,24 +386,31 @@ export async function POST(req: NextRequest) {
       if (!body.client_id || !body.field_name) {
         return err(400, 'client_id and field_name required')
       }
+      // CR-01 — uniform shape + length guard.
+      const nameCheck = validateFieldNameShape(body.field_name)
+      if (nameCheck.ok === false) return err(400, nameCheck.error)
+      const fieldName = nameCheck.name
+
       const { data: profile } = await db.clientProfile.get(body.client_id)
       if (!profile) return err(404, 'Profile not found')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fields = ((profile as any).fields || {}) as Record<string, any[]>
-      const existing = fields[body.field_name]
+      const existing = fields[fieldName]
       if (!existing) return err(404, 'Field not present')
       // Mark every record rejected — keep the audit trail.  PROF-05 explicitly
       // says rejection is NOT deletion; the source records survive so the
       // "where did this come from?" UX still works post-rejection.
       const patched = existing.map((r) => ({ ...r, rejected: true }))
-      fields[body.field_name] = patched
+      fields[fieldName] = patched
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const patch: Record<string, any> = {
         client_id: body.client_id,
         fields,
         last_edited_at: new Date().toISOString(),
       }
-      if (HOT_COLUMNS_SET.has(body.field_name)) patch[body.field_name] = null
+      // Cast: HOT_COLUMNS_SET is typed Set<CanonicalFieldName>; fieldName is
+      // string here — a runtime membership check is exactly what we want.
+      if ((HOT_COLUMNS_SET as Set<string>).has(fieldName)) patch[fieldName] = null
       const { error: rejErr } = await db.clientProfile.upsert(patch)
       if (rejErr) return err(500, 'Reject failed')
       return NextResponse.json({ ok: true })
