@@ -517,6 +517,11 @@ Extract EVERY piece of structured data from this conversation. Return ONLY valid
 
     await s.from('scout_voice_calls').update(updates).eq('id', scoutCallId)
 
+    // ── Auto-improve: accumulate coaching notes on the agent for prompt evolution ──
+    if (analysis.coaching_notes?.length && scoutCall?.agency_id) {
+      void accumulateCoachingFeedback(s, scoutCall.agency_id, scoutCallId, analysis, transcript)
+    }
+
     // ── Write extracted insights back to persona ──
     if (scoutCall?.persona_id) {
       void writeBackToPersona(s, scoutCall.persona_id, scoutCallId, analysis)
@@ -642,5 +647,115 @@ async function writeBackToPersona(
     }
   } catch (e) {
     console.error('[scout/webhook] persona writeback error:', e)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Auto-improve: After each call, accumulate coaching feedback on the
+// agent's record. When enough feedback accumulates (3+ calls), run a
+// Sonnet pass to synthesize prompt improvements and store them as
+// "learned_rules" on scout_voice_agents. The buildScoutPrompt function
+// injects these rules into the system prompt for subsequent calls.
+// ─────────────────────────────────────────────────────────────
+async function accumulateCoachingFeedback(
+  s: ReturnType<typeof sb>,
+  agencyId: string,
+  callId: string,
+  analysis: any,
+  transcript: string,
+) {
+  try {
+    // Get the agent for this agency
+    const { data: agent } = await s.from('scout_voice_agents')
+      .select('id, learned_rules, coaching_history')
+      .eq('agency_id', agencyId).eq('active', true)
+      .order('created_at', { ascending: false }).limit(1).single()
+    if (!agent) return
+
+    // Append coaching notes to history
+    const history = Array.isArray(agent.coaching_history) ? [...agent.coaching_history] : []
+    history.push({
+      call_id: callId,
+      notes: analysis.coaching_notes,
+      outcome: analysis.outcome_label,
+      sentiment: analysis.sentiment,
+      talk_ratio_agent: analysis.talk_ratio_agent,
+      at: new Date().toISOString(),
+    })
+
+    // Keep last 20 entries
+    const trimmed = history.slice(-20)
+
+    await s.from('scout_voice_agents').update({
+      coaching_history: trimmed,
+      updated_at: new Date().toISOString(),
+    }).eq('id', agent.id)
+
+    // If we have 3+ coaching entries, synthesize learned rules
+    if (trimmed.length >= 3) {
+      const allNotes = trimmed.flatMap((h: any) => h.notes || [])
+      const recentOutcomes = trimmed.map((h: any) => h.outcome).filter(Boolean)
+
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1000,
+          temperature: 0.2,
+          messages: [{ role: 'user', content: `You are improving a cold-call AI agent's system prompt based on coaching feedback from ${trimmed.length} recent calls.
+
+Recent outcomes: ${recentOutcomes.join(', ')}
+
+Coaching notes from all recent calls:
+${allNotes.map((n: string, i: number) => `${i + 1}. ${n}`).join('\n')}
+
+Based on these patterns, write 3-7 specific RULES the agent should follow on future calls. Each rule should be:
+- Actionable (not vague)
+- Based on a pattern you see repeated across multiple calls
+- Written as a directive ("Do X" or "Never Y")
+
+Current learned rules (avoid duplicates):
+${JSON.stringify(agent.learned_rules || [])}
+
+Return ONLY a JSON array of strings: ["rule 1", "rule 2", ...]` }],
+        }),
+      })
+
+      if (resp.ok) {
+        const data: any = await resp.json()
+        const text = data?.content?.[0]?.text || ''
+        const match = text.match(/\[[\s\S]*\]/)
+        if (match) {
+          const rules: string[] = JSON.parse(match[0])
+          await s.from('scout_voice_agents').update({
+            learned_rules: rules.slice(0, 10), // cap at 10 rules
+            learned_rules_updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }).eq('id', agent.id)
+          console.log(`[scout/webhook] Auto-improved agent ${agent.id} with ${rules.length} learned rules`)
+        }
+
+        // Log token usage
+        const inputTokens = data?.usage?.input_tokens || 0
+        const outputTokens = data?.usage?.output_tokens || 0
+        if (inputTokens || outputTokens) {
+          logTokenUsage({
+            agencyId,
+            feature: 'scout_voice_prompt_evolution',
+            model: 'claude-haiku-4-5-20251001',
+            inputTokens,
+            outputTokens,
+            metadata: { agent_id: agent.id, rules_count: (JSON.parse(match?.[0] || '[]')).length },
+          }).catch(() => {})
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[scout/webhook] coaching feedback accumulation error:', e)
   }
 }

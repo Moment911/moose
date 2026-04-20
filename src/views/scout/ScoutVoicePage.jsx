@@ -821,6 +821,7 @@ function AnalyticsTab({ agencyId }) {
 function SetupTab({ agencyId }) {
   const [areaCode, setAreaCode] = useState('')
   const [agentName, setAgentName] = useState('Scout SDR')
+  const [callerName, setCallerName] = useState('Alex')
   const [gender, setGender] = useState('male')
   const [voiceId, setVoiceId] = useState('11labs-Adrian')
   const [cadence, setCadence] = useState('natural')
@@ -851,6 +852,7 @@ function SetupTab({ agencyId }) {
 
   function loadAgent(agent) {
     setAgentName(agent.name || 'Scout SDR')
+    setCallerName(agent.caller_name || agent.name || 'Alex')
     setVoiceId(agent.voice_id || '11labs-Adrian')
     if (agent.industry_slug) setSellerIndustry(agent.industry_slug)
     setSetupSkipped(true)
@@ -979,6 +981,7 @@ function SetupTab({ agencyId }) {
     const r = await apiPost({
       action: 'setup_scout_voice',
       agency_id: agencyId, area_code: areaCode, agent_name: agentName,
+      caller_name: callerName,
       voice_id: voiceId, cadence_preset: cadence,
       industry_slug: sellerIndustry,
     })
@@ -1105,8 +1108,12 @@ function SetupTab({ agencyId }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           <label>
-            <Label>Agent name</Label>
+            <Label>Agent label (internal)</Label>
             <input value={agentName} onChange={e => setAgentName(e.target.value)} style={inputStyle} />
+          </label>
+          <label>
+            <Label>Caller name (what it says on calls)</Label>
+            <input value={callerName} onChange={e => setCallerName(e.target.value)} placeholder="e.g. Alex, Sarah" style={inputStyle} />
           </label>
           <label>
             <Label>Area code</Label>

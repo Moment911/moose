@@ -222,6 +222,7 @@ function buildScoutPrompt(opts: {
   agentName: string
   companyName: string
   contactName?: string
+  learnedRules?: string[]
   industry?: string
   pitchAngle?: string
   biggestGap?: string
@@ -237,7 +238,7 @@ function buildScoutPrompt(opts: {
   const {
     agencyName, agentName, companyName, contactName, industry,
     pitchAngle, biggestGap, priorContext, industryKnowledge, personality, geo, bankQuestions,
-    aiDisclosure, nameVerified, voicemail,
+    aiDisclosure, nameVerified, voicemail, learnedRules,
   } = opts
 
   // Render the discovery question bank by stage
@@ -310,7 +311,7 @@ Actively mirror the prospect within your voice's natural range:
 
 Never over-mirror. Mirroring is a tilt, not an impression.
 
-# HARD RULES
+${learnedRules && learnedRules.length > 0 ? `# LEARNED FROM PAST CALLS (follow these — they come from real coaching feedback)\n${learnedRules.map(r => `- ${r}`).join('\n')}\n\n` : ''}# HARD RULES
 ${aiDisclosure?.required ? `- **AI DISCLOSURE (LEGALLY REQUIRED):** ${aiDisclosure.language || `Within the first 15 seconds of the call, you MUST disclose that you are an AI assistant calling on behalf of ${agencyName}. Say something natural like: "Just so you know, I'm an AI assistant calling on behalf of ${agencyName}."`} You must not skip or delay this disclosure. If the prospect asks whether you are a real person or AI at any point, always confirm truthfully that you are an AI.` : `- If the prospect asks whether you are a real person or AI, always answer truthfully: you are an AI assistant calling on behalf of ${agencyName}.`}
 - If they ask to be removed from the list, call the dnc_request tool immediately then politely wrap.
 - If they ask to be transferred to a human, call transfer_to_human.
@@ -947,7 +948,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const systemPrompt = buildScoutPrompt({
       agencyName,
-      agentName: agent.name || 'your Scout AI',
+      agentName: agent.caller_name || agent.name || 'your Scout AI',
       companyName: call.company_name || 'them',
       contactName: call.contact_name || undefined,
       industry: call.industry || undefined,
@@ -960,6 +961,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       bankQuestions: bankQuestions.length > 0 ? bankQuestions : undefined,
       aiDisclosure,
       nameVerified,
+      learnedRules: Array.isArray(agent.learned_rules) ? agent.learned_rules : undefined,
       voicemail: agent.voicemail_mode !== 'off' ? {
         pattern: agent.voicemail_pattern || 'pattern_1',
         customScript: agent.voicemail_script_template || null,
@@ -999,14 +1001,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     try {
-      // Build the opener begin_message from the prompt's opener question or a sensible default.
-      // This prevents Retell's LLM from ad-libbing a greeting like "hey there thanks for picking up".
-      const agentName_ = agent.name || 'Scout'
-      const agencyName_ = call.agency_name || 'our team'
+      // Build the opener begin_message using the resolved agent persona name + agency brand.
+      // agent.caller_name is the persona name operators set (e.g. "Alex"); falls back to agent.name then "Scout".
+      // agencyName is already resolved from agency.brand_name || agency.name (line ~791).
+      const callerName = agent.caller_name || agent.name || 'Scout'
       const contactName_ = call.contact_name
       const beginMessage = contactName_
-        ? `Hi, is this ${contactName_}? This is ${agentName_} from ${agencyName_} — do you have a quick minute?`
-        : `Hi there, this is ${agentName_} from ${agencyName_} — do you have a quick minute?`
+        ? `Hi, is this ${contactName_}? This is ${callerName} from ${agencyName} — do you have a quick minute?`
+        : `Hi there, this is ${callerName} from ${agencyName} — do you have a quick minute?`
 
       const res = await retellFetch('/v2/create-phone-call', 'POST', {
         from_number: fromE164,
@@ -1177,7 +1179,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // ── setup_scout_voice — one-click: agent + LLM + number provisioning ──
   if (action === 'setup_scout_voice') {
-    const { agency_id, area_code, agent_name, voice_id, cadence_preset, industry_slug } = body
+    const { agency_id, area_code, agent_name, caller_name, voice_id, cadence_preset, industry_slug } = body
     if (!agency_id || !area_code) return NextResponse.json({ error: 'agency_id and area_code required' }, { status: 400 })
 
     const steps: any[] = []
@@ -1224,6 +1226,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
       const { data: ins } = await s.from('scout_voice_agents').insert({
         agency_id, name: agent_name || 'Scout SDR',
+        caller_name: caller_name || agent_name || 'Alex',
         retell_agent_id: agent.agent_id, retell_llm_id: llm.llm_id,
         voice_id: chosenVoice,
         industry_slug,
