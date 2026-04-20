@@ -418,6 +418,7 @@ async function runStageIngest(run: PipelineRun, config: PipelineConfig) {
     const { data: existing } = await supabase
       .from('kotoiq_keywords')
       .select('id')
+      .eq('agency_id', config.agency_id)
       .eq('client_id', config.client_id)
       .eq('fingerprint', fp)
       .maybeSingle()
