@@ -60,12 +60,28 @@ Rules:
 - Return ONLY the JSON array, no prose.`
 
 async function extractPdfText(buf: Buffer): Promise<string> {
-  // pdf-parse is CommonJS and imports a debug helper at the module entry
-  // that reads a local test PDF when not invoked from inside lib/. Require
-  // the lib subpath directly to sidestep that behavior.
-  const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default as (data: Buffer) => Promise<{ text: string }>
+  // pdf-parse is CommonJS. Its index.js has a debug guard that reads a local
+  // test PDF when module.parent is null — in serverless + Turbopack builds
+  // the root import can fail. Try the /lib/ subpath first (no debug block),
+  // then fall back to the root package entry. Whichever resolves, normalize
+  // to a callable function regardless of ESM/CJS default-export shape.
+  let pdfParse: any
+  try {
+    const m: any = await import('pdf-parse/lib/pdf-parse.js')
+    pdfParse = m?.default || m
+  } catch (e1) {
+    try {
+      const m: any = await import('pdf-parse')
+      pdfParse = m?.default || m
+    } catch (e2: any) {
+      throw new Error(`pdf-parse import failed: ${e2?.message || 'unknown'}`)
+    }
+  }
+  if (typeof pdfParse !== 'function') {
+    throw new Error('pdf-parse did not resolve to a function — check package install')
+  }
   const parsed = await pdfParse(buf)
-  return parsed.text || ''
+  return parsed?.text || ''
 }
 
 async function extractFactsWithClaude(text: string): Promise<any[]> {
@@ -98,9 +114,9 @@ async function extractFactsWithClaude(text: string): Promise<any[]> {
 
 export async function POST(req: NextRequest) {
   if (!ANTHROPIC_API_KEY) return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json({ error: 'BLOB_READ_WRITE_TOKEN not configured — add it in Vercel env' }, { status: 500 })
-  }
+  // BLOB_READ_WRITE_TOKEN is optional — if missing we skip storing the source
+  // PDF in Blob but still extract + ingest facts. Only log the skip.
+  const blobEnabled = !!process.env.BLOB_READ_WRITE_TOKEN
 
   const form = await req.formData()
   const file = form.get('file') as File | null
@@ -121,16 +137,21 @@ export async function POST(req: NextRequest) {
   const arrayBuf = await file.arrayBuffer()
   const buf = Buffer.from(arrayBuf)
 
-  // 1. Store the source file in Blob for audit / re-ingest
+  // 1. Store the source file in Blob for audit / re-ingest (optional).
+  //    Skip entirely if BLOB_READ_WRITE_TOKEN is not set.
   let blobUrl: string | null = null
-  try {
-    const blob = await put(`scout-voice/brain/${agency_id}/${Date.now()}-${(file.name || 'ref.pdf').replace(/[^a-zA-Z0-9._-]/g, '_')}`, buf, {
-      access: 'public',
-      contentType: 'application/pdf',
-    })
-    blobUrl = blob.url
-  } catch (e: any) {
-    // Non-fatal: proceed with extraction even if blob storage fails
+  let blobSkipReason: string | null = blobEnabled ? null : 'BLOB_READ_WRITE_TOKEN not configured'
+  if (blobEnabled) {
+    try {
+      const blob = await put(`scout-voice/brain/${agency_id}/${Date.now()}-${(file.name || 'ref.pdf').replace(/[^a-zA-Z0-9._-]/g, '_')}`, buf, {
+        access: 'public',
+        contentType: 'application/pdf',
+      })
+      blobUrl = blob.url
+    } catch (e: any) {
+      blobSkipReason = `blob upload failed: ${e?.message || 'unknown'}`
+      // Non-fatal: proceed with extraction even if blob storage fails
+    }
   }
 
   // 2. Extract text
@@ -170,18 +191,20 @@ export async function POST(req: NextRequest) {
       inserted: 0,
       extracted_text_chars: text.length,
       blob_url: blobUrl,
+      blob_skipped: blobSkipReason,
       note: 'No useful facts extracted from this PDF',
     })
   }
 
   const s = sb()
   const { error } = await s.from('scout_voice_knowledge').insert(rows)
-  if (error) return NextResponse.json({ error: error.message, blob_url: blobUrl }, { status: 500 })
+  if (error) return NextResponse.json({ error: error.message, blob_url: blobUrl, blob_skipped: blobSkipReason }, { status: 500 })
 
   return NextResponse.json({
     inserted: rows.length,
     extracted_text_chars: text.length,
     source_label,
     blob_url: blobUrl,
+    blob_skipped: blobSkipReason,
   })
 }

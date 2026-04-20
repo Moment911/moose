@@ -1110,14 +1110,19 @@ function SetupTab({ agencyId }) {
         </div>
 
         {pdfResult && (
-          <div style={{ padding: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 12, color: '#047857', marginBottom: 14 }}>
+          <div style={{ padding: 10, background: pdfResult.inserted ? '#f0fdf4' : '#fffbeb', border: `1px solid ${pdfResult.inserted ? '#bbf7d0' : '#fde68a'}`, borderRadius: 8, fontSize: 12, color: pdfResult.inserted ? '#047857' : '#92400e', marginBottom: 14 }}>
             <b>{pdfResult.inserted}</b> fact{pdfResult.inserted === 1 ? '' : 's'} extracted
-            {pdfResult.extracted_text_chars ? ` · ${pdfResult.extracted_text_chars.toLocaleString()} chars of text parsed` : ''}
+            {pdfResult.extracted_text_chars ? ` · ${pdfResult.extracted_text_chars.toLocaleString()} chars parsed` : ''}
             {pdfResult.note ? ` · ${pdfResult.note}` : ''}
             {pdfResult.blob_url && (
               <>
                 {' · '}<a href={pdfResult.blob_url} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'underline' }}>source file</a>
               </>
+            )}
+            {pdfResult.blob_skipped && (
+              <div style={{ marginTop: 4, color: '#9a6b00', fontSize: 11 }}>
+                Note: source file was not archived to Blob ({pdfResult.blob_skipped}). Extraction still ran.
+              </div>
             )}
           </div>
         )}
