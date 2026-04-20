@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useEffect } from 'react'
-import { T, R, AMB, BLK, FB } from '../../../lib/theme'
+import { T, R, AMB, BLK, DST, FB } from '../../../lib/theme'
 
 // Mirror of HALO_THRESHOLDS from server config — duplicated here because
 // profileConfig.ts is server-only ('server-only' import would crash the
@@ -127,7 +127,7 @@ export default function EditableSpan({
           style={{ ...spanStyle, minWidth: 60, background: '#fff' }}
         />
         {saveState === 'error' && (
-          <span style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, fontSize: 11, color: '#dc2626' }}>
+          <span style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, fontSize: 11, color: DST }}>
             save failed — keep editing
           </span>
         )}
