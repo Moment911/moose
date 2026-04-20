@@ -21,6 +21,7 @@
 
 ## App
 - NEXT_PUBLIC_APP_URL = https://hellokoto.com
+- KOTO_AGENCY_INTEGRATIONS_KEK — 32-byte hex (64 chars) — envelope-encryption master key for koto_agency_integrations. Rotate by incrementing payload_version on every row. Generate with `openssl rand -hex 32`.
 
 ## Security Notes
 - IPINFO_TOKEN (old: 8acf85a0baa7d5) exposed in commit 578649e — rotate this
