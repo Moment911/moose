@@ -76,7 +76,7 @@ RETURNS TABLE (
   SELECT scope, scope_value, fact, fact_category, confidence_score, relevance_rank
   FROM (
     SELECT
-      scope, scope_value, fact, fact_category, confidence_score,
+      scope, scope_value, fact, fact_category, confidence_score, times_confirmed,
       CASE scope
         WHEN 'global_pattern' THEN 1
         WHEN 'industry' THEN 2
