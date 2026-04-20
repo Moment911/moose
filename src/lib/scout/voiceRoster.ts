@@ -67,10 +67,10 @@ export function recommendVoiceForRegion(
 
 // Default cadence presets. Agent setup can override individually.
 export const CADENCE_PRESETS = {
-  relaxed:   { responsiveness: 0.7, interruption_sensitivity: 0.4, enable_backchannel: true,  voice_speed: 0.95, voice_temperature: 1.0, style: 'Calm, unhurried. Good for high-value long cycles.' },
-  natural:   { responsiveness: 0.85, interruption_sensitivity: 0.55, enable_backchannel: true, voice_speed: 1.0,  voice_temperature: 1.0, style: 'Human-feeling. The default.' },
-  energetic: { responsiveness: 0.95, interruption_sensitivity: 0.7, enable_backchannel: true,  voice_speed: 1.05, voice_temperature: 1.0, style: 'Fast, forward-leaning. Good for SMB cold outbound.' },
-  formal:    { responsiveness: 0.7,  interruption_sensitivity: 0.3, enable_backchannel: false, voice_speed: 0.95, voice_temperature: 0.9, style: 'Restrained. Good for executive / regulated industry.' },
+  relaxed:   { responsiveness: 0.6, interruption_sensitivity: 0.4, enable_backchannel: true,  voice_speed: 0.95, voice_temperature: 0.9, style: 'Calm, unhurried. Good for high-value long cycles.' },
+  natural:   { responsiveness: 0.7, interruption_sensitivity: 0.8, enable_backchannel: true, voice_speed: 1.0,  voice_temperature: 0.8, style: 'Human-feeling. Pauses naturally, listens well. The default.' },
+  energetic: { responsiveness: 0.85, interruption_sensitivity: 0.7, enable_backchannel: true,  voice_speed: 1.05, voice_temperature: 0.9, style: 'Fast, forward-leaning. Good for SMB cold outbound.' },
+  formal:    { responsiveness: 0.6,  interruption_sensitivity: 0.3, enable_backchannel: false, voice_speed: 0.95, voice_temperature: 0.7, style: 'Restrained. Good for executive / regulated industry.' },
 } as const
 
 export type CadencePresetId = keyof typeof CADENCE_PRESETS
