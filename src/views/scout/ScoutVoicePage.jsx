@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Phone, PhoneCall, PhoneOff, PhoneIncoming, PhoneOutgoing,
@@ -851,8 +851,62 @@ function SetupTab({ agencyId }) {
     apiGet('get_cadence_presets').then(r => setCadencePresets(r.data || null))
   }, [])
 
-  const filteredVoices = useMemo(() => voices.filter(v => v.gender === gender), [voices, gender])
+  // Voice picker state extensions
+  const [voiceSearch, setVoiceSearch] = useState('')
+  const [voiceGenderFilter, setVoiceGenderFilter] = useState('all') // all | male | female | other
+  const [voiceAccentFilter, setVoiceAccentFilter] = useState('all')
+  const [playingVoiceId, setPlayingVoiceId] = useState(null)
+  const audioRef = useRef(null)
+
+  // Distinct accents from the current catalog for chip filter
+  const voiceAccents = useMemo(() => {
+    const set = new Set()
+    for (const v of voices) if (v.accent) set.add(v.accent)
+    return Array.from(set).sort()
+  }, [voices])
+
+  const filteredVoices = useMemo(() => {
+    const term = voiceSearch.trim().toLowerCase()
+    return voices.filter(v => {
+      if (voiceGenderFilter !== 'all') {
+        const g = String(v.gender || '').toLowerCase()
+        if (voiceGenderFilter === 'other') {
+          if (g === 'male' || g === 'female') return false
+        } else {
+          if (g !== voiceGenderFilter) return false
+        }
+      }
+      if (voiceAccentFilter !== 'all' && v.accent !== voiceAccentFilter) return false
+      if (term) {
+        const hay = `${v.name} ${v.gender} ${v.accent} ${v.style || ''} ${v.sample_note || ''}`.toLowerCase()
+        if (!hay.includes(term)) return false
+      }
+      return true
+    })
+  }, [voices, voiceSearch, voiceGenderFilter, voiceAccentFilter])
+
   const selectedVoice = useMemo(() => voices.find(v => v.id === voiceId), [voices, voiceId])
+
+  function playVoicePreview(v) {
+    if (!v?.preview_audio_url) { toast.error('No preview available for this voice'); return }
+    try {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0 }
+      const a = new Audio(v.preview_audio_url)
+      audioRef.current = a
+      a.addEventListener('ended', () => setPlayingVoiceId(null))
+      a.addEventListener('error', () => { toast.error('Preview failed to load'); setPlayingVoiceId(null) })
+      a.play()
+      setPlayingVoiceId(v.id)
+    } catch (e) {
+      toast.error('Could not play preview')
+      setPlayingVoiceId(null)
+    }
+  }
+
+  function stopVoicePreview() {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0 }
+    setPlayingVoiceId(null)
+  }
 
   async function runSetup() {
     if (!areaCode) { toast.error('Enter an area code'); return }
@@ -951,34 +1005,124 @@ function SetupTab({ agencyId }) {
           </label>
         </div>
 
-        {/* Voice picker */}
-        <div style={{ marginBottom: 12 }}>
-          <Label>Voice</Label>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-            {['male', 'female'].map(g => {
-              const active = gender === g
+        {/* Voice picker — searchable grid with audio previews */}
+        <div style={{ marginBottom: 16 }}>
+          <Label>Voice ({voices.length} available)</Label>
+
+          {/* Search + filter row */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input
+              value={voiceSearch}
+              onChange={e => setVoiceSearch(e.target.value)}
+              placeholder="Search voices by name, accent, or style..."
+              style={{ ...inputStyle, maxWidth: 320, flex: 1, minWidth: 200 }}
+            />
+            {['all', 'male', 'female', 'other'].map(g => {
+              const active = voiceGenderFilter === g
               return (
                 <button
                   key={g}
-                  onClick={() => { setGender(g); const first = voices.find(v => v.gender === g); if (first) setVoiceId(first.id) }}
+                  onClick={() => setVoiceGenderFilter(g)}
                   style={{
-                    padding: '6px 14px', borderRadius: 99,
+                    padding: '6px 12px', borderRadius: 99,
                     background: active ? BLK : W, color: active ? W : '#4b5563',
                     border: active ? 'none' : '1px solid #e5e7eb',
-                    fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+                    fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
                     textTransform: 'capitalize',
                   }}
                 >{g}</button>
               )
             })}
+            {voiceAccents.length > 1 && (
+              <select value={voiceAccentFilter} onChange={e => setVoiceAccentFilter(e.target.value)} style={selectStyle}>
+                <option value="all">All accents</option>
+                {voiceAccents.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            )}
           </div>
-          <select value={voiceId} onChange={e => setVoiceId(e.target.value)} style={inputStyle}>
-            {filteredVoices.map(v => (
-              <option key={v.id} value={v.id}>{v.name} — {v.accent} · {v.style}</option>
-            ))}
-          </select>
-          {selectedVoice?.sample_note && (
-            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6, fontStyle: 'italic' }}>{selectedVoice.sample_note}</div>
+
+          {voices.length === 0 ? (
+            <div style={{ padding: 14, fontSize: 13, color: '#9ca3af', background: '#fafbfc', borderRadius: 8, border: '1px solid #eef0f2' }}>
+              <Loader2 size={13} className="animate-spin" style={{ verticalAlign: 'middle', marginRight: 6 }} />
+              Loading voices from Retell...
+            </div>
+          ) : filteredVoices.length === 0 ? (
+            <div style={{ padding: 14, fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>
+              No voices match — try widening the filter.
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              gap: 8,
+              maxHeight: 360,
+              overflowY: 'auto',
+              padding: 4,
+              border: '1px solid #eef0f2',
+              borderRadius: 10,
+              background: '#fafbfc',
+            }}>
+              {filteredVoices.map(v => {
+                const active = voiceId === v.id
+                const playing = playingVoiceId === v.id
+                const gender = String(v.gender || '').toLowerCase()
+                const genderColor = gender === 'male' ? T : gender === 'female' ? R : '#6b7280'
+                return (
+                  <div
+                    key={v.id}
+                    onClick={() => setVoiceId(v.id)}
+                    style={{
+                      padding: 10,
+                      borderRadius: 8,
+                      border: active ? `2px solid ${T}` : '1px solid #e5e7eb',
+                      background: active ? T + '08' : W,
+                      cursor: 'pointer',
+                      transition: 'all .12s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 4 }}>
+                      <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {v.name}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          playing ? stopVoicePreview() : playVoicePreview(v)
+                        }}
+                        disabled={!v.preview_audio_url}
+                        title={!v.preview_audio_url ? 'No preview available' : playing ? 'Stop preview' : 'Play preview'}
+                        style={{
+                          width: 28, height: 28, borderRadius: 99,
+                          background: playing ? R : v.preview_audio_url ? T : '#e5e7eb',
+                          color: v.preview_audio_url ? '#fff' : '#9ca3af',
+                          border: 'none',
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: v.preview_audio_url ? 'pointer' : 'not-allowed',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {playing ? <Pause size={13} /> : <Play size={13} />}
+                      </button>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#6b7280', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ padding: '1px 6px', borderRadius: 99, background: genderColor + '15', color: genderColor, fontWeight: 700, textTransform: 'capitalize', fontSize: 10 }}>{v.gender || 'neutral'}</span>
+                      {v.accent && <span style={{ fontSize: 11 }}>· {v.accent}</span>}
+                      {v.style && <span style={{ fontSize: 11 }}>· {v.style}</span>}
+                    </div>
+                    {v.sample_note && (
+                      <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {v.sample_note}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {selectedVoice && (
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>
+              Selected: <b style={{ color: BLK }}>{selectedVoice.name}</b> ({selectedVoice.gender || 'neutral'}, {selectedVoice.accent || 'unknown accent'})
+            </div>
           )}
         </div>
 
