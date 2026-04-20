@@ -13,6 +13,8 @@ import { useAuth } from '../../hooks/useAuth'
 import { useMobile } from '../../hooks/useMobile'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import toast from 'react-hot-toast'
+import { metaFromPhone } from '../../lib/scout/areaCodeMeta'
+import { recommendVoiceForRegion } from '../../lib/scout/voiceRoster'
 
 const STAGES = ['new', 'engaged', 'qualified', 'proposal', 'won', 'lost']
 
@@ -524,6 +526,23 @@ export default function ScoutOpportunityDetailPage() {
                   })}
                 </div>
               </div>
+
+              {(() => {
+                const geo = metaFromPhone(opp.contact_phone)
+                if (!geo) return null
+                const rec = recommendVoiceForRegion(geo.region)
+                return (
+                  <div style={{ fontSize: 12, color: '#374151', marginBottom: 12, padding: 10, background: '#f0fdfa', borderRadius: 8, border: '1px solid #99f6e4' }}>
+                    <div style={{ fontWeight: 800, color: T, marginBottom: 2, textTransform: 'uppercase', fontSize: 10, letterSpacing: '.06em' }}>
+                      Detected: {geo.state}{geo.major_city ? ` · ${geo.major_city}` : ''} · {geo.region}
+                    </div>
+                    {geo.style_notes && <div style={{ marginBottom: 4 }}>{geo.style_notes}</div>}
+                    <div style={{ color: '#6b7280' }}>
+                      Recommended voice for this region: <b>{rec.name}</b> — {rec.style.toLowerCase()}, {rec.accent}.
+                    </div>
+                  </div>
+                )
+              })()}
 
               <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14, padding: 10, background: '#f9fafb', borderRadius: 8, border: '1px solid #eef0f2' }}>
                 <b>What happens next:</b> this prospect goes into the Scout voice queue. The AI agent composes a
