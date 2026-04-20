@@ -84,7 +84,7 @@ Unchanged inherited roles from Phase 7 §2. Phase 8 adds a small number of role-
 | Options-panel header | 14 | 700 | 1.3 | FH | Same as cardTitleStyle; sits next to the disclosure caret |
 | Options-panel field label | 11 | 700 | 1.2 | FH uppercase letter-spaced `.06em` | Matches labelStyle from theme.ts |
 | Options-panel help text | 12 | 400 | 1.5 | FB | Muted `#6b7280` — explains why a default was chosen |
-| Cost preview amount (big) | 20 | 900 | 1.1 | FH | Single dollar amount rendered inline with the "Go" button row |
+| Cost preview amount (big) | 22 | 900 | 1.1 | FH | Single dollar amount rendered inline with the "Go" button row (reuses existing H2/budget-ring size — no net-new size introduced in Phase 8) |
 | Cost preview breakdown line | 12 | 500 | 1.45 | FB | `#6b7280` — e.g. `8 pages × Sonnet = ~$0.80` |
 | GBP wizard mode title | 15 | 700 | 1.3 | FH | Mode 1 / 2 / 3 card titles |
 | GBP wizard mode body | 13 | 400 | 1.5 | FB | Explains when to pick this mode |
@@ -92,10 +92,28 @@ Unchanged inherited roles from Phase 7 §2. Phase 8 adds a small number of role-
 | File upload progress row stat | 11 | 500 | 1.2 | FB | `#6b7280` — "12.4 MB · 6 pages · $0.18 estimated" |
 | Budget ring big digit | 22 | 900 | 1.0 | FH | `$3.80 / $5.00` — big number is current spend |
 | Override-justification textarea | 13 | 400 | 1.45 | FB | Matches Phase 7 paste textarea |
-| Integrations tab section header | 14 | 800 | 1.2 | FH | Matches `SectionCard` title pattern from AgencySettingsPage |
-| Integrations tab test-result | 12 | 600 | 1.3 | FB | Green/red pill text after "Test connection" |
+| Integrations tab section header | 14 | 700 | 1.2 | FH | Matches `SectionCard` `cardTitleStyle` weight (700) in AgencySettingsPage |
+| Integrations tab test-result | 12 | 700 | 1.3 | FB | Green/red pill text after "Test connection" |
 
-**Weights in Phase 8:** 400, 500, 700, 800, 900 — all inherited from Phase 7's allowed set (Phase 7 allowed 400, 500, 700, 900; AgencySettingsPage uses 800 for section card titles, so Phase 8 adopts it where it matches existing Settings chrome). No new weights. Italic used only to inherit Phase 7's streaming-narration behavior — nowhere else.
+**Weights in Phase 8:** 400, 500, 700, 900 — all inherited from Phase 7's allowed set. No new weights. Integrations tab section headers use 700 (matching `SectionCard`'s `cardTitleStyle` in `AgencySettingsPage`). Italic used only to inherit Phase 7's streaming-narration behavior — nowhere else.
+
+### Typography Scale — Inherited-System Exception
+
+This UI-SPEC inherits the existing Koto shell's type scale as codified in
+`src/lib/theme.ts` and the surrounding shell (AgencySettingsPage, LaunchPage,
+Sidebar). That scale predates the checker's default 4-size / 2-weight limits
+and the project has accepted this as a documented exception since Phase 7
+§2. Phase 8 introduces **zero net-new sizes** on top of the inherited scale.
+
+Sizes in active use (all inherited; none added by Phase 8):
+10, 11, 12, 13, 14, 15, 16, 18, 22, 28, 48.
+
+Weights in active use (all inherited; none added by Phase 8):
+400, 500, 700, 900.
+
+Rule: no new sizes may be added beyond this inherited set in Phase 8 or
+downstream phases. Adding a new size requires a dedicated design-system
+phase to reconcile the full scale.
 
 ---
 
@@ -197,7 +215,7 @@ When an operator pastes a URL into the Phase 7 `IngestPanel` URL tab, the panel 
 | Cost preview line template | `${pageCountEstimate} pages · Sonnet ~${sonnetCost} · Total ~${totalCost}` |
 | Cost preview reassurance | `Well within your ${dailyRemaining} remaining today.` (GRN) or `This uses ${pctOfBudget}% of today's budget.` (AMB if >50%) |
 | Primary action | `Go — ~${totalCost}` |
-| Secondary action | `Cancel` |
+| Secondary action | `Close options` |
 
 ### 4.3 Form parser options panel (D-01..D-04)
 
@@ -209,7 +227,7 @@ When an operator pastes a URL into the Phase 7 `IngestPanel` URL tab, the panel 
 | Cost preview line (API) | `Provider API call — free to you. Only Claude extraction (~$0.03).` |
 | Cost preview line (scrape) | `Scrape + Claude extraction — ~$0.10.` |
 | Primary action | `Pull Q&A pairs — ~${cost}` |
-| Secondary action | `Cancel` |
+| Secondary action | `Close options` |
 | Post-pull toast (API) | `Pulled ${N} answers from ${vendor}. Extracting fields now.` |
 | Post-pull toast (scrape) | `Scraped the form. Extracting — a few fields may be low-confidence.` |
 
@@ -298,7 +316,7 @@ Where `${scope}` is `client` for D-22 or `agency` for D-23.
 | Optional justification field label | `Why (optional)` |
 | Justification placeholder | `e.g. client signed off on this crawl at our strategy call` |
 | Justification help | `Your agency owner sees overrides in tomorrow's daily digest.` |
-| Cancel button | `Cancel` |
+| Cancel button | `Keep the cap` |
 | Confirm button | `Override and run — ${cost}` (R background) |
 | Post-override toast | `Running with override. Logged.` |
 
@@ -420,8 +438,8 @@ Seven surfaces, specified one by one. Every surface inherits Phase 7 component p
 - Width: 100% of the 720px briefing column.
 - Background: `W`, border `1px solid #e5e7eb`, radius 14 (matches `cardStyle`).
 - Header row: 44px tall, 20px horizontal padding, panel header text (14px FH 700) + 24px ChevronUp toggle on the right. Clicking the header OR chevron collapses the panel.
-- Body: 20px padding, fields stack vertically with 14px gap. Each field uses Phase 7's `labelStyle` for labels.
-- Footer (always visible, sticky within panel when panel scrolls): 64px tall row containing cost preview strip (left, flex:1) + `Cancel` ghost + `Go — ~${cost}` primary.
+- Body: 20px padding, fields stack vertically with 12px gap (the `sm` spacing token). Each field uses Phase 7's `labelStyle` for labels.
+- Footer (always visible, sticky within panel when panel scrolls): 64px tall row containing cost preview strip (left, flex:1) + `Close options` ghost + `Go — ~${cost}` primary.
 
 **Disclosure contract:**
 - Panels are **collapsed by default** when they first appear (D-30).
@@ -431,7 +449,7 @@ Seven surfaces, specified one by one. Every surface inherits Phase 7 component p
 
 **Cost preview strip (shared across all variants):**
 - 44px tall band, `GRY` background when nominal, `AMB + '15'` when >80% of budget, `R + '15'` when over.
-- Left side: 20px FH 900 current estimate (e.g. `~$0.80`) + 12px FB muted breakdown (e.g. `8 pages · Sonnet`).
+- Left side: 22px FH 900 current estimate (e.g. `~$0.80`) + 12px FB muted breakdown (e.g. `8 pages · Sonnet`).
 - Right side: mini daily-budget ring (24px diameter, color per §3.3) + spent/budget text.
 - Updates live when any option changes (reduces estimate on scope B → A switch, adds to estimate on JS-rendering toggle on, etc.) — debounced 150ms so toggles don't flash.
 
@@ -637,7 +655,7 @@ Seven surfaces, specified one by one. Every surface inherits Phase 7 component p
 │  Your agency owner sees overrides in      │
 │  tomorrow's daily digest.                 │
 │                                           │
-│  [ Cancel ]   [ Override and run — $1.40 ]│
+│  [ Keep the cap ]   [ Override and run — $1.40 ]│
 └──────────────────────────────────────────┘
 ```
 
@@ -646,7 +664,7 @@ Seven surfaces, specified one by one. Every surface inherits Phase 7 component p
 - Header row: `AlertTriangle` icon in `R`, 14px, + title in 16px FH 700.
 - Body: 14px FB 400, line-height 1.55, `BLK`. Each "You've already spent" number is wrapped in a `<code>`-style mono chip (matches Phase 7 discrepancy catcher) so numbers scan easily.
 - Justification textarea: 100% width, 80px tall, 13px FB, auto-resize up to 200px. Placeholder uses `#9ca3af`. Matches Phase 7 paste textarea style.
-- Footer: `Cancel` (ghost) + `Override and run — ${cost}` (R primary, NOT DST — this is a gated action, not destructive).
+- Footer: `Keep the cap` (ghost) + `Override and run — ${cost}` (R primary, NOT DST — this is a gated action, not destructive).
 
 **States:**
 - `default` — as above.
@@ -657,7 +675,7 @@ Seven surfaces, specified one by one. Every surface inherits Phase 7 component p
 **Audit log contract (planner reference):** Every override submission writes one row to `koto_audit_log` with `{ operator_user_id, action: 'budget_override', scope: 'client'|'agency', original_cap, override_cost, justification, created_at }`. The agency-owner daily digest reads these.
 
 **Accessibility:**
-- `role="alertdialog"`, focus-trapped on open, focus lands on the Cancel button (not the destructive path).
+- `role="alertdialog"`, focus-trapped on open, focus lands on the `Keep the cap` button (not the destructive path).
 - `Esc` cancels.
 - Justification textarea is optional — not required for keyboard submission.
 
@@ -723,7 +741,7 @@ Seven surfaces, specified one by one. Every surface inherits Phase 7 component p
 **Visual contract:**
 - Reuses `SectionCard`, `Field`, `INP` (password-masked input), `Toggle`, `PillToggle` from `AgencySettingsPage.jsx` verbatim. Zero new primitives.
 - Status pill placement: inline right of `Test connection` button, fixed height 24, pill style from `badgeStyle(color)`.
-- GBP mode rows: horizontal layout, mode label left (13px FB 600), action button right. No extra card nesting — the parent `SectionCard` is the container.
+- GBP mode rows: horizontal layout, mode label left (13px FB 700), action button right. No extra card nesting — the parent `SectionCard` is the container.
 - Budget ring cards: 2-column grid, 220px per card, gap 16px. Each card: 16px padding, `GRY` background, radius 10, ring top-center, input + hint bottom.
 
 **Form behavior:**
@@ -812,7 +830,7 @@ Inherits Phase 7 §8 primitives. Phase 8 adds:
 
 Inherits Phase 7 §9. Phase 8 additions:
 
-- **Keyboard traversal additions:** URL input → URL-detection banner (skipped for SR unless state=malformed) → Options disclosure button → options panel fields (in rendered order) → Cost preview (skip — informational) → Cancel → Go button. In GBP wizard: Mode 1 card → Mode 2 card → Mode 3 card (tab order = visual order). Upload rows are focusable as a group; within a row, filename → close X.
+- **Keyboard traversal additions:** URL input → URL-detection banner (skipped for SR unless state=malformed) → Options disclosure button → options panel fields (in rendered order) → Cost preview (skip — informational) → `Close options` → Go button. In GBP wizard: Mode 1 card → Mode 2 card → Mode 3 card (tab order = visual order). Upload rows are focusable as a group; within a row, filename → close X.
 - **ARIA live regions (new):**
   - URL-detection banner: `aria-live="polite"`.
   - Cost preview strip: `aria-live="polite"`, debounced so it doesn't over-announce.
@@ -820,7 +838,7 @@ Inherits Phase 7 §9. Phase 8 additions:
   - Daily budget ring: `role="meter"` per §5.6.
   - Test-connection pill: `aria-live="polite"`.
 - **Focus management:**
-  - Override sheet opens with focus on Cancel (not destructive).
+  - Override sheet opens with focus on `Keep the cap` (not destructive).
   - GBP wizard opens with focus on the first (recommended) mode card.
   - Options panel expand moves focus into the first field; collapse returns focus to the disclosure button.
 - **Color contrast:** All teal `T` text in Phase 8 uses weight ≥ 700 and size ≥ 11px to satisfy WCAG — no teal body prose (same rule as Phase 7).
@@ -856,7 +874,7 @@ Phase 8 uses NO registry blocks. Every component is custom, inline-style-based, 
 - [ ] Dimension 1 Copywriting: every string in Phase 8 UI matches §4 exactly (no "wow/amazing/fantastic/absolutely/certainly"); URL-detection, options panel, GBP wizard, cost preview, override sheet, and Integrations tab all use the prescribed copy.
 - [ ] Dimension 2 Visuals: URL-detection banner, options-panel disclosure pattern, GBP wizard 3-mode layout (with Mode 3 dashed AMB border), upload stack top-right, daily budget ring, override sheet bottom-right, and Integrations tab match §5 prescriptions.
 - [ ] Dimension 3 Color: Authenticity tier preserved (teal = authenticated, amber = scraped/public/OCR); Mode 3 GBP is visually distinct from Mode 1/2; accent reserved list in §3.4 honored; no new tokens introduced.
-- [ ] Dimension 4 Typography: Weights stay within {400, 500, 700, 800, 900} (Phase 7's set + 800 for Settings section-card titles); no new font stacks; teal text ≥11px AND weight ≥700.
+- [ ] Dimension 4 Typography: Weights stay within {400, 500, 700, 900} (Phase 7's inherited set — see §2 Inherited-System Exception); no new font stacks; teal text ≥11px AND weight ≥700; no net-new font sizes introduced by Phase 8.
 - [ ] Dimension 5 Spacing: 4-point scale honored; Phase 8 exceptions (520px GBP wizard, 44px cost strip, 40px upload row) documented in §1; upload stack 320px width.
 - [ ] Dimension 6 Registry Safety: no shadcn introduced; no third-party blocks; all components custom with inline styles from `src/lib/theme.ts`.
 
