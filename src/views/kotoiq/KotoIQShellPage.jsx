@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { profileFetch } from '../../lib/kotoiqProfileFetch'
 import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 import { Brain, Search, Send, SlidersHorizontal, Settings, Shield } from 'lucide-react'
@@ -76,12 +77,7 @@ export default function KotoIQShellPage() {
     let cancelled = false
     const load = async () => {
       try {
-        const res = await fetch('/api/kotoiq/profile', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'list_clarifications', status: 'open' }),
-        })
-        const j = await res.json()
+        const j = await profileFetch({ action: 'list_clarifications', status: 'open' })
         if (!cancelled) setClarityCount(Array.isArray(j.clarifications) ? j.clarifications.length : 0)
       } catch {
         // Non-blocking — badge stays at last-known value.

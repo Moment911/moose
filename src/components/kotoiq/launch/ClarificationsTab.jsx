@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { GRN, BLK, T, FB, FH } from '../../../lib/theme'
+import { profileFetch } from '../../../lib/kotoiqProfileFetch'
 import ClarificationCard from './ClarificationCard'
 
 /**
@@ -29,12 +30,7 @@ export default function ClarificationsTab({ agencyId, clientId }) {
       const body = { action: 'list_clarifications' }
       if (clientId) body.client_id = clientId
       if (statusFilter !== 'all') body.status = statusFilter
-      const res = await fetch('/api/kotoiq/profile', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      const j = await res.json()
+      const j = await profileFetch(body)
       setList(Array.isArray(j.clarifications) ? j.clarifications : [])
     } catch {
       setList([])
@@ -80,27 +76,15 @@ export default function ClarificationsTab({ agencyId, clientId }) {
   }
 
   const onAnswer = async (id, text) => {
-    await fetch('/api/kotoiq/profile', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'answer_clarification', clarification_id: id, answer_text: text }),
-    })
+    await profileFetch({ action: 'answer_clarification', clarification_id: id, answer_text: text })
     reload()
   }
   const onForward = async (id, channel) => {
-    await fetch('/api/kotoiq/profile', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'forward_to_client', clarification_id: id, channel }),
-    })
+    await profileFetch({ action: 'forward_to_client', clarification_id: id, channel })
     reload()
   }
   const onSkip = async (id) => {
-    await fetch('/api/kotoiq/profile', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'answer_clarification', clarification_id: id, answer_text: '[skipped]', update_field: false }),
-    })
+    await profileFetch({ action: 'answer_clarification', clarification_id: id, answer_text: '[skipped]', update_field: false })
     reload()
   }
 

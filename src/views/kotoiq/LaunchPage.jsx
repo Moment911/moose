@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { profileFetch, profileStreamSeed } from '../../lib/kotoiqProfileFetch'
 import Sidebar from '../../components/Sidebar'
 import { Shield } from 'lucide-react'
 import { W, BLK, FB, FH, R } from '../../lib/theme'
@@ -38,28 +39,12 @@ const KEYFRAMES = `
 `
 
 // ── /api/kotoiq/profile JSON helper ─────────────────────────────────────────
-async function postProfile(body) {
-  const res = await fetch('/api/kotoiq/profile', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  let json = null
-  try { json = await res.json() } catch { /* non-JSON */ }
-  if (!res.ok) {
-    return { ok: false, error: json?.error || `HTTP ${res.status}`, status: res.status }
-  }
-  return json || { ok: true }
-}
+const postProfile = profileFetch
 
 // ── /api/kotoiq/profile/stream_seed SSE-like reader ─────────────────────────
 // The route returns text/plain newline-delimited narration (RESEARCH §5).
 async function streamSeed({ client_id, pasted_text, force_rebuild, onLine }) {
-  const res = await fetch('/api/kotoiq/profile/stream_seed', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ client_id, pasted_text, force_rebuild }),
-  })
+  const res = await profileStreamSeed({ client_id, pasted_text, force_rebuild })
   if (!res.ok || !res.body) {
     onLine(`I hit a snag pulling — HTTP ${res.status}. I'll carry on without it.`)
     return
@@ -132,12 +117,7 @@ export default function LaunchPage() {
     let cancelled = false
     const load = async () => {
       try {
-        const res = await fetch('/api/kotoiq/profile', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'list_clarifications', client_id: clientId, status: 'open' }),
-        })
-        const j = await res.json()
+        const j = await postProfile({ action: 'list_clarifications', client_id: clientId, status: 'open' })
         if (cancelled) return
         const list = Array.isArray(j.clarifications) ? j.clarifications : []
         setPendingCount(list.length)

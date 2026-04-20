@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../../../lib/supabase'
+import { profileFetch } from '../../../lib/kotoiqProfileFetch'
 import HotspotDot from './HotspotDot'
 import ClarificationCard from './ClarificationCard'
 
@@ -50,12 +51,7 @@ export default function ClarificationsOverlay({ clientId, agencyId, onAnswer, on
 
     const load = async () => {
       try {
-        const res = await fetch('/api/kotoiq/profile', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'list_clarifications', client_id: clientId, status: 'open' }),
-        })
-        const j = await res.json()
+        const j = await profileFetch({ action: 'list_clarifications', client_id: clientId, status: 'open' })
         if (mounted) setClarifications(Array.isArray(j.clarifications) ? j.clarifications : [])
       } catch {
         // Non-blocking — overlay simply has no rows to render.

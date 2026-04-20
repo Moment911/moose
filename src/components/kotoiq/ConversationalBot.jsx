@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { MessageCircle, X, Minimize2, Send, Mic, Brain, Sparkles, ChevronRight, Loader, History, Plus, CheckCircle2, AlertCircle, Paperclip, Search, UserPlus } from 'lucide-react'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import { supabase } from '../../lib/supabase'
+import { profileFetch } from '../../lib/kotoiqProfileFetch'
 // Plan 07-08: shared clarification card primitive (variant='chat' here).
 import ClarificationCard from './launch/ClarificationCard'
 
@@ -524,12 +525,7 @@ export default function ConversationalBot({
     if (mode !== 'clarifications' || !clientId) return
     setClarifLoading(true)
     try {
-      const res = await fetch('/api/kotoiq/profile', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'list_clarifications', client_id: clientId, status: 'open' }),
-      })
-      const j = await res.json()
+      const j = await profileFetch({ action: 'list_clarifications', client_id: clientId, status: 'open' })
       setClarifList(Array.isArray(j.clarifications) ? j.clarifications : [])
     } catch {
       setClarifList([])
