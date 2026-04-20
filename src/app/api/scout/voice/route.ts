@@ -419,7 +419,7 @@ export async function GET(req: NextRequest) {
 // ═══════════════════════════════════════════════════════════════════
 // POST
 // ═══════════════════════════════════════════════════════════════════
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await req.json()
   const { action } = body
   const s = sb()
