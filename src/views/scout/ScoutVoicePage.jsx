@@ -954,6 +954,7 @@ function SetupTab({ agencyId }) {
       action: 'setup_scout_voice',
       agency_id: agencyId, area_code: areaCode, agent_name: agentName,
       voice_id: voiceId, cadence_preset: cadence,
+      industry_slug: sellerIndustry,
     })
     setRunning(false)
     setSteps(r.steps || [])

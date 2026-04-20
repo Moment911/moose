@@ -33,6 +33,33 @@ function sb() {
   )
 }
 
+// Normalize a phone number to E.164. Retell's parser treats bare 10-digit
+// numbers as international and may guess the wrong country (e.g. 954… → MM).
+// Always send +1XXXXXXXXXX for US or +<already prefixed>.
+function toE164(raw?: string | null): string {
+  if (!raw) return ''
+  const s = String(raw).trim()
+  if (s.startsWith('+')) return '+' + s.slice(1).replace(/\D/g, '')
+  const digits = s.replace(/\D/g, '')
+  if (digits.length === 11 && digits.startsWith('1')) return '+' + digits
+  if (digits.length === 10) return '+1' + digits
+  return digits ? '+' + digits : ''
+}
+
+// Resolve the platform-default question bank for an industry slug.
+// Returns null if the slug is missing or the industry has no seeded bank yet
+// (e.g. web_dev / saas — only marketing_agency is seeded as of 2026-04-19).
+async function resolveIndustryBankId(s: ReturnType<typeof sb>, slug?: string | null): Promise<string | null> {
+  if (!slug) return null
+  const { data } = await s.from('scout_question_banks')
+    .select('id')
+    .is('agency_id', null)
+    .eq('seller_industry_slug', slug)
+    .eq('source', `industry:${slug}`)
+    .maybeSingle()
+  return data?.id || null
+}
+
 async function retellFetch(path: string, method = 'GET', body?: any) {
   if (!RETELL_API_KEY) throw new Error('RETELL_API_KEY not configured')
   const res = await fetch(`${RETELL_BASE}${path}`, {
@@ -666,10 +693,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'No from_number configured' }, { status: 400 })
     }
 
+    const fromE164 = toE164(fromNumber)
+    const toE164_ = toE164(call.to_number)
+    if (!fromE164 || !toE164_) {
+      await s.from('scout_voice_calls').update({ status: 'failed', error_message: 'Invalid from_number or to_number (could not normalize to E.164)' }).eq('id', call_id)
+      return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 })
+    }
+
     try {
       const res = await retellFetch('/v2/create-phone-call', 'POST', {
-        from_number: fromNumber,
-        to_number: call.to_number,
+        from_number: fromE164,
+        to_number: toE164_,
         override_agent_id: agent.retell_agent_id,
         retell_llm_dynamic_variables: {
           system_prompt: systemPrompt,
@@ -690,7 +724,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       await s.from('scout_voice_calls').update({
         status: 'dialing',
         retell_call_id: res.call_id,
-        from_number: fromNumber,
+        from_number: fromE164,
         started_at: new Date().toISOString(),
       }).eq('id', call_id)
 
@@ -733,12 +767,43 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── save_agent — upsert a Scout voice agent config ──
   if (action === 'save_agent') {
     const { id, ...data } = body.agent || body
+    // If industry_slug is being set/changed and no explicit active_bank_id was
+    // passed, auto-resolve the industry's default bank so the call-time
+    // BANK FETCH (see line ~622) picks up the seeded question set.
+    if (data.industry_slug && !data.active_bank_id) {
+      const bankId = await resolveIndustryBankId(s, data.industry_slug)
+      if (bankId) data.active_bank_id = bankId
+    }
     if (id) {
       await s.from('scout_voice_agents').update(data).eq('id', id)
       return NextResponse.json({ success: true, id })
     }
     const { data: ins } = await s.from('scout_voice_agents').insert(data).select('id').single()
     return NextResponse.json({ success: true, id: ins?.id })
+  }
+
+  // ── backfill_agent_banks — one-time: set active_bank_id on any agent that
+  // has an industry_slug but no bank assigned. Safe to re-run.
+  if (action === 'backfill_agent_banks') {
+    const { agency_id } = body
+    let q = s.from('scout_voice_agents')
+      .select('id, industry_slug')
+      .not('industry_slug', 'is', null)
+      .is('active_bank_id', null)
+    if (agency_id) q = q.eq('agency_id', agency_id)
+    const { data: agents } = await q
+    const updated: Array<{ id: string; industry_slug: string; active_bank_id: string }> = []
+    const skipped: Array<{ id: string; industry_slug: string; reason: string }> = []
+    for (const a of agents || []) {
+      const bankId = await resolveIndustryBankId(s, a.industry_slug)
+      if (!bankId) {
+        skipped.push({ id: a.id, industry_slug: a.industry_slug, reason: 'no_default_bank_for_industry' })
+        continue
+      }
+      await s.from('scout_voice_agents').update({ active_bank_id: bankId }).eq('id', a.id)
+      updated.push({ id: a.id, industry_slug: a.industry_slug, active_bank_id: bankId })
+    }
+    return NextResponse.json({ success: true, updated_count: updated.length, skipped_count: skipped.length, updated, skipped })
   }
 
   // ── create_agent — create Retell LLM + agent, store IDs ──
@@ -768,16 +833,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         reminder_max_count: 2,
       })
 
+      const active_bank_id = await resolveIndustryBankId(s, industry_slug)
+
       const { data: ins } = await s.from('scout_voice_agents').insert({
         agency_id, name: name || 'Scout SDR',
         retell_agent_id: agent.agent_id, retell_llm_id: llm.llm_id,
         voice_id: voice_id || '11labs-Adrian',
         industry_slug,
+        active_bank_id,
         from_number,
         active: true,
       }).select('id').single()
 
-      return NextResponse.json({ success: true, agent_id: agent.agent_id, llm_id: llm.llm_id, id: ins?.id })
+      return NextResponse.json({ success: true, agent_id: agent.agent_id, llm_id: llm.llm_id, id: ins?.id, active_bank_id })
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
     }
@@ -801,7 +869,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // ── setup_scout_voice — one-click: agent + LLM + number provisioning ──
   if (action === 'setup_scout_voice') {
-    const { agency_id, area_code, agent_name, voice_id, cadence_preset } = body
+    const { agency_id, area_code, agent_name, voice_id, cadence_preset, industry_slug } = body
     if (!agency_id || !area_code) return NextResponse.json({ error: 'agency_id and area_code required' }, { status: 400 })
 
     const steps: any[] = []
@@ -844,16 +912,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         scout_voice_from_number: num.phone_number,
       }).eq('id', agency_id)
 
+      const active_bank_id = await resolveIndustryBankId(s, industry_slug)
+
       const { data: ins } = await s.from('scout_voice_agents').insert({
         agency_id, name: agent_name || 'Scout SDR',
         retell_agent_id: agent.agent_id, retell_llm_id: llm.llm_id,
-        voice_id: '11labs-Adrian',
+        voice_id: chosenVoice,
+        industry_slug,
+        active_bank_id,
         from_number: num.phone_number,
         active: true,
       }).select('id').single()
-      steps.push({ step: 'scout_agent_record', ok: true, id: ins?.id })
+      steps.push({ step: 'scout_agent_record', ok: true, id: ins?.id, industry_slug, active_bank_id })
 
-      return NextResponse.json({ success: true, ready: true, steps, agent_id: agent.agent_id, phone_number: num.phone_number })
+      return NextResponse.json({ success: true, ready: true, steps, agent_id: agent.agent_id, phone_number: num.phone_number, active_bank_id })
     } catch (e: any) {
       steps.push({ step: 'error', ok: false, error: e.message })
       return NextResponse.json({ success: false, ready: false, steps, error: e.message }, { status: 500 })
