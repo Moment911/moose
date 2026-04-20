@@ -132,6 +132,74 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ result: 'saved' }, { headers })
       }
 
+      // ── classify_pickup ───────────────────────────────────────
+      if (fnName === 'classify_pickup') {
+        const classification = String(fnArgs.classification || 'unknown')
+        const confidence = typeof fnArgs.confidence === 'number' ? fnArgs.confidence : 70
+        const personName = fnArgs.person_name || null
+        const personTitle = fnArgs.person_title || null
+        const notes = fnArgs.notes || null
+
+        // Map classification to terminal state prefix
+        const CLASSIFICATION_TO_STATE: Record<string, string> = {
+          dm_direct: 'dm_reached_direct',
+          gatekeeper: 'gatekeeper_blocked',     // updated to dm_reached_via_gatekeeper if DM reached later
+          ivr: 'ivr_deadend',                   // updated to dm_reached_via_ivr if DM reached later
+          wrong_person: 'wrong_person_redirect',
+          voicemail: 'voicemail_left',
+          unknown: 'unknown',
+        }
+
+        if (scoutCallId) {
+          void (async () => {
+            try {
+              const { data: callRow } = await s.from('scout_voice_calls')
+                .select('discovery_data, outcome').eq('id', scoutCallId).single()
+              const disc = callRow?.discovery_data || {}
+              disc._pickup = {
+                classification,
+                confidence,
+                person_name: personName,
+                person_title: personTitle,
+                notes,
+                classified_at: new Date().toISOString(),
+              }
+
+              const updates: Record<string, any> = {
+                discovery_data: disc,
+                updated_at: new Date().toISOString(),
+              }
+
+              // Set outcome as initial terminal state (may be refined by later events or post-call analysis)
+              if (!callRow?.outcome) {
+                updates.outcome = CLASSIFICATION_TO_STATE[classification] || classification
+              }
+
+              // If DM reached and we had a prior gatekeeper/IVR classification, upgrade the state
+              if (classification === 'dm_direct') {
+                const priorClassification = disc._pickup_history?.slice(-1)?.[0]?.classification
+                if (priorClassification === 'gatekeeper') {
+                  updates.outcome = 'dm_reached_via_gatekeeper'
+                } else if (priorClassification === 'ivr') {
+                  updates.outcome = 'dm_reached_via_ivr'
+                } else {
+                  updates.outcome = 'dm_reached_direct'
+                }
+              }
+
+              // Keep history of all classifications (call may transition: IVR → gatekeeper → DM)
+              if (!disc._pickup_history) disc._pickup_history = []
+              disc._pickup_history.push({ classification, confidence, at: new Date().toISOString() })
+              updates.discovery_data = disc
+
+              await s.from('scout_voice_calls').update(updates).eq('id', scoutCallId)
+            } catch (e) { console.error('[scout/webhook] classify_pickup error:', e) }
+          })()
+        }
+
+        return NextResponse.json({ result: 'classified', classification }, { headers })
+      }
+
       // ── detect_buying_signal ──────────────────────────────────
       if (fnName === 'detect_buying_signal') {
         const signalType = String(fnArgs.signal_type || 'unknown')
@@ -278,7 +346,7 @@ export async function POST(req: NextRequest) {
 
       if (scoutCallId) {
         const { data: scoutCall } = await s.from('scout_voice_calls')
-          .select('started_at, status, outcome, company_name, contact_name, industry, agency_id, opportunity_id')
+          .select('started_at, status, outcome, company_name, contact_name, industry, agency_id, opportunity_id, persona_id')
           .eq('id', scoutCallId).single()
 
         const duration = scoutCall?.started_at
@@ -303,6 +371,20 @@ export async function POST(req: NextRequest) {
 
         await s.from('scout_voice_calls').update(updates).eq('id', scoutCallId)
         await s.from('scout_voice_queue').update({ status: 'completed' }).eq('scout_call_id', scoutCallId)
+
+        // ── Update persona call stats ──
+        if (scoutCall?.persona_id) {
+          void (async () => {
+            try {
+              const { data: persona } = await s.from('scout_voice_personas')
+                .select('call_count').eq('id', scoutCall.persona_id).single()
+              await s.from('scout_voice_personas').update({
+                call_count: (persona?.call_count || 0) + 1,
+                last_contact_at: now.toISOString(),
+              }).eq('id', scoutCall.persona_id)
+            } catch { /* non-critical */ }
+          })()
+        }
 
         // ── Post-call analysis via Claude ──
         if (ANTHROPIC_API_KEY && transcript && transcript.length > 50) {
