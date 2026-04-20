@@ -406,10 +406,26 @@ export async function seedProfile(args: SeedArgs): Promise<SeedResult> {
     ...transcripts.map((t) => `retell_call:${t.call_id}`),
     ...sourcesAdded,
   ]
+  // WR-09 — explicit branches per ref scheme so future ref schemes don't
+  // get silently misbucketed as 'onboarding_form'.  `clients:` is the
+  // table-level pull (a mix of onboarding form fields + voice rollups);
+  // we currently bucket it as onboarding_form because that's the dominant
+  // upstream source, but a future SourceType ('koto_crm') could split it.
   const refToSourceType = (ref: string): SourceType => {
     if (ref.startsWith('retell_call:')) return 'voice_call'
     if (ref.startsWith('discovery:')) return 'discovery_doc'
     if (ref.startsWith('paste:')) return 'claude_inference'
+    if (ref.startsWith('clients:')) return 'onboarding_form'
+    // Defensive: unrecognised ref scheme — log so we notice silent
+    // misclassification, then fall back to onboarding_form (the closest
+    // permissive bucket among existing SOURCE_TYPES).
+    console.warn(JSON.stringify({
+      level: 'warn',
+      module: 'profileSeeder.refToSourceType',
+      reason: 'unknown_ref_scheme',
+      ref,
+      effect: 'classified as onboarding_form',
+    }))
     return 'onboarding_form'
   }
   const mergedSources = existingSources.concat(
