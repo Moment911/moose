@@ -5,7 +5,7 @@ import {
   ArrowLeft, Phone, Mail, Globe, MapPin, Building2, User,
   TrendingUp, Flame, Tag, Sparkles, Shield, ShieldAlert,
   Calendar, DollarSign, Target, Loader2, AlertCircle,
-  ExternalLink, ChevronRight,
+  ExternalLink, ChevronRight, Radio, X, Send,
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import OpportunityTimeline from '../../components/scout/OpportunityTimeline'
@@ -96,6 +96,57 @@ export default function ScoutOpportunityDetailPage() {
   const [opp, setOpp] = useState(null)
   const [err, setErr] = useState(null)
   const [savingStage, setSavingStage] = useState(false)
+
+  // Queue-for-AI-call modal state
+  const [queueOpen, setQueueOpen] = useState(false)
+  const [qPitch, setQPitch] = useState('')
+  const [qGap, setQGap] = useState('')
+  const [qPriority, setQPriority] = useState(3)
+  const [qBusy, setQBusy] = useState(false)
+
+  function openQueueModal() {
+    if (!opp) return
+    setQPitch(opp.persona_json?.next_best_action || opp.persona_json?.summary || '')
+    setQGap(opp.intel?.biggest_gap || opp.pain_point || '')
+    setQPriority(opp.hot ? 1 : 3)
+    setQueueOpen(true)
+  }
+
+  async function submitQueue() {
+    if (!opp) return
+    if (!opp.contact_phone) { toast.error('Opportunity has no phone number'); return }
+    setQBusy(true)
+    try {
+      const res = await fetch('/api/scout/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          action: 'queue_call',
+          agency_id: agencyId,
+          opportunity_id: opp.id,
+          company_name: opp.company_name || 'Unknown',
+          contact_name: opp.contact_name || null,
+          contact_phone: opp.contact_phone,
+          industry: opp.industry || null,
+          sic_code: opp.sic_code || null,
+          pitch_angle: qPitch.trim() || null,
+          biggest_gap: qGap.trim() || null,
+          priority: qPriority,
+          trigger_mode: 'manual',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Queue failed')
+      toast.success('Added to Scout voice queue')
+      setQueueOpen(false)
+      setTimeout(() => navigate('/scout/voice'), 400)
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setQBusy(false)
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -195,7 +246,22 @@ export default function ScoutOpportunityDetailPage() {
                   )}
                 </div>
 
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={openQueueModal}
+                    disabled={!opp.contact_phone}
+                    title={!opp.contact_phone ? 'Add a phone number first' : 'Queue this prospect for the Scout AI voice agent'}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '10px 16px', borderRadius: 10,
+                      background: opp.contact_phone ? R : '#e5e7eb',
+                      color: opp.contact_phone ? '#fff' : '#9ca3af',
+                      border: 'none', cursor: opp.contact_phone ? 'pointer' : 'not-allowed',
+                      fontSize: 13, fontWeight: 700, fontFamily: FH,
+                    }}
+                  >
+                    <Radio size={14} /> Queue for AI call
+                  </button>
                   <ScoreRing score={opp.score} label="Score" />
                   <ScoreRing score={opp.health_score} label="Health" />
                 </div>
@@ -375,6 +441,123 @@ export default function ScoutOpportunityDetailPage() {
               </div>
             </div>
           </>
+        )}
+
+        {queueOpen && opp && (
+          <div
+            onClick={() => !qBusy && setQueueOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 200, padding: 20,
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: '#fff', borderRadius: 14, maxWidth: 560, width: '100%',
+                padding: '22px 24px', fontFamily: FB,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>Scout voice · Queue a call</div>
+                  <h2 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: 0 }}>{opp.company_name}</h2>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    {opp.contact_name || 'Unknown contact'} · {opp.contact_phone}
+                  </div>
+                </div>
+                <button onClick={() => !qBusy && setQueueOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <X size={16} color="#6b7280" />
+                </button>
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Pitch angle</div>
+                <textarea
+                  value={qPitch}
+                  onChange={e => setQPitch(e.target.value)}
+                  placeholder="What's the single most compelling reason they should talk to you? The agent leads with this."
+                  rows={2}
+                  style={{
+                    width: '100%', padding: '10px 12px', fontSize: 13,
+                    borderRadius: 8, border: '1px solid #e5e7eb', fontFamily: FB, resize: 'vertical',
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Biggest gap (optional)</div>
+                <textarea
+                  value={qGap}
+                  onChange={e => setQGap(e.target.value)}
+                  placeholder="The specific thing Scout detected (no GA4, slow site, poor reviews). The agent uses this as the hook."
+                  rows={2}
+                  style={{
+                    width: '100%', padding: '10px 12px', fontSize: 13,
+                    borderRadius: 8, border: '1px solid #e5e7eb', fontFamily: FB, resize: 'vertical',
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Priority</div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {[1, 2, 3, 4, 5].map(p => {
+                    const active = qPriority === p
+                    const label = p === 1 ? 'Urgent' : p === 2 ? 'High' : p === 3 ? 'Normal' : p === 4 ? 'Low' : 'Backfill'
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => setQPriority(p)}
+                        style={{
+                          padding: '7px 12px', borderRadius: 8,
+                          background: active ? BLK : '#fff',
+                          color: active ? '#fff' : '#4b5563',
+                          border: active ? 'none' : '1px solid #e5e7eb',
+                          fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+                        }}
+                      >
+                        {p} · {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14, padding: 10, background: '#f9fafb', borderRadius: 8, border: '1px solid #eef0f2' }}>
+                <b>What happens next:</b> this prospect goes into the Scout voice queue. The AI agent composes a
+                system prompt from the voice brain (industry knowledge + global patterns + this pitch angle + the
+                prospect's state via area code) and dials as soon as you hit Start from the Queue tab.
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setQueueOpen(false)}
+                  disabled={qBusy}
+                  style={{
+                    padding: '10px 14px', borderRadius: 8, background: '#fff',
+                    border: '1px solid #e5e7eb', color: '#4b5563',
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: FH,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitQueue}
+                  disabled={qBusy}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '10px 18px', borderRadius: 8, background: BLK, color: '#fff',
+                    border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+                  }}
+                >
+                  {qBusy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                  Add to queue
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>
