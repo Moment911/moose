@@ -199,12 +199,12 @@ BEGIN
     INSERT INTO scout_questions (agency_id, bank_id, stage, question_text, services_qualified, exploration_status, source, direction, source_system, priority)
     VALUES
       -- ── Opener (6) ──
-      (NULL, bank_id, 'opener', 'Hi {{prospect_name}}, this is {{agent_name}} from {{seller_name}} out of {{agency_location}}. We run marketing for small and mid-sized businesses like yours — got 60 seconds for me to tell you why I called?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
+      (NULL, bank_id, 'opener', 'Hi <prospect_name>, this is <agent_name> from <seller_name> out of <agency_location>. We run marketing for small and mid-sized businesses like yours — got 60 seconds for me to tell you why I called?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
       (NULL, bank_id, 'opener', 'Quick one before I pitch anything — is your phone ringing as much as it was this time last year?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
-      (NULL, bank_id, 'opener', 'I pulled up {{company_name}} before dialing and ran our Momentum Audit on you. I got six scores across SEO, paid, social, brand — want me to just tell you what I found?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
+      (NULL, bank_id, 'opener', 'I pulled up <company_name> before dialing and ran our Momentum Audit on you. I got six scores across SEO, paid, social, brand — want me to just tell you what I found?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
       (NULL, bank_id, 'opener', 'What are you doing for marketing right now — and if you''re being honest, is it actually working?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
       (NULL, bank_id, 'opener', 'I''ll cut to it — I help businesses like yours turn marketing from a line item that feels like a gamble into something that actually drives revenue. Is that a conversation worth having?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
-      (NULL, bank_id, 'opener', 'Most {{industry}} owners I talk to are doing one or two marketing things and hoping for the best. Does that sound like you, or are you running a full playbook?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
+      (NULL, bank_id, 'opener', 'Most <industry> owners I talk to are doing one or two marketing things and hoping for the best. Does that sound like you, or are you running a full playbook?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
 
       -- ── Current State (9) ──
       (NULL, bank_id, 'current_state', 'Walk me through everything you''re doing for marketing right now — who runs it, what channels, and how long has that been the setup?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
@@ -240,7 +240,7 @@ BEGIN
       -- ── Budget (5) ──
       (NULL, bank_id, 'budget', 'Ballpark, what are you spending on marketing in total right now across everything — ads, tools, people, agencies?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
       (NULL, bank_id, 'budget', 'Is that number one you landed on deliberately, or did it just sort of end up there?', ARRAY['marketing_strategy'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
-      (NULL, bank_id, 'budget', 'If I told you most SMBs in your spot are spending somewhere between {{benchmark_low}} and {{benchmark_high}} a month to get real growth, does that feel high, low, or about right for you?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
+      (NULL, bank_id, 'budget', 'If I told you most SMBs in your spot are spending somewhere between <benchmark_low> and <benchmark_high> a month to get real growth, does that feel high, low, or about right for you?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
       (NULL, bank_id, 'budget', 'If we could show you $3 back for every $1 you put in — and prove it — how would you think about expanding the budget?', ARRAY['analytics_reporting'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
       (NULL, bank_id, 'budget', 'What''s the number where marketing stops feeling like an investment and starts feeling scary?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
 
@@ -258,14 +258,14 @@ BEGIN
       (NULL, bank_id, 'competition', 'If you picked us, what''s the conversation you''d have with the people currently doing your marketing?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
 
       -- ── Proof & Credibility (4) ──
-      (NULL, bank_id, 'proof', 'Would it help to see what we did for a {{similar_business_type}} in a similar spot — same size, same kind of challenges?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
+      (NULL, bank_id, 'proof', 'Would it help to see what we did for a <similar_business_type> in a similar spot — same size, same kind of challenges?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
       (NULL, bank_id, 'proof', 'Our SMB clients average a 340% lift in qualified leads. If we hit even half of that for you, what does that do for the business?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
       (NULL, bank_id, 'proof', 'What kind of proof would it take — case studies, references, a pilot — for you to feel comfortable taking a swing on this?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
       (NULL, bank_id, 'proof', 'If I sent you a free Momentum Audit scoring your brand against your top 3 competitors — no strings, no email needed — would that be worth 60 seconds of your time?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
 
       -- ── Closer (5) ──
-      (NULL, bank_id, 'closer', 'Based on what you''ve told me — {{summarized_pain}} — it sounds like the gap is {{specific_gap}}. Am I reading that right?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
-      (NULL, bank_id, 'closer', 'Let''s do this: a 20-minute strategy call where I walk you through exactly what we''d do for {{company_name}} in the first 90 days. Worth it?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
+      (NULL, bank_id, 'closer', 'Based on what you''ve told me — <summarized_pain> — it sounds like the gap is <specific_gap>. Am I reading that right?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
+      (NULL, bank_id, 'closer', 'Let''s do this: a 20-minute strategy call where I walk you through exactly what we''d do for <company_name> in the first 90 days. Worth it?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1),
       (NULL, bank_id, 'closer', 'What would need to be true on that strategy call for you to want to move forward?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
       (NULL, bank_id, 'closer', 'Who else should be on the call so we''re not running this same conversation twice?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 2),
       (NULL, bank_id, 'closer', 'Best email for the calendar invite — and are mornings or afternoons better for you?', ARRAY['all'], 'active', 'industry:marketing_agency', 'outbound_only', 'seed', 1);

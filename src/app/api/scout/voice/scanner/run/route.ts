@@ -98,7 +98,7 @@ Hard rules:
 - Use the PROSPECT's vocabulary, NOT the seller's. If the seller uses jargon like "momenta" or "compounding force", translate it to plain language ("getting more leads every month instead of starting from zero").
 - Each question must map to at least one specific service the seller offers (services_qualified). Only use 'all' for universal openers/closers/budget/timeline.
 - Questions should surface pain the seller can solve — make them concrete, open-ended, answerable in one sentence.
-- Use {{company_name}}, {{prospect_name}}, {{agent_name}}, {{seller_name}}, {{industry}} as placeholder variables where it reads naturally.
+- Use <company_name>, <prospect_name>, <agent_name>, <seller_name>, <industry> as placeholder variables (angle-bracket style) where it reads naturally.
 - Do not repeat the seller's proof points in questions — those are for the pitch phase, not discovery.
 - priority: 1 for high-leverage (should be tried first), 2 for supporting, 3 for niche.`
 
