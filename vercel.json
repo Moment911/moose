@@ -82,6 +82,9 @@
     "src/app/api/cron/scout-persona/route.ts": {
       "maxDuration": 300
     },
+    "src/app/api/scout/voice/brain/upload/route.ts": {
+      "maxDuration": 120
+    },
     "src/app/api/kotoiq/route.ts": {
       "maxDuration": 300
     }

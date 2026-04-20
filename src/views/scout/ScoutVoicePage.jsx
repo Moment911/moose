@@ -9,6 +9,7 @@ import {
   AlertCircle, AlertTriangle, BarChart2, DollarSign, Calendar,
   Users, Shield, FileText, Settings, Hash, Layers, Volume2,
   ArrowUpRight, Copy, Send, ExternalLink, Filter,
+  Upload,
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import { useAuth } from '../../hooks/useAuth'
@@ -839,6 +840,12 @@ function SetupTab({ agencyId }) {
   const [ingesting, setIngesting] = useState(false)
   const [lastIngest, setLastIngest] = useState(null)
 
+  // PDF upload state
+  const [pdfFile, setPdfFile] = useState(null)
+  const [pdfDragging, setPdfDragging] = useState(false)
+  const [pdfUploading, setPdfUploading] = useState(false)
+  const [pdfResult, setPdfResult] = useState(null)
+
   useEffect(() => {
     apiGet('get_voice_roster').then(r => setVoices(r.data || []))
     apiGet('get_cadence_presets').then(r => setCadencePresets(r.data || null))
@@ -896,6 +903,34 @@ function SetupTab({ agencyId }) {
     setLastIngest({ inserted: r.inserted || 0, note: r.note || null, at: new Date().toISOString() })
     setIngestText('')
     toast.success(`${r.inserted || 0} fact${r.inserted === 1 ? '' : 's'} ingested`)
+  }
+
+  async function uploadPdf() {
+    if (!pdfFile) { toast.error('Drop a PDF first'); return }
+    if (pdfFile.size > 20 * 1024 * 1024) { toast.error('PDF must be under 20 MB'); return }
+    setPdfUploading(true)
+    setPdfResult(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', pdfFile)
+      fd.append('agency_id', agencyId)
+      fd.append('scope', ingestScope)
+      if (ingestScopeValue) fd.append('scope_value', ingestScopeValue)
+      fd.append('direction', ingestDirection)
+      if (ingestSource) fd.append('source_label', ingestSource)
+      const res = await fetch('/api/scout/voice/brain/upload', {
+        method: 'POST', credentials: 'include', body: fd,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Upload failed')
+      setPdfResult(data)
+      setPdfFile(null)
+      toast.success(`${data.inserted || 0} fact${data.inserted === 1 ? '' : 's'} extracted from PDF`)
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setPdfUploading(false)
+    }
   }
 
   return (
@@ -1017,10 +1052,75 @@ function SetupTab({ agencyId }) {
 
       <Section title="Ingest reference material" icon={Brain}>
         <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
-          Paste cold-calling playbook excerpts, objection-handling guides, industry-specific sales notes, or
-          any PDF text content you've been referencing. Claude Haiku extracts discrete, actionable facts and
-          writes them into the brain so every call reads from them at dial time.
+          Upload PDFs or paste text from cold-calling playbooks, objection-handling guides, industry sales
+          notes, coaching transcripts. Claude Haiku extracts discrete, actionable facts into the brain so
+          every call reads from them at dial time.
         </div>
+
+        {/* PDF drop zone */}
+        <div
+          onDragOver={e => { e.preventDefault(); setPdfDragging(true) }}
+          onDragLeave={() => setPdfDragging(false)}
+          onDrop={e => {
+            e.preventDefault()
+            setPdfDragging(false)
+            const f = e.dataTransfer.files?.[0]
+            if (f) { if (/\.pdf$/i.test(f.name)) setPdfFile(f); else toast.error('PDF files only') }
+          }}
+          style={{
+            border: `2px dashed ${pdfDragging ? T : '#d1d5db'}`,
+            borderRadius: 10,
+            padding: 18,
+            background: pdfDragging ? T + '08' : '#fafbfc',
+            textAlign: 'center',
+            marginBottom: 14,
+            transition: 'all .15s',
+          }}
+        >
+          <input
+            id="scout-brain-pdf-input"
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={e => { const f = e.target.files?.[0]; if (f) setPdfFile(f) }}
+            style={{ display: 'none' }}
+          />
+          {pdfFile ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{pdfFile.name}</div>
+                <div style={{ fontSize: 11, color: '#6b7280' }}>{(pdfFile.size / 1024).toFixed(0)} KB</div>
+              </div>
+              <button onClick={uploadPdf} disabled={pdfUploading} style={btnPrimary}>
+                {pdfUploading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                Extract facts from PDF
+              </button>
+              <button onClick={() => setPdfFile(null)} disabled={pdfUploading} style={btnGhost}>
+                <X size={12} /> Remove
+              </button>
+            </div>
+          ) : (
+            <label htmlFor="scout-brain-pdf-input" style={{ cursor: 'pointer', display: 'block' }}>
+              <FileText size={20} color="#9ca3af" style={{ marginBottom: 6 }} />
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563' }}>
+                Drop a PDF here <span style={{ color: '#9ca3af', fontWeight: 400 }}>or click to pick a file</span>
+              </div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Max 20 MB · uses the scope + direction settings below</div>
+            </label>
+          )}
+        </div>
+
+        {pdfResult && (
+          <div style={{ padding: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 12, color: '#047857', marginBottom: 14 }}>
+            <b>{pdfResult.inserted}</b> fact{pdfResult.inserted === 1 ? '' : 's'} extracted
+            {pdfResult.extracted_text_chars ? ` · ${pdfResult.extracted_text_chars.toLocaleString()} chars of text parsed` : ''}
+            {pdfResult.note ? ` · ${pdfResult.note}` : ''}
+            {pdfResult.blob_url && (
+              <>
+                {' · '}<a href={pdfResult.blob_url} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'underline' }}>source file</a>
+              </>
+            )}
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 10 }}>
           <label>
