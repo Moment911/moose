@@ -241,14 +241,23 @@ function buildScoutPrompt(opts: {
     aiDisclosure, nameVerified, voicemail, learnedRules,
   } = opts
 
-  // Render the discovery question bank by stage
+  // Render the discovery question bank by stage — substitute placeholders with actual values
   let bankBlock = ''
   if (bankQuestions && bankQuestions.length > 0) {
     const byStage: Record<string, string[]> = {}
     for (const q of bankQuestions) {
       const k = String(q.stage || 'other').toLowerCase()
       if (!byStage[k]) byStage[k] = []
-      byStage[k].push(q.question_text)
+      // Substitute all <placeholder> tokens with real values
+      let text = q.question_text
+        .replace(/<agent_name>/gi, agentName)
+        .replace(/<seller_name>/gi, agencyName)
+        .replace(/<agency_name>/gi, agencyName)
+        .replace(/<agency_location>/gi, geo?.major_city || geo?.state || 'here')
+        .replace(/<prospect_name>/gi, contactName || 'there')
+        .replace(/<company_name>/gi, companyName)
+        .replace(/<industry>/gi, industry || 'business')
+      byStage[k].push(text)
     }
     const STAGE_ORDER = ['opener', 'current_state', 'pain', 'decision', 'budget', 'timeline', 'competition', 'proof', 'closer']
     const sections: string[] = []
@@ -377,16 +386,19 @@ ${nameVerified && contactName ? `You may address ${contactName} by name — thei
 Proceed to discovery (Step 3). Call classify_pickup with dm_direct.
 
 # STEP 3 — DISCOVERY (only after DM confirmed)
-${aiDisclosure?.required ? `1. Deliver AI disclosure immediately (see HARD RULES).` : ``}
-1. Open with call_permission — gauge tolerance in one sentence.
-2. Deliver your pitch_hook — frame as observation, not sales claim.
-3. Current State questions — what they use today, team size.
-4. Pain questions — biggest frustration, cost of problem.
-5. Qualify: decision maker, process, budget, timeline.
-6. detect_buying_signal whenever they ask price/timing/demo unprompted.
-7. Close: demo_interest → follow_up_time → email_confirmation.
-8. If they book, call set_appointment with ISO timestamp.
+${aiDisclosure?.required ? `1. Deliver AI disclosure immediately (see HARD RULES).\n` : ''}Your opener MUST be conversational and lead with the pain point — NEVER open with a generic pitch or ask for permission. You are a human having a real conversation. The flow:
+
+1. **Confirm you're speaking to the right person:** "Quick question — are you the one who handles the marketing over there?" If NO → ask who does and whether you can be transferred.
+2. **Lead with the pain point as a natural observation** (not a sales pitch): "${biggestGap ? `"I was actually looking at ${companyName} before I called and noticed ${biggestGap} — is that something that's been on your radar?"` : `"I was looking at ${companyName}'s online presence before I called and spotted a few things that might be costing you leads — have you noticed anything off with how you're showing up online?"`}"
+3. **Listen.** Let them talk. Ask follow-up questions. Mirror their language. If they're engaged, go deeper into pain. If they're short, acknowledge and keep it tight.
+4. Current State — what they do today, who runs it, how long.
+5. Pain — biggest frustration, what it's costing them, what they've tried.
+6. Qualify: decision process, budget range, timeline.
+7. detect_buying_signal whenever they ask price/timing/demo unprompted.
+8. Close: "Would it be worth 15 minutes for me to show you what we found and what we'd do about it?" → set_appointment with ISO timestamp.
 9. end_call gracefully.
+
+**Key:** Sound like a knowledgeable human who noticed something specific about THEIR business — not a scripted caller reading from a sheet. Short sentences. Curiosity over pitch.
 
 # TOOL USE
 - Call classify_pickup within the first 10 seconds. Do not skip this.
@@ -1001,14 +1013,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     try {
-      // Build the opener begin_message using the resolved agent persona name + agency brand.
-      // agent.caller_name is the persona name operators set (e.g. "Alex"); falls back to agent.name then "Scout".
-      // agencyName is already resolved from agency.brand_name || agency.name (line ~791).
+      // Build the opener begin_message — lead with the pain point, sound human.
+      // agent.caller_name is the persona name operators set (e.g. "Alex").
       const callerName = agent.caller_name || agent.name || 'Scout'
       const contactName_ = call.contact_name
-      const beginMessage = contactName_
-        ? `Hi, is this ${contactName_}? This is ${callerName} from ${agencyName} — do you have a quick minute?`
-        : `Hi there, this is ${callerName} from ${agencyName} — do you have a quick minute?`
+      const gap = call.biggest_gap || call.pitch_angle || null
+
+      let beginMessage: string
+      if (contactName_ && gap) {
+        beginMessage = `Hey ${contactName_}, this is ${callerName} from ${agencyName}. I was looking at ${call.company_name || 'your business'} before I called — I noticed ${gap}. Is that something that's been on your radar?`
+      } else if (contactName_) {
+        beginMessage = `Hey ${contactName_}, this is ${callerName} from ${agencyName}. Quick question — are you the one who handles the marketing over there?`
+      } else if (gap) {
+        beginMessage = `Hey, this is ${callerName} from ${agencyName}. I was looking at ${call.company_name || 'your company'} before I called and noticed ${gap}. Is that something you've been aware of?`
+      } else {
+        beginMessage = `Hey, this is ${callerName} from ${agencyName}. I was actually looking at ${call.company_name || 'your business'} before I called — are you the person who handles the marketing over there?`
+      }
 
       const res = await retellFetch('/v2/create-phone-call', 'POST', {
         from_number: fromE164,
