@@ -21,6 +21,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { metaFromPhone } from '@/lib/scout/areaCodeMeta'
 import { SCOUT_VOICE_ROSTER, CADENCE_PRESETS, getCadencePreset } from '@/lib/scout/voiceRoster'
+import { tcpaGate } from '@/lib/scout/cellPhoneGate'
+import { callWindowGate } from '@/lib/scout/callWindowGate'
 
 const RETELL_API_KEY = process.env.RETELL_API_KEY || ''
 const RETELL_BASE = 'https://api.retellai.com'
@@ -198,10 +200,12 @@ function buildScoutPrompt(opts: {
   personality?: string
   geo?: { state?: string; state_code?: string; region?: string; major_city?: string; style_notes?: string } | null
   bankQuestions?: Array<{ stage: string; question_text: string; services_qualified?: string[] }>
+  aiDisclosure?: { required: boolean; language?: string | null } | null
 }): string {
   const {
     agencyName, agentName, companyName, contactName, industry,
     pitchAngle, biggestGap, priorContext, industryKnowledge, personality, geo, bankQuestions,
+    aiDisclosure,
   } = opts
 
   // Render the discovery question bank by stage
@@ -275,6 +279,7 @@ Actively mirror the prospect within your voice's natural range:
 Never over-mirror. Mirroring is a tilt, not an impression.
 
 # HARD RULES
+${aiDisclosure?.required ? `- **AI DISCLOSURE (LEGALLY REQUIRED):** ${aiDisclosure.language || `Within the first 15 seconds of the call, you MUST disclose that you are an AI assistant calling on behalf of ${agencyName}. Say something natural like: "Just so you know, I'm an AI assistant calling on behalf of ${agencyName}."`} You must not skip or delay this disclosure. If the prospect asks whether you are a real person or AI at any point, always confirm truthfully that you are an AI.` : `- If the prospect asks whether you are a real person or AI, always answer truthfully: you are an AI assistant calling on behalf of ${agencyName}.`}
 - If they say they are not the decision maker, ask who is and how to reach them.
 - If they ask to be removed from the list, call the dnc_request tool immediately then politely wrap.
 - If they ask to be transferred to a human, call transfer_to_human.
@@ -282,7 +287,7 @@ Never over-mirror. Mirroring is a tilt, not an impression.
 - Talk-listen ratio target: 40% you, 60% them. Ask more than you tell.
 
 # FLOW
-1. Open with call_permission — gauge tolerance in one sentence.
+1. ${aiDisclosure?.required ? `Deliver AI disclosure immediately (see HARD RULES). Then open` : `Open`} with call_permission — gauge tolerance in one sentence.
 2. Deliver your pitch_hook — frame it as an observation, not a sales claim.
 3. Transition into Current State questions.
 4. Uncover pain with open-ended Pain questions.
@@ -543,6 +548,41 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             campaign_id, agent_id, scheduled_at } = body
     if (!agency_id || !company_name) return NextResponse.json({ error: 'agency_id and company_name required' }, { status: 400 })
 
+    // ── TCPA compliance gate — block cell phones without consent ──
+    if (contact_phone) {
+      const phoneE164 = toE164(contact_phone)
+      if (phoneE164) {
+        const tcpa = await tcpaGate(phoneE164, agency_id)
+        if (!tcpa.allowed) {
+          return NextResponse.json({ error: 'tcpa_blocked', reason: tcpa.reason }, { status: 403 })
+        }
+        if (tcpa.warn) {
+          console.warn(`[scout-voice] TCPA warning for ${phoneE164}: ${tcpa.warn}`)
+        }
+
+        // ── Time-window enforcement — no calls outside allowed hours ──
+        // Resolve agent jurisdictions (if agent_id provided) to pass through
+        let agentJurisdictions: string[] | null = null
+        if (agent_id) {
+          const { data: agentRow } = await s.from('scout_voice_agents')
+            .select('jurisdictions_active')
+            .eq('id', agent_id).maybeSingle()
+          agentJurisdictions = agentRow?.jurisdictions_active || null
+        }
+        const window = await callWindowGate(phoneE164, agency_id, agentJurisdictions)
+        if (!window.allowed) {
+          return NextResponse.json({
+            error: 'call_window_blocked',
+            reason: window.reason,
+            timezone: window.timezone,
+            localTime: window.localTime,
+            window: window.window,
+            nextWindowIso: window.nextWindowIso,
+          }, { status: 403 })
+        }
+      }
+    }
+
     const { data: call, error: ce } = await s.from('scout_voice_calls').insert({
       agency_id, opportunity_id, agent_id, company_name, contact_name, industry, sic_code,
       pitch_angle, biggest_gap, priority: priority || 3, trigger_mode: trigger_mode || 'manual',
@@ -673,6 +713,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
     } catch { /* fall back to default prompt if bank fetch fails */ }
 
+    // ── AI Disclosure lookup ──────────────────────────────────────
+    // Check TCPA record for per-phone disclosure requirement, else
+    // fall back to state-level default (required in most states).
+    let aiDisclosure: { required: boolean; language?: string | null } = { required: true }
+    try {
+      const prospectPhone = toE164(call.to_number)
+      if (prospectPhone) {
+        const { data: tcpaRec } = await s.from('koto_voice_tcpa_records')
+          .select('ai_disclosure_required, ai_disclosure_language')
+          .eq('phone', prospectPhone)
+          .eq('agency_id', call.agency_id)
+          .maybeSingle()
+        if (tcpaRec) {
+          aiDisclosure = {
+            required: tcpaRec.ai_disclosure_required !== false,
+            language: tcpaRec.ai_disclosure_language || null,
+          }
+        }
+        // No TCPA record → default to required (safe default)
+      }
+    } catch { /* default to required */ }
+
     const systemPrompt = buildScoutPrompt({
       agencyName,
       agentName: agent.name || 'your Scout AI',
@@ -685,6 +747,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       personality: agent.personality_profile?.style || undefined,
       geo,
       bankQuestions: bankQuestions.length > 0 ? bankQuestions : undefined,
+      aiDisclosure,
     })
 
     const fromNumber = agent.from_number || agency?.scout_voice_from_number
@@ -698,6 +761,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!fromE164 || !toE164_) {
       await s.from('scout_voice_calls').update({ status: 'failed', error_message: 'Invalid from_number or to_number (could not normalize to E.164)' }).eq('id', call_id)
       return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 })
+    }
+
+    // ── Time-window re-check at dial time ──
+    // A call may sit queued for hours; re-verify the window before actually dialing.
+    const windowCheck = await callWindowGate(toE164_, call.agency_id, agent.jurisdictions_active || null)
+    if (!windowCheck.allowed) {
+      await s.from('scout_voice_calls').update({
+        status: 'failed',
+        error_message: `Call blocked: ${windowCheck.reason}`,
+      }).eq('id', call_id)
+      return NextResponse.json({
+        error: 'call_window_blocked',
+        reason: windowCheck.reason,
+        timezone: windowCheck.timezone,
+        localTime: windowCheck.localTime,
+        nextWindowIso: windowCheck.nextWindowIso,
+      }, { status: 403 })
     }
 
     try {
@@ -811,7 +891,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const { agency_id, name, voice_id, industry_slug, from_number } = body
     if (!agency_id) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
 
-    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/voice/webhook`
+    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/scout/voice/webhook`
 
     try {
       const llm = await retellFetch('/create-retell-llm', 'POST', {
@@ -873,7 +953,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!agency_id || !area_code) return NextResponse.json({ error: 'agency_id and area_code required' }, { status: 400 })
 
     const steps: any[] = []
-    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/voice/webhook`
+    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/scout/voice/webhook`
 
     const cadence = getCadencePreset(cadence_preset)
     const chosenVoice = voice_id || '11labs-Adrian'
