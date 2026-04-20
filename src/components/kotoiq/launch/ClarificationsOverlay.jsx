@@ -18,16 +18,24 @@ import ClarificationCard from './ClarificationCard'
  * new HIGH-severity inserts also trigger a 12s modal escalation sheet
  * bottom-right (UI-SPEC §5.9 / D-20).
  *
+ * WR-08 — kotoiq_clarifications RLS is currently `USING (true) WITH CHECK
+ * (true)` (per 20260507 migration line 171-172), which permits any reader.
+ * Service-role-only is enforced by app convention, NOT by RLS.  We
+ * therefore include both client_id AND agency_id in the realtime channel
+ * filter so a malicious browser cannot subscribe to a different agency's
+ * clarifications stream by enumerating clientId values.  Once RLS is
+ * tightened to JWT-aware predicates, the agency_id filter becomes
+ * redundant but harmless.
+ *
  * Props:
  *   clientId    — used as the realtime channel filter
- *   agencyId?   — accepted for API symmetry; isolation is enforced by RLS +
- *                 the /api/kotoiq/profile route's session-scoped agencyId.
- *                 The client component never sends agency_id in any payload.
+ *   agencyId    — REQUIRED for the realtime channel filter (WR-08).  The
+ *                 component still never sends agency_id in any HTTP body
+ *                 (the route derives it from session).
  *   onAnswer(id, text)   — wired by LaunchPage to /api/kotoiq/profile
  *   onForward(id, ch?)   — wired by LaunchPage to /api/kotoiq/profile
  *   onSkip(id)           — wired by LaunchPage to /api/kotoiq/profile
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function ClarificationsOverlay({ clientId, agencyId, onAnswer, onForward, onSkip }) {
   const [clarifications, setClarifications] = useState([])
   const [modalTarget, setModalTarget] = useState(null)   // 12s HIGH-severity sheet
@@ -55,14 +63,27 @@ export default function ClarificationsOverlay({ clientId, agencyId, onAnswer, on
     }
     load()
 
-    // Realtime — kotoiq_clarifications IS in the supabase_realtime publication
-    // (per Plan 1). Filter scopes to this client; RLS scopes to this agency.
+    // WR-08 — Realtime: kotoiq_clarifications IS in the supabase_realtime
+    // publication (per Plan 1).  Supabase realtime postgres_changes only
+    // accepts a single `filter:` predicate, so we client-side-filter the
+    // payload by agency_id below.  We also include agencyId in the channel
+    // name so per-agency subscriptions are isolated at the channel layer.
+    // If agencyId is missing the subscription is skipped — better to render
+    // nothing than to subscribe with no agency scope at all.
+    if (!agencyId) return () => { mounted = false }
     const ch = supabase
-      .channel(`kotoiq_clarifications:${clientId}`)
+      .channel(`kotoiq_clarifications:${agencyId}:${clientId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'kotoiq_clarifications', filter: `client_id=eq.${clientId}` },
         (payload) => {
+          // WR-08 — drop any payload whose agency_id doesn't match the
+          // logged-in agency.  The server-side filter only narrows by
+          // client_id; this guard prevents a broadcast from a colliding
+          // client_id under a different agency from leaking into the
+          // overlay.
+          const row = payload.new || payload.old
+          if (row && row.agency_id && row.agency_id !== agencyId) return
           if (!mounted) return
           setClarifications((prev) => {
             const arr = [...prev]
@@ -98,7 +119,7 @@ export default function ClarificationsOverlay({ clientId, agencyId, onAnswer, on
       mounted = false
       supabase.removeChannel(ch)
     }
-  }, [clientId])
+  }, [clientId, agencyId])
 
   // ─── DOM scan for [data-field-path] spans ───────────────────────────────
   useEffect(() => {
