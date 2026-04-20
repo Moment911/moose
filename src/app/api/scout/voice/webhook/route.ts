@@ -362,7 +362,13 @@ export async function POST(req: NextRequest) {
           disconnection_reason: disconnectionReason,
           updated_at: now.toISOString(),
         }
-        if (recordingUrl) updates.recording_url = recordingUrl
+        if (recordingUrl) {
+          updates.recording_url = recordingUrl
+          // H9: Set 30-day retention expiry
+          const expiry = new Date(now)
+          expiry.setDate(expiry.getDate() + 30)
+          updates.retention_expires_at = expiry.toISOString()
+        }
         if (!scoutCall?.outcome) {
           // Infer outcome from call characteristics
           if (duration < 10) updates.outcome = 'no_answer'

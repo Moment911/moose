@@ -232,11 +232,12 @@ function buildScoutPrompt(opts: {
   bankQuestions?: Array<{ stage: string; question_text: string; services_qualified?: string[] }>
   aiDisclosure?: { required: boolean; language?: string | null } | null
   nameVerified?: boolean
+  voicemail?: { pattern: string; customScript?: string | null; tone?: string; maxSeconds?: number } | null
 }): string {
   const {
     agencyName, agentName, companyName, contactName, industry,
     pitchAngle, biggestGap, priorContext, industryKnowledge, personality, geo, bankQuestions,
-    aiDisclosure, nameVerified,
+    aiDisclosure, nameVerified, voicemail,
   } = opts
 
   // Render the discovery question bank by stage
@@ -360,8 +361,16 @@ Get: name → are they in? → best time? → direct line? → last name?
 Do NOT pitch the wrong person. Exit cleanly.
 
 ## If VOICEMAIL:
-Leave a concise message (under 30 seconds) with your name, ${agencyName}, and a hook. End with callback number.
-${nameVerified && contactName ? `You may address ${contactName} by name — their identity has been verified.` : `**NAME-SAFETY RULE:** Do NOT use the prospect's name in the voicemail. Their name has not been manually verified. Use generic addressing ("Hi, this is ${agentName} from ${agencyName}") instead. This is a legal requirement — never skip it.`}
+${voicemail?.customScript ? `Use this voicemail script:\n${voicemail.customScript}` : `Use ${(voicemail?.pattern || 'pattern_1') === 'pattern_1' ? 'PATTERN 1 — Authority Hook' : (voicemail?.pattern || 'pattern_1') === 'pattern_2' ? 'PATTERN 2 — Specific Pain' : 'PATTERN 3 — Breakup / Closing the Loop'}:
+
+**Pattern 1 — Authority Hook:** "Hi, this is ${agentName} from ${agencyName}. My team was looking at ${companyName} and found something about your online presence that's probably costing you leads. I'd love to flag it for whoever handles the marketing — can you have them give me a ring at {{callback_number}}?"
+
+**Pattern 2 — Specific Pain:** "Hi, this is ${agentName} from ${agencyName}. ${biggestGap ? `We noticed ${biggestGap} — ` : 'We spotted something specific about your marketing — '}and I think it's worth a quick look. Give me a call back at {{callback_number}} and I'll walk you through what we found."
+
+**Pattern 3 — Breakup:** "Hi, this is ${agentName} from ${agencyName} — I've tried to reach you a couple of times. I found something about ${companyName}'s marketing worth seeing, but I don't want to keep calling if the timing's wrong. If you're curious, my number is {{callback_number}}. If not, no hard feelings — wishing you the best."`}
+
+Tone: ${voicemail?.tone || 'conversational'}. Max ${voicemail?.maxSeconds || 30} seconds. End with callback number.
+${nameVerified && contactName ? `You may address ${contactName} by name — their identity has been verified.` : `**NAME-SAFETY RULE:** Do NOT use the prospect's name in the voicemail. Their name has not been manually verified. Use generic addressing only. This is a legal requirement.`}
 
 ## If DM REACHED:
 Proceed to discovery (Step 3). Call classify_pickup with dm_direct.
@@ -654,6 +663,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data: data || [] })
   }
 
+  // ── get_cadences — list cadence states for an agency ──
+  if (action === 'get_cadences') {
+    const status = searchParams.get('status')
+    let q = s.from('scout_voice_cadence_state').select('*, scout_voice_personas!scout_voice_cadence_state_persona_id_fkey(id, name, direct_phone)')
+      .eq('agency_id', agencyId).order('next_action_at', { ascending: true, nullsFirst: false }).limit(100)
+    if (status) q = q.eq('status', status)
+    const { data } = await q
+    return NextResponse.json({ data: data || [] })
+  }
+
+  // ── get_audit_gaps — gaps for a company or agency ──
+  if (action === 'get_audit_gaps') {
+    const companyId = searchParams.get('company_id')
+    let q = s.from('scout_voice_audit_gaps').select('*').eq('active', true)
+      .order('revenue_weight', { ascending: false })
+    if (companyId) q = q.eq('company_id', companyId)
+    else q = q.eq('agency_id', agencyId)
+    const { data } = await q.limit(50)
+    return NextResponse.json({ data: data || [] })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 
@@ -930,6 +960,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       bankQuestions: bankQuestions.length > 0 ? bankQuestions : undefined,
       aiDisclosure,
       nameVerified,
+      voicemail: agent.voicemail_mode !== 'off' ? {
+        pattern: agent.voicemail_pattern || 'pattern_1',
+        customScript: agent.voicemail_script_template || null,
+        tone: agent.voicemail_tone || 'conversational',
+        maxSeconds: agent.voicemail_max_seconds || 30,
+      } : null,
     })
 
     const fromNumber = agent.from_number || agency?.scout_voice_from_number
@@ -1428,6 +1464,322 @@ Rules:
     const { error: err } = await s.from('scout_voice_personas').update({ [field]: arr }).eq('id', persona_id)
     if (err) return NextResponse.json({ error: err.message }, { status: 500 })
     return NextResponse.json({ success: true, count: arr.length })
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // H9: Recording retention cleanup (call from cron)
+  // ═══════════════════════════════════════════════════════════════
+
+  if (action === 'retention_cleanup') {
+    const now = new Date()
+    const warningThreshold = new Date(now)
+    warningThreshold.setDate(warningThreshold.getDate() + 3)  // day-27 = 3 days before expiry
+
+    // Send day-27 warnings
+    const { data: expiring } = await s.from('scout_voice_calls')
+      .select('id, agency_id, company_name, recording_url, retention_expires_at')
+      .lte('retention_expires_at', warningThreshold.toISOString())
+      .gt('retention_expires_at', now.toISOString())
+      .eq('retention_warning_sent', false)
+      .not('recording_url', 'is', null)
+      .limit(100)
+
+    let warned = 0
+    for (const call of expiring || []) {
+      await s.from('scout_voice_calls').update({ retention_warning_sent: true }).eq('id', call.id)
+      // TODO: send notification email — for now just flag
+      warned++
+    }
+
+    // Delete expired recordings
+    const { data: expired } = await s.from('scout_voice_calls')
+      .select('id')
+      .lte('retention_expires_at', now.toISOString())
+      .not('recording_url', 'is', null)
+      .limit(200)
+
+    let deleted = 0
+    for (const call of expired || []) {
+      await s.from('scout_voice_calls').update({
+        recording_url: null,
+        updated_at: now.toISOString(),
+      }).eq('id', call.id)
+      deleted++
+    }
+
+    return NextResponse.json({ success: true, warned, deleted })
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // H10: Audit gap CRUD
+  // ═══════════════════════════════════════════════════════════════
+
+  if (action === 'create_audit_gap') {
+    const { agency_id, company_id, gap_type, gap_specific, estimated_impact,
+            revenue_weight, visual_proof_url, source, source_data } = body
+    if (!agency_id || !gap_type || !gap_specific) {
+      return NextResponse.json({ error: 'agency_id, gap_type, and gap_specific required' }, { status: 400 })
+    }
+
+    const { data, error: err } = await s.from('scout_voice_audit_gaps').insert({
+      agency_id, company_id: company_id || null,
+      gap_type, gap_specific, estimated_impact,
+      revenue_weight: revenue_weight || 50,
+      visual_proof_url, source: source || 'manual', source_data,
+    }).select('*').single()
+    if (err) return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ success: true, data })
+  }
+
+  if (action === 'get_top_gaps') {
+    const { company_id, agency_id, limit: lim } = body
+    if (!company_id && !agency_id) return NextResponse.json({ error: 'company_id or agency_id required' }, { status: 400 })
+
+    let q = s.from('scout_voice_audit_gaps').select('*').eq('active', true)
+      .order('revenue_weight', { ascending: false }).limit(lim || 10)
+    if (company_id) q = q.eq('company_id', company_id)
+    else if (agency_id) q = q.eq('agency_id', agency_id)
+
+    const { data } = await q
+    return NextResponse.json({ data: data || [] })
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // H6: Cadence state machine
+  // ═══════════════════════════════════════════════════════════════
+
+  if (action === 'create_cadence') {
+    const { agency_id, persona_id, campaign_id, cadence_preset, cadence_config } = body
+    if (!agency_id || !persona_id) return NextResponse.json({ error: 'agency_id and persona_id required' }, { status: 400 })
+
+    const config = cadence_config || getCadencePreset(cadence_preset) || getCadencePreset('natural')
+    const firstActionAt = new Date()
+    firstActionAt.setMinutes(firstActionAt.getMinutes() + 5) // first touch in 5 min
+
+    const { data, error: err } = await s.from('scout_voice_cadence_state').insert({
+      agency_id, persona_id, campaign_id: campaign_id || null,
+      status: 'active',
+      current_step: 1,
+      current_dm_persona_id: persona_id,
+      next_action_type: 'voice',
+      next_action_at: firstActionAt.toISOString(),
+      cadence_config: config,
+    }).select('*').single()
+    if (err) return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ success: true, data })
+  }
+
+  if (action === 'advance_cadence') {
+    const { cadence_id, touch_outcome } = body
+    if (!cadence_id) return NextResponse.json({ error: 'cadence_id required' }, { status: 400 })
+
+    const { data: cad } = await s.from('scout_voice_cadence_state').select('*').eq('id', cadence_id).single()
+    if (!cad) return NextResponse.json({ error: 'Cadence not found' }, { status: 404 })
+
+    const config = cad.cadence_config || {}
+    const maxTouches = config.max_touches || 8
+    const intervalHours = config.touch_interval_hours || 48
+    const backupDmAfter = config.backup_dm_after_touches || 3
+    const now = new Date()
+
+    const updates: Record<string, any> = {
+      total_touches: (cad.total_touches || 0) + 1,
+      current_step: (cad.current_step || 1) + 1,
+      last_touch_type: touch_outcome?.type || 'voice',
+      last_touch_at: now.toISOString(),
+    }
+
+    // Check termination conditions
+    if (touch_outcome?.outcome === 'appointment_set' || touch_outcome?.outcome === 'qualified_no_appointment') {
+      updates.status = 'completed'
+      updates.next_action_type = null
+      updates.next_action_at = null
+    } else if (touch_outcome?.outcome === 'dnc_requested' || touch_outcome?.outcome === 'opt_out_requested') {
+      updates.status = 'opted_out'
+      updates.next_action_type = null
+      updates.next_action_at = null
+    } else if (updates.total_touches >= maxTouches) {
+      updates.status = 'exhausted'
+      updates.next_action_type = null
+      updates.next_action_at = null
+    } else {
+      // Schedule next touch
+      const nextAt = new Date(now)
+      nextAt.setHours(nextAt.getHours() + intervalHours)
+      updates.next_action_at = nextAt.toISOString()
+
+      // Determine next action type (voice → voicemail → email cycling)
+      if (touch_outcome?.outcome === 'no_answer' || touch_outcome?.outcome === 'voicemail_left') {
+        updates.next_action_type = 'voice'  // try again
+      } else {
+        updates.next_action_type = 'voice'
+      }
+
+      // Backup DM switch check
+      if (updates.total_touches >= backupDmAfter && cad.dm_switches === 0) {
+        // Look for backup DM on the company
+        const { data: persona } = await s.from('scout_voice_personas')
+          .select('company_id').eq('id', cad.persona_id).single()
+        if (persona?.company_id) {
+          const { data: company } = await s.from('scout_voice_companies')
+            .select('backup_dm_1_id').eq('id', persona.company_id).single()
+          if (company?.backup_dm_1_id) {
+            updates.current_dm_persona_id = company.backup_dm_1_id
+            updates.dm_switches = 1
+            updates.next_action_reason = 'switched_to_backup_dm'
+          }
+        }
+      }
+    }
+
+    const { error: err } = await s.from('scout_voice_cadence_state').update(updates).eq('id', cadence_id)
+    if (err) return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ success: true, status: updates.status || cad.status, next: updates.next_action_at })
+  }
+
+  if (action === 'pause_cadence') {
+    const { cadence_id, reason } = body
+    if (!cadence_id) return NextResponse.json({ error: 'cadence_id required' }, { status: 400 })
+    await s.from('scout_voice_cadence_state').update({
+      status: 'paused',
+      paused_at: new Date().toISOString(),
+      pause_reason: reason || 'manual',
+      next_action_at: null,
+    }).eq('id', cadence_id)
+    return NextResponse.json({ success: true })
+  }
+
+  if (action === 'resume_cadence') {
+    const { cadence_id } = body
+    if (!cadence_id) return NextResponse.json({ error: 'cadence_id required' }, { status: 400 })
+    const nextAt = new Date()
+    nextAt.setHours(nextAt.getHours() + 2)
+    await s.from('scout_voice_cadence_state').update({
+      status: 'active',
+      resumed_at: new Date().toISOString(),
+      next_action_type: 'voice',
+      next_action_at: nextAt.toISOString(),
+    }).eq('id', cadence_id)
+    return NextResponse.json({ success: true })
+  }
+
+  if (action === 'process_cadence_queue') {
+    // Cron action: find all cadences where next_action_at <= now and queue calls
+    const now = new Date()
+    const { data: due } = await s.from('scout_voice_cadence_state')
+      .select('*, scout_voice_personas!scout_voice_cadence_state_current_dm_persona_id_fkey(id, name, direct_phone, company_id, scout_voice_companies(id, name, industry, sic_code))')
+      .eq('status', 'active')
+      .lte('next_action_at', now.toISOString())
+      .limit(50)
+
+    const queued: string[] = []
+    for (const cad of due || []) {
+      const persona = (cad as any).scout_voice_personas
+      if (!persona?.direct_phone) continue
+
+      const company = persona.scout_voice_companies
+      // Queue the call via the existing queue_call flow
+      const { data: call } = await s.from('scout_voice_calls').insert({
+        agency_id: cad.agency_id,
+        company_name: company?.name || 'Unknown',
+        contact_name: persona.name?.value || null,
+        industry: company?.industry || null,
+        sic_code: company?.sic_code || null,
+        company_id: company?.id || null,
+        persona_id: persona.id,
+        campaign_id: cad.campaign_id || null,
+        to_number: persona.direct_phone,
+        priority: 2,
+        trigger_mode: 'cadence',
+        status: 'queued',
+      }).select('id').single()
+
+      if (call) queued.push(call.id)
+    }
+
+    return NextResponse.json({ success: true, queued_count: queued.length, call_ids: queued })
+  }
+
+  if (action === 'set_prospect_callback') {
+    const { cadence_id, callback_for } = body
+    if (!cadence_id) return NextResponse.json({ error: 'cadence_id required' }, { status: 400 })
+    await s.from('scout_voice_cadence_state').update({
+      callback_requested: true,
+      callback_requested_at: new Date().toISOString(),
+      callback_requested_for: callback_for || null,
+      status: 'paused',
+      pause_reason: 'prospect_callback',
+      next_action_type: 'voice',
+      next_action_at: callback_for || new Date().toISOString(),
+    }).eq('id', cadence_id)
+    return NextResponse.json({ success: true })
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // H12: Onboarding wizard
+  // ═══════════════════════════════════════════════════════════════
+
+  if (action === 'get_onboarding_status') {
+    const { agent_id } = body
+    if (!agent_id) return NextResponse.json({ error: 'agent_id required' }, { status: 400 })
+    const { data: agent } = await s.from('scout_voice_agents')
+      .select('id, name, onboarding_step, onboarding_completed_at, industry_slug, voicemail_mode, voicemail_pattern, retell_agent_id, from_number, active')
+      .eq('id', agent_id).single()
+    if (!agent) return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
+
+    const STEPS = ['industry_select', 'agent_setup', 'voicemail_config', 'test_call', 'first_campaign', 'complete']
+    const currentIdx = STEPS.indexOf(agent.onboarding_step || 'industry_select')
+
+    // Auto-detect completion of steps based on agent state
+    const stepStatus: Record<string, boolean> = {
+      industry_select: !!agent.industry_slug,
+      agent_setup: !!agent.retell_agent_id && !!agent.from_number,
+      voicemail_config: agent.voicemail_mode === 'off' || !!agent.voicemail_pattern,
+      test_call: false,  // must be explicitly completed
+      first_campaign: false,  // must be explicitly completed
+      complete: !!agent.onboarding_completed_at,
+    }
+
+    // Check if test call exists
+    const { count: testCalls } = await s.from('scout_voice_calls')
+      .select('*', { count: 'exact', head: true })
+      .eq('agent_id', agent_id)
+      .eq('trigger_mode', 'test')
+      .eq('status', 'completed')
+    stepStatus.test_call = (testCalls || 0) > 0
+
+    // Check if any campaign exists
+    const { count: campaigns } = await s.from('scout_voice_campaigns')
+      .select('*', { count: 'exact', head: true })
+      .eq('agency_id', body.agency_id || agent.id)
+    stepStatus.first_campaign = (campaigns || 0) > 0
+
+    return NextResponse.json({
+      data: agent,
+      steps: STEPS,
+      current_step: agent.onboarding_step || 'industry_select',
+      current_step_index: currentIdx,
+      step_status: stepStatus,
+      is_complete: !!agent.onboarding_completed_at,
+    })
+  }
+
+  if (action === 'complete_onboarding_step') {
+    const { agent_id, step } = body
+    if (!agent_id || !step) return NextResponse.json({ error: 'agent_id and step required' }, { status: 400 })
+
+    const STEPS = ['industry_select', 'agent_setup', 'voicemail_config', 'test_call', 'first_campaign', 'complete']
+    const stepIdx = STEPS.indexOf(step)
+    if (stepIdx === -1) return NextResponse.json({ error: 'Invalid step' }, { status: 400 })
+
+    const nextStep = STEPS[stepIdx + 1] || 'complete'
+    const updates: Record<string, any> = { onboarding_step: nextStep }
+    if (nextStep === 'complete') {
+      updates.onboarding_completed_at = new Date().toISOString()
+    }
+
+    await s.from('scout_voice_agents').update(updates).eq('id', agent_id)
+    return NextResponse.json({ success: true, next_step: nextStep, complete: nextStep === 'complete' })
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
