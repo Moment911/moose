@@ -19,9 +19,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { metaFromPhone } from '@/lib/scout/areaCodeMeta'
+import { SCOUT_VOICE_ROSTER, CADENCE_PRESETS, getCadencePreset } from '@/lib/scout/voiceRoster'
 
 const RETELL_API_KEY = process.env.RETELL_API_KEY || ''
 const RETELL_BASE = 'https://api.retellai.com'
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 
 function sb() {
   return createClient(
@@ -166,10 +169,11 @@ function buildScoutPrompt(opts: {
   priorContext?: string
   industryKnowledge?: string[]
   personality?: string
+  geo?: { state?: string; state_code?: string; region?: string; major_city?: string; style_notes?: string } | null
 }): string {
   const {
     agencyName, agentName, companyName, contactName, industry,
-    pitchAngle, biggestGap, priorContext, industryKnowledge, personality,
+    pitchAngle, biggestGap, priorContext, industryKnowledge, personality, geo,
   } = opts
 
   const gapFraming = biggestGap
@@ -181,6 +185,10 @@ function buildScoutPrompt(opts: {
   const knowledgeBlock = industryKnowledge && industryKnowledge.length
     ? `\n## WHAT WE KNOW ABOUT ${industry?.toUpperCase() || 'THIS INDUSTRY'}\n` +
       industryKnowledge.map(k => `- ${k}`).join('\n')
+    : ''
+
+  const geoBlock = geo?.state
+    ? `\n## WHERE YOU ARE CALLING\nYou are calling a ${geo.state}${geo.major_city ? ` (${geo.major_city})` : ''} number — a ${geo.region || 'US'} prospect.${geo.style_notes ? `\nRegional note: ${geo.style_notes}` : ''}`
     : ''
 
   const priorBlock = priorContext ? `\n## PRIOR CONVERSATION CONTEXT\n${priorContext}` : ''
@@ -199,10 +207,21 @@ Book a 15-minute follow-up demo. Secondary: qualify them and learn enough to wri
 # PITCH ANGLE
 ${gapFraming}
 ${knowledgeBlock}
+${geoBlock}
 ${priorBlock}
 
-# STYLE
-${personality || `Conversational, warm, curious. Mirror their energy. Short sentences. Never sound like a script.`}
+# STYLE — MIRROR THE PROSPECT
+${personality || `Conversational, warm, curious. Short sentences. Never sound like a script.`}
+
+Actively mirror the prospect within your voice's natural range:
+- If they speak fast, tighten your pace. If they speak slowly, slow down.
+- If they use casual language, drop the formality. If they are formal, stay formal.
+- Match their energy register — enthusiastic back to enthusiastic, measured back to measured.
+- Pick up one or two of their specific words or phrases and reflect them back later (lightweight linguistic mirroring, not parroting).
+- If they use industry jargon, use it correctly. If they avoid jargon, plain English only.
+- Match sentence length — if they give you one-word answers, ask shorter questions.
+
+Never over-mirror. Mirroring is a tilt, not an impression.
 
 # HARD RULES
 - If they say they are not the decision maker, ask who is and how to reach them.
@@ -236,6 +255,20 @@ export async function GET(req: NextRequest) {
   const action = searchParams.get('action')
   const agencyId = searchParams.get('agency_id') || ''
   const s = sb()
+
+  if (action === 'get_voice_roster') {
+    return NextResponse.json({ data: SCOUT_VOICE_ROSTER })
+  }
+
+  if (action === 'get_cadence_presets') {
+    return NextResponse.json({ data: CADENCE_PRESETS })
+  }
+
+  if (action === 'get_area_code_meta') {
+    const phone = searchParams.get('phone') || ''
+    const meta = metaFromPhone(phone)
+    return NextResponse.json({ data: meta })
+  }
 
   if (action === 'get_questions') {
     // Built-in defaults PLUS learned agency-specific questions
@@ -491,6 +524,10 @@ export async function POST(req: NextRequest) {
     // Ordering from brain is already global_pattern first, then industry, etc.
     const knowledge = brainFacts.map(b => ({ fact: b.fact }))
 
+    // Geo awareness — tag the call with where the prospect lives so the
+    // prompt can adjust regional expectations (pace, tone, norms).
+    const geo = metaFromPhone(call.to_number)
+
     const systemPrompt = buildScoutPrompt({
       agencyName,
       agentName: agent.name || 'your Scout AI',
@@ -501,6 +538,7 @@ export async function POST(req: NextRequest) {
       biggestGap: call.biggest_gap || undefined,
       industryKnowledge: (knowledge || []).map((k: any) => k.fact),
       personality: agent.personality_profile?.style || undefined,
+      geo,
     })
 
     const fromNumber = agent.from_number || agency?.scout_voice_from_number
@@ -644,11 +682,14 @@ export async function POST(req: NextRequest) {
 
   // ── setup_scout_voice — one-click: agent + LLM + number provisioning ──
   if (action === 'setup_scout_voice') {
-    const { agency_id, area_code, agent_name } = body
+    const { agency_id, area_code, agent_name, voice_id, cadence_preset } = body
     if (!agency_id || !area_code) return NextResponse.json({ error: 'agency_id and area_code required' }, { status: 400 })
 
     const steps: any[] = []
     const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/voice/webhook`
+
+    const cadence = getCadencePreset(cadence_preset)
+    const chosenVoice = voice_id || '11labs-Adrian'
 
     try {
       const llm = await retellFetch('/create-retell-llm', 'POST', {
@@ -661,14 +702,16 @@ export async function POST(req: NextRequest) {
       const agent = await retellFetch('/create-agent', 'POST', {
         agent_name: agent_name || 'Scout SDR',
         response_engine: { type: 'retell-llm', llm_id: llm.llm_id },
-        voice_id: '11labs-Adrian',
+        voice_id: chosenVoice,
         language: 'en-US',
         webhook_url: webhookUrl,
-        responsiveness: 0.9,
-        interruption_sensitivity: 0.6,
-        enable_backchannel: true,
+        responsiveness: cadence.responsiveness,
+        interruption_sensitivity: cadence.interruption_sensitivity,
+        enable_backchannel: cadence.enable_backchannel,
+        voice_speed: cadence.voice_speed,
+        voice_temperature: cadence.voice_temperature,
       })
-      steps.push({ step: 'retell_agent', ok: true, agent_id: agent.agent_id })
+      steps.push({ step: 'retell_agent', ok: true, agent_id: agent.agent_id, voice_id: chosenVoice, cadence: cadence_preset || 'natural' })
 
       const num = await retellFetch('/create-phone-number', 'POST', {
         area_code: String(area_code),
@@ -695,6 +738,87 @@ export async function POST(req: NextRequest) {
     } catch (e: any) {
       steps.push({ step: 'error', ok: false, error: e.message })
       return NextResponse.json({ success: false, ready: false, steps, error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── ingest_knowledge — take a blob of reference text (pasted from a PDF,
+  //    playbook, or coaching doc) and extract discrete facts into the brain.
+  //    Claude Haiku handles the extraction + categorization in one shot.
+  if (action === 'ingest_knowledge') {
+    const { agency_id, text, scope, scope_value, direction, source_label } = body
+    if (!agency_id || !text) return NextResponse.json({ error: 'agency_id and text required' }, { status: 400 })
+    if (!ANTHROPIC_API_KEY) return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
+
+    const systemPrompt = `You extract high-leverage cold-calling knowledge from reference material into structured facts.
+
+Read the material the user pastes and return a JSON array of fact objects:
+[
+  {
+    "fact": "one concrete actionable statement — specific, testable, useful on a live call",
+    "category": "pitch_angle | pain_point | objection_response | timing | decision_maker | hot_button | opener | closer",
+    "confidence": 0.5 to 0.95
+  },
+  ...
+]
+
+Rules:
+- Each fact is self-contained, no context needed to apply it mid-call.
+- Skip generic platitudes ("build rapport", "be a good listener"). Only specifics.
+- Skip facts the source contradicts or marks uncertain.
+- Max 25 facts per pass. Pick the most useful.
+- Return ONLY the JSON array, no prose.`
+
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 3500,
+          temperature: 0.2,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: String(text).slice(0, 60000) }],
+        }),
+      })
+      if (!resp.ok) {
+        const t = await resp.text().catch(() => '')
+        return NextResponse.json({ error: `Claude error: ${resp.status} ${t.slice(0, 200)}` }, { status: 500 })
+      }
+      const data: any = await resp.json()
+      const rawText: string = data?.content?.[0]?.text || '[]'
+      const cleaned = rawText.replace(/```json|```/g, '').trim()
+      let facts: any[] = []
+      try { facts = JSON.parse(cleaned) } catch { return NextResponse.json({ error: 'Claude returned invalid JSON' }, { status: 500 }) }
+      if (!Array.isArray(facts)) return NextResponse.json({ error: 'Claude did not return an array' }, { status: 500 })
+
+      const resolvedScope = scope || 'global_pattern'
+      const resolvedScopeValue = scope_value || null
+      const resolvedDirection = direction || 'both'
+
+      const rows = facts.slice(0, 25).map((f: any) => ({
+        agency_id,
+        scope: resolvedScope,
+        scope_value: resolvedScopeValue,
+        direction: resolvedDirection,
+        source_system: 'manual',
+        fact: String(f.fact || '').slice(0, 1000),
+        fact_category: String(f.category || 'hot_button').slice(0, 60),
+        confidence_score: Math.min(1, Math.max(0, Number(f.confidence) || 0.6)),
+        times_confirmed: 1,
+      })).filter((r: any) => r.fact.length > 10)
+
+      if (rows.length === 0) return NextResponse.json({ inserted: 0, note: 'No useful facts extracted' })
+
+      const { error } = await s.from('scout_voice_knowledge').insert(rows)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+      return NextResponse.json({ inserted: rows.length, source_label: source_label || null })
+    } catch (e: any) {
+      return NextResponse.json({ error: e?.message || 'ingest failed' }, { status: 500 })
     }
   }
 

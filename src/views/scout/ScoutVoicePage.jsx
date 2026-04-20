@@ -820,15 +820,41 @@ function AnalyticsTab({ agencyId }) {
 function SetupTab({ agencyId }) {
   const [areaCode, setAreaCode] = useState('')
   const [agentName, setAgentName] = useState('Scout SDR')
+  const [gender, setGender] = useState('male')
+  const [voiceId, setVoiceId] = useState('11labs-Adrian')
+  const [cadence, setCadence] = useState('natural')
+  const [voices, setVoices] = useState([])
+  const [cadencePresets, setCadencePresets] = useState(null)
   const [steps, setSteps] = useState([])
   const [running, setRunning] = useState(false)
   const [testPhone, setTestPhone] = useState('')
   const [testProspect, setTestProspect] = useState(null)
 
+  // Ingest state
+  const [ingestText, setIngestText] = useState('')
+  const [ingestScope, setIngestScope] = useState('global_pattern')
+  const [ingestScopeValue, setIngestScopeValue] = useState('')
+  const [ingestDirection, setIngestDirection] = useState('both')
+  const [ingestSource, setIngestSource] = useState('')
+  const [ingesting, setIngesting] = useState(false)
+  const [lastIngest, setLastIngest] = useState(null)
+
+  useEffect(() => {
+    apiGet('get_voice_roster').then(r => setVoices(r.data || []))
+    apiGet('get_cadence_presets').then(r => setCadencePresets(r.data || null))
+  }, [])
+
+  const filteredVoices = useMemo(() => voices.filter(v => v.gender === gender), [voices, gender])
+  const selectedVoice = useMemo(() => voices.find(v => v.id === voiceId), [voices, voiceId])
+
   async function runSetup() {
     if (!areaCode) { toast.error('Enter an area code'); return }
     setRunning(true); setSteps([])
-    const r = await apiPost({ action: 'setup_scout_voice', agency_id: agencyId, area_code: areaCode, agent_name: agentName })
+    const r = await apiPost({
+      action: 'setup_scout_voice',
+      agency_id: agencyId, area_code: areaCode, agent_name: agentName,
+      voice_id: voiceId, cadence_preset: cadence,
+    })
     setRunning(false)
     setSteps(r.steps || [])
     if (r.ready) toast.success('Setup complete — ready to dial')
@@ -853,12 +879,31 @@ function SetupTab({ agencyId }) {
     else toast.success('Test call dialing')
   }
 
+  async function ingest() {
+    if (!ingestText.trim()) { toast.error('Paste some reference text first'); return }
+    setIngesting(true)
+    const r = await apiPost({
+      action: 'ingest_knowledge',
+      agency_id: agencyId,
+      text: ingestText,
+      scope: ingestScope,
+      scope_value: ingestScopeValue || null,
+      direction: ingestDirection,
+      source_label: ingestSource || null,
+    })
+    setIngesting(false)
+    if (r.error) { toast.error(r.error); return }
+    setLastIngest({ inserted: r.inserted || 0, note: r.note || null, at: new Date().toISOString() })
+    setIngestText('')
+    toast.success(`${r.inserted || 0} fact${r.inserted === 1 ? '' : 's'} ingested`)
+  }
+
   return (
     <div>
       <Section title="Provision Scout voice agent" icon={Settings}>
         <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
-          One-click setup: creates the Retell LLM, creates the agent, provisions a phone number in your chosen
-          area code, and stores the IDs on your agency record.
+          One-click setup: creates the Retell LLM, creates the agent with your chosen voice + cadence,
+          provisions a phone number in the area code you pick, and stores the IDs on your agency record.
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           <label>
@@ -870,6 +915,68 @@ function SetupTab({ agencyId }) {
             <input value={areaCode} onChange={e => setAreaCode(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="e.g. 305" style={inputStyle} />
           </label>
         </div>
+
+        {/* Voice picker */}
+        <div style={{ marginBottom: 12 }}>
+          <Label>Voice</Label>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+            {['male', 'female'].map(g => {
+              const active = gender === g
+              return (
+                <button
+                  key={g}
+                  onClick={() => { setGender(g); const first = voices.find(v => v.gender === g); if (first) setVoiceId(first.id) }}
+                  style={{
+                    padding: '6px 14px', borderRadius: 99,
+                    background: active ? BLK : W, color: active ? W : '#4b5563',
+                    border: active ? 'none' : '1px solid #e5e7eb',
+                    fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+                    textTransform: 'capitalize',
+                  }}
+                >{g}</button>
+              )
+            })}
+          </div>
+          <select value={voiceId} onChange={e => setVoiceId(e.target.value)} style={inputStyle}>
+            {filteredVoices.map(v => (
+              <option key={v.id} value={v.id}>{v.name} — {v.accent} · {v.style}</option>
+            ))}
+          </select>
+          {selectedVoice?.sample_note && (
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6, fontStyle: 'italic' }}>{selectedVoice.sample_note}</div>
+          )}
+        </div>
+
+        {/* Cadence preset */}
+        <div style={{ marginBottom: 16 }}>
+          <Label>Cadence / inflection</Label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
+            {['relaxed', 'natural', 'energetic', 'formal'].map(preset => {
+              const active = cadence === preset
+              const meta = cadencePresets?.[preset]
+              return (
+                <button
+                  key={preset}
+                  onClick={() => setCadence(preset)}
+                  style={{
+                    padding: '12px 14px', borderRadius: 10,
+                    background: active ? BLK + '08' : W, color: BLK,
+                    border: active ? `2px solid ${T}` : '1px solid #e5e7eb',
+                    cursor: 'pointer', textAlign: 'left', fontFamily: FB,
+                  }}
+                >
+                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, textTransform: 'capitalize' }}>{preset}</div>
+                  {meta && (
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                      {meta.style}
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         <button onClick={runSetup} disabled={running} style={btnPrimary}>
           {running ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
           Run one-click setup
@@ -906,6 +1013,73 @@ function SetupTab({ agencyId }) {
           </div>
         )}
         <button onClick={runTest} style={btnPrimary}><Play size={14} /> Dial test</button>
+      </Section>
+
+      <Section title="Ingest reference material" icon={Brain}>
+        <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+          Paste cold-calling playbook excerpts, objection-handling guides, industry-specific sales notes, or
+          any PDF text content you've been referencing. Claude Haiku extracts discrete, actionable facts and
+          writes them into the brain so every call reads from them at dial time.
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 10 }}>
+          <label>
+            <Label>Scope</Label>
+            <select value={ingestScope} onChange={e => setIngestScope(e.target.value)} style={inputStyle}>
+              <option value="global_pattern">Global pattern (all calls)</option>
+              <option value="industry">Industry-specific</option>
+              <option value="sic">SIC-specific</option>
+              <option value="gap">Gap-specific</option>
+              <option value="objection">Objection playbook</option>
+            </select>
+          </label>
+          <label>
+            <Label>Scope value</Label>
+            <input
+              value={ingestScopeValue}
+              onChange={e => setIngestScopeValue(e.target.value)}
+              placeholder={ingestScope === 'global_pattern' ? 'leave blank' : ingestScope === 'industry' ? 'e.g. HVAC' : ingestScope === 'sic' ? 'e.g. 1711' : 'value'}
+              style={inputStyle}
+              disabled={ingestScope === 'global_pattern'}
+            />
+          </label>
+          <label>
+            <Label>Direction</Label>
+            <select value={ingestDirection} onChange={e => setIngestDirection(e.target.value)} style={inputStyle}>
+              <option value="both">Both (inbound + outbound)</option>
+              <option value="outbound_only">Outbound only (Scout)</option>
+              <option value="inbound_only">Inbound only (Answering)</option>
+            </select>
+          </label>
+          <label>
+            <Label>Source label (optional)</Label>
+            <input value={ingestSource} onChange={e => setIngestSource(e.target.value)} placeholder="e.g. Fanatical Prospecting ch. 4" style={inputStyle} />
+          </label>
+        </div>
+
+        <textarea
+          value={ingestText}
+          onChange={e => setIngestText(e.target.value)}
+          placeholder="Paste the reference text here. Can be up to ~60,000 characters — extract the meat of a playbook, a chapter, an industry report, a coaching transcript, etc. Claude will pull out up to 25 high-leverage facts per pass."
+          rows={10}
+          style={{ ...inputStyle, fontFamily: 'ui-monospace, monospace', fontSize: 12, resize: 'vertical' }}
+        />
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'center' }}>
+          <button onClick={ingest} disabled={ingesting || !ingestText.trim()} style={btnPrimary}>
+            {ingesting ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            Extract and ingest
+          </button>
+          {lastIngest && (
+            <span style={{ fontSize: 12, color: '#6b7280' }}>
+              Last run: <strong>{lastIngest.inserted}</strong> facts ingested {lastIngest.note ? `— ${lastIngest.note}` : ''}
+            </span>
+          )}
+        </div>
+
+        <div style={{ marginTop: 12, padding: 12, background: '#f9fafb', borderRadius: 8, border: '1px solid #eef0f2', fontSize: 12, color: '#6b7280' }}>
+          <b>Example scopes:</b> for "objections specific to HVAC contractors," set scope=<code>industry</code>, value=<code>HVAC</code>, direction=<code>both</code>. For universal cold-call opening tactics, scope=<code>global_pattern</code>.
+        </div>
       </Section>
     </div>
   )
