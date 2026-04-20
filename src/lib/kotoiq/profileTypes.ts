@@ -17,6 +17,7 @@ import 'server-only'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const SOURCE_TYPES = [
+  // Phase 7 (unchanged, keep order)
   'onboarding_form',
   'voice_call',
   'discovery_doc',
@@ -24,6 +25,18 @@ export const SOURCE_TYPES = [
   'claude_inference',
   'uploaded_doc',
   'deferred_v2',
+  // Phase 8 — D-26 (append in this exact order)
+  'typeform_api',
+  'jotform_api',
+  'google_forms_api',
+  'form_scrape',
+  'website_scrape',
+  'gbp_authenticated',
+  'gbp_public',
+  'pdf_text_extract',
+  'pdf_image_extract',
+  'docx_text_extract',
+  'image_ocr_vision',
 ] as const
 export type SourceType = typeof SOURCE_TYPES[number]
 

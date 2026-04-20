@@ -7,8 +7,11 @@ import {
 } from '../src/lib/kotoiq/profileTypes'
 
 describe('profileTypes', () => {
-  it('SOURCE_TYPES has exactly 7 members', () => {
-    expect(SOURCE_TYPES).toHaveLength(7)
+  it('SOURCE_TYPES includes every Phase 7 value (7) + Phase 8 appends (11) = 18', () => {
+    // Phase 7 kept seven source types; Phase 8 (D-26) appends 11 more.
+    // Phase 8 parity test at tests/kotoiq/phase8/profileConfig.test.ts
+    // covers the new values; here we guard the Phase 7 invariants.
+    expect(SOURCE_TYPES).toHaveLength(18)
     expect(SOURCE_TYPES).toContain('onboarding_form')
     expect(SOURCE_TYPES).toContain('voice_call')
     expect(SOURCE_TYPES).toContain('deferred_v2')

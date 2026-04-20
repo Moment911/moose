@@ -50,10 +50,13 @@ describe('profileConfig', () => {
     ])
   })
 
-  it('FEATURE_TAGS has 9 distinct token-logging tags', () => {
+  it('FEATURE_TAGS has distinct token-logging tags (Phase 7 baseline 9; Phase 8 appends 10 → 19)', () => {
     const values = Object.values(FEATURE_TAGS)
     expect(new Set(values).size).toBe(values.length)
-    expect(values.length).toBe(9)
+    // Phase 7 shipped 9; Phase 8 (D-26) appends one tag per new source
+    // family + COST_PREVIEW = 10 more. Phase 8 parity coverage lives in
+    // tests/kotoiq/phase8/profileConfig.test.ts.
+    expect(values.length).toBe(19)
     // Spot check: a few RESEARCH §4 tags are present
     expect(values).toContain('profile_seed_extract')
     expect(values).toContain('profile_completeness_gate')

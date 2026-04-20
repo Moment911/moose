@@ -74,6 +74,7 @@ export const STAGE_DEMANDS = {
 
 // ── Token-usage feature tags (RESEARCH §4 — one tag per Claude call site) ────
 export const FEATURE_TAGS = {
+  // Phase 7 — keep existing verbatim
   NARRATE: 'profile_seed_narrate',
   EXTRACT: 'profile_seed_extract',
   VOICE_EXTRACT: 'profile_seed_voice_extract',
@@ -83,6 +84,17 @@ export const FEATURE_TAGS = {
   CLARIFY_SEVERITY: 'profile_clarify_severity',
   CLARIFY_CHANNEL: 'profile_clarify_channel',
   CONFIDENCE_RESCORE: 'profile_confidence_rescore',
+  // Phase 8 — D-26 (external-source parsers — one tag per source family + COST_PREVIEW)
+  FORM_EXTRACT: 'profile_form_extract',
+  WEBSITE_EXTRACT: 'profile_website_extract',
+  GBP_AUTH_EXTRACT: 'profile_gbp_auth_extract',
+  GBP_PUBLIC_EXTRACT: 'profile_gbp_public_extract',
+  GBP_REVIEW_THEMES: 'profile_gbp_review_themes',
+  PDF_TEXT_EXTRACT: 'profile_pdf_text_extract',
+  PDF_VISION_EXTRACT: 'profile_pdf_vision_extract',
+  DOCX_EXTRACT: 'profile_docx_extract',
+  IMAGE_VISION_EXTRACT: 'profile_image_vision_extract',
+  COST_PREVIEW: 'profile_cost_preview',
 } as const
 
 // ── Confidence scoring rubric (RESEARCH §4 — verbatim) ───────────────────────
@@ -129,3 +141,44 @@ export const HOT_COLUMNS = [
   'state',
 ] as const
 export type HotColumn = (typeof HOT_COLUMNS)[number]
+
+// ─── Phase 8 ───────────────────────────────────────────────────────────────
+// D-28 per-source registry — every Phase 8 SOURCE_TYPES value gets an entry.
+// Keys MUST stay in sync with profileTypes.ts SOURCE_TYPES (enforced by the
+// parity test at tests/kotoiq/phase8/profileConfig.test.ts).  Downstream
+// parsers read confidence_ceiling + default_cost_cap from here, never
+// hardcoded at call sites.
+export const SOURCE_CONFIG: Record<string, {
+  confidence_ceiling: number
+  default_cost_cap: number  // USD
+  feature_tag: keyof typeof FEATURE_TAGS
+  display_label: string
+}> = {
+  typeform_api:       { confidence_ceiling: 0.9,  default_cost_cap: 0.05, feature_tag: 'FORM_EXTRACT',          display_label: 'Typeform (API)' },
+  jotform_api:        { confidence_ceiling: 0.9,  default_cost_cap: 0.05, feature_tag: 'FORM_EXTRACT',          display_label: 'Jotform (API)' },
+  google_forms_api:   { confidence_ceiling: 0.9,  default_cost_cap: 0.05, feature_tag: 'FORM_EXTRACT',          display_label: 'Google Forms (API)' },
+  form_scrape:        { confidence_ceiling: 0.7,  default_cost_cap: 0.15, feature_tag: 'FORM_EXTRACT',          display_label: 'Form page scrape' },
+  website_scrape:     { confidence_ceiling: 0.6,  default_cost_cap: 1.50, feature_tag: 'WEBSITE_EXTRACT',       display_label: 'Website crawl' },
+  gbp_authenticated:  { confidence_ceiling: 0.85, default_cost_cap: 0.30, feature_tag: 'GBP_AUTH_EXTRACT',      display_label: 'Google Business Profile (connected)' },
+  gbp_public:         { confidence_ceiling: 0.75, default_cost_cap: 0.10, feature_tag: 'GBP_PUBLIC_EXTRACT',    display_label: 'Google Business Profile (public)' },
+  pdf_text_extract:   { confidence_ceiling: 0.75, default_cost_cap: 0.05, feature_tag: 'PDF_TEXT_EXTRACT',      display_label: 'PDF (text)' },
+  pdf_image_extract:  { confidence_ceiling: 0.6,  default_cost_cap: 1.00, feature_tag: 'PDF_VISION_EXTRACT',    display_label: 'PDF (scanned/OCR)' },
+  docx_text_extract:  { confidence_ceiling: 0.75, default_cost_cap: 0.05, feature_tag: 'DOCX_EXTRACT',          display_label: 'Word document' },
+  image_ocr_vision:   { confidence_ceiling: 0.6,  default_cost_cap: 0.50, feature_tag: 'IMAGE_VISION_EXTRACT',  display_label: 'Image (OCR)' },
+}
+
+// D-22 + D-23 daily budget defaults. Per-agency overrides live in
+// koto_agency_integrations (Plan 03) — these are the out-of-box values.
+export const BUDGETS = {
+  PER_CLIENT_DAILY_USD: 5,
+  PER_AGENCY_DAILY_USD: 50,
+  WARN_THRESHOLD_RATIO: 0.8,
+} as const
+
+// Koto-side rate limits — enforced in API route handlers
+// (RESEARCH §Security Domain).  Cap bursty operator actions that cost money
+// or external-quota (form fetches, GBP OAuth starts) regardless of budget.
+export const RATE_LIMITS = {
+  SEED_FORM_URL_PER_AGENCY_PER_MIN: 10,
+  CONNECT_GBP_OAUTH_START_PER_AGENCY_PER_HOUR: 5,
+} as const
