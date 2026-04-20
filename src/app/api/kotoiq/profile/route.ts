@@ -549,10 +549,16 @@ export async function POST(req: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const c = clar as any
 
+      // WR-03 — pull the FULL clients row so we can read opt-in / opt-out /
+      // preferred-channel preferences IF those columns exist on the schema
+      // (they are not in the canonical 20260408 migration — operator may have
+      // added them via custom migrations or they may live inside the
+      // onboarding_answers jsonb).  We use select('*') instead of a column
+      // list so missing columns simply come back undefined rather than 400.
       // clients is NOT a kotoiq_* table; explicit .eq('agency_id', agencyId).
       const { data: clientRow } = await sb
         .from('clients')
-        .select('id, name, email, phone')
+        .select('*')
         .eq('id', c.client_id)
         .eq('agency_id', agencyId)
         .is('deleted_at', null)
@@ -567,6 +573,42 @@ export async function POST(req: NextRequest) {
         .maybeSingle()
       const agencyName = agencyRow?.name || 'Koto'
 
+      // WR-03 — derive contact preferences from BOTH dedicated columns (if
+      // present) AND the onboarding_answers jsonb (where the web form stores
+      // them today).  Opt-OUT semantics dominate: an explicit opt-out always
+      // wins over any opt-in or preferred_channel.  This honours the D-18
+      // contract that we never SMS / email a client who has opted out.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cr = clientRow as Record<string, any>
+      const oa = (cr.onboarding_answers && typeof cr.onboarding_answers === 'object'
+        ? cr.onboarding_answers
+        : {}) as Record<string, unknown>
+      const prefBool = (...vals: unknown[]): boolean | undefined => {
+        for (const v of vals) {
+          if (v === true || v === 'true' || v === 1) return true
+          if (v === false || v === 'false' || v === 0) return false
+        }
+        return undefined
+      }
+      const smsOptOut = prefBool(cr.sms_opt_out, oa.sms_opt_out, oa.do_not_text)
+      const emailOptOut = prefBool(cr.email_opt_out, oa.email_opt_out, oa.do_not_email)
+      const portalOptOut = prefBool(cr.portal_opt_out, oa.portal_opt_out)
+      const smsOptIn = prefBool(cr.sms_opt_in, oa.sms_opt_in)
+      const emailOptIn = prefBool(cr.email_opt_in, oa.email_opt_in)
+      const portalOptIn = prefBool(cr.portal_opt_in, oa.portal_opt_in)
+      const preferredRaw = (cr.preferred_channel ?? oa.preferred_channel ?? oa.preferred_contact_method) as
+        | string
+        | undefined
+      const preferredChannel: 'sms' | 'email' | 'portal' | undefined =
+        preferredRaw === 'sms' || preferredRaw === 'email' || preferredRaw === 'portal'
+          ? preferredRaw
+          : undefined
+
+      // Effective opt-in flags = explicit opt-in unless explicitly opted out.
+      const effectiveSmsOptIn = smsOptOut === true ? false : smsOptIn
+      const effectiveEmailOptIn = emailOptOut === true ? false : emailOptIn
+      const effectivePortalOptIn = portalOptOut === true ? false : portalOptIn
+
       const channelArg = typeof body.channel === 'string' ? body.channel : 'auto'
       let channel: 'sms' | 'email' | 'portal'
       if (channelArg === 'sms' || channelArg === 'email' || channelArg === 'portal') {
@@ -574,12 +616,30 @@ export async function POST(req: NextRequest) {
       } else {
         const picked = await pickClarificationChannel({
           question: c.question,
+          clientContactPreferences: {
+            sms_opt_in: effectiveSmsOptIn,
+            email_opt_in: effectiveEmailOptIn,
+            portal_opt_in: effectivePortalOptIn,
+            preferred_channel: preferredChannel,
+          },
           agencyId,
           clientId: c.client_id,
         })
         // pickClarificationChannel may return 'operator' (D-18) — collapse to
         // portal so the downstream switch is exhaustive.
         channel = picked.channel === 'operator' ? 'portal' : picked.channel
+      }
+
+      // WR-03 — explicit opt-out always blocks the channel, even when the
+      // operator hand-picked it.  D-18 promise: never message an opted-out client.
+      if (channel === 'sms' && smsOptOut === true) {
+        return err(409, 'Client has opted out of SMS', { opt_out: 'sms' })
+      }
+      if (channel === 'email' && emailOptOut === true) {
+        return err(409, 'Client has opted out of email', { opt_out: 'email' })
+      }
+      if (channel === 'portal' && portalOptOut === true) {
+        return err(409, 'Client has opted out of portal notifications', { opt_out: 'portal' })
       }
 
       const common = {
