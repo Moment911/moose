@@ -788,7 +788,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!agent) {
       const { data: def } = await s.from('scout_voice_agents').select('*')
         .eq('agency_id', call.agency_id).eq('active', true)
-        .order('created_at', { ascending: true }).limit(1).maybeSingle()
+        .order('created_at', { ascending: false }).limit(1).maybeSingle()
       agent = def
     }
     if (!agent?.retell_agent_id) {
@@ -1034,9 +1034,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         from_number: fromE164,
         to_number: toE164_,
         override_agent_id: agent.retell_agent_id,
-        begin_message: beginMessage,
         retell_llm_dynamic_variables: {
           system_prompt: systemPrompt,
+          begin_message: beginMessage,
           company_name: call.company_name,
           contact_name: call.contact_name || '',
           industry: call.industry || '',
@@ -1212,6 +1212,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const llm = await retellFetch('/create-retell-llm', 'POST', {
         model: 'claude-4.5-haiku',
         general_prompt: 'You are a Scout SDR. System prompt arrives via dynamic vars.',
+        begin_message: '{{begin_message}}',
         general_tools: buildScoutTools(webhookUrl),
       })
       steps.push({ step: 'retell_llm', ok: true, llm_id: llm.llm_id })
@@ -1225,8 +1226,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         responsiveness: cadence.responsiveness,
         interruption_sensitivity: cadence.interruption_sensitivity,
         enable_backchannel: cadence.enable_backchannel,
+        backchannel_frequency: 0.8,
+        backchannel_words: ['yeah', 'mhm', 'right', 'sure', 'gotcha', 'okay'],
         voice_speed: cadence.voice_speed,
         voice_temperature: cadence.voice_temperature,
+        normalize_for_speech: true,
+        enable_voicemail_detection: true,
       })
       steps.push({ step: 'retell_agent', ok: true, agent_id: agent.agent_id, voice_id: chosenVoice, cadence: cadence_preset || 'natural' })
 
