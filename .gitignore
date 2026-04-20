@@ -52,3 +52,12 @@ next-env.d.ts
 copilot/
 Untitled.base
 *.base
+
+# Claude Code / GSD local state (per-machine, never sync)
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+desktop-app/.claude/scheduled_tasks.lock
+desktop-app/.claude/settings.local.json
+
+# Supabase CLI cache
+supabase/.temp/
