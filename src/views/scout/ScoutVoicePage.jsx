@@ -850,13 +850,31 @@ function SetupTab({ agencyId }) {
     })
   }, [agencyId])
 
-  function loadAgent(agent) {
+  async function loadAgent(agent) {
     setAgentName(agent.name || 'Scout SDR')
     setCallerName(agent.caller_name || agent.name || 'Alex')
     setVoiceId(agent.voice_id || '11labs-Adrian')
     if (agent.industry_slug) setSellerIndustry(agent.industry_slug)
     setSetupSkipped(true)
-    toast.success(`Loaded "${agent.name}" — ready to test`)
+
+    // Load the agent's question bank to show scan results as already configured
+    if (agent.active_bank_id) {
+      try {
+        const r = await apiGet('list_question_banks')
+        const bank = (r.data || []).find(b => b.id === agent.active_bank_id)
+        if (bank) {
+          setScanResult({
+            services_count: bank.question_count || 0,
+            question_count: bank.question_count || 0,
+            pages_crawled: 0,
+            bank_name: bank.name,
+            already_configured: true,
+          })
+        }
+      } catch { /* non-critical */ }
+    }
+
+    toast.success(`Loaded "${agent.caller_name || agent.name}" — ready to test`)
   }
 
   // Ingest state
@@ -1332,7 +1350,9 @@ function SetupTab({ agencyId }) {
         {scanResult && (
           <div style={{ marginTop: 14, padding: 14, background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, fontSize: 13, color: '#0f766e' }}>
             <div style={{ fontWeight: 800, marginBottom: 8 }}>
-              ✓ Scan complete — {scanResult.services_count} services · {scanResult.question_count} questions · {scanResult.pages_crawled} pages
+              {scanResult.already_configured
+                ? `✓ Question bank loaded — ${scanResult.bank_name || 'configured'} (${scanResult.question_count} questions)`
+                : `✓ Scan complete — ${scanResult.services_count} services · ${scanResult.question_count} questions · ${scanResult.pages_crawled} pages`}
             </div>
             {Array.isArray(scanResult.services) && scanResult.services.length > 0 && (
               <div style={{ marginBottom: 10 }}>
