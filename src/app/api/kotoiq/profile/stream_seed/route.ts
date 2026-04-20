@@ -89,7 +89,25 @@ export async function POST(req: NextRequest) {
   }
 
   // 3. Build the SSE stream
+  // WR-05 — wire client-disconnect to an AbortController so we can short-circuit
+  // between stages when the operator navigates away or kills the tab. The
+  // underlying seedProfile / extractor calls each enforce their own per-fetch
+  // timeouts (Sonnet 30s, Haiku 15s, gate 20s); cancellation here adds a
+  // between-stage check so we don't burn additional tokens after disconnect.
+  const ac = new AbortController()
+  const onAbort = () => {
+    try { ac.abort() } catch { /* ignore */ }
+  }
+  try { req.signal.addEventListener('abort', onAbort) } catch { /* req.signal may be missing in test envs */ }
+
   const encoder = new TextEncoder()
+
+  // Helper — abort-aware narration. Once aborted we stop pushing chunks
+  // (the controller is being torn down anyway) but never throw.
+  const writeIfActive = (controller: ReadableStreamDefaultController, text: string) => {
+    if (ac.signal.aborted) return
+    try { writeNarrationLine(controller, encoder, text) } catch { /* controller closed */ }
+  }
   const output = new ReadableStream({
     async start(controller) {
       try {
@@ -104,24 +122,21 @@ export async function POST(req: NextRequest) {
             () => [],
           ),
         ])
+        if (ac.signal.aborted) { try { controller.close() } catch {} ; return }
         const clientName = client.client?.name || 'this client'
         const fieldCount = Object.keys(client.records || {}).length
         const callCount = transcripts.length
         const discoveryOk = !!discovery.engagement
 
-        writeNarrationLine(
-          controller,
-          encoder,
+        writeIfActive(controller,
           `Reading ${clientName}'s onboarding... ${fieldCount} field${fieldCount === 1 ? '' : 's'} found.`,
         )
         if (callCount > 0) {
-          writeNarrationLine(
-            controller,
-            encoder,
+          writeIfActive(controller,
             `Pulling ${callCount} voice call${callCount === 1 ? '' : 's'}...`,
           )
         } else {
-          writeNarrationLine(controller, encoder, `No voice calls on file.`)
+          writeIfActive(controller, `No voice calls on file.`)
         }
         if (discoveryOk) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,14 +146,18 @@ export async function POST(req: NextRequest) {
             ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (discovery.engagement as any).sections.length
             : 0
-          writeNarrationLine(
-            controller,
-            encoder,
+          writeIfActive(controller,
             `Pulling discovery doc... ${sectionCount} section${sectionCount === 1 ? '' : 's'}.`,
           )
         }
 
-        // 2. Run the real seed (calls Claude where needed)
+        if (ac.signal.aborted) { try { controller.close() } catch {} ; return }
+
+        // 2. Run the real seed (calls Claude where needed). Plumbing the
+        // AbortSignal all the way through extractFromPastedText /
+        // extractFromVoiceTranscript / etc. is a v1.1 refactor; for now we
+        // gate around the call and accept that an in-flight Sonnet/Haiku
+        // request will run to its own per-fetch timeout.
         const seedResult = await seedProfile({
           clientId: client_id,
           agencyId,
@@ -147,19 +166,18 @@ export async function POST(req: NextRequest) {
           pastedTextSourceUrl: pasted_text_source_url,
           forceRebuild: !!force_rebuild,
         })
+        if (ac.signal.aborted) { try { controller.close() } catch {} ; return }
         const fieldsAfter = Object.keys(seedResult.profile.fields || {}).length
-        writeNarrationLine(
-          controller,
-          encoder,
+        writeIfActive(controller,
           `${fieldsAfter} field${fieldsAfter === 1 ? '' : 's'} resolved across sources.`,
         )
         if (seedResult.discrepancies.length > 0) {
-          writeNarrationLine(
-            controller,
-            encoder,
+          writeIfActive(controller,
             `Flagged ${seedResult.discrepancies.length} cross-source disagreement${seedResult.discrepancies.length === 1 ? '' : 's'}.`,
           )
         }
+
+        if (ac.signal.aborted) { try { controller.close() } catch {} ; return }
 
         // 3. Optional Haiku wrap-up — one calm sentence that closes the narration
         await streamHaikuWrapUp({
@@ -172,17 +190,25 @@ export async function POST(req: NextRequest) {
           clientId: client_id,
         })
 
-        writeNarrationLine(controller, encoder, '')
-        controller.close()
+        writeIfActive(controller, '')
+        try { controller.close() } catch {}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
-        writeNarrationLine(
-          controller,
-          encoder,
-          `I hit a snag: ${err?.message || 'unknown error'}. I'll carry on without it.`,
-        )
-        controller.close()
+        if (!ac.signal.aborted) {
+          writeIfActive(controller,
+            `I hit a snag: ${err?.message || 'unknown error'}. I'll carry on without it.`,
+          )
+        }
+        try { controller.close() } catch {}
+      } finally {
+        try { req.signal.removeEventListener('abort', onAbort) } catch { /* ignore */ }
       }
+    },
+    // ReadableStream `cancel()` fires when the consumer (browser) tears down
+    // the stream — flip the abort flag so the in-flight async start() loop
+    // short-circuits at its next checkpoint.
+    cancel() {
+      try { ac.abort() } catch { /* ignore */ }
     },
   })
 
