@@ -58,7 +58,22 @@ export async function extractFromDiscoverySection(
 ): Promise<Record<string, ProvenanceRecord[]>> {
   if (!input.sectionText || input.sectionText.length < 20) return {}
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY
-  if (!ANTHROPIC_KEY) return {}
+  if (!ANTHROPIC_KEY) {
+    // WR-06 — distinguish "extractor disabled" from "no fields extracted"
+    // so silent degradation surfaces in production telemetry.
+    console.warn(JSON.stringify({
+      level: 'warn',
+      module: 'profileDiscoveryExtract',
+      reason: 'extractor_disabled',
+      cause: 'ANTHROPIC_API_KEY missing',
+      agency_id: input.agencyId,
+      client_id: input.clientId,
+      engagement_id: input.engagementId,
+      section_key: input.sectionKey,
+      effect: 'returning empty fields{}',
+    }))
+    return {}
+  }
 
   const userMessage = `Section: ${input.sectionTitle}\n\n${input.sectionText}`
 

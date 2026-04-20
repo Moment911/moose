@@ -73,7 +73,21 @@ export async function extractFromVoiceTranscript(
   }
 
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY
-  if (!ANTHROPIC_KEY) return { fields: {}, raw: empty }
+  if (!ANTHROPIC_KEY) {
+    // WR-06 — distinguish "extractor disabled" from "no fields extracted"
+    // so silent degradation surfaces in production telemetry.
+    console.warn(JSON.stringify({
+      level: 'warn',
+      module: 'profileVoiceExtract',
+      reason: 'extractor_disabled',
+      cause: 'ANTHROPIC_API_KEY missing',
+      agency_id: input.agencyId,
+      client_id: input.clientId,
+      call_id: input.call_id,
+      effect: 'returning empty fields[]',
+    }))
+    return { fields: {}, raw: empty }
+  }
 
   let res: Response
   try {

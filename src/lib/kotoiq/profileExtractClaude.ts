@@ -83,8 +83,19 @@ export async function extractFromPastedText(
   }
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY
   if (!ANTHROPIC_KEY) {
-     
-    console.error('[profileExtractClaude] ANTHROPIC_API_KEY missing')
+    // WR-06 — distinguish "extractor disabled" from "no fields extracted".
+    // Returning [] here looks like a successful empty extraction to the
+    // caller; the structured warn lets ops detect the silent degradation.
+    console.warn(JSON.stringify({
+      level: 'warn',
+      module: 'profileExtractClaude',
+      reason: 'extractor_disabled',
+      cause: 'ANTHROPIC_API_KEY missing',
+      agency_id: args.agencyId,
+      client_id: args.clientId,
+      source_label: args.sourceLabel,
+      effect: 'returning empty fields[] — caller will treat as successful no-op',
+    }))
     return []
   }
 
@@ -145,13 +156,34 @@ export async function extractFromPastedText(
       signal: AbortSignal.timeout(30000),
     })
   } catch (err) {
-     
-    console.error('[profileExtractClaude] fetch failed', err)
+    // WR-06 — structured log so silent fetch failures (DNS, timeout, etc.)
+    // surface in production telemetry instead of being lost as "0 fields".
+    console.warn(JSON.stringify({
+      level: 'warn',
+      module: 'profileExtractClaude',
+      reason: 'fetch_failed',
+      cause: String((err as Error)?.message || err),
+      agency_id: args.agencyId,
+      client_id: args.clientId,
+      source_label: args.sourceLabel,
+      effect: 'returning empty fields[]',
+    }))
     return []
   }
   if (!res.ok) {
-     
-    console.error('[profileExtractClaude] API returned', res.status)
+    // WR-06 — structured log so non-2xx responses (rate limit, auth fail,
+    // etc.) surface in production telemetry instead of being lost as
+    // "0 fields".
+    console.warn(JSON.stringify({
+      level: 'warn',
+      module: 'profileExtractClaude',
+      reason: 'non_2xx',
+      status: res.status,
+      agency_id: args.agencyId,
+      client_id: args.clientId,
+      source_label: args.sourceLabel,
+      effect: 'returning empty fields[]',
+    }))
     return []
   }
 

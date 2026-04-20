@@ -104,7 +104,21 @@ export async function computeCompleteness(
     soft_gaps: [],
   }
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY
-  if (!ANTHROPIC_KEY) return fallback
+  if (!ANTHROPIC_KEY) {
+    // WR-06 — distinguish "gate disabled" from "honest 0 score" so silent
+    // degradation surfaces in production telemetry.  Caller still gets a
+    // 0-score fallback so the launch flow is never blocked by ops issues.
+    console.warn(JSON.stringify({
+      level: 'warn',
+      module: 'profileGate',
+      reason: 'gate_disabled',
+      cause: 'ANTHROPIC_API_KEY missing',
+      agency_id: profile.agency_id,
+      client_id: profile.client_id,
+      effect: 'returning fallback completeness=0',
+    }))
+    return fallback
+  }
 
   const userMessage = JSON.stringify(
     {
