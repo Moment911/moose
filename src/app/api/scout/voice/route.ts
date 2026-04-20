@@ -999,10 +999,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     try {
+      // Build the opener begin_message from the prompt's opener question or a sensible default.
+      // This prevents Retell's LLM from ad-libbing a greeting like "hey there thanks for picking up".
+      const agentName_ = agent.name || 'Scout'
+      const agencyName_ = call.agency_name || 'our team'
+      const contactName_ = call.contact_name
+      const beginMessage = contactName_
+        ? `Hi, is this ${contactName_}? This is ${agentName_} from ${agencyName_} — do you have a quick minute?`
+        : `Hi there, this is ${agentName_} from ${agencyName_} — do you have a quick minute?`
+
       const res = await retellFetch('/v2/create-phone-call', 'POST', {
         from_number: fromE164,
         to_number: toE164_,
         override_agent_id: agent.retell_agent_id,
+        begin_message: beginMessage,
         retell_llm_dynamic_variables: {
           system_prompt: systemPrompt,
           company_name: call.company_name,

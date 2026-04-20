@@ -831,6 +831,32 @@ function SetupTab({ agencyId }) {
   const [testPhone, setTestPhone] = useState('')
   const [testProspect, setTestProspect] = useState(null)
 
+  // Load past agents — skip setup if one already exists
+  const [pastAgents, setPastAgents] = useState([])
+  const [loadingAgents, setLoadingAgents] = useState(true)
+  const [setupSkipped, setSetupSkipped] = useState(false)
+
+  useEffect(() => {
+    if (!agencyId) return
+    apiGet('get_agents').then(r => {
+      const agents = r.data || []
+      setPastAgents(agents)
+      setLoadingAgents(false)
+      // Auto-select if there's an active agent — skip setup entirely
+      if (agents.length > 0 && agents[0].active) {
+        setSetupSkipped(true)
+      }
+    })
+  }, [agencyId])
+
+  function loadAgent(agent) {
+    setAgentName(agent.name || 'Scout SDR')
+    setVoiceId(agent.voice_id || '11labs-Adrian')
+    if (agent.industry_slug) setSellerIndustry(agent.industry_slug)
+    setSetupSkipped(true)
+    toast.success(`Loaded "${agent.name}" — ready to test`)
+  }
+
   // Ingest state
   const [ingestText, setIngestText] = useState('')
   const [ingestScope, setIngestScope] = useState('global_pattern')
@@ -849,7 +875,7 @@ function SetupTab({ agencyId }) {
   // Seller industry + website scan state
   const [sellerIndustries, setSellerIndustries] = useState([])
   const [sellerIndustry, setSellerIndustry] = useState('marketing_agency')
-  const [sellerUrl, setSellerUrl] = useState('')
+  const [sellerUrl, setSellerUrl] = useState('https://www.momentamktg.com')
   const [scanning, setScanning] = useState(false)
   const [scanResult, setScanResult] = useState(null)
   const [scanAgentId, setScanAgentId] = useState('')
@@ -1029,6 +1055,49 @@ function SetupTab({ agencyId }) {
 
   return (
     <div>
+      {/* Load past agent — skip full setup for returning users */}
+      {pastAgents.length > 0 && (
+        <Section title="Your Scout agents" icon={Users}>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+            Pick an existing agent to skip setup and go straight to testing.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {pastAgents.map(a => (
+              <button
+                key={a.id}
+                onClick={() => loadAgent(a)}
+                style={{
+                  padding: '12px 16px', borderRadius: 10, textAlign: 'left',
+                  background: setupSkipped && agentName === a.name ? '#f0fdf4' : W,
+                  border: setupSkipped && agentName === a.name ? `2px solid ${GRN}` : '1px solid #e5e7eb',
+                  cursor: 'pointer', fontFamily: FB,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 700 }}>{a.name}</span>
+                    {a.active && <span style={{ marginLeft: 8, fontSize: 11, color: GRN, fontWeight: 600 }}>ACTIVE</span>}
+                  </div>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{a.industry_slug || 'no industry'}</span>
+                </div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                  {a.from_number ? fmtPhone(a.from_number) : 'no number'} · {a.voice_id || 'default voice'}
+                </div>
+              </button>
+            ))}
+          </div>
+          {setupSkipped && (
+            <button
+              onClick={() => setSetupSkipped(false)}
+              style={{ marginTop: 10, fontSize: 12, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Create a new agent instead
+            </button>
+          )}
+        </Section>
+      )}
+
+      {(!setupSkipped || pastAgents.length === 0) && (
       <Section title="Provision Scout voice agent" icon={Settings}>
         <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
           One-click setup: creates the Retell LLM, creates the agent with your chosen voice + cadence,
@@ -1212,6 +1281,7 @@ function SetupTab({ agencyId }) {
           </div>
         )}
       </Section>
+      )}
 
       <Section title="What are you selling?" icon={Target}>
         <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
