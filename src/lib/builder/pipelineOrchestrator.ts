@@ -13,6 +13,7 @@
 // includes an explicit `.eq('agency_id', agencyId)` per CLAUDE.md isolation rule.
 
 import { createClient } from '@supabase/supabase-js'
+import { randomUUID } from 'crypto'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -621,7 +622,12 @@ async function runStageMeasure(
 // ── Master orchestrator ────────────────────────────────────────────────────
 
 export async function runFullPipeline(config: PipelineConfig): Promise<string> {
-  const runId = `pipe_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  // WR-04 — kotoiq_pipeline_runs.id is uuid PRIMARY KEY (per
+  // supabase/migrations/20260419_kotoiq_automation.sql).  Previous
+  // `pipe_${Date.now()}_${Math.random()...}` strings were not valid uuids
+  // (Postgres rejected them on insert) AND had a birthday-paradox collision
+  // risk under burst load.  randomUUID() removes both problems.
+  const runId = randomUUID()
   // Default expanded to 7 stages now that Stage 1 = Profile (Plan 4).
   // Existing callers passing [1,2,3,4,5,6] still get a valid run; they just
   // won't trigger the new Profile stage. Pass [1,2,3,4,5,6,7] (or omit) for
