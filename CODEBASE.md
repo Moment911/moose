@@ -13,6 +13,7 @@ Repo: github.com/Moment911/moose
 - [[_knowledge/modules/proposals]] — AI proposal builder from onboarding data
 - [[_knowledge/modules/clients]] — Client management + health scores
 - [[_knowledge/modules/token-reporting]] — Claude API usage + cost tracking
+- [[_knowledge/modules/scout-voice-spec]] — **Scout AI cold-call agent master spec (v1.0, April 2026)** — product vision, 3-phase roadmap, design contracts. Authoritative design doc; code in `src/app/api/scout/voice/` is the early subset.
 
 ## Key Files
 - src/app/App.jsx — ALL routes registered here
