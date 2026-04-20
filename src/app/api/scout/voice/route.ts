@@ -703,7 +703,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!agency_id || !area_code) return NextResponse.json({ error: 'agency_id and area_code required' }, { status: 400 })
     try {
       const num = await retellFetch('/create-phone-number', 'POST', {
-        area_code: String(area_code),
+        area_code: parseInt(String(area_code), 10),
         nickname: `Scout SDR ${area_code}`,
       })
       await s.from('agencies').update({ scout_voice_from_number: num.phone_number }).eq('id', agency_id)
@@ -747,7 +747,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       steps.push({ step: 'retell_agent', ok: true, agent_id: agent.agent_id, voice_id: chosenVoice, cadence: cadence_preset || 'natural' })
 
       const num = await retellFetch('/create-phone-number', 'POST', {
-        area_code: String(area_code),
+        area_code: parseInt(String(area_code), 10),
         nickname: `Scout SDR ${area_code}`,
       })
       steps.push({ step: 'phone_number', ok: true, phone_number: num.phone_number })

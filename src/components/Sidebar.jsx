@@ -449,8 +449,8 @@ export default function Sidebar() {
               <NavLink to="/kotoiq" icon={Search} label="KotoIQ" badge="SEO" badgeColor={GRN}/>
               <NavLink to="/scout" startsWith icon={Target} label="Scout" hidden={!match('Scout') || !feat('scout')}/>
               <NavLink to="/scout/dashboard" icon={Target} label="Scout Dashboard" sub hidden={!match('Scout Dashboard') || !feat('scout')}/>
-              <NavLink to="/scout/voice" icon={Phone} label="Scout Voice Agent" sub hidden={!match('Scout Voice Agent') || !feat('scout')}/>
-              <NavLink to="/scout/voice/explorer" icon={Brain} label="Conversation Explorer" sub hidden={!match('Conversation Explorer') || !feat('scout')}/>
+              <NavLink to="/scout/voice" startsWith icon={Phone} label="Scout Voice Agent" sub hidden={!match('Scout Voice Agent') || !feat('scout')}/>
+              <NavLink to="/scout/voice/explorer" startsWith icon={Brain} label="Conversation Explorer" sub hidden={!match('Conversation Explorer') || !feat('scout')}/>
               <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub hidden={!match('Pipeline CRM') || !feat('pipeline_crm')}/>
               <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub hidden={!match('Scout History') || !feat('scout')}/>
               <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" hidden={!match('Q&A Intelligence') || !feat('qa_intelligence')}/>
