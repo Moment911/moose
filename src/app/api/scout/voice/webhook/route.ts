@@ -229,14 +229,30 @@ export async function POST(req: NextRequest) {
       }
 
       // ── set_appointment ───────────────────────────────────────
+      // Creates local appointment + GHL contact + GHL opportunity + GHL calendar event
       if (fnName === 'set_appointment') {
         const whenIso = String(fnArgs.when_iso || '')
         const meetingType = String(fnArgs.meeting_type || 'demo')
         const notes = String(fnArgs.notes || '')
+        const prospectEmail = String(fnArgs.prospect_email || '').trim().toLowerCase()
+        const prospectPhone = String(fnArgs.prospect_phone || '').trim()
+        const prospectName = String(fnArgs.prospect_name || '').trim()
+        const attendeeEmails = String(fnArgs.attendee_emails || '').split(',').map((e: string) => e.trim()).filter(Boolean)
 
         if (scoutCallId) {
           void (async () => {
             try {
+              const { data: callRow } = await s.from('scout_voice_calls')
+                .select('discovery_data, agency_id, company_name, contact_name, to_number, industry')
+                .eq('id', scoutCallId).single()
+
+              const agency_id = callRow?.agency_id || agencyId || ''
+              const contactName = prospectName || callRow?.contact_name || ''
+              const contactEmail = prospectEmail
+              const contactPhone = prospectPhone || callRow?.to_number || ''
+              const companyName = callRow?.company_name || ''
+
+              // 1. Update call record
               await s.from('scout_voice_calls').update({
                 appointment_set: true,
                 follow_up_at: whenIso || null,
@@ -244,21 +260,170 @@ export async function POST(req: NextRequest) {
                 updated_at: new Date().toISOString(),
               }).eq('id', scoutCallId)
 
-              // Append appointment details to discovery_data
-              const { data: callRow } = await s.from('scout_voice_calls')
-                .select('discovery_data, agency_id').eq('id', scoutCallId).single()
+              // 2. Append appointment + contact details to discovery_data
               const disc = callRow?.discovery_data || {}
-              disc._appointment = { when: whenIso, type: meetingType, notes, set_at: new Date().toISOString() }
+              disc._appointment = {
+                when: whenIso, type: meetingType, notes, set_at: new Date().toISOString(),
+                prospect_email: contactEmail, prospect_phone: contactPhone, prospect_name: contactName,
+                attendee_emails: attendeeEmails,
+              }
               await s.from('scout_voice_calls').update({ discovery_data: disc }).eq('id', scoutCallId)
 
-              // Touch the opportunity if linked
+              // 3. Save to koto_voice_appointments
+              const startTime = whenIso ? new Date(whenIso) : new Date(Date.now() + 86400000)
+              const endTime = new Date(startTime.getTime() + 30 * 60000) // 30 min default
+              const { data: apptRow } = await s.from('koto_voice_appointments').insert({
+                agency_id,
+                prospect_name: contactName,
+                prospect_email: contactEmail,
+                prospect_phone: contactPhone,
+                summary: `${meetingType} — ${companyName || contactName}`,
+                description: `${meetingType} booked via Scout Voice call.\n${notes ? `Notes: ${notes}` : ''}\nCompany: ${companyName}\nIndustry: ${callRow?.industry || ''}`,
+                start_time: startTime.toISOString(),
+                end_time: endTime.toISOString(),
+                status: 'confirmed',
+              }).select('id').single().then(r => r, () => ({ data: null }))
+
+              // 4. Push to GHL — contact + opportunity + calendar
+              let ghlContactId: string | null = null
+              let ghlOpportunityId: string | null = null
+              try {
+                // Get GHL auth for this agency
+                const { data: ghlInt } = await s.from('koto_ghl_integrations')
+                  .select('ghl_access_token, ghl_location_id, status')
+                  .eq('agency_id', agency_id).eq('status', 'active').maybeSingle()
+
+                if (ghlInt?.ghl_access_token && ghlInt?.ghl_location_id) {
+                  const ghlToken = ghlInt.ghl_access_token
+                  const locationId = ghlInt.ghl_location_id
+                  const ghlHeaders = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${ghlToken}`,
+                    'Version': '2021-07-28',
+                  }
+
+                  // 4a. Create or find GHL contact
+                  const contactBody: Record<string, any> = {
+                    locationId,
+                    name: contactName || companyName,
+                    email: contactEmail || undefined,
+                    phone: contactPhone || undefined,
+                    companyName: companyName || undefined,
+                    tags: ['scout-voice', meetingType],
+                    source: 'Scout Voice AI',
+                  }
+
+                  // Search for existing contact by email or phone
+                  let existingContact: any = null
+                  if (contactEmail) {
+                    const searchRes = await fetch(`https://services.leadconnectorhq.com/contacts/?locationId=${locationId}&query=${encodeURIComponent(contactEmail)}&limit=1`, {
+                      headers: ghlHeaders,
+                    }).then(r => r.json()).catch(() => null)
+                    existingContact = searchRes?.contacts?.[0] || null
+                  }
+
+                  if (existingContact) {
+                    ghlContactId = existingContact.id
+                    // Update with latest info
+                    await fetch(`https://services.leadconnectorhq.com/contacts/${ghlContactId}`, {
+                      method: 'PUT', headers: ghlHeaders,
+                      body: JSON.stringify({ name: contactName || undefined, phone: contactPhone || undefined, tags: ['scout-voice', meetingType] }),
+                    }).catch(() => {})
+                  } else {
+                    const createRes = await fetch('https://services.leadconnectorhq.com/contacts/', {
+                      method: 'POST', headers: ghlHeaders, body: JSON.stringify(contactBody),
+                    }).then(r => r.json()).catch(() => null)
+                    ghlContactId = createRes?.contact?.id || null
+                  }
+
+                  // 4b. Create GHL opportunity
+                  if (ghlContactId) {
+                    // Get first pipeline
+                    const pipelines = await fetch(`https://services.leadconnectorhq.com/opportunities/pipelines?locationId=${locationId}`, {
+                      headers: ghlHeaders,
+                    }).then(r => r.json()).catch(() => null)
+
+                    const pipeline = pipelines?.pipelines?.[0]
+                    if (pipeline) {
+                      const firstStage = pipeline.stages?.[0]
+                      const oppRes = await fetch('https://services.leadconnectorhq.com/opportunities/', {
+                        method: 'POST', headers: ghlHeaders,
+                        body: JSON.stringify({
+                          locationId,
+                          title: `${meetingType} — ${companyName || contactName}`,
+                          pipelineId: pipeline.id,
+                          pipelineStageId: firstStage?.id,
+                          status: 'open',
+                          contactId: ghlContactId,
+                          source: 'Scout Voice AI',
+                        }),
+                      }).then(r => r.json()).catch(() => null)
+                      ghlOpportunityId = oppRes?.opportunity?.id || null
+                    }
+                  }
+
+                  // 4c. Create GHL calendar appointment
+                  if (ghlContactId) {
+                    const calendars = await fetch(`https://services.leadconnectorhq.com/calendars/?locationId=${locationId}`, {
+                      headers: ghlHeaders,
+                    }).then(r => r.json()).catch(() => null)
+
+                    const cal = calendars?.calendars?.[0]
+                    if (cal) {
+                      await fetch('https://services.leadconnectorhq.com/calendars/events/appointments', {
+                        method: 'POST', headers: ghlHeaders,
+                        body: JSON.stringify({
+                          calendarId: cal.id,
+                          locationId,
+                          contactId: ghlContactId,
+                          startTime: startTime.toISOString(),
+                          endTime: endTime.toISOString(),
+                          title: `${meetingType} — ${companyName || contactName}`,
+                          appointmentStatus: 'confirmed',
+                          address: '',
+                          ignoreDateRange: false,
+                          toNotify: true,
+                        }),
+                      }).catch(() => {})
+                    }
+                  }
+
+                  // 4d. Add note to GHL contact
+                  if (ghlContactId) {
+                    await fetch(`https://services.leadconnectorhq.com/contacts/${ghlContactId}/notes`, {
+                      method: 'POST', headers: ghlHeaders,
+                      body: JSON.stringify({
+                        body: `Scout Voice AI booked a ${meetingType} for ${startTime.toLocaleDateString()} at ${startTime.toLocaleTimeString()}.\n${notes ? `Notes: ${notes}` : ''}\nCall ID: ${scoutCallId}`,
+                      }),
+                    }).catch(() => {})
+                  }
+
+                  console.log('[scout/webhook] GHL sync:', { ghlContactId, ghlOpportunityId })
+                }
+              } catch (ghlErr) {
+                console.error('[scout/webhook] GHL push error (non-blocking):', ghlErr)
+              }
+
+              // 5. Update local appointment with GHL IDs
+              if (apptRow?.id && (ghlContactId || ghlOpportunityId)) {
+                await s.from('koto_voice_appointments').update({
+                  ghl_contact_id: ghlContactId,
+                  ghl_opportunity_id: ghlOpportunityId,
+                }).eq('id', apptRow.id).then(() => {}, () => {})
+              }
+
+              // 6. Touch the opportunity if linked
               if (opportunityId) {
                 await s.from('koto_opportunity_activities').insert({
                   opportunity_id: opportunityId,
-                  agency_id: callRow?.agency_id || agencyId,
+                  agency_id,
                   activity_type: 'appointment_set',
                   title: `${meetingType} booked for ${whenIso || 'TBD'}`,
-                  metadata: { scout_call_id: scoutCallId, meeting_type: meetingType, when: whenIso, notes },
+                  metadata: {
+                    scout_call_id: scoutCallId, meeting_type: meetingType, when: whenIso, notes,
+                    prospect_email: contactEmail, prospect_phone: contactPhone,
+                    ghl_contact_id: ghlContactId, ghl_opportunity_id: ghlOpportunityId,
+                  },
                 }).then(() => {}, () => {})
               }
             } catch (e) { console.error('[scout/webhook] set_appointment error:', e) }

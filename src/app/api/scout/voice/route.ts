@@ -123,14 +123,18 @@ function buildScoutTools(webhookUrl: string) {
     {
       type: 'custom',
       name: 'set_appointment',
-      description: 'Lock in a follow-up call or demo appointment when the prospect agrees to a specific time.',
+      description: 'Book a follow-up meeting when the prospect agrees to a time. IMPORTANT: Before calling this, you MUST ask for their email address so we can send a calendar invite. Also confirm their phone number. Say something like: "Perfect — what email should I send the invite to?" then "And is this the best number to reach you on?"',
       url: webhookUrl,
       speak_during_execution: true,
       parameters: { type: 'object', properties: {
         when_iso: { type: 'string', description: 'ISO timestamp of the scheduled meeting' },
         meeting_type: { type: 'string', description: 'demo | discovery | proposal_review' },
+        prospect_email: { type: 'string', description: 'Email address for the calendar invite — ask if not provided' },
+        prospect_phone: { type: 'string', description: 'Best phone number to reach them' },
+        prospect_name: { type: 'string', description: 'Full name of the person who will attend' },
+        attendee_emails: { type: 'string', description: 'Comma-separated emails of additional attendees if mentioned' },
         notes: { type: 'string' },
-      }, required: ['when_iso'] },
+      }, required: ['when_iso', 'prospect_email'] },
     },
     {
       type: 'custom',
