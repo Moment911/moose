@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { resolveAgencyId } from '../../../lib/apiAuth'
+import { propagateGapsToOpportunity } from '../../../lib/scout/gapPropagator'
 
 function getSupabase() {
   return createClient(
@@ -52,6 +53,23 @@ export async function GET(req: NextRequest) {
       ])
 
       if (oppRes.error) return NextResponse.json({ error: oppRes.error.message }, { status: 404 })
+
+      // Gap auto-feed: if the opportunity has a scout_lead_id but no
+      // biggest_gap yet, lazily backfill from koto_scout_leads.gaps. The
+      // Queue-for-AI-call modal pre-fills with intel.biggest_gap, so this
+      // is what makes the sales agent lead with a real observation.
+      // Non-fatal: errors here never break the read.
+      try {
+        const opp = oppRes.data as any
+        if (opp?.scout_lead_id && !opp?.intel?.biggest_gap) {
+          const r = await propagateGapsToOpportunity(sb, opp.id)
+          if (r.updated && r.biggest_gap) {
+            opp.intel = { ...(opp.intel || {}), biggest_gap: r.biggest_gap }
+            if (!opp.pain_point) opp.pain_point = r.biggest_gap
+          }
+        }
+      } catch { /* non-fatal */ }
+
       return NextResponse.json({ opportunity: oppRes.data, page_views: viewsRes.data || [], activities: actRes.data || [] })
     }
 

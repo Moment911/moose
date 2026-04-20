@@ -172,6 +172,65 @@ export async function POST(req: NextRequest) {
         const duration = call.duration_ms ? Math.round(call.duration_ms / 1000) : 0
         const answered = duration > 5
 
+        // ── Scout voice branch ──────────────────────────────────────────────
+        // If this Retell call came from the Scout AI calling agent (metadata
+        // flag set in /api/scout/voice start_call), update scout_voice_calls.
+        // The scout_voice_calls AFTER UPDATE trigger auto-emits the
+        // call_outbound activity onto the opportunity timeline — so the
+        // opportunity's OpportunityTimeline lights up with zero extra wiring.
+        // Q&A parsing + conversation intelligence run here too so the brain
+        // accretes on every call.
+        const scoutCallId = body.metadata?.scout_call_id || call.metadata?.scout_call_id
+        const isScoutVoice = !!scoutCallId || body.metadata?.system === 'scout_voice' || call.metadata?.system === 'scout_voice'
+
+        if (isScoutVoice) {
+          try {
+            const isVoicemail = call.disconnection_reason === 'voicemail_reached' || call.call_type === 'voicemail_detected'
+            const apptSet = call.call_analysis?.custom_analysis_data?.appointment_set === true || call.call_analysis?.call_successful === true
+            const outcome =
+              apptSet ? 'appointment_set' :
+              isVoicemail ? 'voicemail' :
+              !answered ? 'no_answer' :
+              call.call_analysis?.custom_analysis_data?.dnc_requested ? 'dnc_requested' :
+              call.call_analysis?.custom_analysis_data?.not_interested ? 'not_interested' :
+              'qualified'
+
+            const scoutStatus = isVoicemail ? 'voicemail' : !answered ? 'no_answer' : 'completed'
+
+            await s.from('scout_voice_calls').update({
+              status: scoutStatus,
+              duration_seconds: duration,
+              ended_at: call.end_timestamp ? new Date(call.end_timestamp).toISOString() : new Date().toISOString(),
+              transcript: call.transcript || null,
+              recording_url: call.recording_url || null,
+              sentiment: call.call_analysis?.user_sentiment || null,
+              post_call_analysis: call.call_analysis || null,
+              outcome,
+              appointment_set: apptSet,
+              disconnection_reason: call.disconnection_reason || null,
+            }).eq('retell_call_id', callId)
+
+            // TODO(scout): Scout-specific Q&A parser that writes to
+            // scout_call_questions + scout_questions. Shared parseTranscriptIntoQA
+            // hardcodes koto_qa_intelligence (VOB's table) so can't be reused
+            // without refactor. For now the brain still learns via
+            // conversation_intelligence + post_call_analysis; the question
+            // library learning loop comes online once the parser is written.
+
+            // Mark queue row as completed if one exists
+            await s.from('scout_voice_queue').update({
+              status: 'completed',
+              last_attempt_at: new Date().toISOString(),
+            }).eq('scout_call_id', scoutCallId)
+          } catch (e: any) {
+            await s.from('koto_system_logs').insert({
+              level: 'error', service: 'scout_voice', action: 'call_ended_update_failed',
+              message: e?.message || 'scout_voice update failed',
+              metadata: { scout_call_id: scoutCallId, retell_call_id: callId },
+            })
+          }
+        }
+
         await s.from('koto_voice_calls').update({
           status: answered ? 'completed' : 'no_answer',
           duration_seconds: duration,
@@ -211,9 +270,13 @@ export async function POST(req: NextRequest) {
           } catch { /* non-fatal */ }
         }
 
-        // Scout: record the call onto the unified opportunity spine.
+        // Scout (generic): record the call onto the unified opportunity spine.
+        // SKIPPED for scout_voice calls — the scout_voice_calls AFTER UPDATE
+        // trigger already emits the timeline activity, so running this would
+        // produce duplicate activities.
         // Non-fatal — telemetry must never fail the webhook.
         try {
+          if (isScoutVoice) throw new Error('skip_scout_touch_for_scout_voice')
           const scoutAgencyId = body.metadata?.agency_id || call.metadata?.agency_id
           if (scoutAgencyId) {
             const direction = (call.direction || '').toLowerCase()
