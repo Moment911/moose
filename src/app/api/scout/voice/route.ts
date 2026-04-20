@@ -170,11 +170,34 @@ function buildScoutPrompt(opts: {
   industryKnowledge?: string[]
   personality?: string
   geo?: { state?: string; state_code?: string; region?: string; major_city?: string; style_notes?: string } | null
+  bankQuestions?: Array<{ stage: string; question_text: string; services_qualified?: string[] }>
 }): string {
   const {
     agencyName, agentName, companyName, contactName, industry,
-    pitchAngle, biggestGap, priorContext, industryKnowledge, personality, geo,
+    pitchAngle, biggestGap, priorContext, industryKnowledge, personality, geo, bankQuestions,
   } = opts
+
+  // Render the discovery question bank by stage
+  let bankBlock = ''
+  if (bankQuestions && bankQuestions.length > 0) {
+    const byStage: Record<string, string[]> = {}
+    for (const q of bankQuestions) {
+      const k = String(q.stage || 'other').toLowerCase()
+      if (!byStage[k]) byStage[k] = []
+      byStage[k].push(q.question_text)
+    }
+    const STAGE_ORDER = ['opener', 'current_state', 'pain', 'decision', 'budget', 'timeline', 'competition', 'proof', 'closer']
+    const sections: string[] = []
+    for (const stage of STAGE_ORDER) {
+      const qs = byStage[stage]
+      if (!qs || qs.length === 0) continue
+      const label = stage.replace(/_/g, ' ').toUpperCase()
+      sections.push(`### ${label}\n` + qs.map(q => `- ${q}`).join('\n'))
+    }
+    if (sections.length > 0) {
+      bankBlock = `\n## DISCOVERY QUESTION BANK\nPick the best-fit question for each stage based on what the prospect has said. Questions are ranked — prefer the first in each stage unless it doesn't fit the conversation.\n\n` + sections.join('\n\n')
+    }
+  }
 
   const gapFraming = biggestGap
     ? `Our research surfaced that ${companyName} has a gap around: ${biggestGap}. Lead with this as your hook — it is your single most valuable opening.`
@@ -209,6 +232,7 @@ ${gapFraming}
 ${knowledgeBlock}
 ${geoBlock}
 ${priorBlock}
+${bankBlock}
 
 # STYLE — MIRROR THE PROSPECT
 ${personality || `Conversational, warm, curious. Short sentences. Never sound like a script.`}
@@ -301,6 +325,34 @@ export async function GET(req: NextRequest) {
     const phone = searchParams.get('phone') || ''
     const meta = metaFromPhone(phone)
     return NextResponse.json({ data: meta })
+  }
+
+  if (action === 'list_seller_industries') {
+    const { data } = await s.from('scout_seller_industries').select('*').order('sort_order', { ascending: true })
+    return NextResponse.json({ data: data || [] })
+  }
+
+  if (action === 'list_question_banks') {
+    const forAgent = searchParams.get('agent_id')
+    const industry = searchParams.get('seller_industry_slug')
+    let q = s.from('scout_question_banks').select('*').order('created_at', { ascending: false })
+    const ors: string[] = ['agency_id.is.null']
+    if (agencyId) ors.push(`agency_id.eq.${agencyId}`)
+    q = q.or(ors.join(','))
+    if (forAgent) q = q.or(`agent_id.eq.${forAgent},agent_id.is.null`)
+    if (industry) q = q.eq('seller_industry_slug', industry)
+    const { data } = await q
+    return NextResponse.json({ data: data || [] })
+  }
+
+  if (action === 'get_question_bank') {
+    const bankId = searchParams.get('id') || ''
+    if (!bankId) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    const [bankRes, qsRes] = await Promise.all([
+      s.from('scout_question_banks').select('*, scout_seller_profiles(*)').eq('id', bankId).maybeSingle(),
+      s.from('scout_questions').select('*').eq('bank_id', bankId).order('stage').order('priority').order('appointment_rate', { ascending: false }),
+    ])
+    return NextResponse.json({ bank: bankRes.data, questions: qsRes.data || [] })
   }
 
   if (action === 'get_questions') {
@@ -561,6 +613,39 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // prompt can adjust regional expectations (pace, tone, norms).
     const geo = metaFromPhone(call.to_number)
 
+    // ── BANK FETCH ──────────────────────────────────────────────────────
+    // Pull the active question bank's top-performing question per stage.
+    // Exploration-priority: questions with exploration_status='exploration'
+    // and low calls_used get force-included so new questions build history.
+    let bankQuestions: Array<{ stage: string; question_text: string; services_qualified?: string[] }> = []
+    try {
+      if (agent.active_bank_id) {
+        const { data: qs } = await s.from('scout_questions')
+          .select('stage, question_text, services_qualified, appointment_rate, calls_used, exploration_status, priority')
+          .eq('bank_id', agent.active_bank_id)
+          .order('stage')
+          .order('priority', { ascending: true })
+          .order('appointment_rate', { ascending: false })
+        // Pick the top 2 per stage with exploration-priority boost for
+        // questions that haven't been called yet (< 20 calls)
+        const byStage: Record<string, any[]> = {}
+        for (const q of qs || []) {
+          const k = String(q.stage || 'other').toLowerCase()
+          if (!byStage[k]) byStage[k] = []
+          // Exploration boost: questions with <20 calls get a rank nudge
+          const explorationBoost = (q.exploration_status === 'exploration' && (q.calls_used || 0) < 20) ? -0.5 : 0
+          byStage[k].push({ ...q, rank_score: (q.priority || 3) + explorationBoost })
+        }
+        const orderedStages = ['opener', 'current_state', 'pain', 'decision', 'budget', 'timeline', 'competition', 'proof', 'closer']
+        for (const stage of orderedStages) {
+          const group = (byStage[stage] || []).sort((a, b) => a.rank_score - b.rank_score)
+          for (const q of group.slice(0, 2)) {
+            bankQuestions.push({ stage, question_text: q.question_text, services_qualified: q.services_qualified })
+          }
+        }
+      }
+    } catch { /* fall back to default prompt if bank fetch fails */ }
+
     const systemPrompt = buildScoutPrompt({
       agencyName,
       agentName: agent.name || 'your Scout AI',
@@ -572,6 +657,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       industryKnowledge: (knowledge || []).map((k: any) => k.fact),
       personality: agent.personality_profile?.style || undefined,
       geo,
+      bankQuestions: bankQuestions.length > 0 ? bankQuestions : undefined,
     })
 
     const fromNumber = agent.from_number || agency?.scout_voice_from_number

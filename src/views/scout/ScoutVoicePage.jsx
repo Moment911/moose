@@ -846,6 +846,45 @@ function SetupTab({ agencyId }) {
   const [pdfUploading, setPdfUploading] = useState(false)
   const [pdfResult, setPdfResult] = useState(null)
 
+  // Seller industry + website scan state
+  const [sellerIndustries, setSellerIndustries] = useState([])
+  const [sellerIndustry, setSellerIndustry] = useState('marketing_agency')
+  const [sellerUrl, setSellerUrl] = useState('')
+  const [scanning, setScanning] = useState(false)
+  const [scanResult, setScanResult] = useState(null)
+  const [scanAgentId, setScanAgentId] = useState('')
+
+  useEffect(() => {
+    apiGet('list_seller_industries').then(r => setSellerIndustries(r.data || []))
+  }, [])
+
+  async function runScan() {
+    if (!sellerUrl.trim()) { toast.error('Enter the URL of the business you represent'); return }
+    setScanning(true)
+    setScanResult(null)
+    try {
+      const res = await fetch('/api/scout/voice/scanner/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          agency_id: agencyId,
+          agent_id: scanAgentId || null,
+          url: sellerUrl.trim(),
+          seller_industry_slug: sellerIndustry,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Scan failed')
+      setScanResult(data)
+      toast.success(`Scan complete — ${data.services_count} services found, ${data.question_count} questions generated`)
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setScanning(false)
+    }
+  }
+
   useEffect(() => {
     apiGet('get_voice_roster').then(r => setVoices(r.data || []))
     apiGet('get_cadence_presets').then(r => setCadencePresets(r.data || null))
@@ -1169,6 +1208,77 @@ function SetupTab({ agencyId }) {
                 {s.agent_id && ` — ${s.agent_id.slice(0, 12)}…`}
               </div>
             ))}
+          </div>
+        )}
+      </Section>
+
+      <Section title="What are you selling?" icon={Target}>
+        <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+          The Scout agent represents <b>you</b> — the seller. Pick your industry to load a curated
+          discovery bank, or paste your website URL and we'll scan your actual services, positioning, and
+          vocabulary to generate a custom bank tailored to what you sell.
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          <label>
+            <Label>Represented industry</Label>
+            <select value={sellerIndustry} onChange={e => setSellerIndustry(e.target.value)} style={inputStyle}>
+              {sellerIndustries.map(i => (
+                <option key={i.slug} value={i.slug}>{i.name}</option>
+              ))}
+              {sellerIndustries.length === 0 && <option value="marketing_agency">Marketing Agency (default)</option>}
+            </select>
+          </label>
+          <label>
+            <Label>Your website URL (optional — triggers scan)</Label>
+            <input
+              value={sellerUrl}
+              onChange={e => setSellerUrl(e.target.value)}
+              placeholder="https://yourbusiness.com"
+              style={inputStyle}
+            />
+          </label>
+        </div>
+
+        <button onClick={runScan} disabled={scanning || !sellerUrl.trim()} style={btnPrimary}>
+          {scanning ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+          {scanning ? 'Scanning site + generating questions...' : 'Scan website + generate question bank'}
+        </button>
+
+        {scanning && (
+          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 8, fontStyle: 'italic' }}>
+            Fetching homepage + up to 7 internal pages, then running Claude to extract services and generate 40-60 tailored questions. Takes 30-90 seconds.
+          </div>
+        )}
+
+        {scanResult && (
+          <div style={{ marginTop: 14, padding: 14, background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, fontSize: 13, color: '#0f766e' }}>
+            <div style={{ fontWeight: 800, marginBottom: 8 }}>
+              ✓ Scan complete — {scanResult.services_count} services · {scanResult.question_count} questions · {scanResult.pages_crawled} pages
+            </div>
+            {Array.isArray(scanResult.services) && scanResult.services.length > 0 && (
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#0f766e', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Services detected</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {scanResult.services.map((svc, i) => (
+                    <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 99, background: W, color: '#0f766e', border: '1px solid #99f6e4' }}>
+                      {svc.name || svc}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {Array.isArray(scanResult.vocabulary) && scanResult.vocabulary.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#0f766e', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Seller vocabulary fingerprint</div>
+                <div style={{ fontSize: 12, color: '#374151', fontStyle: 'italic' }}>
+                  {scanResult.vocabulary.slice(0, 12).join(' · ')}
+                </div>
+              </div>
+            )}
+            <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280' }}>
+              This bank is now active. New questions start in <b>exploration</b> mode — the agent will rotate them into live calls to build performance data before the ranking stabilizes.
+            </div>
           </div>
         )}
       </Section>
