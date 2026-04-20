@@ -821,6 +821,7 @@ function AnalyticsTab({ agencyId }) {
 function SetupTab({ agencyId }) {
   const [areaCode, setAreaCode] = useState('')
   const [agentName, setAgentName] = useState('Scout SDR')
+  const [callerName, setCallerName] = useState('Alex')
   const [gender, setGender] = useState('male')
   const [voiceId, setVoiceId] = useState('11labs-Adrian')
   const [cadence, setCadence] = useState('natural')
@@ -830,6 +831,51 @@ function SetupTab({ agencyId }) {
   const [running, setRunning] = useState(false)
   const [testPhone, setTestPhone] = useState('')
   const [testProspect, setTestProspect] = useState(null)
+
+  // Load past agents — skip setup if one already exists
+  const [pastAgents, setPastAgents] = useState([])
+  const [loadingAgents, setLoadingAgents] = useState(true)
+  const [setupSkipped, setSetupSkipped] = useState(false)
+
+  useEffect(() => {
+    if (!agencyId) return
+    apiGet('get_agents').then(r => {
+      const agents = r.data || []
+      setPastAgents(agents)
+      setLoadingAgents(false)
+      // Auto-select if there's an active agent — skip setup entirely
+      if (agents.length > 0 && agents[0].active) {
+        setSetupSkipped(true)
+      }
+    })
+  }, [agencyId])
+
+  async function loadAgent(agent) {
+    setAgentName(agent.name || 'Scout SDR')
+    setCallerName(agent.caller_name || agent.name || 'Alex')
+    setVoiceId(agent.voice_id || '11labs-Adrian')
+    if (agent.industry_slug) setSellerIndustry(agent.industry_slug)
+    setSetupSkipped(true)
+
+    // Load the agent's question bank to show scan results as already configured
+    if (agent.active_bank_id) {
+      try {
+        const r = await apiGet('list_question_banks')
+        const bank = (r.data || []).find(b => b.id === agent.active_bank_id)
+        if (bank) {
+          setScanResult({
+            services_count: bank.question_count || 0,
+            question_count: bank.question_count || 0,
+            pages_crawled: 0,
+            bank_name: bank.name,
+            already_configured: true,
+          })
+        }
+      } catch { /* non-critical */ }
+    }
+
+    toast.success(`Loaded "${agent.caller_name || agent.name}" — ready to test`)
+  }
 
   // Ingest state
   const [ingestText, setIngestText] = useState('')
@@ -849,7 +895,7 @@ function SetupTab({ agencyId }) {
   // Seller industry + website scan state
   const [sellerIndustries, setSellerIndustries] = useState([])
   const [sellerIndustry, setSellerIndustry] = useState('marketing_agency')
-  const [sellerUrl, setSellerUrl] = useState('')
+  const [sellerUrl, setSellerUrl] = useState('https://www.momentamktg.com')
   const [scanning, setScanning] = useState(false)
   const [scanResult, setScanResult] = useState(null)
   const [scanAgentId, setScanAgentId] = useState('')
@@ -953,6 +999,7 @@ function SetupTab({ agencyId }) {
     const r = await apiPost({
       action: 'setup_scout_voice',
       agency_id: agencyId, area_code: areaCode, agent_name: agentName,
+      caller_name: callerName,
       voice_id: voiceId, cadence_preset: cadence,
       industry_slug: sellerIndustry,
     })
@@ -1029,6 +1076,49 @@ function SetupTab({ agencyId }) {
 
   return (
     <div>
+      {/* Load past agent — skip full setup for returning users */}
+      {pastAgents.length > 0 && (
+        <Section title="Your Scout agents" icon={Users}>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+            Pick an existing agent to skip setup and go straight to testing.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {pastAgents.map(a => (
+              <button
+                key={a.id}
+                onClick={() => loadAgent(a)}
+                style={{
+                  padding: '12px 16px', borderRadius: 10, textAlign: 'left',
+                  background: setupSkipped && agentName === a.name ? '#f0fdf4' : W,
+                  border: setupSkipped && agentName === a.name ? `2px solid ${GRN}` : '1px solid #e5e7eb',
+                  cursor: 'pointer', fontFamily: FB,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 700 }}>{a.name}</span>
+                    {a.active && <span style={{ marginLeft: 8, fontSize: 11, color: GRN, fontWeight: 600 }}>ACTIVE</span>}
+                  </div>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{a.industry_slug || 'no industry'}</span>
+                </div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                  {a.from_number ? fmtPhone(a.from_number) : 'no number'} · {a.voice_id || 'default voice'}
+                </div>
+              </button>
+            ))}
+          </div>
+          {setupSkipped && (
+            <button
+              onClick={() => setSetupSkipped(false)}
+              style={{ marginTop: 10, fontSize: 12, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Create a new agent instead
+            </button>
+          )}
+        </Section>
+      )}
+
+      {(!setupSkipped || pastAgents.length === 0) && (
       <Section title="Provision Scout voice agent" icon={Settings}>
         <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
           One-click setup: creates the Retell LLM, creates the agent with your chosen voice + cadence,
@@ -1036,8 +1126,12 @@ function SetupTab({ agencyId }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           <label>
-            <Label>Agent name</Label>
+            <Label>Agent label (internal)</Label>
             <input value={agentName} onChange={e => setAgentName(e.target.value)} style={inputStyle} />
+          </label>
+          <label>
+            <Label>Caller name (what it says on calls)</Label>
+            <input value={callerName} onChange={e => setCallerName(e.target.value)} placeholder="e.g. Alex, Sarah" style={inputStyle} />
           </label>
           <label>
             <Label>Area code</Label>
@@ -1212,6 +1306,7 @@ function SetupTab({ agencyId }) {
           </div>
         )}
       </Section>
+      )}
 
       <Section title="What are you selling?" icon={Target}>
         <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
@@ -1255,7 +1350,9 @@ function SetupTab({ agencyId }) {
         {scanResult && (
           <div style={{ marginTop: 14, padding: 14, background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, fontSize: 13, color: '#0f766e' }}>
             <div style={{ fontWeight: 800, marginBottom: 8 }}>
-              ✓ Scan complete — {scanResult.services_count} services · {scanResult.question_count} questions · {scanResult.pages_crawled} pages
+              {scanResult.already_configured
+                ? `✓ Question bank loaded — ${scanResult.bank_name || 'configured'} (${scanResult.question_count} questions)`
+                : `✓ Scan complete — ${scanResult.services_count} services · ${scanResult.question_count} questions · ${scanResult.pages_crawled} pages`}
             </div>
             {Array.isArray(scanResult.services) && scanResult.services.length > 0 && (
               <div style={{ marginBottom: 10 }}>

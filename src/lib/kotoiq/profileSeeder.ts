@@ -55,6 +55,9 @@ export type SeedArgs = {
   pastedTextSourceLabel?: string
   pastedTextSourceUrl?: string
   forceRebuild?: boolean
+  /** Phase 8: pre-extracted records from external sources (form parsers, crawl, GBP, uploads).
+   *  When provided, these are merged directly without re-extraction. */
+  externalRecords?: import('./profileExtractClaude').ExtractedFieldRecord[]
 }
 
 export type SeedResult = {

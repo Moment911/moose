@@ -4,6 +4,9 @@ import { getKotoIQDb } from '../../../../lib/kotoiqDb'
 import { MAX_PASTED_TEXT_CHARS } from '../../../../lib/kotoiq/profileConfig'
 import { CANONICAL_FIELD_NAMES } from '../../../../lib/kotoiq/profileTypes'
 import { seedProfile } from '../../../../lib/kotoiq/profileSeeder'
+import { crawlWebsite, type CrawlScope } from '../../../../lib/kotoiq/profileWebsiteCrawl'
+import { checkBudget, applyOverride, checkRateLimit } from '../../../../lib/kotoiq/profileCostBudget'
+import { estimateCost } from '../../../../lib/kotoiq/profileCostEstimate'
 import { computeCompleteness } from '../../../../lib/kotoiq/profileGate'
 import { extractFromPastedText } from '../../../../lib/kotoiq/profileExtractClaude'
 import { detectDiscrepancies } from '../../../../lib/kotoiq/profileDiscrepancy'
@@ -15,7 +18,16 @@ import {
   forwardViaPortal,
 } from '../../../../lib/kotoiq/profileChannels'
 import { runFullPipeline } from '../../../../lib/builder/pipelineOrchestrator'
+import { seedFromFormUrl } from '../../../../lib/kotoiq/profileFormSeeder'
+import { detectFormProvider } from '../../../../lib/kotoiq/profileFormDetect'
 import type { ProvenanceRecord } from '../../../../lib/kotoiq/profileTypes'
+import { generateConsentUrl } from '../../../../lib/kotoiq/profileGBPOAuth'
+import { pullFromGBPAuth } from '../../../../lib/kotoiq/profileGBPPull'
+import { pullFromGBPPlaces } from '../../../../lib/kotoiq/profileGBPPlaces'
+import { decryptSecret } from '../../../../lib/kotoiq/profileIntegrationsVault'
+import { SOURCE_CONFIG } from '../../../../lib/kotoiq/profileConfig'
+import { seedFromUpload } from '../../../../lib/kotoiq/profileUploadSeeder'
+import { buildUploadPath, parseUploadPath } from '../../../../lib/kotoiq/profileUploadStorage'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 7 / Plan 6 — POST /api/kotoiq/profile
@@ -70,6 +82,14 @@ const ALLOWED_ACTIONS = [
   'answer_clarification',
   'forward_to_client',
   'add_source',
+  'seed_website',
+  'connect_gbp_oauth_start',
+  'list_gbp_locations',
+  'seed_gbp_auth',
+  'seed_gbp_places',
+  'seed_form_url',
+  'seed_upload',
+  'list_uploads',
 ] as const
 
 // First 11 canonical fields are the "hot" columns mirrored to indexed text
@@ -697,6 +717,301 @@ export async function POST(req: NextRequest) {
       })
       if (srcErr) return err(500, 'Add source failed')
       return NextResponse.json({ ok: true })
+    }
+
+    // ── seed_website (PROF-08 — website crawl → extract per-page) ────────────
+    if (action === 'seed_website') {
+      if (!body.client_id || !body.url) {
+        return err(400, 'client_id and url required')
+      }
+      // Cross-agency existence check
+      const { data: clientRow } = await sb
+        .from('clients')
+        .select('id')
+        .eq('id', body.client_id)
+        .eq('agency_id', agencyId)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (!clientRow) return err(404, 'Client not found')
+
+      // Rate limit (reuse seed_form_url bucket for v1)
+      const rl = checkRateLimit({ agencyId, actionKey: 'seed_form_url' })
+      if (!rl.allowed) {
+        return err(429, 'Rate limited', { retry_after_ms: rl.retry_after_ms })
+      }
+
+      // Budget check
+      const scope: CrawlScope = body.scope === 'B' ? 'B' : body.scope === 'C' ? 'C' : 'A'
+      const costEst = estimateCost({ source_type: 'website_scrape', params: { scope, useJs: body.use_js } })
+      const budget = await checkBudget({ agencyId, clientId: body.client_id, estimatedCost: costEst })
+      if (!budget.allowed) {
+        return err(402, 'Budget exceeded', {
+          scope: budget.scope,
+          remaining_client: budget.remaining_client,
+          remaining_agency: budget.remaining_agency,
+        })
+      }
+
+      const result = await crawlWebsite({
+        url: body.url,
+        agencyId,
+        clientId: body.client_id,
+        scope,
+        useJs: body.use_js,
+        robotsMode: body.robots_mode,
+        costCap: body.cost_cap,
+      })
+
+      // Persist extracted records via seedProfile merge path
+      if (result.records.length > 0) {
+        await seedProfile({
+          clientId: body.client_id,
+          agencyId,
+          externalRecords: result.records,
+          forceRebuild: false,
+        })
+      }
+
+      return NextResponse.json({
+        ok: true,
+        extracted: result.records.length,
+        pages_crawled: result.pages_crawled,
+        pages_skipped: result.pages_skipped,
+        warnings: result.warnings,
+        cost_usd: result.cost_spent_usd,
+        aborted: result.aborted,
+        abort_reason: result.abort_reason,
+      })
+    }
+
+    // ── seed_form_url (PROF-07 — form URL → extract Q&A pairs) ─────────────
+    if (action === 'seed_form_url') {
+      const clientId = String(body?.client_id ?? '')
+      if (!clientId) return err(400, 'missing_client_id')
+
+      // Cross-agency client_id → 404 (T-08-34)
+      const { data: clientRow } = await sb
+        .from('clients')
+        .select('id')
+        .eq('id', clientId)
+        .eq('agency_id', agencyId)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (!clientRow) return err(404, 'not_found')
+
+      const url = String(body?.url ?? '')
+      const det = detectFormProvider(url)
+      if (det.provider === 'unknown') return err(400, 'not_a_form_url')
+
+      // Rate limit (D-10/T-08-33)
+      const rl = checkRateLimit({ agencyId, actionKey: 'seed_form_url' })
+      if (!rl.allowed) return err(429, 'rate_limited', { retry_after_ms: rl.retry_after_ms })
+
+      // Cost gate (D-22/D-23)
+      const source_type = `${det.provider}_api` as any
+      const est = estimateCost({ source_type })
+      const bg = await checkBudget({ agencyId, clientId, estimatedCost: est })
+      if (bg.block && !body?.override) {
+        return err(402, 'budget_exceeded', { ...bg, estimated_cost: est })
+      }
+      if (bg.block && body?.override) {
+        await applyOverride({
+          agencyId, clientId, userId,
+          estimatedCost: est, originalCap: bg.scope === 'agency' ? 50 : 5,
+          overrideValue: bg.scope === 'agency' ? bg.projected_agency : bg.projected_client,
+          scope: bg.scope ?? 'per_source_cap', sourceType: source_type,
+          justification: body?.justification ?? null,
+        })
+      }
+
+      const result = await seedFromFormUrl({ url, agencyId, clientId, preferApi: body?.prefer_api !== false })
+
+      // Persist extracted records via seedProfile merge path (same as paste_text commit flow)
+      if (result.records.length > 0) {
+        await seedProfile({
+          clientId,
+          agencyId,
+          externalRecords: result.records,
+          forceRebuild: false,
+        })
+      }
+
+      return NextResponse.json({ ok: true, via: result.via, extracted: result.records.length, cost_usd: est })
+    }
+
+    // ── seed_upload (PROF-10 — extract from uploaded file) ─────────────────
+    if (action === 'seed_upload') {
+      const clientId = String(body?.client_id ?? '')
+      const uploadId = String(body?.upload_id ?? '')
+      if (!clientId || !uploadId) return err(400, 'client_id and upload_id required')
+
+      // Cross-agency client check
+      const { data: clientRow } = await sb
+        .from('clients')
+        .select('id')
+        .eq('id', clientId)
+        .eq('agency_id', agencyId)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (!clientRow) return err(404, 'not_found')
+
+      // Resolve storage path from upload_id
+      const storagePath = body?.storage_path ?? buildUploadPath(agencyId, clientId, uploadId, body?.ext ?? 'pdf')
+      const parsed = parseUploadPath(storagePath)
+      if (!parsed || parsed.agencyId !== agencyId) return err(404, 'upload_not_found')
+
+      // Cost gate (D-22/D-23) — estimate from source type hint or default to pdf_text
+      const sourceTypeHint = body?.source_type ?? 'pdf_text_extract'
+      const est = estimateCost({ source_type: sourceTypeHint, params: body?.cost_params })
+      const bg = await checkBudget({ agencyId, clientId, estimatedCost: est })
+      if (bg.block && !body?.override) {
+        return err(402, 'budget_exceeded', { ...bg, estimated_cost: est })
+      }
+      if (bg.block && body?.override) {
+        await applyOverride({
+          agencyId, clientId, userId,
+          estimatedCost: est, originalCap: bg.scope === 'agency' ? 50 : 5,
+          overrideValue: bg.scope === 'agency' ? bg.projected_agency : bg.projected_client,
+          scope: bg.scope ?? 'per_source_cap', sourceType: sourceTypeHint,
+          justification: body?.justification ?? null,
+        })
+      }
+
+      const result = await seedFromUpload({ agencyId, clientId, storagePath, uploadId })
+
+      // Persist extracted records via seedProfile merge path
+      if (result.records.length > 0) {
+        await seedProfile({
+          clientId,
+          agencyId,
+          externalRecords: result.records,
+          forceRebuild: false,
+        })
+      }
+
+      return NextResponse.json({
+        ok: true,
+        kind: result.kind,
+        extracted: result.records.length,
+        cost_usd: est,
+      })
+    }
+
+    // ── list_uploads (PROF-10 — list uploads for a client) ──────────────────
+    if (action === 'list_uploads') {
+      const clientId = String(body?.client_id ?? '')
+      if (!clientId) return err(400, 'client_id required')
+
+      const { data: profile } = await db.clientProfile.get(clientId)
+      if (!profile) return err(404, 'Profile not found')
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sources = ((profile as any).sources || []) as Array<Record<string, any>>
+      const uploads = sources.filter(s =>
+        s.source_type?.startsWith('pdf_') ||
+        s.source_type?.startsWith('docx_') ||
+        s.source_type?.startsWith('image_') ||
+        s.source_ref?.startsWith('upload:')
+      )
+      return NextResponse.json({ uploads })
+    }
+
+    // ── connect_gbp_oauth_start (PROF-09 — JSON consent URL for UI) ────────
+    if (action === 'connect_gbp_oauth_start') {
+      const rl = checkRateLimit({ agencyId, actionKey: 'connect_gbp_oauth_start' })
+      if (!rl.allowed) {
+        return err(429, 'Rate limited', { retry_after_ms: rl.retry_after_ms })
+      }
+      const mode = (body.mode === 'client' ? 'client' : 'agency') as 'agency' | 'client'
+      const redirectUri = body.redirect_uri || `${new URL(req.url).origin}/api/kotoiq/profile/oauth_gbp/callback`
+      const { url: consentUrl, state, stateCookieValue } = generateConsentUrl({
+        agencyId,
+        mode,
+        clientId: body.scope_client_id,
+        redirectUri,
+        redirectAfter: body.redirect_after || '/kotoiq/launch',
+      })
+      return NextResponse.json({ consent_url: consentUrl, state, state_cookie: stateCookieValue })
+    }
+
+    // ── list_gbp_locations (PROF-09 — list accessible GBP locations) ─────────
+    if (action === 'list_gbp_locations') {
+      const integration = await db.agencyIntegrations.getByKind('gbp_agency_oauth', null)
+      if (!integration.data?.encrypted_payload) {
+        return err(404, 'No GBP OAuth connection found — connect first')
+      }
+      const plain = decryptSecret(integration.data.encrypted_payload, agencyId)
+      const tokens = JSON.parse(plain)
+      const acctRes = await fetch('https://mybusinessaccountmanagement.googleapis.com/v1/accounts', {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      })
+      if (!acctRes.ok) return err(502, `GBP accounts API returned ${acctRes.status}`)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const acctBody = await acctRes.json() as any
+      const accounts = acctBody?.accounts || []
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const locations: any[] = []
+      for (const acct of accounts.slice(0, 10)) {
+        const locRes = await fetch(
+          `https://mybusinessbusinessinformation.googleapis.com/v1/${acct.name}/locations?readMask=title,name,storefrontAddress`,
+          { headers: { Authorization: `Bearer ${tokens.access_token}` } },
+        )
+        if (locRes.ok) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const locBody = await locRes.json() as any
+          for (const loc of locBody?.locations || []) {
+            locations.push({ name: loc.name, title: loc.title, address: loc.storefrontAddress, account_name: acct.name })
+          }
+        }
+      }
+      return NextResponse.json({ locations })
+    }
+
+    // ── seed_gbp_auth (PROF-09 — pull from authenticated GBP) ───────────────
+    if (action === 'seed_gbp_auth') {
+      if (!body.client_id || !body.location_name) {
+        return err(400, 'client_id and location_name required')
+      }
+      const costEst = SOURCE_CONFIG.gbp_authenticated.default_cost_cap
+      const budget = await checkBudget({ agencyId, clientId: body.client_id, estimatedCost: costEst })
+      if (!budget.allowed && !body.budget_override) {
+        return err(402, 'Budget exceeded', { scope: budget.scope, remaining_client: budget.remaining_client, remaining_agency: budget.remaining_agency })
+      }
+      const integration = await db.agencyIntegrations.getByKind('gbp_agency_oauth', null)
+      if (!integration.data?.encrypted_payload) {
+        return err(404, 'No GBP OAuth connection — connect first')
+      }
+      const plain = decryptSecret(integration.data.encrypted_payload, agencyId)
+      const tokens = JSON.parse(plain)
+      const records = await pullFromGBPAuth({
+        agencyId,
+        clientId: body.client_id,
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        integrationRowId: integration.data.id,
+        locationName: body.location_name,
+      })
+      if (records.length > 0) {
+        await seedProfile({ clientId: body.client_id, agencyId, externalRecords: records, forceRebuild: false })
+      }
+      return NextResponse.json({ ok: true, extracted: records.length })
+    }
+
+    // ── seed_gbp_places (PROF-09 — pull from Places API public) ─────────────
+    if (action === 'seed_gbp_places') {
+      if (!body.client_id || !body.place_id) {
+        return err(400, 'client_id and place_id required')
+      }
+      const costEst = SOURCE_CONFIG.gbp_public.default_cost_cap
+      const budget = await checkBudget({ agencyId, clientId: body.client_id, estimatedCost: costEst })
+      if (!budget.allowed && !body.budget_override) {
+        return err(402, 'Budget exceeded', { scope: budget.scope, remaining_client: budget.remaining_client, remaining_agency: budget.remaining_agency })
+      }
+      const records = await pullFromGBPPlaces({ placeId: body.place_id, agencyId, clientId: body.client_id })
+      if (records.length > 0) {
+        await seedProfile({ clientId: body.client_id, agencyId, externalRecords: records, forceRebuild: false })
+      }
+      return NextResponse.json({ ok: true, extracted: records.length })
     }
 
     return err(400, 'Unhandled action')
