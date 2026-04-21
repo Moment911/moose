@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+let _supabase: any
+function supabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  return _supabase
+}
 
 async function getValidToken(conn: any) {
   if (conn.token_expires_at && new Date(conn.token_expires_at) > new Date(Date.now() + 60000)) {
@@ -23,7 +29,7 @@ async function getValidToken(conn: any) {
   })
   const data = await res.json()
   if (!data.access_token) return null
-  await supabase.from('seo_connections').update({
+  await supabase().from('seo_connections').update({
     access_token:     data.access_token,
     token_expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
   }).eq('id', conn.id)
@@ -35,7 +41,7 @@ export async function POST(req: NextRequest) {
     const { client_id } = await req.json()
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
 
-    const { data: conn } = await supabase
+    const { data: conn } = await supabase()
       .from('seo_connections').select('*')
       .eq('client_id', client_id).eq('provider', 'search_console').eq('connected', true)
       .single()
@@ -45,7 +51,7 @@ export async function POST(req: NextRequest) {
     const token = await getValidToken(conn)
     if (!token) return NextResponse.json({ error: 'Could not get valid access token' }, { status: 401 })
 
-    const { data: keywords } = await supabase
+    const { data: keywords } = await supabase()
       .from('seo_keyword_tracking').select('*').eq('client_id', client_id)
 
     if (!keywords?.length) return NextResponse.json({ synced: 0, message: 'No keywords to sync' })
@@ -77,7 +83,7 @@ export async function POST(req: NextRequest) {
     let synced = 0, notFound = 0
     for (const kw of keywords) {
       const row = gscMap[kw.keyword?.toLowerCase()]
-      await supabase.from('seo_keyword_tracking').update({
+      await supabase().from('seo_keyword_tracking').update({
         previous_position: kw.position,
         position:    row ? Math.round(row.position * 10) / 10 : null,
         clicks:      row?.clicks || 0,
