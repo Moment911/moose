@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 08 UI-SPEC approved
-last_updated: "2026-04-20T03:41:51.775Z"
-last_activity: 2026-04-20
+status: awaiting-review
+stopped_at: Phase 08 plans 01-07 code-complete; ready for review/verification/UAT
+last_updated: "2026-04-21T23:05:00.000Z"
+last_activity: 2026-04-21
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 15
+  completed_plans: 15
   percent: 100
 ---
 
@@ -26,11 +26,25 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 8
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-20
+Plan: 01-07 all code-complete + SUMMARY'd
+Status: Awaiting phase-level review + verification + human UAT
+Last activity: 2026-04-21
 
-Progress: [████████░░] 75% (6 of 8 phases code complete; pilot pending)
+Progress: [█████████░] 88% (7 of 8 phases code complete; Phase 7 awaiting human UAT gauntlet, Phase 8 awaiting review/verify/UAT, pilot pending)
+
+### Phase 8 plan state (as of 2026-04-21)
+
+| Plan | Status | SUMMARY | Note |
+|------|--------|---------|------|
+| 08-01 | complete | yes | foundation (SOURCE_CONFIG + agency integrations schema) |
+| 08-02 | complete | yes | cost guardrails (checkBudget + estimateCost + rate limits) |
+| 08-03 | complete | yes | encryption vault + /api/kotoiq/integrations dispatcher |
+| 08-04 | complete | yes | form parsers (Typeform + Jotform + Google Forms + scrape fallback) |
+| 08-05 | complete | yes | website crawl (SSRF + robots + 3-mode + Playwright probe) |
+| 08-06 | complete | yes | GBP (OAuth + authenticated pull + Places fallback) |
+| 08-07 | complete | yes | file upload (PDF + DOCX + HEIC/image vision/OCR) |
+
+Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via merge 2a24317. SUMMARYs authored retroactively (04 by agent, 05/06/07 reconciled in this session).
 
 ## Performance Metrics
 
