@@ -168,14 +168,14 @@ function Th({ children }) {
   )
 }
 
-const td = { padding: '12px 14px', verticalAlign: 'top' }
+const td = { padding: '10px 14px', verticalAlign: 'top' }
 
 const cardStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
   borderRadius: 12,
-  padding: 24,
-  marginBottom: 18,
+  padding: 20,
+  marginBottom: 16,
 }
 
-const titleStyle = { margin: 0, fontSize: 14, fontWeight: 800, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }
+const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }

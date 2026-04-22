@@ -20,7 +20,7 @@ export default function RoadmapCard({ roadmap, currentPhase = 1, onSelectPhase }
 
   return (
     <section style={cardStyle}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <h2 style={titleStyle}>90-Day Roadmap</h2>
         <span style={{ color: GRY5, fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
           <TrendingUp size={13} /> Three 30-day blocks
@@ -161,8 +161,8 @@ const cardStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
   borderRadius: 12,
-  padding: 24,
-  marginBottom: 18,
+  padding: 20,
+  marginBottom: 16,
 }
 
-const titleStyle = { margin: 0, fontSize: 14, fontWeight: 800, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }
+const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }

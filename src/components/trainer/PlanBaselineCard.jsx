@@ -55,7 +55,7 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
 
   return (
     <section style={cardStyle}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <h2 style={titleStyle}>Baseline</h2>
         <span
           style={{
@@ -74,7 +74,7 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
       </header>
 
       {/* Body composition line */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 18, color: GRY7, fontSize: 13 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 14, color: GRY7, fontSize: 13 }}>
         <span>
           <strong style={{ color: BLK }}>BMI:</strong>{' '}
           {bc.bmi_or_null ?? '—'}
@@ -269,11 +269,11 @@ const cardStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
   borderRadius: 12,
-  padding: 24,
-  marginBottom: 18,
+  padding: 20,
+  marginBottom: 16,
 }
 
-const titleStyle = { margin: 0, fontSize: 14, fontWeight: 800, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }
+const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }
 
 function btnSecondary(disabled) {
   return {

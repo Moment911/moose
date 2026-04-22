@@ -11,8 +11,9 @@ import {
   Utensils,
   TrendingUp,
   Target,
-  CheckCircle,
-  Circle,
+  BookOpen,
+  LineChart,
+  LayoutGrid,
   ArrowRight,
   AlertTriangle,
 } from 'lucide-react'
@@ -32,18 +33,20 @@ import MealPlanTable from '../../components/trainer/MealPlanTable'
 import GroceryList from '../../components/trainer/GroceryList'
 import PlaybookCard from '../../components/trainer/PlaybookCard'
 import WorkoutLogGrid from '../../components/trainer/WorkoutLogGrid'
+import TrainerTabs from '../../components/trainer/TrainerTabs'
+import TrainerStatusStrip from '../../components/trainer/TrainerStatusStrip'
+import TrainerToast from '../../components/trainer/TrainerToast'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — /trainer/:traineeId full plan view.
 //
-// Replaces the Phase 1 stub.  Orchestrates the Sonnet chain:
-//   baseline → roadmap → workout(phase) → food_prefs → meals → grocery → adjust
-// via POST /api/trainer/generate, and drives the per-set workout log via
-// POST /api/trainer/workout-logs.
+// Layout: sticky header strip (name, goal, archive, status dots), then top-level
+// tabs — Overview / Plan / Nutrition / Playbook / Progress.  Every generate CTA
+// lives inside the tab it belongs to, so the operator never scrolls past one to
+// find the next.  Error toast is fixed bottom-right.
 //
-// Plan state lives in this component.  If Agent B ships a `get_current_plan`
-// action on /api/trainer/generate we pick it up on mount; otherwise state
-// starts empty and the operator drives each step.  Flagged in the report.
+// Wiring, state, handlers, and generation endpoints are PRESERVED verbatim from
+// the prior render — only the composition tree changed.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BRD = '#e5e7eb'
@@ -120,6 +123,9 @@ export default function TrainerDetailPage() {
   // ── Food-prefs wizard ──────────────────────────────────────────────────────
   const [wizardQuestions, setWizardQuestions] = useState(null) // null = closed
 
+  // ── Active top-level tab ───────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState('overview')
+
   // Stable toast message ref so transient errors can auto-clear.
   const toastTimer = useRef(null)
   function flashError(msg) {
@@ -127,6 +133,11 @@ export default function TrainerDetailPage() {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setStepError(null), 8000)
   }
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current)
+    }
+  }, [])
 
   const setPendingStep = useCallback((key, val) => {
     setPending((prev) => ({ ...prev, [key]: val }))
@@ -447,26 +458,164 @@ export default function TrainerDetailPage() {
   const okToTrain = plan?.baseline?.training_readiness?.ok_to_train !== false
   const hasBaseline = !!plan?.baseline
   const hasRoadmap = !!plan?.roadmap
+  const hasPlaybook = !!plan?.playbook
   const hasWorkout = !!plan?.workout_plan
   const hasPrefs = !!plan?.food_preferences
   const hasMeals = !!plan?.meal_plan
   const hasGrocery = !!plan?.grocery_list
 
+  const doneMap = useMemo(
+    () => ({
+      baseline: hasBaseline,
+      roadmap: hasRoadmap,
+      playbook: hasPlaybook,
+      workout: hasWorkout,
+      food_prefs: hasPrefs,
+      meals: hasMeals,
+    }),
+    [hasBaseline, hasRoadmap, hasPlaybook, hasWorkout, hasPrefs, hasMeals],
+  )
+  const pendingKey = useMemo(() => {
+    if (pending.baseline) return 'baseline'
+    if (pending.roadmap) return 'roadmap'
+    if (pending.playbook) return 'playbook'
+    if (pending.workout || pending.adjust) return 'workout'
+    if (pending.food_prefs || pending.submit_prefs) return 'food_prefs'
+    if (pending.meals) return 'meals'
+    return null
+  }, [pending])
+
   // Next-block gating: ≥ 40% adherence AND ≥ 11 days since workout generated.
+  // `now` is captured once at mount so Date.now() isn't called during render
+  // (satisfies react-hooks/purity — see eslint rule docs).
+  const [now] = useState(() => Date.now())
+  const daysOld = useMemo(() => {
+    if (!plan?.generated_at) return 0
+    return Math.floor((now - new Date(plan.generated_at).getTime()) / (1000 * 60 * 60 * 24))
+  }, [plan?.generated_at, now])
   const canAdjust = useMemo(() => {
     if (!plan?.workout_plan || !plan?.generated_at) return false
-    const days = (Date.now() - new Date(plan.generated_at).getTime()) / (1000 * 60 * 60 * 24)
     const pct = Number(adherence?.adherence_pct ?? 0)
-    return days >= 11 && pct >= 40 && currentPhase < 3
-  }, [plan?.workout_plan, plan?.generated_at, adherence?.adherence_pct, currentPhase])
+    return daysOld >= 11 && pct >= 40 && currentPhase < 3
+  }, [plan?.workout_plan, plan?.generated_at, adherence?.adherence_pct, currentPhase, daysOld])
+
+  // ── Next-step CTA ──────────────────────────────────────────────────────────
+  const nextStep = useMemo(() => {
+    if (!hasBaseline) {
+      return {
+        title: 'Generate baseline',
+        desc: 'Start the chain with calories, macros, training readiness, and the three focus areas.',
+        action: handleGenerateBaseline,
+        busy: pending.baseline,
+        goto: 'overview',
+        icon: Sparkles,
+      }
+    }
+    if (hasBaseline && !okToTrain) {
+      return {
+        title: 'Route to physician',
+        desc: 'Plan is paused until training_readiness.ok_to_train = true.',
+        action: null,
+        busy: false,
+        goto: 'overview',
+        icon: AlertTriangle,
+      }
+    }
+    if (!hasRoadmap) {
+      return {
+        title: 'Generate 90-day roadmap',
+        desc: 'Break the goal into three 30-day phases the trainee can feel.',
+        action: handleGenerateRoadmap,
+        busy: pending.roadmap,
+        goto: 'plan',
+        icon: TrendingUp,
+      }
+    }
+    if (!hasWorkout) {
+      return {
+        title: `Generate workout — phase ${currentPhase}`,
+        desc: 'Loadable set/rep targets, progression rule, and cues per exercise.',
+        action: () => handleGenerateWorkout(currentPhase),
+        busy: pending.workout,
+        goto: 'plan',
+        icon: Dumbbell,
+      }
+    }
+    if (!hasPrefs) {
+      return {
+        title: 'Collect food preferences',
+        desc: 'Adherence lives and dies here — people eat food they chose.',
+        action: handleElicitFoodPrefs,
+        busy: pending.food_prefs,
+        goto: 'nutrition',
+        icon: Utensils,
+      }
+    }
+    if (!hasMeals) {
+      return {
+        title: 'Generate meals + grocery',
+        desc: '2-week meal plan hitting calorie + macro targets, organized by aisle.',
+        action: handleGenerateMeals,
+        busy: pending.meals,
+        goto: 'nutrition',
+        icon: Utensils,
+      }
+    }
+    if (!hasPlaybook) {
+      return {
+        title: 'Generate coaching playbook',
+        desc: 'Nutrition, travel, supplements, recovery, and an 8-scenario troubleshooting guide.',
+        action: handleGeneratePlaybook,
+        busy: pending.playbook,
+        goto: 'playbook',
+        icon: BookOpen,
+      }
+    }
+    return {
+      title: 'Log workouts & watch adherence',
+      desc: 'All generation steps complete. Drive adherence, then generate the next block.',
+      action: null,
+      busy: false,
+      goto: 'progress',
+      icon: LineChart,
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    hasBaseline,
+    okToTrain,
+    hasRoadmap,
+    hasWorkout,
+    hasPrefs,
+    hasMeals,
+    hasPlaybook,
+    currentPhase,
+    pending.baseline,
+    pending.roadmap,
+    pending.workout,
+    pending.food_prefs,
+    pending.meals,
+    pending.playbook,
+  ])
+
+  // Tab definitions.  `done` drives the status dot on each tab.
+  const tabs = useMemo(
+    () => [
+      { key: 'overview', label: 'Overview', icon: LayoutGrid, done: hasBaseline },
+      { key: 'plan', label: 'Plan', icon: TrendingUp, done: hasRoadmap && hasWorkout, pending: pending.roadmap || pending.workout || pending.adjust },
+      { key: 'nutrition', label: 'Nutrition', icon: Utensils, done: hasPrefs && hasMeals, pending: pending.food_prefs || pending.submit_prefs || pending.meals },
+      { key: 'playbook', label: 'Playbook', icon: BookOpen, done: hasPlaybook, pending: pending.playbook },
+      { key: 'progress', label: 'Progress', icon: LineChart, done: logs.length > 0 },
+    ],
+    [hasBaseline, hasRoadmap, hasWorkout, hasPrefs, hasMeals, hasPlaybook, logs.length, pending],
+  )
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: GRY }}>
       <Sidebar />
-      <main style={{ flex: 1, padding: '32px 40px', maxWidth: 1400, margin: '0 auto' }}>
+      <main style={{ flex: 1, padding: '24px 40px 40px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
         <Link
           to="/trainer"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: T, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 16 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: T, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 12 }}
         >
           <ArrowLeft size={14} /> Back to trainees
         </Link>
@@ -487,286 +636,91 @@ export default function TrainerDetailPage() {
 
         {!featureDisabled && !loading && trainee && (
           <>
-            <Header
+            <StickyHeader
               trainee={trainee}
               actionPending={actionPending}
               onArchive={() => callTraineeAction('archive')}
               onUnarchive={() => callTraineeAction('unarchive')}
+              doneMap={doneMap}
+              pendingKey={pendingKey}
             />
 
-            {stepError && (
-              <div
-                style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  color: '#991b1b',
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  fontSize: 13,
-                  marginBottom: 14,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
-              >
-                <AlertTriangle size={14} /> {stepError}
-              </div>
-            )}
+            {/* ── Top-level tabs ───────────────────────────────────────────── */}
+            <TrainerTabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} />
 
-            <StatusStrip
-              hasBaseline={hasBaseline}
-              hasRoadmap={hasRoadmap}
-              hasWorkout={hasWorkout}
-              hasPrefs={hasPrefs}
-              hasMeals={hasMeals}
-              hasLogs={logs.length > 0}
-            />
-
-            {/* ── Baseline ─────────────────────────────────────────────────── */}
-            {!hasBaseline ? (
-              <section style={{ ...panelStyle, background: '#fff' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                  <div>
-                    <h2 style={panelTitle}>Intake summary</h2>
-                    <Row k="Goal" v={trainee.primary_goal} />
-                    <Row k="Age" v={trainee.age} />
-                    <Row k="Sex" v={trainee.sex} />
-                    <Row k="Height" v={trainee.height_cm ? cmToFeetInches(trainee.height_cm) : null} />
-                    <Row k="Weight" v={trainee.current_weight_kg ? `${kgToLbs(trainee.current_weight_kg)} lbs` : null} />
-                    <Row k="Target" v={trainee.target_weight_kg ? `${kgToLbs(trainee.target_weight_kg)} lbs` : null} />
-                    <Row k="Training days/wk" v={trainee.training_days_per_week} />
-                    <Row k="Equipment" v={trainee.equipment_access} />
-                    <Row k="Dietary preference" v={trainee.dietary_preference} />
-                    <Row k="Allergies" v={trainee.allergies} />
-                    <Row k="Medical flags" v={trainee.medical_flags} />
-                    <Row k="Injuries" v={trainee.injuries} />
-                  </div>
-                  <div>
-                    <h2 style={panelTitle}>Start here</h2>
-                    <p style={{ color: GRY7, fontSize: 13, lineHeight: 1.55, margin: '0 0 16px' }}>
-                      Generate the baseline assessment — calories, macros, training readiness,
-                      and the three focus areas that will move the needle most for this trainee.
-                      This is the input every downstream step reads from.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleGenerateBaseline}
-                      disabled={pending.baseline}
-                      style={btnPrimary(pending.baseline)}
-                    >
-                      {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
-                      {pending.baseline ? 'Generating baseline…' : 'Generate baseline'}
-                    </button>
-                  </div>
-                </div>
-              </section>
-            ) : (
-              <PlanBaselineCard
-                baseline={plan.baseline}
-                onRegenerate={handleGenerateBaseline}
-                regenerating={pending.baseline}
+            {activeTab === 'overview' && (
+              <OverviewTab
+                trainee={trainee}
+                plan={plan}
+                okToTrain={okToTrain}
+                hasBaseline={hasBaseline}
+                pending={pending}
+                nextStep={nextStep}
+                onGenerateBaseline={handleGenerateBaseline}
+                onGotoTab={setActiveTab}
               />
             )}
 
-            {/* Stop chain if not ok to train. */}
-            {hasBaseline && !okToTrain && (
-              <section
-                style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: 10,
-                  padding: 20,
-                  marginBottom: 18,
-                  color: '#991b1b',
-                }}
-              >
-                <strong>Plan is paused.</strong> This trainee needs physician clearance before
-                Koto Trainer generates a workout or meal plan. Update medical_flags / injuries in
-                the intake once the operator has documented clearance, then regenerate.
-              </section>
-            )}
-
-            {/* ── Roadmap ──────────────────────────────────────────────────── */}
-            {hasBaseline && okToTrain && !hasRoadmap && (
-              <section style={panelStyle}>
-                <h2 style={panelTitle}>Next: 90-day roadmap</h2>
-                <p style={{ color: GRY7, fontSize: 13, margin: '0 0 14px', lineHeight: 1.5 }}>
-                  Break the target into three 30-day phases. Each phase has its own training and
-                  nutrition theme and clear milestones the trainee can feel.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleGenerateRoadmap}
-                  disabled={pending.roadmap}
-                  style={btnPrimary(pending.roadmap)}
-                >
-                  {pending.roadmap ? <Loader2 size={14} /> : <TrendingUp size={14} />}
-                  {pending.roadmap ? 'Generating…' : 'Generate 90-day roadmap'}
-                </button>
-              </section>
-            )}
-
-            {hasRoadmap && (
-              <RoadmapCard
-                roadmap={plan.roadmap}
+            {activeTab === 'plan' && (
+              <PlanTab
+                plan={plan}
+                hasBaseline={hasBaseline}
+                okToTrain={okToTrain}
+                hasRoadmap={hasRoadmap}
+                hasWorkout={hasWorkout}
                 currentPhase={currentPhase}
-                onSelectPhase={(n) => handleGenerateWorkout(n)}
-              />
-            )}
-
-            {/* ── Coaching Playbook ─────────────────────────────────────────── */}
-            {hasRoadmap && !plan?.playbook && (
-              <section style={panelStyle}>
-                <h2 style={panelTitle}>Coaching playbook</h2>
-                <p style={{ color: GRY7, fontSize: 13, margin: '0 0 14px', lineHeight: 1.5 }}>
-                  Generate the trainee&apos;s full reference guide: nutrition protocol, supplement
-                  protocol, on-the-road eating strategy, weekly meal-prep routine, recovery + sleep
-                  protocol, and an 8-scenario troubleshooting guide. One-time output — re-generate
-                  anytime to refresh.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleGeneratePlaybook}
-                  disabled={pending.playbook}
-                  style={btnPrimary(pending.playbook)}
-                >
-                  {pending.playbook ? <Loader2 size={14} /> : <Sparkles size={14} />}
-                  {pending.playbook ? 'Generating playbook…' : 'Generate coaching playbook'}
-                </button>
-              </section>
-            )}
-
-            {plan?.playbook && (
-              <PlaybookCard
-                playbook={plan.playbook}
-                onRegenerate={handleGeneratePlaybook}
-                regenerating={pending.playbook}
-              />
-            )}
-
-            {/* ── Workout ──────────────────────────────────────────────────── */}
-            {hasRoadmap && !hasWorkout && (
-              <section style={panelStyle}>
-                <h2 style={panelTitle}>Next: 2-week training block</h2>
-                <p style={{ color: GRY7, fontSize: 13, margin: '0 0 14px', lineHeight: 1.5 }}>
-                  Generate a 2-week workout block for phase {currentPhase}. Every exercise includes
-                  loadable set/rep targets, a progression rule, coaching cues, and a how-to toggle
-                  so the trainee never has to guess form.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => handleGenerateWorkout(currentPhase)}
-                  disabled={pending.workout}
-                  style={btnPrimary(pending.workout)}
-                >
-                  {pending.workout ? <Loader2 size={14} /> : <Dumbbell size={14} />}
-                  {pending.workout ? 'Generating…' : `Generate workout for phase ${currentPhase}`}
-                </button>
-              </section>
-            )}
-
-            {hasWorkout && (
-              <WorkoutAccordion
-                workoutPlan={plan.workout_plan}
+                pending={pending}
                 logs={logs}
-                onLogSet={handleLogSet}
                 expandSessionDay={expandSessionDay}
+                onGenerateRoadmap={handleGenerateRoadmap}
+                onGenerateWorkout={handleGenerateWorkout}
+                onLogSet={handleLogSet}
+                onGotoTab={setActiveTab}
               />
             )}
 
-            {/* ── Food prefs ───────────────────────────────────────────────── */}
-            {hasWorkout && !hasPrefs && (
-              <section style={panelStyle}>
-                <h2 style={panelTitle}>Next: food preferences</h2>
-                <p style={{ color: GRY7, fontSize: 13, margin: '0 0 14px', lineHeight: 1.5 }}>
-                  Collect the trainee&apos;s food preferences before generating meals. Adherence
-                  lives and dies here — people eat food they chose, not food they were assigned.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleElicitFoodPrefs}
-                  disabled={pending.food_prefs}
-                  style={btnPrimary(pending.food_prefs)}
-                >
-                  {pending.food_prefs ? <Loader2 size={14} /> : <Utensils size={14} />}
-                  {pending.food_prefs ? 'Preparing questions…' : 'Collect food preferences'}
-                </button>
-              </section>
+            {activeTab === 'nutrition' && (
+              <NutritionTab
+                plan={plan}
+                hasWorkout={hasWorkout}
+                hasPrefs={hasPrefs}
+                hasMeals={hasMeals}
+                hasGrocery={hasGrocery}
+                pending={pending}
+                onElicitFoodPrefs={handleElicitFoodPrefs}
+                onGenerateMeals={handleGenerateMeals}
+                onGotoTab={setActiveTab}
+              />
             )}
 
-            {/* ── Meals ────────────────────────────────────────────────────── */}
-            {hasPrefs && !hasMeals && (
-              <section style={panelStyle}>
-                <h2 style={panelTitle}>Next: 2-week meals + grocery</h2>
-                <p style={{ color: GRY7, fontSize: 13, margin: '0 0 14px', lineHeight: 1.5 }}>
-                  Generate a full 2-week meal plan hitting the baseline calorie + macro targets,
-                  organized against the trainee&apos;s actual preferences, and a single grocery run
-                  by aisle so Sunday shopping is one trip.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleGenerateMeals}
-                  disabled={pending.meals}
-                  style={btnPrimary(pending.meals)}
-                >
-                  {pending.meals ? <Loader2 size={14} /> : <Utensils size={14} />}
-                  {pending.meals ? 'Generating meal plan…' : 'Generate 2-week meals + grocery'}
-                </button>
-              </section>
+            {activeTab === 'playbook' && (
+              <PlaybookTab
+                plan={plan}
+                hasRoadmap={hasRoadmap}
+                pending={pending}
+                onGeneratePlaybook={handleGeneratePlaybook}
+                onGotoTab={setActiveTab}
+              />
             )}
 
-            {hasMeals && <MealPlanTable mealPlan={plan.meal_plan} />}
-            {hasGrocery && <GroceryList groceryList={plan.grocery_list} />}
-
-            {/* ── Workout log grid ─────────────────────────────────────────── */}
-            {hasWorkout && (
-              <WorkoutLogGrid
-                workoutPlan={plan.workout_plan}
+            {activeTab === 'progress' && (
+              <ProgressTab
+                plan={plan}
                 logs={logs}
                 adherence={adherence}
+                hasWorkout={hasWorkout}
+                currentPhase={currentPhase}
+                pending={pending}
+                canAdjust={canAdjust}
+                daysOld={daysOld}
                 onOpenSession={(day) => {
                   setExpandSessionDay(day)
-                  // Reset after a tick so repeat clicks re-trigger the effect.
+                  setActiveTab('plan')
                   setTimeout(() => setExpandSessionDay(null), 400)
                 }}
+                onGenerateNextBlock={handleGenerateNextBlock}
+                onGotoTab={setActiveTab}
               />
-            )}
-
-            {/* ── Adjust-block ─────────────────────────────────────────────── */}
-            {hasWorkout && (
-              <section style={panelStyle}>
-                <h2 style={panelTitle}>Adjust block</h2>
-                <p style={{ color: GRY7, fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-                  Generate the next 2-week block based on adherence + recent performance.
-                  Enabled once the trainee has ≥ 40% adherence and the block is ≥ 11 days old.
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={handleGenerateNextBlock}
-                    disabled={!canAdjust || pending.adjust}
-                    style={btnPrimary(!canAdjust || pending.adjust)}
-                  >
-                    {pending.adjust ? <Loader2 size={14} /> : <ArrowRight size={14} />}
-                    {pending.adjust ? 'Adjusting…' : 'Generate next block'}
-                  </button>
-                  {!canAdjust && (
-                    <span style={{ color: GRY5, fontSize: 12 }}>
-                      {(() => {
-                        if (currentPhase >= 3) return 'Final phase reached.'
-                        const pct = Math.round(Number(adherence?.adherence_pct ?? 0))
-                        const daysOld = plan?.generated_at
-                          ? Math.floor(
-                              (Date.now() - new Date(plan.generated_at).getTime()) /
-                                (1000 * 60 * 60 * 24),
-                            )
-                          : 0
-                        return `${pct}% adherence · block is ${daysOld} day${daysOld === 1 ? '' : 's'} old`
-                      })()}
-                    </span>
-                  )}
-                </div>
-              </section>
             )}
           </>
         )}
@@ -780,88 +734,526 @@ export default function TrainerDetailPage() {
           submitting={pending.submit_prefs}
         />
       )}
+
+      <TrainerToast message={stepError} onClose={() => setStepError(null)} />
     </div>
   )
 }
 
-// ── Sub-components ───────────────────────────────────────────────────────────
+// ── Sticky header ────────────────────────────────────────────────────────────
 
-function Header({ trainee, actionPending, onArchive, onUnarchive }) {
+function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, doneMap, pendingKey }) {
   return (
-    <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-      <div>
-        <h1 style={{ margin: 0, fontSize: 28, color: BLK }}>{trainee.full_name}</h1>
-        <p style={{ margin: '6px 0 0', color: GRY5, fontSize: 14 }}>
-          {trainee.primary_goal || 'no goal set'} · created{' '}
-          {trainee.created_at ? new Date(trainee.created_at).toLocaleDateString() : '—'}
-        </p>
+    <header
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
+        background: GRY,
+        padding: '14px 0 16px',
+        marginBottom: 10,
+        borderBottom: `1px solid ${BRD}`,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 16,
+          flexWrap: 'wrap',
+          marginBottom: 12,
+        }}
+      >
+        <div style={{ minWidth: 0, flex: '1 1 280px' }}>
+          <h1 style={{ margin: 0, fontSize: 26, color: BLK, fontWeight: 800, letterSpacing: '-.01em' }}>
+            {trainee.full_name}
+          </h1>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6, alignItems: 'center' }}>
+            {trainee.primary_goal && (
+              <span style={chipAccent}>
+                <Target size={12} /> {trainee.primary_goal}
+              </span>
+            )}
+            {trainee.age != null && <span style={chip}>Age {trainee.age}</span>}
+            {trainee.sex && <span style={chip}>{trainee.sex}</span>}
+            {trainee.training_days_per_week != null && (
+              <span style={chip}>{trainee.training_days_per_week}×/wk</span>
+            )}
+            <span style={{ color: GRY5, fontSize: 12 }}>
+              · created {trainee.created_at ? new Date(trainee.created_at).toLocaleDateString() : '—'}
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {/* TODO(phase-3): Send invite button here */}
+          {trainee.archived_at ? (
+            <button onClick={onUnarchive} disabled={actionPending} style={btnSecondary(actionPending)}>
+              <Undo2 size={14} /> Unarchive
+            </button>
+          ) : (
+            <button onClick={onArchive} disabled={actionPending} style={btnSecondary(actionPending)}>
+              <Archive size={14} /> Archive
+            </button>
+          )}
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 10 }}>
-        {trainee.archived_at ? (
-          <button onClick={onUnarchive} disabled={actionPending} style={btnSecondary(actionPending)}>
-            <Undo2 size={14} /> Unarchive
-          </button>
-        ) : (
-          <button onClick={onArchive} disabled={actionPending} style={btnSecondary(actionPending)}>
-            <Archive size={14} /> Archive
-          </button>
-        )}
-      </div>
+
+      <TrainerStatusStrip done={doneMap} pendingKey={pendingKey} />
     </header>
   )
 }
 
-function StatusStrip({ hasBaseline, hasRoadmap, hasWorkout, hasPrefs, hasMeals, hasLogs }) {
-  const steps = [
-    { label: 'Baseline', done: hasBaseline, icon: <Target size={13} /> },
-    { label: 'Roadmap', done: hasRoadmap, icon: <TrendingUp size={13} /> },
-    { label: 'Workout', done: hasWorkout, icon: <Dumbbell size={13} /> },
-    { label: 'Food prefs', done: hasPrefs, icon: <Utensils size={13} /> },
-    { label: 'Meals', done: hasMeals, icon: <Utensils size={13} /> },
-    { label: 'Logs', done: hasLogs, icon: <CheckCircle size={13} /> },
-  ]
+// ── Overview tab ─────────────────────────────────────────────────────────────
+
+function OverviewTab({
+  trainee,
+  plan,
+  okToTrain,
+  hasBaseline,
+  pending,
+  nextStep,
+  onGenerateBaseline,
+  onGotoTab,
+}) {
+  const Icon = nextStep.icon || Sparkles
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 6,
-        marginBottom: 16,
-        flexWrap: 'wrap',
-      }}
-    >
-      {steps.map((s, i) => (
-        <span
-          key={s.label}
+    <div>
+      {/* Next-step CTA — the glance-visible action. */}
+      <section
+        style={{
+          background: '#fff',
+          border: `1px solid ${BRD}`,
+          borderLeft: `4px solid ${R}`,
+          borderRadius: 12,
+          padding: '18px 22px',
+          marginBottom: 18,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ minWidth: 0, flex: '1 1 340px' }}>
+          <div style={{ color: R, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Icon size={12} /> Next step
+          </div>
+          <div style={{ color: BLK, fontSize: 17, fontWeight: 800, marginBottom: 4 }}>{nextStep.title}</div>
+          <div style={{ color: GRY7, fontSize: 13, lineHeight: 1.5 }}>{nextStep.desc}</div>
+        </div>
+        {nextStep.action && (
+          <button
+            type="button"
+            onClick={nextStep.action}
+            disabled={nextStep.busy}
+            style={btnPrimary(nextStep.busy)}
+          >
+            {nextStep.busy ? <Loader2 size={14} /> : <Icon size={14} />}
+            {nextStep.busy ? 'Generating…' : nextStep.title}
+          </button>
+        )}
+        {!nextStep.action && nextStep.goto && (
+          <button
+            type="button"
+            onClick={() => onGotoTab(nextStep.goto)}
+            style={btnSecondary(false)}
+          >
+            Open {nextStep.goto} tab <ArrowRight size={13} />
+          </button>
+        )}
+      </section>
+
+      {/* Two-column on desktop: intake summary + baseline card / prompt. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
+        <IntakeSummary trainee={trainee} />
+        {hasBaseline ? (
+          <PlanBaselineCard
+            baseline={plan.baseline}
+            onRegenerate={onGenerateBaseline}
+            regenerating={pending.baseline}
+          />
+        ) : (
+          <section style={panelStyle}>
+            <h2 style={panelTitle}>Baseline</h2>
+            <p style={paraStyle}>
+              Generate the baseline assessment — calories, macros, training readiness, and the three
+              focus areas that will move the needle most for this trainee. This is the input every
+              downstream step reads from.
+            </p>
+            <button
+              type="button"
+              onClick={onGenerateBaseline}
+              disabled={pending.baseline}
+              style={btnPrimary(pending.baseline)}
+            >
+              {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
+              {pending.baseline ? 'Generating baseline…' : 'Generate baseline'}
+            </button>
+          </section>
+        )}
+      </div>
+
+      {hasBaseline && !okToTrain && (
+        <section
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '5px 11px',
-            background: s.done ? GRN + '15' : '#fff',
-            color: s.done ? GRN : GRY5,
-            border: `1px solid ${s.done ? GRN + '40' : BRD}`,
-            borderRadius: 20,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '.03em',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 10,
+            padding: 20,
+            marginTop: 16,
+            color: '#991b1b',
           }}
         >
-          {s.done ? <CheckCircle size={13} /> : <Circle size={13} />}
-          {s.label}
-          {i < steps.length - 1 && <span style={{ color: '#d1d5db', marginLeft: 4 }}>·</span>}
-        </span>
-      ))}
+          <strong>Plan is paused.</strong> This trainee needs physician clearance before Koto
+          Trainer generates a workout or meal plan. Update medical_flags / injuries in the intake
+          once clearance is documented, then regenerate.
+        </section>
+      )}
     </div>
   )
 }
 
+function IntakeSummary({ trainee }) {
+  return (
+    <section style={panelStyle}>
+      <h2 style={panelTitle}>Intake summary</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+        <Row k="Goal" v={trainee.primary_goal} />
+        <Row k="Training days/wk" v={trainee.training_days_per_week} />
+        <Row k="Age" v={trainee.age} />
+        <Row k="Sex" v={trainee.sex} />
+        <Row k="Height" v={trainee.height_cm ? cmToFeetInches(trainee.height_cm) : null} />
+        <Row k="Weight" v={trainee.current_weight_kg ? `${kgToLbs(trainee.current_weight_kg)} lbs` : null} />
+        <Row k="Target" v={trainee.target_weight_kg ? `${kgToLbs(trainee.target_weight_kg)} lbs` : null} />
+        <Row k="Equipment" v={trainee.equipment_access} />
+        <Row k="Dietary" v={trainee.dietary_preference} />
+        <Row k="Allergies" v={trainee.allergies} />
+        <Row k="Medical" v={trainee.medical_flags} />
+        <Row k="Injuries" v={trainee.injuries} />
+      </div>
+    </section>
+  )
+}
+
+// ── Plan tab ─────────────────────────────────────────────────────────────────
+
+function PlanTab({
+  plan,
+  hasBaseline,
+  okToTrain,
+  hasRoadmap,
+  hasWorkout,
+  currentPhase,
+  pending,
+  logs,
+  expandSessionDay,
+  onGenerateRoadmap,
+  onGenerateWorkout,
+  onLogSet,
+  onGotoTab,
+}) {
+  if (!hasBaseline) {
+    return (
+      <EmptyHint
+        title="Baseline required"
+        desc="Generate the baseline assessment in Overview first — every plan step reads from it."
+        onGoto={() => onGotoTab('overview')}
+        ctaLabel="Back to overview"
+      />
+    )
+  }
+  if (!okToTrain) {
+    return (
+      <section
+        style={{
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: 10,
+          padding: 20,
+          color: '#991b1b',
+        }}
+      >
+        <strong>Plan is paused.</strong> Trainee needs physician clearance before the plan tab is
+        active.
+      </section>
+    )
+  }
+  return (
+    <div>
+      {!hasRoadmap && (
+        <section style={panelStyle}>
+          <h2 style={panelTitle}>90-day roadmap</h2>
+          <p style={paraStyle}>
+            Break the target into three 30-day phases. Each phase has its own training and
+            nutrition theme plus milestones the trainee can feel.
+          </p>
+          <button
+            type="button"
+            onClick={onGenerateRoadmap}
+            disabled={pending.roadmap}
+            style={btnPrimary(pending.roadmap)}
+          >
+            {pending.roadmap ? <Loader2 size={14} /> : <TrendingUp size={14} />}
+            {pending.roadmap ? 'Generating…' : 'Generate 90-day roadmap'}
+          </button>
+        </section>
+      )}
+
+      {hasRoadmap && (
+        <RoadmapCard
+          roadmap={plan.roadmap}
+          currentPhase={currentPhase}
+          onSelectPhase={(n) => onGenerateWorkout(n)}
+        />
+      )}
+
+      {hasRoadmap && !hasWorkout && (
+        <section style={panelStyle}>
+          <h2 style={panelTitle}>Training block — phase {currentPhase}</h2>
+          <p style={paraStyle}>
+            Generate a 2-week workout block. Every exercise includes loadable set/rep targets, a
+            progression rule, coaching cues, and a how-to toggle so the trainee never has to guess
+            form.
+          </p>
+          <button
+            type="button"
+            onClick={() => onGenerateWorkout(currentPhase)}
+            disabled={pending.workout}
+            style={btnPrimary(pending.workout)}
+          >
+            {pending.workout ? <Loader2 size={14} /> : <Dumbbell size={14} />}
+            {pending.workout ? 'Generating…' : `Generate workout for phase ${currentPhase}`}
+          </button>
+        </section>
+      )}
+
+      {hasWorkout && (
+        <WorkoutAccordion
+          workoutPlan={plan.workout_plan}
+          logs={logs}
+          onLogSet={onLogSet}
+          expandSessionDay={expandSessionDay}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Nutrition tab ────────────────────────────────────────────────────────────
+
+function NutritionTab({
+  plan,
+  hasWorkout,
+  hasPrefs,
+  hasMeals,
+  hasGrocery,
+  pending,
+  onElicitFoodPrefs,
+  onGenerateMeals,
+  onGotoTab,
+}) {
+  if (!hasWorkout) {
+    return (
+      <EmptyHint
+        title="Workout required first"
+        desc="Generate the workout block in Plan before collecting food preferences — meal targets read from the workout plan."
+        onGoto={() => onGotoTab('plan')}
+        ctaLabel="Open Plan tab"
+      />
+    )
+  }
+  return (
+    <div>
+      {!hasPrefs && (
+        <section style={panelStyle}>
+          <h2 style={panelTitle}>Food preferences</h2>
+          <p style={paraStyle}>
+            Collect the trainee&apos;s food preferences before generating meals. Adherence lives and
+            dies here — people eat food they chose, not food they were assigned.
+          </p>
+          <button
+            type="button"
+            onClick={onElicitFoodPrefs}
+            disabled={pending.food_prefs}
+            style={btnPrimary(pending.food_prefs)}
+          >
+            {pending.food_prefs ? <Loader2 size={14} /> : <Utensils size={14} />}
+            {pending.food_prefs ? 'Preparing questions…' : 'Collect food preferences'}
+          </button>
+        </section>
+      )}
+
+      {hasPrefs && !hasMeals && (
+        <section style={panelStyle}>
+          <h2 style={panelTitle}>2-week meals + grocery</h2>
+          <p style={paraStyle}>
+            Generate a full 2-week meal plan hitting the baseline calorie + macro targets,
+            organized against the trainee&apos;s preferences, plus a single grocery run by aisle so
+            Sunday shopping is one trip.
+          </p>
+          <button
+            type="button"
+            onClick={onGenerateMeals}
+            disabled={pending.meals}
+            style={btnPrimary(pending.meals)}
+          >
+            {pending.meals ? <Loader2 size={14} /> : <Utensils size={14} />}
+            {pending.meals ? 'Generating meal plan…' : 'Generate 2-week meals + grocery'}
+          </button>
+        </section>
+      )}
+
+      {hasMeals && <MealPlanTable mealPlan={plan.meal_plan} />}
+      {hasGrocery && <GroceryList groceryList={plan.grocery_list} />}
+    </div>
+  )
+}
+
+// ── Playbook tab ─────────────────────────────────────────────────────────────
+
+function PlaybookTab({ plan, hasRoadmap, pending, onGeneratePlaybook, onGotoTab }) {
+  if (!hasRoadmap) {
+    return (
+      <EmptyHint
+        title="Roadmap required first"
+        desc="The coaching playbook reads from the roadmap. Generate it in Plan first."
+        onGoto={() => onGotoTab('plan')}
+        ctaLabel="Open Plan tab"
+      />
+    )
+  }
+  if (!plan?.playbook) {
+    return (
+      <section style={panelStyle}>
+        <h2 style={panelTitle}>Coaching playbook</h2>
+        <p style={paraStyle}>
+          Generate the trainee&apos;s reference guide — nutrition, supplements, on-the-road eating,
+          weekly meal prep, recovery + sleep, and an 8-scenario troubleshooting guide. One-time
+          output; re-generate anytime to refresh.
+        </p>
+        <button
+          type="button"
+          onClick={onGeneratePlaybook}
+          disabled={pending.playbook}
+          style={btnPrimary(pending.playbook)}
+        >
+          {pending.playbook ? <Loader2 size={14} /> : <BookOpen size={14} />}
+          {pending.playbook ? 'Generating playbook…' : 'Generate coaching playbook'}
+        </button>
+      </section>
+    )
+  }
+  return (
+    <PlaybookCard
+      playbook={plan.playbook}
+      onRegenerate={onGeneratePlaybook}
+      regenerating={pending.playbook}
+    />
+  )
+}
+
+// ── Progress tab ─────────────────────────────────────────────────────────────
+
+function ProgressTab({
+  plan,
+  logs,
+  adherence,
+  hasWorkout,
+  currentPhase,
+  pending,
+  canAdjust,
+  daysOld,
+  onOpenSession,
+  onGenerateNextBlock,
+  onGotoTab,
+}) {
+  if (!hasWorkout) {
+    return (
+      <EmptyHint
+        title="No workout to log yet"
+        desc="Generate a training block in the Plan tab before tracking adherence."
+        onGoto={() => onGotoTab('plan')}
+        ctaLabel="Open Plan tab"
+      />
+    )
+  }
+  const pct = Math.round(Number(adherence?.adherence_pct ?? 0))
+  return (
+    <div>
+      <WorkoutLogGrid
+        workoutPlan={plan.workout_plan}
+        logs={logs}
+        adherence={adherence}
+        onOpenSession={onOpenSession}
+      />
+
+      <section style={panelStyle}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 0, flex: '1 1 320px' }}>
+            <h2 style={panelTitle}>Next block</h2>
+            <p style={{ ...paraStyle, marginBottom: 0 }}>
+              Generate the next 2-week block based on adherence and recent performance. Gated to
+              ≥ 40% adherence AND ≥ 11 days since this block was generated AND phase &lt; 3.
+            </p>
+            <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 12, color: GRY7 }}>
+              <span><strong style={{ color: BLK }}>Adherence:</strong>{' '}<span style={{ color: pct >= 40 ? GRN : '#b45309', fontWeight: 700 }}>{pct}%</span></span>
+              <span><strong style={{ color: BLK }}>Block age:</strong> {daysOld} day{daysOld === 1 ? '' : 's'}</span>
+              <span><strong style={{ color: BLK }}>Phase:</strong> {currentPhase} / 3</span>
+            </div>
+          </div>
+          <div style={{ flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={onGenerateNextBlock}
+              disabled={!canAdjust || pending.adjust}
+              style={btnPrimary(!canAdjust || pending.adjust)}
+            >
+              {pending.adjust ? <Loader2 size={14} /> : <ArrowRight size={14} />}
+              {pending.adjust ? 'Adjusting…' : 'Generate next block'}
+            </button>
+            {!canAdjust && (
+              <div style={{ marginTop: 6, color: GRY5, fontSize: 11, textAlign: 'right' }}>
+                {currentPhase >= 3 ? 'Final phase reached.' : 'Gate not yet satisfied.'}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// ── Shared primitives ────────────────────────────────────────────────────────
+
 function Row({ k, v }) {
   if (v === null || v === undefined || v === '') return null
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', padding: '5px 0', fontSize: 13 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', padding: '4px 0', fontSize: 13 }}>
       <span style={{ color: GRY5, fontWeight: 600 }}>{k}</span>
       <span style={{ color: BLK }}>{String(v)}</span>
     </div>
+  )
+}
+
+function EmptyHint({ title, desc, onGoto, ctaLabel }) {
+  return (
+    <section
+      style={{
+        ...panelStyle,
+        textAlign: 'center',
+        padding: '34px 22px',
+      }}
+    >
+      <div style={{ color: BLK, fontSize: 16, fontWeight: 800, marginBottom: 6 }}>{title}</div>
+      <p style={{ color: GRY7, fontSize: 13, lineHeight: 1.5, margin: '0 auto 14px', maxWidth: 440 }}>{desc}</p>
+      {onGoto && (
+        <button type="button" onClick={onGoto} style={btnSecondary(false)}>
+          {ctaLabel || 'Open'} <ArrowRight size={13} />
+        </button>
+      )}
+    </section>
   )
 }
 
@@ -871,11 +1263,33 @@ const panelStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
   borderRadius: 12,
-  padding: 24,
-  marginBottom: 18,
+  padding: 22,
+  marginBottom: 16,
 }
 
-const panelTitle = { margin: '0 0 12px', fontSize: 14, fontWeight: 800, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }
+const panelTitle = { margin: '0 0 10px', fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }
+
+const paraStyle = { color: GRY7, fontSize: 13, margin: '0 0 14px', lineHeight: 1.5 }
+
+const chip = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
+  padding: '3px 10px',
+  background: '#fff',
+  border: `1px solid ${BRD}`,
+  color: GRY7,
+  borderRadius: 20,
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const chipAccent = {
+  ...chip,
+  background: R + '10',
+  border: `1px solid ${R}30`,
+  color: R,
+}
 
 function btnPrimary(disabled) {
   return {
@@ -890,6 +1304,7 @@ function btnPrimary(disabled) {
     fontSize: 13,
     fontWeight: 700,
     cursor: disabled ? 'not-allowed' : 'pointer',
+    whiteSpace: 'nowrap',
   }
 }
 

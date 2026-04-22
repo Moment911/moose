@@ -105,7 +105,7 @@ export default function GroceryList({ groceryList }) {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  padding: '10px 14px',
+                  padding: '9px 12px',
                   background: open ? '#f9fafb' : '#fff',
                   border: 'none',
                   borderBottom: open ? `1px solid ${BRD}` : 'none',
@@ -183,8 +183,8 @@ const cardStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
   borderRadius: 12,
-  padding: 24,
-  marginBottom: 18,
+  padding: 20,
+  marginBottom: 16,
 }
 
-const titleStyle = { margin: 0, fontSize: 14, fontWeight: 800, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }
+const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }

@@ -140,6 +140,25 @@ export default function WorkoutAccordion({
         </div>
       )}
 
+      {/* Sessions — defensive empty state (Sonnet response shape drift guard) */}
+      {(!activeWeek.sessions || activeWeek.sessions.length === 0) && (
+        <div
+          style={{
+            padding: '24px 18px',
+            textAlign: 'center',
+            background: '#fffbeb',
+            border: `1px dashed #fcd34d`,
+            borderRadius: 8,
+            color: '#92400e',
+            fontSize: 13,
+            lineHeight: 1.5,
+          }}
+        >
+          No sessions in this block. The AI response may have come back malformed —
+          click <strong>Regenerate workout</strong> on the Plan tab to try again.
+        </div>
+      )}
+
       {/* Sessions */}
       {(activeWeek.sessions || []).map((session, si) => {
         const dayNum = session.day_number ?? si + 1
@@ -164,7 +183,7 @@ export default function WorkoutAccordion({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '12px 16px',
+                padding: '10px 14px',
                 background: open ? '#f9fafb' : '#fff',
                 border: 'none',
                 borderBottom: open ? `1px solid ${BRD}` : 'none',
@@ -571,8 +590,8 @@ const cardStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
   borderRadius: 12,
-  padding: 24,
-  marginBottom: 18,
+  padding: 20,
+  marginBottom: 16,
 }
 
-const titleStyle = { margin: 0, fontSize: 14, fontWeight: 800, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }
+const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }
