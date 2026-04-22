@@ -4,9 +4,12 @@ import { createHmac, randomBytes } from 'node:crypto'
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 8 / Plan 06 — Google Business Profile OAuth helpers (PROF-09)
 //
-// Env vars required (set in Vercel Dashboard):
-//   GOOGLE_OAUTH_CLIENT_ID     — Google Cloud Console OAuth 2.0 Client
-//   GOOGLE_OAUTH_CLIENT_SECRET — paired secret
+// Env vars (set in Vercel Dashboard). Phase 8 originally expected GOOGLE_OAUTH_*
+// names, but the rest of the codebase (calendar, SEO, pixel routes) uses
+// GOOGLE_CLIENT_ID/SECRET. Prefer the latter as canonical; keep OAUTH_* as
+// optional override.
+//   GOOGLE_CLIENT_ID     / GOOGLE_OAUTH_CLIENT_ID
+//   GOOGLE_CLIENT_SECRET / GOOGLE_OAUTH_CLIENT_SECRET
 //
 // This module handles:
 //   1. Consent URL generation with scope=business.manage + CSRF state
@@ -20,10 +23,10 @@ const OAUTH_TOKEN = 'https://oauth2.googleapis.com/token'
 const SCOPE_BUSINESS_MANAGE = 'https://www.googleapis.com/auth/business.manage'
 
 function loadEnv() {
-  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID || process.env.GOOGLE_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET
   if (!clientId || !clientSecret) {
-    throw new Error('[profileGBPOAuth] Missing GOOGLE_OAUTH_CLIENT_ID or GOOGLE_OAUTH_CLIENT_SECRET — set both in Vercel')
+    throw new Error('[profileGBPOAuth] Missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (or GOOGLE_OAUTH_* aliases) — set both in Vercel')
   }
   return { clientId, clientSecret }
 }

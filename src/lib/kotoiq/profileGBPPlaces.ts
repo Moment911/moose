@@ -7,7 +7,9 @@ import { logTokenUsage } from '../tokenTracker'
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 8 / Plan 06 — GBP Places API (New) v1 Pull (Mode 3 — PROF-09)
 //
-// Uses the Places API (New) with server-side API key (GOOGLE_PLACES_API_KEY).
+// Uses the Places API (New) with server-side API key. Reads
+// GOOGLE_PLACES_API_KEY first, falls back to GOOGLE_PLACES_KEY (the name
+// used elsewhere in the repo — intel/kotoiq/scout routes).
 // Headers: X-Goog-Api-Key + X-Goog-FieldMask (mandatory per API contract).
 // Returns ProvenanceRecord[] with source_type='gbp_public', confidence <= 0.75.
 //
@@ -28,8 +30,8 @@ export type GBPPlacesPullArgs = {
 }
 
 export async function pullFromGBPPlaces(args: GBPPlacesPullArgs): Promise<ExtractedFieldRecord[]> {
-  const key = process.env.GOOGLE_PLACES_API_KEY
-  if (!key) throw new Error('GOOGLE_PLACES_API_KEY missing')
+  const key = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_PLACES_KEY
+  if (!key) throw new Error('GOOGLE_PLACES_API_KEY / GOOGLE_PLACES_KEY missing')
 
   const r = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(args.placeId)}`, {
     headers: {
