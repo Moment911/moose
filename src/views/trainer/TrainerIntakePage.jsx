@@ -41,7 +41,7 @@ export default function TrainerIntakePage() {
         full_name: name.trim(),
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
-        about_you: '',
+        about_you: 'Pending — trainee will complete intake via chat.',
       }, { agencyId })
       if (res.status === 404) { setFeatureDisabled(true); return }
       const body = await res.json().catch(() => ({}))
