@@ -42,7 +42,7 @@ export default function RefineIntakeCard({
     try {
       const res = await onElicit?.()
       if (!res?.questions || res.questions.length === 0) {
-        setError('No follow-up questions were generated. Try again in a moment.')
+        setError('No follow-up questions returned. If this keeps happening, check the server logs — the Sonnet call may have failed.')
         setPhase('idle')
         return
       }
@@ -50,7 +50,13 @@ export default function RefineIntakeCard({
       setAnswers({})
       setPhase('answering')
     } catch (e) {
-      setError(e?.message || 'Could not reach the AI refinement service.')
+      // Surface the exact server error — usually a Sonnet HTTP code or
+      // anthropic_http_XXX message from sonnetRunner.  Makes prod failures
+      // diagnosable from the UI instead of a generic spinner-forever state.
+      const msg = e?.message || String(e) || 'Network error'
+      // eslint-disable-next-line no-console
+      console.error('[trainer] refine elicit failed:', e)
+      setError(`Refine failed: ${msg}`)
       setPhase('idle')
     }
   }
@@ -142,8 +148,20 @@ export default function RefineIntakeCard({
       )}
 
       {phase === 'eliciting' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: GRY, fontSize: 13 }}>
-          <Loader2 size={14} /> Generating questions for this trainee…
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: GRY, fontSize: 13 }}>
+          <span
+            style={{
+              display: 'inline-block',
+              width: 14,
+              height: 14,
+              border: `2px solid ${BRD}`,
+              borderTopColor: T,
+              borderRadius: '50%',
+              animation: 'kotoRefineSpin 0.8s linear infinite',
+            }}
+          />
+          <span>Sonnet is reading the intake and drafting follow-up questions (15–30s)…</span>
+          <style>{'@keyframes kotoRefineSpin{to{transform:rotate(360deg)}}'}</style>
         </div>
       )}
 

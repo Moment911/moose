@@ -989,10 +989,12 @@ function OverviewTab({
   const hasAboutYou = !!(trainee.about_you && trainee.about_you.trim().length > 0)
   return (
     <div>
-      {/* About-you card — always first so trainers craft context BEFORE any
-          plan-generation CTA.  Compact when already on file, expanded editor
-          when empty. */}
-      <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
+      {/* About-you editor — ONLY renders when context is missing.  Once on
+          file, editing moves to the basics editor below so we don't re-ask
+          the same question on the detail page. */}
+      {!hasAboutYou && (
+        <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
+      )}
 
       {/* AI refinement — Sonnet asks 4-6 follow-up questions tailored to this
           trainee.  Answers merge into about_you so they feed every downstream
@@ -1285,8 +1287,9 @@ function IntakeBasicsEditor({ trainee, onSave }) {
           </EditorField>
           <EditorField label="Sex *" missing={missingSet.has('sex')}>
             <RadioPill
-              value={draft.sex}
-              options={['Male', 'Female', 'Other']}
+              value={normalizeSex(draft.sex)}
+              options={['M', 'F', 'Other']}
+              labels={{ M: 'Male', F: 'Female', Other: 'Other' }}
               onChange={(v) => set('sex', v)}
             />
           </EditorField>
@@ -1427,10 +1430,24 @@ function IntakeBasicsEditor({ trainee, onSave }) {
 
 // ── Intake editor helpers ───────────────────────────────────────────────
 
+// Canonicalize sex values coming from the DB — older trainees may have
+// "Male" / "male" / "m" / "F" etc.  Map to the radio pill's value set
+// (M / F / Other) so the active state renders correctly.
+function normalizeSex(raw) {
+  if (!raw) return ''
+  const s = String(raw).trim().toLowerCase()
+  if (s === 'm' || s === 'male' || s === 'man') return 'M'
+  if (s === 'f' || s === 'female' || s === 'woman') return 'F'
+  if (s === '' || s === 'null') return ''
+  return 'Other'
+}
+
 function seedDraftFromTrainee(t) {
   return {
     age: t.age ?? '',
-    sex: t.sex || '',
+    // Seed the normalized form so the radio pill matches on load; saves in
+    // canonical form (M / F / Other) so subsequent edits stay in sync.
+    sex: normalizeSex(t.sex),
     primary_goal: t.primary_goal || '',
     training_experience_years: t.training_experience_years ?? '',
     training_days_per_week: t.training_days_per_week ?? '',

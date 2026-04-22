@@ -273,7 +273,13 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
             <input style={inputStyle} type="number" min="10" max="120" value={values.age ?? ''} onChange={setNum('age')} />
           </Field>
           <Field label="Sex *" error={errors.sex}>
-            <input style={inputStyle} value={values.sex || ''} onChange={(e) => setField('sex', e.target.value || null)} />
+            <RadioGroup
+              name="sex"
+              value={values.sex || ''}
+              options={['M', 'F', 'Other']}
+              labels={{ M: 'Male', F: 'Female', Other: 'Other' }}
+              onChange={(v) => setField('sex', v)}
+            />
           </Field>
         </Row2>
         <Field label="Height *" error={errors.height_cm}>
