@@ -168,6 +168,7 @@ import OpportunitiesPage from '../views/OpportunitiesPage'
 import TrainerListPage from '../views/trainer/TrainerListPage'
 import TrainerIntakePage from '../views/trainer/TrainerIntakePage'
 import TrainerDetailPage from '../views/trainer/TrainerDetailPage'
+import MyPlanPage from '../views/trainer/MyPlanPage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
 import VOBAgentPage from '../views/VOBAgentPage'
 import GHLIntegrationPage from '../views/GHLIntegrationPage'
@@ -318,6 +319,7 @@ export default function App() {
           <Route path="/discovery/view/:token" element={<DiscoverySharedViewPage />} />
           <Route path="/integrations/gmail/callback" element={<GmailCallbackPage />} />
           <Route path="/access-guide" element={<AccessGuidePage />} />
+          <Route path="/my-plan" element={<MyPlanPage />} />
 
           {/* ── All app routes (with shell + auth) ── */}
           <Route path="/*" element={
