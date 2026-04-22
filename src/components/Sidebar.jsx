@@ -409,6 +409,7 @@ export default function Sidebar() {
               <NavLink to="/tasks" startsWith icon={CheckSquare} label="Tasks" hidden={!match('Tasks') || !feat('tasks')}/>
               <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk" hidden={!match('KotoDesk') || !feat('koto_desk')}/>
               <NavLink to="/desk/knowledge" startsWith icon={Brain} label="Q&A Knowledge" sub hidden={!match('Q&A Knowledge') || !feat('koto_desk')}/>
+              <NavLink to="/trainer" startsWith icon={Activity} label="Trainer" hidden={!match('Trainer') || !feat('fitness_coach')}/>
             </Section>
 
             {/* GROWTH & SALES */}

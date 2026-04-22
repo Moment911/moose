@@ -165,6 +165,9 @@ import QAIntelligencePage from '../views/QAIntelligencePage'
 import IndustryAgentPage from '../views/IndustryAgentPage'
 import ClientIntelligencePage from '../views/ClientIntelligencePage'
 import OpportunitiesPage from '../views/OpportunitiesPage'
+import TrainerListPage from '../views/trainer/TrainerListPage'
+import TrainerIntakePage from '../views/trainer/TrainerIntakePage'
+import TrainerDetailPage from '../views/trainer/TrainerDetailPage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
 import VOBAgentPage from '../views/VOBAgentPage'
 import GHLIntegrationPage from '../views/GHLIntegrationPage'
@@ -435,6 +438,9 @@ function AppRoutes() {
           <Route path="/qa-intelligence" element={<QAIntelligencePage />} />
           <Route path="/industry-agents" element={<IndustryAgentPage />} />
           <Route path="/opportunities" element={<OpportunitiesPage />} />
+          <Route path="/trainer" element={<TrainerListPage />} />
+          <Route path="/trainer/new" element={<TrainerIntakePage />} />
+          <Route path="/trainer/:traineeId" element={<TrainerDetailPage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/kotoiq/pixels" element={<PixelTrackingPage />} />
           <Route path="/vob" element={<VOBAgentPage />} />
