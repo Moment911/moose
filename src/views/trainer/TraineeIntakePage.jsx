@@ -41,6 +41,7 @@ export default function TraineeIntakePage() {
   const [trainee, setTrainee] = useState(null)
   const [extracted, setExtracted] = useState({})
   const [aboutYou, setAboutYou] = useState('')
+  const [initialText, setInitialText] = useState('') // paragraph from welcome screen
   const [generateError, setGenerateError] = useState(null)
 
   // Load trainee on mount.
@@ -123,7 +124,7 @@ export default function TraineeIntakePage() {
 
   if (phase === 'loading') return <CenteredSpinner label="Loading..." />
   if (phase === 'not_found') return <NotFoundScreen />
-  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={() => setPhase('chat')} />
+  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={(text) => { setInitialText(text); setPhase('chat') }} />
   if (phase === 'generating') return <GeneratingScreen />
   if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} />
 
@@ -152,6 +153,7 @@ export default function TraineeIntakePage() {
             onFieldsUpdate={handleFieldsUpdate}
             onAboutYouAppend={handleAboutYouAppend}
             traineeName={trainee?.full_name || ''}
+            initialText={initialText}
           />
 
           {/* Live card */}
@@ -180,11 +182,12 @@ export default function TraineeIntakePage() {
 
 // ── Token-based chat widget (uses trainee_id auth, not JWT) ─────────────────
 
-function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppend, traineeName }) {
+function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppend, traineeName, initialText }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [streamingText, setStreamingText] = useState('')
+  const [quickReplies, setQuickReplies] = useState([]) // clickable option buttons
   const [error, setError] = useState(null)
   const scrollRef = useRef(null)
   const textareaRef = useRef(null)
@@ -192,7 +195,7 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-  }, [messages, streamingText])
+  }, [messages, streamingText, quickReplies])
 
   useEffect(() => {
     const ta = textareaRef.current
@@ -204,6 +207,7 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
   const streamTurn = useCallback(async (turnMessages) => {
     setStreaming(true)
     setStreamingText('')
+    setQuickReplies([])
     setError(null)
 
     try {
@@ -226,6 +230,7 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
       const decoder = new TextDecoder()
       let buffer = ''
       let fullText = ''
+      let replies = []
 
       while (true) {
         const { done, value } = await reader.read()
@@ -245,12 +250,16 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
           if (event.type === 'fields') {
             if (event.extracted && typeof event.extracted === 'object') onFieldsUpdate(event.extracted)
             if (event.about_you_append && typeof event.about_you_append === 'string') onAboutYouAppend(event.about_you_append)
+            if (Array.isArray(event.suggested_replies) && event.suggested_replies.length > 0) {
+              replies = event.suggested_replies
+            }
           }
           if (event.type === 'error') setError(event.error || 'Stream error')
         }
       }
 
       if (fullText) setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
+      if (replies.length > 0) setQuickReplies(replies)
     } catch (e) {
       setError(e?.message || 'Network error')
     }
@@ -258,21 +267,32 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
     setStreaming(false)
   }, [traineeId, extracted, onFieldsUpdate, onAboutYouAppend])
 
+  // On mount: send the initial paragraph as the first user message.
   useEffect(() => {
     if (initRef.current) return
     initRef.current = true
-    streamTurn([])
-  }, [streamTurn])
+    if (initialText && initialText.trim()) {
+      const userMsg = { role: 'user', content: initialText.trim() }
+      setMessages([userMsg])
+      streamTurn([userMsg])
+    } else {
+      streamTurn([])
+    }
+  }, [streamTurn, initialText])
 
-  function handleSend() {
-    const text = input.trim()
-    if (!text || streaming) return
+  function sendText(text) {
+    if (!text.trim() || streaming) return
     setInput('')
-    const userMsg = { role: 'user', content: text }
+    setQuickReplies([])
+    const userMsg = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMsg]
     setMessages(newMessages)
     streamTurn(newMessages)
   }
+
+  function handleSend() { sendText(input) }
+
+  function handleQuickReply(text) { sendText(text) }
 
   function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
@@ -298,6 +318,25 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
           </div>
         )}
         {error && <div style={{ padding: '8px 10px', background: '#fee2e2', borderRadius: 8, fontSize: 12, color: '#991b1b' }}>{error}</div>}
+
+        {/* Quick reply buttons */}
+        {!streaming && quickReplies.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+            {quickReplies.map((reply, i) => (
+              <button key={i} onClick={() => handleQuickReply(reply)}
+                style={{
+                  padding: '8px 14px', border: `1px solid ${T}`, borderRadius: 20,
+                  background: '#fff', color: T, fontSize: 13, fontWeight: 600,
+                  cursor: 'pointer', transition: 'all .15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = T; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = T }}
+              >
+                {reply}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ padding: '10px 12px', borderTop: '1px solid #f3f4f6', display: 'flex', alignItems: 'flex-end', gap: 8 }}>
@@ -412,34 +451,31 @@ function CenteredSpinner({ label }) {
 
 function WelcomeScreen({ name, onStart }) {
   const firstName = name ? name.split(' ')[0] : null
+  const [text, setText] = useState('')
+  const [error, setError] = useState(null)
+
+  function handleSubmit() {
+    if (text.trim().length < 20) {
+      setError('Write at least a sentence or two — the more you share, the better your plan.')
+      return
+    }
+    onStart(text)
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-      <div style={{ maxWidth: 520, width: '100%' }}>
-        {/* Welcome card */}
+      <div style={{ maxWidth: 560, width: '100%' }}>
         <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${T}`, borderRadius: 12, padding: '28px 28px 24px', marginBottom: 16 }}>
           <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
             {firstName ? `Welcome, ${firstName}` : 'Welcome'}
           </h1>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
-            You're about to chat with your personal coach. In a few minutes, we'll build a complete profile that drives your custom training plan.
+            We're going to build a training plan made just for you. Start by telling us about yourself — your coach will read everything and follow up with targeted questions.
           </p>
 
-          {/* What to expect */}
-          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '16px 18px', marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
-              What we'll cover
-            </div>
-            <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13.5, lineHeight: 1.7 }}>
-              <li><strong>Your goals</strong> — what you're training for and where you want to be</li>
-              <li><strong>Your basics</strong> — age, height, weight, experience level</li>
-              <li><strong>Your health</strong> — any medical conditions, injuries, or allergies</li>
-              <li><strong>Your lifestyle</strong> — sleep, stress, diet, daily activity</li>
-            </ul>
-          </div>
-
           {/* Expert credentials */}
-          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '16px 18px', marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
               The experts behind your plan
             </div>
             <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13, lineHeight: 1.65 }}>
@@ -449,12 +485,36 @@ function WelcomeScreen({ name, onStart }) {
             </ul>
           </div>
 
-          <p style={{ margin: '0 0 20px', fontSize: 13, color: '#6b7280', lineHeight: 1.55 }}>
-            Think about what you want to accomplish — the more you share, the more personalized your plan will be. There are no wrong answers.
-          </p>
+          {/* Free-text intro */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 6 }}>
+              Tell us about you — who you are, your goals, and what you want to accomplish
+            </label>
+            <p style={{ margin: '0 0 8px', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
+              Mention anything relevant — your sport, job, injuries, equipment, experience level, age, height, weight. The more you share here, the fewer questions we'll need to ask.
+            </p>
+            <textarea
+              value={text}
+              onChange={(e) => { setText(e.target.value); setError(null) }}
+              rows={8}
+              placeholder={"Example:\n\nI'm a 28-year-old guy, 5'11, 195 lbs. I played college baseball and want to get back in shape — lost about 20 lbs of muscle since I stopped playing. I have a full gym membership, can train 4 days a week. Had a minor shoulder impingement last year but it's cleared up. No allergies, I eat pretty much everything. Desk job, sleep about 7 hours, stress is moderate."}
+              style={{
+                width: '100%', padding: '14px 16px', fontSize: 14,
+                border: '1px solid #d1d5db', borderRadius: 10,
+                fontFamily: 'inherit', lineHeight: 1.55, color: '#0a0a0a',
+                resize: 'vertical', minHeight: 180, outline: 'none',
+              }}
+            />
+          </div>
+
+          {error && (
+            <div style={{ marginBottom: 12, padding: '8px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>
+              {error}
+            </div>
+          )}
 
           <button
-            onClick={onStart}
+            onClick={handleSubmit}
             style={{
               width: '100%',
               padding: '14px 20px',
@@ -468,7 +528,7 @@ function WelcomeScreen({ name, onStart }) {
               letterSpacing: '-.2px',
             }}
           >
-            Get started
+            Start chatting with your coach
           </button>
         </section>
 

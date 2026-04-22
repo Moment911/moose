@@ -139,6 +139,11 @@ Adapt based on what they volunteer.  If they say "I'm a 25-year-old guy, 6'0, 18
             type: 'string',
             description: 'A sentence or two summarizing what the trainee just shared, written in third person.  This gets appended to the running about_you narrative.  Example: "25-year-old male, 6\'0 185 lbs, looking to put on muscle."  Leave empty string if the message contained no profile-relevant info (e.g. just "hello").',
           },
+          suggested_replies: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Optional clickable quick-reply buttons shown to the trainee.  Use these for structured fields where options are clear: primary_goal ("Lose fat", "Gain muscle", "Performance", "Maintain", "Recomp"), equipment_access ("Full gym", "Home gym", "Bands only", "No equipment"), dietary_preference ("No preference", "Vegetarian", "Vegan", "Keto", "Paleo"), occupation_activity ("Desk job", "Light activity", "On my feet all day", "Physical labor"), sex ("Male", "Female", "Other").  Max 6 options.  Omit for open-ended questions (name, age, height, etc.).',
+          },
         },
       },
     },
