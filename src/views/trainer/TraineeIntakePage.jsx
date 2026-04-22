@@ -470,19 +470,22 @@ function WelcomeScreen({ name, onStart }) {
             {firstName ? `Welcome, ${firstName}` : 'Welcome'}
           </h1>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
-            You're about to chat with an <strong>AI-powered personal coach</strong> — a PhD-level nutritionist, strength & conditioning coach, and baseball performance specialist all in one. It will read everything you share and ask targeted follow-up questions to build your complete profile.
+            You're about to chat with an <strong>AI-powered personal coach</strong> built on the combined knowledge of PhDs, pro athletes, and veteran coaching staff. It will read everything you share and ask targeted follow-up questions to build your complete profile.
           </p>
 
           {/* Expert credentials */}
           <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-              Your AI coach combines
+              Your AI coach is trained on
             </div>
             <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13, lineHeight: 1.65 }}>
-              <li><strong>PhD Nutritionist</strong> — sport-science nutrition, calorie & macro programming</li>
-              <li><strong>Strength & Conditioning Coach</strong> — periodization, load management, power development</li>
-              <li><strong>Baseball Performance Specialist</strong> — velocity, hitting mechanics, arm care, speed training</li>
-              <li><strong>Exercise Physiologist</strong> — injury prevention, recovery protocols, youth athlete development</li>
+              <li><strong>PhD in Biomechanics</strong> — throwing mechanics, swing analysis, movement efficiency</li>
+              <li><strong>PhD in Nutrition</strong> — sport-science nutrition, calorie & macro programming for athletes</li>
+              <li><strong>PhD in Strength & Conditioning</strong> — periodization, load management, power development</li>
+              <li><strong>PhD in Exercise Physiology</strong> — recovery protocols, injury prevention, youth athlete development</li>
+              <li><strong>PhD in Sports Psychology</strong> — mental performance, confidence, focus under pressure</li>
+              <li><strong>Ex-MLB player</strong> — pitcher and outfielder with professional playing experience</li>
+              <li><strong>20-year pro coaching staff</strong> — hitting, pitching, and throwing coaches at the highest level</li>
             </ul>
           </div>
 
