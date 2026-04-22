@@ -862,7 +862,26 @@ export default function KotoProofPage() {
               {rounds.length > 0 && (
                 <div className="bg-brand-50 border border-brand-200 rounded-xl px-5 py-3 flex items-center justify-between">
                   <span className="text-sm font-medium text-brand-800">{rounds.length} of {maxRounds} revision round{maxRounds !== 1 ? 's' : ''} used</span>
-                  {rounds.length >= maxRounds ? <span className="text-sm bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">Revisions Complete</span> : <span className="text-sm text-brand-600">{maxRounds - rounds.length} remaining</span>}
+                  <div className="flex items-center gap-2">
+                    {rounds.length >= maxRounds
+                      ? <span className="text-sm bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">Revisions Complete</span>
+                      : <span className="text-sm text-brand-600">{maxRounds - rounds.length} remaining</span>}
+                    {!isClient && (
+                      <button
+                        onClick={async () => {
+                          const next = Math.min(20, (project?.max_rounds || 2) + 1)
+                          const { data, error } = await updateProject(projectId, { max_rounds: next })
+                          if (error) { toast.error('Could not add round'); return }
+                          if (data) setProject(data)
+                          logActivity({ project_id: projectId, action: 'max_rounds_increased', detail: `Revision cap raised to ${next}`, actor: 'Admin' }).catch(() => {})
+                          toast.success(`Added round — cap is now ${next}`)
+                        }}
+                        disabled={maxRounds >= 20}
+                        className="text-sm bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 px-2.5 py-1 rounded-full font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={maxRounds >= 20 ? 'Max 20 rounds' : 'Add one more revision round'}
+                      ><Plus size={11} /> Add round</button>
+                    )}
+                  </div>
                 </div>
               )}
               {rounds.map(round => {

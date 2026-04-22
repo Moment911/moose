@@ -102,7 +102,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
 
     let { error } = await updateProject(project.id, { ...core, ...extended })
     let missingColumns = false
-    if (error && /column .* does not exist|column ".*" of relation/i.test(error.message || '')) {
+    if (error && /column .* does not exist|column ".*" of relation|could not find the '.*' column|schema cache/i.test(error.message || '')) {
       missingColumns = true
       const retry = await updateProject(project.id, core)
       error = retry.error
