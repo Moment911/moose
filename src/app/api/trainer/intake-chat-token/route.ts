@@ -107,11 +107,13 @@ export async function POST(req: NextRequest) {
 
   const missing = missingIntakeFields(extracted)
   const turnCount = messages.filter((m) => m.role === 'user').length
+  const services = Array.isArray(body.services) ? body.services as string[] : ['training']
 
   const { systemPrompt, tools } = buildIntakeChatPrompt({
     extracted,
     missingFields: missing,
     turnCount,
+    services,
   })
 
   const stream = streamSonnetChat({

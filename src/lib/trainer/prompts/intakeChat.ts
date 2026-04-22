@@ -17,11 +17,15 @@ export function buildIntakeChatPrompt(input: {
   extracted: Partial<IntakeInput>
   missingFields: string[]
   turnCount: number
+  services?: string[]
 }): {
   systemPrompt: string
   tools: SonnetTool[]
 } {
   const { extracted, missingFields, turnCount } = input
+  const services = input.services || ['training']
+  const wantsDiet = services.includes('diet')
+  const wantsRecruiting = services.includes('recruiting')
 
   const systemPrompt = `${COACH_VOICE}
 
@@ -79,6 +83,30 @@ ${Object.keys(extracted).length > 0 ? JSON.stringify(extracted, null, 2) : '(non
 Fields still missing:
 ${missingFields.length > 0 ? missingFields.join(', ') : '(all fields collected — intake complete!)'}
 
+## Services Selected
+
+The trainee selected: ${services.join(', ')}.
+${wantsDiet ? '\n- DIET & NUTRITION: After the core profile fields, also ask about food preferences in detail — favorite foods, foods they hate, cooking ability, budget, any specific diet they follow.' : ''}
+${wantsRecruiting ? `
+- COLLEGE RECRUITING: After the core profile fields, ask these additional recruiting fields (but if they say "I don't know" or "answer later" or "skip", MOVE ON immediately — don't push):
+  - Graduation year (e.g. 2027, 2028)
+  - Primary position + secondary position
+  - Throwing hand and batting hand
+  - GPA (current cumulative)
+  - SAT/ACT score (if taken — many freshmen haven't, that's fine)
+  - Fastball velocity (peak and sitting, if they know)
+  - Exit velocity (if they know)
+  - 60-yard dash time (if they know)
+  - Any other measurables they have (pop time, spin rate, etc.)
+  - High school name + city/state
+  - Travel/club team name
+  - Video/highlight link
+  - What states/regions they'd like to play in
+  - What division level they're targeting (D1, D2, D3, JUCO — or "wherever I fit")
+  - Intended college major (if they have one)
+
+  For measurables they don't know (like exit velo, spin rate), just skip it — don't make them feel bad. Say something like "No worries, we'll get those measured. Moving on..."` : ''}
+
 ## Conversation Strategy
 
 Ask fields in a natural order that flows like a real coaching conversation:
@@ -88,6 +116,9 @@ Ask fields in a natural order that flows like a real coaching conversation:
 4. Medical flags, injuries (health cluster)
 5. Diet preference, allergies, meals per day (nutrition cluster)
 6. Sleep, stress, occupation activity (lifestyle cluster)
+${wantsRecruiting ? '7. Recruiting fields — position, velocity, GPA, grad year, etc. (recruiting cluster)' : ''}
+
+When the trainee says "I don't know", "skip", "answer later", "not sure", or similar — acknowledge it warmly ("No problem, we can come back to that") and move to the next question.  NEVER push or make them feel bad for not knowing something.
 
 Adapt based on what they volunteer.  If they say "I'm a 25-year-old guy, 6'0, 185, want to put on muscle", extract ALL of that and skip to the next uncollected cluster.`
 
@@ -139,10 +170,31 @@ Adapt based on what they volunteer.  If they say "I'm a 25-year-old guy, 6'0, 18
             type: 'string',
             description: 'A sentence or two summarizing what the trainee just shared, written in third person.  This gets appended to the running about_you narrative.  Example: "25-year-old male, 6\'0 185 lbs, looking to put on muscle."  Leave empty string if the message contained no profile-relevant info (e.g. just "hello").',
           },
+          // Recruiting-specific fields (only collected if recruiting service selected)
+          grad_year: { type: 'integer', description: 'Graduation year, e.g. 2027' },
+          position_primary: { type: 'string', description: 'Primary position: RHP, LHP, C, 1B, 2B, SS, 3B, LF, CF, RF, DH, UTIL' },
+          position_secondary: { type: 'string', description: 'Secondary position if any' },
+          throwing_hand: { type: 'string', enum: ['R', 'L'] },
+          batting_hand: { type: 'string', enum: ['R', 'L', 'S'] },
+          gpa: { type: 'number', description: 'Cumulative GPA' },
+          test_type: { type: 'string', enum: ['SAT', 'ACT'] },
+          test_score: { type: 'string', description: 'Test score as string' },
+          fastball_velo_peak: { type: 'number', description: 'Peak fastball velocity in mph' },
+          fastball_velo_sit: { type: 'number', description: 'Sitting fastball velocity in mph' },
+          exit_velo: { type: 'number', description: 'Exit velocity in mph' },
+          sixty_time: { type: 'number', description: '60-yard dash time in seconds' },
+          pop_time: { type: 'number', description: 'Pop time to 2B in seconds (catchers)' },
+          high_school: { type: 'string' },
+          high_school_state: { type: 'string', description: '2-letter state code' },
+          travel_team: { type: 'string' },
+          video_link: { type: 'string', description: 'Highlight video URL' },
+          preferred_divisions: { type: 'array', items: { type: 'string' }, description: 'Preferred divisions: D1, D2, D3, JUCO' },
+          preferred_states: { type: 'array', items: { type: 'string' }, description: 'Preferred states to play in (2-letter codes)' },
+          intended_major: { type: 'string' },
           suggested_replies: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Optional clickable quick-reply buttons shown to the trainee.  Use these for structured fields where options are clear: primary_goal ("Lose fat", "Gain muscle", "Performance", "Maintain", "Recomp"), equipment_access ("Full gym", "Home gym", "Bands only", "No equipment"), dietary_preference ("No preference", "Vegetarian", "Vegan", "Keto", "Paleo"), occupation_activity ("Desk job", "Light activity", "On my feet all day", "Physical labor"), sex ("Male", "Female", "Other").  Max 6 options.  Omit for open-ended questions (name, age, height, etc.).',
+            description: 'Optional clickable quick-reply buttons shown to the trainee.  Use these for structured fields where options are clear.  Max 6 options.  Omit for open-ended questions.',
           },
         },
       },

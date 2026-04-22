@@ -42,6 +42,7 @@ export default function TraineeIntakePage() {
   const [extracted, setExtracted] = useState({})
   const [aboutYou, setAboutYou] = useState('')
   const [initialText, setInitialText] = useState('') // paragraph from welcome screen
+  const [services, setServices] = useState([]) // ['training', 'diet', 'recruiting']
   const [generateError, setGenerateError] = useState(null)
 
   // Load trainee on mount.
@@ -124,7 +125,7 @@ export default function TraineeIntakePage() {
 
   if (phase === 'loading') return <CenteredSpinner label="Loading..." />
   if (phase === 'not_found') return <NotFoundScreen />
-  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={(text) => { setInitialText(text); setPhase('chat') }} />
+  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={(text, selectedServices) => { setInitialText(text); setServices(selectedServices); setPhase('chat') }} />
   if (phase === 'generating') return <GeneratingScreen />
   if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} />
 
@@ -154,6 +155,7 @@ export default function TraineeIntakePage() {
             onAboutYouAppend={handleAboutYouAppend}
             traineeName={trainee?.full_name || ''}
             initialText={initialText}
+            services={services}
           />
 
           {/* Live card */}
@@ -182,7 +184,7 @@ export default function TraineeIntakePage() {
 
 // ── Token-based chat widget (uses trainee_id auth, not JWT) ─────────────────
 
-function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppend, traineeName, initialText }) {
+function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppend, traineeName, initialText, services }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -221,7 +223,7 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
       const res = await fetch('/api/trainer/intake-chat-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trainee_id: traineeId, messages: turnMessages, extracted }),
+        body: JSON.stringify({ trainee_id: traineeId, messages: turnMessages, extracted, services: services || ['training'] }),
         signal: controller.signal,
       })
 
@@ -349,8 +351,8 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
           </div>
         )}
 
-        {/* Quick reply buttons */}
-        {!streaming && quickReplies.length > 0 && (
+        {/* Quick reply buttons + Answer later */}
+        {!streaming && messages.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
             {quickReplies.map((reply, i) => (
               <button key={i} onClick={() => handleQuickReply(reply)}
@@ -365,6 +367,17 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
                 {reply}
               </button>
             ))}
+            <button onClick={() => handleQuickReply("I'll answer that later — skip for now")}
+              style={{
+                padding: '8px 14px', border: '1px solid #d1d5db', borderRadius: 20,
+                background: '#fff', color: '#6b7280', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', transition: 'all .15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
+            >
+              Answer later →
+            </button>
           </div>
         )}
       </div>
@@ -479,17 +492,29 @@ function CenteredSpinner({ label }) {
   )
 }
 
+const SERVICE_OPTIONS = [
+  { id: 'training', label: 'Training Plan', desc: 'Workout programming, mechanics, strength & conditioning, recovery', icon: '💪', default: true },
+  { id: 'diet', label: 'Diet & Nutrition', desc: 'Meal plans, macros, recipes, fueling strategies', icon: '🥗' },
+  { id: 'recruiting', label: 'College Recruiting', desc: 'ProPath Score, school matching, coach outreach, recruiting timeline', icon: '🎓' },
+]
+
 function WelcomeScreen({ name, onStart }) {
   const firstName = name ? name.split(' ')[0] : null
   const [text, setText] = useState('')
+  const [selected, setSelected] = useState(['training']) // training always on by default
   const [error, setError] = useState(null)
+
+  function toggleService(id) {
+    if (id === 'training') return // training is always included
+    setSelected(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id])
+  }
 
   function handleSubmit() {
     if (text.trim().length < 20) {
       setError('Write at least a sentence or two — the more you share, the better your plan.')
       return
     }
-    onStart(text)
+    onStart(text, selected)
   }
 
   return (
@@ -536,6 +561,47 @@ function WelcomeScreen({ name, onStart }) {
               <li><strong>Ex-MLB player</strong> — pitcher and outfielder with professional playing experience</li>
               <li><strong>20-year pro coaching staff</strong> — hitting, pitching, and throwing coaches at the highest level</li>
             </ul>
+          </div>
+
+          {/* Service selection */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+              What do you want from your coach?
+            </div>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {SERVICE_OPTIONS.map(svc => {
+                const isOn = selected.includes(svc.id)
+                const isLocked = svc.id === 'training'
+                return (
+                  <button
+                    key={svc.id}
+                    type="button"
+                    onClick={() => toggleService(svc.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '12px 14px', borderRadius: 10, cursor: isLocked ? 'default' : 'pointer',
+                      border: `2px solid ${isOn ? T : '#e5e7eb'}`,
+                      background: isOn ? T + '08' : '#fff',
+                      textAlign: 'left', transition: 'all .15s',
+                    }}
+                  >
+                    <span style={{ fontSize: 22, flexShrink: 0 }}>{svc.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}{isLocked ? ' (included)' : ''}</div>
+                      <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>{svc.desc}</div>
+                    </div>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                      border: `2px solid ${isOn ? T : '#d1d5db'}`,
+                      background: isOn ? T : '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {isOn && <Check size={14} color="#fff" strokeWidth={3} />}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Free-text intro */}
