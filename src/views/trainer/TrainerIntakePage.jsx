@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Copy, Link2 } from 'lucide-react'
-import Sidebar from '../../components/Sidebar'
+import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { FeatureDisabledPanel } from './TrainerListPage'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { useAuth } from '../../hooks/useAuth'
@@ -58,9 +58,8 @@ export default function TrainerIntakePage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f9fafb' }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: '32px 40px' }}>
+    <TrainerPortalShell>
+      <div style={{ padding: '32px 40px' }}>
         <Link to="/trainer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: T, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
           <ArrowLeft size={14} /> Back to trainees
         </Link>
@@ -104,8 +103,8 @@ export default function TrainerIntakePage() {
             </form>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </TrainerPortalShell>
   )
 }
 

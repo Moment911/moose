@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Loader2, Archive } from 'lucide-react'
-import Sidebar from '../../components/Sidebar'
+import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRY, GRN } from '../../lib/theme'
@@ -77,9 +77,8 @@ export default function TrainerListPage() {
   }, [showArchived, agencyId])
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f9fafb' }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: '32px 40px' }}>
+    <TrainerPortalShell>
+      <div style={{ padding: '32px 40px' }}>
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
             <h1 style={{ margin: 0, fontSize: 28, color: BLK }}>Trainer</h1>
@@ -199,8 +198,8 @@ export default function TrainerListPage() {
             </table>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </TrainerPortalShell>
   )
 }
 

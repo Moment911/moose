@@ -19,7 +19,7 @@ import {
   Copy,
   Link2,
 } from 'lucide-react'
-import Sidebar from '../../components/Sidebar'
+import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { FeatureDisabledPanel } from './TrainerListPage'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { missingIntakeFields, REQUIRED_INTAKE_FIELDS } from '../../lib/trainer/intakeCompleteness'
@@ -742,9 +742,8 @@ export default function TrainerDetailPage() {
   )
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: GRY }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: '24px 40px 40px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+    <TrainerPortalShell>
+      <div style={{ padding: '24px 40px 40px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
         <Link
           to="/trainer"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: T, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 12 }}
@@ -863,7 +862,7 @@ export default function TrainerDetailPage() {
             )}
           </>
         )}
-      </main>
+      </div>
 
       {wizardQuestions && (
         <FoodPrefsWizard
@@ -875,7 +874,7 @@ export default function TrainerDetailPage() {
       )}
 
       <TrainerToast message={stepError} onClose={() => setStepError(null)} />
-    </div>
+    </TrainerPortalShell>
   )
 }
 

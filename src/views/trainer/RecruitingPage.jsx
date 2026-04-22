@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Star, ChevronDown, Plus, Edit2, Trash2, Check, X, Loader2, ExternalLink, Mail, Phone, Globe } from 'lucide-react'
-import Sidebar from '../../components/Sidebar'
+import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN } from '../../lib/theme'
 
@@ -66,9 +66,8 @@ export default function RecruitingPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f9fafb' }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: '32px 40px' }}>
+    <TrainerPortalShell>
+      <div style={{ padding: '32px 40px' }}>
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <h1 style={{ margin: 0, fontSize: 28, color: BLK }}>Recruiting</h1>
@@ -131,8 +130,8 @@ export default function RecruitingPage() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </TrainerPortalShell>
   )
 }
 
