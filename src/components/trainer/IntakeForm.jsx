@@ -7,6 +7,7 @@ import {
   OCCUPATION_ACTIVITIES,
   validateIntake,
 } from '../../lib/trainer/intakeSchema'
+import { feetInchesToCm, lbsToKg } from '../../lib/trainer/units'
 
 import { R, T, BLK } from '../../lib/theme'
 
@@ -70,12 +71,28 @@ const inputStyle = {
   color: BLK,
 }
 const errStyle = { color: '#dc2626', fontSize: 12, marginTop: 4 }
+const unitBadge = {
+  position: 'absolute',
+  right: 12,
+  top: '50%',
+  transform: 'translateY(-50%)',
+  fontSize: 12,
+  color: GRY400,
+  fontWeight: 600,
+  pointerEvents: 'none',
+}
 
 export default function IntakeForm({ onSubmit, submitting = false, topError = null }) {
+  // UI state is imperial (height_ft / height_in / current_weight_lbs /
+  // target_weight_lbs).  We convert to metric (height_cm / current_weight_kg /
+  // target_weight_kg) at submit time so the DB + Phase 2 Sonnet prompts keep
+  // using the metric formulas they're designed for.
   const [values, setValues] = useState({ full_name: '' })
+  const [imperial, setImperial] = useState({ height_ft: '', height_in: '', current_weight_lbs: '', target_weight_lbs: '' })
   const [errors, setErrors] = useState({})
 
   const setField = (k, v) => setValues((prev) => ({ ...prev, [k]: v }))
+  const setImp = (k) => (e) => setImperial((prev) => ({ ...prev, [k]: e.target.value }))
   const setNum = (k) => (e) => {
     const raw = e.target.value
     if (raw === '') return setField(k, null)
@@ -85,11 +102,24 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Strip empty strings + nulls before validation
+    // Convert imperial inputs to metric before validation.
     const clean = {}
     for (const [k, v] of Object.entries(values)) {
       if (v === '' || v === null || v === undefined) continue
       clean[k] = v
+    }
+    const ft = imperial.height_ft === '' ? null : Number(imperial.height_ft)
+    const inches = imperial.height_in === '' ? null : Number(imperial.height_in)
+    if (ft !== null || inches !== null) {
+      clean.height_cm = feetInchesToCm(ft || 0, inches || 0)
+    }
+    if (imperial.current_weight_lbs !== '') {
+      const n = Number(imperial.current_weight_lbs)
+      if (Number.isFinite(n)) clean.current_weight_kg = lbsToKg(n)
+    }
+    if (imperial.target_weight_lbs !== '') {
+      const n = Number(imperial.target_weight_lbs)
+      if (Number.isFinite(n)) clean.target_weight_kg = lbsToKg(n)
     }
     const result = validateIntake(clean)
     if (!result.ok) {
@@ -168,29 +198,62 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
             <input style={inputStyle} value={values.sex || ''} onChange={(e) => setField('sex', e.target.value || null)} />
           </Field>
         </Row2>
+        <Field label="Height" error={errors.height_cm}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ position: 'relative' }}>
+              <input
+                style={{ ...inputStyle, paddingRight: 36 }}
+                type="number"
+                min="0"
+                max="9"
+                placeholder="5"
+                value={imperial.height_ft}
+                onChange={setImp('height_ft')}
+              />
+              <span style={unitBadge}>ft</span>
+            </div>
+            <div style={{ position: 'relative' }}>
+              <input
+                style={{ ...inputStyle, paddingRight: 36 }}
+                type="number"
+                min="0"
+                max="11"
+                placeholder="10"
+                value={imperial.height_in}
+                onChange={setImp('height_in')}
+              />
+              <span style={unitBadge}>in</span>
+            </div>
+          </div>
+        </Field>
         <Row2>
-          <Field label="Height (cm)" error={errors.height_cm}>
-            <input style={inputStyle} type="number" step="0.1" value={values.height_cm ?? ''} onChange={setNum('height_cm')} />
+          <Field label="Current weight" error={errors.current_weight_kg}>
+            <div style={{ position: 'relative' }}>
+              <input
+                style={{ ...inputStyle, paddingRight: 44 }}
+                type="number"
+                step="0.1"
+                min="0"
+                value={imperial.current_weight_lbs}
+                onChange={setImp('current_weight_lbs')}
+              />
+              <span style={unitBadge}>lbs</span>
+            </div>
           </Field>
-          <Field label="Current weight (kg)" error={errors.current_weight_kg}>
-            <input
-              style={inputStyle}
-              type="number"
-              step="0.1"
-              value={values.current_weight_kg ?? ''}
-              onChange={setNum('current_weight_kg')}
-            />
+          <Field label="Target weight" error={errors.target_weight_kg}>
+            <div style={{ position: 'relative' }}>
+              <input
+                style={{ ...inputStyle, paddingRight: 44 }}
+                type="number"
+                step="0.1"
+                min="0"
+                value={imperial.target_weight_lbs}
+                onChange={setImp('target_weight_lbs')}
+              />
+              <span style={unitBadge}>lbs</span>
+            </div>
           </Field>
         </Row2>
-        <Field label="Target weight (kg)" error={errors.target_weight_kg}>
-          <input
-            style={inputStyle}
-            type="number"
-            step="0.1"
-            value={values.target_weight_kg ?? ''}
-            onChange={setNum('target_weight_kg')}
-          />
-        </Field>
       </Section>
 
       <Section title="3. Your goal">
@@ -290,21 +353,19 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
             onChange={(e) => setField('allergies', e.target.value || null)}
           />
         </Field>
-        <Row2>
-          <Field label="Meals per day" error={errors.meals_per_day}>
-            <input style={inputStyle} type="number" min="3" max="6" value={values.meals_per_day ?? ''} onChange={setNum('meals_per_day')} />
-          </Field>
-          <Field label="Grocery budget (USD / week)" error={errors.grocery_budget_usd_per_week}>
+        <Field label="Grocery budget (USD / week)" error={errors.grocery_budget_usd_per_week}>
+          <div style={{ position: 'relative' }}>
             <input
-              style={inputStyle}
+              style={{ ...inputStyle, paddingLeft: 26 }}
               type="number"
               min="0"
               step="5"
               value={values.grocery_budget_usd_per_week ?? ''}
               onChange={setNum('grocery_budget_usd_per_week')}
             />
-          </Field>
-        </Row2>
+            <span style={{ ...unitBadge, left: 10, right: 'auto' }}>$</span>
+          </div>
+        </Field>
       </Section>
 
       <Section title="6. Lifestyle">

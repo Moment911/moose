@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import IntakeForm from '../../components/trainer/IntakeForm'
 import { FeatureDisabledPanel } from './TrainerListPage'
+import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { T, BLK, GRY } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -24,11 +25,7 @@ export default function TrainerIntakePage() {
     setSubmitting(true)
     setTopError(null)
     try {
-      const res = await fetch('/api/trainer/trainees', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', ...values }),
-      })
+      const res = await trainerFetch({ action: 'create', ...values })
       if (res.status === 404) {
         setFeatureDisabled(true)
         return

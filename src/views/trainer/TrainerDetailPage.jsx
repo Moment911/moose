@@ -4,6 +4,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Archive, Undo2, Loader2, Sparkles } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import { FeatureDisabledPanel } from './TrainerListPage'
+import { trainerFetch } from '../../lib/trainer/trainerFetch'
+import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { R, T, BLK, GRY } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,11 +34,7 @@ export default function TrainerDetailPage() {
   async function callAction(action) {
     setActionPending(true)
     try {
-      const res = await fetch('/api/trainer/trainees', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, trainee_id: traineeId }),
-      })
+      const res = await trainerFetch({ action, trainee_id: traineeId })
       if (res.status === 404 && (await res.clone().json().catch(() => ({}))).error === 'Not found') {
         // Either cross-agency or feature-disabled. Navigate back to list.
         navigate('/trainer')
@@ -56,11 +54,7 @@ export default function TrainerDetailPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/trainer/trainees', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get', trainee_id: traineeId }),
-      })
+      const res = await trainerFetch({ action: 'get', trainee_id: traineeId })
       if (res.status === 404) {
         // Could be feature disabled OR trainee not found. Show a generic panel;
         // the list page distinguishes the cases more clearly.
@@ -139,9 +133,9 @@ export default function TrainerDetailPage() {
               <Row k="Phone" v={trainee.phone} />
               <Row k="Age" v={trainee.age} />
               <Row k="Sex" v={trainee.sex} />
-              <Row k="Height" v={trainee.height_cm ? `${trainee.height_cm} cm` : null} />
-              <Row k="Weight" v={trainee.current_weight_kg ? `${trainee.current_weight_kg} kg` : null} />
-              <Row k="Target weight" v={trainee.target_weight_kg ? `${trainee.target_weight_kg} kg` : null} />
+              <Row k="Height" v={trainee.height_cm ? cmToFeetInches(trainee.height_cm) : null} />
+              <Row k="Weight" v={trainee.current_weight_kg ? `${kgToLbs(trainee.current_weight_kg)} lbs` : null} />
+              <Row k="Target weight" v={trainee.target_weight_kg ? `${kgToLbs(trainee.target_weight_kg)} lbs` : null} />
               <Row k="Training days/week" v={trainee.training_days_per_week} />
               <Row k="Equipment" v={trainee.equipment_access} />
               <Row k="Dietary preference" v={trainee.dietary_preference} />

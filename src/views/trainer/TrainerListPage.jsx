@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Loader2, Archive } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { R, T, BLK, GRY, GRN } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -35,11 +36,7 @@ export default function TrainerListPage() {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch('/api/trainer/trainees', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'list', archived: showArchived }),
-        })
+        const res = await trainerFetch({ action: 'list', archived: showArchived })
         if (cancelled) return
         if (res.status === 404) {
           setFeatureDisabled(true)
