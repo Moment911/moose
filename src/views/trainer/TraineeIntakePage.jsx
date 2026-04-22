@@ -131,7 +131,7 @@ export default function TraineeIntakePage() {
     if (!traineeId) { setPhase('not_found'); return }
     supabase
       .from('koto_fitness_trainees')
-      .select('id, full_name, agency_id, status, age, sex, height_cm, current_weight_kg, target_weight_kg, primary_goal, training_experience_years, training_days_per_week, equipment_access, medical_flags, injuries, dietary_preference, allergies, sleep_hours_avg, stress_level, occupation_activity, meals_per_day, about_you')
+      .select('*')
       .eq('id', traineeId)
       .maybeSingle()
       .then(({ data, error }) => {
@@ -151,11 +151,31 @@ export default function TraineeIntakePage() {
               support_email: ag.support_email || null,
             })
           })
-        // Pre-populate extracted from existing trainee data.
+        // Pre-populate extracted from the full trainee row so anything the
+        // trainer already entered on /trainer/:id — core, recruiting, and
+        // workload fields — is treated as already collected.  Mirrors the
+        // allowedFields set on the server (api/trainer/intake-chat-token).
+        const INTAKE_KEYS = [
+          // Core
+          'full_name', 'age', 'sex', 'height_cm', 'current_weight_kg', 'target_weight_kg',
+          'primary_goal', 'training_experience_years', 'training_days_per_week', 'equipment_access',
+          'medical_flags', 'injuries', 'dietary_preference', 'allergies', 'sleep_hours_avg',
+          'stress_level', 'occupation_activity', 'meals_per_day',
+          // Recruiting
+          'grad_year', 'position_primary', 'position_secondary', 'throwing_hand', 'batting_hand',
+          'gpa', 'test_type', 'test_score', 'fastball_velo_peak', 'fastball_velo_sit',
+          'exit_velo', 'sixty_time', 'pop_time', 'high_school', 'high_school_state',
+          'travel_team', 'video_link', 'preferred_divisions', 'preferred_states', 'intended_major',
+          // Workload
+          'club_team', 'practices_per_week', 'bullpen_sessions_per_week', 'game_appearances_per_week',
+          'avg_pitch_count', 'pitch_arsenal', 'long_toss_routine', 'arm_soreness',
+          'games_per_week', 'offseason_training', 'other_sports',
+        ]
         const pre = {}
-        for (const k of [...REQUIRED_FIELDS, 'full_name', 'target_weight_kg']) {
-          if (data[k] !== null && data[k] !== undefined && data[k] !== '') {
-            pre[k] = data[k]
+        for (const k of INTAKE_KEYS) {
+          const v = data[k]
+          if (v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0)) {
+            pre[k] = v
           }
         }
         setExtracted(pre)
@@ -995,16 +1015,104 @@ function NotFoundScreen() {
   )
 }
 
+// Baseball trivia shown while the plan generates. Widely-known ranges, not
+// precise claims — framed as "Did you know?" so athletes understand it's
+// entertainment, not personal data. If multi-sport lands later, filter by
+// the athlete's sport.
+const BASEBALL_TRIVIA = [
+  { icon: '⚾', text: 'Roughly 2% of HS baseball players make it to an NCAA D1 roster.' },
+  { icon: '🎯', text: 'Most D1 pitchers sit 88-92 mph as incoming freshmen. Upper-tier arms hit 94+.' },
+  { icon: '🏃', text: 'A sub-6.7 second 60-yard dash is the D1 benchmark for most infielders.' },
+  { icon: '💥', text: 'Average D1 position players put up 90-95 mph exit velos. Power hitters push 100+.' },
+  { icon: '🚀', text: 'Aroldis Chapman holds the MLB record for fastest pitch: 105.8 mph (2010).' },
+  { icon: '🧠', text: 'Hitters have ~150 ms to decide to swing on a 95 mph fastball.' },
+  { icon: '⏱', text: 'Healthy HS pitchers throw 400-600 pitches per week in-season across games + bullpens.' },
+  { icon: '🎓', text: 'Only about 1 in 200 HS position players ever reach the majors.' },
+  { icon: '📈', text: 'Catchers with sub-1.9 second pop times climb recruiting boards quickly.' },
+  { icon: '🔨', text: 'Structured velo training can add 3-5 mph in 12 weeks — with proper arm care.' },
+  { icon: '💪', text: 'Top HS prospects typically squat 1.5x bodyweight by junior year.' },
+  { icon: '🧬', text: 'Chronic sleep under 7 hrs drops reaction time by roughly 10%. Recovery is training.' },
+  { icon: '🏟', text: 'D2 and JUCO are the largest growing segments of college baseball recruiting.' },
+  { icon: '🧢', text: 'Switch hitters represent ~12% of MLB starters and ~7% of college starters.' },
+  { icon: '📊', text: 'Barrel rate — hard contact at the right launch angle — correlates more with success than exit velo alone.' },
+]
+
+const PLAN_PHASES = [
+  { key: 'baseline', label: 'Baseline', desc: 'Readiness check + starting point' },
+  { key: 'roadmap', label: '90-day roadmap', desc: 'Three phases toward the goal' },
+  { key: 'workout', label: 'Workout block', desc: 'First 2 weeks of sessions' },
+  { key: 'playbook', label: 'Playbook', desc: 'How your coach works with you' },
+]
+
 function GeneratingScreen() {
+  const [statIdx, setStatIdx] = useState(0)
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    const statTimer = setInterval(() => setStatIdx((i) => (i + 1) % BASEBALL_TRIVIA.length), 6500)
+    const elapsedTimer = setInterval(() => setElapsed((e) => e + 1), 1000)
+    return () => { clearInterval(statTimer); clearInterval(elapsedTimer) }
+  }, [])
+
+  // Optimistic phase progression — plan generation averages ~60-80s across
+  // 4 Sonnet passes. If the API is slower, the last phase just sits at
+  // "in progress" until done fires.
+  const activePhase = Math.min(Math.floor(elapsed / 18), PLAN_PHASES.length - 1)
+  const stat = BASEBALL_TRIVIA[statIdx]
+
   return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-      <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '32px 28px', textAlign: 'center', maxWidth: 480 }}>
-        <div style={{ width: 48, height: 48, margin: '0 auto 20px', border: '4px solid #f3f4f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoSpin 0.9s linear infinite' }} />
-        <style>{'@keyframes kotoSpin{to{transform:rotate(360deg)}}'}</style>
-        <h1 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 900, color: BLK }}>Crafting your plan</h1>
-        <p style={{ margin: 0, fontSize: 14, color: '#6b7280', lineHeight: 1.55 }}>
-          Your baseline, 90-day roadmap, 2-week workout block, and coaching playbook are generating now. This takes about a minute.
-        </p>
+      <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '28px 24px', maxWidth: 540, width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <div style={{ width: 36, height: 36, flexShrink: 0, border: '3px solid #f3f4f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoSpin 0.9s linear infinite' }} />
+          <style>{'@keyframes kotoSpin{to{transform:rotate(360deg)}}@keyframes kotoFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}'}</style>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>4 AI passes · about a minute</p>
+          </div>
+        </div>
+
+        {/* Phase progression tiles */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 20 }}>
+          {PLAN_PHASES.map((p, i) => {
+            const done = i < activePhase
+            const active = i === activePhase
+            return (
+              <div key={p.key} style={{
+                padding: '10px 8px', borderRadius: 8, textAlign: 'center',
+                background: done ? GRN + '12' : active ? T + '10' : '#f9fafb',
+                border: `1px solid ${done ? GRN + '40' : active ? T + '40' : '#e5e7eb'}`,
+                transition: 'all 0.3s ease',
+              }}>
+                <div style={{ fontSize: 16, marginBottom: 2 }}>
+                  {done ? '✓' : active ? '⏳' : '·'}
+                </div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: done ? GRN : active ? T : '#9ca3af', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                  {p.label}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Rotating trivia card */}
+        <div key={statIdx} style={{
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          color: '#fff', borderRadius: 10, padding: '16px 18px', textAlign: 'left',
+          animation: 'kotoFadeUp 0.45s ease',
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Did you know?
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <span style={{ fontSize: 22, flexShrink: 0 }}>{stat.icon}</span>
+            <div style={{ fontSize: 13, lineHeight: 1.5, color: '#e2e8f0' }}>{stat.text}</div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 12, fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>
+          {elapsed}s elapsed · {PLAN_PHASES[activePhase].desc}
+        </div>
       </section>
     </div>
   )
