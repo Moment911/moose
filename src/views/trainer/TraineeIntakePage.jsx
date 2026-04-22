@@ -65,6 +65,18 @@ const FIELD_QUESTIONS = {
   high_school: "What high school do you go to?",
   travel_team: "Do you play for a travel team?",
   video_link: "Do you have a highlight video link?",
+  // Workload fields
+  club_team: "What club or travel team do you play for?",
+  practices_per_week: "How many practices do you have per week — HS and travel combined?",
+  bullpen_sessions_per_week: "How many bullpen sessions do you throw per week?",
+  game_appearances_per_week: "How many games do you pitch in per week during the season?",
+  avg_pitch_count: "What's your average pitch count per outing?",
+  pitch_arsenal: "What pitches do you throw? Fastball, curve, slider, changeup?",
+  long_toss_routine: "Do you have a long-toss routine? How far do you throw?",
+  arm_soreness: "Any arm soreness or fatigue patterns?",
+  games_per_week: "How many games do you play per week in-season?",
+  offseason_training: "What do you do in the off-season?",
+  other_sports: "Do you play any other sports?",
 }
 
 const ACKNOWLEDGMENTS = [
@@ -83,6 +95,8 @@ function buildSmartFallback(prevExtracted, currentExtracted, services) {
 
   // Find next missing field to ask about
   const allFields = [...REQUIRED_FIELDS]
+  // Always ask workload for baseball
+  allFields.push('club_team', 'practices_per_week', 'bullpen_sessions_per_week', 'game_appearances_per_week', 'avg_pitch_count', 'pitch_arsenal', 'arm_soreness', 'games_per_week', 'offseason_training', 'other_sports')
   if (services?.includes('recruiting')) {
     allFields.push('grad_year', 'position_primary', 'throwing_hand', 'batting_hand', 'gpa', 'fastball_velo_peak', 'high_school', 'travel_team')
   }
@@ -525,8 +539,24 @@ const RECRUITING_FIELDS = [
   { key: 'intended_major', label: 'Major', section: 'academics' },
 ]
 
+const WORKLOAD_FIELDS = [
+  { key: 'club_team', label: 'Club Team', section: 'workload' },
+  { key: 'practices_per_week', label: 'Practices/wk', suffix: 'x', section: 'workload' },
+  { key: 'bullpen_sessions_per_week', label: 'Bullpens/wk', suffix: 'x', section: 'workload' },
+  { key: 'game_appearances_per_week', label: 'Game apps/wk', suffix: 'x', section: 'workload' },
+  { key: 'avg_pitch_count', label: 'Avg pitches', section: 'workload' },
+  { key: 'pitch_arsenal', label: 'Pitches', section: 'workload' },
+  { key: 'long_toss_routine', label: 'Long toss', section: 'workload' },
+  { key: 'arm_soreness', label: 'Arm soreness', section: 'workload' },
+  { key: 'games_per_week', label: 'Games/wk', suffix: 'x', section: 'workload' },
+  { key: 'offseason_training', label: 'Off-season', section: 'workload' },
+  { key: 'other_sports', label: 'Other sports', section: 'workload' },
+]
+
 function getFieldDefs(services) {
   const fields = [...TRAINING_FIELDS]
+  // Always show workload fields for baseball athletes
+  fields.push(...WORKLOAD_FIELDS)
   if (services?.includes('recruiting')) fields.push(...RECRUITING_FIELDS)
   return fields
 }
@@ -546,6 +576,7 @@ const SECTION_LABELS = {
   health: '🏥 Health',
   nutrition: '🥗 Nutrition',
   lifestyle: '😴 Lifestyle',
+  workload: '⚾ Baseball Workload',
   recruiting: '🎓 Recruiting',
   academics: '📚 Academics',
   measurables: '📊 Measurables',

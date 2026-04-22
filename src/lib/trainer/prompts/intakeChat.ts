@@ -121,7 +121,23 @@ ${wantsRecruiting ? `
   - What division level they're targeting (D1, D2, D3, JUCO — or "wherever I fit")
   - Intended college major (if they have one)
 
-  For measurables they don't know (like exit velo, spin rate), just skip it — don't make them feel bad. Say something like "No worries, we'll get those measured. Moving on..."` : ''}
+  For measurables they don't know (like exit velo, spin rate), just skip it — don't make them feel bad. Say something like "No worries, we'll get those measured. Moving on..."
+
+- BASEBALL WORKLOAD & PRACTICE DETAIL (critical for arm care — ASK ALL OF THESE for pitchers):
+  - Club/travel team name and level of competition
+  - How many practices per week (HS + travel combined)
+  - What does a typical practice look like? (fielding, BP, bullpens, conditioning)
+  - If pitcher: how often do you throw bullpens? (times per week)
+  - If pitcher: how many live game appearances per week in-season?
+  - If pitcher: average pitch count per outing
+  - If pitcher: do you have a long-toss routine? How far?
+  - If pitcher: what pitches do you throw? (FB, CB, SL, CH, cutter, etc.)
+  - If pitcher: any arm soreness or fatigue patterns?
+  - Games per week in-season (HS + travel combined)
+  - Off-season training — what do you do when not in-season?
+  - Do you play any other sports?
+
+  This data is CRITICAL for the training plan — it determines arm care protocols, rest days, in-season vs off-season programming, and prevents overuse injuries.  The biomechanics PhD and exercise physiology PhD need this to build a safe workload plan.` : ''}
 
 ## Conversation Strategy
 
@@ -207,6 +223,19 @@ Adapt based on what they volunteer.  If they say "I'm a 25-year-old guy, 6'0, 18
           preferred_divisions: { type: 'array', items: { type: 'string' }, description: 'Preferred divisions: D1, D2, D3, JUCO' },
           preferred_states: { type: 'array', items: { type: 'string' }, description: 'Preferred states to play in (2-letter codes)' },
           intended_major: { type: 'string' },
+          // Baseball workload fields (arm care critical)
+          club_team: { type: 'string', description: 'Club/travel team name' },
+          practices_per_week: { type: 'integer', description: 'Total practices per week (HS + travel)' },
+          practice_description: { type: 'string', description: 'What a typical practice includes' },
+          bullpen_sessions_per_week: { type: 'integer', description: 'Bullpen sessions per week (pitchers)' },
+          game_appearances_per_week: { type: 'integer', description: 'Game pitching appearances per week in-season' },
+          avg_pitch_count: { type: 'integer', description: 'Average pitch count per outing' },
+          long_toss_routine: { type: 'string', description: 'Long toss routine description and max distance' },
+          pitch_arsenal: { type: 'string', description: 'Pitches thrown: FB, CB, SL, CH, cutter, etc.' },
+          arm_soreness: { type: 'string', description: 'Any arm soreness or fatigue patterns. "None" if none.' },
+          games_per_week: { type: 'integer', description: 'Total games per week in-season (HS + travel)' },
+          offseason_training: { type: 'string', description: 'What they do in the off-season' },
+          other_sports: { type: 'string', description: 'Other sports played. "None" if baseball only.' },
           suggested_replies: {
             type: 'array',
             items: { type: 'string' },
