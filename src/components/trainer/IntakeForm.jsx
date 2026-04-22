@@ -267,7 +267,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
         </Row2>
       </Section>
 
-      <Section title="2. About you">
+      <Section title="2. Your basics">
         <Row2>
           <Field label="Age *" error={errors.age}>
             <input style={inputStyle} type="number" min="10" max="120" value={values.age ?? ''} onChange={setNum('age')} />
