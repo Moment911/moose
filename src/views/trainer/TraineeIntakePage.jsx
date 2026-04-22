@@ -37,7 +37,7 @@ function getMissing(extracted) {
 
 export default function TraineeIntakePage() {
   const { traineeId } = useParams()
-  const [phase, setPhase] = useState('loading') // loading | not_found | chat | generating | done
+  const [phase, setPhase] = useState('loading') // loading | not_found | welcome | chat | generating | done
   const [trainee, setTrainee] = useState(null)
   const [extracted, setExtracted] = useState({})
   const [aboutYou, setAboutYou] = useState('')
@@ -65,7 +65,9 @@ export default function TraineeIntakePage() {
         if (data.about_you) setAboutYou(data.about_you)
         // If plan already generated, show done screen.
         if (data.status === 'plan_generated') { setPhase('done'); return }
-        setPhase('chat')
+        // If they've already started the intake, go straight to chat.
+        if (data.status === 'intake_started') { setPhase('chat'); return }
+        setPhase('welcome')
       })
   }, [traineeId])
 
@@ -121,6 +123,7 @@ export default function TraineeIntakePage() {
 
   if (phase === 'loading') return <CenteredSpinner label="Loading..." />
   if (phase === 'not_found') return <NotFoundScreen />
+  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={() => setPhase('chat')} />
   if (phase === 'generating') return <GeneratingScreen />
   if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} />
 
@@ -403,6 +406,76 @@ function CenteredSpinner({ label }) {
   return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6b7280', fontSize: 14 }}><Loader2 size={16} /> {label}</div>
+    </div>
+  )
+}
+
+function WelcomeScreen({ name, onStart }) {
+  const firstName = name ? name.split(' ')[0] : null
+  return (
+    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
+      <div style={{ maxWidth: 520, width: '100%' }}>
+        {/* Welcome card */}
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${T}`, borderRadius: 12, padding: '28px 28px 24px', marginBottom: 16 }}>
+          <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
+            {firstName ? `Welcome, ${firstName}` : 'Welcome'}
+          </h1>
+          <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
+            You're about to chat with your personal coach. In a few minutes, we'll build a complete profile that drives your custom training plan.
+          </p>
+
+          {/* What to expect */}
+          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '16px 18px', marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+              What we'll cover
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13.5, lineHeight: 1.7 }}>
+              <li><strong>Your goals</strong> — what you're training for and where you want to be</li>
+              <li><strong>Your basics</strong> — age, height, weight, experience level</li>
+              <li><strong>Your health</strong> — any medical conditions, injuries, or allergies</li>
+              <li><strong>Your lifestyle</strong> — sleep, stress, diet, daily activity</li>
+            </ul>
+          </div>
+
+          {/* Expert credentials */}
+          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '16px 18px', marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+              The experts behind your plan
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13, lineHeight: 1.65 }}>
+              <li><strong>PhD</strong> in Exercise Physiology — programming, load management, periodization</li>
+              <li><strong>Master's</strong> in Nutrition — calorie & macro targets grounded in sport-science</li>
+              <li>Former <strong>MLB training facility</strong> coaching staff</li>
+            </ul>
+          </div>
+
+          <p style={{ margin: '0 0 20px', fontSize: 13, color: '#6b7280', lineHeight: 1.55 }}>
+            Think about what you want to accomplish — the more you share, the more personalized your plan will be. There are no wrong answers.
+          </p>
+
+          <button
+            onClick={onStart}
+            style={{
+              width: '100%',
+              padding: '14px 20px',
+              background: R,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              fontSize: 16,
+              fontWeight: 800,
+              cursor: 'pointer',
+              letterSpacing: '-.2px',
+            }}
+          >
+            Get started
+          </button>
+        </section>
+
+        <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
+          Built by Koto. Every plan is generated for the individual — no templates, no copy-paste.
+        </div>
+      </div>
     </div>
   )
 }
