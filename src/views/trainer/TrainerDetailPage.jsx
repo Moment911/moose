@@ -86,6 +86,17 @@ async function trainerLogsFetch(body, { agencyId } = {}) {
   })
 }
 
+async function trainerInviteFetch(body, { agencyId } = {}) {
+  const auth = await authHeader()
+  const headers = { 'content-type': 'application/json', ...auth }
+  if (agencyId) headers['x-koto-agency-id'] = agencyId
+  return fetch('/api/trainer/invite', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  })
+}
+
 export default function TrainerDetailPage() {
   const { traineeId } = useParams()
   const navigate = useNavigate()
@@ -263,6 +274,48 @@ export default function TrainerDetailPage() {
     }
     await loadTrainee()
     return true
+  }
+
+  const [inviteStatus, setInviteStatus] = useState(null) // { status, invite_sent_at, ... } | null
+  const [invitePending, setInvitePending] = useState(false)
+
+  const refreshInviteStatus = useCallback(async () => {
+    if (!traineeId || !agencyId) return
+    try {
+      const res = await trainerInviteFetch(
+        { action: 'get_invite_status', trainee_id: traineeId },
+        { agencyId },
+      )
+      if (!res.ok) return
+      const data = await res.json()
+      setInviteStatus(data || null)
+    } catch { /* ignore */ }
+  }, [traineeId, agencyId])
+
+  useEffect(() => { refreshInviteStatus() }, [refreshInviteStatus])
+
+  async function handleSendInvite() {
+    if (!trainee?.email) {
+      flashError('Trainee has no email — add one via the intake form first.')
+      return
+    }
+    setInvitePending(true)
+    try {
+      const alreadyInvited = inviteStatus?.status === 'invited' || inviteStatus?.status === 'active'
+      const action = alreadyInvited ? 'resend_invite' : 'send_invite'
+      const res = await trainerInviteFetch(
+        { action, trainee_id: traineeId },
+        { agencyId },
+      )
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        flashError(body.error || `Invite failed (${res.status})`)
+        return
+      }
+      await refreshInviteStatus()
+    } finally {
+      setInvitePending(false)
+    }
   }
 
   // ── Generate dispatcher ────────────────────────────────────────────────────
@@ -654,6 +707,9 @@ export default function TrainerDetailPage() {
               actionPending={actionPending}
               onArchive={() => callTraineeAction('archive')}
               onUnarchive={() => callTraineeAction('unarchive')}
+              inviteStatus={inviteStatus}
+              invitePending={invitePending}
+              onSendInvite={handleSendInvite}
               doneMap={doneMap}
               pendingKey={pendingKey}
             />
@@ -756,7 +812,17 @@ export default function TrainerDetailPage() {
 
 // ── Sticky header ────────────────────────────────────────────────────────────
 
-function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, doneMap, pendingKey }) {
+function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, inviteStatus, invitePending, onSendInvite, doneMap, pendingKey }) {
+  const status = inviteStatus?.status || 'pending'
+  const canInvite = !!trainee.email && !trainee.archived_at
+  const inviteLabel = ({
+    pending: 'Send invite',
+    invited: 'Resend invite',
+    active: 'Trainee active',
+    bounced: 'Resend (bounced)',
+    revoked: 'Send invite',
+  })[status] || 'Send invite'
+  const inviteBadgeColor = status === 'active' ? '#059669' : status === 'bounced' ? '#dc2626' : status === 'invited' ? '#0891b2' : '#6b7280'
   return (
     <header
       style={{
@@ -801,7 +867,25 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, doneMap,
         </div>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {/* TODO(phase-3): Send invite button here */}
+          {canInvite && (
+            <button
+              type="button"
+              onClick={onSendInvite}
+              disabled={invitePending || status === 'active'}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '7px 13px', fontSize: 13, fontWeight: 600, cursor: invitePending || status === 'active' ? 'not-allowed' : 'pointer',
+                background: status === 'active' ? '#ecfdf5' : '#fff',
+                color: inviteBadgeColor,
+                border: `1px solid ${inviteBadgeColor}`,
+                borderRadius: 8,
+              }}
+              title={inviteStatus?.invite_sent_at ? `Last sent ${new Date(inviteStatus.invite_sent_at).toLocaleString()}` : 'Magic-link to /my-plan'}
+            >
+              {invitePending ? <Loader2 size={13} /> : null}
+              {inviteLabel}
+            </button>
+          )}
           {trainee.archived_at ? (
             <button onClick={onUnarchive} disabled={actionPending} style={btnSecondary(actionPending)}>
               <Undo2 size={14} /> Unarchive
