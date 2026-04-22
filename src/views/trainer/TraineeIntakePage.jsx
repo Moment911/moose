@@ -403,6 +403,8 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
     const newMessages = [...messages, userMsg]
     setMessages(newMessages)
     streamTurn(newMessages)
+    // Keep cursor in textarea for quick follow-up typing
+    setTimeout(() => textareaRef.current?.focus(), 50)
   }
 
   function handleSend() { sendText(input) }
