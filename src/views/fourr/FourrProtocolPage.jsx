@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useLayoutEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import {
@@ -9,6 +9,20 @@ import {
   FONT_HEADING, FONT_BODY,
 } from '../../lib/fourr/fourrTheme'
 
+// Force dark background on html/body so nothing bleeds white
+function useDarkBody() {
+  useLayoutEffect(() => {
+    const prev = document.body.style.backgroundColor
+    const prevHtml = document.documentElement.style.backgroundColor
+    document.body.style.backgroundColor = NAVY
+    document.documentElement.style.backgroundColor = NAVY
+    return () => {
+      document.body.style.backgroundColor = prev
+      document.documentElement.style.backgroundColor = prevHtml
+    }
+  }, [])
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // /4r/my-protocol — displays the generated 4R Method protocol.
 //
@@ -17,6 +31,7 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function FourrProtocolPage() {
+  useDarkBody()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [protocol, setProtocol] = useState(null)

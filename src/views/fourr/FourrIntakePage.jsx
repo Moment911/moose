@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useLayoutEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Sparkles } from 'lucide-react'
 import FourrChatWidget from '../../components/fourr/FourrChatWidget'
@@ -10,6 +10,19 @@ import {
   CARD_BG, CARD_BORDER,
   FONT_HEADING, FONT_BODY,
 } from '../../lib/fourr/fourrTheme'
+
+function useDarkBody() {
+  useLayoutEffect(() => {
+    const prev = document.body.style.backgroundColor
+    const prevHtml = document.documentElement.style.backgroundColor
+    document.body.style.backgroundColor = NAVY
+    document.documentElement.style.backgroundColor = NAVY
+    return () => {
+      document.body.style.backgroundColor = prev
+      document.documentElement.style.backgroundColor = prevHtml
+    }
+  }, [])
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /4r/intake — anonymous-first conversational chat intake for the 4R Method.
@@ -29,6 +42,7 @@ function getOrCreateSessionId() {
 }
 
 export default function FourrIntakePage() {
+  useDarkBody()
   const navigate = useNavigate()
   const [sessionId] = useState(() => getOrCreateSessionId())
   const [progress, setProgress] = useState({ extracted_count: 0, total_required: 21 })
