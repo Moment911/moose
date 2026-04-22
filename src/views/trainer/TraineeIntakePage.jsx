@@ -242,6 +242,7 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
       let buffer = ''
       let fullText = ''
       let replies = []
+      let retried = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -273,9 +274,47 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
 
       if (fullText) {
         setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
-      } else if (!error) {
-        // Stream completed but no text — show retry option.
-        setError('No response received. Tap retry to try again.')
+      } else {
+        // Model produced only a tool call with no visible text.
+        // This happens sometimes — auto-retry once silently.
+        if (!retried) {
+          retried = true
+          // Small delay then retry the same turn
+          await new Promise(r => setTimeout(r, 500))
+          const retryRes = await fetch('/api/trainer/intake-chat-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trainee_id: traineeId, messages: turnMessages, extracted, services: services || ['training'] }),
+          })
+          if (retryRes.ok && retryRes.body) {
+            const retryReader = retryRes.body.getReader()
+            let retryBuf = ''
+            let retryText = ''
+            while (true) {
+              const { done: rd, value: rv } = await retryReader.read()
+              if (rd) break
+              retryBuf += decoder.decode(rv, { stream: true })
+              const retryLines = retryBuf.split('\n')
+              retryBuf = retryLines.pop() ?? ''
+              for (const rl of retryLines) {
+                if (!rl.trim()) continue
+                let re; try { re = JSON.parse(rl) } catch { continue }
+                if (re.type === 'text_delta') { retryText += re.text; setStreamingText(retryText) }
+                if (re.type === 'fields') {
+                  if (re.extracted) onFieldsUpdate(re.extracted)
+                  if (re.about_you_append) onAboutYouAppend(re.about_you_append)
+                  if (Array.isArray(re.suggested_replies) && re.suggested_replies.length > 0) replies = re.suggested_replies
+                }
+              }
+            }
+            if (retryText) { setMessages((prev) => [...prev, { role: 'assistant', content: retryText }]); fullText = retryText }
+          }
+        }
+        if (!fullText) {
+          // Still no text after retry — show a generic acknowledgment
+          const fallback = 'Got it. What else can you tell me?'
+          setMessages((prev) => [...prev, { role: 'assistant', content: fallback }])
+        }
       }
       if (replies.length > 0) setQuickReplies(replies)
     } catch (e) {
@@ -498,6 +537,14 @@ const SERVICE_OPTIONS = [
   { id: 'recruiting', label: 'College Recruiting', desc: 'ProPath Score, school matching, coach outreach, recruiting timeline', icon: '🎓' },
 ]
 
+function getServiceSummary(selected) {
+  const parts = []
+  if (selected.includes('training')) parts.push("Your AI coach will build a personalized training plan — workouts, mechanics drills, arm care, strength & conditioning, and mental performance routines tailored to your position and goals.")
+  if (selected.includes('diet')) parts.push("You'll also get a custom nutrition plan — daily macros, meal timing, recipes, and fueling strategies designed for a competitive baseball athlete.")
+  if (selected.includes('recruiting')) parts.push("For recruiting, we'll collect your stats, measurables, GPA, and preferences to generate your ProPath Score — matching you with the best-fit college programs across D1, D2, D3, and JUCO. You'll get coach contact info, email templates, and a grade-by-grade recruiting roadmap.")
+  return parts.join('\n\n')
+}
+
 function WelcomeScreen({ name, onStart }) {
   const firstName = name ? name.split(' ')[0] : null
   const [text, setText] = useState('')
@@ -603,6 +650,18 @@ function WelcomeScreen({ name, onStart }) {
               })}
             </div>
           </div>
+
+          {/* What happens next — based on selection */}
+          {selected.length > 0 && (
+            <div style={{ background: '#f0fdfa', border: `1px solid ${T}30`, borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+                Here's what happens next
+              </div>
+              <p style={{ margin: 0, fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                {getServiceSummary(selected)}
+              </p>
+            </div>
+          )}
 
           {/* Free-text intro */}
           <div style={{ marginBottom: 16 }}>
