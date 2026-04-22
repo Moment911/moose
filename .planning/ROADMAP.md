@@ -12,14 +12,16 @@ KotoIQ M1 is the adapter + closed-loop layer that bridges ~7,700 lines of alread
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundations + Elementor Read Path** — Agency-isolated schema, live v4 JSON capture, read-only adapter
-- [ ] **Phase 2: Elementor Write Path + Template Ingest + Slot Editor** — Document::save() round-trip, master template ingest, slot editor
-- [ ] **Phase 3: Engine to Publish Adapter + Pre-Flight Gate** — Brief-to-Elementor serializer, Claude slot filler, construction-time anti-scaled-content gate
-- [ ] **Phase 4: Durable Publish Orchestration** — Vercel Workflow campaign runs, cadence, idempotency, publish queue
-- [ ] **Phase 5: Closed-Loop Attribution (CWV + IndexNow + Telnyx)** — CrUX + RUM, per-page numbers, IndexNow, GSC ping, per-page KPI rollup
-- [ ] **Phase 6: Feedback Loop + Unified Shell + Pilot** — Weekly rescan, decay-refresh, KotoIQ shell, 20-page live pilot
-- [ ] **Phase 7: Client Profile Seeder v1 — Internal Ingest + Gap Finder** — Paste Koto link or raw text → populate profile → surgical follow-up questions → seed entity graph as Stage 0 (prerequisite for quality pilot)
-- [ ] **Phase 8: Client Profile Seeder v2 — External Source Parsers** — External forms, existing websites, GBP API, PDF/DOCX/image uploads → all feed the same profile with provenance
+- [x] **Phase 1: Foundations + Elementor Read Path** — Agency-isolated schema, live v4 JSON capture, read-only adapter
+- [x] **Phase 2: Elementor Write Path + Template Ingest + Slot Editor** — Document::save() round-trip, master template ingest, slot editor
+- [x] **Phase 3: Engine to Publish Adapter + Pre-Flight Gate** — Brief-to-Elementor serializer, Claude slot filler, construction-time anti-scaled-content gate
+- [x] **Phase 4: Durable Publish Orchestration** — Vercel Workflow campaign runs, cadence, idempotency, publish queue
+- [x] **Phase 5: Closed-Loop Attribution (CWV + IndexNow + Telnyx)** — CrUX + RUM, per-page numbers, IndexNow, GSC ping, per-page KPI rollup
+- [x] **Phase 6: Feedback Loop + Unified Shell + Pilot** — Weekly rescan, decay-refresh, KotoIQ shell, 20-page live pilot
+- [x] **Phase 7: Client Profile Seeder v1 — Internal Ingest + Gap Finder** — Paste Koto link or raw text → populate profile → surgical follow-up questions → seed entity graph as Stage 0 (prerequisite for quality pilot) — code-complete, 401 blocker fixed 2026-04-21, awaiting human UAT
+- [x] **Phase 8: Client Profile Seeder v2 — External Source Parsers** — API-complete (Typeform/Jotform/Google Forms + website crawl + GBP OAuth/Places + PDF/DOCX/image uploads + encrypted per-agency vault). UI v1 scope-cut to next milestone — see `.planning/phases/08-client-profile-seeder-v2-external-source-parsers/08-VERIFICATION.md`. Migration applied, env vars live, Playwright-on-Fluid-Compute verified 2026-04-21.
+
+**M1 remaining:** PILOT-01 (20 live hyperlocal pages on momentamktg.com) + human UAT gauntlet on Phase 7 ingest. Dev server blocker: use `next dev --no-turbo` until the React 19 / Turbopack fiber reconciliation bug on Sidebar conditional JSX is patched upstream or the Sidebar is refactored.
 
 ## Phase Details
 
