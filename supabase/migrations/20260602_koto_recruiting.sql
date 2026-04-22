@@ -59,6 +59,35 @@ CREATE TABLE IF NOT EXISTS koto_recruiting_hot_list (
   UNIQUE(trainee_id, program_id)
 );
 
+-- Email templates for coach outreach.
+CREATE TABLE IF NOT EXISTS koto_recruiting_email_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sport TEXT NOT NULL DEFAULT 'baseball',
+  slug TEXT NOT NULL UNIQUE,               -- "initial_introduction", "follow_up_stats", etc.
+  name TEXT NOT NULL,                      -- "Initial Introduction"
+  category TEXT NOT NULL DEFAULT 'outreach', -- "outreach", "follow_up", "thank_you", "camp_inquiry"
+  subject_template TEXT NOT NULL,          -- "{{athlete_name}} - {{grad_year}} {{position}} - Interest in {{school_name}}"
+  body_template TEXT NOT NULL,             -- full email body with {{placeholders}}
+  description TEXT,                        -- when to use this template
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Sent emails log for tracking.
+CREATE TABLE IF NOT EXISTS koto_recruiting_emails_sent (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainee_id UUID NOT NULL,
+  program_id UUID REFERENCES koto_recruiting_programs(id),
+  coach_id UUID REFERENCES koto_recruiting_coaches(id),
+  template_id UUID REFERENCES koto_recruiting_email_templates(id),
+  to_email TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  sent_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_recruiting_emails_trainee ON koto_recruiting_emails_sent(trainee_id);
+
 -- Indexes for common queries.
 CREATE INDEX IF NOT EXISTS idx_recruiting_programs_sport ON koto_recruiting_programs(sport);
 CREATE INDEX IF NOT EXISTS idx_recruiting_programs_division ON koto_recruiting_programs(division);

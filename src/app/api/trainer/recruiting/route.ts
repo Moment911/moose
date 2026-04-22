@@ -188,5 +188,63 @@ export async function POST(req: NextRequest) {
     })
   }
 
+  // ── Email templates ───────────────────────────────────────────────────────
+  if (action === 'email_templates') {
+    const { data, error: qErr } = await sb
+      .from('koto_recruiting_email_templates')
+      .select('*')
+      .eq('sport', sport)
+      .order('sort_order')
+    if (qErr) return err(500, qErr.message)
+    return ok({ templates: data || [] })
+  }
+
+  if (action === 'preview_email') {
+    const templateId = body.template_id as string
+    const vars = (body.variables && typeof body.variables === 'object') ? body.variables as Record<string, string> : {}
+    if (!templateId) return err(400, 'template_id required')
+
+    const { data: tmpl, error: tErr } = await sb
+      .from('koto_recruiting_email_templates')
+      .select('*')
+      .eq('id', templateId)
+      .single()
+    if (tErr || !tmpl) return err(404, 'Template not found')
+
+    const t = tmpl as { subject_template: string; body_template: string }
+    // Simple placeholder substitution (strips {{#if}} blocks for now).
+    function fillTemplate(text: string, v: Record<string, string>): string {
+      let result = text
+      // Remove conditional blocks for missing vars.
+      result = result.replace(/\{\{#if (\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_m, key, content) => {
+        return v[key] ? content : ''
+      })
+      // Replace {{var}} placeholders.
+      result = result.replace(/\{\{(\w+)\}\}/g, (_m, key) => v[key] || `[${key}]`)
+      return result.trim()
+    }
+
+    return ok({
+      subject: fillTemplate(t.subject_template, vars),
+      body: fillTemplate(t.body_template, vars),
+    })
+  }
+
+  if (action === 'log_email_sent') {
+    const row = {
+      trainee_id: body.trainee_id as string,
+      program_id: (body.program_id as string) || null,
+      coach_id: (body.coach_id as string) || null,
+      template_id: (body.template_id as string) || null,
+      to_email: body.to_email as string,
+      subject: body.subject as string,
+      body: body.body as string,
+    }
+    if (!row.trainee_id || !row.to_email || !row.subject) return err(400, 'trainee_id, to_email, and subject required')
+    const { error: iErr } = await sb.from('koto_recruiting_emails_sent').insert(row)
+    if (iErr) return err(500, iErr.message)
+    return ok({ success: true })
+  }
+
   return err(400, `Unknown action: ${action}`)
 }
