@@ -76,7 +76,7 @@ export default function FourrProtocolPage() {
   const patientName = patient?.full_name && patient.full_name !== 'New Patient' ? patient.full_name : null
 
   return (
-    <div style={{ minHeight: '100vh', background: NAVY, fontFamily: FONT_BODY }}>
+    <div style={{ minHeight: '100vh', background: NAVY, fontFamily: FONT_BODY, color: CREAM }}>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 24px 60px' }}>
 
         {/* Hero */}
@@ -90,7 +90,7 @@ export default function FourrProtocolPage() {
           }}>
             {patientName ? `${patientName}, Your Assessment Is Complete` : 'Your Assessment Is Complete'}
           </h1>
-          <p style={{ margin: '0 auto', fontSize: 15, color: TEXT_BODY, lineHeight: 1.6, maxWidth: 520 }}>
+          <p style={{ margin: '0 auto', fontSize: 15, color: CREAM, lineHeight: 1.6, maxWidth: 520 }}>
             Thank you for taking the time to share your information with us.
             Based on what you've told us, here's a preliminary look at how the
             4R Method may help you. <strong style={{ color: CREAM }}>Dr. Cohen and Dr. Campisi will review
@@ -118,7 +118,7 @@ export default function FourrProtocolPage() {
                   }}>
                     {step.num}
                   </div>
-                  <p style={{ margin: 0, fontSize: 14, color: TEXT_BODY, lineHeight: 1.5 }}>{step.text}</p>
+                  <p style={{ margin: 0, fontSize: 14, color: CREAM, lineHeight: 1.5 }}>{step.text}</p>
                 </div>
               ))}
             </div>
@@ -154,17 +154,17 @@ export default function FourrProtocolPage() {
                 <div style={{ fontSize: 18, fontWeight: 700, color: CREAM, fontFamily: FONT_HEADING }}>
                   {phaseRec.starting_phase_name || 'Repair'}
                 </div>
-                <div style={{ fontSize: 13, color: TEXT_BODY, fontStyle: 'italic' }}>
+                <div style={{ fontSize: 13, color: CREAM, fontStyle: 'italic' }}>
                   {phaseRec.starting_phase_subtitle || 'Restore Structural Integrity'}
                 </div>
               </div>
             </div>
             {phaseRec.rationale && (
-              <p style={{ margin: '0 0 16px', fontSize: 14, color: TEXT_BODY, lineHeight: 1.6 }}>
+              <p style={{ margin: '0 0 16px', fontSize: 14, color: CREAM, lineHeight: 1.6 }}>
                 {phaseRec.rationale}
               </p>
             )}
-            <p style={{ margin: 0, fontSize: 12, color: TEXT_MUTED, fontStyle: 'italic' }}>
+            <p style={{ margin: 0, fontSize: 12, color: TEXT_BODY, fontStyle: 'italic' }}>
               This is a preliminary recommendation. Your doctors will confirm the right
               starting phase after your in-person structural assessment.
             </p>
@@ -173,7 +173,7 @@ export default function FourrProtocolPage() {
 
         {/* The 4R journey overview */}
         <Card title="The 4R Journey">
-          <p style={{ margin: '0 0 16px', fontSize: 13, color: TEXT_BODY, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 16px', fontSize: 13, color: CREAM, lineHeight: 1.6 }}>
             The 4R Method is a precise biological sequence — each phase builds on the last.
             Your doctors will guide you through each phase at the right pace for your body.
           </p>
@@ -194,7 +194,7 @@ export default function FourrProtocolPage() {
                 <div style={{ fontSize: 12, color: CREAM, marginBottom: 4, fontStyle: 'italic' }}>
                   {phase.desc}
                 </div>
-                <div style={{ fontSize: 11, color: TEXT_MUTED }}>{phase.freq}</div>
+                <div style={{ fontSize: 11, color: TEXT_BODY }}>{phase.freq}</div>
               </div>
             ))}
           </div>
@@ -219,7 +219,7 @@ export default function FourrProtocolPage() {
         <div style={{
           marginTop: 24, padding: '16px 20px',
           background: CARD_BG, border: `1px solid ${CARD_BORDER}`, borderRadius: 12,
-          textAlign: 'center', fontSize: 12, color: TEXT_MUTED, lineHeight: 1.6,
+          textAlign: 'center', fontSize: 12, color: TEXT_BODY, lineHeight: 1.6,
         }}>
           This assessment is not a medical diagnosis. A licensed Doctor of Chiropractic
           will review your information and develop your personalized protocol at your
@@ -257,6 +257,7 @@ function Card({ title, children, borderColor }) {
       border: `1px solid ${borderColor || CARD_BORDER}`,
       borderRadius: 12,
       padding: '18px 22px',
+      marginBottom: 16,
     }}>
       {title && (
         <h2 style={{
@@ -278,7 +279,7 @@ function Card({ title, children, borderColor }) {
 function InfoRow({ label, value }) {
   return (
     <div style={{ padding: '4px 0' }}>
-      <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 11, color: TEXT_BODY, marginBottom: 2 }}>{label}</div>
       <div style={{ fontSize: 13, color: CREAM, fontWeight: 500 }}>{value}</div>
     </div>
   )
