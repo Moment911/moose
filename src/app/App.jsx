@@ -171,7 +171,6 @@ import TrainerDetailPage from '../views/trainer/TrainerDetailPage'
 import MyPlanPage from '../views/trainer/MyPlanPage'
 import SelfSignupPage from '../views/trainer/SelfSignupPage'
 import SelfIntakePage from '../views/trainer/SelfIntakePage'
-import PipelinePage from '../views/PipelinePage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
 import VOBAgentPage from '../views/VOBAgentPage'
 import GHLIntegrationPage from '../views/GHLIntegrationPage'
@@ -448,7 +447,6 @@ function AppRoutes() {
           <Route path="/trainer" element={<TrainerListPage />} />
           <Route path="/trainer/new" element={<TrainerIntakePage />} />
           <Route path="/trainer/:traineeId" element={<TrainerDetailPage />} />
-          <Route path="/pipeline" element={<PipelinePage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/kotoiq/pixels" element={<PixelTrackingPage />} />
           <Route path="/vob" element={<VOBAgentPage />} />
