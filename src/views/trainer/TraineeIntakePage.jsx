@@ -166,6 +166,7 @@ export default function TraineeIntakePage() {
               onGenerate={handleGenerate}
               generating={phase === 'generating'}
               generateError={generateError}
+              services={services}
             />
           </div>
         </div>
@@ -451,25 +452,49 @@ const EQUIP_LABELS = { none: 'None', bands: 'Bands', home_gym: 'Home gym', full_
 const DIET_LABELS = { none: 'No preference', vegetarian: 'Vegetarian', vegan: 'Vegan', pescatarian: 'Pescatarian', keto: 'Keto', paleo: 'Paleo', custom: 'Custom' }
 const OCC_LABELS = { sedentary: 'Sedentary', light: 'Light', moderate: 'Moderate', heavy: 'Heavy' }
 
-const FIELD_DEFS = [
-  { key: 'full_name', label: 'Name' },
-  { key: 'age', label: 'Age', suffix: ' yrs' },
-  { key: 'sex', label: 'Sex', map: { M: 'Male', F: 'Female', Other: 'Other' } },
-  { key: 'height_cm', label: 'Height', format: 'height' },
-  { key: 'current_weight_kg', label: 'Weight', format: 'weight' },
-  { key: 'primary_goal', label: 'Goal', map: GOAL_LABELS },
-  { key: 'training_experience_years', label: 'Experience', suffix: ' yrs' },
-  { key: 'training_days_per_week', label: 'Days/week', suffix: ' days' },
-  { key: 'equipment_access', label: 'Equipment', map: EQUIP_LABELS },
-  { key: 'medical_flags', label: 'Medical' },
-  { key: 'injuries', label: 'Injuries' },
-  { key: 'dietary_preference', label: 'Diet', map: DIET_LABELS },
-  { key: 'allergies', label: 'Allergies' },
-  { key: 'sleep_hours_avg', label: 'Sleep', suffix: ' hrs' },
-  { key: 'stress_level', label: 'Stress', suffix: '/10' },
-  { key: 'occupation_activity', label: 'Activity', map: OCC_LABELS },
-  { key: 'meals_per_day', label: 'Meals/day' },
+const TRAINING_FIELDS = [
+  { key: 'full_name', label: 'Name', section: 'basics' },
+  { key: 'age', label: 'Age', suffix: ' yrs', section: 'basics' },
+  { key: 'sex', label: 'Sex', map: { M: 'Male', F: 'Female', Other: 'Other' }, section: 'basics' },
+  { key: 'height_cm', label: 'Height', format: 'height', section: 'basics' },
+  { key: 'current_weight_kg', label: 'Weight', format: 'weight', section: 'basics' },
+  { key: 'primary_goal', label: 'Goal', map: GOAL_LABELS, section: 'basics' },
+  { key: 'training_experience_years', label: 'Experience', suffix: ' yrs', section: 'training' },
+  { key: 'training_days_per_week', label: 'Days/week', suffix: ' days', section: 'training' },
+  { key: 'equipment_access', label: 'Equipment', map: EQUIP_LABELS, section: 'training' },
+  { key: 'medical_flags', label: 'Medical', section: 'health' },
+  { key: 'injuries', label: 'Injuries', section: 'health' },
+  { key: 'dietary_preference', label: 'Diet', map: DIET_LABELS, section: 'nutrition' },
+  { key: 'allergies', label: 'Allergies', section: 'nutrition' },
+  { key: 'sleep_hours_avg', label: 'Sleep', suffix: ' hrs', section: 'lifestyle' },
+  { key: 'stress_level', label: 'Stress', suffix: '/10', section: 'lifestyle' },
+  { key: 'occupation_activity', label: 'Activity', map: OCC_LABELS, section: 'lifestyle' },
+  { key: 'meals_per_day', label: 'Meals/day', section: 'nutrition' },
 ]
+
+const RECRUITING_FIELDS = [
+  { key: 'grad_year', label: 'Grad Year', section: 'recruiting' },
+  { key: 'position_primary', label: 'Position', section: 'recruiting' },
+  { key: 'position_secondary', label: '2nd Position', section: 'recruiting' },
+  { key: 'throwing_hand', label: 'Throws', map: { R: 'Right', L: 'Left' }, section: 'recruiting' },
+  { key: 'batting_hand', label: 'Bats', map: { R: 'Right', L: 'Left', S: 'Switch' }, section: 'recruiting' },
+  { key: 'gpa', label: 'GPA', section: 'academics' },
+  { key: 'test_score', label: 'SAT/ACT', section: 'academics' },
+  { key: 'fastball_velo_peak', label: 'FB Velo (peak)', suffix: ' mph', section: 'measurables' },
+  { key: 'fastball_velo_sit', label: 'FB Velo (sit)', suffix: ' mph', section: 'measurables' },
+  { key: 'exit_velo', label: 'Exit Velo', suffix: ' mph', section: 'measurables' },
+  { key: 'sixty_time', label: '60-Yard Dash', suffix: ' sec', section: 'measurables' },
+  { key: 'high_school', label: 'High School', section: 'recruiting' },
+  { key: 'travel_team', label: 'Travel Team', section: 'recruiting' },
+  { key: 'video_link', label: 'Video', format: 'link', section: 'recruiting' },
+  { key: 'intended_major', label: 'Major', section: 'academics' },
+]
+
+function getFieldDefs(services) {
+  const fields = [...TRAINING_FIELDS]
+  if (services?.includes('recruiting')) fields.push(...RECRUITING_FIELDS)
+  return fields
+}
 
 function fmtVal(def, v) {
   if (v === null || v === undefined || v === '') return null
@@ -480,34 +505,71 @@ function fmtVal(def, v) {
   return String(v)
 }
 
-function LiveCard({ extracted, missingFields, onGenerate, generating, generateError }) {
-  const filled = FIELD_DEFS.length - missingFields.length
+const SECTION_LABELS = {
+  basics: '👤 Basics',
+  training: '💪 Training',
+  health: '🏥 Health',
+  nutrition: '🥗 Nutrition',
+  lifestyle: '😴 Lifestyle',
+  recruiting: '🎓 Recruiting',
+  academics: '📚 Academics',
+  measurables: '📊 Measurables',
+}
+
+function LiveCard({ extracted, missingFields, onGenerate, generating, generateError, services }) {
+  const fieldDefs = getFieldDefs(services)
+  const filledCount = fieldDefs.filter(d => {
+    const v = extracted[d.key]
+    return v !== null && v !== undefined && v !== ''
+  }).length
+  const totalCount = fieldDefs.length
   const allDone = missingFields.length === 0
-  const pct = Math.round((filled / FIELD_DEFS.length) * 100)
+  const pct = Math.round((filledCount / totalCount) * 100)
+
+  // Group by section
+  const sections = []
+  let lastSection = null
+  for (const def of fieldDefs) {
+    if (def.section !== lastSection) {
+      sections.push({ section: def.section, label: SECTION_LABELS[def.section] || def.section, fields: [] })
+      lastSection = def.section
+    }
+    sections[sections.length - 1].fields.push(def)
+  }
 
   return (
     <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
       <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f3f4f6' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: BLK, letterSpacing: '.03em', textTransform: 'uppercase' }}>Your Profile</h3>
-          <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? GRN : '#6b7280' }}>{filled} / {FIELD_DEFS.length}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? GRN : '#6b7280' }}>{filledCount} / {totalCount}</span>
         </div>
         <div style={{ height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: allDone ? GRN : T, borderRadius: 2, transition: 'width 0.4s ease' }} />
         </div>
       </div>
-      <div style={{ padding: '6px 6px 10px' }}>
-        {FIELD_DEFS.map((def) => {
-          const display = fmtVal(def, extracted[def.key])
-          const isFilled = display !== null
-          return (
-            <div key={def.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 6 }}>
-              {isFilled ? <Check size={13} color={GRN} strokeWidth={3} /> : <Circle size={13} color="#d1d5db" strokeWidth={1.5} />}
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', minWidth: 80 }}>{def.label}</span>
-              <span style={{ fontSize: 13, fontWeight: isFilled ? 700 : 400, color: isFilled ? BLK : '#d1d5db', flex: 1 }}>{display ?? '---'}</span>
+      <div style={{ padding: '4px 6px 10px', maxHeight: 500, overflowY: 'auto' }}>
+        {sections.map((sec) => (
+          <div key={sec.section}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', padding: '8px 10px 2px' }}>
+              {sec.label}
             </div>
-          )
-        })}
+            {sec.fields.map((def) => {
+              const v = extracted[def.key]
+              const display = fmtVal(def, v)
+              const isFilled = display !== null
+              return (
+                <div key={def.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 6 }}>
+                  {isFilled ? <Check size={12} color={GRN} strokeWidth={3} /> : <Circle size={12} color="#d1d5db" strokeWidth={1.5} />}
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', minWidth: 75 }}>{def.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: isFilled ? 700 : 400, color: isFilled ? BLK : '#d1d5db', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {def.format === 'link' && display ? <a href={display} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'none' }}>View →</a> : (display ?? '---')}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        ))}
       </div>
       <div style={{ padding: '10px 16px 16px' }}>
         {generateError && <div style={{ marginBottom: 8, padding: '8px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>{generateError}</div>}
