@@ -6,7 +6,6 @@
 // Intentionally NOT guarded with 'server-only' — this module is imported
 // from the client-side /trainer views.
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { supabase as supabaseAny } from '../supabase'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const supabase: any = supabaseAny

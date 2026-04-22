@@ -61,3 +61,12 @@ export {
   type WorkoutLog,
   type AdherenceSummary,
 } from './adjust'
+
+// Coaching playbook (one-time reference-depth guide)
+export {
+  buildPlaybookPrompt,
+  playbookTool,
+  type SupplementEntry,
+  type TroubleshootingScenario,
+  type CoachingPlaybookOutput,
+} from './playbook'

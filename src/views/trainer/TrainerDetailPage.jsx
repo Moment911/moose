@@ -30,6 +30,7 @@ import WorkoutAccordion from '../../components/trainer/WorkoutAccordion'
 import FoodPrefsWizard from '../../components/trainer/FoodPrefsWizard'
 import MealPlanTable from '../../components/trainer/MealPlanTable'
 import GroceryList from '../../components/trainer/GroceryList'
+import PlaybookCard from '../../components/trainer/PlaybookCard'
 import WorkoutLogGrid from '../../components/trainer/WorkoutLogGrid'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,6 +107,7 @@ export default function TrainerDetailPage() {
     food_prefs: false,
     submit_prefs: false,
     meals: false,
+    playbook: false,
     adjust: false,
   })
   const [stepError, setStepError] = useState(null)
@@ -292,6 +294,17 @@ export default function TrainerDetailPage() {
       { action: 'generate_roadmap', trainee_id: traineeId, plan_id: plan.id },
       (data) => {
         setPlan((prev) => ({ ...(prev || {}), roadmap: data.roadmap }))
+      },
+    )
+  }
+
+  function handleGeneratePlaybook() {
+    if (!plan?.id) return
+    generate(
+      'playbook',
+      { action: 'generate_playbook', trainee_id: traineeId, plan_id: plan.id },
+      (data) => {
+        setPlan((prev) => ({ ...(prev || {}), playbook: data.playbook }))
       },
     )
   }
@@ -598,6 +611,36 @@ export default function TrainerDetailPage() {
                 roadmap={plan.roadmap}
                 currentPhase={currentPhase}
                 onSelectPhase={(n) => handleGenerateWorkout(n)}
+              />
+            )}
+
+            {/* ── Coaching Playbook ─────────────────────────────────────────── */}
+            {hasRoadmap && !plan?.playbook && (
+              <section style={panelStyle}>
+                <h2 style={panelTitle}>Coaching playbook</h2>
+                <p style={{ color: GRY7, fontSize: 13, margin: '0 0 14px', lineHeight: 1.5 }}>
+                  Generate the trainee&apos;s full reference guide: nutrition protocol, supplement
+                  protocol, on-the-road eating strategy, weekly meal-prep routine, recovery + sleep
+                  protocol, and an 8-scenario troubleshooting guide. One-time output — re-generate
+                  anytime to refresh.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleGeneratePlaybook}
+                  disabled={pending.playbook}
+                  style={btnPrimary(pending.playbook)}
+                >
+                  {pending.playbook ? <Loader2 size={14} /> : <Sparkles size={14} />}
+                  {pending.playbook ? 'Generating playbook…' : 'Generate coaching playbook'}
+                </button>
+              </section>
+            )}
+
+            {plan?.playbook && (
+              <PlaybookCard
+                playbook={plan.playbook}
+                onRegenerate={handleGeneratePlaybook}
+                regenerating={pending.playbook}
               />
             )}
 

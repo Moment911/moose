@@ -33,6 +33,11 @@ import {
   mealsTool,
   type MealsOutput,
 } from '../../../../lib/trainer/prompts/meals'
+import {
+  buildPlaybookPrompt,
+  playbookTool,
+  type CoachingPlaybookOutput,
+} from '../../../../lib/trainer/prompts/playbook'
 import type { IntakeInput } from '../../../../lib/trainer/intakeSchema'
 import {
   buildAdjustPrompt,
@@ -83,6 +88,7 @@ const ALLOWED_ACTIONS = [
   'elicit_food_prefs',
   'submit_food_prefs',
   'generate_meals',
+  'generate_playbook',
   'adjust_block',
 ] as const
 
@@ -112,6 +118,7 @@ type PlanRow = Record<string, unknown> & {
   grocery_list?: unknown
   adjustment_summary?: unknown
   phase_ref?: number | null
+  playbook?: unknown
 }
 
 async function loadTrainee(
@@ -186,6 +193,7 @@ export async function POST(req: NextRequest) {
     if (action === 'elicit_food_prefs') return await handleElicitFoodPrefs(sb, agencyId, body)
     if (action === 'submit_food_prefs') return await handleSubmitFoodPrefs(sb, agencyId, body)
     if (action === 'generate_meals') return await handleMeals(sb, agencyId, body)
+    if (action === 'generate_playbook') return await handlePlaybook(sb, agencyId, body)
     if (action === 'adjust_block') return await handleAdjust(sb, agencyId, body)
     return err(400, 'Unknown action')
   } catch (e) {
@@ -570,6 +578,56 @@ async function handleMeals(
   }
 
   return NextResponse.json({ meal_plan: mealPlan, grocery_list: groceryList })
+}
+
+async function handlePlaybook(
+  sb: SupabaseClient,
+  agencyId: string,
+  body: Record<string, unknown>,
+) {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  const planId = typeof body.plan_id === 'string' ? body.plan_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+  if (!planId) return err(400, 'plan_id required')
+
+  const trainee = await loadTrainee(sb, agencyId, traineeId)
+  if (!trainee) return err(404, 'Not found')
+
+  const plan = await loadPlan(sb, agencyId, planId, traineeId)
+  if (!plan) return err(404, 'Not found')
+  if (!plan.baseline) return err(400, 'baseline_missing')
+  if (!plan.roadmap) return err(400, 'roadmap_missing')
+
+  const { systemPrompt, userMessage } = buildPlaybookPrompt({
+    intake: trainee,
+    baseline: plan.baseline as BaselineOutput,
+    roadmap: plan.roadmap as RoadmapOutput,
+  })
+  const result = await callSonnet<CoachingPlaybookOutput>({
+    featureTag: FEATURE_TAGS.PLAYBOOK,
+    systemPrompt,
+    tool: playbookTool,
+    userMessage,
+    agencyId,
+    maxTokens: 16000, // playbook is the longest output
+    metadata: { trainee_id: traineeId, plan_id: planId },
+  })
+  if (!result.ok) {
+    return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
+  }
+  const playbook = result.data
+
+  const { error: updErr } = await sb
+    .from('koto_fitness_plans')
+    .update({ playbook })
+    .eq('id', planId)
+    .eq('agency_id', agencyId)
+  if (updErr) {
+    console.error('[trainer/generate] playbook update error:', updErr.message)
+    return err(500, 'Persist failed')
+  }
+
+  return NextResponse.json({ playbook })
 }
 
 async function handleAdjust(
