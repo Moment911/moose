@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Loader2, Check, ChevronRight, Calendar, Activity, Zap, Shield, Clock, Star } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
 import {
   NAVY, NAVY_LIGHT, NAVY_MID, GOLD, GOLD_LIGHT, CREAM, CREAM_DARK, WHITE,
   TEXT_BODY, TEXT_MUTED, SUCCESS, WARNING, DANGER,
@@ -14,7 +13,7 @@ import {
 // /4r/my-protocol — displays the generated 4R Method protocol.
 //
 // Tabs: Overview, Phase Plan, Modalities, Schedule
-// Auth: Supabase session → koto_fourr_patient_users → koto_fourr_protocols
+// Anonymous-first: loads protocol by session_id from localStorage.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function FourrProtocolPage() {
@@ -27,32 +26,26 @@ export default function FourrProtocolPage() {
 
   useEffect(() => {
     let cancelled = false
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (cancelled) return
-      const session = data?.session
-      if (!session?.user) { navigate('/4r/start'); return }
+    const sessionId = localStorage.getItem('fourr_session_id')
+    if (!sessionId) { navigate('/4r/intake'); return }
 
-      const token = session.access_token
-      const res = await fetch('/api/fourr/my-protocol', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (cancelled) return
-      if (!res.ok) {
-        if (res.status === 404) {
-          navigate('/4r/intake')
+    fetch(`/api/fourr/my-protocol?session_id=${encodeURIComponent(sessionId)}`)
+      .then(async (res) => {
+        if (cancelled) return
+        if (!res.ok) {
+          if (res.status === 404) { navigate('/4r/intake'); return }
+          setError('Could not load your protocol.')
+          setLoading(false)
           return
         }
-        setError('Could not load your protocol.')
+        const body = await res.json().catch(() => ({}))
+        setProtocol(body.protocol || null)
+        setPatient(body.patient || null)
         setLoading(false)
-        return
-      }
-
-      const body = await res.json().catch(() => ({}))
-      setProtocol(body.protocol || null)
-      setPatient(body.patient || null)
-      setLoading(false)
-    })
+      })
+      .catch(() => {
+        if (!cancelled) { setError('Network error.'); setLoading(false) }
+      })
     return () => { cancelled = true }
   }, [navigate])
 

@@ -79,6 +79,9 @@ CREATE TABLE IF NOT EXISTS public.koto_fourr_patients (
   -- Free-text narrative (drives all protocol prompts)
   about_you                  text,
 
+  -- Session (anonymous-first, no auth required)
+  session_id                 text,
+
   -- Conversation state
   conversation_log           jsonb NOT NULL DEFAULT '[]'::jsonb,
 

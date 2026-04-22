@@ -1,11 +1,9 @@
 "use client"
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Sparkles } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
 import FourrChatWidget from '../../components/fourr/FourrChatWidget'
 import FourrIntakeProgress from '../../components/fourr/FourrIntakeProgress'
-import FourrWelcomeCard from '../../components/fourr/FourrWelcomeCard'
 import {
   NAVY, GOLD, CREAM, WHITE,
   TEXT_BODY, TEXT_MUTED,
@@ -14,51 +12,30 @@ import {
 } from '../../lib/fourr/fourrTheme'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /4r/intake — conversational chat intake for the 4R Method.
+// /4r/intake — anonymous-first conversational chat intake for the 4R Method.
 //
-// Full-screen chat interface with 4R branding.  Progress sidebar shows
-// extraction status.  When complete, shows "Generate my protocol" CTA.
+// No login required.  Session identified by a localStorage UUID.
+// Full-screen chat interface with 4R branding.
 // ─────────────────────────────────────────────────────────────────────────────
+
+function getOrCreateSessionId() {
+  const KEY = 'fourr_session_id'
+  let id = localStorage.getItem(KEY)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(KEY, id)
+  }
+  return id
+}
 
 export default function FourrIntakePage() {
   const navigate = useNavigate()
-  const [sessionState, setSessionState] = useState({ loading: true, token: null })
+  const [sessionId] = useState(() => getOrCreateSessionId())
   const [progress, setProgress] = useState({ extracted_count: 0, total_required: 21 })
   const [patientId, setPatientId] = useState(null)
   const [intakeComplete, setIntakeComplete] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [generateError, setGenerateError] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (cancelled) return
-      const session = data?.session
-      if (!session?.user) { navigate('/4r/start'); return }
-
-      // Check if protocol already generated
-      const { data: mapping } = await supabase
-        .from('koto_fourr_patient_users')
-        .select('patient_id')
-        .eq('user_id', session.user.id)
-        .maybeSingle()
-      if (cancelled) return
-      if (mapping) {
-        const { data: patient } = await supabase
-          .from('koto_fourr_patients')
-          .select('status')
-          .eq('id', mapping.patient_id)
-          .maybeSingle()
-        if (patient?.status === 'protocol_generated') {
-          navigate('/4r/my-protocol')
-          return
-        }
-      }
-
-      setSessionState({ loading: false, token: session.access_token })
-    })
-    return () => { cancelled = true }
-  }, [navigate])
 
   const handleProgress = useCallback((p) => {
     setProgress(p)
@@ -73,20 +50,10 @@ export default function FourrIntakePage() {
     setGenerating(true)
     setGenerateError(null)
     try {
-      const { data } = await supabase.auth.getSession()
-      const token = data?.session?.access_token
-      if (!token) {
-        setGenerateError('Session expired. Please sign in again.')
-        setGenerating(false)
-        return
-      }
       const res = await fetch('/api/fourr/self-signup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ patient_id: patientId }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId }),
       })
       const body = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -99,24 +66,6 @@ export default function FourrIntakePage() {
       setGenerateError(err?.message || 'Network error during protocol generation.')
       setGenerating(false)
     }
-  }
-
-  if (sessionState.loading) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: NAVY,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: FONT_BODY,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: TEXT_BODY, fontSize: 14 }}>
-          <Loader2 size={16} style={{ animation: 'fourr-spin 1s linear infinite' }} /> Loading...
-          <style>{`@keyframes fourr-spin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      </div>
-    )
   }
 
   if (generating) {
@@ -139,6 +88,7 @@ export default function FourrIntakePage() {
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 16,
+        flexWrap: 'wrap',
       }}>
         <div>
           <div style={{
@@ -169,7 +119,7 @@ export default function FourrIntakePage() {
       {/* Chat area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <FourrChatWidget
-          token={sessionState.token}
+          sessionId={sessionId}
           onComplete={handleComplete}
           onProgress={handleProgress}
         />
@@ -280,7 +230,6 @@ function GeneratingScreen() {
         <ul style={{
           textAlign: 'left',
           margin: '0 auto',
-          paddingLeft: 20,
           fontSize: 12,
           color: TEXT_BODY,
           lineHeight: 1.9,

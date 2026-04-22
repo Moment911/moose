@@ -32,13 +32,11 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/fourr/self-signup
 //
-// Protocol generation chain:
-//   1. Assessment (clinical summary)
-//   2. Phase recommendation (which R-phases, starting phase)
-//   3. Modality plan (per-phase modality selections)
-//   4. Protocol schedule (week-by-week plan)
+// Anonymous-first protocol generation.  Identified by session_id.
+// Body: { session_id: string }
 //
-// Total: ~30-45s blocking.  maxDuration=300 for headroom.
+// Chain: assessment → phase recommendation → modality plan → protocol schedule
+// ~30-45s blocking.  maxDuration=300 for headroom.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const runtime = 'nodejs'
@@ -58,18 +56,6 @@ function err(status: number, error: string, extra?: Record<string, unknown>) {
   return NextResponse.json({ error, ...(extra || {}) }, { status })
 }
 
-async function resolveUser(
-  req: NextRequest,
-  sb: SupabaseClient,
-): Promise<{ ok: true; userId: string } | { ok: false; status: number; error: string }> {
-  const authHeader = req.headers.get('authorization')
-  const token = authHeader?.replace(/^Bearer\s+/i, '')
-  if (!token) return { ok: false, status: 401, error: 'Unauthorized' }
-  const { data, error } = await sb.auth.getUser(token)
-  if (error || !data?.user) return { ok: false, status: 401, error: 'Unauthorized' }
-  return { ok: true, userId: data.user.id }
-}
-
 export async function POST(req: NextRequest) {
   const sb = getDb()
   const agencyId = process.env.DEFAULT_FOURR_AGENCY_ID || DEFAULT_AGENCY_FALLBACK
@@ -81,36 +67,31 @@ export async function POST(req: NextRequest) {
     return err(500, 'Feature gate check failed')
   }
 
-  const auth = await resolveUser(req, sb)
-  if (!auth.ok) return err(auth.status, auth.error)
-
-  // ── 1. Resolve patient via mapping ──────────────────────────────────────
-  const { data: mapping } = await sb
-    .from('koto_fourr_patient_users')
-    .select('patient_id')
-    .eq('user_id', auth.userId)
-    .maybeSingle()
-
-  if (!mapping) {
-    return err(404, 'No patient record found. Complete the intake assessment first.')
+  let body: Record<string, unknown> = {}
+  try {
+    body = (await req.json()) as Record<string, unknown>
+  } catch {
+    return err(400, 'Invalid JSON')
   }
 
-  const patientId = (mapping as { patient_id: string }).patient_id
+  const sessionId = typeof body.session_id === 'string' ? body.session_id.trim() : ''
+  if (!sessionId) return err(400, 'session_id is required')
 
+  // ── 1. Resolve patient by session_id ────────────────────────────────────
   const { data: patientRow, error: loadErr } = await sb
     .from('koto_fourr_patients')
     .select('*')
-    .eq('id', patientId)
+    .eq('session_id', sessionId)
     .eq('agency_id', agencyId)
-    .single()
+    .maybeSingle()
 
   if (loadErr || !patientRow) {
-    return err(404, 'Patient record not found.')
+    return err(404, 'No patient record found. Complete the intake assessment first.')
   }
 
   const intake = patientRow as unknown as FourrIntakeInput & { id: string; status: string }
+  const patientId = intake.id
 
-  // Check intake completeness
   if (!isFourrIntakeComplete(intake)) {
     return err(400, 'intake_incomplete', { message: 'Please complete the intake assessment first.' })
   }
@@ -123,7 +104,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   if (existing) {
-    return err(409, 'protocol_already_generated', { protocol_id: (existing as { id: string }).id })
+    return NextResponse.json({ patient_id: patientId, protocol_id: (existing as { id: string }).id, already_exists: true })
   }
 
   // ── 2. Run the 4-step Sonnet chain ──────────────────────────────────────
@@ -155,7 +136,6 @@ export async function POST(req: NextRequest) {
 
   // Bail if assessment says not ok to proceed
   if (progress.assessment && !progress.assessment.ok_to_proceed) {
-    // Still create the protocol row with just the assessment
     const { data: protocolRow } = await sb
       .from('koto_fourr_protocols')
       .insert({
@@ -269,7 +249,6 @@ export async function POST(req: NextRequest) {
     errors.push(`persist:${protocolErr?.message || 'unknown'}`)
   }
 
-  // Update patient status
   if (progress.protocol_schedule) {
     await sb
       .from('koto_fourr_patients')

@@ -10,15 +10,15 @@ import {
 } from '../../lib/fourr/fourrTheme'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FourrChatWidget — conversational intake chat for the 4R Method.
+// FourrChatWidget — anonymous-first conversational intake chat.
 //
 // Props:
-//   token      — Supabase access_token for API calls
+//   sessionId  — localStorage UUID identifying this anonymous session
 //   onComplete — callback when intake is complete (receives patient_id)
 //   onProgress — callback on each turn with { extracted_count, total_required }
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function FourrChatWidget({ token, onComplete, onProgress }) {
+export default function FourrChatWidget({ sessionId, onComplete, onProgress }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
@@ -37,11 +37,11 @@ export default function FourrChatWidget({ token, onComplete, onProgress }) {
 
   // Auto-send greeting on mount
   useEffect(() => {
-    if (initialized || !token) return
+    if (initialized || !sessionId) return
     setInitialized(true)
     sendTurn(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, initialized])
+  }, [sessionId, initialized])
 
   async function sendTurn(userMessage) {
     setSending(true)
@@ -57,11 +57,8 @@ export default function FourrChatWidget({ token, onComplete, onProgress }) {
     try {
       const res = await fetch('/api/fourr/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ message: userMessage }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, message: userMessage }),
       })
       const data = await res.json().catch(() => ({}))
 
@@ -100,7 +97,6 @@ export default function FourrChatWidget({ token, onComplete, onProgress }) {
       }])
     } finally {
       setSending(false)
-      // Focus the input after the AI responds
       setTimeout(() => inputRef.current?.focus(), 100)
     }
   }
@@ -126,7 +122,7 @@ export default function FourrChatWidget({ token, onComplete, onProgress }) {
       flexDirection: 'column',
       height: '100%',
       background: CHAT_BG,
-      borderRadius: 12,
+      borderRadius: 0,
       overflow: 'hidden',
       fontFamily: FONT_BODY,
     }}>
@@ -220,7 +216,7 @@ export default function FourrChatWidget({ token, onComplete, onProgress }) {
           color: TEXT_BODY,
           fontSize: 13,
         }}>
-          Assessment complete. Your protocol is being prepared.
+          Assessment complete. Click below to generate your protocol.
         </div>
       )}
     </div>

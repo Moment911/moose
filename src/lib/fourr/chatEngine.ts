@@ -1,8 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // 4R Method — chat engine orchestrator.
 //
-// Manages the conversational intake flow:
-//   1. Loads conversation state from the patient row
+// Anonymous-first: no auth required.  Patients identified by session_id
+// (client-generated UUID stored in localStorage).
+//
+// Flow:
+//   1. Loads or creates patient row by session_id
 //   2. Builds the chat turn prompt with history + extracted fields
 //   3. Calls Sonnet via callSonnet()
 //   4. Merges newly extracted fields into the patient record
@@ -41,50 +44,36 @@ export type ChatTurnResult =
 export async function processChatTurn(args: {
   sb: SupabaseClient
   agencyId: string
-  userId: string
-  email: string
-  patientName?: string | null
+  sessionId: string
   userMessage?: string | null
 }): Promise<ChatTurnResult & { patient_id?: string }> {
-  const { sb, agencyId, userId, email, patientName } = args
+  const { sb, agencyId, sessionId } = args
 
-  // ── 1. Resolve or create patient row ────────────────────────────────────
+  // ── 1. Resolve or create patient row by session_id ──────────────────────
   let patientId: string
   let conversationLog: ChatMessage[] = []
   let extractedSoFar: Partial<FourrIntakeInput> = {}
 
-  const { data: mapping } = await sb
-    .from('koto_fourr_patient_users')
-    .select('patient_id')
-    .eq('user_id', userId)
+  const { data: existing } = await sb
+    .from('koto_fourr_patients')
+    .select('*')
+    .eq('session_id', sessionId)
+    .eq('agency_id', agencyId)
     .maybeSingle()
 
-  if (mapping) {
-    patientId = (mapping as { patient_id: string }).patient_id
-
-    // Load existing patient data
-    const { data: patient, error: loadErr } = await sb
-      .from('koto_fourr_patients')
-      .select('*')
-      .eq('id', patientId)
-      .single()
-
-    if (loadErr || !patient) {
-      return { ok: false, error: 'Could not load patient record' }
-    }
-
-    const p = patient as Record<string, unknown>
+  if (existing) {
+    const p = existing as Record<string, unknown>
+    patientId = p.id as string
     conversationLog = (p.conversation_log as ChatMessage[]) || []
     extractedSoFar = extractFieldsFromRow(p)
   } else {
-    // First interaction — create patient + mapping
-    const name = patientName || email.split('@')[0] || 'New patient'
+    // First interaction — create patient row
     const { data: newPatient, error: insErr } = await sb
       .from('koto_fourr_patients')
       .insert({
         agency_id: agencyId,
-        full_name: name,
-        email,
+        session_id: sessionId,
+        full_name: 'New Patient',
         status: 'intake_in_progress',
         conversation_log: [],
       })
@@ -96,21 +85,6 @@ export async function processChatTurn(args: {
       return { ok: false, error: 'Could not create patient record' }
     }
     patientId = (newPatient as { id: string }).id
-
-    const { error: mapErr } = await sb
-      .from('koto_fourr_patient_users')
-      .insert({
-        agency_id: agencyId,
-        patient_id: patientId,
-        user_id: userId,
-        invite_email: email,
-        invite_status: 'active',
-      })
-
-    if (mapErr) {
-      console.error('[fourr/chat] mapping insert error:', mapErr.message)
-      return { ok: false, error: 'Could not link user to patient' }
-    }
   }
 
   // ── 2. Append user message to history (if not first turn) ───────────────
@@ -130,7 +104,7 @@ export async function processChatTurn(args: {
     conversationHistory: conversationLog,
     extractedSoFar,
     remainingFields: remaining,
-    patientName,
+    patientName: extractedSoFar.full_name !== 'New Patient' ? extractedSoFar.full_name : null,
     isFirstMessage,
   })
 
@@ -141,7 +115,7 @@ export async function processChatTurn(args: {
     userMessage,
     agencyId,
     maxTokens: 2000,
-    metadata: { patient_id: patientId, user_id: userId, turn: conversationLog.length },
+    metadata: { patient_id: patientId, session_id: sessionId, turn: conversationLog.length },
   })
 
   if (!result.ok) {
@@ -160,16 +134,14 @@ export async function processChatTurn(args: {
     extracted_fields: fields_extracted_this_turn,
   })
 
-  // Build the update payload — only set non-null extracted fields on the row
+  // Build the update payload
   const updatePayload: Record<string, unknown> = {
     conversation_log: conversationLog,
-  }
-  if (patientName && !extractedSoFar.full_name) {
-    updatePayload.full_name = patientName
   }
 
   // Map extracted fields to DB columns
   const fieldKeys: (keyof FourrIntakeInput)[] = [
+    'full_name', 'email', 'phone',
     'age', 'sex', 'height_cm', 'weight_kg',
     'chief_complaint', 'pain_locations', 'pain_severity', 'pain_duration',
     'pain_type', 'pain_frequency', 'aggravating_factors', 'relieving_factors',
@@ -200,7 +172,6 @@ export async function processChatTurn(args: {
 
   if (updErr) {
     console.error('[fourr/chat] patient update error:', updErr.message)
-    // Don't fail the response — the AI message was generated successfully
   }
 
   const filledCount = REQUIRED_FOURR_INTAKE_FIELDS.length - missingFourrIntakeFields(merged).length

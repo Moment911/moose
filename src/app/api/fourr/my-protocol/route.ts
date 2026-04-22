@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET /api/fourr/my-protocol
+// GET /api/fourr/my-protocol?session_id=xxx
 //
-// Fetches the generated protocol for the authenticated patient.
-// Resolves patient via koto_fourr_patient_users mapping.
+// Anonymous-first: fetches protocol by session_id (no auth required).
 // Returns { protocol, patient } or 404 if no protocol exists.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -29,33 +28,20 @@ export async function GET(req: NextRequest) {
   const sb = getDb()
   const agencyId = process.env.DEFAULT_FOURR_AGENCY_ID || DEFAULT_AGENCY_FALLBACK
 
-  // Auth
-  const authHeader = req.headers.get('authorization')
-  const token = authHeader?.replace(/^Bearer\s+/i, '')
-  if (!token) return err(401, 'Unauthorized')
-  const { data: authData, error: authErr } = await sb.auth.getUser(token)
-  if (authErr || !authData?.user) return err(401, 'Unauthorized')
-  const userId = authData.user.id
+  const sessionId = req.nextUrl.searchParams.get('session_id')
+  if (!sessionId) return err(400, 'session_id is required')
 
-  // Resolve patient
-  const { data: mapping } = await sb
-    .from('koto_fourr_patient_users')
-    .select('patient_id')
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (!mapping) return err(404, 'No patient record found.')
-  const patientId = (mapping as { patient_id: string }).patient_id
-
-  // Load patient
+  // Load patient by session_id
   const { data: patient } = await sb
     .from('koto_fourr_patients')
     .select('id, full_name, email, age, sex, chief_complaint, pain_severity, pain_duration, pain_locations, goals, status')
-    .eq('id', patientId)
+    .eq('session_id', sessionId)
     .eq('agency_id', agencyId)
-    .single()
+    .maybeSingle()
 
-  if (!patient) return err(404, 'Patient record not found.')
+  if (!patient) return err(404, 'No patient record found.')
+
+  const patientId = (patient as { id: string }).id
 
   // Load latest protocol
   const { data: protocol } = await sb
