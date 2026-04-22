@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { fetchMyPlan, logSet as apiLogSet } from '../../lib/trainer/myPlanFetch'
 import MyPlanShell from '../../components/trainer/MyPlanShell'
 import TrainerWelcomeCard from '../../components/trainer/TrainerWelcomeCard'
+import NaturalAdjustBox from '../../components/trainer/NaturalAdjustBox'
 import TraineeDisclaimerAckModal from './TraineeDisclaimerAckModal'
 import PlanBaselineCard from '../../components/trainer/PlanBaselineCard'
 import RoadmapCard from '../../components/trainer/RoadmapCard'
@@ -199,6 +200,10 @@ export default function MyPlanPage() {
         {tab === 'overview' ? (
           <div style={{ display: 'grid', gap: 18 }}>
             <TrainerWelcomeCard compact />
+            <NaturalAdjustBox
+              disabled={!plan.workout_plan}
+              onAfterAdjust={loadPlan}
+            />
             {plan.baseline ? (
               <PlanBaselineCard baseline={plan.baseline} />
             ) : null}

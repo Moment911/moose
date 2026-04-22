@@ -115,6 +115,54 @@ export function updateLog(log_id: string, patch: UpdateLogPatch): Promise<{ ok: 
  * carries the old metadata until refresh, but our UI reads ack from the
  * metadata update promise).
  */
+/**
+ * Natural-language plan adjustment — powers the "What's going on?" box.
+ * POSTs to /api/my-plan/adjust (separate endpoint from /api/trainer/my-plan
+ * because this is a generating action with a larger auth surface).
+ */
+export interface NaturalAdjustInput {
+  message: string
+  scope?: 'this_session' | 'rest_of_block' | 'swap_exercise'
+  session_day_number?: number
+  exercise_id?: string
+}
+
+export interface NaturalAdjustResponse {
+  ok: true
+  workout_plan: Record<string, unknown>
+  adherence_note: string | null
+  adjustments_made: unknown[]
+}
+
+export async function adjustPlanNL(input: NaturalAdjustInput): Promise<NaturalAdjustResponse> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(await getAuthHeader()),
+  }
+  const res = await fetch('/api/my-plan/adjust', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(input),
+  })
+  const raw = await res.text()
+  let payload: unknown = null
+  try {
+    payload = raw ? JSON.parse(raw) : null
+  } catch {
+    payload = null
+  }
+  if (!res.ok) {
+    const msg =
+      (payload && typeof payload === 'object' && (payload as { error?: string; detail?: string }).detail) ||
+      (payload && typeof payload === 'object' && (payload as { error?: string }).error) ||
+      `Adjust failed (${res.status})`
+    const e = new Error(String(msg))
+    ;(e as Error & { status?: number }).status = res.status
+    throw e
+  }
+  return payload as NaturalAdjustResponse
+}
+
 export async function ackDisclaimer(): Promise<void> {
   const nowIso = new Date().toISOString()
   await supabase.auth.updateUser({
