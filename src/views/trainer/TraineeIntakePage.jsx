@@ -2,7 +2,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Loader2, Send, Check, Circle } from 'lucide-react'
-import { T, BLK, GRN, R } from '../../lib/theme'
+import { T, BLK, GRN } from '../../lib/theme'
+// Trainer portal uses red/blue accents, not Koto Pink. Local override.
+const R = '#dc2626'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { supabase } from '../../lib/supabase'
 
@@ -186,7 +188,7 @@ export default function TraineeIntakePage() {
     const payload = {
       ...extracted,
       about_you: aboutYou || extracted.about_you || '',
-      full_name: extracted.full_name || trainee?.full_name || 'Trainee',
+      full_name: extracted.full_name || trainee?.full_name || 'Athlete',
     }
     const missing = getMissing(payload)
     if (missing.length > 0) {
@@ -219,7 +221,7 @@ export default function TraineeIntakePage() {
 
   if (phase === 'loading') return <CenteredSpinner label="Loading..." />
   if (phase === 'not_found') return <NotFoundScreen />
-  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} agency={agency} onStart={(text, selectedServices) => { setInitialText(text); setServices(selectedServices); setPhase('chat') }} />
+  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={(text, selectedServices) => { setInitialText(text); setServices(selectedServices); setPhase('chat') }} />
   if (phase === 'generating') return <GeneratingScreen />
   if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} agency={agency} planResult={planResult} />
 
@@ -243,7 +245,6 @@ export default function TraineeIntakePage() {
         onGenerate={handleGenerate}
         generating={phase === 'generating'}
         generateError={generateError}
-        agencyName={agency?.name}
       />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '16px' }}>
@@ -294,8 +295,8 @@ export default function TraineeIntakePage() {
 // mobile — where the sidebar collapses below the chat — always see what to do
 // next.
 
-function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, generating, generateError, agencyName }) {
-  const label = agencyName ? `Building your profile for ${agencyName}` : 'Building your profile'
+function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, generating, generateError }) {
+  const label = 'Building your profile'
   return (
     <div style={{
       position: 'sticky', top: 0, zIndex: 20,
@@ -421,8 +422,21 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
           }
           if (event.type === 'fields') {
             if (event.extracted && typeof event.extracted === 'object') {
-              onFieldsUpdate(event.extracted)
-              fieldsThisTurn = { ...fieldsThisTurn, ...event.extracted }
+              // Defensive: strip suggested_replies if the model mis-nests
+              // it inside extracted (schema puts it at the top level, but
+              // Haiku has been observed dumping it in extracted anyway).
+              // Also: rescue the pills if that happens and top-level was
+              // empty, so the trainee still sees the right buttons.
+              const nestedPills = Array.isArray(event.extracted.suggested_replies)
+                ? event.extracted.suggested_replies
+                : null
+              const fieldsOnly = { ...event.extracted }
+              delete fieldsOnly.suggested_replies
+              onFieldsUpdate(fieldsOnly)
+              fieldsThisTurn = { ...fieldsThisTurn, ...fieldsOnly }
+              if (nestedPills && nestedPills.length > 0 && !Array.isArray(event.suggested_replies)) {
+                replies = nestedPills
+              }
             }
             if (event.about_you_append && typeof event.about_you_append === 'string') onAboutYouAppend(event.about_you_append)
             if (Array.isArray(event.suggested_replies) && event.suggested_replies.length > 0) {
@@ -435,27 +449,27 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
 
       clearTimeout(timeout)
 
+      // Pill selection.  Only the author of the question knows what it asked
+      // about, so pill source has to track who generated it:
+      //   - fullText path: the model wrote the question.  Use server-supplied
+      //     suggested_replies, never guess from "next missing field" — the
+      //     coach might ask name, goal clarification, or anything that
+      //     doesn't line up with our required-field order.
+      //   - no-text path: we generated the fallback question locally, so we
+      //     know exactly which field it's about and can use its pill map.
+      // setQuickReplies always fires so stale pills from a prior turn can
+      // never persist into this one.
+      let pillsToShow = []
       if (fullText) {
         setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
+        pillsToShow = replies
       } else {
-        // Model produced only a tool call with no visible text.
-        // Merge fields extracted THIS turn into the snapshot so fallback
-        // doesn't re-ask questions that were just answered.
         const mergedExtracted = { ...extracted, ...fieldsThisTurn }
         const fallback = buildSmartFallback(lastExtractedRef.current, mergedExtracted, services)
         setMessages((prev) => [...prev, { role: 'assistant', content: fallback.text }])
+        pillsToShow = fallback.pills || []
       }
-
-      // Pill selection: client pills (keyed to the next missing field) are
-      // the source of truth whenever that field has a hand-curated pill map.
-      // Server-supplied suggested_replies only fire for free-text fields
-      // with no client map. setQuickReplies fires unconditionally so stale
-      // pills from a previous turn can never persist into this one.
-      const mergedForPills = { ...extracted, ...fieldsThisTurn }
-      const nextField = findNextMissingField(mergedForPills, services)
-      const clientPills = nextField ? FIELD_QUESTIONS[nextField]?.pills : null
-      const pillsToShow = (clientPills && clientPills.length > 0) ? clientPills : replies
-      setQuickReplies(pillsToShow || [])
+      setQuickReplies(pillsToShow)
     } catch (e) {
       clearTimeout(timeout)
       if (e?.name === 'AbortError') {
@@ -766,9 +780,8 @@ const OUTCOME_CHIPS = {
   recruiting: [{ icon: '🎓', label: 'ProPath recruiting score' }],
 }
 
-function WelcomeScreen({ name, agency, onStart }) {
+function WelcomeScreen({ name, onStart }) {
   const firstName = name ? name.split(' ')[0] : null
-  const agencyName = agency?.name || null
   const [text, setText] = useState('')
   const [selected, setSelected] = useState(['training'])
   const [error, setError] = useState(null)
@@ -813,7 +826,7 @@ function WelcomeScreen({ name, agency, onStart }) {
             {firstName ? `Hi, ${firstName}` : 'Welcome'}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: '#4b5563', lineHeight: 1.55, maxWidth: 440, marginLeft: 'auto', marginRight: 'auto' }}>
-            {agencyName ? <>Your coach at <strong style={{ color: BLK }}>{agencyName}</strong> set this up so you get a plan built for you.</> : <>Your coach set this up so you get a plan built for you.</>}
+            Tell us your goals and we&apos;ll build a program to help you get there.
           </p>
           <div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#6b7280' }}>
             <span>⏱ About 5 minutes</span>
@@ -846,7 +859,7 @@ function WelcomeScreen({ name, agency, onStart }) {
           {/* Service picker — above the paragraph because it changes scope */}
           <div style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
-              1. What should your coach help with?
+              1. What do you want help with?
             </div>
             <div style={{ display: 'grid', gap: 8 }}>
               {SERVICE_OPTIONS.map(svc => {
@@ -956,10 +969,10 @@ function WelcomeScreen({ name, agency, onStart }) {
               letterSpacing: '-.2px',
             }}
           >
-            Start chatting with your coach →
+            Start building my plan →
           </button>
           <p style={{ margin: '10px 0 0', fontSize: 11, color: '#9ca3af', textAlign: 'center', lineHeight: 1.5 }}>
-            Answers save as you chat. {agencyName ? `${agencyName} sees your progress.` : 'Your coach sees your progress.'}
+            Answers save as you chat.
           </p>
         </section>
 
@@ -1006,7 +1019,6 @@ const PLAN_PIECES = [
 
 function DoneScreen({ name, agency, planResult }) {
   const firstName = name ? name.split(' ')[0] : null
-  const agencyName = agency?.name || 'Your coach'
   const supportEmail = agency?.support_email || null
 
   // Medical-hold variant — baseline said no-go, so no workouts generated.
@@ -1024,7 +1036,7 @@ function DoneScreen({ name, agency, planResult }) {
             A quick review first{firstName ? `, ${firstName}` : ''}
           </h1>
           <p style={{ margin: '0 0 18px', fontSize: 14, color: '#4b5563', lineHeight: 1.6, textAlign: 'center' }}>
-            Based on what you shared, <strong>{agencyName}</strong> wants to go over a few things with you before finalizing your training plan.
+            Based on what you shared, we want to go over a few things with you before finalizing your training plan.
           </p>
           {redFlags.length > 0 && (
             <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 14px', marginBottom: 18 }}>
@@ -1037,7 +1049,7 @@ function DoneScreen({ name, agency, planResult }) {
             </div>
           )}
           <p style={{ margin: 0, fontSize: 13, color: '#6b7280', lineHeight: 1.6, textAlign: 'center' }}>
-            We&apos;ve notified {agencyName} — they&apos;ll reach out shortly{supportEmail ? <> or you can email <a href={`mailto:${supportEmail}`} style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a></> : null}.
+            We&apos;ll be in touch shortly{supportEmail ? <> or you can email <a href={`mailto:${supportEmail}`} style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a></> : null}.
           </p>
         </section>
       </div>
@@ -1057,7 +1069,7 @@ function DoneScreen({ name, agency, planResult }) {
             Your plan is built{firstName ? `, ${firstName}` : ''}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: '#4b5563', lineHeight: 1.55 }}>
-            Here&apos;s what <strong>{agencyName}</strong> will review:
+            Here&apos;s what we built for you:
           </p>
         </div>
 
@@ -1093,9 +1105,8 @@ function DoneScreen({ name, agency, planResult }) {
             What happens next
           </div>
           <ol style={{ margin: 0, paddingLeft: 20, color: '#374151', fontSize: 13, lineHeight: 1.7 }}>
-            <li><strong>{agencyName} has been notified</strong> your intake is complete.</li>
-            <li>They&apos;ll review your plan and tailor anything that needs a human touch.</li>
-            <li>You&apos;ll get a message with a link to log in and start training.</li>
+            <li>Your personalized plan is built and saved.</li>
+            <li>You&apos;ll get a link to log in and start training.</li>
           </ol>
           {supportEmail && (
             <p style={{ margin: '12px 0 0', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
