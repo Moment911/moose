@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Loader2, Sparkles, ArrowLeft, Check, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import TrainerWelcomeCard from '../../components/trainer/TrainerWelcomeCard'
+import NoneOrText from '../../components/trainer/NoneOrText'
 import {
   PRIMARY_GOALS,
   EQUIPMENT_ACCESS,
@@ -16,21 +17,16 @@ import { feetInchesToCm, lbsToKg } from '../../lib/trainer/units'
 import { T, BLK, GRY, GRN, R } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /my-intake — AI-first self-service intake.
+// /my-intake — self-service intake.  Three-phase flow:
 //
-// Three phases:
-//   1. Tell us about yourself — ONE textarea.  Trainee writes as much or as
-//      little as they want (sport, job, goals, injuries, equipment, etc.).
-//   2. Review + fill the gaps — Sonnet reads the paragraph, auto-populates
-//      every IntakeInput field it could extract, and lists targeted
-//      follow-up questions for the required fields that weren't covered.
-//      The trainee reviews the pre-populated values (editable) and answers
-//      the gaps.
-//   3. Generating plan — plan chain runs server-side (~60-90s), then
-//      redirect to /my-plan.
-//
-// This replaces the old 17-field flat form.  Trainees never answer what
-// they already said in their paragraph.
+//   Phase 1 — "Basics + your story"
+//     Structured: name / age / sex / height / weight.
+//     Plus: free-text paragraph about themselves + goals.
+//   Phase 2 — "Quick confirm"
+//     Sonnet reads the paragraph + structured basics, populates every other
+//     required field it can extract, and lists follow-up questions for what's
+//     still missing.  Everything is editable before submission.
+//   Phase 3 — plan generation (~60-90s), then /my-plan.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BG = '#f9fafb'
@@ -40,14 +36,27 @@ export default function SelfIntakePage() {
   const navigate = useNavigate()
 
   const [sessionState, setSessionState] = useState({ loading: true, user: null })
-  const [phase, setPhase] = useState('story') // 'story' | 'extracting' | 'review' | 'generating' | 'done'
+  const [phase, setPhase] = useState('basics') // 'basics' | 'extracting' | 'review' | 'generating'
+
+  // Phase 1 state — structured basics
+  const [basics, setBasics] = useState({
+    full_name: '',
+    age: '',
+    sex: '',
+    height_ft: '',
+    height_in: '',
+    current_weight_lbs: '',
+  })
   const [freeText, setFreeText] = useState('')
-  const [extractError, setExtractError] = useState(null)
-  const [extracted, setExtracted] = useState({})       // partial IntakeInput from Sonnet
-  const [aboutYou, setAboutYou] = useState('')         // cleaned paragraph
+  const [basicsError, setBasicsError] = useState(null)
+
+  // Phase 2 state — extracted + review + follow-ups
+  const [extracted, setExtracted] = useState({})
+  const [aboutYou, setAboutYou] = useState('')
   const [remainingQuestions, setRemainingQuestions] = useState([])
-  const [answers, setAnswers] = useState({})           // question_id → value
-  const [reviewDraft, setReviewDraft] = useState({})   // editable view of extracted fields
+  const [answers, setAnswers] = useState({})
+  const [reviewDraft, setReviewDraft] = useState({})
+
   const [generateError, setGenerateError] = useState(null)
   const [submittedFieldErrors, setSubmittedFieldErrors] = useState({})
 
@@ -66,77 +75,102 @@ export default function SelfIntakePage() {
       if (cancelled) return
       if (mapping) { navigate('/my-plan'); return }
       setSessionState({ loading: false, user })
+      setBasics((b) => ({
+        ...b,
+        full_name: user.user_metadata?.full_name || '',
+      }))
     })
     return () => { cancelled = true }
   }, [navigate])
 
-  async function handleExtract(e) {
+  function setBasic(field, value) {
+    setBasics((b) => ({ ...b, [field]: value }))
+  }
+
+  // ── Phase 1 → 2: submit basics + story to extract endpoint ──────────────
+  async function handleBasicsSubmit(e) {
     e?.preventDefault?.()
-    if (freeText.trim().length < 20) {
-      setExtractError('Write at least a sentence — we need something to work with.')
+    setBasicsError(null)
+
+    // Validate required basics.
+    const missing = []
+    if (!basics.full_name.trim()) missing.push('name')
+    if (basics.age === '' || !Number.isFinite(Number(basics.age))) missing.push('age')
+    if (!basics.sex) missing.push('sex')
+    if (basics.height_ft === '' && basics.height_in === '') missing.push('height')
+    if (basics.current_weight_lbs === '') missing.push('weight')
+    if (freeText.trim().length < 20) missing.push('about you (write at least a sentence)')
+    if (missing.length > 0) {
+      setBasicsError(`Fill these in before continuing: ${missing.join(', ')}.`)
       return
     }
-    setExtractError(null)
+
+    // Build the already_filled payload we'll hand to Sonnet.
+    const ft = basics.height_ft === '' ? 0 : Number(basics.height_ft)
+    const inches = basics.height_in === '' ? 0 : Number(basics.height_in)
+    const alreadyFilled = {
+      full_name: basics.full_name.trim(),
+      age: Number(basics.age),
+      sex: basics.sex,
+      height_cm: feetInchesToCm(ft, inches),
+      current_weight_kg: lbsToKg(Number(basics.current_weight_lbs)),
+    }
+
     setPhase('extracting')
     try {
       const { data } = await supabase.auth.getSession()
       const token = data?.session?.access_token
-      if (!token) { setExtractError('Your session expired. Sign in again.'); setPhase('story'); return }
+      if (!token) { setBasicsError('Your session expired. Sign in again.'); setPhase('basics'); return }
       const res = await fetch('/api/trainer/intake-extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ free_text: freeText.trim() }),
+        body: JSON.stringify({ free_text: freeText.trim(), already_filled: alreadyFilled }),
       })
       const payload = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setExtractError(payload?.detail || payload?.error || `Could not read your story (${res.status})`)
-        setPhase('story')
+        setBasicsError(payload?.detail || payload?.error || `Could not read your story (${res.status})`)
+        setPhase('basics')
         return
       }
-      setExtracted(payload.extracted || {})
+      // Merge the structured basics into the extracted object so the review
+      // view renders a complete recap from the start.
+      const merged = { ...alreadyFilled, ...payload.extracted }
+      setExtracted(merged)
       setAboutYou(payload.about_you || freeText.trim())
       setRemainingQuestions(payload.remaining_questions || [])
-      setReviewDraft(seedReviewDraft(payload.extracted || {}))
+      setReviewDraft(seedReviewDraft(merged))
       setAnswers({})
       setPhase('review')
     } catch (err) {
-      setExtractError(err?.message || 'Network error while reading your story.')
-      setPhase('story')
+      setBasicsError(err?.message || 'Network error while reading your story.')
+      setPhase('basics')
     }
   }
 
+  // ── Phase 2 → 3: final submit → plan generation ─────────────────────────
   async function handleGenerate() {
     setGenerateError(null)
     setSubmittedFieldErrors({})
 
-    // Build the full IntakeInput payload from review draft + follow-up answers.
     const payload = {
-      full_name:
-        sessionState.user?.user_metadata?.full_name ||
-        extracted.full_name ||
-        (sessionState.user?.email || '').split('@')[0] || 'New trainee',
+      full_name: reviewDraft.full_name || basics.full_name || extracted.full_name || 'New trainee',
       about_you: aboutYou,
       ...buildIntakeFromReview(reviewDraft),
       ...buildIntakeFromAnswers(remainingQuestions, answers),
     }
 
-    // Client-side validate; duplicates the server check but catches obvious
-    // gaps before we fire the expensive Sonnet chain.
     const validation = validateIntake(payload)
     if (!validation.ok) {
       setSubmittedFieldErrors(validation.errors)
-      setGenerateError('A few answers still need attention — see the red flags below.')
+      setGenerateError('A few answers still need attention — see the red notes below.')
       return
     }
-
-    // Also enforce the full completeness list (validateIntake only requires
-    // full_name + about_you; the server gate wants all 17).
     const missing = missingIntakeFields(validation.data)
     if (missing.length > 0) {
-      const missingErrors = {}
-      for (const f of missing) missingErrors[f] = 'Required'
-      setSubmittedFieldErrors(missingErrors)
-      setGenerateError(`Still missing: ${missing.join(', ')}.  Scroll up and finish those.`)
+      const e = {}
+      for (const f of missing) e[f] = 'Required'
+      setSubmittedFieldErrors(e)
+      setGenerateError(`Still missing: ${missing.join(', ')}.`)
       return
     }
 
@@ -153,9 +187,9 @@ export default function SelfIntakePage() {
       const body = await res.json().catch(() => ({}))
       if (!res.ok) {
         if (body?.error === 'intake_incomplete' && Array.isArray(body.missing_fields)) {
-          const missingErrors = {}
-          for (const f of body.missing_fields) missingErrors[f] = 'Required'
-          setSubmittedFieldErrors(missingErrors)
+          const e = {}
+          for (const f of body.missing_fields) e[f] = 'Required'
+          setSubmittedFieldErrors(e)
           setGenerateError(`Still missing: ${body.missing_fields.join(', ')}.`)
         } else {
           setGenerateError(body?.error || `Save failed (${res.status})`)
@@ -163,7 +197,6 @@ export default function SelfIntakePage() {
         setPhase('review')
         return
       }
-      setPhase('done')
       navigate('/my-plan')
     } catch (err) {
       setGenerateError(err?.message || 'Network error during setup.')
@@ -178,34 +211,32 @@ export default function SelfIntakePage() {
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
         <header style={{ marginBottom: 18 }}>
           <div style={{ fontSize: 12, color: GRY, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-            Step 2 of 2
+            Step {phase === 'basics' ? '1' : '2'} of 2
           </div>
           <h1 style={{ margin: '6px 0 0', fontSize: 26, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
-            {phase === 'story' && 'Tell us about yourself'}
+            {phase === 'basics' && 'Your basics + your story'}
             {phase === 'extracting' && 'Reading your story…'}
-            {phase === 'review' && 'Quick confirm'}
+            {phase === 'review' && 'Full profile — confirm + fill the gaps'}
             {phase === 'generating' && 'Crafting your plan'}
-            {phase === 'done' && 'Almost there…'}
           </h1>
           <p style={{ margin: '4px 0 0', fontSize: 14, color: GRY }}>
-            {phase === 'story' && 'One paragraph. Anything you already say here, we won’t ask again.'}
-            {phase === 'extracting' && 'Sonnet is pulling fields from what you wrote…'}
-            {phase === 'review' && 'We filled in what you already said. Fix anything that’s wrong and answer the few questions we still need.'}
-            {phase === 'generating' && 'Baseline, roadmap, workout, playbook — ~60-90s.'}
-            {phase === 'done' && 'Redirecting to your plan.'}
+            {phase === 'basics' && 'Quick basics, then tell us about you in your own words. Anything you mention — we skip asking again.'}
+            {phase === 'extracting' && 'Sonnet is pulling everything it can from what you wrote…'}
+            {phase === 'review' && 'Here’s the full picture. Fix anything off, and answer the gaps the AI flagged.'}
+            {phase === 'generating' && 'Baseline, roadmap, 2-week workout, playbook — ~60-90s.'}
           </p>
         </header>
 
-        {phase === 'story' && (
-          <TrainerWelcomeCard compact />
-        )}
+        {phase === 'basics' && <TrainerWelcomeCard compact />}
 
-        {phase === 'story' && (
-          <StoryForm
+        {phase === 'basics' && (
+          <BasicsAndStoryForm
+            basics={basics}
+            onChangeBasic={setBasic}
             freeText={freeText}
-            onChange={setFreeText}
-            onSubmit={handleExtract}
-            error={extractError}
+            onChangeFreeText={setFreeText}
+            onSubmit={handleBasicsSubmit}
+            error={basicsError}
           />
         )}
 
@@ -220,7 +251,7 @@ export default function SelfIntakePage() {
             remainingQuestions={remainingQuestions}
             answers={answers}
             setAnswers={setAnswers}
-            onBack={() => setPhase('story')}
+            onBack={() => setPhase('basics')}
             onGenerate={handleGenerate}
             generateError={generateError}
             fieldErrors={submittedFieldErrors}
@@ -237,51 +268,72 @@ export default function SelfIntakePage() {
   )
 }
 
-// ── Phase 1 — Story textarea ───────────────────────────────────────────────
+// ── Phase 1 — Basics form + story textarea ─────────────────────────────────
 
-function StoryForm({ freeText, onChange, onSubmit, error }) {
+function BasicsAndStoryForm({ basics, onChangeBasic, freeText, onChangeFreeText, onSubmit, error }) {
   return (
     <section style={{ background: '#fff', border: `1px solid ${BRD}`, borderRadius: 12, padding: '22px 24px' }}>
-      <form onSubmit={onSubmit}>
-        <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 8 }}>
-          About you and your goals *
-        </label>
-        <textarea
-          value={freeText}
-          onChange={(e) => onChange(e.target.value)}
-          autoFocus
-          rows={10}
-          placeholder={PLACEHOLDER}
-          style={{
-            width: '100%', padding: '12px 14px', fontSize: 14,
-            border: `1px solid #d1d5db`, borderRadius: 10,
-            fontFamily: 'inherit', lineHeight: 1.55, color: '#0a0a0a',
-            resize: 'vertical', minHeight: 200,
-          }}
-        />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, flexWrap: 'wrap', gap: 8 }}>
-          <span style={{ fontSize: 11, color: GRY }}>
-            Anything you mention — age, sport, injuries, sleep, job, equipment — we’ll pre-fill and skip on the next page.
-          </span>
-          <button
-            type="submit"
-            disabled={freeText.trim().length < 20}
-            style={{
-              padding: '12px 18px',
-              background: freeText.trim().length < 20 ? '#9ca3af' : R,
-              color: '#fff', border: 'none', borderRadius: 10,
-              fontSize: 14, fontWeight: 800, cursor: freeText.trim().length < 20 ? 'default' : 'pointer',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-            }}
-          >
-            <Sparkles size={14} /> Continue
-          </button>
+      <form onSubmit={onSubmit} style={{ display: 'grid', gap: 14 }}>
+        <div style={{ display: 'grid', gap: 14, gridTemplateColumns: '1fr' }}>
+          <Field label="Your name *">
+            <input value={basics.full_name} onChange={(e) => onChangeBasic('full_name', e.target.value)} style={inputStyle} autoComplete="name" />
+          </Field>
+
+          <Row2>
+            <Field label="Age *">
+              <NumInput value={basics.age} onChange={(v) => onChangeBasic('age', v)} min={10} max={120} step={1} placeholder="yrs" />
+            </Field>
+            <Field label="Sex *">
+              <RadioPill
+                value={basics.sex}
+                options={['M', 'F', 'Other']}
+                labels={{ M: 'Male', F: 'Female', Other: 'Other' }}
+                onChange={(v) => onChangeBasic('sex', v)}
+              />
+            </Field>
+          </Row2>
+
+          <Row2>
+            <Field label="Height *">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <NumInput value={basics.height_ft} onChange={(v) => onChangeBasic('height_ft', v)} min={0} max={9} step={1} placeholder="ft" />
+                <NumInput value={basics.height_in} onChange={(v) => onChangeBasic('height_in', v)} min={0} max={11} step={1} placeholder="in" />
+              </div>
+            </Field>
+            <Field label="Current weight *">
+              <NumInput value={basics.current_weight_lbs} onChange={(v) => onChangeBasic('current_weight_lbs', v)} min={50} max={600} step={1} placeholder="lbs" />
+            </Field>
+          </Row2>
         </div>
+
+        <div style={{ marginTop: 4 }}>
+          <Field label="Tell us about you and what you want *" hint="Anything you mention — sport, job, injuries, equipment, goals — we skip asking again.">
+            <textarea
+              value={freeText}
+              onChange={(e) => onChangeFreeText(e.target.value)}
+              rows={10}
+              placeholder={PLACEHOLDER}
+              style={{
+                width: '100%', padding: '12px 14px', fontSize: 14,
+                border: `1px solid #d1d5db`, borderRadius: 10,
+                fontFamily: 'inherit', lineHeight: 1.55, color: '#0a0a0a',
+                resize: 'vertical', minHeight: 200,
+              }}
+            />
+          </Field>
+        </div>
+
         {error && (
-          <div style={{ marginTop: 10, padding: '10px 12px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, fontSize: 13, color: '#991b1b' }}>
+          <div style={{ padding: '10px 12px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, fontSize: 13, color: '#991b1b' }}>
             {error}
           </div>
         )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="submit" style={btnPrimary()}>
+            <Sparkles size={14} /> Continue
+          </button>
+        </div>
       </form>
     </section>
   )
@@ -313,24 +365,24 @@ function ReviewFormScreen({
 
   return (
     <>
-      {/* Extracted summary */}
+      {/* Summary bar */}
       <section style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderLeft: `4px solid ${GRN}`, borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
           <Check size={16} color={GRN} />
           <h2 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#065f46', letterSpacing: '.04em', textTransform: 'uppercase' }}>
-            We read your story
+            Full profile so far
           </h2>
         </div>
         <p style={{ margin: 0, fontSize: 13, color: '#065f46', lineHeight: 1.55 }}>
-          Pulled <strong>{extractedCount}</strong> answers from what you wrote.
+          Pulled <strong>{extractedCount}</strong> answers from your basics + story.
           Fix anything below that’s off — you know you better than we do.
         </p>
       </section>
 
-      {/* Editable pre-populated fields */}
+      {/* Editable recap */}
       <section style={{ background: '#fff', border: `1px solid ${BRD}`, borderRadius: 12, padding: '20px 22px', marginBottom: 16 }}>
         <h2 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 800, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-          What we got
+          Your recap
         </h2>
 
         <div style={{ display: 'grid', gap: 14 }}>
@@ -345,12 +397,7 @@ function ReviewFormScreen({
               <NumInput value={reviewDraft.age} onChange={(v) => setDraft('age', v)} min={10} max={120} step={1} placeholder="yrs" />
             </Field>
             <Field label="Sex *" error={fieldErrors.sex}>
-              <RadioPill
-                value={reviewDraft.sex}
-                options={['M', 'F', 'Other']}
-                labels={{ M: 'Male', F: 'Female', Other: 'Other' }}
-                onChange={(v) => setDraft('sex', v)}
-              />
+              <RadioPill value={reviewDraft.sex} options={['M', 'F', 'Other']} labels={{ M: 'Male', F: 'Female', Other: 'Other' }} onChange={(v) => setDraft('sex', v)} />
             </Field>
           </Row2>
 
@@ -371,12 +418,7 @@ function ReviewFormScreen({
           </Field>
 
           <Field label="Primary goal *" error={fieldErrors.primary_goal}>
-            <RadioPill
-              value={reviewDraft.primary_goal}
-              options={[...PRIMARY_GOALS]}
-              labels={GOAL_LABELS}
-              onChange={(v) => setDraft('primary_goal', v)}
-            />
+            <RadioPill value={reviewDraft.primary_goal} options={[...PRIMARY_GOALS]} labels={GOAL_LABELS} onChange={(v) => setDraft('primary_goal', v)} />
           </Field>
 
           <Row2>
@@ -389,19 +431,14 @@ function ReviewFormScreen({
           </Row2>
 
           <Field label="Equipment access *" error={fieldErrors.equipment_access}>
-            <RadioPill
-              value={reviewDraft.equipment_access}
-              options={[...EQUIPMENT_ACCESS]}
-              labels={EQUIPMENT_LABELS}
-              onChange={(v) => setDraft('equipment_access', v)}
-            />
+            <RadioPill value={reviewDraft.equipment_access} options={[...EQUIPMENT_ACCESS]} labels={EQUIPMENT_LABELS} onChange={(v) => setDraft('equipment_access', v)} />
           </Field>
 
-          <Field label="Medical flags *" error={fieldErrors.medical_flags} hint='"None" is a valid answer.'>
-            <textarea value={reviewDraft.medical_flags || ''} onChange={(e) => setDraft('medical_flags', e.target.value)} rows={2} style={taStyle} placeholder='Cardiac, hypertension, surgery, meds — or "None".' />
+          <Field label="Medical flags *" error={fieldErrors.medical_flags}>
+            <NoneOrText value={reviewDraft.medical_flags} onChange={(v) => setDraft('medical_flags', v)} placeholder="Cardiac, hypertension, recent surgery, medications, etc." />
           </Field>
-          <Field label="Injuries *" error={fieldErrors.injuries} hint='"None" is a valid answer.'>
-            <textarea value={reviewDraft.injuries || ''} onChange={(e) => setDraft('injuries', e.target.value)} rows={2} style={taStyle} placeholder='Current or chronic injuries — or "None".' />
+          <Field label="Injuries *" error={fieldErrors.injuries}>
+            <NoneOrText value={reviewDraft.injuries} onChange={(v) => setDraft('injuries', v)} placeholder="Current or chronic injuries affecting training." />
           </Field>
 
           <Row2>
@@ -409,59 +446,39 @@ function ReviewFormScreen({
               <NumInput value={reviewDraft.sleep_hours_avg} onChange={(v) => setDraft('sleep_hours_avg', v)} min={0} max={16} step={0.5} placeholder="hrs" />
             </Field>
             <Field label="Stress (1–10) *" error={fieldErrors.stress_level}>
-              <Select
-                value={reviewDraft.stress_level}
-                onChange={(v) => setDraft('stress_level', v)}
-                options={[1,2,3,4,5,6,7,8,9,10].map((n) => ({ value: String(n), label: String(n) }))}
-                placeholder="—"
-              />
+              <Select value={reviewDraft.stress_level} onChange={(v) => setDraft('stress_level', v)} options={[1,2,3,4,5,6,7,8,9,10].map((n) => ({ value: String(n), label: String(n) }))} placeholder="—" />
             </Field>
           </Row2>
 
           <Field label="Dietary preference *" error={fieldErrors.dietary_preference}>
-            <Select
-              value={reviewDraft.dietary_preference}
-              onChange={(v) => setDraft('dietary_preference', v)}
-              options={DIETARY_PREFERENCES.map((d) => ({ value: d, label: DIET_LABELS[d] }))}
-              placeholder="Pick one"
-            />
+            <Select value={reviewDraft.dietary_preference} onChange={(v) => setDraft('dietary_preference', v)} options={DIETARY_PREFERENCES.map((d) => ({ value: d, label: DIET_LABELS[d] }))} placeholder="Pick one" />
           </Field>
-          <Field label="Allergies / intolerances *" error={fieldErrors.allergies} hint='"None" is a valid answer.'>
-            <textarea value={reviewDraft.allergies || ''} onChange={(e) => setDraft('allergies', e.target.value)} rows={2} style={taStyle} placeholder='e.g. shellfish, tree nuts — or "None".' />
+          <Field label="Allergies / intolerances *" error={fieldErrors.allergies}>
+            <NoneOrText value={reviewDraft.allergies} onChange={(v) => setDraft('allergies', v)} placeholder="e.g. shellfish, tree nuts, dairy." />
           </Field>
 
           <Row2>
             <Field label="Occupation activity *" error={fieldErrors.occupation_activity}>
-              <RadioPill
-                value={reviewDraft.occupation_activity}
-                options={[...OCCUPATION_ACTIVITIES]}
-                labels={OCCUPATION_LABELS}
-                onChange={(v) => setDraft('occupation_activity', v)}
-              />
+              <RadioPill value={reviewDraft.occupation_activity} options={[...OCCUPATION_ACTIVITIES]} labels={OCCUPATION_LABELS} onChange={(v) => setDraft('occupation_activity', v)} />
             </Field>
             <Field label="Meals per day *" error={fieldErrors.meals_per_day}>
-              <Select
-                value={reviewDraft.meals_per_day}
-                onChange={(v) => setDraft('meals_per_day', v)}
-                options={[3,4,5,6].map((n) => ({ value: String(n), label: String(n) }))}
-                placeholder="3–6"
-              />
+              <Select value={reviewDraft.meals_per_day} onChange={(v) => setDraft('meals_per_day', v)} options={[3,4,5,6].map((n) => ({ value: String(n), label: String(n) }))} placeholder="3–6" />
             </Field>
           </Row2>
         </div>
       </section>
 
-      {/* Follow-up questions surfaced by Sonnet */}
+      {/* AI-generated follow-ups for fields still not answered */}
       {remainingQuestions.length > 0 && (
         <section style={{ background: '#fffbea', border: '1px solid #fde68a', borderLeft: `4px solid #f59e0b`, borderRadius: 12, padding: '20px 22px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <AlertTriangle size={16} color="#b45309" />
             <h2 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#78350f', letterSpacing: '.04em', textTransform: 'uppercase' }}>
-              A few we still need
+              A few questions we still need
             </h2>
           </div>
           <p style={{ margin: '0 0 12px', fontSize: 13, color: '#78350f', lineHeight: 1.55 }}>
-            You didn’t mention these in your story, and the plan needs them.
+            Not covered in your story. The coach needs these to tailor the plan.
           </p>
           <div style={{ display: 'grid', gap: 14 }}>
             {remainingQuestions.map((q) => (
@@ -490,6 +507,7 @@ function ReviewFormScreen({
 }
 
 function FollowUpQuestion({ q, value, onChange }) {
+  const isHealthField = q.question_id === 'medical_flags' || q.question_id === 'injuries' || q.question_id === 'allergies'
   return (
     <div>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>
@@ -500,18 +518,14 @@ function FollowUpQuestion({ q, value, onChange }) {
           {q.why_asked}
         </div>
       )}
-      {q.question_type === 'select' && Array.isArray(q.options) ? (
+      {isHealthField ? (
+        <NoneOrText value={value} onChange={onChange} placeholder={q.placeholder || ''} />
+      ) : q.question_type === 'select' && Array.isArray(q.options) ? (
         <RadioPill value={value} options={q.options} onChange={onChange} />
       ) : q.question_type === 'number' ? (
         <NumInput value={value} onChange={onChange} placeholder={q.placeholder || ''} />
       ) : (
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={q.placeholder || ''}
-          style={inputStyle}
-        />
+        <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={q.placeholder || ''} style={inputStyle} />
       )}
     </div>
   )
@@ -521,6 +535,7 @@ function FollowUpQuestion({ q, value, onChange }) {
 
 function seedReviewDraft(extracted) {
   return {
+    full_name: extracted.full_name ?? '',
     age: extracted.age ?? '',
     sex: extracted.sex ?? '',
     primary_goal: extracted.primary_goal ?? '',
@@ -570,7 +585,6 @@ function buildIntakeFromReview(r) {
     const n = Number(r.target_weight_lbs)
     if (Number.isFinite(n)) out.target_weight_kg = lbsToKg(n)
   }
-  // Strip nulls so validateIntake doesn't see empty strings either.
   const cleaned = {}
   for (const [k, v] of Object.entries(out)) {
     if (v === null || v === undefined || v === '') continue
@@ -612,13 +626,7 @@ function Field({ label, error, hint, children }) {
 
 function NumInput({ value, onChange, min, max, step = 1, placeholder }) {
   return (
-    <input
-      type="number"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      min={min} max={max} step={step} placeholder={placeholder}
-      style={inputStyle}
-    />
+    <input type="number" value={value} onChange={(e) => onChange(e.target.value)} min={min} max={max} step={step} placeholder={placeholder} style={inputStyle} />
   )
 }
 
@@ -628,21 +636,15 @@ function RadioPill({ value, options, labels, onChange }) {
       {options.map((opt) => {
         const active = String(value) === String(opt)
         return (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => onChange(opt)}
+          <button key={opt} type="button" onClick={() => onChange(opt)}
             style={{
               padding: '6px 12px',
               border: `1px solid ${active ? R : '#d1d5db'}`,
               borderRadius: 999,
               background: active ? R + '10' : '#fff',
               color: active ? R : '#374151',
-              fontSize: 12,
-              fontWeight: active ? 700 : 500,
-              cursor: 'pointer',
-            }}
-          >
+              fontSize: 12, fontWeight: active ? 700 : 500, cursor: 'pointer',
+            }}>
             {labels?.[opt] || opt}
           </button>
         )
@@ -663,7 +665,6 @@ function Select({ value, onChange, options, placeholder }) {
 function Row2({ children }) {
   return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>{children}</div>
 }
-
 function Row2Tight({ children }) {
   return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>{children}</div>
 }
@@ -683,17 +684,10 @@ function CenteredSpinner({ label }) {
 function ExtractingScreen() {
   return (
     <section style={{ background: '#fff', border: `1px solid ${BRD}`, borderRadius: 12, padding: '32px 28px', textAlign: 'center' }}>
-      <div
-        style={{
-          width: 44, height: 44, margin: '0 auto 16px',
-          border: `4px solid #f3f4f6`, borderTopColor: T,
-          borderRadius: '50%',
-          animation: 'kotoExtractSpin 0.9s linear infinite',
-        }}
-      />
+      <div style={{ width: 44, height: 44, margin: '0 auto 16px', border: `4px solid #f3f4f6`, borderTopColor: T, borderRadius: '50%', animation: 'kotoExtractSpin 0.9s linear infinite' }} />
       <style>{'@keyframes kotoExtractSpin{to{transform:rotate(360deg)}}'}</style>
       <div style={{ fontSize: 14, color: BLK, fontWeight: 700, marginBottom: 4 }}>Reading your story…</div>
-      <div style={{ fontSize: 12, color: GRY }}>Pulling age, height, weight, goal, equipment, and anything else you mentioned.</div>
+      <div style={{ fontSize: 12, color: GRY }}>Pulling goal, equipment, experience, injuries, and anything else you mentioned.</div>
     </section>
   )
 }
@@ -701,18 +695,9 @@ function ExtractingScreen() {
 function GeneratingScreen() {
   return (
     <section style={{ background: '#fff', border: `1px solid ${BRD}`, borderRadius: 12, padding: '32px 28px', textAlign: 'center' }}>
-      <div
-        style={{
-          width: 48, height: 48, margin: '0 auto 20px',
-          border: `4px solid #f3f4f6`, borderTopColor: R,
-          borderRadius: '50%',
-          animation: 'kotoGenerateSpin 0.9s linear infinite',
-        }}
-      />
+      <div style={{ width: 48, height: 48, margin: '0 auto 20px', border: `4px solid #f3f4f6`, borderTopColor: R, borderRadius: '50%', animation: 'kotoGenerateSpin 0.9s linear infinite' }} />
       <style>{'@keyframes kotoGenerateSpin{to{transform:rotate(360deg)}}'}</style>
-      <h1 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
-        Crafting your plan
-      </h1>
+      <h1 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
       <p style={{ margin: '0 0 16px', fontSize: 14, color: GRY, lineHeight: 1.55 }}>
         Your baseline, 90-day roadmap, 2-week workout block, and coaching playbook are
         generating now. This takes about a minute — don’t close this tab.
@@ -729,34 +714,10 @@ function GeneratingScreen() {
 
 // ── Label maps ─────────────────────────────────────────────────────────────
 
-const GOAL_LABELS = {
-  lose_fat: 'Lose fat',
-  gain_muscle: 'Gain muscle',
-  maintain: 'Maintain',
-  performance: 'Performance',
-  recomp: 'Recomp',
-}
-const EQUIPMENT_LABELS = {
-  none: 'None',
-  bands: 'Bands',
-  home_gym: 'Home gym',
-  full_gym: 'Full gym',
-}
-const DIET_LABELS = {
-  none: 'No preference',
-  vegetarian: 'Vegetarian',
-  vegan: 'Vegan',
-  pescatarian: 'Pescatarian',
-  keto: 'Keto',
-  paleo: 'Paleo',
-  custom: 'Custom',
-}
-const OCCUPATION_LABELS = {
-  sedentary: 'Sedentary',
-  light: 'Light',
-  moderate: 'Moderate',
-  heavy: 'Heavy',
-}
+const GOAL_LABELS = { lose_fat: 'Lose fat', gain_muscle: 'Gain muscle', maintain: 'Maintain', performance: 'Performance', recomp: 'Recomp' }
+const EQUIPMENT_LABELS = { none: 'None', bands: 'Bands', home_gym: 'Home gym', full_gym: 'Full gym' }
+const DIET_LABELS = { none: 'No preference', vegetarian: 'Vegetarian', vegan: 'Vegan', pescatarian: 'Pescatarian', keto: 'Keto', paleo: 'Paleo', custom: 'Custom' }
+const OCCUPATION_LABELS = { sedentary: 'Sedentary', light: 'Light', moderate: 'Moderate', heavy: 'Heavy' }
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
@@ -764,11 +725,6 @@ const inputStyle = {
   width: '100%', padding: '8px 10px', fontSize: 13,
   border: '1px solid #d1d5db', borderRadius: 6,
   background: '#fff', color: '#0a0a0a', fontFamily: 'inherit',
-}
-const taStyle = {
-  ...inputStyle,
-  lineHeight: 1.5,
-  resize: 'vertical',
 }
 
 function btnPrimary() {
@@ -786,4 +742,4 @@ function btnSecondary() {
   }
 }
 
-const PLACEHOLDER = `Example:\n\nI'm a 16-year-old high school baseball pitcher, junior year, starter in the rotation.  I'm throwing around 82 mph and want to add velocity without blowing out my shoulder.  Coach said I need to be stronger in the offseason.  I lift at the school weight room 3 days a week, it has racks and dumbbells.  Played through a minor elbow flare last spring so I want to protect the arm.  I sleep about 7 hours most nights, eat 4 meals a day, no allergies, no medications.  5 feet 11, 170 lbs.`
+const PLACEHOLDER = `Example:\n\nI'm a junior-year high school baseball pitcher, starter in the rotation, throwing around 82 mph.  Want to add velocity without blowing out my shoulder.  Coach said I need to be stronger in the offseason.  I lift at the school weight room 3 days a week, it has racks and dumbbells.  Played through a minor elbow flare last spring so I want to protect the arm.  I sleep about 7 hours most nights, eat 4 meals a day, no allergies, no medications.`

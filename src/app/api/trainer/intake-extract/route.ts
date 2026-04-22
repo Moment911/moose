@@ -66,11 +66,22 @@ export async function POST(req: NextRequest) {
     return err(400, 'free_text too long (max 4000 chars)')
   }
 
+  // alreadyFilled — structured fields the trainee answered on step 1 of
+  // the intake (name / age / sex / height / weight / etc).  Sonnet keeps
+  // these verbatim in extracted and won't re-ask them in remaining_questions.
+  const alreadyFilled = (body.already_filled && typeof body.already_filled === 'object')
+    ? (body.already_filled as Record<string, unknown>)
+    : undefined
+
   const fullNameHint = user.user_metadata?.full_name ?? null
 
   const agencyId = process.env.DEFAULT_SELF_SIGNUP_AGENCY_ID || DEFAULT_AGENCY_FALLBACK
 
-  const { systemPrompt, userMessage } = buildIntakeExtractPrompt({ freeText, fullNameHint })
+  const { systemPrompt, userMessage } = buildIntakeExtractPrompt({
+    freeText,
+    fullNameHint,
+    alreadyFilled: alreadyFilled as Parameters<typeof buildIntakeExtractPrompt>[0]['alreadyFilled'],
+  })
   const result = await callSonnet<IntakeExtractOutput>({
     featureTag: FEATURE_TAGS.REFINE, // Same bucket — cheap one-shot.
     systemPrompt,

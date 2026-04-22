@@ -37,6 +37,7 @@ import PlanBaselineCard from '../../components/trainer/PlanBaselineCard'
 import RoadmapCard from '../../components/trainer/RoadmapCard'
 import WorkoutAccordion from '../../components/trainer/WorkoutAccordion'
 import RefineIntakeCard from '../../components/trainer/RefineIntakeCard'
+import NoneOrText from '../../components/trainer/NoneOrText'
 import FoodPrefsWizard from '../../components/trainer/FoodPrefsWizard'
 import MealPlanTable from '../../components/trainer/MealPlanTable'
 import GroceryList from '../../components/trainer/GroceryList'
@@ -1334,22 +1335,18 @@ function IntakeBasicsEditor({ trainee, onSave }) {
         </EditorField>
 
         {/* Health */}
-        <EditorField label="Medical flags *" missing={missingSet.has('medical_flags')} hint='Type "None" if nothing to flag.'>
-          <textarea
+        <EditorField label="Medical flags *" missing={missingSet.has('medical_flags')}>
+          <NoneOrText
             value={draft.medical_flags}
-            onChange={(e) => set('medical_flags', e.target.value)}
-            style={textareaStyle}
-            rows={2}
-            placeholder="Cardiac, hypertension, surgery, meds, etc. Or None."
+            onChange={(v) => set('medical_flags', v)}
+            placeholder="Cardiac, hypertension, recent surgery, meds."
           />
         </EditorField>
-        <EditorField label="Injuries *" missing={missingSet.has('injuries')} hint='Type "None" if none.'>
-          <textarea
+        <EditorField label="Injuries *" missing={missingSet.has('injuries')}>
+          <NoneOrText
             value={draft.injuries}
-            onChange={(e) => set('injuries', e.target.value)}
-            style={textareaStyle}
-            rows={2}
-            placeholder="Current or chronic injuries affecting training. Or None."
+            onChange={(v) => set('injuries', v)}
+            placeholder="Current or chronic injuries affecting training."
           />
         </EditorField>
 
@@ -1378,13 +1375,11 @@ function IntakeBasicsEditor({ trainee, onSave }) {
           />
         </EditorField>
 
-        <EditorField label="Allergies / intolerances *" missing={missingSet.has('allergies')} hint='Type "None" if none.'>
-          <textarea
+        <EditorField label="Allergies / intolerances *" missing={missingSet.has('allergies')}>
+          <NoneOrText
             value={draft.allergies}
-            onChange={(e) => set('allergies', e.target.value)}
-            style={textareaStyle}
-            rows={2}
-            placeholder="e.g. shellfish, tree nuts, dairy. Or None."
+            onChange={(v) => set('allergies', v)}
+            placeholder="e.g. shellfish, tree nuts, dairy."
           />
         </EditorField>
 

@@ -12,6 +12,7 @@ import {
   missingIntakeFields,
 } from '../../lib/trainer/intakeCompleteness'
 import { feetInchesToCm, lbsToKg } from '../../lib/trainer/units'
+import NoneOrText from './NoneOrText'
 
 import { R, T, BLK } from '../../lib/theme'
 
@@ -385,19 +386,17 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
 
       <Section title="4. Health check">
         <Field label="Medical flags *" error={errors.medical_flags}>
-          <textarea
-            style={{ ...inputStyle, minHeight: 60, fontFamily: 'inherit' }}
-            placeholder='Anything your coach should know (cardiac, hypertension, surgery, meds, eating disorder history). Type "None" if there is nothing to flag.'
-            value={values.medical_flags || ''}
-            onChange={(e) => setField('medical_flags', e.target.value || null)}
+          <NoneOrText
+            value={values.medical_flags}
+            onChange={(v) => setField('medical_flags', v || null)}
+            placeholder="Cardiac, hypertension, recent surgery, medications, eating-disorder history, etc."
           />
         </Field>
         <Field label="Injuries *" error={errors.injuries}>
-          <textarea
-            style={{ ...inputStyle, minHeight: 60, fontFamily: 'inherit' }}
-            placeholder='Current or chronic injuries affecting training. Type "None" if there are none.'
-            value={values.injuries || ''}
-            onChange={(e) => setField('injuries', e.target.value || null)}
+          <NoneOrText
+            value={values.injuries}
+            onChange={(v) => setField('injuries', v || null)}
+            placeholder="Current or chronic injuries affecting training."
           />
         </Field>
         <Field label="Pregnancy or nursing" error={errors.pregnancy_or_nursing}>
@@ -430,11 +429,10 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
           />
         </Field>
         <Field label="Allergies / intolerances *" error={errors.allergies}>
-          <textarea
-            style={{ ...inputStyle, minHeight: 50, fontFamily: 'inherit' }}
-            placeholder='e.g. shellfish, tree nuts, dairy. Type "None" if you have no allergies.'
-            value={values.allergies || ''}
-            onChange={(e) => setField('allergies', e.target.value || null)}
+          <NoneOrText
+            value={values.allergies}
+            onChange={(v) => setField('allergies', v || null)}
+            placeholder="e.g. shellfish, tree nuts, dairy."
           />
         </Field>
         <Field label="Meals per day *" error={errors.meals_per_day}>

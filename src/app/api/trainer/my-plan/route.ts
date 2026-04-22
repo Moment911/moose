@@ -34,7 +34,7 @@ function getDb(): SupabaseClient {
   )
 }
 
-const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log'] as const
+const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account'] as const
 type Action = (typeof ALLOWED_ACTIONS)[number]
 
 function err(status: number, error: string, extra?: Record<string, unknown>) {
@@ -180,6 +180,8 @@ export async function POST(req: NextRequest) {
     if (action === 'get_my_plan') return await handleGetMyPlan(sb, ctx)
     if (action === 'log_set') return await handleLogSet(sb, ctx, body)
     if (action === 'update_log') return await handleUpdateLog(sb, ctx, body)
+    if (action === 'update_intake') return await handleUpdateIntake(sb, ctx, body)
+    if (action === 'delete_my_account') return await handleDeleteMyAccount(sb, ctx)
     return err(400, 'Unknown action')
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Internal error'
@@ -431,5 +433,85 @@ async function handleUpdateLog(
     return err(500, 'Update failed')
   }
   if (!data) return err(404, 'Not found')
+  return NextResponse.json({ ok: true })
+}
+
+// ── update_intake — trainee edits any of their own intake fields ─────────
+// Accepts a partial patch of IntakeInput fields.  validateIntakePartial
+// enforces per-field validity without requiring every field (so the trainee
+// can correct one thing at a time).  body.trainee_id is ignored — the
+// update is ALWAYS scoped to ctx.traineeId from the JWT.
+async function handleUpdateIntake(
+  sb: SupabaseClient,
+  ctx: TraineeCtx,
+  body: Record<string, unknown>,
+) {
+  const { validateIntakePartial } = await import('../../../../lib/trainer/intakeSchema')
+  const patchInput = (body.patch ?? body) as Record<string, unknown>
+  const result = validateIntakePartial(patchInput)
+  if (!result.ok) {
+    return err(400, 'Validation failed', { field_errors: result.errors })
+  }
+  if (Object.keys(result.data).length === 0) {
+    return err(400, 'No fields to update')
+  }
+  const { error } = await sb
+    .from('koto_fitness_trainees')
+    .update(result.data)
+    .eq('id', ctx.traineeId)
+    .eq('agency_id', ctx.agencyId)
+  if (error) {
+    console.error('[trainer/my-plan] update_intake error:', error.message)
+    return err(500, 'Update failed')
+  }
+  return NextResponse.json({ ok: true, patched: Object.keys(result.data) })
+}
+
+// ── delete_my_account — full cascade delete, self-service ─────────────────
+// Hard-deletes every trainee-scoped row the trainee owns:
+//   - koto_fitness_workout_logs (their set logs)
+//   - koto_fitness_plans        (all block rows)
+//   - koto_fitness_trainees     (the intake row)
+//   - koto_fitness_trainee_users (auth mapping)
+//   - auth.users                (Supabase auth account)
+//
+// Service-role cascade.  The trainee is signed out as a side effect of the
+// auth user being deleted; client clears its own session.
+async function handleDeleteMyAccount(sb: SupabaseClient, ctx: TraineeCtx) {
+  const { traineeId, agencyId, userId } = ctx
+  const failures: string[] = []
+
+  // Best-effort: delete children first, then parents.
+  const steps: Array<[string, () => Promise<{ error?: { message: string } | null }>]> = [
+    ['workout_logs', () => sb.from('koto_fitness_workout_logs').delete().eq('trainee_id', traineeId).eq('agency_id', agencyId)],
+    ['plans',        () => sb.from('koto_fitness_plans').delete().eq('trainee_id', traineeId).eq('agency_id', agencyId)],
+    ['trainees',     () => sb.from('koto_fitness_trainees').delete().eq('id', traineeId).eq('agency_id', agencyId)],
+    ['mapping',      () => sb.from('koto_fitness_trainee_users').delete().eq('trainee_id', traineeId).eq('agency_id', agencyId)],
+  ]
+  for (const [label, run] of steps) {
+    try {
+      const { error } = await run()
+      if (error) failures.push(`${label}:${error.message}`)
+    } catch (e) {
+      failures.push(`${label}:${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+
+  // Finally, delete the auth user.  If the mapping row is already gone the
+  // JWT will continue to resolve to no trainee — so the user is effectively
+  // locked out even if this step fails.
+  if (userId && userId !== 'bypass-user') {
+    try {
+      const { error } = await sb.auth.admin.deleteUser(userId)
+      if (error) failures.push(`auth_user:${error.message}`)
+    } catch (e) {
+      failures.push(`auth_user:${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+
+  if (failures.length > 0) {
+    console.error('[trainer/my-plan] delete_my_account partial failures:', failures)
+    return NextResponse.json({ ok: true, partial: true, failures })
+  }
   return NextResponse.json({ ok: true })
 }

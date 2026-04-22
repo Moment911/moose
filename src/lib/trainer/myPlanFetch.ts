@@ -108,6 +108,23 @@ export function updateLog(log_id: string, patch: UpdateLogPatch): Promise<{ ok: 
 }
 
 /**
+ * Trainee edits any subset of their own intake fields.  Server validates
+ * via validateIntakePartial so a single-field patch is fine.
+ */
+export function updateMyIntake(patch: Record<string, unknown>): Promise<{ ok: boolean; patched: string[] }> {
+  return callMyPlan<{ ok: boolean; patched: string[] }>('update_intake', { patch })
+}
+
+/**
+ * Self-service account deletion.  Cascades workout logs → plans → trainee
+ * row → mapping row → auth user.  After this resolves the client should
+ * sign out (auth user is gone) and route back to /start.
+ */
+export function deleteMyAccount(): Promise<{ ok: true; partial?: boolean; failures?: string[] }> {
+  return callMyPlan<{ ok: true; partial?: boolean; failures?: string[] }>('delete_my_account', {})
+}
+
+/**
  * Persist the disclaimer-ack timestamp. Writes to the trainee's own
  * user_metadata via supabase.auth.updateUser — no server round-trip needed.
  * Also POSTs to a (future) endpoint so the mapping row mirrors the ack;

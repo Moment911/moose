@@ -58,7 +58,12 @@ export type IntakeExtractOutput = {
   about_you: string
 }
 
-export function buildIntakeExtractPrompt(input: { freeText: string; fullNameHint?: string | null }): {
+export function buildIntakeExtractPrompt(input: {
+  freeText: string
+  fullNameHint?: string | null
+  /** Fields the UI collected upfront — Sonnet should NOT re-ask these. */
+  alreadyFilled?: Partial<IntakeExtractOutput['extracted']>
+}): {
   systemPrompt: string
   userMessage: string
 } {
@@ -114,15 +119,22 @@ Rules:
 
 Call the record_intake_extraction tool with { extracted, remaining_questions, about_you }.`
 
-  const nameHint = input.fullNameHint ? `\n\nKnown so far: full_name = "${input.fullNameHint}" (from their account — don't re-ask).` : ''
+  const nameHint = input.fullNameHint ? `\n\nKnown so far from the account: full_name = "${input.fullNameHint}" (don't re-ask).` : ''
+
+  // Fields the UI form already captured upfront (structured basics).  Do NOT
+  // include these in remaining_questions — the UI already has them.  Do
+  // include them in the "extracted" output so the final payload is complete.
+  const alreadyFilled = input.alreadyFilled && Object.keys(input.alreadyFilled).length > 0
+    ? `\n\nThe trainee ALREADY answered these in a structured form — include them verbatim in "extracted" and NEVER list them in remaining_questions:\n${JSON.stringify(input.alreadyFilled, null, 2)}`
+    : ''
 
   const userMessage = `Trainee wrote:
 """
 ${input.freeText.trim()}
 """
-${nameHint}
+${nameHint}${alreadyFilled}
 
-Extract every IntakeInput field you can, clean up their paragraph into about_you, and list targeted follow-up questions for the required fields that weren't answered.`
+Extract every IntakeInput field you can, clean up their paragraph into about_you, and list targeted follow-up questions for the required fields that weren't answered by the form OR the paragraph.`
 
   return { systemPrompt, userMessage }
 }
