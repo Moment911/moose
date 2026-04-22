@@ -1,7 +1,11 @@
-import 'server-only'
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 1 Plan 02 — intake schema + hand-rolled validators.
+//
+// Isomorphic on purpose — NO 'server-only' guard.  The API dispatcher
+// (src/app/api/trainer/trainees/route.ts) and the client-side IntakeForm
+// (src/components/trainer/IntakeForm.jsx) both import this module so
+// server + client validation stay in lock-step.  The validators are pure
+// functions with zero DB / secret / server-process access.
 //
 // DEVIATION from PLAN 02: the drafted plan specified Zod; zod is not a Koto
 // dependency and adding it would collide with in-flight package.json changes
