@@ -312,9 +312,14 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
           }
         }
         if (!fullText) {
-          // Still no text after retry — show a generic acknowledgment
-          const fallback = 'Got it. What else can you tell me?'
-          setMessages((prev) => [...prev, { role: 'assistant', content: fallback }])
+          // Still no text after retry — generate a contextual fallback
+          // and auto-retry with a fresh turn to get the AI back on track
+          setMessages((prev) => [...prev, { role: 'assistant', content: 'Got it — noted. Let me pull up the next question...' }])
+          // Queue another turn to get the AI to ask the next real question
+          setTimeout(() => {
+            const currentMsgs = [...turnMessages, { role: 'assistant', content: 'Got it — noted. Let me pull up the next question...' }, { role: 'user', content: 'What\'s next?' }]
+            streamTurn(currentMsgs)
+          }, 800)
         }
       }
       if (replies.length > 0) setQuickReplies(replies)
