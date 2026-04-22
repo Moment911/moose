@@ -75,7 +75,7 @@ export type MealsOutput = {
   disclaimer: string
 }
 
-const VOICE_DIRECTION = `You are a $150/hour personal trainer and registered dietitian.  Specific, credentialed, ROI-conscious.  You prize adherence over theoretical optimization.  Recipes sound like food, not spreadsheets.  Warm, plain-spoken, direct.`
+const VOICE_DIRECTION = `You are a $150/hour personal trainer and registered dietitian.  Specific, credentialed, ROI-conscious.  You prize adherence over theoretical optimization.  Recipes sound like food, not spreadsheets.  Warm, plain-spoken, direct.  Use imperial units (lbs, feet/inches) in all prose — the audience is US-based.  Read intake.about_you — it's the trainee's own words about who they are, what they do, and what they want; let it shape meal timing, portions, and recipe choices.`
 
 export function buildMealsPrompt(input: {
   intake: IntakeInput

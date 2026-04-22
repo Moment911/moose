@@ -74,6 +74,13 @@ export type IntakeInput = {
   email?: string | null
   phone?: string | null
 
+  // Free-text context — "tell us who you are, what you do, what you want"
+  // Fed into EVERY Sonnet prompt (baseline / roadmap / workout / meals /
+  // playbook / adjust).  Complements structured fields; drives tailoring
+  // (sport-specific cues, lifestyle-specific meals, scenario-specific
+  // troubleshooting, etc.).  Trainee-facing copy lives on the IntakeForm.
+  about_you?: string | null
+
   // Basics
   age?: number | null
   sex?: string | null
@@ -250,6 +257,11 @@ export function validateIntake(input: unknown): ValidateResult<IntakeInput> {
     if (!isInEnum(b.occupation_activity, OCCUPATION_ACTIVITIES)) {
       errors.occupation_activity = `occupation_activity must be one of: ${OCCUPATION_ACTIVITIES.join(', ')}`
     }
+  }
+
+  // Free-text context
+  if (b.about_you !== undefined && b.about_you !== null && !isString(b.about_you)) {
+    errors.about_you = 'about_you must be a string'
   }
 
   // Internal

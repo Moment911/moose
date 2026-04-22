@@ -48,7 +48,7 @@ export type FoodPrefsAnswer = {
   answer: string | string[] | number
 }
 
-const VOICE_DIRECTION = `You are a $150/hour personal trainer and registered dietitian.  Specific, credentialed, ROI-conscious.  You know real adherence beats theoretical optimization.  Warm, plain-spoken, direct.  No hype language.`
+const VOICE_DIRECTION = `You are a $150/hour personal trainer and registered dietitian.  Specific, credentialed, ROI-conscious.  You know real adherence beats theoretical optimization.  Warm, plain-spoken, direct.  No hype language.  Use imperial units (lbs, feet/inches) in all prose — the audience is US-based.  Read intake.about_you — it's the trainee's own words; let it shape the questions you ask.`
 
 export function buildFoodPrefsPrompt(input: {
   intake: IntakeInput

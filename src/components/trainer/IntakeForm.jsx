@@ -162,6 +162,28 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
         </div>
       )}
 
+      <Section title="Tell us who you are, what you do, what you want">
+        <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 10, lineHeight: 1.55 }}>
+          Write it like you&apos;d tell a private coach over coffee. Your sport, your job, what a
+          normal day looks like, what you&apos;re chasing, what&apos;s gotten in the way before.
+          The more context you give, the better every workout, meal plan, and coaching note gets
+          tailored to <em>you</em>.
+        </div>
+        <Field label="About you" error={errors.about_you}>
+          <textarea
+            style={{
+              ...inputStyle,
+              minHeight: 160,
+              fontFamily: 'inherit',
+              lineHeight: 1.55,
+            }}
+            placeholder="Example: I'm a 16-year-old high school baseball player — outfielder and pitcher. My main goal is muscle gain this offseason, especially shoulder and core. I can train 4 days a week for about 45 minutes and have access to a decent school weight room. I played through a minor elbow flare last spring so I want to protect the arm. I'd love to hit my first over-the-fence home run this year."
+            value={values.about_you || ''}
+            onChange={(e) => setField('about_you', e.target.value || null)}
+          />
+        </Field>
+      </Section>
+
       <Section title="1. Identity">
         <Field label="Full name *" error={errors.full_name}>
           <input
