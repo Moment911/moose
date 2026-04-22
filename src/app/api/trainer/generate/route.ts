@@ -38,6 +38,13 @@ import {
   playbookTool,
   type CoachingPlaybookOutput,
 } from '../../../../lib/trainer/prompts/playbook'
+import {
+  buildRefinePrompt,
+  refineTool,
+  mergeAnswersIntoAboutYou,
+  type RefineOutput,
+  type RefineAnswer,
+} from '../../../../lib/trainer/prompts/refine'
 import type { IntakeInput } from '../../../../lib/trainer/intakeSchema'
 import { missingIntakeFields } from '../../../../lib/trainer/intakeCompleteness'
 import {
@@ -91,6 +98,8 @@ const ALLOWED_ACTIONS = [
   'generate_meals',
   'generate_playbook',
   'adjust_block',
+  'refine_elicit',
+  'refine_submit',
 ] as const
 
 type Action = (typeof ALLOWED_ACTIONS)[number]
@@ -196,6 +205,8 @@ export async function POST(req: NextRequest) {
     if (action === 'generate_meals') return await handleMeals(sb, agencyId, body)
     if (action === 'generate_playbook') return await handlePlaybook(sb, agencyId, body)
     if (action === 'adjust_block') return await handleAdjust(sb, agencyId, body)
+    if (action === 'refine_elicit') return await handleRefineElicit(sb, agencyId, body)
+    if (action === 'refine_submit') return await handleRefineSubmit(sb, agencyId, body)
     return err(400, 'Unknown action')
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Internal error'
@@ -763,6 +774,103 @@ async function handleAdjust(
     workout_plan: newWorkoutPlan,
     adjustments_made: adjustmentsMade,
   })
+}
+
+// ── Refine handlers ──────────────────────────────────────────────────────
+// Two actions:
+//   refine_elicit   — call Sonnet to produce 4-6 follow-up questions tailored
+//                     to this trainee.  Returns the questions without
+//                     persisting them — UI re-runs elicit on demand.
+//   refine_submit   — take trainee's answers and merge them into about_you
+//                     as a "— Additional context (refined with AI) —" block.
+//                     Every downstream Sonnet prompt reads about_you so this
+//                     feeds into baseline, roadmap, workout, meals, etc. for
+//                     free (no schema change needed).
+//
+// The intake-completeness gate intentionally does NOT fire on refine:
+// refining is a legitimate intermediate step between initial intake and
+// baseline, and shouldn't be blocked by the completeness rule that governs
+// strategy generation.
+
+async function handleRefineElicit(
+  sb: SupabaseClient,
+  agencyId: string,
+  body: Record<string, unknown>,
+) {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+
+  const trainee = await loadTrainee(sb, agencyId, traineeId)
+  if (!trainee) return err(404, 'Not found')
+
+  const { systemPrompt, userMessage } = buildRefinePrompt({ intake: trainee })
+  const result = await callSonnet<RefineOutput>({
+    featureTag: FEATURE_TAGS.REFINE,
+    systemPrompt,
+    tool: refineTool,
+    userMessage,
+    agencyId,
+    metadata: { trainee_id: traineeId },
+  })
+  if (!result.ok) {
+    return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
+  }
+
+  const questions = (result.data as RefineOutput).questions ?? []
+  return NextResponse.json({ questions })
+}
+
+async function handleRefineSubmit(
+  sb: SupabaseClient,
+  agencyId: string,
+  body: Record<string, unknown>,
+) {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  const answersRaw = body.answers
+  if (!traineeId) return err(400, 'trainee_id required')
+  if (!Array.isArray(answersRaw)) return err(400, 'answers must be an array')
+
+  const answers: RefineAnswer[] = []
+  for (const a of answersRaw) {
+    if (!a || typeof a !== 'object') return err(400, 'invalid answer entry')
+    const entry = a as { question_id?: unknown; question_text?: unknown; answer?: unknown }
+    if (typeof entry.question_id !== 'string' || entry.question_id.length === 0) {
+      return err(400, 'answer.question_id required')
+    }
+    if (typeof entry.question_text !== 'string') {
+      return err(400, 'answer.question_text required')
+    }
+    if (typeof entry.answer !== 'string' || entry.answer.trim().length === 0) {
+      // Skip unanswered — no point merging an empty Q&A.
+      continue
+    }
+    answers.push({
+      question_id: entry.question_id,
+      question_text: entry.question_text,
+      answer: entry.answer,
+    })
+  }
+
+  if (answers.length === 0) {
+    return err(400, 'no_answers_provided')
+  }
+
+  const trainee = await loadTrainee(sb, agencyId, traineeId)
+  if (!trainee) return err(404, 'Not found')
+
+  const nextAboutYou = mergeAnswersIntoAboutYou(trainee.about_you, answers)
+
+  const { error: updErr } = await sb
+    .from('koto_fitness_trainees')
+    .update({ about_you: nextAboutYou })
+    .eq('id', traineeId)
+    .eq('agency_id', agencyId)
+  if (updErr) {
+    console.error('[trainer/generate] refine_submit update error:', updErr.message)
+    return err(500, 'Persist failed')
+  }
+
+  return NextResponse.json({ ok: true, about_you: nextAboutYou })
 }
 
 // ── Intake completeness gate ──────────────────────────────────────────────

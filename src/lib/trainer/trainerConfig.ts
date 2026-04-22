@@ -26,6 +26,7 @@ export const FEATURE_TAGS = {
   MEALS: 'trainer_meals',
   ADJUST: 'trainer_adjust',
   PLAYBOOK: 'trainer_playbook',
+  REFINE: 'trainer_refine',
 } as const
 
 // Per-agency daily USD cap for the whole Trainer Sonnet chain.

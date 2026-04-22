@@ -20,7 +20,14 @@ import {
 import Sidebar from '../../components/Sidebar'
 import { FeatureDisabledPanel } from './TrainerListPage'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
-import { missingIntakeFields } from '../../lib/trainer/intakeCompleteness'
+import { missingIntakeFields, REQUIRED_INTAKE_FIELDS } from '../../lib/trainer/intakeCompleteness'
+import {
+  PRIMARY_GOALS,
+  EQUIPMENT_ACCESS,
+  DIETARY_PREFERENCES,
+  OCCUPATION_ACTIVITIES,
+} from '../../lib/trainer/intakeSchema'
+import { feetInchesToCm, lbsToKg } from '../../lib/trainer/units'
 import { useAuth } from '../../hooks/useAuth'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { supabase } from '../../lib/supabase'
@@ -29,6 +36,7 @@ import { R, T, BLK, GRY, GRN } from '../../lib/theme'
 import PlanBaselineCard from '../../components/trainer/PlanBaselineCard'
 import RoadmapCard from '../../components/trainer/RoadmapCard'
 import WorkoutAccordion from '../../components/trainer/WorkoutAccordion'
+import RefineIntakeCard from '../../components/trainer/RefineIntakeCard'
 import FoodPrefsWizard from '../../components/trainer/FoodPrefsWizard'
 import MealPlanTable from '../../components/trainer/MealPlanTable'
 import GroceryList from '../../components/trainer/GroceryList'
@@ -277,8 +285,8 @@ export default function TrainerDetailPage() {
     return true
   }
 
-  // Generic intake patch — used by MissingIntakeFieldsCard to finish the
-  // intake inline without navigating away.  Accepts any partial patch of
+  // Generic intake patch — used by IntakeBasicsEditor to finish the intake
+  // inline without navigating away.  Accepts any partial patch of
   // IntakeInput fields; server validates via validateIntakePartial.
   async function handleUpdateTraineeFields(patch) {
     const res = await trainerFetch(
@@ -288,6 +296,34 @@ export default function TrainerDetailPage() {
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
       flashError(body.error || `Save failed (${res.status})`)
+      return false
+    }
+    await loadTrainee()
+    return true
+  }
+
+  // AI refinement — elicit follow-up questions + merge answers into about_you.
+  // Posts to /api/trainer/generate { action: refine_elicit | refine_submit }.
+  async function handleRefineElicit() {
+    const res = await trainerGenerateFetch(
+      { action: 'refine_elicit', trainee_id: traineeId },
+      { agencyId },
+    )
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body?.detail || body?.error || `Refine failed (${res.status})`)
+    }
+    return await res.json()
+  }
+
+  async function handleRefineSubmit(answers) {
+    const res = await trainerGenerateFetch(
+      { action: 'refine_submit', trainee_id: traineeId, answers },
+      { agencyId },
+    )
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      flashError(body?.error || `Save failed (${res.status})`)
       return false
     }
     await loadTrainee()
@@ -755,6 +791,8 @@ export default function TrainerDetailPage() {
                 onGenerateBaseline={handleGenerateBaseline}
                 onUpdateAboutYou={handleUpdateAboutYou}
                 onUpdateFields={handleUpdateTraineeFields}
+                onRefineElicit={handleRefineElicit}
+                onRefineSubmit={handleRefineSubmit}
                 onGotoTab={setActiveTab}
               />
             )}
@@ -943,32 +981,31 @@ function OverviewTab({
   onGenerateBaseline,
   onUpdateAboutYou,
   onUpdateFields,
+  onRefineElicit,
+  onRefineSubmit,
   onGotoTab,
 }) {
   const Icon = nextStep.icon || Sparkles
   const hasAboutYou = !!(trainee.about_you && trainee.about_you.trim().length > 0)
-  // Intake completeness — mirrors the /api/trainer/generate gate exactly,
-  // so the trainer sees the same list the server checks.  about_you is in
-  // the list too but the AboutYouCard below owns that one; filter it out
-  // so this card handles only the "other" missing fields.
-  const missingAllFields = missingIntakeFields(trainee)
-  const missingOtherFields = missingAllFields.filter((f) => f !== 'about_you')
   return (
     <div>
-      {/* Finish-intake card — only renders when the trainee has required
-          fields beyond about_you still unanswered.  Inline editors for
-          exactly those fields so the trainer doesn't have to navigate. */}
-      {missingOtherFields.length > 0 && (
-        <MissingIntakeFieldsCard
-          trainee={trainee}
-          missing={missingOtherFields}
-          onSave={onUpdateFields}
+      {/* About-you card — always first so trainers craft context BEFORE any
+          plan-generation CTA.  Compact when already on file, expanded editor
+          when empty. */}
+      <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
+
+      {/* AI refinement — Sonnet asks 4-6 follow-up questions tailored to this
+          trainee.  Answers merge into about_you so they feed every downstream
+          prompt.  Only surfaces once about_you exists (otherwise there's
+          nothing to refine from). */}
+      {hasAboutYou && (
+        <RefineIntakeCard
+          traineeId={trainee.id}
+          traineeAboutYou={trainee.about_you}
+          onElicit={onRefineElicit}
+          onSubmit={onRefineSubmit}
         />
       )}
-
-      {/* About-you card — always first so trainers craft context BEFORE any
-          plan-generation CTA.  Empty state locks downstream generation. */}
-      <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
 
       {/* Next-step CTA — hidden until about_you is filled in, since every
           Sonnet prompt reads it as primary steering input. */}
@@ -1018,9 +1055,11 @@ function OverviewTab({
         </section>
       )}
 
-      {/* Two-column on desktop: intake basics + baseline card / prompt. */}
+      {/* Always-editable intake basics — handles both "brand new trainee with
+          gaps" and "existing trainee needs a value fixed."  Renders in the
+          left column of a 2-col grid next to the baseline card. */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
-        <IntakeSummary trainee={trainee} />
+        <IntakeBasicsEditor trainee={trainee} onSave={onUpdateFields} />
         {hasBaseline ? (
           <PlanBaselineCard
             baseline={plan.baseline}
@@ -1074,141 +1113,304 @@ function OverviewTab({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MissingIntakeFieldsCard — renders above AboutYouCard when a trainee (usually
-// a pre-existing one created before today's required-field rollout) has any
-// REQUIRED_INTAKE_FIELDS still blank except about_you.  Inline editors for
-// exactly the missing set, batched save via action=update.  The card hides
-// itself the moment everything is filled.
+// IntakeBasicsEditor — the single always-editable intake surface on the
+// Overview tab.  Replaces both the old read-only IntakeSummary grid and the
+// temporary MissingIntakeFieldsCard: every field is rendered with its proper
+// widget (radio / select / bounded number / imperial composite), missing
+// required fields get a red left-border so the trainer sees exactly what's
+// still blocking plan generation, and a single "Save basics" button commits
+// the full patch via action=update.  Once saved, every field remains editable
+// — the trainer can fix a typo or change a goal any time.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const MISSING_FIELD_LABELS = {
-  age: 'Age',
-  sex: 'Sex (M / F / other)',
-  height_cm: 'Height (cm)',
-  current_weight_kg: 'Current weight (kg)',
-  primary_goal: 'Primary goal (lose_fat / gain_muscle / maintain / performance / recomp)',
-  training_experience_years: 'Training experience (years)',
-  training_days_per_week: 'Training days per week',
-  equipment_access: 'Equipment access (none / bands / home_gym / full_gym)',
-  medical_flags: 'Medical flags — type "None" if nothing to flag',
-  injuries: 'Injuries — type "None" if none',
-  dietary_preference: 'Dietary preference (none / vegetarian / vegan / pescatarian / keto / paleo / custom)',
-  allergies: 'Allergies / intolerances — type "None" if none',
-  sleep_hours_avg: 'Average sleep (hours/night)',
-  stress_level: 'Stress level (1–10)',
-  occupation_activity: 'Occupation activity (sedentary / light / moderate / heavy)',
-  meals_per_day: 'Meals per day (3–6)',
+const GOAL_LABELS_SHORT = {
+  lose_fat: 'Lose fat',
+  gain_muscle: 'Gain muscle',
+  maintain: 'Maintain',
+  performance: 'Performance',
+  recomp: 'Recomp',
 }
 
-// Fields that are numeric on the DB side — drafts typed into the text input
-// need coercion before we PATCH.
-const NUMERIC_FIELDS = new Set([
-  'age',
-  'height_cm',
-  'current_weight_kg',
-  'training_experience_years',
-  'training_days_per_week',
-  'sleep_hours_avg',
-  'stress_level',
-  'meals_per_day',
-])
+const EQUIPMENT_LABELS_SHORT = {
+  none: 'None',
+  bands: 'Bands',
+  home_gym: 'Home gym',
+  full_gym: 'Full gym',
+}
 
-function MissingIntakeFieldsCard({ trainee, missing, onSave }) {
-  const [drafts, setDrafts] = useState(() => {
-    const init = {}
-    for (const f of missing) init[f] = ''
-    return init
-  })
+const DIETARY_LABELS_SHORT = {
+  none: 'No preference',
+  vegetarian: 'Vegetarian',
+  vegan: 'Vegan',
+  pescatarian: 'Pescatarian',
+  keto: 'Keto',
+  paleo: 'Paleo',
+  custom: 'Custom',
+}
+
+const OCCUPATION_LABELS_SHORT = {
+  sedentary: 'Sedentary',
+  light: 'Light',
+  moderate: 'Moderate',
+  heavy: 'Heavy',
+}
+
+function IntakeBasicsEditor({ trainee, onSave }) {
+  // Snapshot current values into editor state on every trainee refresh.
+  const [draft, setDraft] = useState(() => seedDraftFromTrainee(trainee))
   const [saving, setSaving] = useState(false)
   const [localError, setLocalError] = useState(null)
+  const lastTraineeId = useRef(trainee.id)
 
-  function setDraft(field, value) {
-    setDrafts((prev) => ({ ...prev, [field]: value }))
+  // Re-seed whenever the parent loads a fresh trainee row (after save).
+  useEffect(() => {
+    if (lastTraineeId.current !== trainee.id) {
+      lastTraineeId.current = trainee.id
+      setDraft(seedDraftFromTrainee(trainee))
+      return
+    }
+    // Also re-seed when specific fields change upstream (e.g. external edit).
+    setDraft(seedDraftFromTrainee(trainee))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    trainee.id,
+    trainee.age,
+    trainee.sex,
+    trainee.height_cm,
+    trainee.current_weight_kg,
+    trainee.target_weight_kg,
+    trainee.primary_goal,
+    trainee.training_experience_years,
+    trainee.training_days_per_week,
+    trainee.equipment_access,
+    trainee.medical_flags,
+    trainee.injuries,
+    trainee.dietary_preference,
+    trainee.allergies,
+    trainee.sleep_hours_avg,
+    trainee.stress_level,
+    trainee.occupation_activity,
+    trainee.meals_per_day,
+  ])
+
+  const missingSet = useMemo(() => {
+    const set = new Set(missingIntakeFields(trainee))
+    set.delete('about_you') // AboutYouCard owns that one.
+    return set
+  }, [trainee])
+
+  function set(field, value) {
+    setDraft((prev) => ({ ...prev, [field]: value }))
   }
 
   function buildPatch() {
-    const patch = {}
-    for (const f of missing) {
-      const raw = (drafts[f] || '').trim()
-      if (!raw) continue
-      if (NUMERIC_FIELDS.has(f)) {
-        const n = Number(raw)
-        if (!Number.isFinite(n)) {
-          setLocalError(`${MISSING_FIELD_LABELS[f] || f}: must be a number`)
-          return null
-        }
-        patch[f] = n
-      } else {
-        patch[f] = raw
-      }
+    const p = {}
+    // Primitive number coercions.  Empty → null so the server can accept
+    // "clearing" a value (though the completeness gate will flag it on gen).
+    p.age = draft.age === '' ? null : Number(draft.age)
+    p.sex = draft.sex || null
+    p.primary_goal = draft.primary_goal || null
+    p.training_experience_years = draft.training_experience_years === '' ? null : Number(draft.training_experience_years)
+    p.training_days_per_week = draft.training_days_per_week === '' ? null : Number(draft.training_days_per_week)
+    p.equipment_access = draft.equipment_access || null
+    p.medical_flags = draft.medical_flags?.trim() || null
+    p.injuries = draft.injuries?.trim() || null
+    p.dietary_preference = draft.dietary_preference || null
+    p.allergies = draft.allergies?.trim() || null
+    p.sleep_hours_avg = draft.sleep_hours_avg === '' ? null : Number(draft.sleep_hours_avg)
+    p.stress_level = draft.stress_level === '' ? null : Number(draft.stress_level)
+    p.occupation_activity = draft.occupation_activity || null
+    p.meals_per_day = draft.meals_per_day === '' ? null : Number(draft.meals_per_day)
+
+    // Imperial → metric for height / weight.
+    const ft = draft.height_ft === '' ? null : Number(draft.height_ft)
+    const inches = draft.height_in === '' ? null : Number(draft.height_in)
+    if (ft !== null || inches !== null) {
+      p.height_cm = feetInchesToCm(ft || 0, inches || 0)
+    } else {
+      p.height_cm = null
     }
-    return patch
+    p.current_weight_kg = draft.current_weight_lbs === '' ? null : lbsToKg(Number(draft.current_weight_lbs))
+    p.target_weight_kg = draft.target_weight_lbs === '' ? null : lbsToKg(Number(draft.target_weight_lbs))
+
+    return p
   }
 
   async function handleSave() {
     setLocalError(null)
-    const patch = buildPatch()
-    if (!patch) return
-    const allFilled = missing.every((f) => (drafts[f] || '').trim().length > 0)
-    if (!allFilled) {
-      setLocalError('Answer every field before saving — the plan generator needs all of these.')
-      return
-    }
     setSaving(true)
-    const ok = await onSave?.(patch)
+    const ok = await onSave?.(buildPatch())
     setSaving(false)
     if (!ok) setLocalError('Save failed — see the toast for details.')
   }
+
+  const hasAnyMissing = missingSet.size > 0
 
   return (
     <section
       style={{
         ...panelStyle,
-        background: '#fff7ed',
-        borderLeft: `4px solid #ea580c`,
-        marginBottom: 18,
+        borderLeft: hasAnyMissing ? `4px solid #ea580c` : undefined,
+        background: hasAnyMissing ? '#fff7ed' : '#fff',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-        <AlertTriangle size={16} color="#ea580c" />
-        <h2 style={{ ...panelTitle, color: '#9a3412' }}>Finish the intake</h2>
+        {hasAnyMissing && <AlertTriangle size={16} color="#ea580c" />}
+        <h2 style={{ ...panelTitle, color: hasAnyMissing ? '#9a3412' : T }}>
+          Intake basics
+        </h2>
       </div>
-      <p style={{ ...paraStyle, color: '#9a3412', marginBottom: 14 }}>
-        {trainee?.full_name || 'This trainee'} was created before a few new required
-        fields landed. Fill these in and the plan generator will unlock.
-      </p>
+      {hasAnyMissing && (
+        <p style={{ ...paraStyle, color: '#9a3412', marginBottom: 14 }}>
+          {missingSet.size} required {missingSet.size === 1 ? 'field' : 'fields'} still
+          blank. Plan generation unlocks once these are answered.
+        </p>
+      )}
 
-      <div style={{ display: 'grid', gap: 10, marginBottom: 12 }}>
-        {missing.map((f) => (
-          <div key={f}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: '#7c2d12', display: 'block', marginBottom: 4 }}>
-              {MISSING_FIELD_LABELS[f] || f}
-            </label>
-            <input
-              type="text"
-              value={drafts[f] || ''}
-              onChange={(e) => setDraft(f, e.target.value)}
-              disabled={saving}
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                fontSize: 13,
-                border: `1px solid #fed7aa`,
-                borderRadius: 6,
-                background: '#fff',
-                color: '#0a0a0a',
-                fontFamily: 'inherit',
-              }}
+      <div style={{ display: 'grid', gap: 14 }}>
+        {/* Goal */}
+        <EditorField label="Primary goal *" missing={missingSet.has('primary_goal')}>
+          <RadioPill
+            value={draft.primary_goal}
+            options={PRIMARY_GOALS}
+            labels={GOAL_LABELS_SHORT}
+            onChange={(v) => set('primary_goal', v)}
+          />
+        </EditorField>
+
+        {/* Two-col numeric row: age + sex */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <EditorField label="Age *" missing={missingSet.has('age')}>
+            <BoundedNumber value={draft.age} onChange={(v) => set('age', v)} min={10} max={120} step={1} placeholder="yrs" />
+          </EditorField>
+          <EditorField label="Sex *" missing={missingSet.has('sex')}>
+            <RadioPill
+              value={draft.sex}
+              options={['Male', 'Female', 'Other']}
+              onChange={(v) => set('sex', v)}
             />
-          </div>
-        ))}
+          </EditorField>
+        </div>
+
+        {/* Height + weight */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <EditorField label="Height *" missing={missingSet.has('height_cm')}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <BoundedNumber value={draft.height_ft} onChange={(v) => set('height_ft', v)} min={0} max={9} step={1} placeholder="ft" />
+              <BoundedNumber value={draft.height_in} onChange={(v) => set('height_in', v)} min={0} max={11} step={1} placeholder="in" />
+            </div>
+          </EditorField>
+          <EditorField label="Current weight *" missing={missingSet.has('current_weight_kg')}>
+            <BoundedNumber value={draft.current_weight_lbs} onChange={(v) => set('current_weight_lbs', v)} min={50} max={600} step={1} placeholder="lbs" />
+          </EditorField>
+        </div>
+
+        {/* Target weight (optional) */}
+        <EditorField label="Target weight (optional)">
+          <BoundedNumber value={draft.target_weight_lbs} onChange={(v) => set('target_weight_lbs', v)} min={50} max={600} step={1} placeholder="lbs" />
+        </EditorField>
+
+        {/* Experience + days/week */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <EditorField label="Training experience (years) *" missing={missingSet.has('training_experience_years')}>
+            <BoundedNumber value={draft.training_experience_years} onChange={(v) => set('training_experience_years', v)} min={0} max={60} step={0.5} placeholder="yrs" />
+          </EditorField>
+          <EditorField label="Training days per week *" missing={missingSet.has('training_days_per_week')}>
+            <BoundedNumber value={draft.training_days_per_week} onChange={(v) => set('training_days_per_week', v)} min={0} max={7} step={1} placeholder="0–7" />
+          </EditorField>
+        </div>
+
+        {/* Equipment */}
+        <EditorField label="Equipment access *" missing={missingSet.has('equipment_access')}>
+          <RadioPill
+            value={draft.equipment_access}
+            options={EQUIPMENT_ACCESS}
+            labels={EQUIPMENT_LABELS_SHORT}
+            onChange={(v) => set('equipment_access', v)}
+          />
+        </EditorField>
+
+        {/* Health */}
+        <EditorField label="Medical flags *" missing={missingSet.has('medical_flags')} hint='Type "None" if nothing to flag.'>
+          <textarea
+            value={draft.medical_flags}
+            onChange={(e) => set('medical_flags', e.target.value)}
+            style={textareaStyle}
+            rows={2}
+            placeholder="Cardiac, hypertension, surgery, meds, etc. Or None."
+          />
+        </EditorField>
+        <EditorField label="Injuries *" missing={missingSet.has('injuries')} hint='Type "None" if none.'>
+          <textarea
+            value={draft.injuries}
+            onChange={(e) => set('injuries', e.target.value)}
+            style={textareaStyle}
+            rows={2}
+            placeholder="Current or chronic injuries affecting training. Or None."
+          />
+        </EditorField>
+
+        {/* Sleep + stress */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <EditorField label="Average sleep (hrs/night) *" missing={missingSet.has('sleep_hours_avg')}>
+            <BoundedNumber value={draft.sleep_hours_avg} onChange={(v) => set('sleep_hours_avg', v)} min={0} max={16} step={0.5} placeholder="hrs" />
+          </EditorField>
+          <EditorField label="Stress level (1–10) *" missing={missingSet.has('stress_level')}>
+            <Select
+              value={draft.stress_level}
+              onChange={(v) => set('stress_level', v)}
+              options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => ({ value: String(n), label: String(n) }))}
+              placeholder="—"
+            />
+          </EditorField>
+        </div>
+
+        {/* Dietary */}
+        <EditorField label="Dietary preference *" missing={missingSet.has('dietary_preference')}>
+          <Select
+            value={draft.dietary_preference}
+            onChange={(v) => set('dietary_preference', v)}
+            options={DIETARY_PREFERENCES.map((d) => ({ value: d, label: DIETARY_LABELS_SHORT[d] }))}
+            placeholder="Select preference"
+          />
+        </EditorField>
+
+        <EditorField label="Allergies / intolerances *" missing={missingSet.has('allergies')} hint='Type "None" if none.'>
+          <textarea
+            value={draft.allergies}
+            onChange={(e) => set('allergies', e.target.value)}
+            style={textareaStyle}
+            rows={2}
+            placeholder="e.g. shellfish, tree nuts, dairy. Or None."
+          />
+        </EditorField>
+
+        {/* Occupation + meals/day */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <EditorField label="Occupation activity *" missing={missingSet.has('occupation_activity')}>
+            <RadioPill
+              value={draft.occupation_activity}
+              options={OCCUPATION_ACTIVITIES}
+              labels={OCCUPATION_LABELS_SHORT}
+              onChange={(v) => set('occupation_activity', v)}
+            />
+          </EditorField>
+          <EditorField label="Meals per day *" missing={missingSet.has('meals_per_day')}>
+            <Select
+              value={draft.meals_per_day}
+              onChange={(v) => set('meals_per_day', v)}
+              options={[3, 4, 5, 6].map((n) => ({ value: String(n), label: String(n) }))}
+              placeholder="3–6"
+            />
+          </EditorField>
+        </div>
       </div>
 
       {localError && (
-        <div style={{ fontSize: 12, color: '#991b1b', marginBottom: 10 }}>{localError}</div>
+        <div style={{ fontSize: 12, color: '#991b1b', marginTop: 12 }}>{localError}</div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
         <button
           type="button"
           onClick={handleSave}
@@ -1216,11 +1418,139 @@ function MissingIntakeFieldsCard({ trainee, missing, onSave }) {
           style={btnPrimary(saving)}
         >
           {saving ? <Loader2 size={13} /> : null}
-          {saving ? 'Saving…' : 'Save intake'}
+          {saving ? 'Saving…' : 'Save basics'}
         </button>
       </div>
     </section>
   )
+}
+
+// ── Intake editor helpers ───────────────────────────────────────────────
+
+function seedDraftFromTrainee(t) {
+  return {
+    age: t.age ?? '',
+    sex: t.sex || '',
+    primary_goal: t.primary_goal || '',
+    training_experience_years: t.training_experience_years ?? '',
+    training_days_per_week: t.training_days_per_week ?? '',
+    equipment_access: t.equipment_access || '',
+    medical_flags: t.medical_flags || '',
+    injuries: t.injuries || '',
+    dietary_preference: t.dietary_preference || '',
+    allergies: t.allergies || '',
+    sleep_hours_avg: t.sleep_hours_avg ?? '',
+    stress_level: t.stress_level ?? '',
+    occupation_activity: t.occupation_activity || '',
+    meals_per_day: t.meals_per_day ?? '',
+    // Imperial presentation for height / weight.
+    height_ft: t.height_cm ? String(Math.floor((t.height_cm / 2.54) / 12)) : '',
+    height_in: t.height_cm ? String(Math.round((t.height_cm / 2.54) % 12)) : '',
+    current_weight_lbs: t.current_weight_kg ? String(Math.round(t.current_weight_kg * 2.20462)) : '',
+    target_weight_lbs: t.target_weight_kg ? String(Math.round(t.target_weight_kg * 2.20462)) : '',
+  }
+}
+
+function EditorField({ label, missing, hint, children }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: missing ? '#9a3412' : '#374151', marginBottom: 4 }}>
+        {label}
+        {missing && <span style={{ marginLeft: 6, color: '#ea580c', fontSize: 10, fontWeight: 800 }}>REQUIRED</span>}
+      </label>
+      {children}
+      {hint && <div style={{ marginTop: 4, fontSize: 10, color: GRY }}>{hint}</div>}
+    </div>
+  )
+}
+
+function BoundedNumber({ value, onChange, min, max, step, placeholder }) {
+  return (
+    <input
+      type="number"
+      value={value}
+      min={min}
+      max={max}
+      step={step}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        width: '100%',
+        padding: '8px 10px',
+        fontSize: 13,
+        border: '1px solid #d1d5db',
+        borderRadius: 6,
+        background: '#fff',
+        color: '#0a0a0a',
+        fontFamily: 'inherit',
+      }}
+    />
+  )
+}
+
+function Select({ value, onChange, options, placeholder }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        width: '100%',
+        padding: '8px 10px',
+        fontSize: 13,
+        border: '1px solid #d1d5db',
+        borderRadius: 6,
+        background: '#fff',
+        color: '#0a0a0a',
+        fontFamily: 'inherit',
+      }}
+    >
+      <option value="">{placeholder || 'Select'}</option>
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  )
+}
+
+function RadioPill({ value, options, labels, onChange }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {options.map((opt) => {
+        const active = String(value) === String(opt)
+        return (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => onChange(opt)}
+            style={{
+              padding: '6px 12px',
+              border: `1px solid ${active ? R : '#d1d5db'}`,
+              borderRadius: 999,
+              background: active ? R + '10' : '#fff',
+              color: active ? R : '#374151',
+              fontSize: 12,
+              fontWeight: active ? 700 : 500,
+              cursor: 'pointer',
+            }}
+          >
+            {labels?.[opt] || opt}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+const textareaStyle = {
+  width: '100%',
+  padding: '8px 10px',
+  fontSize: 13,
+  border: '1px solid #d1d5db',
+  borderRadius: 6,
+  background: '#fff',
+  color: '#0a0a0a',
+  fontFamily: 'inherit',
+  lineHeight: 1.5,
 }
 
 // Free-text context feeding every Sonnet prompt.  Rendered full-width at the
@@ -1228,7 +1558,11 @@ function MissingIntakeFieldsCard({ trainee, missing, onSave }) {
 // CTA — since about_you drives the quality of every downstream step.
 function AboutYouCard({ trainee, onUpdateAboutYou }) {
   const hasContext = !!(trainee.about_you && trainee.about_you.trim().length > 0)
+  // Compact by default when context is already on file — the trainer saw
+  // this question on the intake form, shouldn't be re-prompted on detail.
+  // Empty state auto-opens the editor (blocks plan generation downstream).
   const [editing, setEditing] = useState(!hasContext)
+  const [expanded, setExpanded] = useState(false)
   const [draft, setDraft] = useState(trainee.about_you || '')
   const [saving, setSaving] = useState(false)
 
@@ -1239,6 +1573,56 @@ function AboutYouCard({ trainee, onUpdateAboutYou }) {
     if (ok) setEditing(false)
   }
 
+  // Compact single-row view when context is on file and not editing.
+  if (hasContext && !editing) {
+    const preview = trainee.about_you.trim().replace(/\s+/g, ' ').slice(0, 120)
+    return (
+      <section
+        style={{
+          ...panelStyle,
+          marginBottom: 18,
+          padding: '12px 16px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+            <span style={{ color: GRN, fontSize: 14, fontWeight: 800 }}>✓</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+              About this trainee
+            </span>
+            <span style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+              — {preview}{trainee.about_you.length > 120 ? '…' : ''}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+            >
+              {expanded ? 'Hide' : 'View'}
+            </button>
+            {onUpdateAboutYou && (
+              <button
+                type="button"
+                onClick={() => { setDraft(trainee.about_you || ''); setEditing(true) }}
+                style={{ background: 'none', border: 'none', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+              >
+                Edit
+              </button>
+            )}
+          </div>
+        </div>
+        {expanded && (
+          <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${BRD}`, fontSize: 13, color: '#0a0a0a', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+            {trainee.about_you}
+          </div>
+        )}
+      </section>
+    )
+  }
+
+  // Expanded editor — empty-state OR user clicked Edit.
   return (
     <section
       style={{
@@ -1259,74 +1643,35 @@ function AboutYouCard({ trainee, onUpdateAboutYou }) {
               : 'Required before Koto Trainer can craft a custom plan. Sport, lifestyle, goals, constraints — in their own words.'}
           </div>
         </div>
-        {!editing && onUpdateAboutYou && (
-          <button
-            type="button"
-            onClick={() => { setDraft(trainee.about_you || ''); setEditing(true) }}
-            style={{ background: 'none', border: 'none', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}
-          >
-            Edit
-          </button>
-        )}
       </div>
 
-      {editing ? (
-        <>
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Example: 16-year-old HS baseball pitcher, junior year, starter. Throwing 82 mph, want to add velocity without blowing out the shoulder. Coach wants me stronger in the offseason. 3 days/week in the school weight room. Played through a minor elbow flare last spring — want to protect the arm."
-            style={{
-              width: '100%', minHeight: 160, padding: '10px 12px', fontSize: 13,
-              border: `1px solid ${BRD}`, borderRadius: 8, fontFamily: 'inherit',
-              lineHeight: 1.5, color: '#0a0a0a', background: '#fff',
-            }}
-          />
-          <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            {hasContext && (
-              <button type="button" onClick={() => setEditing(false)} disabled={saving} style={btnSecondary(saving)}>
-                Cancel
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving || draft.trim().length === 0}
-              style={btnPrimary(saving || draft.trim().length === 0)}
-            >
-              {saving ? <Loader2 size={13} /> : null} Save
-            </button>
-          </div>
-          <div style={{ marginTop: 8, fontSize: 11, color: GRY, lineHeight: 1.5 }}>
-            The more you write, the more tailored every workout, meal plan, and coaching note gets.
-          </div>
-        </>
-      ) : (
-        <div style={{ fontSize: 13, color: '#0a0a0a', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
-          {trainee.about_you}
-        </div>
-      )}
-    </section>
-  )
-}
-
-function IntakeSummary({ trainee }) {
-  return (
-    <section style={panelStyle}>
-      <h2 style={panelTitle}>Intake basics</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-        <Row k="Goal" v={trainee.primary_goal} />
-        <Row k="Training days/wk" v={trainee.training_days_per_week} />
-        <Row k="Age" v={trainee.age} />
-        <Row k="Sex" v={trainee.sex} />
-        <Row k="Height" v={trainee.height_cm ? cmToFeetInches(trainee.height_cm) : null} />
-        <Row k="Weight" v={trainee.current_weight_kg ? `${kgToLbs(trainee.current_weight_kg)} lbs` : null} />
-        <Row k="Target" v={trainee.target_weight_kg ? `${kgToLbs(trainee.target_weight_kg)} lbs` : null} />
-        <Row k="Equipment" v={trainee.equipment_access} />
-        <Row k="Dietary" v={trainee.dietary_preference} />
-        <Row k="Allergies" v={trainee.allergies} />
-        <Row k="Medical" v={trainee.medical_flags} />
-        <Row k="Injuries" v={trainee.injuries} />
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        placeholder="Example: 16-year-old HS baseball pitcher, junior year, starter. Throwing 82 mph, want to add velocity without blowing out the shoulder. Coach wants me stronger in the offseason. 3 days/week in the school weight room. Played through a minor elbow flare last spring — want to protect the arm."
+        style={{
+          width: '100%', minHeight: 160, padding: '10px 12px', fontSize: 13,
+          border: `1px solid ${BRD}`, borderRadius: 8, fontFamily: 'inherit',
+          lineHeight: 1.5, color: '#0a0a0a', background: '#fff',
+        }}
+      />
+      <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        {hasContext && (
+          <button type="button" onClick={() => setEditing(false)} disabled={saving} style={btnSecondary(saving)}>
+            Cancel
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving || draft.trim().length === 0}
+          style={btnPrimary(saving || draft.trim().length === 0)}
+        >
+          {saving ? <Loader2 size={13} /> : null} Save
+        </button>
+      </div>
+      <div style={{ marginTop: 8, fontSize: 11, color: GRY, lineHeight: 1.5 }}>
+        The more you write, the more tailored every workout, meal plan, and coaching note gets.
       </div>
     </section>
   )
