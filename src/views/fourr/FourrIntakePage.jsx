@@ -80,33 +80,97 @@ export default function FourrIntakePage() {
       flexDirection: 'column',
       fontFamily: FONT_BODY,
     }}>
-      {/* Header */}
-      <header style={{
-        padding: '12px 20px',
+      {/* Welcome intro */}
+      <div style={{
+        padding: '28px 24px 20px',
+        borderBottom: `1px solid ${CARD_BORDER}`,
+        textAlign: 'center',
+        background: `linear-gradient(180deg, ${NAVY} 0%, ${CARD_BG} 100%)`,
+      }}>
+        <div style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: GOLD,
+          textTransform: 'uppercase',
+          letterSpacing: '.12em',
+          marginBottom: 8,
+        }}>
+          The Spine & Wellness Center
+        </div>
+        <h1 style={{
+          margin: '0 0 6px',
+          fontSize: 26,
+          fontWeight: 400,
+          color: CREAM,
+          fontFamily: FONT_HEADING,
+          fontStyle: 'italic',
+          letterSpacing: '.02em',
+        }}>
+          Start With a Complete Assessment
+        </h1>
+        <p style={{
+          margin: '0 auto 16px',
+          fontSize: 14,
+          color: TEXT_BODY,
+          lineHeight: 1.6,
+          maxWidth: 520,
+        }}>
+          Every 4R journey begins with a comprehensive structural assessment.
+          Our AI intake coordinator will walk you through a few questions to
+          understand exactly what you're experiencing.
+        </p>
+
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          gap: 10,
+          marginBottom: 16,
+        }}>
+          {[
+            'What pain or symptoms are you dealing with',
+            'How long it has been going on',
+            'Past treatments or surgeries',
+            'Your goals — pain relief, mobility, performance',
+          ].map((item) => (
+            <span key={item} style={{
+              fontSize: 12,
+              padding: '5px 12px',
+              background: GOLD + '12',
+              border: `1px solid ${GOLD}30`,
+              color: CREAM,
+              borderRadius: 20,
+              lineHeight: 1.4,
+            }}>
+              {item}
+            </span>
+          ))}
+        </div>
+
+        <p style={{
+          margin: '0 auto',
+          fontSize: 12,
+          color: TEXT_MUTED,
+          maxWidth: 440,
+          lineHeight: 1.5,
+        }}>
+          We treat the cause, not the symptom. The 4R Method — Repair, Rebuild,
+          Regenerate, Refine — is a precise biological sequence, not a menu.
+          Your answers help our doctors build the right protocol for you.
+        </p>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{
+        padding: '10px 20px',
         borderBottom: `1px solid ${CARD_BORDER}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 16,
-        flexWrap: 'wrap',
       }}>
-        <div>
-          <div style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: GOLD,
-            textTransform: 'uppercase',
-            letterSpacing: '.08em',
-          }}>
-            4R Method Assessment
-          </div>
-          <div style={{
-            fontSize: 13,
-            color: TEXT_BODY,
-            marginTop: 2,
-          }}>
-            Tell us about your condition — one question at a time
-          </div>
+        <div style={{ fontSize: 12, color: TEXT_BODY }}>
+          Chat with our AI coordinator below — one question at a time
         </div>
         <div style={{ flexShrink: 0, minWidth: 200 }}>
           <FourrIntakeProgress
@@ -114,7 +178,7 @@ export default function FourrIntakePage() {
             totalRequired={progress.total_required}
           />
         </div>
-      </header>
+      </div>
 
       {/* Chat area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
