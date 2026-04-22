@@ -86,10 +86,20 @@ export async function POST(req: NextRequest) {
   if (Object.keys(extracted).length > 0) {
     const updatePayload: Record<string, unknown> = {}
     const allowedFields = [
+      // Core intake fields
       'full_name', 'age', 'sex', 'height_cm', 'current_weight_kg', 'target_weight_kg',
       'primary_goal', 'training_experience_years', 'training_days_per_week', 'equipment_access',
       'medical_flags', 'injuries', 'dietary_preference', 'allergies', 'sleep_hours_avg',
       'stress_level', 'occupation_activity', 'meals_per_day', 'about_you',
+      // Recruiting fields
+      'grad_year', 'position_primary', 'position_secondary', 'throwing_hand', 'batting_hand',
+      'gpa', 'test_type', 'test_score', 'fastball_velo_peak', 'fastball_velo_sit',
+      'exit_velo', 'sixty_time', 'pop_time', 'high_school', 'high_school_state',
+      'travel_team', 'video_link', 'preferred_divisions', 'preferred_states', 'intended_major',
+      // Workload fields
+      'club_team', 'practices_per_week', 'bullpen_sessions_per_week', 'game_appearances_per_week',
+      'avg_pitch_count', 'pitch_arsenal', 'long_toss_routine', 'arm_soreness',
+      'games_per_week', 'offseason_training', 'other_sports',
     ]
     for (const k of allowedFields) {
       if (k in extracted && (extracted as Record<string, unknown>)[k] !== undefined && (extracted as Record<string, unknown>)[k] !== null) {
