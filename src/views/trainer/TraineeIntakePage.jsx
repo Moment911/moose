@@ -115,11 +115,13 @@ export default function TraineeIntakePage() {
   const { traineeId } = useParams()
   const [phase, setPhase] = useState('loading') // loading | not_found | welcome | chat | generating | done
   const [trainee, setTrainee] = useState(null)
+  const [agency, setAgency] = useState(null)
   const [extracted, setExtracted] = useState({})
   const [aboutYou, setAboutYou] = useState('')
   const [initialText, setInitialText] = useState('') // paragraph from welcome screen
   const [services, setServices] = useState([]) // ['training', 'diet', 'recruiting']
   const [generateError, setGenerateError] = useState(null)
+  const [planResult, setPlanResult] = useState(null)
 
   // Load trainee on mount.
   useEffect(() => {
@@ -132,6 +134,20 @@ export default function TraineeIntakePage() {
       .then(({ data, error }) => {
         if (error || !data) { setPhase('not_found'); return }
         setTrainee(data)
+        // Load agency for the "coach at {Agency}" framing + brand bits.
+        supabase
+          .from('agencies')
+          .select('name, brand_name, brand_color, brand_logo_url, support_email')
+          .eq('id', data.agency_id)
+          .maybeSingle()
+          .then(({ data: ag }) => {
+            if (ag) setAgency({
+              name: ag.brand_name || ag.name || null,
+              brand_color: ag.brand_color || null,
+              logo_url: ag.brand_logo_url || null,
+              support_email: ag.support_email || null,
+            })
+          })
         // Pre-populate extracted from existing trainee data.
         const pre = {}
         for (const k of [...REQUIRED_FIELDS, 'full_name', 'target_weight_kg']) {
@@ -190,6 +206,7 @@ export default function TraineeIntakePage() {
         setPhase('chat')
         return
       }
+      setPlanResult(body)
       setPhase('done')
     } catch (e) {
       setGenerateError(e?.message || 'Network error')
@@ -201,22 +218,34 @@ export default function TraineeIntakePage() {
 
   if (phase === 'loading') return <CenteredSpinner label="Loading..." />
   if (phase === 'not_found') return <NotFoundScreen />
-  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={(text, selectedServices) => { setInitialText(text); setServices(selectedServices); setPhase('chat') }} />
+  if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} agency={agency} onStart={(text, selectedServices) => { setInitialText(text); setServices(selectedServices); setPhase('chat') }} />
   if (phase === 'generating') return <GeneratingScreen />
-  if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} />
+  if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} agency={agency} planResult={planResult} />
+
+  // Compute overall progress once so the ribbon + sidebar agree on the number.
+  const fieldDefs = getFieldDefs(services)
+  const filledCount = fieldDefs.filter(d => {
+    const v = extracted[d.key]
+    return v !== null && v !== undefined && v !== ''
+  }).length
+  const totalCount = fieldDefs.length
+  const pct = totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0
+  const allDone = missing.length === 0
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, padding: '24px 16px' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <header style={{ marginBottom: 16 }}>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
-            Tell us about you
-          </h1>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>
-            Chat with your coach — your profile builds itself as you go.
-          </p>
-        </header>
+    <div style={{ minHeight: '100vh', background: BG }}>
+      <ProgressRibbon
+        filledCount={filledCount}
+        totalCount={totalCount}
+        pct={pct}
+        allDone={allDone}
+        onGenerate={handleGenerate}
+        generating={phase === 'generating'}
+        generateError={generateError}
+        agencyName={agency?.name}
+      />
 
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '16px' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr) 320px',
@@ -234,8 +263,8 @@ export default function TraineeIntakePage() {
             services={services}
           />
 
-          {/* Live card */}
-          <div style={{ position: 'sticky', top: 24 }}>
+          {/* Live card — desktop sidebar detail view */}
+          <div style={{ position: 'sticky', top: 88 }}>
             <LiveCard
               extracted={extracted}
               missingFields={missing}
@@ -255,6 +284,57 @@ export default function TraineeIntakePage() {
           }
         }
       `}</style>
+    </div>
+  )
+}
+
+// ── Sticky progress ribbon (top of chat view) ───────────────────────────────
+// Always-visible progress + the "Finish & build my plan" CTA so trainees on
+// mobile — where the sidebar collapses below the chat — always see what to do
+// next.
+
+function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, generating, generateError, agencyName }) {
+  const label = agencyName ? `Building your profile for ${agencyName}` : 'Building your profile'
+  return (
+    <div style={{
+      position: 'sticky', top: 0, zIndex: 20,
+      background: '#fff',
+      borderBottom: '1px solid #e5e7eb',
+      boxShadow: '0 1px 2px rgba(0,0,0,.03)',
+    }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 260px', minWidth: 220 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, gap: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: BLK, letterSpacing: '-.1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: allDone ? GRN : '#6b7280', flexShrink: 0 }}>
+              {filledCount} of {totalCount} · {pct}%
+            </span>
+          </div>
+          <div style={{ height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${pct}%`, background: allDone ? GRN : T, borderRadius: 2, transition: 'width 0.4s ease' }} />
+          </div>
+        </div>
+        <button
+          onClick={onGenerate}
+          disabled={!allDone || generating}
+          style={{
+            padding: '10px 18px',
+            background: allDone ? R : '#e5e7eb',
+            color: allDone ? '#fff' : '#9ca3af',
+            border: 'none', borderRadius: 10,
+            fontSize: 13, fontWeight: 800,
+            cursor: allDone && !generating ? 'pointer' : 'not-allowed',
+            whiteSpace: 'nowrap', flexShrink: 0,
+          }}
+        >
+          {generating ? 'Generating…' : allDone ? 'Finish & build my plan' : `${totalCount - filledCount} to go`}
+        </button>
+      </div>
+      {generateError && (
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 16px 10px' }}>
+          <div style={{ padding: '8px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>{generateError}</div>
+        </div>
+      )}
     </div>
   )
 }
@@ -666,88 +746,97 @@ const SERVICE_OPTIONS = [
   { id: 'recruiting', label: 'College Recruiting', desc: 'ProPath Score, school matching, coach outreach, recruiting timeline', icon: '🎓' },
 ]
 
-function getServiceSummary(selected) {
-  const parts = []
-  if (selected.includes('training')) parts.push("Your AI coach will build a personalized training plan — workouts, mechanics drills, arm care, strength & conditioning, and mental performance routines tailored to your position and goals.")
-  if (selected.includes('diet')) parts.push("You'll also get a custom nutrition plan — daily macros, meal timing, recipes, and fueling strategies designed for a competitive baseball athlete.")
-  if (selected.includes('recruiting')) parts.push("For recruiting, we'll collect your stats, measurables, GPA, and preferences to generate your ProPath Score — matching you with the best-fit college programs across D1, D2, D3, and JUCO. You'll get coach contact info, email templates, and a grade-by-grade recruiting roadmap.")
-  return parts.join('\n\n')
+const OUTCOME_CHIPS = {
+  training: [
+    { icon: '🗺️', label: '90-day roadmap' },
+    { icon: '🏋️', label: 'Custom workouts' },
+    { icon: '📘', label: 'Coaching playbook' },
+  ],
+  diet: [{ icon: '🥗', label: 'Custom nutrition' }],
+  recruiting: [{ icon: '🎓', label: 'ProPath recruiting score' }],
 }
 
-function WelcomeScreen({ name, onStart }) {
+function WelcomeScreen({ name, agency, onStart }) {
   const firstName = name ? name.split(' ')[0] : null
+  const agencyName = agency?.name || null
   const [text, setText] = useState('')
-  const [selected, setSelected] = useState(['training']) // training always on by default
+  const [selected, setSelected] = useState(['training'])
   const [error, setError] = useState(null)
+  const [credentialsOpen, setCredentialsOpen] = useState(false)
 
   function toggleService(id) {
-    if (id === 'training') return // training is always included
+    if (id === 'training') return
     setSelected(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id])
   }
 
   function handleSubmit() {
     if (text.trim().length < 20) {
-      setError('Write at least a sentence or two — the more you share, the better your plan.')
+      setError('Share a couple sentences — the more you tell us here, the fewer questions we have to ask.')
       return
     }
     onStart(text, selected)
   }
 
+  // Outcome chips reflect the services currently selected — so the trainee
+  // sees "the prize" change in real time as they toggle add-ons.
+  const outcomeChips = [
+    ...OUTCOME_CHIPS.training,
+    ...(selected.includes('diet') ? OUTCOME_CHIPS.diet : []),
+    ...(selected.includes('recruiting') ? OUTCOME_CHIPS.recruiting : []),
+  ]
+
   return (
-    <div style={{ minHeight: '100vh', background: BG, padding: '32px 20px' }}>
+    <div style={{ minHeight: '100vh', background: BG, padding: '28px 20px' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
-        {/* Hero / Logo header */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        {/* Header — who sent this, how long it takes */}
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{
-            width: 72, height: 72, borderRadius: 20, margin: '0 auto 14px',
+            width: 56, height: 56, borderRadius: 16, margin: '0 auto 12px',
             background: `linear-gradient(135deg, ${BLK} 0%, #1e293b 100%)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(0,0,0,.15)',
+            boxShadow: '0 4px 16px rgba(0,0,0,.12)',
           }}>
-            <span style={{ fontSize: 28, fontWeight: 900, color: T, letterSpacing: '-1px', fontFamily: 'inherit' }}>K</span>
+            <span style={{ fontSize: 22, fontWeight: 900, color: T, letterSpacing: '-1px' }}>K</span>
           </div>
-          <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.5px' }}>
-            Koto
+          <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.4px' }}>
+            {firstName ? `Hi, ${firstName}` : 'Welcome'}
           </h1>
-          <p style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 600, color: T, letterSpacing: '.02em' }}>
-            Train. Fuel. Get Recruited.
+          <p style={{ margin: 0, fontSize: 14, color: '#4b5563', lineHeight: 1.55, maxWidth: 440, marginLeft: 'auto', marginRight: 'auto' }}>
+            {agencyName ? <>Your coach at <strong style={{ color: BLK }}>{agencyName}</strong> set this up so you get a plan built for you.</> : <>Your coach set this up so you get a plan built for you.</>}
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>💪 AI Training Plans</span>
-            <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>🥗 Custom Nutrition</span>
-            <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>🎓 College Recruiting</span>
+          <div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#6b7280' }}>
+            <span>⏱ About 5 minutes</span>
+            <span style={{ color: '#d1d5db' }}>·</span>
+            <span>Pause & return anytime</span>
           </div>
         </div>
 
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '28px 28px 24px', marginBottom: 16 }}>
-          <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
-            {firstName ? `Welcome, ${firstName}` : 'Welcome'}
-          </h2>
-          <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
-            Your AI-powered coach for baseball performance, nutrition, and college recruiting — all in one place. Chat with your coach, build your profile, and get a personalized plan built by PhDs, ex-MLB pros, and 20-year coaching veterans.
-          </p>
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '22px 22px 20px', marginBottom: 14 }}>
 
-          {/* Expert credentials */}
-          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-              Powered by expert-level AI
+          {/* Outcome chips — "here's what you get" */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+              What you&apos;ll walk away with
             </div>
-            <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13, lineHeight: 1.65 }}>
-              <li><strong>PhD in Biomechanics</strong> — throwing mechanics, swing analysis, movement efficiency</li>
-              <li><strong>PhD in Nutrition</strong> — sport-science nutrition, calorie & macro programming for athletes</li>
-              <li><strong>PhD in Strength & Conditioning</strong> — periodization, load management, power development</li>
-              <li><strong>PhD in Exercise Physiology</strong> — recovery protocols, injury prevention, youth athlete development</li>
-              <li><strong>PhD in Sports Psychology</strong> — mental performance, confidence, focus under pressure</li>
-              <li><strong>Ex-MLB player</strong> — pitcher and outfielder with professional playing experience</li>
-              <li><strong>20-year pro coaching staff</strong> — hitting, pitching, and throwing coaches at the highest level</li>
-            </ul>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {outcomeChips.map((c) => (
+                <span key={c.label} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 12px',
+                  background: '#f0fdfa', border: `1px solid ${T}30`,
+                  borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#0f766e',
+                }}>
+                  <span>{c.icon}</span>{c.label}
+                </span>
+              ))}
+            </div>
           </div>
 
-          {/* Service selection */}
-          <div style={{ marginBottom: 20 }}>
+          {/* Service picker — above the paragraph because it changes scope */}
+          <div style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
-              What do you want from your coach?
+              1. What should your coach help with?
             </div>
             <div style={{ display: 'grid', gap: 8 }}>
               {SERVICE_OPTIONS.map(svc => {
@@ -760,24 +849,24 @@ function WelcomeScreen({ name, onStart }) {
                     onClick={() => toggleService(svc.id)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '12px 14px', borderRadius: 10, cursor: isLocked ? 'default' : 'pointer',
+                      padding: '11px 13px', borderRadius: 10, cursor: isLocked ? 'default' : 'pointer',
                       border: `2px solid ${isOn ? T : '#e5e7eb'}`,
                       background: isOn ? T + '08' : '#fff',
                       textAlign: 'left', transition: 'all .15s',
                     }}
                   >
-                    <span style={{ fontSize: 22, flexShrink: 0 }}>{svc.icon}</span>
+                    <span style={{ fontSize: 20, flexShrink: 0 }}>{svc.icon}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}{isLocked ? ' (included)' : ''}</div>
-                      <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>{svc.desc}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{svc.label}{isLocked ? ' · included' : ''}</div>
+                      <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.4 }}>{svc.desc}</div>
                     </div>
                     <div style={{
-                      width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                      width: 20, height: 20, borderRadius: 6, flexShrink: 0,
                       border: `2px solid ${isOn ? T : '#d1d5db'}`,
                       background: isOn ? T : '#fff',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {isOn && <Check size={14} color="#fff" strokeWidth={3} />}
+                      {isOn && <Check size={12} color="#fff" strokeWidth={3} />}
                     </div>
                   </button>
                 )
@@ -785,38 +874,59 @@ function WelcomeScreen({ name, onStart }) {
             </div>
           </div>
 
-          {/* What happens next — based on selection */}
-          {selected.length > 0 && (
-            <div style={{ background: '#f0fdfa', border: `1px solid ${T}30`, borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-                Here's what happens next
-              </div>
-              <p style={{ margin: 0, fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-                {getServiceSummary(selected)}
-              </p>
-            </div>
-          )}
-
           {/* Free-text intro */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 6 }}>
-              Tell us about you — who you are, your goals, and what you want to accomplish
-            </label>
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6 }}>
+              2. Tell us about you
+            </div>
             <p style={{ margin: '0 0 8px', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
-              Mention anything relevant — your sport, job, injuries, equipment, experience level, age, height, weight. The more you share here, the fewer questions we'll need to ask.
+              A couple sentences is fine — your sport, goal, age, height, weight, injuries, equipment. We&apos;ll ask follow-ups in chat if we need anything else.
             </p>
             <textarea
               value={text}
               onChange={(e) => { setText(e.target.value); setError(null) }}
-              rows={8}
-              placeholder={"Example:\n\nI'm a 28-year-old guy, 5'11, 195 lbs. I played college baseball and want to get back in shape — lost about 20 lbs of muscle since I stopped playing. I have a full gym membership, can train 4 days a week. Had a minor shoulder impingement last year but it's cleared up. No allergies, I eat pretty much everything. Desk job, sleep about 7 hours, stress is moderate."}
+              rows={7}
+              placeholder={"Example:\n\n28, 5'11\", 195 lbs. Played college baseball, want to get back in shape — lost ~20 lbs of muscle. Full gym, 4 days/week. Minor shoulder impingement last year, cleared now. Desk job, 7 hrs sleep."}
               style={{
-                width: '100%', padding: '14px 16px', fontSize: 14,
+                width: '100%', padding: '12px 14px', fontSize: 14,
                 border: '1px solid #d1d5db', borderRadius: 10,
                 fontFamily: 'inherit', lineHeight: 1.55, color: '#0a0a0a',
-                resize: 'vertical', minHeight: 180, outline: 'none',
+                resize: 'vertical', minHeight: 150, outline: 'none',
               }}
             />
+          </div>
+
+          {/* Credentials — collapsed one-liner */}
+          <div style={{ marginBottom: 16 }}>
+            <button
+              type="button"
+              onClick={() => setCredentialsOpen(o => !o)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                width: '100%', padding: '10px 12px',
+                background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8,
+                cursor: 'pointer', textAlign: 'left',
+              }}
+            >
+              <span style={{ fontSize: 13 }}>🎓</span>
+              <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+                Built by a PhD + ex-MLB + pro-coach expert stack
+              </span>
+              <span style={{ fontSize: 11, color: '#6b7280', flexShrink: 0 }}>
+                {credentialsOpen ? 'Hide' : "What's inside?"} {credentialsOpen ? '▴' : '▾'}
+              </span>
+            </button>
+            {credentialsOpen && (
+              <ul style={{ margin: '8px 0 0', padding: '10px 14px 10px 28px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', fontSize: 12, lineHeight: 1.6 }}>
+                <li><strong>PhD in Biomechanics</strong> — throwing mechanics, swing, movement</li>
+                <li><strong>PhD in Nutrition</strong> — macros + fueling for athletes</li>
+                <li><strong>PhD in Strength & Conditioning</strong> — periodization, power</li>
+                <li><strong>PhD in Exercise Physiology</strong> — recovery, injury prevention</li>
+                <li><strong>PhD in Sports Psychology</strong> — focus, confidence under pressure</li>
+                <li><strong>Ex-MLB player</strong> — pitcher and outfielder</li>
+                <li><strong>20-year pro coaching staff</strong> — hitting, pitching, throwing</li>
+              </ul>
+            )}
           </div>
 
           {error && (
@@ -830,22 +940,21 @@ function WelcomeScreen({ name, onStart }) {
             style={{
               width: '100%',
               padding: '14px 20px',
-              background: R,
-              color: '#fff',
-              border: 'none',
-              borderRadius: 10,
-              fontSize: 16,
-              fontWeight: 800,
-              cursor: 'pointer',
+              background: R, color: '#fff',
+              border: 'none', borderRadius: 10,
+              fontSize: 15, fontWeight: 800, cursor: 'pointer',
               letterSpacing: '-.2px',
             }}
           >
-            Start chatting with your coach
+            Start chatting with your coach →
           </button>
+          <p style={{ margin: '10px 0 0', fontSize: 11, color: '#9ca3af', textAlign: 'center', lineHeight: 1.5 }}>
+            Answers save as you chat. {agencyName ? `${agencyName} sees your progress.` : 'Your coach sees your progress.'}
+          </p>
         </section>
 
-        <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-          Built by Koto. Every plan is generated for the individual — no templates, no copy-paste.
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af' }}>
+          Every plan is generated for the individual — no templates, no copy-paste.
         </div>
       </div>
     </div>
@@ -878,18 +987,117 @@ function GeneratingScreen() {
   )
 }
 
-function DoneScreen({ name }) {
+const PLAN_PIECES = [
+  { key: 'baseline_ready', icon: '📋', label: 'Baseline assessment', desc: 'Where you are right now + what you\'re ready for' },
+  { key: 'roadmap_ready', icon: '🗺️', label: '90-day roadmap', desc: '3 phases, week by week, toward your goal' },
+  { key: 'workout_ready', icon: '🏋️', label: '2-week workout block', desc: 'Your first block of sessions, sets, and reps' },
+  { key: 'playbook_ready', icon: '📘', label: 'Coaching playbook', desc: 'How your coach will work with you day to day' },
+]
+
+function DoneScreen({ name, agency, planResult }) {
+  const firstName = name ? name.split(' ')[0] : null
+  const agencyName = agency?.name || 'Your coach'
+  const supportEmail = agency?.support_email || null
+
+  // Medical-hold variant — baseline said no-go, so no workouts generated.
+  const okToTrain = planResult?.ok_to_train !== false
+  const redFlags = Array.isArray(planResult?.red_flags) ? planResult.red_flags : []
+
+  if (!okToTrain) {
+    return (
+      <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '36px 28px', maxWidth: 520, width: '100%' }}>
+          <div style={{ width: 48, height: 48, margin: '0 auto 14px', background: '#fef3c7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 24 }}>⏸️</span>
+          </div>
+          <h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 900, color: BLK, textAlign: 'center' }}>
+            A quick review first{firstName ? `, ${firstName}` : ''}
+          </h1>
+          <p style={{ margin: '0 0 18px', fontSize: 14, color: '#4b5563', lineHeight: 1.6, textAlign: 'center' }}>
+            Based on what you shared, <strong>{agencyName}</strong> wants to go over a few things with you before finalizing your training plan.
+          </p>
+          {redFlags.length > 0 && (
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 14px', marginBottom: 18 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#92400e', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6 }}>
+                Flagged for review
+              </div>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: '#78350f', lineHeight: 1.55 }}>
+                {redFlags.map((f, i) => <li key={i}>{typeof f === 'string' ? f : (f?.reason || f?.flag || JSON.stringify(f))}</li>)}
+              </ul>
+            </div>
+          )}
+          <p style={{ margin: 0, fontSize: 13, color: '#6b7280', lineHeight: 1.6, textAlign: 'center' }}>
+            We&apos;ve notified {agencyName} — they&apos;ll reach out shortly{supportEmail ? <> or you can email <a href={`mailto:${supportEmail}`} style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a></> : null}.
+          </p>
+        </section>
+      </div>
+    )
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-      <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '40px 32px', textAlign: 'center', maxWidth: 480 }}>
-        <div style={{ width: 48, height: 48, margin: '0 auto 16px', background: GRN + '15', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Check size={24} color={GRN} />
+    <div style={{ minHeight: '100vh', background: BG, padding: '32px 20px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto' }}>
+
+        {/* Hero — big green check, concrete headline */}
+        <div style={{ textAlign: 'center', marginBottom: 22 }}>
+          <div style={{ width: 56, height: 56, margin: '0 auto 14px', background: GRN + '18', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Check size={28} color={GRN} strokeWidth={3} />
+          </div>
+          <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.4px' }}>
+            Your plan is built{firstName ? `, ${firstName}` : ''}
+          </h1>
+          <p style={{ margin: 0, fontSize: 14, color: '#4b5563', lineHeight: 1.55 }}>
+            Here&apos;s what <strong>{agencyName}</strong> will review:
+          </p>
         </div>
-        <h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 900, color: BLK }}>You're all set{name ? `, ${name.split(' ')[0]}` : ''}!</h1>
-        <p style={{ margin: 0, fontSize: 14, color: '#6b7280', lineHeight: 1.55 }}>
-          Your personalized plan has been generated. Your trainer will review it and reach out with next steps.
+
+        {/* Preview cards — what got generated */}
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px', marginBottom: 14 }}>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {PLAN_PIECES.map((p) => {
+              const ready = planResult?.[p.key] !== false
+              return (
+                <div key={p.key} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 12,
+                  padding: '12px 14px', borderRadius: 10,
+                  border: `1px solid ${ready ? GRN + '40' : '#e5e7eb'}`,
+                  background: ready ? GRN + '08' : '#f9fafb',
+                }}>
+                  <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{p.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 2 }}>{p.label}</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.45 }}>{p.desc}</div>
+                  </div>
+                  <div style={{ flexShrink: 0, marginTop: 2 }}>
+                    {ready ? <Check size={16} color={GRN} strokeWidth={3} /> : <Circle size={16} color="#d1d5db" />}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* Next steps */}
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+            What happens next
+          </div>
+          <ol style={{ margin: 0, paddingLeft: 20, color: '#374151', fontSize: 13, lineHeight: 1.7 }}>
+            <li><strong>{agencyName} has been notified</strong> your intake is complete.</li>
+            <li>They&apos;ll review your plan and tailor anything that needs a human touch.</li>
+            <li>You&apos;ll get a message with a link to log in and start training.</li>
+          </ol>
+          {supportEmail && (
+            <p style={{ margin: '12px 0 0', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
+              Questions in the meantime? Email <a href={`mailto:${supportEmail}`} style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a>.
+            </p>
+          )}
+        </section>
+
+        <p style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', margin: 0 }}>
+          You can close this window. Your answers are saved.
         </p>
-      </section>
+      </div>
     </div>
   )
 }
