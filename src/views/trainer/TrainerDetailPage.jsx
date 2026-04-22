@@ -16,6 +16,8 @@ import {
   LayoutGrid,
   ArrowRight,
   AlertTriangle,
+  Copy,
+  Link2,
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import { FeatureDisabledPanel } from './TrainerListPage'
@@ -953,6 +955,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, inviteSt
               {inviteLabel}
             </button>
           )}
+          <IntakeLinkButton traineeId={trainee.id} />
           {trainee.archived_at ? (
             <button onClick={onUnarchive} disabled={actionPending} style={btnSecondary(actionPending)}>
               <Undo2 size={14} /> Unarchive
@@ -2076,4 +2079,37 @@ function btnSecondary(disabled) {
     fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',
   }
+}
+
+// ── Intake link copy button ─────────────────────────────────────────────────
+
+function IntakeLinkButton({ traineeId }) {
+  const [copied, setCopied] = useState(false)
+  const url = `${window.location.origin}/intake/${traineeId}`
+
+  function handleCopy() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title={url}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '7px 13px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        background: copied ? '#ecfdf5' : '#fff',
+        color: copied ? '#059669' : '#6b7280',
+        border: `1px solid ${copied ? '#059669' : '#d1d5db'}`,
+        borderRadius: 8,
+        transition: 'all .2s ease',
+      }}
+    >
+      {copied ? <><Copy size={13} /> Copied!</> : <><Link2 size={13} /> Intake link</>}
+    </button>
+  )
 }

@@ -171,6 +171,7 @@ import TrainerDetailPage from '../views/trainer/TrainerDetailPage'
 import MyPlanPage from '../views/trainer/MyPlanPage'
 import SelfSignupPage from '../views/trainer/SelfSignupPage'
 import SelfIntakePage from '../views/trainer/SelfIntakePage'
+import TraineeIntakePage from '../views/trainer/TraineeIntakePage'
 import FourrSignupPage from '../views/fourr/FourrSignupPage'
 import FourrIntakePage from '../views/fourr/FourrIntakePage'
 import FourrProtocolPage from '../views/fourr/FourrProtocolPage'
@@ -327,6 +328,7 @@ export default function App() {
           <Route path="/my-plan" element={<MyPlanPage />} />
           <Route path="/start" element={<SelfSignupPage />} />
           <Route path="/my-intake" element={<SelfIntakePage />} />
+          <Route path="/intake/:traineeId" element={<TraineeIntakePage />} />
           <Route path="/4r/start" element={<FourrSignupPage />} />
           <Route path="/4r/intake" element={<FourrIntakePage />} />
           <Route path="/4r/my-protocol" element={<FourrProtocolPage />} />

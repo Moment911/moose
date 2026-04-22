@@ -18,9 +18,21 @@ const BRD = '#e5e7eb'
 const BRD_LT = '#f3f4f6'
 
 const STATUS_COLORS = {
+  new: { bg: '#fef3c7', color: '#92400e' },
+  intake_pending: { bg: '#fef3c7', color: '#92400e' },
+  intake_started: { bg: '#fff7ed', color: '#c2410c' },
   intake_complete: { bg: '#f0fbfc', color: T },
   plan_generated: { bg: '#f0fdf4', color: GRN },
   archived: { bg: '#f9fafb', color: '#6b7280' },
+}
+
+const STATUS_LABELS = {
+  new: 'Awaiting intake',
+  intake_pending: 'Awaiting intake',
+  intake_started: 'Intake started',
+  intake_complete: 'Intake complete',
+  plan_generated: 'Plan ready',
+  archived: 'Archived',
 }
 
 export default function TrainerListPage() {
@@ -206,7 +218,7 @@ function Td({ children, bold }) {
 
 function StatusPill({ status }) {
   const cfg = STATUS_COLORS[status] || STATUS_COLORS.intake_complete
-  const label = status ? status.replace(/_/g, ' ') : 'unknown'
+  const label = STATUS_LABELS[status] || (status ? status.replace(/_/g, ' ') : 'unknown')
   return (
     <span style={{ padding: '3px 10px', borderRadius: 20, background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 700 }}>
       {label}
