@@ -119,8 +119,11 @@ export async function POST(req: NextRequest) {
   } = {}
   const errors: string[] = []
 
+  console.log('[fourr/self-signup] Starting protocol chain for patient:', patientId, 'missing fields:', missing.length)
+
   // Step 1: Assessment
   try {
+    console.log('[fourr/self-signup] Step 1: Assessment...')
     const { systemPrompt, userMessage } = buildAssessmentPrompt({ intake })
     const r = await callSonnet<AssessmentOutput>({
       featureTag: FEATURE_TAGS.ASSESSMENT,
