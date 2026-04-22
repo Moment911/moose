@@ -31,14 +31,17 @@ export async function assertFourrMethodEnabled(
     .maybeSingle()
 
   if (error) {
+    console.error('[fourr/featureFlag] DB error:', error.message, 'agencyId:', agencyId)
     throw new FourrFeatureDisabledError()
   }
   if (!data) {
+    console.error('[fourr/featureFlag] No agency_features row for agencyId:', agencyId)
     throw new FourrFeatureDisabledError()
   }
 
   const fourrMethod = (data as { fourr_method?: boolean | null }).fourr_method
   if (fourrMethod !== true) {
+    console.error('[fourr/featureFlag] fourr_method is not true:', fourrMethod, 'agencyId:', agencyId)
     throw new FourrFeatureDisabledError()
   }
 }

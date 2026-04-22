@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
   try {
     await assertFourrMethodEnabled(sb, agencyId)
   } catch (e) {
+    console.error('[fourr/chat] Feature gate failed. agencyId:', agencyId, 'envVar:', process.env.DEFAULT_FOURR_AGENCY_ID || '(not set)', 'error:', e instanceof Error ? e.message : e)
     if (isFeatureDisabledError(e)) return err(404, 'Not found')
     return err(500, 'Feature gate check failed')
   }
