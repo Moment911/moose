@@ -470,18 +470,19 @@ function WelcomeScreen({ name, onStart }) {
             {firstName ? `Welcome, ${firstName}` : 'Welcome'}
           </h1>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
-            You're about to chat with an <strong>AI coach</strong> trained on the knowledge of real experts. It will read everything you share, extract what it needs, and ask smart follow-up questions to build your complete profile.
+            You're about to chat with an <strong>AI-powered personal coach</strong> — a PhD-level nutritionist, strength & conditioning coach, and baseball performance specialist all in one. It will read everything you share and ask targeted follow-up questions to build your complete profile.
           </p>
 
           {/* Expert credentials */}
           <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-              Your AI coach is trained on
+              Your AI coach combines
             </div>
             <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13, lineHeight: 1.65 }}>
-              <li><strong>PhD</strong> in Exercise Physiology — programming, load management, periodization</li>
-              <li><strong>Master's</strong> in Nutrition — calorie & macro targets grounded in sport-science</li>
-              <li>Former <strong>MLB training facility</strong> — hitting, pitching, and throwing coaches with 15 pro seasons each</li>
+              <li><strong>PhD Nutritionist</strong> — sport-science nutrition, calorie & macro programming</li>
+              <li><strong>Strength & Conditioning Coach</strong> — periodization, load management, power development</li>
+              <li><strong>Baseball Performance Specialist</strong> — velocity, hitting mechanics, arm care, speed training</li>
+              <li><strong>Exercise Physiologist</strong> — injury prevention, recovery protocols, youth athlete development</li>
             </ul>
           </div>
 
