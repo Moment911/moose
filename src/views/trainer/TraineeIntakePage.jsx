@@ -581,9 +581,14 @@ function WelcomeScreen({ name, onStart }) {
           <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.5px' }}>
             Koto
           </h1>
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: T, letterSpacing: '.02em' }}>
-            Your AI Baseball Performance Coach
+          <p style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 600, color: T, letterSpacing: '.02em' }}>
+            Train. Fuel. Get Recruited.
           </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>💪 AI Training Plans</span>
+            <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>🥗 Custom Nutrition</span>
+            <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>🎓 College Recruiting</span>
+          </div>
         </div>
 
         <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '28px 28px 24px', marginBottom: 16 }}>
@@ -591,7 +596,7 @@ function WelcomeScreen({ name, onStart }) {
             {firstName ? `Welcome, ${firstName}` : 'Welcome'}
           </h2>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
-            You're about to chat with an <strong>AI-powered personal coach</strong> built on the combined knowledge of PhDs, pro athletes, and veteran coaching staff. It will read everything you share and ask targeted follow-up questions to build your complete profile.
+            Your AI-powered coach for baseball performance, nutrition, and college recruiting — all in one place. Chat with your coach, build your profile, and get a personalized plan built by PhDs, ex-MLB pros, and 20-year coaching veterans.
           </p>
 
           {/* Expert credentials */}
