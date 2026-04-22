@@ -837,6 +837,39 @@ function WelcomeScreen({ name, onStart }) {
 
         <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '22px 22px 20px', marginBottom: 14 }}>
 
+          {/* Credentials — AI modeled after an expert stack */}
+          <div style={{ marginBottom: 18 }}>
+            <button
+              type="button"
+              onClick={() => setCredentialsOpen(o => !o)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                width: '100%', padding: '10px 12px',
+                background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8,
+                cursor: 'pointer', textAlign: 'left',
+              }}
+            >
+              <span style={{ fontSize: 13 }}>🎓</span>
+              <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+                AI tool modeled after a PhD + ex-MLB + pro-coach expert stack
+              </span>
+              <span style={{ fontSize: 11, color: '#6b7280', flexShrink: 0 }}>
+                {credentialsOpen ? 'Hide' : "Who's inside?"} {credentialsOpen ? '▴' : '▾'}
+              </span>
+            </button>
+            {credentialsOpen && (
+              <ul style={{ margin: '8px 0 0', padding: '10px 14px 10px 28px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', fontSize: 12, lineHeight: 1.6 }}>
+                <li><strong>PhD in Biomechanics</strong> — throwing mechanics, swing, movement</li>
+                <li><strong>PhD in Nutrition</strong> — macros + fueling for athletes</li>
+                <li><strong>PhD in Strength & Conditioning</strong> — periodization, power</li>
+                <li><strong>PhD in Exercise Physiology</strong> — recovery, injury prevention</li>
+                <li><strong>PhD in Sports Psychology</strong> — focus, confidence under pressure</li>
+                <li><strong>Ex-MLB player</strong> — pitcher and outfielder</li>
+                <li><strong>20-year pro coaching staff</strong> — hitting, pitching, throwing</li>
+              </ul>
+            )}
+          </div>
+
           {/* Outcome chips — "here's what you get" */}
           <div style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
@@ -917,39 +950,6 @@ function WelcomeScreen({ name, onStart }) {
                 resize: 'vertical', minHeight: 150, outline: 'none',
               }}
             />
-          </div>
-
-          {/* Credentials — collapsed one-liner */}
-          <div style={{ marginBottom: 16 }}>
-            <button
-              type="button"
-              onClick={() => setCredentialsOpen(o => !o)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                width: '100%', padding: '10px 12px',
-                background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8,
-                cursor: 'pointer', textAlign: 'left',
-              }}
-            >
-              <span style={{ fontSize: 13 }}>🎓</span>
-              <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#374151' }}>
-                Built by a PhD + ex-MLB + pro-coach expert stack
-              </span>
-              <span style={{ fontSize: 11, color: '#6b7280', flexShrink: 0 }}>
-                {credentialsOpen ? 'Hide' : "What's inside?"} {credentialsOpen ? '▴' : '▾'}
-              </span>
-            </button>
-            {credentialsOpen && (
-              <ul style={{ margin: '8px 0 0', padding: '10px 14px 10px 28px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', fontSize: 12, lineHeight: 1.6 }}>
-                <li><strong>PhD in Biomechanics</strong> — throwing mechanics, swing, movement</li>
-                <li><strong>PhD in Nutrition</strong> — macros + fueling for athletes</li>
-                <li><strong>PhD in Strength & Conditioning</strong> — periodization, power</li>
-                <li><strong>PhD in Exercise Physiology</strong> — recovery, injury prevention</li>
-                <li><strong>PhD in Sports Psychology</strong> — focus, confidence under pressure</li>
-                <li><strong>Ex-MLB player</strong> — pitcher and outfielder</li>
-                <li><strong>20-year pro coaching staff</strong> — hitting, pitching, throwing</li>
-              </ul>
-            )}
           </div>
 
           {error && (
