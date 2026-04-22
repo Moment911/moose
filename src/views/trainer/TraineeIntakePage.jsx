@@ -321,6 +321,7 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
       let buffer = ''
       let fullText = ''
       let replies = []
+      let fieldsThisTurn = {} // Track fields extracted THIS turn for accurate fallback
 
       while (true) {
         const { done, value } = await reader.read()
@@ -338,7 +339,10 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
             setStreamingText(fullText)
           }
           if (event.type === 'fields') {
-            if (event.extracted && typeof event.extracted === 'object') onFieldsUpdate(event.extracted)
+            if (event.extracted && typeof event.extracted === 'object') {
+              onFieldsUpdate(event.extracted)
+              fieldsThisTurn = { ...fieldsThisTurn, ...event.extracted }
+            }
             if (event.about_you_append && typeof event.about_you_append === 'string') onAboutYouAppend(event.about_you_append)
             if (Array.isArray(event.suggested_replies) && event.suggested_replies.length > 0) {
               replies = event.suggested_replies
@@ -354,8 +358,10 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
         setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
       } else {
         // Model produced only a tool call with no visible text.
-        // Generate a smart contextual message with matched pills.
-        const fallback = buildSmartFallback(lastExtractedRef.current, extracted, services)
+        // Merge fields extracted THIS turn into the snapshot so fallback
+        // doesn't re-ask questions that were just answered.
+        const mergedExtracted = { ...extracted, ...fieldsThisTurn }
+        const fallback = buildSmartFallback(lastExtractedRef.current, mergedExtracted, services)
         setMessages((prev) => [...prev, { role: 'assistant', content: fallback.text }])
         if (fallback.pills.length > 0) replies = fallback.pills
       }
