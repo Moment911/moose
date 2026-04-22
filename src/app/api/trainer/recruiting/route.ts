@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { scorePrograms, RECRUITING_TIMELINE, type TraineeProfile } from '../../../../lib/trainer/proPathScore'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/trainer/recruiting
@@ -243,6 +244,74 @@ export async function POST(req: NextRequest) {
     if (!row.trainee_id || !row.to_email || !row.subject) return err(400, 'trainee_id, to_email, and subject required')
     const { error: iErr } = await sb.from('koto_recruiting_emails_sent').insert(row)
     if (iErr) return err(500, iErr.message)
+    return ok({ success: true })
+  }
+
+  // ── ProPath Score — AI program matching ───────────────────────────────────
+  if (action === 'propath_score') {
+    const traineeId = body.trainee_id as string
+    if (!traineeId) return err(400, 'trainee_id required')
+
+    // Load trainee profile
+    const { data: trainee, error: tErr } = await sb
+      .from('koto_fitness_trainees')
+      .select('*')
+      .eq('id', traineeId)
+      .maybeSingle()
+    if (tErr || !trainee) return err(404, 'Trainee not found')
+
+    // Build profile from trainee data + any extra fields passed
+    const profile: TraineeProfile = {
+      age: (trainee as Record<string, unknown>).age as number,
+      height_cm: (trainee as Record<string, unknown>).height_cm as number,
+      current_weight_kg: (trainee as Record<string, unknown>).current_weight_kg as number,
+      about_you: (trainee as Record<string, unknown>).about_you as string,
+      ...(body.profile && typeof body.profile === 'object' ? body.profile as Record<string, unknown> : {}),
+    }
+
+    // Load all programs
+    const { data: programs, error: pErr } = await sb
+      .from('koto_recruiting_programs')
+      .select('id, school_name, division, conference, state, city, scholarship_available, enrollment, tuition_in_state, tuition_out_of_state, roster_size, apr_score, graduation_rate, mlb_draft_picks_5yr, notable')
+      .eq('sport', sport)
+    if (pErr) return err(500, pErr.message)
+
+    const results = scorePrograms(profile, (programs || []) as Parameters<typeof scorePrograms>[1])
+    return ok({
+      results: results.slice(0, typeof body.limit === 'number' ? body.limit : 50),
+      total_programs: (programs || []).length,
+      profile_used: profile,
+    })
+  }
+
+  // ── Recruiting timeline ─────────────────────────────────────────────────
+  if (action === 'timeline') {
+    return ok({ timeline: RECRUITING_TIMELINE })
+  }
+
+  // ── Outreach tracker ────────────────────────────────────────────────────
+  if (action === 'outreach_history') {
+    const traineeId = body.trainee_id as string
+    if (!traineeId) return err(400, 'trainee_id required')
+    const { data, error: qErr } = await sb
+      .from('koto_recruiting_emails_sent')
+      .select('*, koto_recruiting_programs(school_name, division), koto_recruiting_coaches(full_name, title), koto_recruiting_email_templates(name)')
+      .eq('trainee_id', traineeId)
+      .order('sent_at', { ascending: false })
+    if (qErr) return err(500, qErr.message)
+    return ok({ outreach: data || [] })
+  }
+
+  if (action === 'update_outreach') {
+    const id = body.email_id as string
+    if (!id) return err(400, 'email_id required')
+    const update: Record<string, unknown> = {}
+    if ('response_received' in body) update.response_received = body.response_received
+    if ('response_date' in body) update.response_date = body.response_date
+    if ('response_notes' in body) update.response_notes = body.response_notes
+    if ('status' in body) update.status = body.status
+    const { error: uErr } = await sb.from('koto_recruiting_emails_sent').update(update).eq('id', id)
+    if (uErr) return err(500, uErr.message)
     return ok({ success: true })
   }
 
