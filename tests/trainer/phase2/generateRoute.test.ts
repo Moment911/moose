@@ -143,6 +143,34 @@ function mkReq(body: Record<string, unknown>): Request {
   return { json: async () => body, headers: new Headers() } as unknown as Request
 }
 
+// Every plan-generating handler now runs the intake-completeness gate
+// (see src/lib/trainer/intakeCompleteness.ts).  Happy-path fixtures need
+// all REQUIRED_INTAKE_FIELDS populated or the handler returns 400 before
+// ever reaching the Sonnet stub.  INCOMPLETE_TRAINEE_ROW is used for
+// explicit gate-rejection tests.
+const COMPLETE_TRAINEE_ROW = {
+  id: 't1',
+  agency_id: 'agency-A',
+  about_you: 'Test trainee context.',
+  age: 30,
+  sex: 'M',
+  height_cm: 178,
+  current_weight_kg: 80,
+  primary_goal: 'gain_muscle',
+  training_experience_years: 2,
+  training_days_per_week: 4,
+  equipment_access: 'full_gym',
+  medical_flags: 'None',
+  injuries: 'None',
+  dietary_preference: 'none',
+  allergies: 'None',
+  sleep_hours_avg: 7,
+  stress_level: 5,
+  occupation_activity: 'moderate',
+  meals_per_day: 3,
+}
+const INCOMPLETE_TRAINEE_ROW = { id: 't1', agency_id: 'agency-A' }
+
 function reset() {
   mockVerify.mockReset()
   mockAssertFlag.mockReset()
@@ -260,7 +288,7 @@ describe('POST /api/trainer/generate', () => {
 
     it('502 when Sonnet errors', async () => {
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       mockSonnet.mockResolvedValue({
         ok: false,
@@ -280,7 +308,7 @@ describe('POST /api/trainer/generate', () => {
         bmr: 1800,
       }
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         { data: { id: 'plan-1' }, error: null },
@@ -312,7 +340,7 @@ describe('POST /api/trainer/generate', () => {
         },
       }
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         { data: { id: 'plan-1' }, error: null },
@@ -349,7 +377,7 @@ describe('POST /api/trainer/generate', () => {
 
     it('404 when plan not found for this agency', async () => {
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [{ data: null, error: null }])
       const { POST } = await importRoute()
@@ -366,7 +394,7 @@ describe('POST /api/trainer/generate', () => {
     it('happy path: updates plan + returns roadmap', async () => {
       const roadmap = { phases: [{ phase: 1 }, { phase: 2 }, { phase: 3 }] }
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         {
@@ -422,7 +450,7 @@ describe('POST /api/trainer/generate', () => {
 
     it('400 when baseline missing on plan', async () => {
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         {
@@ -448,10 +476,37 @@ describe('POST /api/trainer/generate', () => {
       expect(res.status).toBe(400)
     })
 
-    it('happy path: updates workout_plan + phase_ref + flips trainee status', async () => {
-      const workout = { sessions: [] }
+    it('400 intake_incomplete when the trainee has not finished intake', async () => {
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...INCOMPLETE_TRAINEE_ROW }, error: null },
+      ])
+      const { POST } = await importRoute()
+      const res = await POST(
+        mkReq({
+          action: 'generate_workout',
+          trainee_id: 't1',
+          plan_id: 'plan-1',
+          phase: 1,
+        }) as never,
+      )
+      expect(res.status).toBe(400)
+      const body = await res.json()
+      expect(body.error).toBe('intake_incomplete')
+      expect(Array.isArray(body.missing_fields)).toBe(true)
+      expect(body.missing_fields.length).toBeGreaterThan(0)
+    })
+
+    it('happy path: updates workout_plan + phase_ref + flips trainee status', async () => {
+      // Must satisfy assertWorkoutShape: weeks.length === 2 and every
+      // week.sessions array non-empty (see route.ts:assertWorkoutShape).
+      const workout = {
+        weeks: [
+          { week_number: 1, sessions: [{ day_number: 1 }] },
+          { week_number: 2, sessions: [{ day_number: 1 }] },
+        ],
+      }
+      queueTable('koto_fitness_trainees', [
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         {
@@ -502,7 +557,7 @@ describe('POST /api/trainer/generate', () => {
     it('elicit: happy path returns questions', async () => {
       const questions = [{ question_id: 'q1', prompt: 'Allergies?' }]
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         {
@@ -561,7 +616,7 @@ describe('POST /api/trainer/generate', () => {
 
     it('submit: happy path stores answers', async () => {
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         {
@@ -599,7 +654,7 @@ describe('POST /api/trainer/generate', () => {
 
     it('400 when answers not yet submitted', async () => {
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         {
@@ -636,7 +691,7 @@ describe('POST /api/trainer/generate', () => {
         disclaimer: 'Not medical advice.',
       }
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         {
@@ -699,10 +754,17 @@ describe('POST /api/trainer/generate', () => {
     })
 
     it('happy path: inserts new plan row at block_number+1', async () => {
-      const newWorkout = { sessions: [] }
+      // Must satisfy assertWorkoutShape on the adjust path: weeks.length === 2
+      // and every week.sessions array non-empty.
+      const newWorkout = {
+        weeks: [
+          { week_number: 1, sessions: [{ day_number: 1 }] },
+          { week_number: 2, sessions: [{ day_number: 1 }] },
+        ],
+      }
       const adjustments = [{ change: 'reduce_volume' }]
       queueTable('koto_fitness_trainees', [
-        { data: { id: 't1', agency_id: 'agency-A' }, error: null },
+        { data: { ...COMPLETE_TRAINEE_ROW }, error: null },
       ])
       queueTable('koto_fitness_plans', [
         {

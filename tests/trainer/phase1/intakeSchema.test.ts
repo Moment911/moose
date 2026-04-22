@@ -15,8 +15,8 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('validateIntake — happy paths', () => {
-  it('accepts the minimum payload (full_name only)', () => {
-    const r = validateIntake({ full_name: 'Jane Runner' })
+  it('accepts the minimum payload (full_name + about_you)', () => {
+    const r = validateIntake({ full_name: 'Jane Runner', about_you: 'Marathon-goal runner.' })
     expect(r.ok).toBe(true)
     if (r.ok) expect(r.data.full_name).toBe('Jane Runner')
   })
@@ -24,6 +24,7 @@ describe('validateIntake — happy paths', () => {
   it('accepts a fully populated payload', () => {
     const full = {
       full_name: 'Jane Runner',
+      about_you: 'Marathon goal in 6 months; former HS track athlete.',
       email: 'jane@example.com',
       phone: '+15555551234',
       age: 34,
@@ -53,35 +54,35 @@ describe('validateIntake — happy paths', () => {
 
   it('accepts every primary_goal enum value', () => {
     for (const g of PRIMARY_GOALS) {
-      const r = validateIntake({ full_name: 'T', primary_goal: g })
+      const r = validateIntake({ full_name: 'T', about_you: 'x', primary_goal: g })
       expect(r.ok).toBe(true)
     }
   })
 
   it('accepts every equipment_access enum value', () => {
     for (const e of EQUIPMENT_ACCESS) {
-      const r = validateIntake({ full_name: 'T', equipment_access: e })
+      const r = validateIntake({ full_name: 'T', about_you: 'x', equipment_access: e })
       expect(r.ok).toBe(true)
     }
   })
 
   it('accepts every dietary_preference enum value', () => {
     for (const d of DIETARY_PREFERENCES) {
-      const r = validateIntake({ full_name: 'T', dietary_preference: d })
+      const r = validateIntake({ full_name: 'T', about_you: 'x', dietary_preference: d })
       expect(r.ok).toBe(true)
     }
   })
 
   it('accepts every occupation_activity enum value', () => {
     for (const o of OCCUPATION_ACTIVITIES) {
-      const r = validateIntake({ full_name: 'T', occupation_activity: o })
+      const r = validateIntake({ full_name: 'T', about_you: 'x', occupation_activity: o })
       expect(r.ok).toBe(true)
     }
   })
 
   it('accepts null for optional fields (not just undefined)', () => {
     const r = validateIntake({
-      full_name: 'T',
+      full_name: 'T', about_you: 'x',
       email: null,
       age: null,
       primary_goal: null,
@@ -119,41 +120,41 @@ describe('validateIntake — rejections', () => {
   })
 
   it('rejects invalid primary_goal enum', () => {
-    const r = validateIntake({ full_name: 'T', primary_goal: 'moonshot' })
+    const r = validateIntake({ full_name: 'T', about_you: 'x', primary_goal: 'moonshot' })
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.errors.primary_goal).toMatch(/primary_goal must be one of/)
   })
 
   it('rejects training_days_per_week out of range', () => {
-    const r = validateIntake({ full_name: 'T', training_days_per_week: 9 })
+    const r = validateIntake({ full_name: 'T', about_you: 'x', training_days_per_week: 9 })
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.errors.training_days_per_week).toBeTruthy()
   })
 
   it('rejects non-integer training_days_per_week', () => {
-    const r = validateIntake({ full_name: 'T', training_days_per_week: 3.5 })
+    const r = validateIntake({ full_name: 'T', about_you: 'x', training_days_per_week: 3.5 })
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.errors.training_days_per_week).toBeTruthy()
   })
 
   it('rejects meals_per_day below 3 or above 6', () => {
-    expect(validateIntake({ full_name: 'T', meals_per_day: 2 }).ok).toBe(false)
-    expect(validateIntake({ full_name: 'T', meals_per_day: 7 }).ok).toBe(false)
+    expect(validateIntake({ full_name: 'T', about_you: 'x', meals_per_day: 2 }).ok).toBe(false)
+    expect(validateIntake({ full_name: 'T', about_you: 'x', meals_per_day: 7 }).ok).toBe(false)
   })
 
   it('rejects stress_level out of 1-10 range', () => {
-    expect(validateIntake({ full_name: 'T', stress_level: 0 }).ok).toBe(false)
-    expect(validateIntake({ full_name: 'T', stress_level: 11 }).ok).toBe(false)
+    expect(validateIntake({ full_name: 'T', about_you: 'x', stress_level: 0 }).ok).toBe(false)
+    expect(validateIntake({ full_name: 'T', about_you: 'x', stress_level: 11 }).ok).toBe(false)
   })
 
   it('rejects negative current_weight_kg', () => {
-    const r = validateIntake({ full_name: 'T', current_weight_kg: -5 })
+    const r = validateIntake({ full_name: 'T', about_you: 'x', current_weight_kg: -5 })
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.errors.current_weight_kg).toBeTruthy()
   })
 
   it('rejects pregnancy_or_nursing as non-boolean', () => {
-    const r = validateIntake({ full_name: 'T', pregnancy_or_nursing: 'yes' })
+    const r = validateIntake({ full_name: 'T', about_you: 'x', pregnancy_or_nursing: 'yes' })
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.errors.pregnancy_or_nursing).toBeTruthy()
   })
@@ -172,11 +173,49 @@ describe('validateIntake — rejections', () => {
   })
 })
 
+describe('validateIntake — about_you required', () => {
+  it('rejects missing about_you with a field error', () => {
+    const r = validateIntake({ full_name: 'Jane Runner' })
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.errors.about_you).toBeTruthy()
+  })
+
+  it('rejects empty-string about_you', () => {
+    const r = validateIntake({ full_name: 'Jane', about_you: '   ' })
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.errors.about_you).toBeTruthy()
+  })
+
+  it('rejects null about_you', () => {
+    const r = validateIntake({ full_name: 'Jane', about_you: null })
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.errors.about_you).toBeTruthy()
+  })
+})
+
 describe('validateIntakePartial', () => {
   it('accepts a partial patch without full_name', () => {
     const r = validateIntakePartial({ trainer_notes: 'updated note' })
     expect(r.ok).toBe(true)
     if (r.ok) expect(r.data.full_name).toBeUndefined()
+  })
+
+  it('accepts a patch that omits about_you (does not force it required on update)', () => {
+    const r = validateIntakePartial({ trainer_notes: 'just a note' })
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.data.about_you).toBeUndefined()
+  })
+
+  it('rejects a patch that sets about_you to empty-string', () => {
+    const r = validateIntakePartial({ about_you: '' })
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.errors.about_you).toBeTruthy()
+  })
+
+  it('accepts a patch that sets a new about_you', () => {
+    const r = validateIntakePartial({ about_you: 'fresh context' })
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.data.about_you).toBe('fresh context')
   })
 
   it('accepts a patch that includes a valid full_name', () => {

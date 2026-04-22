@@ -264,7 +264,11 @@ describe('POST /api/trainer/trainees', () => {
       qState.response = { data: { id: 'new-trainee-id' }, error: null }
       const { POST } = await importRoute()
       const res = await POST(
-        mkReq({ action: 'create', full_name: 'Jane Runner' }) as never,
+        mkReq({
+          action: 'create',
+          full_name: 'Jane Runner',
+          about_you: 'Marathon goal in 6 months',
+        }) as never,
       )
       expect(res.status).toBe(201)
       const body = await res.json()
@@ -278,6 +282,7 @@ describe('POST /api/trainer/trainees', () => {
         mkReq({
           action: 'create',
           full_name: 'Jane',
+          about_you: 'Context for Jane',
           agency_id: 'agency-HIJACK',
         }) as never,
       )

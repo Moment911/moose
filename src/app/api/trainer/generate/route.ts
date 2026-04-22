@@ -39,6 +39,7 @@ import {
   type CoachingPlaybookOutput,
 } from '../../../../lib/trainer/prompts/playbook'
 import type { IntakeInput } from '../../../../lib/trainer/intakeSchema'
+import { missingIntakeFields } from '../../../../lib/trainer/intakeCompleteness'
 import {
   buildAdjustPrompt,
   type WorkoutLog,
@@ -245,6 +246,8 @@ async function handleBaseline(
 
   const trainee = await loadTrainee(sb, agencyId, traineeId)
   if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
 
   const { systemPrompt, userMessage } = buildBaselinePrompt({ intake: trainee })
   const result = await callSonnet<BaselineOutput>({
@@ -308,6 +311,8 @@ async function handleRoadmap(
 
   const trainee = await loadTrainee(sb, agencyId, traineeId)
   if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
 
   const plan = await loadPlan(sb, agencyId, planId, traineeId)
   if (!plan) return err(404, 'Not found')
@@ -359,6 +364,8 @@ async function handleWorkout(
 
   const trainee = await loadTrainee(sb, agencyId, traineeId)
   if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
 
   const plan = await loadPlan(sb, agencyId, planId, traineeId)
   if (!plan) return err(404, 'Not found')
@@ -381,6 +388,12 @@ async function handleWorkout(
   })
   if (!result.ok) {
     return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
+  }
+
+  const shapeErr = assertWorkoutShape(result.data)
+  if (shapeErr) {
+    console.error('[trainer/generate] workout shape violation:', shapeErr)
+    return err(502, 'sonnet_shape_violation', { detail: shapeErr })
   }
 
   const { error: updErr } = await sb
@@ -416,6 +429,8 @@ async function handleElicitFoodPrefs(
 
   const trainee = await loadTrainee(sb, agencyId, traineeId)
   if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
 
   const plan = await loadPlan(sb, agencyId, planId, traineeId)
   if (!plan) return err(404, 'Not found')
@@ -483,6 +498,8 @@ async function handleSubmitFoodPrefs(
 
   const trainee = await loadTrainee(sb, agencyId, traineeId)
   if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
 
   const plan = await loadPlan(sb, agencyId, planId, traineeId)
   if (!plan) return err(404, 'Not found')
@@ -519,6 +536,8 @@ async function handleMeals(
 
   const trainee = await loadTrainee(sb, agencyId, traineeId)
   if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
 
   const plan = await loadPlan(sb, agencyId, planId, traineeId)
   if (!plan) return err(404, 'Not found')
@@ -592,6 +611,8 @@ async function handlePlaybook(
 
   const trainee = await loadTrainee(sb, agencyId, traineeId)
   if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
 
   const plan = await loadPlan(sb, agencyId, planId, traineeId)
   if (!plan) return err(404, 'Not found')
@@ -647,6 +668,8 @@ async function handleAdjust(
 
   const trainee = await loadTrainee(sb, agencyId, traineeId)
   if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
 
   const priorPlan = await loadPlan(sb, agencyId, priorPlanId, traineeId)
   if (!priorPlan) return err(404, 'Not found')
@@ -709,6 +732,12 @@ async function handleAdjust(
   const newWorkoutPlan = payload?.workout_plan ?? payload
   const adjustmentsMade = payload?.adjustments_made ?? null
 
+  const shapeErr = assertWorkoutShape(newWorkoutPlan)
+  if (shapeErr) {
+    console.error('[trainer/generate] adjust shape violation:', shapeErr)
+    return err(502, 'sonnet_shape_violation', { detail: shapeErr })
+  }
+
   const { data: inserted, error: insErr } = await sb
     .from('koto_fitness_plans')
     .insert({
@@ -734,6 +763,42 @@ async function handleAdjust(
     workout_plan: newWorkoutPlan,
     adjustments_made: adjustmentsMade,
   })
+}
+
+// ── Intake completeness gate ──────────────────────────────────────────────
+// Every plan-generating action (baseline, roadmap, workout, food prefs, meals,
+// playbook, adjust) runs this first.  If the trainee's intake is incomplete,
+// we return 400 with the list of missing fields so the UI can route back to
+// the intake form.  "Ask every question before any strategy is drafted."
+function requireCompleteIntake(trainee: TraineeRow): NextResponse | null {
+  const missing = missingIntakeFields(trainee)
+  if (missing.length === 0) return null
+  return NextResponse.json(
+    {
+      error: 'intake_incomplete',
+      detail: 'Finish the intake before generating a plan.',
+      missing_fields: missing,
+    },
+    { status: 400 },
+  )
+}
+
+// ── Shape guard for Sonnet workout output ─────────────────────────────────
+// Returns an error message if the plan is missing weeks or has any empty
+// sessions array; null when the shape is usable.  The accordion's defensive
+// banner still renders if a bad row slips through, but this guard prevents
+// the bad row from being persisted in the first place.
+function assertWorkoutShape(wp: unknown): string | null {
+  const o = wp as { weeks?: unknown } | null
+  const weeks = Array.isArray(o?.weeks) ? (o!.weeks as unknown[]) : []
+  if (weeks.length !== 2) return 'weeks must contain exactly 2 entries'
+  for (const w of weeks) {
+    const sessions = (w as { sessions?: unknown } | null)?.sessions
+    if (!Array.isArray(sessions) || sessions.length === 0) {
+      return 'each week must contain at least one session'
+    }
+  }
+  return null
 }
 
 // ── Adherence helper (also exercised by /api/trainer/workout-logs) ────────

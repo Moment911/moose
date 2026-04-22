@@ -259,9 +259,12 @@ export function validateIntake(input: unknown): ValidateResult<IntakeInput> {
     }
   }
 
-  // Free-text context
-  if (b.about_you !== undefined && b.about_you !== null && !isString(b.about_you)) {
-    errors.about_you = 'about_you must be a string'
+  // Free-text context — REQUIRED.  Every Sonnet prompt (baseline, roadmap,
+  // workout, meals, playbook, adjust) reads about_you as the primary steering
+  // input; without it the output regresses to generic coaching.  Enforcing at
+  // intake time guarantees the first baseline generation has real context.
+  if (b.about_you === undefined || b.about_you === null || !isString(b.about_you) || b.about_you.trim().length === 0) {
+    errors.about_you = 'about_you is required — write who you are, what you do, and what you want'
   }
 
   // Internal
@@ -294,11 +297,15 @@ export function validateIntakePartial(input: unknown): ValidateResult<Partial<In
     errors.full_name = 'full_name, if provided, must be a non-empty string'
   }
 
-  // Run the full validator with a synthesized placeholder so
-  // missing-name doesn't trip the required-check.
+  // Run the full validator with synthesized placeholders so missing fields
+  // that are REQUIRED on create (full_name, about_you) don't trip the
+  // required-check on a partial update that simply doesn't touch them.
+  // Presence is detected with `in b`; if the caller explicitly sent the
+  // field, their value flows through and is validated normally.
   const synthesized = {
     ...b,
     full_name: isNonEmptyString(b.full_name) ? b.full_name : '__placeholder__',
+    about_you: 'about_you' in b ? b.about_you : '__placeholder_about_you__',
   }
   const result = validateIntake(synthesized)
   if (!result.ok) {
@@ -312,9 +319,10 @@ export function validateIntakePartial(input: unknown): ValidateResult<Partial<In
 
   if (Object.keys(errors).length > 0) return { ok: false, errors }
 
-  // Strip any synthesized full_name from the returned data so the update
-  // action doesn't overwrite a real column with the placeholder.
+  // Strip any synthesized placeholders from the returned data so the update
+  // action doesn't overwrite a real column with placeholder text.
   const data: Partial<IntakeInput> = { ...b } as Partial<IntakeInput>
   if (!isNonEmptyString(b.full_name)) delete (data as { full_name?: unknown }).full_name
+  if (!('about_you' in b)) delete (data as { about_you?: unknown }).about_you
   return { ok: true, data }
 }
