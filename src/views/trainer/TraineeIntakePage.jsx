@@ -38,45 +38,46 @@ function getMissing(extracted) {
 // Smart fallback when model returns tool data but no text.
 // Looks at what fields just changed and what's still missing, then
 // generates a natural follow-up question.
+// Each field has a question + optional pill buttons for quick answers
 const FIELD_QUESTIONS = {
-  height_cm: "How tall are you?",
-  current_weight_kg: "What do you weigh?",
-  sex: "Male or female?",
-  training_experience_years: "How long have you been training — lifting, structured workouts, anything beyond just playing?",
-  training_days_per_week: "How many days a week can you train?",
-  equipment_access: "What equipment do you have access to — full gym, home gym, bands, or bodyweight only?",
-  medical_flags: "Any medical conditions I should know about?",
-  injuries: "Any current or past injuries?",
-  dietary_preference: "Any dietary preferences — vegetarian, vegan, keto, or do you eat everything?",
-  allergies: "Any food allergies or intolerances?",
-  sleep_hours_avg: "How many hours do you sleep a night?",
-  stress_level: "On a 1-to-10 scale, how stressed are you day-to-day?",
-  occupation_activity: "How active is your day outside of training — desk/school, on your feet, or physical labor?",
-  meals_per_day: "How many meals do you eat a day?",
-  // Recruiting fields
-  grad_year: "What year do you graduate?",
-  position_primary: "What's your primary position?",
-  throwing_hand: "Do you throw right or left?",
-  batting_hand: "Do you bat right, left, or switch?",
-  gpa: "What's your current GPA?",
-  fastball_velo_peak: "Do you know your peak fastball velocity?",
-  exit_velo: "Do you know your exit velocity?",
-  sixty_time: "Have you been timed in a 60-yard dash?",
-  high_school: "What high school do you go to?",
-  travel_team: "Do you play for a travel team?",
-  video_link: "Do you have a highlight video link?",
-  // Workload fields
-  club_team: "What club or travel team do you play for?",
-  practices_per_week: "How many practices do you have per week — HS and travel combined?",
-  bullpen_sessions_per_week: "How many bullpen sessions do you throw per week?",
-  game_appearances_per_week: "How many games do you pitch in per week during the season?",
-  avg_pitch_count: "What's your average pitch count per outing?",
-  pitch_arsenal: "What pitches do you throw? Fastball, curve, slider, changeup?",
-  long_toss_routine: "Do you have a long-toss routine? How far do you throw?",
-  arm_soreness: "Any arm soreness or fatigue patterns?",
-  games_per_week: "How many games do you play per week in-season?",
-  offseason_training: "What do you do in the off-season?",
-  other_sports: "Do you play any other sports?",
+  height_cm: { q: "How tall are you? (feet and inches)" },
+  current_weight_kg: { q: "What do you weigh? (in pounds)" },
+  sex: { q: "Male or female?", pills: ["Male", "Female", "Other"] },
+  training_experience_years: { q: "How long have you been training?", pills: ["Less than 1 year", "1-2 years", "3-5 years", "5+ years"] },
+  training_days_per_week: { q: "How many days a week can you train?", pills: ["2", "3", "4", "5", "6"] },
+  equipment_access: { q: "What equipment do you have access to?", pills: ["Full gym", "Home gym", "Bands only", "No equipment"] },
+  medical_flags: { q: "Any medical conditions I should know about?", pills: ["None", "Yes — let me explain"] },
+  injuries: { q: "Any current or past injuries?", pills: ["None", "Yes — let me explain"] },
+  dietary_preference: { q: "Any dietary preferences?", pills: ["No preference", "Vegetarian", "Vegan", "Keto", "Paleo"] },
+  allergies: { q: "Any food allergies?", pills: ["None", "Yes — let me explain"] },
+  sleep_hours_avg: { q: "How many hours do you sleep a night?", pills: ["5-6", "7", "8", "9+"] },
+  stress_level: { q: "Stress level, 1-10?", pills: ["1-3 (low)", "4-6 (moderate)", "7-8 (high)", "9-10 (very high)"] },
+  occupation_activity: { q: "How active is your day outside of training?", pills: ["Desk/school", "Light activity", "On my feet", "Physical labor"] },
+  meals_per_day: { q: "How many meals do you eat a day?", pills: ["3", "4", "5", "6"] },
+  // Recruiting
+  grad_year: { q: "What year do you graduate?", pills: ["2026", "2027", "2028", "2029"] },
+  position_primary: { q: "What's your primary position?", pills: ["RHP", "LHP", "C", "SS", "2B", "3B", "1B", "OF"] },
+  throwing_hand: { q: "Do you throw right or left?", pills: ["Right", "Left"] },
+  batting_hand: { q: "Do you bat right, left, or switch?", pills: ["Right", "Left", "Switch"] },
+  gpa: { q: "What's your current GPA?" },
+  fastball_velo_peak: { q: "Do you know your peak fastball velocity?" },
+  exit_velo: { q: "Do you know your exit velocity?", pills: ["Not sure — skip"] },
+  sixty_time: { q: "Have you been timed in a 60-yard dash?", pills: ["Not sure — skip"] },
+  high_school: { q: "What high school do you go to?" },
+  travel_team: { q: "Do you play for a travel team?" },
+  video_link: { q: "Do you have a highlight video link?", pills: ["Not yet"] },
+  // Workload
+  club_team: { q: "What club or travel team do you play for?" },
+  practices_per_week: { q: "How many practices per week — HS and travel combined?", pills: ["2-3", "4-5", "6+"] },
+  bullpen_sessions_per_week: { q: "How many bullpen sessions per week?", pills: ["1", "2", "3+"] },
+  game_appearances_per_week: { q: "How many games do you pitch per week in-season?", pills: ["1", "2", "3+"] },
+  avg_pitch_count: { q: "Average pitch count per outing?", pills: ["40-60", "60-80", "80-100", "100+"] },
+  pitch_arsenal: { q: "What pitches do you throw?", pills: ["FB only", "FB + CB", "FB + SL", "FB + CH", "3+ pitches"] },
+  long_toss_routine: { q: "Do you have a long-toss routine?", pills: ["Yes", "No", "Sometimes"] },
+  arm_soreness: { q: "Any arm soreness or fatigue?", pills: ["None", "Sometimes after games", "Frequent", "Currently sore"] },
+  games_per_week: { q: "Total games per week in-season?", pills: ["2-3", "4-5", "6+"] },
+  offseason_training: { q: "What do you do in the off-season?", pills: ["Lift + throw", "Just throw", "Nothing structured"] },
+  other_sports: { q: "Do you play other sports?", pills: ["Baseball only", "Yes — let me list them"] },
 }
 
 const ACKNOWLEDGMENTS = [
@@ -85,38 +86,29 @@ const ACKNOWLEDGMENTS = [
 ]
 
 function buildSmartFallback(prevExtracted, currentExtracted, services) {
-  // Find what was just filled
-  const justFilled = []
-  for (const [k, v] of Object.entries(currentExtracted)) {
-    if (v !== undefined && v !== null && v !== '' && (!prevExtracted[k] || prevExtracted[k] !== v)) {
-      justFilled.push(k)
-    }
-  }
-
   // Find next missing field to ask about
   const allFields = [...REQUIRED_FIELDS]
-  // Always ask workload for baseball
   allFields.push('club_team', 'practices_per_week', 'bullpen_sessions_per_week', 'game_appearances_per_week', 'avg_pitch_count', 'pitch_arsenal', 'arm_soreness', 'games_per_week', 'offseason_training', 'other_sports')
   if (services?.includes('recruiting')) {
     allFields.push('grad_year', 'position_primary', 'throwing_hand', 'batting_hand', 'gpa', 'fastball_velo_peak', 'high_school', 'travel_team')
   }
 
-  let nextQuestion = null
+  let nextField = null
   for (const f of allFields) {
     const v = currentExtracted[f]
     if ((v === undefined || v === null || v === '') && FIELD_QUESTIONS[f]) {
-      nextQuestion = FIELD_QUESTIONS[f]
+      nextField = f
       break
     }
   }
 
-  // Pick a random acknowledgment
   const ack = ACKNOWLEDGMENTS[Math.floor(Math.random() * ACKNOWLEDGMENTS.length)]
+  const fieldDef = nextField ? FIELD_QUESTIONS[nextField] : null
 
-  if (nextQuestion) {
-    return `${ack} ${nextQuestion}`
+  return {
+    text: fieldDef ? `${ack} ${fieldDef.q}` : `${ack} Looking good — your profile is coming together. Anything else you want to add?`,
+    pills: fieldDef?.pills || [],
   }
-  return `${ack} Looking good — your profile is coming together. Anything else you want to add?`
 }
 
 export default function TraineeIntakePage() {
@@ -362,9 +354,10 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
         setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
       } else {
         // Model produced only a tool call with no visible text.
-        // Generate a smart contextual message based on what just happened.
-        const smartMsg = buildSmartFallback(lastExtractedRef.current, extracted, services)
-        setMessages((prev) => [...prev, { role: 'assistant', content: smartMsg }])
+        // Generate a smart contextual message with matched pills.
+        const fallback = buildSmartFallback(lastExtractedRef.current, extracted, services)
+        setMessages((prev) => [...prev, { role: 'assistant', content: fallback.text }])
+        if (fallback.pills.length > 0) replies = fallback.pills
       }
       if (replies.length > 0) setQuickReplies(replies)
     } catch (e) {
