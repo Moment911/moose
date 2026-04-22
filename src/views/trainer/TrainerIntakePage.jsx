@@ -41,7 +41,7 @@ export default function TrainerIntakePage() {
         full_name: name.trim(),
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
-        about_you: 'Pending — trainee will complete intake via chat.',
+        about_you: 'Pending — athlete will complete intake via chat.',
       }, { agencyId })
       if (res.status === 404) { setFeatureDisabled(true); return }
       const body = await res.json().catch(() => ({}))
@@ -61,16 +61,16 @@ export default function TrainerIntakePage() {
     <TrainerPortalShell>
       <div style={{ padding: '32px 40px' }}>
         <Link to="/trainer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: T, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
-          <ArrowLeft size={14} /> Back to trainees
+          <ArrowLeft size={14} /> Back to athletes
         </Link>
 
         {featureDisabled ? <FeatureDisabledPanel /> : created ? (
           <CreatedSuccess traineeId={created.trainee_id} name={created.full_name} onAnother={() => { setCreated(null); setName(''); setEmail(''); setPhone('') }} />
         ) : (
           <div style={{ maxWidth: 480 }}>
-            <h1 style={{ margin: '0 0 6px', fontSize: 28, color: BLK }}>Add trainee</h1>
+            <h1 style={{ margin: '0 0 6px', fontSize: 28, color: BLK }}>Add athlete</h1>
             <p style={{ margin: '0 0 24px', color: '#6b7280', fontSize: 14 }}>
-              Just the basics — your trainee will fill out the rest via a personalized chat intake.
+              Just the basics — the athlete will fill out the rest via a personalized chat intake.
             </p>
 
             <form onSubmit={handleSubmit} style={{ background: '#fff', border: `1px solid ${BRD}`, borderRadius: 12, padding: '24px 24px 20px' }}>
@@ -79,7 +79,7 @@ export default function TrainerIntakePage() {
                   <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" autoFocus style={inputStyle} />
                 </Field>
                 <Field label="Email">
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="trainee@email.com" style={inputStyle} />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="athlete@email.com" style={inputStyle} />
                 </Field>
                 <Field label="Phone">
                   <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" style={inputStyle} />
@@ -98,7 +98,7 @@ export default function TrainerIntakePage() {
                 fontSize: 14, fontWeight: 800, cursor: submitting ? 'not-allowed' : 'pointer',
                 opacity: submitting ? 0.7 : 1,
               }}>
-                {submitting ? 'Creating...' : 'Create trainee'}
+                {submitting ? 'Creating...' : 'Create athlete'}
               </button>
             </form>
           </div>
@@ -121,7 +121,7 @@ function CreatedSuccess({ traineeId, name, onAnother }) {
 
   return (
     <div style={{ maxWidth: 520 }}>
-      <h1 style={{ margin: '0 0 6px', fontSize: 28, color: BLK }}>Trainee created</h1>
+      <h1 style={{ margin: '0 0 6px', fontSize: 28, color: BLK }}>Athlete created</h1>
       <p style={{ margin: '0 0 24px', color: '#6b7280', fontSize: 14 }}>
         <strong>{name}</strong> is ready. Send them the intake link below — they'll chat with the AI coach and fill out their full profile.
       </p>
@@ -155,14 +155,14 @@ function CreatedSuccess({ traineeId, name, onAnother }) {
           padding: '10px 16px', background: '#fff', color: '#374151',
           border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
         }}>
-          Add another trainee
+          Add another athlete
         </button>
         <Link to={`/trainer/${traineeId}`} style={{
           padding: '10px 16px', background: T, color: '#fff',
           borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: 'none',
           display: 'inline-flex', alignItems: 'center',
         }}>
-          View trainee
+          View athlete
         </Link>
       </div>
     </div>

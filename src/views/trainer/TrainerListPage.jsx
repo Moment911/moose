@@ -63,7 +63,7 @@ export default function TrainerListPage() {
           return
         }
         if (!res.ok) {
-          setError(`Failed to load trainees (${res.status})`)
+          setError(`Failed to load athletes (${res.status})`)
           setTrainees([])
           return
         }
@@ -149,7 +149,7 @@ export default function TrainerListPage() {
                   transition: 'all .15s',
                 }}
               >
-                <Plus size={14} strokeWidth={2.5} /> Add Trainee
+                <Plus size={14} strokeWidth={2.5} /> Add Athlete
               </Link>
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function TrainerListPage() {
                 No athletes yet
               </p>
               <p style={{ margin: '8px 0 0', color: GRY_TEXT, fontSize: 13 }}>
-                Click <strong style={{ color: RED }}>Add Trainee</strong> to get started.
+                Click <strong style={{ color: RED }}>Add Athlete</strong> to get started.
               </p>
             </div>
           )}

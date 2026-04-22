@@ -473,7 +473,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
         </Field>
       </Section>
 
-      <Section title="7. Trainer notes (internal — not shared with trainee)">
+      <Section title="7. Trainer notes (internal — not shared with athlete)">
         <Field label="Notes" error={errors.trainer_notes}>
           <textarea
             style={{ ...inputStyle, minHeight: 80, fontFamily: 'inherit' }}
@@ -498,7 +498,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
             cursor: submitting ? 'not-allowed' : 'pointer',
           }}
         >
-          {submitting ? 'Saving…' : 'Save trainee'}
+          {submitting ? 'Saving…' : 'Save athlete'}
         </button>
       </div>
     </form>

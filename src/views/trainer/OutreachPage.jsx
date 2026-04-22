@@ -85,7 +85,7 @@ export default function OutreachPage() {
         {/* Trainee picker */}
         <div style={{ marginBottom: 20 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-            Select Trainee
+            Select Athlete
           </label>
           <select
             value={selectedTrainee}
@@ -97,7 +97,7 @@ export default function OutreachPage() {
               cursor: 'pointer', outline: 'none', minWidth: 280,
             }}
           >
-            <option value="">{traineesLoading ? 'Loading trainees...' : 'Choose a trainee...'}</option>
+            <option value="">{traineesLoading ? 'Loading athletes...' : 'Choose an athlete...'}</option>
             {trainees.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.first_name} {t.last_name}{t.sport ? ` -- ${t.sport}` : ''}
@@ -110,7 +110,7 @@ export default function OutreachPage() {
         {!selectedTrainee ? (
           <div style={{ background: '#fff', border: `1px solid ${BRD}`, borderRadius: 10, padding: 60, textAlign: 'center' }}>
             <Mail size={32} color="#d1d5db" style={{ marginBottom: 12 }} />
-            <div style={{ fontSize: 14, color: '#9ca3af' }}>Select a trainee to view their outreach history</div>
+            <div style={{ fontSize: 14, color: '#9ca3af' }}>Select an athlete to view their outreach history</div>
           </div>
         ) : loading ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6b7280', padding: 40 }}>

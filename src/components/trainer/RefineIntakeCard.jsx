@@ -118,7 +118,7 @@ export default function RefineIntakeCard({
       </div>
       <p style={{ margin: '0 0 14px', fontSize: 13, color: '#374151', lineHeight: 1.55 }}>
         Sonnet reads the intake and asks 4–6 follow-up questions specific to this
-        trainee — sport, goal, constraints. Answers merge into "About this trainee"
+        athlete — sport, goal, constraints. Answers merge into "About this athlete"
         and feed every downstream step.
       </p>
 

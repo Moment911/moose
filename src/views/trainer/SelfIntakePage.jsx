@@ -85,7 +85,7 @@ export default function SelfIntakePage() {
     const payload = {
       ...extracted,
       about_you: aboutYou || extracted.about_you || '',
-      full_name: extracted.full_name || sessionState.user?.user_metadata?.full_name || 'New trainee',
+      full_name: extracted.full_name || sessionState.user?.user_metadata?.full_name || 'New athlete',
     }
 
     const validation = validateIntake(payload)

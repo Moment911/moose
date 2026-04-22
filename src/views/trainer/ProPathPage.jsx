@@ -154,7 +154,7 @@ export default function ProPathPage() {
           </label>
           {traineesLoading ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9ca3af', fontSize: 13, padding: '6px 0' }}>
-              <Loader2 size={14} className="spin" /> Loading trainees...
+              <Loader2 size={14} className="spin" /> Loading athletes...
               <style>{'@keyframes spin{to{transform:rotate(360deg)}} .spin{animation:spin 1s linear infinite}'}</style>
             </div>
           ) : (

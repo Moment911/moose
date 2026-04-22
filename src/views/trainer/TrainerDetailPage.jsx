@@ -186,7 +186,7 @@ export default function TrainerDetailPage() {
         return
       }
       if (!res.ok) {
-        setError(`Failed to load trainee (${res.status})`)
+        setError(`Failed to load athlete (${res.status})`)
         return
       }
       const data = await res.json()
@@ -358,7 +358,7 @@ export default function TrainerDetailPage() {
 
   async function handleSendInvite() {
     if (!trainee?.email) {
-      flashError('Trainee has no email — add one via the intake form first.')
+      flashError('Athlete has no email — add one via the intake form first.')
       return
     }
     setInvitePending(true)
@@ -661,7 +661,7 @@ export default function TrainerDetailPage() {
     if (!hasRoadmap) {
       return {
         title: 'Generate 90-day roadmap',
-        desc: 'Break the goal into three 30-day phases the trainee can feel.',
+        desc: 'Break the goal into three 30-day phases the athlete can feel.',
         action: handleGenerateRoadmap,
         busy: pending.roadmap,
         goto: 'plan',
@@ -754,14 +754,14 @@ export default function TrainerDetailPage() {
           to="/trainer"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: T, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 12 }}
         >
-          <ArrowLeft size={14} /> Back to trainees
+          <ArrowLeft size={14} /> Back to athletes
         </Link>
 
         {featureDisabled && <FeatureDisabledPanel />}
 
         {!featureDisabled && loading && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: GRY5, padding: 40 }}>
-            <Loader2 size={16} /> Loading trainee…
+            <Loader2 size={16} /> Loading athlete…
           </div>
         )}
 
@@ -896,7 +896,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, inviteSt
   const inviteLabel = ({
     pending: 'Send invite',
     invited: 'Resend invite',
-    active: 'Trainee active',
+    active: 'Athlete active',
     bounced: 'Resend (bounced)',
     revoked: 'Send invite',
   })[status] || 'Send invite'
@@ -1094,7 +1094,7 @@ function OverviewTab({
               onClick={onGenerateBaseline}
               disabled={pending.baseline || !hasAboutYou}
               style={btnPrimary(pending.baseline || !hasAboutYou)}
-              title={!hasAboutYou ? 'Add "About this trainee" context first' : undefined}
+              title={!hasAboutYou ? 'Add "About this athlete" context first' : undefined}
             >
               {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
               {pending.baseline
@@ -1121,7 +1121,7 @@ function OverviewTab({
             color: '#991b1b',
           }}
         >
-          <strong>Plan is paused.</strong> This trainee needs physician clearance before Koto
+          <strong>Plan is paused.</strong> This athlete needs physician clearance before Koto
           Trainer generates a workout or meal plan. Update medical_flags / injuries in the intake
           once clearance is documented, then regenerate.
         </section>
@@ -1669,7 +1669,7 @@ function AboutYouCard({ trainee, onUpdateAboutYou }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
             <span style={{ color: GRN, fontSize: 14, fontWeight: 800 }}>✓</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-              About this trainee
+              About this athlete
             </span>
             <span style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
               — {preview}{trainee.about_you.length > 120 ? '…' : ''}
@@ -1716,7 +1716,7 @@ function AboutYouCard({ trainee, onUpdateAboutYou }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h2 style={panelTitle}>
-            {hasContext ? 'About this trainee' : 'Start here — About this trainee'}
+            {hasContext ? 'About this athlete' : 'Start here — About this athlete'}
           </h2>
           <div style={{ fontSize: 12, color: GRY, marginTop: 4, lineHeight: 1.5 }}>
             {hasContext
@@ -1796,7 +1796,7 @@ function PlanTab({
           color: '#991b1b',
         }}
       >
-        <strong>Plan is paused.</strong> Trainee needs physician clearance before the plan tab is
+        <strong>Plan is paused.</strong> Athlete needs physician clearance before the plan tab is
         active.
       </section>
     )
@@ -1808,7 +1808,7 @@ function PlanTab({
           <h2 style={panelTitle}>90-day roadmap</h2>
           <p style={paraStyle}>
             Break the target into three 30-day phases. Each phase has its own training and
-            nutrition theme plus milestones the trainee can feel.
+            nutrition theme plus milestones the athlete can feel.
           </p>
           <button
             type="button"
@@ -1835,7 +1835,7 @@ function PlanTab({
           <h2 style={panelTitle}>Training block — phase {currentPhase}</h2>
           <p style={paraStyle}>
             Generate a 2-week workout block. Every exercise includes loadable set/rep targets, a
-            progression rule, coaching cues, and a how-to toggle so the trainee never has to guess
+            progression rule, coaching cues, and a how-to toggle so the athlete never has to guess
             form.
           </p>
           <button
@@ -1893,7 +1893,7 @@ function NutritionTab({
         <section style={panelStyle}>
           <h2 style={panelTitle}>Food preferences</h2>
           <p style={paraStyle}>
-            Collect the trainee&apos;s food preferences before generating meals. Adherence lives and
+            Collect the athlete&apos;s food preferences before generating meals. Adherence lives and
             dies here — people eat food they chose, not food they were assigned.
           </p>
           <button
@@ -1913,7 +1913,7 @@ function NutritionTab({
           <h2 style={panelTitle}>2-week meals + grocery</h2>
           <p style={paraStyle}>
             Generate a full 2-week meal plan hitting the baseline calorie + macro targets,
-            organized against the trainee&apos;s preferences, plus a single grocery run by aisle so
+            organized against the athlete&apos;s preferences, plus a single grocery run by aisle so
             Sunday shopping is one trip.
           </p>
           <button
@@ -1952,7 +1952,7 @@ function PlaybookTab({ plan, hasRoadmap, pending, onGeneratePlaybook, onGotoTab 
       <section style={panelStyle}>
         <h2 style={panelTitle}>Coaching playbook</h2>
         <p style={paraStyle}>
-          Generate the trainee&apos;s reference guide — nutrition, supplements, on-the-road eating,
+          Generate the athlete&apos;s reference guide — nutrition, supplements, on-the-road eating,
           weekly meal prep, recovery + sleep, and an 8-scenario troubleshooting guide. One-time
           output; re-generate anytime to refresh.
         </p>
