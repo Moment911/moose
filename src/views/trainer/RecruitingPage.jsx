@@ -204,12 +204,21 @@ function ProgramRow({ program: p, isExpanded, onToggle, editingCoach, setEditing
   )
 }
 
+const TITLE_COLORS = {
+  'Head Coach': R,
+  'Recruiting Coordinator': '#7c3aed',
+  'Pitching Coach': T,
+  'Hitting Coach': '#ea580c',
+  'Associate Head Coach': '#0369a1',
+}
+
 function CoachRow({ coach: c, onEdit, onDelete }) {
+  const titleColor = TITLE_COLORS[c.title] || '#6b7280'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f9fafb', fontSize: 13 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{ fontWeight: 600, color: BLK }}>{c.full_name}</span>
-        {c.title && <span style={{ color: '#9ca3af', marginLeft: 6 }}>— {c.title}</span>}
+        {c.title && <span style={{ fontSize: 11, fontWeight: 600, color: titleColor, marginLeft: 8, padding: '2px 8px', background: titleColor + '10', borderRadius: 10 }}>{c.title}</span>}
       </div>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 12, color: '#6b7280', flexShrink: 0 }}>
         {c.email && <a href={`mailto:${c.email}`} style={{ display: 'flex', alignItems: 'center', gap: 3, color: T, textDecoration: 'none' }}><Mail size={11} /> {c.email}</a>}
@@ -223,6 +232,23 @@ function CoachRow({ coach: c, onEdit, onDelete }) {
     </div>
   )
 }
+
+const BASEBALL_TITLES = [
+  'Head Coach',
+  'Associate Head Coach',
+  'Assistant Coach',
+  'Pitching Coach',
+  'Hitting Coach',
+  'Recruiting Coordinator',
+  'Director of Player Development',
+  'Director of Baseball Operations',
+  'Volunteer Assistant Coach',
+  'Catching Coach',
+  'Infield Coach',
+  'Outfield Coach',
+  'Strength & Conditioning Coach',
+  'Sports Information Director',
+]
 
 function CoachEditRow({ coach, isNew, onSave, onCancel }) {
   const [form, setForm] = useState({
@@ -249,7 +275,10 @@ function CoachEditRow({ coach, isNew, onSave, onCancel }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr auto', gap: 6, padding: '8px 0', borderBottom: '1px solid #f9fafb', alignItems: 'center' }}>
       <input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} placeholder="Name *" style={miniInput} />
-      <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Title" style={miniInput} />
+      <select value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} style={{ ...miniInput, cursor: 'pointer' }}>
+        <option value="">Title...</option>
+        {BASEBALL_TITLES.map(t => <option key={t} value={t}>{t}</option>)}
+      </select>
       <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Email" style={miniInput} />
       <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="Phone" style={miniInput} />
       <input value={form.twitter} onChange={e => setForm({ ...form, twitter: e.target.value })} placeholder="@twitter" style={miniInput} />
