@@ -125,6 +125,7 @@ export default function TraineeIntakePage() {
   const [services, setServices] = useState([]) // ['training', 'diet', 'recruiting']
   const [generateError, setGenerateError] = useState(null)
   const [planResult, setPlanResult] = useState(null)
+  const [planProgress, setPlanProgress] = useState({ activePhase: 'baseline', completed: [] })
 
   // Load trainee on mount.
   useEffect(() => {
@@ -217,19 +218,67 @@ export default function TraineeIntakePage() {
     }
 
     setPhase('generating')
+    setPlanProgress({ activePhase: 'baseline', completed: [] })
     try {
       const res = await fetch('/api/trainer/intake-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trainee_id: traineeId, intake: payload }),
       })
-      const body = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setGenerateError(body?.error || `Failed (${res.status})`)
+        // Validation / early errors return JSON; stream path returns 200 OK.
+        const errBody = await res.json().catch(() => ({}))
+        setGenerateError(errBody?.error || `Failed (${res.status})`)
         setPhase('chat')
         return
       }
-      setPlanResult(body)
+      const reader = res.body?.getReader()
+      if (!reader) {
+        setGenerateError('No stream available')
+        setPhase('chat')
+        return
+      }
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let finalBody = null
+      let streamError = null
+      // Parse NDJSON: one event per line.
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+        for (const line of lines) {
+          if (!line.trim()) continue
+          let event
+          try { event = JSON.parse(line) } catch { continue }
+          if (event.type === 'phase_start') {
+            setPlanProgress((p) => ({ ...p, activePhase: event.phase }))
+          } else if (event.type === 'phase_complete') {
+            setPlanProgress((p) => ({
+              activePhase: p.activePhase === event.phase ? event.phase : p.activePhase,
+              completed: p.completed.includes(event.phase) ? p.completed : [...p.completed, event.phase],
+            }))
+          } else if (event.type === 'done') {
+            finalBody = event
+          } else if (event.type === 'error') {
+            streamError = event.error || 'Plan generation failed'
+          }
+          // 'heartbeat' and 'start' events only keep the connection alive — no UI update.
+        }
+      }
+      if (streamError) {
+        setGenerateError(streamError)
+        setPhase('chat')
+        return
+      }
+      if (!finalBody) {
+        setGenerateError('Plan generation ended without a result')
+        setPhase('chat')
+        return
+      }
+      setPlanResult(finalBody)
       setPhase('done')
     } catch (e) {
       setGenerateError(e?.message || 'Network error')
@@ -242,7 +291,7 @@ export default function TraineeIntakePage() {
   if (phase === 'loading') return <CenteredSpinner label="Loading..." />
   if (phase === 'not_found') return <NotFoundScreen />
   if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={(text, selectedServices) => { setInitialText(text); setServices(selectedServices); setPhase('chat') }} />
-  if (phase === 'generating') return <GeneratingScreen />
+  if (phase === 'generating') return <GeneratingScreen progress={planProgress} />
   if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} agency={agency} planResult={planResult} />
 
   // Compute overall progress once so the ribbon + sidebar agree on the number.
@@ -1044,7 +1093,7 @@ const PLAN_PHASES = [
   { key: 'playbook', label: 'Playbook', desc: 'How your coach works with you' },
 ]
 
-function GeneratingScreen() {
+function GeneratingScreen({ progress }) {
   const [statIdx, setStatIdx] = useState(0)
   const [elapsed, setElapsed] = useState(0)
 
@@ -1054,10 +1103,15 @@ function GeneratingScreen() {
     return () => { clearInterval(statTimer); clearInterval(elapsedTimer) }
   }, [])
 
-  // Optimistic phase progression — plan generation averages ~60-80s across
-  // 4 Sonnet passes. If the API is slower, the last phase just sits at
-  // "in progress" until done fires.
-  const activePhase = Math.min(Math.floor(elapsed / 18), PLAN_PHASES.length - 1)
+  // Real phase progression from server stream: whichever phase the server
+  // most recently emitted 'phase_start' for is active; anything in
+  // progress.completed is done.
+  const activePhaseKey = progress?.activePhase || 'baseline'
+  const completed = progress?.completed || []
+  const activePhase = (() => {
+    const idx = PLAN_PHASES.findIndex((p) => p.key === activePhaseKey)
+    return idx >= 0 ? idx : 0
+  })()
   const stat = BASEBALL_TRIVIA[statIdx]
 
   return (
@@ -1075,8 +1129,8 @@ function GeneratingScreen() {
         {/* Phase progression tiles */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 20 }}>
           {PLAN_PHASES.map((p, i) => {
-            const done = i < activePhase
-            const active = i === activePhase
+            const done = completed.includes(p.key)
+            const active = !done && i === activePhase
             return (
               <div key={p.key} style={{
                 padding: '10px 8px', borderRadius: 8, textAlign: 'center',
