@@ -126,10 +126,8 @@ export function streamSonnetChat(args: StreamSonnetArgs): ReadableStream<Uint8Ar
 
             const eventType = event.type as string
 
-            // Debug: log all events to see what Anthropic sends.
-            if (eventType === 'content_block_start' || eventType === 'content_block_delta' || eventType === 'content_block_stop') {
-              console.log('[streamSonnet]', eventType, JSON.stringify(event).slice(0, 200))
-            }
+            // Debug: emit raw events to the stream so we can see what Anthropic sends.
+            emit(controller, { type: 'debug', event_type: eventType, data: JSON.stringify(event).slice(0, 300) })
 
             if (eventType === 'message_start') {
               const msg = event.message as Record<string, unknown> | undefined
