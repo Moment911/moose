@@ -20,6 +20,7 @@ import {
 import Sidebar from '../../components/Sidebar'
 import { FeatureDisabledPanel } from './TrainerListPage'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
+import { missingIntakeFields } from '../../lib/trainer/intakeCompleteness'
 import { useAuth } from '../../hooks/useAuth'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { supabase } from '../../lib/supabase'
@@ -276,6 +277,23 @@ export default function TrainerDetailPage() {
     return true
   }
 
+  // Generic intake patch — used by MissingIntakeFieldsCard to finish the
+  // intake inline without navigating away.  Accepts any partial patch of
+  // IntakeInput fields; server validates via validateIntakePartial.
+  async function handleUpdateTraineeFields(patch) {
+    const res = await trainerFetch(
+      { action: 'update', trainee_id: traineeId, patch },
+      { agencyId },
+    )
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      flashError(body.error || `Save failed (${res.status})`)
+      return false
+    }
+    await loadTrainee()
+    return true
+  }
+
   const [inviteStatus, setInviteStatus] = useState(null) // { status, invite_sent_at, ... } | null
   const [invitePending, setInvitePending] = useState(false)
 
@@ -337,8 +355,17 @@ export default function TrainerDetailPage() {
         return
       }
       if (!res.ok) {
-        const detail = await res.text().catch(() => '')
-        flashError(`Generation failed (${res.status})${detail ? `: ${detail.slice(0, 160)}` : ''}`)
+        // Special-case the intake-completeness gate so the trainer sees
+        // exactly which fields to finish instead of a raw JSON blob.
+        const body = await res.json().catch(() => null)
+        if (body?.error === 'intake_incomplete' && Array.isArray(body.missing_fields)) {
+          flashError(
+            `Finish the intake before generating: ${body.missing_fields.join(', ')}`,
+          )
+          return
+        }
+        const detail = body ? JSON.stringify(body).slice(0, 160) : ''
+        flashError(`Generation failed (${res.status})${detail ? `: ${detail}` : ''}`)
         return
       }
       const data = await res.json()
@@ -727,6 +754,7 @@ export default function TrainerDetailPage() {
                 nextStep={nextStep}
                 onGenerateBaseline={handleGenerateBaseline}
                 onUpdateAboutYou={handleUpdateAboutYou}
+                onUpdateFields={handleUpdateTraineeFields}
                 onGotoTab={setActiveTab}
               />
             )}
@@ -914,12 +942,30 @@ function OverviewTab({
   nextStep,
   onGenerateBaseline,
   onUpdateAboutYou,
+  onUpdateFields,
   onGotoTab,
 }) {
   const Icon = nextStep.icon || Sparkles
   const hasAboutYou = !!(trainee.about_you && trainee.about_you.trim().length > 0)
+  // Intake completeness — mirrors the /api/trainer/generate gate exactly,
+  // so the trainer sees the same list the server checks.  about_you is in
+  // the list too but the AboutYouCard below owns that one; filter it out
+  // so this card handles only the "other" missing fields.
+  const missingAllFields = missingIntakeFields(trainee)
+  const missingOtherFields = missingAllFields.filter((f) => f !== 'about_you')
   return (
     <div>
+      {/* Finish-intake card — only renders when the trainee has required
+          fields beyond about_you still unanswered.  Inline editors for
+          exactly those fields so the trainer doesn't have to navigate. */}
+      {missingOtherFields.length > 0 && (
+        <MissingIntakeFieldsCard
+          trainee={trainee}
+          missing={missingOtherFields}
+          onSave={onUpdateFields}
+        />
+      )}
+
       {/* About-you card — always first so trainers craft context BEFORE any
           plan-generation CTA.  Empty state locks downstream generation. */}
       <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
@@ -1024,6 +1070,156 @@ function OverviewTab({
         </section>
       )}
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MissingIntakeFieldsCard — renders above AboutYouCard when a trainee (usually
+// a pre-existing one created before today's required-field rollout) has any
+// REQUIRED_INTAKE_FIELDS still blank except about_you.  Inline editors for
+// exactly the missing set, batched save via action=update.  The card hides
+// itself the moment everything is filled.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MISSING_FIELD_LABELS = {
+  age: 'Age',
+  sex: 'Sex (M / F / other)',
+  height_cm: 'Height (cm)',
+  current_weight_kg: 'Current weight (kg)',
+  primary_goal: 'Primary goal (lose_fat / gain_muscle / maintain / performance / recomp)',
+  training_experience_years: 'Training experience (years)',
+  training_days_per_week: 'Training days per week',
+  equipment_access: 'Equipment access (none / bands / home_gym / full_gym)',
+  medical_flags: 'Medical flags — type "None" if nothing to flag',
+  injuries: 'Injuries — type "None" if none',
+  dietary_preference: 'Dietary preference (none / vegetarian / vegan / pescatarian / keto / paleo / custom)',
+  allergies: 'Allergies / intolerances — type "None" if none',
+  sleep_hours_avg: 'Average sleep (hours/night)',
+  stress_level: 'Stress level (1–10)',
+  occupation_activity: 'Occupation activity (sedentary / light / moderate / heavy)',
+  meals_per_day: 'Meals per day (3–6)',
+}
+
+// Fields that are numeric on the DB side — drafts typed into the text input
+// need coercion before we PATCH.
+const NUMERIC_FIELDS = new Set([
+  'age',
+  'height_cm',
+  'current_weight_kg',
+  'training_experience_years',
+  'training_days_per_week',
+  'sleep_hours_avg',
+  'stress_level',
+  'meals_per_day',
+])
+
+function MissingIntakeFieldsCard({ trainee, missing, onSave }) {
+  const [drafts, setDrafts] = useState(() => {
+    const init = {}
+    for (const f of missing) init[f] = ''
+    return init
+  })
+  const [saving, setSaving] = useState(false)
+  const [localError, setLocalError] = useState(null)
+
+  function setDraft(field, value) {
+    setDrafts((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function buildPatch() {
+    const patch = {}
+    for (const f of missing) {
+      const raw = (drafts[f] || '').trim()
+      if (!raw) continue
+      if (NUMERIC_FIELDS.has(f)) {
+        const n = Number(raw)
+        if (!Number.isFinite(n)) {
+          setLocalError(`${MISSING_FIELD_LABELS[f] || f}: must be a number`)
+          return null
+        }
+        patch[f] = n
+      } else {
+        patch[f] = raw
+      }
+    }
+    return patch
+  }
+
+  async function handleSave() {
+    setLocalError(null)
+    const patch = buildPatch()
+    if (!patch) return
+    const allFilled = missing.every((f) => (drafts[f] || '').trim().length > 0)
+    if (!allFilled) {
+      setLocalError('Answer every field before saving — the plan generator needs all of these.')
+      return
+    }
+    setSaving(true)
+    const ok = await onSave?.(patch)
+    setSaving(false)
+    if (!ok) setLocalError('Save failed — see the toast for details.')
+  }
+
+  return (
+    <section
+      style={{
+        ...panelStyle,
+        background: '#fff7ed',
+        borderLeft: `4px solid #ea580c`,
+        marginBottom: 18,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <AlertTriangle size={16} color="#ea580c" />
+        <h2 style={{ ...panelTitle, color: '#9a3412' }}>Finish the intake</h2>
+      </div>
+      <p style={{ ...paraStyle, color: '#9a3412', marginBottom: 14 }}>
+        {trainee?.full_name || 'This trainee'} was created before a few new required
+        fields landed. Fill these in and the plan generator will unlock.
+      </p>
+
+      <div style={{ display: 'grid', gap: 10, marginBottom: 12 }}>
+        {missing.map((f) => (
+          <div key={f}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: '#7c2d12', display: 'block', marginBottom: 4 }}>
+              {MISSING_FIELD_LABELS[f] || f}
+            </label>
+            <input
+              type="text"
+              value={drafts[f] || ''}
+              onChange={(e) => setDraft(f, e.target.value)}
+              disabled={saving}
+              style={{
+                width: '100%',
+                padding: '8px 10px',
+                fontSize: 13,
+                border: `1px solid #fed7aa`,
+                borderRadius: 6,
+                background: '#fff',
+                color: '#0a0a0a',
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {localError && (
+        <div style={{ fontSize: 12, color: '#991b1b', marginBottom: 10 }}>{localError}</div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          style={btnPrimary(saving)}
+        >
+          {saving ? <Loader2 size={13} /> : null}
+          {saving ? 'Saving…' : 'Save intake'}
+        </button>
+      </div>
+    </section>
   )
 }
 
