@@ -86,7 +86,9 @@ export default function RoadmapCard({ roadmap, currentPhase = 1, onSelectPhase }
                 {p.phase_name || `Phase ${n}`}
               </h3>
               <div style={{ color: GRY5, fontSize: 11, fontWeight: 700, marginBottom: 12, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-                {p.days_range || `Days ${(n - 1) * 30 + 1}–${n * 30}`}
+                {p.days_range?.start && p.days_range?.end
+                  ? `Days ${p.days_range.start}–${p.days_range.end}`
+                  : `Days ${(n - 1) * 30 + 1}–${n * 30}`}
               </div>
 
               <LineLabel label="Training" value={p.training_theme} />
