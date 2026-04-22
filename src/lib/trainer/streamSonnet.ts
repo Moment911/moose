@@ -51,7 +51,7 @@ export function streamSonnetChat(args: StreamSonnetArgs): ReadableStream<Uint8Ar
       if (apiMessages.length === 0) {
         apiMessages.push({
           role: 'user' as const,
-          content: [{ type: 'text' as const, text: 'Start the intake conversation.' }],
+          content: [{ type: 'text' as const, text: 'Hey, I\'m ready to get started!' }],
         })
       }
 
@@ -125,6 +125,11 @@ export function streamSonnetChat(args: StreamSonnetArgs): ReadableStream<Uint8Ar
             }
 
             const eventType = event.type as string
+
+            // Debug: log all events to see what Anthropic sends.
+            if (eventType === 'content_block_start' || eventType === 'content_block_delta' || eventType === 'content_block_stop') {
+              console.log('[streamSonnet]', eventType, JSON.stringify(event).slice(0, 200))
+            }
 
             if (eventType === 'message_start') {
               const msg = event.message as Record<string, unknown> | undefined
