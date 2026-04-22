@@ -39,6 +39,28 @@ export async function verifySession(req: Request, body?: Record<string, any>): P
   const authHeader = req.headers.get('authorization')
   const token = authHeader?.replace('Bearer ', '')
 
+  // Dev-only bypass — mirrors NEXT_PUBLIC_BYPASS_AUTH in src/hooks/useAuth.jsx.
+  // Without it, hooks return a fake user + agency but supabase.auth has no
+  // real session, so client fetches can't attach a Bearer token and every
+  // verifySession() route 401s. Hard-gated on NODE_ENV !== 'production'.
+  const bypassAuth =
+    process.env.NODE_ENV !== 'production' &&
+    process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
+  if (bypassAuth) {
+    const headerAgencyId = req.headers.get('x-koto-agency-id')
+    const bodyAgencyId = body?.agency_id
+    const searchParams = new URL(req.url).searchParams
+    const paramAgencyId = searchParams.get('agency_id')
+    return {
+      agencyId: headerAgencyId || bodyAgencyId || paramAgencyId || '00000000-0000-0000-0000-000000000099',
+      userId: '00000000-0000-0000-0000-000000000001',
+      isSuperAdmin: true,
+      role: 'owner',
+      clientId: null,
+      verified: true,
+    }
+  }
+
   // No token — unverified fallback for backwards compat
   if (!token) {
     const headerAgencyId = req.headers.get('x-koto-agency-id')
