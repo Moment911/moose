@@ -26,7 +26,7 @@ function err(status: number, error: string) {
 
 export async function GET(req: NextRequest) {
   const sb = getDb()
-  const agencyId = process.env.DEFAULT_FOURR_AGENCY_ID || DEFAULT_AGENCY_FALLBACK
+  const agencyId = (process.env.DEFAULT_FOURR_AGENCY_ID || DEFAULT_AGENCY_FALLBACK).trim()
 
   const sessionId = req.nextUrl.searchParams.get('session_id')
   if (!sessionId) return err(400, 'session_id is required')

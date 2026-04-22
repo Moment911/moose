@@ -38,7 +38,7 @@ function err(status: number, error: string, extra?: Record<string, unknown>) {
 
 export async function POST(req: NextRequest) {
   const sb = getDb()
-  const agencyId = process.env.DEFAULT_FOURR_AGENCY_ID || DEFAULT_AGENCY_FALLBACK
+  const agencyId = (process.env.DEFAULT_FOURR_AGENCY_ID || DEFAULT_AGENCY_FALLBACK).trim()
 
   try {
     await assertFourrMethodEnabled(sb, agencyId)
