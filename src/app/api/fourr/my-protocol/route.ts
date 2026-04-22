@@ -10,7 +10,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
-const DEFAULT_AGENCY_FALLBACK = '70ab75b3-1cee-4130-bfd5-bd2687c701ad'
+const DEFAULT_AGENCY_FALLBACK = '09ac0024-2634-4f52-8a68-b9b8fedc26bf'
 
 function getDb(): SupabaseClient {
   return createClient(
