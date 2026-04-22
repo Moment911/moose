@@ -5,7 +5,7 @@ import {
   isFeatureDisabledError,
 } from '../../../../lib/fourr/featureFlag'
 import type { FourrIntakeInput } from '../../../../lib/fourr/intakeSchema'
-import { isFourrIntakeComplete } from '../../../../lib/fourr/intakeCompleteness'
+import { missingFourrIntakeFields } from '../../../../lib/fourr/intakeCompleteness'
 import { callSonnet } from '../../../../lib/trainer/sonnetRunner'
 import { FEATURE_TAGS } from '../../../../lib/fourr/fourrConfig'
 import {
@@ -92,8 +92,11 @@ export async function POST(req: NextRequest) {
   const intake = patientRow as unknown as FourrIntakeInput & { id: string; status: string }
   const patientId = intake.id
 
-  if (!isFourrIntakeComplete(intake)) {
-    return err(400, 'intake_incomplete', { message: 'Please complete the intake assessment first.' })
+  // Allow generation even if 1-2 fields are missing — the chat got close enough.
+  // The doctors will fill gaps at the first appointment.
+  const missing = missingFourrIntakeFields(intake)
+  if (missing.length > 5) {
+    return err(400, 'intake_incomplete', { message: 'Please answer a few more questions first.', missing_fields: missing })
   }
 
   // Check if protocol already exists
