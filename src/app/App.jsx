@@ -171,6 +171,9 @@ import TrainerDetailPage from '../views/trainer/TrainerDetailPage'
 import MyPlanPage from '../views/trainer/MyPlanPage'
 import SelfSignupPage from '../views/trainer/SelfSignupPage'
 import SelfIntakePage from '../views/trainer/SelfIntakePage'
+import FourrSignupPage from '../views/fourr/FourrSignupPage'
+import FourrIntakePage from '../views/fourr/FourrIntakePage'
+import FourrProtocolPage from '../views/fourr/FourrProtocolPage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
 import VOBAgentPage from '../views/VOBAgentPage'
 import GHLIntegrationPage from '../views/GHLIntegrationPage'
@@ -324,6 +327,9 @@ export default function App() {
           <Route path="/my-plan" element={<MyPlanPage />} />
           <Route path="/start" element={<SelfSignupPage />} />
           <Route path="/my-intake" element={<SelfIntakePage />} />
+          <Route path="/4r/start" element={<FourrSignupPage />} />
+          <Route path="/4r/intake" element={<FourrIntakePage />} />
+          <Route path="/4r/my-protocol" element={<FourrProtocolPage />} />
 
           {/* ── All app routes (with shell + auth) ── */}
           <Route path="/*" element={
