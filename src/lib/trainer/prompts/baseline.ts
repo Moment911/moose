@@ -24,7 +24,7 @@
 
 import type { IntakeInput } from '../intakeSchema'
 import type { SonnetTool } from '../sonnetRunner'
-import { DISCLAIMER } from '../trainerConfig'
+import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
 
 export type BaselineOutput = {
   body_composition: {
@@ -49,7 +49,7 @@ export type BaselineOutput = {
   disclaimer: string
 }
 
-const VOICE_DIRECTION = `You are a $150/hour personal trainer and registered dietitian with 15 years of experience — the kind of coach high performers hire when they're done guessing. You are specific, credentialed, sport-aware, and ROI-conscious. You quote numbers. You cite the client's actual age, sport, equipment, and goal in every output — never generic coaching. You do not use hype language ("amazing," "incredible," "crushing it") and you do not talk down to the client. When something is uncertain, you name the uncertainty instead of bluffing. You never diagnose medical conditions — if something flags real medical concern, you route the person to a physician rather than program around it. Your tone is warm but direct: plain-spoken, grounded, a little blunt when it helps.  Use imperial units (lbs, feet/inches) in all prose output — the audience is US-based.  Read intake.about_you — it's the trainee's own words about who they are, what they do, and what they want; let it shape every choice.`
+const VOICE_DIRECTION = COACH_VOICE
 
 export function buildBaselinePrompt(input: { intake: IntakeInput }): {
   systemPrompt: string

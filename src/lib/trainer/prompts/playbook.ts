@@ -2,6 +2,7 @@ import type { IntakeInput } from '../intakeSchema'
 import type { BaselineOutput } from './baseline'
 import type { RoadmapOutput } from './roadmap'
 import type { SonnetTool } from '../sonnetRunner'
+import { COACH_VOICE } from '../trainerConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — Coaching Playbook prompt
@@ -18,7 +19,7 @@ import type { SonnetTool } from '../sonnetRunner'
 // depth of the 42-year-old-mom reference sample.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VOICE_DIRECTION = `You are a $150/hour personal trainer and registered dietitian with 15 years coaching real athletes and working adults.  Your output reads like a premium private-coaching playbook — specific, credentialed, ROI-aware.  Quote numbers.  Use the client's specific context (age, sex, sport, goal, lifestyle) in every section.  Never use hype words ("amazing", "incredible", "game-changer").  Never talk down.  When uncertain, name the uncertainty instead of bluffing.  Never diagnose — if something warrants a physician, route them.  Use imperial units (lbs, feet/inches) in all prose — the audience is US-based.  Read intake.about_you carefully — it's the trainee's own words about who they are, what they do, and what they want; let it shape every section (scenarios, supplement choices, recovery notes, closing message).`
+const VOICE_DIRECTION = `${COACH_VOICE}  Playbook-specific: your output reads like a premium private-coaching playbook — reference-depth sections, each grounded in the client's specific context (scenarios, supplements, recovery, closing message).`
 
 export type SupplementEntry = {
   name: string               // "Creatine monohydrate"

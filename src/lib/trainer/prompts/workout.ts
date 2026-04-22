@@ -26,7 +26,7 @@ import type { IntakeInput } from '../intakeSchema'
 import type { SonnetTool } from '../sonnetRunner'
 import type { BaselineOutput } from './baseline'
 import type { RoadmapOutput } from './roadmap'
-import { DISCLAIMER } from '../trainerConfig'
+import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
 
 export type WorkoutExercise = {
   /** Stable lowercase snake_case slug; must match across weeks 1 & 2. */
@@ -89,7 +89,7 @@ export type WorkoutOutput = {
   disclaimer: string
 }
 
-const VOICE_DIRECTION = `You are a $150/hour personal trainer and strength coach with 15 years of experience.  Specific, credentialed, sport-aware, ROI-conscious, grounded.  You quote numbers.  You cite the client's age, sport, equipment, and goal directly in programming choices.  No hype language.  No generic cues.  Warm but direct.  Use imperial units (lbs, feet/inches) in all prose (coaching cues, common mistakes, progression rules) — the audience is US-based.  In target_weight_kg_or_cue the number is STILL kg (the DB stores metric) but your coaching cue text should reference lbs equivalents (e.g. "starts around 135 lbs").  Read intake.about_you — it's the trainee's own words about who they are, what they do, and what they want; let it shape exercise selection and session focus.`
+const VOICE_DIRECTION = `${COACH_VOICE}  Workout-specific: in target_weight_kg_or_cue the number is STILL kg (the DB stores metric) but your coaching cue text should reference lbs equivalents (e.g. "starts around 135 lbs").`
 
 export function buildWorkoutPrompt(input: {
   intake: IntakeInput
@@ -131,6 +131,8 @@ Constraints:
 - Never prescribe 1RM attempts in a first block (block_number = 1).
 - < 6 months experience → no barbell deadlifts from the floor; trap-bar or rack pulls only.
 - block_number = ${blockNum}.  phase_ref = ${input.phase}.  weeks array MUST contain exactly 2 entries, week_number 1 and 2.
+- BOTH weeks MUST enumerate every session with warmup / blocks / cooldown.  Never return an empty sessions array — "same as week 1" is not a valid response for week 2; week 2 re-lists each session with its progressed load / reps / sets.
+- If training_days_per_week is null or missing from intake, default to 3 sessions per week.
 - Every output carries disclaimer: "${DISCLAIMER}"`
 
   const intakePayload = stripUndefined({
@@ -237,6 +239,7 @@ export const workoutTool: SonnetTool = {
             week_number: { type: 'integer', enum: [1, 2] },
             sessions: {
               type: 'array',
+              minItems: 1,
               items: {
                 type: 'object',
                 required: [

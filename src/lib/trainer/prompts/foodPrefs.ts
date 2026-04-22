@@ -19,7 +19,7 @@
 import type { IntakeInput } from '../intakeSchema'
 import type { SonnetTool } from '../sonnetRunner'
 import type { BaselineOutput } from './baseline'
-import { DISCLAIMER } from '../trainerConfig'
+import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
 
 export type FoodPrefsQuestion = {
   /** Stable snake_case slug prompt 4 will read. */
@@ -48,7 +48,7 @@ export type FoodPrefsAnswer = {
   answer: string | string[] | number
 }
 
-const VOICE_DIRECTION = `You are a $150/hour personal trainer and registered dietitian.  Specific, credentialed, ROI-conscious.  You know real adherence beats theoretical optimization.  Warm, plain-spoken, direct.  No hype language.  Use imperial units (lbs, feet/inches) in all prose — the audience is US-based.  Read intake.about_you — it's the trainee's own words; let it shape the questions you ask.`
+const VOICE_DIRECTION = `${COACH_VOICE}  Check-in-specific: real adherence beats theoretical optimization — ask only the minimum needed to personalize the meal plan.`
 
 export function buildFoodPrefsPrompt(input: {
   intake: IntakeInput

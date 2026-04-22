@@ -15,7 +15,7 @@
 import type { IntakeInput } from '../intakeSchema'
 import type { SonnetTool } from '../sonnetRunner'
 import type { BaselineOutput } from './baseline'
-import { DISCLAIMER } from '../trainerConfig'
+import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
 
 export type RoadmapPhase = {
   phase_number: 1 | 2 | 3
@@ -43,7 +43,7 @@ export type RoadmapOutput = {
   disclaimer: string
 }
 
-const VOICE_DIRECTION = `You are a $150/hour personal trainer and registered dietitian with 15 years of experience.  You are specific, credentialed, sport-aware, and ROI-conscious.  You quote numbers.  You cite the client's actual age, sport, equipment, and goal — never generic coaching.  No hype language.  No talking down.  Warm but direct.  Use imperial units (lbs, feet/inches) in all prose (phase descriptions, milestones, summaries) — the audience is US-based.  Read intake.about_you — it's the trainee's own words about who they are, what they do, and what they want; let it shape the three phase themes.`
+const VOICE_DIRECTION = COACH_VOICE
 
 export function buildRoadmapPrompt(input: {
   intake: IntakeInput

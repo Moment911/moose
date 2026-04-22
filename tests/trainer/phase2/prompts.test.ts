@@ -238,9 +238,13 @@ const MINIMAL_ADHERENCE: AdherenceSummary = {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function assertVoice(systemPrompt: string): void {
-  // The $150/hour coach persona must land verbatim in every prompt's system
-  // text.  Matches the locked direction.
-  expect(systemPrompt).toMatch(/\$150\/hour personal trainer/)
+  // The unified coach persona must land verbatim in every prompt's system
+  // text.  Matches the locked COACH_VOICE in trainerConfig.ts: MLB-facility
+  // credentialed, PhD Exercise Physiology, Master's Nutrition, 15-season pros.
+  expect(systemPrompt).toMatch(/former MLB training facility/)
+  expect(systemPrompt).toMatch(/PhD in Exercise Physiology/)
+  expect(systemPrompt).toMatch(/Master's in Nutrition/)
+  expect(systemPrompt).toMatch(/15 seasons/)
 }
 
 function assertToolShape(tool: { name: string; description: string; input_schema: Record<string, unknown> }): void {
@@ -410,6 +414,18 @@ describe('workoutTool', () => {
     expect(exerciseSchema.required).toContain('common_mistakes')
     expect(exerciseSchema.required).toContain('video_query')
     expect(exerciseSchema.required).toContain('exercise_id')
+  })
+
+  it('requires each week.sessions array to be non-empty (blocks Sonnet empty-week drift)', () => {
+    // Regression guard for the empty-sessions bug: without minItems on the
+    // sessions array, Sonnet could legally return `sessions: []` for week 2
+    // ("same as week 1") and the tool-use validator would accept it, leaving
+    // the WorkoutAccordion to render a defensive empty-state banner.
+    const schema = workoutTool.input_schema as Record<string, unknown>
+    const weeks = (schema.properties as Record<string, unknown>).weeks as Record<string, unknown>
+    const weekItem = (weeks.items as Record<string, unknown>).properties as Record<string, unknown>
+    const sessions = weekItem.sessions as { minItems?: number }
+    expect(sessions.minItems).toBe(1)
   })
 })
 
