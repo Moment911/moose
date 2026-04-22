@@ -27,6 +27,7 @@ export const FEATURE_TAGS = {
   ADJUST: 'trainer_adjust',
   PLAYBOOK: 'trainer_playbook',
   REFINE: 'trainer_refine',
+  INTAKE_CHAT: 'trainer_intake_chat',
 } as const
 
 // Per-agency daily USD cap for the whole Trainer Sonnet chain.

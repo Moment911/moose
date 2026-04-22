@@ -482,7 +482,7 @@ async function handleDeleteMyAccount(sb: SupabaseClient, ctx: TraineeCtx) {
   const failures: string[] = []
 
   // Best-effort: delete children first, then parents.
-  const steps: Array<[string, () => Promise<{ error?: { message: string } | null }>]> = [
+  const steps: Array<[string, () => PromiseLike<{ error?: { message: string } | null }>]> = [
     ['workout_logs', () => sb.from('koto_fitness_workout_logs').delete().eq('trainee_id', traineeId).eq('agency_id', agencyId)],
     ['plans',        () => sb.from('koto_fitness_plans').delete().eq('trainee_id', traineeId).eq('agency_id', agencyId)],
     ['trainees',     () => sb.from('koto_fitness_trainees').delete().eq('id', traineeId).eq('agency_id', agencyId)],
