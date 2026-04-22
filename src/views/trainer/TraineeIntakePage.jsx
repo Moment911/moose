@@ -204,28 +204,37 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
     ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'
   }, [input])
 
+  // Store last messages for retry.
+  const lastTurnRef = useRef(null)
+
   const streamTurn = useCallback(async (turnMessages) => {
+    lastTurnRef.current = turnMessages
     setStreaming(true)
     setStreamingText('')
     setQuickReplies([])
     setError(null)
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000) // 30s timeout
 
     try {
       const res = await fetch('/api/trainer/intake-chat-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trainee_id: traineeId, messages: turnMessages, extracted }),
+        signal: controller.signal,
       })
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         setError(body?.error || `Error (${res.status})`)
         setStreaming(false)
+        clearTimeout(timeout)
         return
       }
 
       const reader = res.body?.getReader()
-      if (!reader) { setError('No stream'); setStreaming(false); return }
+      if (!reader) { setError('No stream'); setStreaming(false); clearTimeout(timeout); return }
 
       const decoder = new TextDecoder()
       let buffer = ''
@@ -258,14 +267,30 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
         }
       }
 
-      if (fullText) setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
+      clearTimeout(timeout)
+
+      if (fullText) {
+        setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
+      } else if (!error) {
+        // Stream completed but no text — show retry option.
+        setError('No response received. Tap retry to try again.')
+      }
       if (replies.length > 0) setQuickReplies(replies)
     } catch (e) {
-      setError(e?.message || 'Network error')
+      clearTimeout(timeout)
+      if (e?.name === 'AbortError') {
+        setError('Response took too long. Tap retry to try again.')
+      } else {
+        setError(e?.message || 'Network error')
+      }
     }
     setStreamingText('')
     setStreaming(false)
   }, [traineeId, extracted, onFieldsUpdate, onAboutYouAppend])
+
+  function handleRetry() {
+    if (lastTurnRef.current) streamTurn(lastTurnRef.current)
+  }
 
   // On mount: send the initial paragraph as the first user message.
   useEffect(() => {
@@ -317,7 +342,12 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
             <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
           </div>
         )}
-        {error && <div style={{ padding: '8px 10px', background: '#fee2e2', borderRadius: 8, fontSize: 12, color: '#991b1b' }}>{error}</div>}
+        {error && (
+          <div style={{ padding: '8px 10px', background: '#fee2e2', borderRadius: 8, fontSize: 12, color: '#991b1b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <span>{error}</span>
+            <button onClick={handleRetry} disabled={streaming} style={{ padding: '4px 10px', background: '#fff', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, fontWeight: 700, color: '#991b1b', cursor: 'pointer', whiteSpace: 'nowrap' }}>Retry</button>
+          </div>
+        )}
 
         {/* Quick reply buttons */}
         {!streaming && quickReplies.length > 0 && (

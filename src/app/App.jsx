@@ -172,6 +172,7 @@ import MyPlanPage from '../views/trainer/MyPlanPage'
 import SelfSignupPage from '../views/trainer/SelfSignupPage'
 import SelfIntakePage from '../views/trainer/SelfIntakePage'
 import TraineeIntakePage from '../views/trainer/TraineeIntakePage'
+import RecruitingPage from '../views/trainer/RecruitingPage'
 import FourrIntakePage from '../views/fourr/FourrIntakePage'
 import FourrProtocolPage from '../views/fourr/FourrProtocolPage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
@@ -453,6 +454,7 @@ function AppRoutes() {
           <Route path="/opportunities" element={<OpportunitiesPage />} />
           <Route path="/trainer" element={<TrainerListPage />} />
           <Route path="/trainer/new" element={<TrainerIntakePage />} />
+          <Route path="/trainer/recruiting" element={<RecruitingPage />} />
           <Route path="/trainer/:traineeId" element={<TrainerDetailPage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/kotoiq/pixels" element={<PixelTrackingPage />} />

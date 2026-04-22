@@ -413,6 +413,7 @@ export default function Sidebar() {
               {path.startsWith('/trainer') && (<>
                 <NavLink to="/trainer" exact icon={Users} label="All Trainees" sub hidden={!feat('fitness_coach')}/>
                 <NavLink to="/trainer/new" icon={Plus} label="Add Trainee" sub hidden={!feat('fitness_coach')}/>
+                <NavLink to="/trainer/recruiting" icon={Target} label="Recruiting" sub hidden={!feat('fitness_coach')}/>
               </>)}
             </Section>
 
