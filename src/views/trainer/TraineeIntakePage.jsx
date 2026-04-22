@@ -85,26 +85,27 @@ const ACKNOWLEDGMENTS = [
   "Locked in.", "That helps.", "Good to know.", "Check.",
 ]
 
-function buildSmartFallback(prevExtracted, currentExtracted, services) {
-  // Find next missing field to ask about
+// Single source of truth for "what should we ask next" — shared by the
+// fallback-text generator and the pill-picker so they always agree.
+function findNextMissingField(currentExtracted, services) {
   const allFields = [...REQUIRED_FIELDS]
   allFields.push('club_team', 'practices_per_week', 'bullpen_sessions_per_week', 'game_appearances_per_week', 'avg_pitch_count', 'pitch_arsenal', 'arm_soreness', 'games_per_week', 'offseason_training', 'other_sports')
   if (services?.includes('recruiting')) {
     allFields.push('grad_year', 'position_primary', 'throwing_hand', 'batting_hand', 'gpa', 'fastball_velo_peak', 'high_school', 'travel_team')
   }
-
-  let nextField = null
   for (const f of allFields) {
     const v = currentExtracted[f]
     if ((v === undefined || v === null || v === '') && FIELD_QUESTIONS[f]) {
-      nextField = f
-      break
+      return f
     }
   }
+  return null
+}
 
+function buildSmartFallback(prevExtracted, currentExtracted, services) {
+  const nextField = findNextMissingField(currentExtracted, services)
   const ack = ACKNOWLEDGMENTS[Math.floor(Math.random() * ACKNOWLEDGMENTS.length)]
   const fieldDef = nextField ? FIELD_QUESTIONS[nextField] : null
-
   return {
     text: fieldDef ? `${ack} ${fieldDef.q}` : `${ack} Looking good — your profile is coming together. Anything else you want to add?`,
     pills: fieldDef?.pills || [],
@@ -443,9 +444,18 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
         const mergedExtracted = { ...extracted, ...fieldsThisTurn }
         const fallback = buildSmartFallback(lastExtractedRef.current, mergedExtracted, services)
         setMessages((prev) => [...prev, { role: 'assistant', content: fallback.text }])
-        if (fallback.pills.length > 0) replies = fallback.pills
       }
-      if (replies.length > 0) setQuickReplies(replies)
+
+      // Pill selection: client pills (keyed to the next missing field) are
+      // the source of truth whenever that field has a hand-curated pill map.
+      // Server-supplied suggested_replies only fire for free-text fields
+      // with no client map. setQuickReplies fires unconditionally so stale
+      // pills from a previous turn can never persist into this one.
+      const mergedForPills = { ...extracted, ...fieldsThisTurn }
+      const nextField = findNextMissingField(mergedForPills, services)
+      const clientPills = nextField ? FIELD_QUESTIONS[nextField]?.pills : null
+      const pillsToShow = (clientPills && clientPills.length > 0) ? clientPills : replies
+      setQuickReplies(pillsToShow || [])
     } catch (e) {
       clearTimeout(timeout)
       if (e?.name === 'AbortError') {
