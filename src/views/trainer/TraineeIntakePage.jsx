@@ -463,12 +463,31 @@ function WelcomeScreen({ name, onStart }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-      <div style={{ maxWidth: 560, width: '100%' }}>
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${T}`, borderRadius: 12, padding: '28px 28px 24px', marginBottom: 16 }}>
-          <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
-            {firstName ? `Welcome, ${firstName}` : 'Welcome'}
+    <div style={{ minHeight: '100vh', background: BG, padding: '32px 20px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto' }}>
+
+        {/* Hero / Logo header */}
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: 20, margin: '0 auto 14px',
+            background: `linear-gradient(135deg, ${BLK} 0%, #1e293b 100%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,.15)',
+          }}>
+            <span style={{ fontSize: 28, fontWeight: 900, color: T, letterSpacing: '-1px', fontFamily: 'inherit' }}>K</span>
+          </div>
+          <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.5px' }}>
+            Koto
           </h1>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: T, letterSpacing: '.02em' }}>
+            Your AI Baseball Performance Coach
+          </p>
+        </div>
+
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '28px 28px 24px', marginBottom: 16 }}>
+          <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
+            {firstName ? `Welcome, ${firstName}` : 'Welcome'}
+          </h2>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
             You're about to chat with an <strong>AI-powered personal coach</strong> built on the combined knowledge of PhDs, pro athletes, and veteran coaching staff. It will read everything you share and ask targeted follow-up questions to build your complete profile.
           </p>
@@ -476,7 +495,7 @@ function WelcomeScreen({ name, onStart }) {
           {/* Expert credentials */}
           <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-              Your AI coach is trained on
+              Powered by expert-level AI
             </div>
             <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13, lineHeight: 1.65 }}>
               <li><strong>PhD in Biomechanics</strong> — throwing mechanics, swing analysis, movement efficiency</li>
