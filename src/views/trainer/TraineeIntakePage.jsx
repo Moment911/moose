@@ -470,18 +470,18 @@ function WelcomeScreen({ name, onStart }) {
             {firstName ? `Welcome, ${firstName}` : 'Welcome'}
           </h1>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
-            We're going to build a training plan made just for you. Start by telling us about yourself — your coach will read everything and follow up with targeted questions.
+            You're about to chat with an <strong>AI coach</strong> trained on the knowledge of real experts. It will read everything you share, extract what it needs, and ask smart follow-up questions to build your complete profile.
           </p>
 
           {/* Expert credentials */}
           <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-              The experts behind your plan
+              Your AI coach is trained on
             </div>
             <ul style={{ margin: 0, paddingLeft: 18, color: '#374151', fontSize: 13, lineHeight: 1.65 }}>
               <li><strong>PhD</strong> in Exercise Physiology — programming, load management, periodization</li>
               <li><strong>Master's</strong> in Nutrition — calorie & macro targets grounded in sport-science</li>
-              <li>Former <strong>MLB training facility</strong> coaching staff</li>
+              <li>Former <strong>MLB training facility</strong> — hitting, pitching, and throwing coaches with 15 pro seasons each</li>
             </ul>
           </div>
 
