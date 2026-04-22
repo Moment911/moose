@@ -120,10 +120,11 @@ export default function CitationChip({
             whiteSpace: 'normal',
           }}
         >
-          {sourceSnippet && <div style={{ marginBottom: 6 }}>{sourceSnippet}</div>}
+          {sourceSnippet && <span style={{ display: 'block', marginBottom: 6 }}>{sourceSnippet}</span>}
           {(sourceUrl || formattedCaptured || pctConfidence !== null) && (
-            <div
+            <span
               style={{
+                display: 'block',
                 fontSize: 11,
                 color: '#6b7280',
                 lineHeight: 1.4,
@@ -132,7 +133,7 @@ export default function CitationChip({
               }}
             >
               {sourceUrl && (
-                <div>
+                <span style={{ display: 'block' }}>
                   <a
                     href={sourceUrl}
                     target="_blank"
@@ -141,11 +142,11 @@ export default function CitationChip({
                   >
                     {sourceUrl}
                   </a>
-                </div>
+                </span>
               )}
-              {formattedCaptured && <div>Captured {formattedCaptured}</div>}
-              {pctConfidence !== null && <div>{pctConfidence}% confidence</div>}
-            </div>
+              {formattedCaptured && <span style={{ display: 'block' }}>Captured {formattedCaptured}</span>}
+              {pctConfidence !== null && <span style={{ display: 'block' }}>{pctConfidence}% confidence</span>}
+            </span>
           )}
         </span>
       )}

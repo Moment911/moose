@@ -190,15 +190,27 @@ export function getKotoIQDb(agencyId: string): KotoIQDb {
 
   function scopedFrom(table: string) {
     const query = sb.from(table) as any
-    if (DIRECT_AGENCY_TABLES.has(table)) {
-      return query.eq('agency_id', agencyId)
+    if (!DIRECT_AGENCY_TABLES.has(table)) {
+      if (TRANSITIVE_AGENCY_TABLES.has(table) && process.env.NODE_ENV === 'development') {
+        console.warn(`[kotoiqDb] Querying transitive table "${table}" — ensure parent FK belongs to agency ${agencyId}`)
+      }
+      return query as any
     }
-    // Transitive tables: caller is responsible for scoping via FK joins,
-    // but we log a warning in dev if this is a kotoiq_* table we know about
-    if (TRANSITIVE_AGENCY_TABLES.has(table) && process.env.NODE_ENV === 'development') {
-      console.warn(`[kotoiqDb] Querying transitive table "${table}" — ensure parent FK belongs to agency ${agencyId}`)
-    }
-    return query as any
+    // DIRECT_AGENCY_TABLES: Supabase JS v2 QueryBuilder has no .eq() — only
+    // the FilterBuilder returned by .select()/.update()/.delete() does. So
+    // we proxy those three methods and append .eq('agency_id', ...) to the
+    // resulting FilterBuilder. .insert()/.upsert() are handled by the
+    // separate scopedInsert helper which injects agency_id into the payload.
+    return new Proxy(query, {
+      get(target, prop) {
+        const orig = target[prop]
+        if (typeof orig !== 'function') return orig
+        if (prop === 'select' || prop === 'update' || prop === 'delete') {
+          return (...args: any[]) => orig.apply(target, args).eq('agency_id', agencyId)
+        }
+        return orig.bind(target)
+      },
+    }) as any
   }
 
   // ── Insert with agency_id injection ──
