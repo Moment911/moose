@@ -148,10 +148,19 @@ function ProgramRow({ program: p, isExpanded, onToggle, editingCoach, setEditing
         onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
         onMouseLeave={e => e.currentTarget.style.background = ''}
       >
-        <div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{p.school_name}</span>
-          {p.team_name && <span style={{ fontSize: 12, color: '#9ca3af', marginLeft: 6 }}>{p.team_name}</span>}
-          {coaches.length > 0 && <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>{coaches.length} coach{coaches.length !== 1 ? 'es' : ''}</span>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {p.logo_url ? (
+            <img src={p.logo_url} alt="" style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }} onError={e => { e.currentTarget.style.display = 'none' }} />
+          ) : (
+            <div style={{ width: 28, height: 28, borderRadius: 6, background: divColor + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: divColor, flexShrink: 0 }}>
+              {p.school_name[0]}
+            </div>
+          )}
+          <div>
+            <span style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{p.school_name}</span>
+            {p.team_name && <span style={{ fontSize: 12, color: '#9ca3af', marginLeft: 6 }}>{p.team_name}</span>}
+            {coaches.length > 0 && <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>{coaches.length} coach{coaches.length !== 1 ? 'es' : ''}</span>}
+          </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: divColor }}>{p.division}</span>
         <span style={{ fontSize: 12, color: '#6b7280' }}>{p.conference || '—'}</span>
@@ -162,15 +171,35 @@ function ProgramRow({ program: p, isExpanded, onToggle, editingCoach, setEditing
       {isExpanded && (
         <div style={{ padding: '0 16px 16px', borderTop: '1px solid #f3f4f6' }}>
           {/* Program info */}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: '12px 0', fontSize: 12, color: '#6b7280' }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: '12px 0', fontSize: 12, color: '#6b7280', alignItems: 'center' }}>
             {p.city && <span>{p.city}, {p.state}</span>}
             {p.website && (
               <a href={p.website} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4, color: T, textDecoration: 'none' }}>
-                <Globe size={11} /> Website
+                <Globe size={11} /> Website <ExternalLink size={9} />
               </a>
             )}
             {p.scholarship_available && <span style={{ color: GRN, fontWeight: 600 }}>Scholarships available</span>}
           </div>
+
+          {/* Stats grid */}
+          {(p.enrollment || p.tuition_in_state || p.roster_size || p.mlb_draft_picks_5yr || p.apr_score) && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8, padding: '8px 0 12px' }}>
+              {p.enrollment > 0 && <StatBox label="Enrollment" value={p.enrollment.toLocaleString()} />}
+              {p.tuition_in_state > 0 && <StatBox label="Tuition (in-state)" value={`$${(p.tuition_in_state).toLocaleString()}`} />}
+              {p.tuition_out_of_state > 0 && p.tuition_out_of_state !== p.tuition_in_state && <StatBox label="Tuition (out-of-state)" value={`$${(p.tuition_out_of_state).toLocaleString()}`} />}
+              {p.roster_size > 0 && <StatBox label="Roster size" value={String(p.roster_size)} />}
+              {p.mlb_draft_picks_5yr > 0 && <StatBox label="MLB draft picks (5yr)" value={String(p.mlb_draft_picks_5yr)} highlight />}
+              {p.apr_score > 0 && <StatBox label="APR score" value={String(p.apr_score)} />}
+              {p.graduation_rate > 0 && <StatBox label="Grad rate" value={`${p.graduation_rate}%`} />}
+            </div>
+          )}
+
+          {/* Notable */}
+          {p.notable && (
+            <div style={{ padding: '8px 12px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: 8, fontSize: 12, color: '#92400e', lineHeight: 1.5, marginBottom: 12 }}>
+              {p.notable}
+            </div>
+          )}
 
           {/* Coaches */}
           <div style={{ marginTop: 8 }}>
@@ -300,6 +329,15 @@ function FilterSelect({ label, value, onChange, options }) {
       <option value="">{label}</option>
       {options.map(o => <option key={o} value={o}>{o}</option>)}
     </select>
+  )
+}
+
+function StatBox({ label, value, highlight }) {
+  return (
+    <div style={{ padding: '8px 10px', background: highlight ? '#fef3c7' : '#f9fafb', borderRadius: 6, border: '1px solid #f3f4f6' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: highlight ? '#92400e' : BLK }}>{value}</div>
+    </div>
   )
 }
 
