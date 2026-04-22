@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Loader2, Archive } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
+import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRY, GRN } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ const STATUS_COLORS = {
 
 export default function TrainerListPage() {
   const navigate = useNavigate()
+  const { agencyId } = useAuth()
   const [trainees, setTrainees] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -36,7 +38,7 @@ export default function TrainerListPage() {
       setLoading(true)
       setError(null)
       try {
-        const res = await trainerFetch({ action: 'list', archived: showArchived })
+        const res = await trainerFetch({ action: 'list', archived: showArchived }, { agencyId })
         if (cancelled) return
         if (res.status === 404) {
           setFeatureDisabled(true)
@@ -60,7 +62,7 @@ export default function TrainerListPage() {
     return () => {
       cancelled = true
     }
-  }, [showArchived])
+  }, [showArchived, agencyId])
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f9fafb' }}>

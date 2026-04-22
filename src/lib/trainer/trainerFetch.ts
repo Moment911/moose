@@ -21,11 +21,20 @@ async function authHeader(): Promise<Record<string, string>> {
   }
 }
 
-export async function trainerFetch(body: Record<string, unknown>): Promise<Response> {
+export async function trainerFetch(
+  body: Record<string, unknown>,
+  opts?: { agencyId?: string | null },
+): Promise<Response> {
+  // Super-admin users have no agency_id from DB lookup until they impersonate.
+  // Callers pass useAuth's agencyId so the server's verifySession picks it up
+  // via the x-koto-agency-id header (mirrors kotoiqProfileFetch).  For normal
+  // agency members the header is ignored — their agency comes from DB.
   const auth = await authHeader()
+  const headers: Record<string, string> = { 'content-type': 'application/json', ...auth }
+  if (opts?.agencyId) headers['x-koto-agency-id'] = opts.agencyId
   return fetch('/api/trainer/trainees', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', ...auth },
+    headers,
     body: JSON.stringify(body),
   })
 }

@@ -6,6 +6,7 @@ import Sidebar from '../../components/Sidebar'
 import IntakeForm from '../../components/trainer/IntakeForm'
 import { FeatureDisabledPanel } from './TrainerListPage'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
+import { useAuth } from '../../hooks/useAuth'
 import { T, BLK, GRY } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,6 +18,7 @@ import { T, BLK, GRY } from '../../lib/theme'
 
 export default function TrainerIntakePage() {
   const navigate = useNavigate()
+  const { agencyId } = useAuth()
   const [submitting, setSubmitting] = useState(false)
   const [topError, setTopError] = useState(null)
   const [featureDisabled, setFeatureDisabled] = useState(false)
@@ -25,7 +27,7 @@ export default function TrainerIntakePage() {
     setSubmitting(true)
     setTopError(null)
     try {
-      const res = await trainerFetch({ action: 'create', ...values })
+      const res = await trainerFetch({ action: 'create', ...values }, { agencyId })
       if (res.status === 404) {
         setFeatureDisabled(true)
         return

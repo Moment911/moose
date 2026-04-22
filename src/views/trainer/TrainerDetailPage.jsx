@@ -5,6 +5,7 @@ import { ArrowLeft, Archive, Undo2, Loader2, Sparkles } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import { FeatureDisabledPanel } from './TrainerListPage'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
+import { useAuth } from '../../hooks/useAuth'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { R, T, BLK, GRY } from '../../lib/theme'
 
@@ -25,6 +26,7 @@ const BRD = '#e5e7eb'
 export default function TrainerDetailPage() {
   const { traineeId } = useParams()
   const navigate = useNavigate()
+  const { agencyId } = useAuth()
   const [trainee, setTrainee] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -34,7 +36,7 @@ export default function TrainerDetailPage() {
   async function callAction(action) {
     setActionPending(true)
     try {
-      const res = await trainerFetch({ action, trainee_id: traineeId })
+      const res = await trainerFetch({ action, trainee_id: traineeId }, { agencyId })
       if (res.status === 404 && (await res.clone().json().catch(() => ({}))).error === 'Not found') {
         // Either cross-agency or feature-disabled. Navigate back to list.
         navigate('/trainer')
@@ -54,7 +56,7 @@ export default function TrainerDetailPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await trainerFetch({ action: 'get', trainee_id: traineeId })
+      const res = await trainerFetch({ action: 'get', trainee_id: traineeId }, { agencyId })
       if (res.status === 404) {
         // Could be feature disabled OR trainee not found. Show a generic panel;
         // the list page distinguishes the cases more clearly.
