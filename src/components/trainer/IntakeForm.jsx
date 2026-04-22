@@ -7,6 +7,10 @@ import {
   OCCUPATION_ACTIVITIES,
   validateIntake,
 } from '../../lib/trainer/intakeSchema'
+import {
+  REQUIRED_INTAKE_FIELDS,
+  missingIntakeFields,
+} from '../../lib/trainer/intakeCompleteness'
 import { feetInchesToCm, lbsToKg } from '../../lib/trainer/units'
 
 import { R, T, BLK } from '../../lib/theme'
@@ -100,9 +104,9 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
     setField(k, Number.isFinite(n) ? n : raw)
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Convert imperial inputs to metric before validation.
+  // Build the metric-normalized record from controlled state — used both by
+  // handleSubmit (for validation) and by the live progress meter below.
+  function buildCleanRecord() {
     const clean = {}
     for (const [k, v] of Object.entries(values)) {
       if (v === '' || v === null || v === undefined) continue
@@ -121,6 +125,12 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
       const n = Number(imperial.target_weight_lbs)
       if (Number.isFinite(n)) clean.target_weight_kg = lbsToKg(n)
     }
+    return clean
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    const clean = buildCleanRecord()
     const result = validateIntake(clean)
     if (!result.ok) {
       setErrors(result.errors)
@@ -130,6 +140,15 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
     onSubmit(result.data)
   }
 
+  // Live progress meter — reflects how many required intake questions the
+  // trainee has answered.  Plan generation is server-gated on this, so the
+  // user sees the exact same count the /api/trainer/generate gate checks.
+  const cleanForProgress = buildCleanRecord()
+  const missing = missingIntakeFields(cleanForProgress)
+  const totalRequired = REQUIRED_INTAKE_FIELDS.length
+  const answered = totalRequired - missing.length
+  const progressPct = Math.round((answered / totalRequired) * 100)
+
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: 720 }}>
       <div
@@ -138,12 +157,49 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
           border: '1px solid #fcd34d',
           borderRadius: 8,
           padding: '10px 14px',
-          marginBottom: 24,
+          marginBottom: 16,
           fontSize: 13,
           color: '#92400e',
         }}
       >
         {DISCLAIMER}
+      </div>
+
+      {/* Progress meter — the /api/trainer/generate gate blocks plan generation
+          until every required question is answered. */}
+      <div
+        style={{
+          background: '#fff',
+          border: `1px solid ${BRD}`,
+          borderRadius: 10,
+          padding: '12px 14px',
+          marginBottom: 24,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+            Intake progress
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: answered === totalRequired ? '#059669' : GRY700 }}>
+            {answered} of {totalRequired} answered
+          </span>
+        </div>
+        <div style={{ height: 6, background: '#f3f4f6', borderRadius: 999, overflow: 'hidden' }}>
+          <div
+            style={{
+              width: `${progressPct}%`,
+              height: '100%',
+              background: answered === totalRequired ? '#10b981' : T,
+              transition: 'width 200ms ease',
+            }}
+          />
+        </div>
+        {answered < totalRequired && (
+          <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>
+            Finish every question before we generate baseline, roadmap, or workout.
+            Fields marked <span style={{ color: R, fontWeight: 700 }}>*</span> are required.
+          </div>
+        )}
       </div>
 
       {topError && (
@@ -169,7 +225,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
           The more context you give, the better every workout, meal plan, and coaching note gets
           tailored to <em>you</em>.
         </div>
-        <Field label="About you" error={errors.about_you}>
+        <Field label="About you *" error={errors.about_you}>
           <textarea
             style={{
               ...inputStyle,
@@ -213,14 +269,14 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
 
       <Section title="2. About you">
         <Row2>
-          <Field label="Age" error={errors.age}>
+          <Field label="Age *" error={errors.age}>
             <input style={inputStyle} type="number" min="10" max="120" value={values.age ?? ''} onChange={setNum('age')} />
           </Field>
-          <Field label="Sex" error={errors.sex}>
+          <Field label="Sex *" error={errors.sex}>
             <input style={inputStyle} value={values.sex || ''} onChange={(e) => setField('sex', e.target.value || null)} />
           </Field>
         </Row2>
-        <Field label="Height" error={errors.height_cm}>
+        <Field label="Height *" error={errors.height_cm}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div style={{ position: 'relative' }}>
               <input
@@ -249,7 +305,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
           </div>
         </Field>
         <Row2>
-          <Field label="Current weight" error={errors.current_weight_kg}>
+          <Field label="Current weight *" error={errors.current_weight_kg}>
             <div style={{ position: 'relative' }}>
               <input
                 style={{ ...inputStyle, paddingRight: 44 }}
@@ -279,7 +335,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
       </Section>
 
       <Section title="3. Your goal">
-        <Field label="Primary goal" error={errors.primary_goal}>
+        <Field label="Primary goal *" error={errors.primary_goal}>
           <RadioGroup
             name="primary_goal"
             value={values.primary_goal || ''}
@@ -289,7 +345,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
           />
         </Field>
         <Row2>
-          <Field label="Training experience (years)" error={errors.training_experience_years}>
+          <Field label="Training experience (years) *" error={errors.training_experience_years}>
             <input
               style={inputStyle}
               type="number"
@@ -299,7 +355,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
               onChange={setNum('training_experience_years')}
             />
           </Field>
-          <Field label="Training days per week" error={errors.training_days_per_week}>
+          <Field label="Training days per week *" error={errors.training_days_per_week}>
             <input
               style={inputStyle}
               type="number"
@@ -310,7 +366,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
             />
           </Field>
         </Row2>
-        <Field label="Equipment access" error={errors.equipment_access}>
+        <Field label="Equipment access *" error={errors.equipment_access}>
           <RadioGroup
             name="equipment_access"
             value={values.equipment_access || ''}
@@ -322,18 +378,18 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
       </Section>
 
       <Section title="4. Health check">
-        <Field label="Medical flags" error={errors.medical_flags}>
+        <Field label="Medical flags *" error={errors.medical_flags}>
           <textarea
             style={{ ...inputStyle, minHeight: 60, fontFamily: 'inherit' }}
-            placeholder="Anything your coach should know — cardiac, hypertension, surgery, meds, eating disorder history"
+            placeholder='Anything your coach should know (cardiac, hypertension, surgery, meds, eating disorder history). Type "None" if there is nothing to flag.'
             value={values.medical_flags || ''}
             onChange={(e) => setField('medical_flags', e.target.value || null)}
           />
         </Field>
-        <Field label="Injuries" error={errors.injuries}>
+        <Field label="Injuries *" error={errors.injuries}>
           <textarea
             style={{ ...inputStyle, minHeight: 60, fontFamily: 'inherit' }}
-            placeholder="Current or chronic injuries affecting training"
+            placeholder='Current or chronic injuries affecting training. Type "None" if there are none.'
             value={values.injuries || ''}
             onChange={(e) => setField('injuries', e.target.value || null)}
           />
@@ -348,17 +404,17 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
           />
         </Field>
         <Row2>
-          <Field label="Average sleep (hours/night)" error={errors.sleep_hours_avg}>
+          <Field label="Average sleep (hours/night) *" error={errors.sleep_hours_avg}>
             <input style={inputStyle} type="number" step="0.5" min="0" max="16" value={values.sleep_hours_avg ?? ''} onChange={setNum('sleep_hours_avg')} />
           </Field>
-          <Field label="Stress level (1-10)" error={errors.stress_level}>
+          <Field label="Stress level (1-10) *" error={errors.stress_level}>
             <input style={inputStyle} type="number" min="1" max="10" value={values.stress_level ?? ''} onChange={setNum('stress_level')} />
           </Field>
         </Row2>
       </Section>
 
       <Section title="5. Food (hard constraints only — preferences come later)">
-        <Field label="Dietary preference" error={errors.dietary_preference}>
+        <Field label="Dietary preference *" error={errors.dietary_preference}>
           <RadioGroup
             name="dietary_preference"
             value={values.dietary_preference || ''}
@@ -367,12 +423,23 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
             onChange={(v) => setField('dietary_preference', v)}
           />
         </Field>
-        <Field label="Allergies / intolerances" error={errors.allergies}>
+        <Field label="Allergies / intolerances *" error={errors.allergies}>
           <textarea
             style={{ ...inputStyle, minHeight: 50, fontFamily: 'inherit' }}
-            placeholder="e.g. shellfish, tree nuts, dairy"
+            placeholder='e.g. shellfish, tree nuts, dairy. Type "None" if you have no allergies.'
             value={values.allergies || ''}
             onChange={(e) => setField('allergies', e.target.value || null)}
+          />
+        </Field>
+        <Field label="Meals per day *" error={errors.meals_per_day}>
+          <input
+            style={inputStyle}
+            type="number"
+            min="3"
+            max="6"
+            placeholder="3–6"
+            value={values.meals_per_day ?? ''}
+            onChange={setNum('meals_per_day')}
           />
         </Field>
         <Field label="Grocery budget (USD / week)" error={errors.grocery_budget_usd_per_week}>
@@ -391,7 +458,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
       </Section>
 
       <Section title="6. Lifestyle">
-        <Field label="Occupation activity level" error={errors.occupation_activity}>
+        <Field label="Occupation activity level *" error={errors.occupation_activity}>
           <RadioGroup
             name="occupation_activity"
             value={values.occupation_activity || ''}

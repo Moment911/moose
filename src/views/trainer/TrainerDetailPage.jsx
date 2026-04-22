@@ -917,56 +917,64 @@ function OverviewTab({
   onGotoTab,
 }) {
   const Icon = nextStep.icon || Sparkles
+  const hasAboutYou = !!(trainee.about_you && trainee.about_you.trim().length > 0)
   return (
     <div>
-      {/* Next-step CTA — the glance-visible action. */}
-      <section
-        style={{
-          background: '#fff',
-          border: `1px solid ${BRD}`,
-          borderLeft: `4px solid ${R}`,
-          borderRadius: 12,
-          padding: '18px 22px',
-          marginBottom: 18,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div style={{ minWidth: 0, flex: '1 1 340px' }}>
-          <div style={{ color: R, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Icon size={12} /> Next step
-          </div>
-          <div style={{ color: BLK, fontSize: 17, fontWeight: 800, marginBottom: 4 }}>{nextStep.title}</div>
-          <div style={{ color: GRY7, fontSize: 13, lineHeight: 1.5 }}>{nextStep.desc}</div>
-        </div>
-        {nextStep.action && (
-          <button
-            type="button"
-            onClick={nextStep.action}
-            disabled={nextStep.busy}
-            style={btnPrimary(nextStep.busy)}
-          >
-            {nextStep.busy ? <Loader2 size={14} /> : <Icon size={14} />}
-            {nextStep.busy ? 'Generating…' : nextStep.title}
-          </button>
-        )}
-        {!nextStep.action && nextStep.goto && (
-          <button
-            type="button"
-            onClick={() => onGotoTab(nextStep.goto)}
-            style={btnSecondary(false)}
-          >
-            Open {nextStep.goto} tab <ArrowRight size={13} />
-          </button>
-        )}
-      </section>
+      {/* About-you card — always first so trainers craft context BEFORE any
+          plan-generation CTA.  Empty state locks downstream generation. */}
+      <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
 
-      {/* Two-column on desktop: intake summary + baseline card / prompt. */}
+      {/* Next-step CTA — hidden until about_you is filled in, since every
+          Sonnet prompt reads it as primary steering input. */}
+      {hasAboutYou && (
+        <section
+          style={{
+            background: '#fff',
+            border: `1px solid ${BRD}`,
+            borderLeft: `4px solid ${R}`,
+            borderRadius: 12,
+            padding: '18px 22px',
+            marginBottom: 18,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ minWidth: 0, flex: '1 1 340px' }}>
+            <div style={{ color: R, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon size={12} /> Next step
+            </div>
+            <div style={{ color: BLK, fontSize: 17, fontWeight: 800, marginBottom: 4 }}>{nextStep.title}</div>
+            <div style={{ color: GRY7, fontSize: 13, lineHeight: 1.5 }}>{nextStep.desc}</div>
+          </div>
+          {nextStep.action && (
+            <button
+              type="button"
+              onClick={nextStep.action}
+              disabled={nextStep.busy}
+              style={btnPrimary(nextStep.busy)}
+            >
+              {nextStep.busy ? <Loader2 size={14} /> : <Icon size={14} />}
+              {nextStep.busy ? 'Generating…' : nextStep.title}
+            </button>
+          )}
+          {!nextStep.action && nextStep.goto && (
+            <button
+              type="button"
+              onClick={() => onGotoTab(nextStep.goto)}
+              style={btnSecondary(false)}
+            >
+              Open {nextStep.goto} tab <ArrowRight size={13} />
+            </button>
+          )}
+        </section>
+      )}
+
+      {/* Two-column on desktop: intake basics + baseline card / prompt. */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
-        <IntakeSummary trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
+        <IntakeSummary trainee={trainee} />
         {hasBaseline ? (
           <PlanBaselineCard
             baseline={plan.baseline}
@@ -984,11 +992,16 @@ function OverviewTab({
             <button
               type="button"
               onClick={onGenerateBaseline}
-              disabled={pending.baseline}
-              style={btnPrimary(pending.baseline)}
+              disabled={pending.baseline || !hasAboutYou}
+              style={btnPrimary(pending.baseline || !hasAboutYou)}
+              title={!hasAboutYou ? 'Add "About this trainee" context first' : undefined}
             >
               {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
-              {pending.baseline ? 'Generating baseline…' : 'Generate baseline'}
+              {pending.baseline
+                ? 'Generating baseline…'
+                : !hasAboutYou
+                  ? 'Add About you first'
+                  : 'Generate baseline'}
             </button>
           </section>
         )}
@@ -1014,8 +1027,12 @@ function OverviewTab({
   )
 }
 
-function IntakeSummary({ trainee, onUpdateAboutYou }) {
-  const [editing, setEditing] = useState(false)
+// Free-text context feeding every Sonnet prompt.  Rendered full-width at the
+// top of the Overview tab so trainers see it FIRST — before any plan-generation
+// CTA — since about_you drives the quality of every downstream step.
+function AboutYouCard({ trainee, onUpdateAboutYou }) {
+  const hasContext = !!(trainee.about_you && trainee.about_you.trim().length > 0)
+  const [editing, setEditing] = useState(!hasContext)
   const [draft, setDraft] = useState(trainee.about_you || '')
   const [saving, setSaving] = useState(false)
 
@@ -1027,63 +1044,80 @@ function IntakeSummary({ trainee, onUpdateAboutYou }) {
   }
 
   return (
-    <section style={panelStyle}>
-      <h2 style={panelTitle}>Intake summary</h2>
-
-      {/* About you — free-text context feeding all AI prompts */}
-      <div style={{ marginBottom: 18, paddingBottom: 14, borderBottom: `1px solid ${BRD}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: T, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-            About this trainee
-          </span>
-          {!editing && onUpdateAboutYou && (
-            <button
-              type="button"
-              onClick={() => { setDraft(trainee.about_you || ''); setEditing(true) }}
-              style={{ background: 'none', border: 'none', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}
-            >
-              {trainee.about_you ? 'Edit' : '+ Add'}
-            </button>
-          )}
-        </div>
-
-        {editing ? (
-          <>
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="Who they are, what they do, what they want — in their own words. Sport, job, family, constraints, targets."
-              style={{
-                width: '100%', minHeight: 140, padding: '10px 12px', fontSize: 13,
-                border: `1px solid ${BRD}`, borderRadius: 8, fontFamily: 'inherit',
-                lineHeight: 1.5, color: '#0a0a0a', background: '#fff',
-              }}
-            />
-            <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => setEditing(false)} disabled={saving} style={btnSecondary(saving)}>
-                Cancel
-              </button>
-              <button type="button" onClick={handleSave} disabled={saving} style={btnPrimary(saving)}>
-                {saving ? <Loader2 size={13} /> : null} Save
-              </button>
-            </div>
-            <div style={{ marginTop: 8, fontSize: 11, color: GRY, lineHeight: 1.5 }}>
-              This text is fed into every AI-generated step (baseline, roadmap, workouts, meals, playbook).
-              The more you write, the more tailored the output.
-            </div>
-          </>
-        ) : (
-          <div style={{ fontSize: 13, color: trainee.about_you ? '#0a0a0a' : GRY, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
-            {trainee.about_you || (
-              <span style={{ fontStyle: 'italic' }}>
-                No context yet. Click Add to give the AI what they need to tailor the plan — sport,
-                lifestyle, goals, constraints, anything relevant.
-              </span>
-            )}
+    <section
+      style={{
+        ...panelStyle,
+        marginBottom: 18,
+        borderLeft: hasContext ? undefined : `4px solid ${R}`,
+        background: hasContext ? '#fff' : '#fffbea',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2 style={panelTitle}>
+            {hasContext ? 'About this trainee' : 'Start here — About this trainee'}
+          </h2>
+          <div style={{ fontSize: 12, color: GRY, marginTop: 4, lineHeight: 1.5 }}>
+            {hasContext
+              ? 'Fed into every AI-generated step — baseline, roadmap, workouts, meals, playbook.'
+              : 'Required before Koto Trainer can craft a custom plan. Sport, lifestyle, goals, constraints — in their own words.'}
           </div>
+        </div>
+        {!editing && onUpdateAboutYou && (
+          <button
+            type="button"
+            onClick={() => { setDraft(trainee.about_you || ''); setEditing(true) }}
+            style={{ background: 'none', border: 'none', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+          >
+            Edit
+          </button>
         )}
       </div>
 
+      {editing ? (
+        <>
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Example: 16-year-old HS baseball pitcher, junior year, starter. Throwing 82 mph, want to add velocity without blowing out the shoulder. Coach wants me stronger in the offseason. 3 days/week in the school weight room. Played through a minor elbow flare last spring — want to protect the arm."
+            style={{
+              width: '100%', minHeight: 160, padding: '10px 12px', fontSize: 13,
+              border: `1px solid ${BRD}`, borderRadius: 8, fontFamily: 'inherit',
+              lineHeight: 1.5, color: '#0a0a0a', background: '#fff',
+            }}
+          />
+          <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            {hasContext && (
+              <button type="button" onClick={() => setEditing(false)} disabled={saving} style={btnSecondary(saving)}>
+                Cancel
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || draft.trim().length === 0}
+              style={btnPrimary(saving || draft.trim().length === 0)}
+            >
+              {saving ? <Loader2 size={13} /> : null} Save
+            </button>
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11, color: GRY, lineHeight: 1.5 }}>
+            The more you write, the more tailored every workout, meal plan, and coaching note gets.
+          </div>
+        </>
+      ) : (
+        <div style={{ fontSize: 13, color: '#0a0a0a', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+          {trainee.about_you}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function IntakeSummary({ trainee }) {
+  return (
+    <section style={panelStyle}>
+      <h2 style={panelTitle}>Intake basics</h2>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
         <Row k="Goal" v={trainee.primary_goal} />
         <Row k="Training days/wk" v={trainee.training_days_per_week} />
@@ -1200,6 +1234,8 @@ function PlanTab({
           logs={logs}
           onLogSet={onLogSet}
           expandSessionDay={expandSessionDay}
+          onRegenerate={() => onGenerateWorkout(currentPhase)}
+          regenerating={pending.workout}
         />
       )}
     </div>

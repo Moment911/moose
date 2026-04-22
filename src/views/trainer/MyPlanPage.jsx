@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { fetchMyPlan, logSet as apiLogSet } from '../../lib/trainer/myPlanFetch'
 import MyPlanShell from '../../components/trainer/MyPlanShell'
+import TrainerWelcomeCard from '../../components/trainer/TrainerWelcomeCard'
 import TraineeDisclaimerAckModal from './TraineeDisclaimerAckModal'
 import PlanBaselineCard from '../../components/trainer/PlanBaselineCard'
 import RoadmapCard from '../../components/trainer/RoadmapCard'
@@ -197,6 +198,7 @@ export default function MyPlanPage() {
       <div style={{ marginTop: 20 }}>
         {tab === 'overview' ? (
           <div style={{ display: 'grid', gap: 18 }}>
+            <TrainerWelcomeCard compact />
             {plan.baseline ? (
               <PlanBaselineCard baseline={plan.baseline} />
             ) : null}

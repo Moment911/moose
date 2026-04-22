@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import IntakeForm from '../../components/trainer/IntakeForm'
+import TrainerWelcomeCard from '../../components/trainer/TrainerWelcomeCard'
 import { FeatureDisabledPanel } from './TrainerListPage'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { useAuth } from '../../hooks/useAuth'
@@ -61,13 +62,16 @@ export default function TrainerIntakePage() {
         </Link>
         <h1 style={{ margin: 0, fontSize: 28, color: BLK }}>New trainee</h1>
         <p style={{ margin: '6px 0 28px', color: GRY, fontSize: 14 }}>
-          Fill in what you know. You can come back and add more later.
+          Every question below shapes the plan — finish them all before we generate a strategy.
         </p>
 
         {featureDisabled ? (
           <FeatureDisabledPanel />
         ) : (
-          <IntakeForm onSubmit={handleSubmit} submitting={submitting} topError={topError} />
+          <div style={{ maxWidth: 720 }}>
+            <TrainerWelcomeCard />
+            <IntakeForm onSubmit={handleSubmit} submitting={submitting} topError={topError} />
+          </div>
         )}
       </main>
     </div>

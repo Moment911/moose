@@ -33,6 +33,8 @@ export default function WorkoutAccordion({
   logs = [],
   onLogSet,
   expandSessionDay = null,
+  onRegenerate = null,
+  regenerating = false,
 }) {
   const [weekIdx, setWeekIdx] = useState(0)
   const [openSessions, setOpenSessions] = useState({})
@@ -154,8 +156,34 @@ export default function WorkoutAccordion({
             lineHeight: 1.5,
           }}
         >
-          No sessions in this block. The AI response may have come back malformed —
-          click <strong>Regenerate workout</strong> on the Plan tab to try again.
+          <div>No sessions in this block. The AI response came back malformed.</div>
+          {onRegenerate ? (
+            <button
+              type="button"
+              onClick={onRegenerate}
+              disabled={regenerating}
+              style={{
+                marginTop: 12,
+                padding: '8px 16px',
+                background: regenerating ? '#fde68a' : T,
+                color: regenerating ? '#92400e' : '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: '.02em',
+                cursor: regenerating ? 'default' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              {regenerating ? <Loader2 size={12} /> : null}
+              {regenerating ? 'Regenerating…' : 'Regenerate workout'}
+            </button>
+          ) : (
+            <div style={{ marginTop: 8, fontSize: 12 }}>Ask your coach to regenerate the block.</div>
+          )}
         </div>
       )}
 
