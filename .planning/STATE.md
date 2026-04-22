@@ -131,6 +131,21 @@ yet. Research called out risks that are pre-mitigated in phase gates:
 - kotoiq_pipeline_runs realtime publication ADD deferred — table doesn't exist on remote yet (in 20260419_kotoiq_automation.sql backlog); blocks D-23 live ribbon work in 07-04..07-08
 - kotoiq_pipeline_runs writes will fail silently against current live DB until 7-migration prod backlog is applied — wrapped in try/catch + console.error; pipeline continues working but D-23 ribbon won't reflect durable state until backlog migration lands
 
+### Phase 7 UAT — BLOCKED (2026-04-21)
+
+Parked. Two independent bugs stopped PROF-01 through PROF-05 from being verifiable in the running dev server:
+
+1. **React "Expected static flag was missing" error on `/kotoiq/launch/:clientId`** — crashes inside `Sidebar.jsx:426` (SEO Section). Reproduced on Next 16.2.2 + React 19 with Turbopack after fresh `.next` cache + hard refresh. Confirmed not caused by user's uncommitted Sidebar diff (reverted, same error). Likely a React 19 / Turbopack fiber reconciliation bug triggered by the Sidebar's conditional JSX fragments (`{path.startsWith('/seo') && <>...</>}`). Workaround candidates: refactor Sidebar to use unconditional children with `hidden` props everywhere; or pin to older Next/React versions for dev.
+2. **`/api/kotoiq/profile` returns 401 even for logged-in sessions** — dev logs show `/api/notifications` returning 200 but `/api/kotoiq/profile` returning 401 for the same session. `verifySession()` rejects despite valid cookie. Root cause unknown — needs deeper look at Plan 6's canonical route-auth shape (`STATE.md:113`).
+
+UAT test data seeded (can be reused when bugs fixed):
+- FULL client: `45f441e2-dfa8-426f-a959-566c3a984065` (UAT_SEED__RDC Restoration (full))
+- PARTIAL client: `82d1175a-68ed-4713-a4e7-640048220f5c` (UAT_SEED__Partial Restoration Co (gaps))
+- Agency: `00000000-0000-0000-0000-000000000099` (Momenta Marketing)
+- Cleanup SQL: `UPDATE clients SET deleted_at = now() WHERE name LIKE 'UAT_SEED__%';`
+
+**Phase 8 UAT**: not attempted — would hit the same two blockers since Phase 8 extends Phase 7's profile flow.
+
 ## Session Continuity
 
 Last session: 2026-04-20T03:41:51.771Z
