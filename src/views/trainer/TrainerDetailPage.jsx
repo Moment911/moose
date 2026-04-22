@@ -18,6 +18,9 @@ import {
   AlertTriangle,
   Copy,
   Link2,
+  UserCheck,
+  ExternalLink,
+  Activity,
 } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { FeatureDisabledPanel } from './TrainerListPage'
@@ -64,6 +67,8 @@ import TrainerToast from '../../components/trainer/TrainerToast'
 const BRD = '#e5e7eb'
 const GRY5 = '#6b7280'
 const GRY7 = '#374151'
+const RED = '#dc2626'
+const BLUE = '#2563eb'
 
 // Siblings of trainerFetch — same auth pattern, different URLs.
 async function authHeader() {
@@ -737,8 +742,9 @@ export default function TrainerDetailPage() {
       { key: 'nutrition', label: 'Nutrition', icon: Utensils, done: hasPrefs && hasMeals, pending: pending.food_prefs || pending.submit_prefs || pending.meals },
       { key: 'playbook', label: 'Playbook', icon: BookOpen, done: hasPlaybook, pending: pending.playbook },
       { key: 'progress', label: 'Progress', icon: LineChart, done: logs.length > 0 },
+      { key: 'recruiting', label: 'Recruiting', icon: UserCheck, done: !!trainee?.recruiting_profile || !!trainee?.grad_year },
     ],
-    [hasBaseline, hasRoadmap, hasWorkout, hasPrefs, hasMeals, hasPlaybook, logs.length, pending],
+    [hasBaseline, hasRoadmap, hasWorkout, hasPrefs, hasMeals, hasPlaybook, logs.length, pending, trainee],
   )
 
   return (
@@ -859,6 +865,10 @@ export default function TrainerDetailPage() {
                 onGenerateNextBlock={handleGenerateNextBlock}
                 onGotoTab={setActiveTab}
               />
+            )}
+
+            {activeTab === 'recruiting' && (
+              <RecruitingTab trainee={trainee} />
             )}
           </>
         )}
@@ -1097,6 +1107,9 @@ function OverviewTab({
         )}
       </div>
 
+      {/* ── Workload section ──────────────────────────────────────────── */}
+      <WorkloadSection trainee={trainee} />
+
       {hasBaseline && !okToTrain && (
         <section
           style={{
@@ -1114,6 +1127,60 @@ function OverviewTab({
         </section>
       )}
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WorkloadSection — baseball-specific workload data from chat intake.
+// Renders on the Overview tab so the trainer sees volume/load context
+// alongside the intake basics and baseline.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function WorkloadSection({ trainee }) {
+  const ext = trainee.extracted || trainee.recruiting_profile || {}
+  const hasAny =
+    trainee.club_team || trainee.practices_per_week != null || trainee.bullpen_sessions_per_week != null ||
+    trainee.game_appearances_per_week != null || trainee.avg_pitch_count != null || trainee.pitch_arsenal ||
+    trainee.long_toss_routine || trainee.arm_soreness || trainee.games_per_week != null ||
+    trainee.offseason_training || trainee.other_sports ||
+    ext.club_team || ext.practices_per_week != null || ext.bullpen_sessions_per_week != null
+
+  if (!hasAny) return null
+
+  // Resolve from trainee row first, fall back to extracted
+  const g = (key) => trainee[key] ?? ext[key] ?? null
+
+  const items = [
+    { label: 'Club / travel team', value: g('club_team') },
+    { label: 'Practices / week', value: g('practices_per_week') },
+    { label: 'Bullpen sessions / week', value: g('bullpen_sessions_per_week') },
+    { label: 'Game appearances / week', value: g('game_appearances_per_week') },
+    { label: 'Avg pitch count', value: g('avg_pitch_count') },
+    { label: 'Pitch arsenal', value: g('pitch_arsenal') },
+    { label: 'Long toss routine', value: g('long_toss_routine') },
+    { label: 'Arm soreness', value: g('arm_soreness') },
+    { label: 'Games / week', value: g('games_per_week') },
+    { label: 'Off-season training', value: g('offseason_training') },
+    { label: 'Other sports', value: g('other_sports') },
+  ].filter((r) => r.value != null && r.value !== '')
+
+  if (items.length === 0) return null
+
+  return (
+    <section style={{ ...panelStyle, marginTop: 16, borderLeft: `4px solid ${BLUE}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <Activity size={14} color={BLUE} />
+        <h2 style={{ ...panelTitle, color: BLUE, margin: 0 }}>Workload</h2>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+        {items.map(({ label, value }) => (
+          <div key={label} style={{ padding: '8px 12px', background: '#f9fafb', borderRadius: 8, border: `1px solid ${BRD}` }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: GRY5, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 2 }}>{label}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{String(value)}</div>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -1976,6 +2043,136 @@ function ProgressTab({
             )}
           </div>
         </div>
+      </section>
+    </div>
+  )
+}
+
+// ── Recruiting tab ──────────────────────────────────────────────────────────
+
+function RecruitingTab({ trainee }) {
+  const ext = trainee.extracted || trainee.recruiting_profile || {}
+
+  // Resolve from trainee row first, fall back to extracted data
+  const g = (key) => trainee[key] ?? ext[key] ?? null
+
+  const profileFields = [
+    { label: 'Graduation year', value: g('grad_year') },
+    { label: 'Position', value: g('position') },
+    { label: 'Throws', value: g('throws') },
+    { label: 'Bats', value: g('bats') },
+    { label: 'GPA', value: g('gpa') },
+    { label: 'Test score', value: g('test_score') || g('sat_score') || g('act_score') },
+    { label: 'High school', value: g('high_school') },
+    { label: 'Travel / club team', value: g('travel_team') || g('club_team') },
+    { label: 'Video link', value: g('video_link') || g('video_url') },
+    { label: 'Preferred divisions', value: Array.isArray(g('preferred_divisions')) ? g('preferred_divisions').join(', ') : g('preferred_divisions') },
+    { label: 'Preferred states', value: Array.isArray(g('preferred_states')) ? g('preferred_states').join(', ') : g('preferred_states') },
+    { label: 'Intended major', value: g('intended_major') },
+  ]
+
+  const measurables = [
+    { label: 'FB velo peak', value: g('fb_velo_peak'), unit: 'mph' },
+    { label: 'FB velo sit', value: g('fb_velo_sit'), unit: 'mph' },
+    { label: 'Exit velo', value: g('exit_velo'), unit: 'mph' },
+    { label: '60-yard time', value: g('sixty_time') || g('sixty_yard_time'), unit: 's' },
+  ]
+
+  const hasProfile = profileFields.some((f) => f.value != null && f.value !== '')
+  const hasMeasurables = measurables.some((f) => f.value != null && f.value !== '')
+
+  const intakeUrl = `${window.location.origin}/intake/${trainee.id}`
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy() {
+    navigator.clipboard.writeText(intakeUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div>
+      {/* Intake link */}
+      <section style={{ ...panelStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 0, flex: '1 1 300px' }}>
+          <h2 style={{ ...panelTitle, color: RED, margin: '0 0 4px' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Link2 size={13} /> Intake link
+            </span>
+          </h2>
+          <div style={{ fontSize: 12, color: GRY5, wordBreak: 'break-all' }}>{intakeUrl}</div>
+        </div>
+        <button type="button" onClick={handleCopy} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          background: copied ? '#ecfdf5' : '#fff',
+          color: copied ? '#059669' : GRY7,
+          border: `1px solid ${copied ? '#059669' : BRD}`,
+          borderRadius: 8,
+          transition: 'all .2s ease',
+        }}>
+          {copied ? <><Copy size={13} /> Copied!</> : <><Copy size={13} /> Copy link</>}
+        </button>
+      </section>
+
+      {/* Recruiting profile */}
+      <section style={{ ...panelStyle, borderLeft: `4px solid ${RED}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <UserCheck size={14} color={RED} />
+          <h2 style={{ ...panelTitle, color: RED, margin: 0 }}>Recruiting profile</h2>
+        </div>
+        {!hasProfile ? (
+          <p style={{ ...paraStyle, color: GRY5 }}>
+            No recruiting profile data yet. The athlete can fill this in via the intake chat, or it can be entered manually.
+          </p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
+            {profileFields.filter((f) => f.value != null && f.value !== '').map(({ label, value }) => {
+              const isLink = label === 'Video link' && typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))
+              return (
+                <div key={label} style={{ padding: '8px 12px', background: '#f9fafb', borderRadius: 8, border: `1px solid ${BRD}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: GRY5, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 2 }}>{label}</div>
+                  {isLink ? (
+                    <a href={value} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, fontWeight: 600, color: BLUE, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      View video <ExternalLink size={12} />
+                    </a>
+                  ) : (
+                    <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{String(value)}</div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Measurables */}
+      <section style={{ ...panelStyle, borderLeft: `4px solid ${BLUE}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <Activity size={14} color={BLUE} />
+          <h2 style={{ ...panelTitle, color: BLUE, margin: 0 }}>Measurables</h2>
+        </div>
+        {!hasMeasurables ? (
+          <p style={{ ...paraStyle, color: GRY5 }}>
+            No measurables recorded yet. These are typically collected during the intake process.
+          </p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+            {measurables.filter((f) => f.value != null && f.value !== '').map(({ label, value, unit }) => (
+              <div key={label} style={{
+                padding: '14px 16px', background: '#f9fafb', borderRadius: 10,
+                border: `1px solid ${BRD}`, textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: GRY5, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>{label}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: BLK }}>
+                  {String(value)}
+                  {unit && <span style={{ fontSize: 13, fontWeight: 600, color: GRY5, marginLeft: 3 }}>{unit}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   )
