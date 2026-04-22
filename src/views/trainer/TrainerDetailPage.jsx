@@ -252,6 +252,19 @@ export default function TrainerDetailPage() {
     }
   }
 
+  async function handleUpdateAboutYou(newText) {
+    const res = await trainerFetch(
+      { action: 'update', trainee_id: traineeId, patch: { about_you: newText || null } },
+      { agencyId },
+    )
+    if (!res.ok) {
+      flashError(`Save failed (${res.status})`)
+      return false
+    }
+    await loadTrainee()
+    return true
+  }
+
   // ── Generate dispatcher ────────────────────────────────────────────────────
   async function generate(step, body, onSuccess) {
     setPendingStep(step, true)
@@ -657,6 +670,7 @@ export default function TrainerDetailPage() {
                 pending={pending}
                 nextStep={nextStep}
                 onGenerateBaseline={handleGenerateBaseline}
+                onUpdateAboutYou={handleUpdateAboutYou}
                 onGotoTab={setActiveTab}
               />
             )}
@@ -815,6 +829,7 @@ function OverviewTab({
   pending,
   nextStep,
   onGenerateBaseline,
+  onUpdateAboutYou,
   onGotoTab,
 }) {
   const Icon = nextStep.icon || Sparkles
@@ -867,7 +882,7 @@ function OverviewTab({
 
       {/* Two-column on desktop: intake summary + baseline card / prompt. */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
-        <IntakeSummary trainee={trainee} />
+        <IntakeSummary trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
         {hasBaseline ? (
           <PlanBaselineCard
             baseline={plan.baseline}
@@ -915,10 +930,76 @@ function OverviewTab({
   )
 }
 
-function IntakeSummary({ trainee }) {
+function IntakeSummary({ trainee, onUpdateAboutYou }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(trainee.about_you || '')
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    const ok = await onUpdateAboutYou?.(draft)
+    setSaving(false)
+    if (ok) setEditing(false)
+  }
+
   return (
     <section style={panelStyle}>
       <h2 style={panelTitle}>Intake summary</h2>
+
+      {/* About you — free-text context feeding all AI prompts */}
+      <div style={{ marginBottom: 18, paddingBottom: 14, borderBottom: `1px solid ${BRD}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: T, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+            About this trainee
+          </span>
+          {!editing && onUpdateAboutYou && (
+            <button
+              type="button"
+              onClick={() => { setDraft(trainee.about_you || ''); setEditing(true) }}
+              style={{ background: 'none', border: 'none', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+            >
+              {trainee.about_you ? 'Edit' : '+ Add'}
+            </button>
+          )}
+        </div>
+
+        {editing ? (
+          <>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Who they are, what they do, what they want — in their own words. Sport, job, family, constraints, targets."
+              style={{
+                width: '100%', minHeight: 140, padding: '10px 12px', fontSize: 13,
+                border: `1px solid ${BRD}`, borderRadius: 8, fontFamily: 'inherit',
+                lineHeight: 1.5, color: '#0a0a0a', background: '#fff',
+              }}
+            />
+            <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setEditing(false)} disabled={saving} style={btnSecondary(saving)}>
+                Cancel
+              </button>
+              <button type="button" onClick={handleSave} disabled={saving} style={btnPrimary(saving)}>
+                {saving ? <Loader2 size={13} /> : null} Save
+              </button>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 11, color: GRY, lineHeight: 1.5 }}>
+              This text is fed into every AI-generated step (baseline, roadmap, workouts, meals, playbook).
+              The more you write, the more tailored the output.
+            </div>
+          </>
+        ) : (
+          <div style={{ fontSize: 13, color: trainee.about_you ? '#0a0a0a' : GRY, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+            {trainee.about_you || (
+              <span style={{ fontStyle: 'italic' }}>
+                No context yet. Click Add to give the AI what they need to tailor the plan — sport,
+                lifestyle, goals, constraints, anything relevant.
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
         <Row k="Goal" v={trainee.primary_goal} />
         <Row k="Training days/wk" v={trainee.training_days_per_week} />
