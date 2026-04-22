@@ -35,6 +35,76 @@ function getMissing(extracted) {
   return missing
 }
 
+// Smart fallback when model returns tool data but no text.
+// Looks at what fields just changed and what's still missing, then
+// generates a natural follow-up question.
+const FIELD_QUESTIONS = {
+  height_cm: "How tall are you?",
+  current_weight_kg: "What do you weigh?",
+  sex: "Male or female?",
+  training_experience_years: "How long have you been training — lifting, structured workouts, anything beyond just playing?",
+  training_days_per_week: "How many days a week can you train?",
+  equipment_access: "What equipment do you have access to — full gym, home gym, bands, or bodyweight only?",
+  medical_flags: "Any medical conditions I should know about?",
+  injuries: "Any current or past injuries?",
+  dietary_preference: "Any dietary preferences — vegetarian, vegan, keto, or do you eat everything?",
+  allergies: "Any food allergies or intolerances?",
+  sleep_hours_avg: "How many hours do you sleep a night?",
+  stress_level: "On a 1-to-10 scale, how stressed are you day-to-day?",
+  occupation_activity: "How active is your day outside of training — desk/school, on your feet, or physical labor?",
+  meals_per_day: "How many meals do you eat a day?",
+  // Recruiting fields
+  grad_year: "What year do you graduate?",
+  position_primary: "What's your primary position?",
+  throwing_hand: "Do you throw right or left?",
+  batting_hand: "Do you bat right, left, or switch?",
+  gpa: "What's your current GPA?",
+  fastball_velo_peak: "Do you know your peak fastball velocity?",
+  exit_velo: "Do you know your exit velocity?",
+  sixty_time: "Have you been timed in a 60-yard dash?",
+  high_school: "What high school do you go to?",
+  travel_team: "Do you play for a travel team?",
+  video_link: "Do you have a highlight video link?",
+}
+
+const ACKNOWLEDGMENTS = [
+  "Got it.", "Noted.", "Okay, good.", "Perfect.", "Thanks.",
+  "Locked in.", "That helps.", "Good to know.", "Check.",
+]
+
+function buildSmartFallback(prevExtracted, currentExtracted, services) {
+  // Find what was just filled
+  const justFilled = []
+  for (const [k, v] of Object.entries(currentExtracted)) {
+    if (v !== undefined && v !== null && v !== '' && (!prevExtracted[k] || prevExtracted[k] !== v)) {
+      justFilled.push(k)
+    }
+  }
+
+  // Find next missing field to ask about
+  const allFields = [...REQUIRED_FIELDS]
+  if (services?.includes('recruiting')) {
+    allFields.push('grad_year', 'position_primary', 'throwing_hand', 'batting_hand', 'gpa', 'fastball_velo_peak', 'high_school', 'travel_team')
+  }
+
+  let nextQuestion = null
+  for (const f of allFields) {
+    const v = currentExtracted[f]
+    if ((v === undefined || v === null || v === '') && FIELD_QUESTIONS[f]) {
+      nextQuestion = FIELD_QUESTIONS[f]
+      break
+    }
+  }
+
+  // Pick a random acknowledgment
+  const ack = ACKNOWLEDGMENTS[Math.floor(Math.random() * ACKNOWLEDGMENTS.length)]
+
+  if (nextQuestion) {
+    return `${ack} ${nextQuestion}`
+  }
+  return `${ack} Looking good — your profile is coming together. Anything else you want to add?`
+}
+
 export default function TraineeIntakePage() {
   const { traineeId } = useParams()
   const [phase, setPhase] = useState('loading') // loading | not_found | welcome | chat | generating | done
@@ -207,11 +277,13 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
     ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'
   }, [input])
 
-  // Store last messages for retry.
+  // Track state for smart fallback.
   const lastTurnRef = useRef(null)
+  const lastExtractedRef = useRef({})
 
   const streamTurn = useCallback(async (turnMessages) => {
     lastTurnRef.current = turnMessages
+    lastExtractedRef.current = { ...extracted }
     setStreaming(true)
     setStreamingText('')
     setQuickReplies([])
@@ -243,7 +315,6 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
       let buffer = ''
       let fullText = ''
       let replies = []
-      let retried = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -277,50 +348,9 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
         setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
       } else {
         // Model produced only a tool call with no visible text.
-        // This happens sometimes — auto-retry once silently.
-        if (!retried) {
-          retried = true
-          // Small delay then retry the same turn
-          await new Promise(r => setTimeout(r, 500))
-          const retryRes = await fetch('/api/trainer/intake-chat-token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ trainee_id: traineeId, messages: turnMessages, extracted, services: services || ['training'] }),
-          })
-          if (retryRes.ok && retryRes.body) {
-            const retryReader = retryRes.body.getReader()
-            let retryBuf = ''
-            let retryText = ''
-            while (true) {
-              const { done: rd, value: rv } = await retryReader.read()
-              if (rd) break
-              retryBuf += decoder.decode(rv, { stream: true })
-              const retryLines = retryBuf.split('\n')
-              retryBuf = retryLines.pop() ?? ''
-              for (const rl of retryLines) {
-                if (!rl.trim()) continue
-                let re; try { re = JSON.parse(rl) } catch { continue }
-                if (re.type === 'text_delta') { retryText += re.text; setStreamingText(retryText) }
-                if (re.type === 'fields') {
-                  if (re.extracted) onFieldsUpdate(re.extracted)
-                  if (re.about_you_append) onAboutYouAppend(re.about_you_append)
-                  if (Array.isArray(re.suggested_replies) && re.suggested_replies.length > 0) replies = re.suggested_replies
-                }
-              }
-            }
-            if (retryText) { setMessages((prev) => [...prev, { role: 'assistant', content: retryText }]); fullText = retryText }
-          }
-        }
-        if (!fullText) {
-          // Still no text after retry — generate a contextual fallback
-          // and auto-retry with a fresh turn to get the AI back on track
-          setMessages((prev) => [...prev, { role: 'assistant', content: 'Got it — noted. Let me pull up the next question...' }])
-          // Queue another turn to get the AI to ask the next real question
-          setTimeout(() => {
-            const currentMsgs = [...turnMessages, { role: 'assistant', content: 'Got it — noted. Let me pull up the next question...' }, { role: 'user', content: 'What\'s next?' }]
-            streamTurn(currentMsgs)
-          }, 800)
-        }
+        // Generate a smart contextual message based on what just happened.
+        const smartMsg = buildSmartFallback(lastExtractedRef.current, extracted, services)
+        setMessages((prev) => [...prev, { role: 'assistant', content: smartMsg }])
       }
       if (replies.length > 0) setQuickReplies(replies)
     } catch (e) {
