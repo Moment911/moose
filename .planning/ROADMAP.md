@@ -151,6 +151,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 Phases 7 and 8 were appended after Phases 1-6 code-completed — they are prerequisites for `PILOT-01` delivering real quality, not retroactive inserts. Phase 7 must land before the pilot fires.
 
+**Separate initiatives (non-KotoIQ):** Koto Trainer — `/trainer` personal-trainer module, parked behind KotoIQ M1 close. Tracked under `.planning/phases/trainer-NN-*/` namespace (NOT numeric continuation of 1-8). Phase 1 sketch in `.planning/phases/trainer-01-intake-and-dispatcher/`.
+
 **Parallelization:** Phase-level execution is strictly sequential (each phase gates the next). Within Phase 5, four sub-tracks (CWV, IndexNow/GSC, Telnyx attribution, KPI rollup) can parallelize safely because they touch independent surfaces. Within Phase 1, ELEM-05 schema capture and FND-01..05 isolation work can parallelize once the migration lands. Within Phase 6, LOOP and UI tracks can parallelize until the pilot gate where both must be ready.
 
 | Phase | Plans Complete | Status | Completed |
