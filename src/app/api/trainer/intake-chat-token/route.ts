@@ -122,7 +122,8 @@ export async function POST(req: NextRequest) {
     tools,
     messages: messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     agencyId,
-    maxTokens: 1024,
+    model: 'haiku', // Haiku is 3-4x faster — plenty smart for intake Q&A
+    maxTokens: 512,
     metadata: { trainee_id: traineeId, stage: 'intake_chat_token', turn: turnCount },
   })
 

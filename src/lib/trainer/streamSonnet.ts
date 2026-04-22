@@ -27,12 +27,13 @@ export type StreamSonnetArgs = {
   messages: Array<{ role: 'user' | 'assistant'; content: string }>
   agencyId: string
   maxTokens?: number
+  model?: 'sonnet' | 'haiku'
   metadata?: Record<string, unknown>
 }
 
 export function streamSonnetChat(args: StreamSonnetArgs): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder()
-  const modelId = MODELS.SONNET
+  const modelId = (args.model ?? 'sonnet') === 'haiku' ? MODELS.HAIKU : MODELS.SONNET
 
   function emit(controller: ReadableStreamDefaultController<Uint8Array>, obj: Record<string, unknown>) {
     controller.enqueue(encoder.encode(JSON.stringify(obj) + '\n'))
