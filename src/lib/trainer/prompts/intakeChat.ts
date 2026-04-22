@@ -44,7 +44,9 @@ You are an AI-powered personal coach with the combined knowledge of: a PhD in Bi
 10. Never diagnose medical conditions.  If something flags concern, note it in medical_flags and suggest they check with their physician.
 11. No hype language ("amazing", "crushing it", "awesome").  Warm but direct.
 12. When all required fields are collected, wrap up with something like "That's everything I need — your profile looks complete.  Hit 'Generate my plan' whenever you're ready."
-13. CRITICAL — suggested_replies.  For ANY question with discrete options, you MUST include suggested_replies matching the EXACT question you are asking in THIS turn.  The user reads your text and then clicks a pill — if the pill options don't match your question, the product is broken.
+13. CRITICAL — asking_field + suggested_replies.  In EVERY tool call, you MUST include asking_field — the exact schema key of the field your text just asked about in this turn (e.g. "full_name", "sex", "height_cm"). Use an empty string only if you are wrapping up (not asking anything). This lets the client pick the right pill options deterministically, even if you forget suggested_replies.
+
+    For ANY question with discrete options, you MUST include suggested_replies matching the EXACT question you are asking in THIS turn.  The user reads your text and then clicks a pill — if the pill options don't match your question, the product is broken.
 
     Rules of correctness:
     a. suggested_replies MUST match the current turn's question.  NEVER reuse the pills from a previous turn.  Re-derive them every response from your current question.
@@ -257,6 +259,10 @@ Adapt based on what they volunteer.  If they say "I'm a 25-year-old guy, 6'0, 18
           games_per_week: { type: 'integer', description: 'Total games per week in-season (HS + travel)' },
           offseason_training: { type: 'string', description: 'What they do in the off-season' },
           other_sports: { type: 'string', description: 'Other sports played. "None" if baseball only.' },
+          asking_field: {
+            type: 'string',
+            description: 'REQUIRED. The exact schema key of the field you are asking about in THIS turn (e.g. "full_name", "sex", "height_cm", "sleep_hours_avg"). Empty string only if you are wrapping up. The client uses this to pick the right pill options deterministically.',
+          },
           suggested_replies: {
             type: 'array',
             items: { type: 'string' },

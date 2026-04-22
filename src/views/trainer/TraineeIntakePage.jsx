@@ -19,16 +19,33 @@ import { supabase } from '../../lib/supabase'
 
 const BG = '#f9fafb'
 
-const REQUIRED_FIELDS = [
+// Fields always required regardless of what services the athlete picked.
+const CORE_REQUIRED = [
   'about_you', 'age', 'sex', 'height_cm', 'current_weight_kg', 'primary_goal',
   'training_experience_years', 'training_days_per_week', 'equipment_access',
-  'medical_flags', 'injuries', 'dietary_preference', 'allergies',
-  'sleep_hours_avg', 'stress_level', 'occupation_activity', 'meals_per_day',
+  'medical_flags', 'injuries', 'allergies',
+  'sleep_hours_avg', 'stress_level', 'occupation_activity',
 ]
+// Only required if athlete added that service — keeps Training-only athletes
+// from being blocked on fields that exist purely for diet/recruiting plans.
+const DIET_EXTRA = ['dietary_preference', 'meals_per_day']
+const RECRUITING_EXTRA = ['grad_year', 'position_primary', 'throwing_hand', 'batting_hand']
 
-function getMissing(extracted) {
+function getRequiredFields(services) {
+  const fields = [...CORE_REQUIRED]
+  if (services?.includes('diet')) fields.push(...DIET_EXTRA)
+  if (services?.includes('recruiting')) fields.push(...RECRUITING_EXTRA)
+  return fields
+}
+
+// Kept for the small number of other file-scoped readers that still want
+// the canonical ordered list (e.g. findNextMissingField walks this).
+const REQUIRED_FIELDS = [...CORE_REQUIRED, ...DIET_EXTRA]
+
+function getMissing(extracted, services) {
+  const required = getRequiredFields(services)
   const missing = []
-  for (const f of REQUIRED_FIELDS) {
+  for (const f of required) {
     const v = extracted[f]
     if (v === null || v === undefined) { missing.push(f); continue }
     if (typeof v === 'string' && v.trim().length === 0) { missing.push(f); continue }
@@ -211,7 +228,7 @@ export default function TraineeIntakePage() {
       about_you: aboutYou || extracted.about_you || '',
       full_name: extracted.full_name || trainee?.full_name || 'Athlete',
     }
-    const missing = getMissing(payload)
+    const missing = getMissing(payload, services)
     if (missing.length > 0) {
       setGenerateError(`Still missing: ${missing.join(', ')}.`)
       return
@@ -286,7 +303,7 @@ export default function TraineeIntakePage() {
     }
   }
 
-  const missing = getMissing(extracted)
+  const missing = getMissing(extracted, services)
 
   if (phase === 'loading') return <CenteredSpinner label="Loading..." />
   if (phase === 'not_found') return <NotFoundScreen />
@@ -472,6 +489,7 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
       let buffer = ''
       let fullText = ''
       let replies = []
+      let askingField = '' // Server-supplied: which field the coach just asked about
       let fieldsThisTurn = {} // Track fields extracted THIS turn for accurate fallback
 
       while (true) {
@@ -499,17 +517,27 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
               const nestedPills = Array.isArray(event.extracted.suggested_replies)
                 ? event.extracted.suggested_replies
                 : null
+              const nestedAsking = typeof event.extracted.asking_field === 'string' && event.extracted.asking_field
+                ? event.extracted.asking_field
+                : null
               const fieldsOnly = { ...event.extracted }
               delete fieldsOnly.suggested_replies
+              delete fieldsOnly.asking_field
               onFieldsUpdate(fieldsOnly)
               fieldsThisTurn = { ...fieldsThisTurn, ...fieldsOnly }
               if (nestedPills && nestedPills.length > 0 && !Array.isArray(event.suggested_replies)) {
                 replies = nestedPills
               }
+              if (nestedAsking && !askingField) {
+                askingField = nestedAsking
+              }
             }
             if (event.about_you_append && typeof event.about_you_append === 'string') onAboutYouAppend(event.about_you_append)
             if (Array.isArray(event.suggested_replies) && event.suggested_replies.length > 0) {
               replies = event.suggested_replies
+            }
+            if (typeof event.asking_field === 'string' && event.asking_field) {
+              askingField = event.asking_field
             }
           }
           if (event.type === 'error') setError(event.error || 'Stream error')
@@ -518,20 +546,23 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
 
       clearTimeout(timeout)
 
-      // Pill selection.  Only the author of the question knows what it asked
-      // about, so pill source has to track who generated it:
-      //   - fullText path: the model wrote the question.  Use server-supplied
-      //     suggested_replies, never guess from "next missing field" — the
-      //     coach might ask name, goal clarification, or anything that
-      //     doesn't line up with our required-field order.
-      //   - no-text path: we generated the fallback question locally, so we
-      //     know exactly which field it's about and can use its pill map.
+      // Pill selection.  Priority:
+      //   1. Server-supplied suggested_replies (if non-empty) — always win.
+      //   2. Rescue via askingField: server told us which field it asked
+      //      about; if that field has hand-curated pills, use them.  This
+      //      catches Haiku dropping suggested_replies for mapped fields.
+      //   3. Fallback (no model text at all): we generated the question, so
+      //      we know which field it's about and use its pills.
       // setQuickReplies always fires so stale pills from a prior turn can
       // never persist into this one.
       let pillsToShow = []
       if (fullText) {
         setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
-        pillsToShow = replies
+        if (replies.length > 0) {
+          pillsToShow = replies
+        } else if (askingField && FIELD_QUESTIONS[askingField]?.pills?.length > 0) {
+          pillsToShow = FIELD_QUESTIONS[askingField].pills
+        }
       } else {
         const mergedExtracted = { ...extracted, ...fieldsThisTurn }
         const fallback = buildSmartFallback(lastExtractedRef.current, mergedExtracted, services)

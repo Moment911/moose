@@ -146,7 +146,13 @@ export function streamSonnetChat(args: StreamSonnetArgs): ReadableStream<Uint8Ar
             if (eventType === 'content_block_stop' && toolJsonBuffer) {
               try {
                 const toolResult = JSON.parse(toolJsonBuffer) as Record<string, unknown>
-                emit(controller, { type: 'fields', extracted: toolResult.extracted ?? {}, about_you_append: toolResult.about_you_append ?? '', suggested_replies: toolResult.suggested_replies ?? [] })
+                emit(controller, {
+                  type: 'fields',
+                  extracted: toolResult.extracted ?? {},
+                  about_you_append: toolResult.about_you_append ?? '',
+                  suggested_replies: toolResult.suggested_replies ?? [],
+                  asking_field: typeof toolResult.asking_field === 'string' ? toolResult.asking_field : '',
+                })
               } catch {
                 emit(controller, { type: 'error', error: 'tool_json_parse_failed' })
               }
