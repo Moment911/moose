@@ -546,6 +546,33 @@ export default function PlatformAdminPage() {
 }
 
 /* ── Agencies Panel — create, manage, switch into agencies ────────────── */
+// Small inline row: "ID: abc-1234…  [copy]" — makes agency IDs usable from
+// the super-admin list (env-var wiring, support, deep-linking, etc.).
+function AgencyIdCopyRow({ id }) {
+  if (!id) return null
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(id)
+      toast.success('Agency ID copied')
+    } catch {
+      toast.error('Copy failed — select the text manually')
+    }
+  }
+  return (
+    <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280' }}>
+      <span style={{ fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em' }}>ID</span>
+      <code style={{ fontSize: 11, fontFamily: 'ui-monospace, SFMono-Regular, monospace', color: '#374151', background: '#f3f4f6', padding: '1px 6px', borderRadius: 4 }}>{id}</code>
+      <button
+        type="button"
+        onClick={copy}
+        style={{ background: 'none', border: 'none', color: '#00c2cb', fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+      >
+        Copy
+      </button>
+    </div>
+  )
+}
+
 function AgenciesPanel() {
   const { impersonateAgency } = useAuth()
   const navigate = useNavigate()
@@ -649,9 +676,10 @@ function AgenciesPanel() {
 
       {agencies.map(ag => (
         <div key={ag.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', background:'#fff', borderRadius:10, border:'1px solid #e5e7eb', marginBottom:8 }}>
-          <div>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize:14, fontWeight:700, color:'#111' }}>{ag.brand_name || ag.name}</div>
             <div style={{ fontSize:12, color:'#6b7280' }}>{ag.owner_email || '—'} · {ag.plan || 'starter'} · {ag.status || 'active'}</div>
+            <AgencyIdCopyRow id={ag.id} />
           </div>
           <div style={{ display:'flex', gap:6 }}>
             <button onClick={()=>switchTo(ag)} style={{ padding:'6px 12px', borderRadius:6, border:'1px solid '+TEAL+'40', background:'#fff', color:TEAL, fontSize:12, fontWeight:700, cursor:'pointer' }}>

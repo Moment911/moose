@@ -1113,9 +1113,29 @@ export default function AgencySettingsPage() {
             <div style={{ width:32, height:32, borderRadius:9, background:R, display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Settings size={16} color="#fff"/>
             </div>
-            <div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em' }}>Agency Settings</h1>
               <p style={{ fontSize:14, color: '#999999', margin:0, fontFamily:FB }}>All platform settings in one place</p>
+              {aid && (
+                <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280' }}>
+                  <span style={{ fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em' }}>Agency ID</span>
+                  <code style={{ fontSize: 11, fontFamily: 'ui-monospace, SFMono-Regular, monospace', color: '#374151', background: '#f3f4f6', padding: '1px 6px', borderRadius: 4 }}>{aid}</code>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(aid)
+                        toast.success('Agency ID copied')
+                      } catch {
+                        toast.error('Copy failed — select the text manually')
+                      }
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#00c2cb', fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                  >
+                    Copy
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <div style={{ height:1, background: '#F5F5F5' }}/>
