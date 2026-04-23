@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import {
   BarChart2, Loader2, RefreshCw, AlertTriangle, TrendingDown, TrendingUp,
-  FileWarning, Copy as CopyIcon, Zap,
+  FileWarning, Copy as CopyIcon, Zap, ShieldAlert, Lightbulb, CheckCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
@@ -40,6 +40,157 @@ function StatCard({ label, value, icon: Icon, color, sub }) {
       </div>
       <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{sub}</div>}
+    </div>
+  )
+}
+
+const SEVERITY = {
+  critical: { label: 'Critical', color: R, bg: R + '10', border: R + '30' },
+  warning: { label: 'Warning', color: AMB, bg: AMB + '10', border: AMB + '30' },
+  info: { label: 'Info', color: '#3b82f6', bg: '#3b82f610', border: '#3b82f630' },
+}
+
+const RECOMMENDATIONS = [
+  {
+    key: 'indexing_issues',
+    title: 'Indexing Issues',
+    icon: FileWarning,
+    severity: 'critical',
+    explanation: 'Pages not being indexed are invisible to Google and waste your content investment.',
+    actions: [
+      'Submit these URLs to Google Search Console using the URL Inspection tool and request indexing.',
+      'Check each page for noindex meta tags, canonical mismatches, or robots.txt blocks that prevent crawling.',
+      'Ensure internal links point to these pages so Googlebot can discover them naturally.',
+    ],
+  },
+  {
+    key: 'ctr_anomalies',
+    title: 'CTR Anomalies',
+    icon: AlertTriangle,
+    severity: 'warning',
+    explanation: 'These pages rank well but get fewer clicks than expected for their position.',
+    actions: [
+      'Rewrite title tags to be more compelling — use numbers, power words, and clear value propositions.',
+      'Update meta descriptions with a strong call-to-action and ensure they accurately preview page content.',
+      'Add structured data (FAQ, HowTo, Review) to earn rich snippets that increase visual prominence in SERPs.',
+    ],
+  },
+  {
+    key: 'decay_issues',
+    title: 'Decaying URLs',
+    icon: TrendingDown,
+    severity: 'warning',
+    explanation: 'These pages are losing rankings over time, meaning less organic traffic each month.',
+    actions: [
+      'Refresh content with new information, updated statistics, and current examples.',
+      'Update publish dates and add an "Last updated" note so Google sees freshness signals.',
+      'Build 2-3 new internal links from high-authority pages on your site to each decaying URL.',
+    ],
+  },
+  {
+    key: 'cannibalization_issues',
+    title: 'Cannibalization',
+    icon: CopyIcon,
+    severity: 'critical',
+    explanation: 'Multiple pages competing for the same keyword dilute your authority and confuse Google.',
+    actions: [
+      'Consolidate competing pages by merging the weaker page into the stronger one and adding a 301 redirect.',
+      'Differentiate targeting by updating titles, H1s, and content to focus each page on a distinct keyword variant.',
+      'Use canonical tags to signal which page should rank if the pages must remain separate.',
+    ],
+  },
+]
+
+function SeverityBadge({ level }) {
+  const s = SEVERITY[level] || SEVERITY.info
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700,
+      padding: '2px 8px', borderRadius: 6, background: s.bg, color: s.color, border: `1px solid ${s.border}`,
+      textTransform: 'uppercase', letterSpacing: '.04em',
+    }}>
+      <ShieldAlert size={10} /> {s.label}
+    </span>
+  )
+}
+
+function IssueSummaryCard({ data }) {
+  const counts = {
+    indexing: data.indexing_issues?.length || 0,
+    ctr: data.ctr_anomalies?.length || 0,
+    decay: data.decay_issues?.length || 0,
+    cannibalization: data.cannibalization_issues?.length || 0,
+  }
+  const critical = counts.indexing + counts.cannibalization
+  const warnings = counts.ctr + counts.decay
+  const total = critical + warnings
+
+  if (total === 0) return (
+    <div style={{ ...card, background: GRN + '08', border: `1px solid ${GRN}30`, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <CheckCircle size={20} color={GRN} />
+      <div style={{ fontSize: 14, fontWeight: 700, color: '#065f46' }}>No issues detected. Your site looks healthy.</div>
+    </div>
+  )
+
+  return (
+    <div style={{ ...card, background: critical > 0 ? R + '06' : AMB + '06', border: `1px solid ${critical > 0 ? R : AMB}25` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+        <ShieldAlert size={18} color={critical > 0 ? R : AMB} />
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>
+          Your site has {total} issue{total !== 1 ? 's' : ''} that need attention
+        </div>
+      </div>
+      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+        {critical > 0 && (
+          <span><strong style={{ color: R }}>{critical} critical</strong> (indexing + cannibalization) requiring immediate action. </span>
+        )}
+        {warnings > 0 && (
+          <span><strong style={{ color: AMB }}>{warnings} warning{warnings !== 1 ? 's' : ''}</strong> (CTR anomalies + decaying pages) that should be addressed soon.</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function AIRecommendations({ data }) {
+  const hasAny = RECOMMENDATIONS.some(r => (data[r.key]?.length || 0) > 0)
+  if (!hasAny) return null
+
+  return (
+    <div style={card}>
+      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Lightbulb size={16} color={AMB} /> AI Recommendations
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {RECOMMENDATIONS.map(rec => {
+          const count = data[rec.key]?.length || 0
+          if (count === 0) return null
+          const Icon = rec.icon
+          const sev = SEVERITY[rec.severity]
+          return (
+            <div key={rec.key} style={{ borderRadius: 10, border: `1px solid ${sev.border}`, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: sev.bg }}>
+                <Icon size={14} color={sev.color} />
+                <div style={{ flex: 1, fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>
+                  {rec.title} ({count})
+                </div>
+                <SeverityBadge level={rec.severity} />
+              </div>
+              <div style={{ padding: '12px 16px' }}>
+                <div style={{ fontSize: 12, color: '#374151', marginBottom: 10, lineHeight: 1.5 }}>{rec.explanation}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {rec.actions.map((action, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#4b5563', lineHeight: 1.5 }}>
+                      <span style={{ fontWeight: 700, color: sev.color, flexShrink: 0 }}>{i + 1}.</span>
+                      {action}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -107,12 +258,16 @@ export default function GSCAuditTab({ clientId, agencyId }) {
 
       {data && (
         <>
+          <IssueSummaryCard data={data} />
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
             <StatCard label="Indexing Issues" value={data.indexing_issues?.length || 0} icon={FileWarning} color={R} sub="Pages not indexed properly" />
             <StatCard label="CTR Anomalies" value={data.ctr_anomalies?.length || 0} icon={AlertTriangle} color={AMB} sub="High impressions, low clicks" />
             <StatCard label="Decaying URLs" value={data.decay_issues?.length || 0} icon={TrendingDown} color={AMB} sub="Losing rankings" />
             <StatCard label="Cannibalization" value={data.cannibalization_issues?.length || 0} icon={CopyIcon} color={R} sub="Competing URLs" />
           </div>
+
+          <AIRecommendations data={data} />
 
           <IssueTable title="Indexing Issues" color={R} Icon={FileWarning} items={data.indexing_issues} columns={['url', 'status', 'last_crawled']} />
           <IssueTable title="CTR Anomalies" color={AMB} Icon={AlertTriangle} items={data.ctr_anomalies} columns={['url', 'query', 'impressions', 'ctr', 'expected_ctr']} />

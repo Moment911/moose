@@ -1346,7 +1346,12 @@ Return ONLY valid JSON:
     // Get Moz data from latest report
     const mozData = latestReport?.report_data?.moz_data || null
 
-    return NextResponse.json({ gbp: gbpData, moz: mozData, location })
+    return NextResponse.json({
+      gbp: gbpData,
+      moz: mozData,
+      location,
+      review_count_note: 'Review count from Google Places API — may differ from your GBP dashboard. Connect Google Business Profile for exact data.',
+    })
   }
 
   // ── GMB REVIEW RESPONSE: AI-draft reply to a review ───────────────────
@@ -2434,7 +2439,7 @@ Return ONLY valid JSON array:
 
   // ── ROI PROJECTIONS: Estimated impact from fixing audit issues ────────
   if (action === 'roi_projections') {
-    const { client_id } = body
+    const { client_id, job_value, ltv } = body
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
 
     const { data: client } = await s.from('clients').select('name, website, primary_service, marketing_budget').eq('id', client_id).single()
@@ -2444,9 +2449,12 @@ Return ONLY valid JSON array:
       .eq('client_id', client_id).eq('source', 'deep_enrich').order('completed_at', { ascending: false }).limit(1).single()
     const enrichment = enrichLog?.metadata
 
+    const customValues = (job_value || ltv) ? `\nCUSTOM REVENUE INPUTS (use these to calculate revenue projections — multiply leads by these values):${job_value ? `\n- Average Job Value: $${job_value}` : ''}${ltv ? `\n- Customer Lifetime Value: $${ltv}` : ''}\n` : ''
+
     const roiPrompt = `You are KotoIQ ROI analyst. Calculate realistic traffic and revenue projections from fixing the issues found in this client's audit.
 
 CLIENT: ${client?.name} | ${client?.primary_service} | Budget: ${client?.marketing_budget || 'Unknown'}
+${customValues}
 
 KEYWORD DATA (top 50):
 ${JSON.stringify((keywords || []).slice(0, 30).map(k => ({ kw: k.keyword, opp: k.opportunity_score, pos: k.sc_avg_position, clicks: k.sc_clicks, vol: k.kp_monthly_volume, cat: k.category })))}

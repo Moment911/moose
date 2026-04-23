@@ -468,6 +468,8 @@ export default function KotoIQPage() {
   const [batchingReviews, setBatchingReviews] = useState(false)
   const [roiData, setRoiData] = useState(null)
   const [roiLoading, setRoiLoading] = useState(false)
+  const [roiJobValue, setRoiJobValue] = useState('')
+  const [roiLtv, setRoiLtv] = useState('')
   const [briefs, setBriefs] = useState([])
   const [briefLoading, setBriefLoading] = useState(false)
   const [briefKeyword, setBriefKeyword] = useState('')
@@ -3146,11 +3148,23 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <DollarSign size={48} color={GRN} style={{ margin: '0 auto 16px', opacity: .3 }} />
                 <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>ROI Projections</div>
                 <div style={{ fontSize: 14, color: '#374151', marginBottom: 20 }}>Calculate the estimated traffic and revenue impact of fixing issues found in your audit.</div>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 20 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4, textTransform: 'uppercase', fontFamily: FH }}>Avg Job Value ($)</label>
+                    <input type="number" min="0" placeholder="e.g. 500" value={roiJobValue} onChange={e => setRoiJobValue(e.target.value)}
+                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FH, fontWeight: 700 }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4, textTransform: 'uppercase', fontFamily: FH }}>Customer LTV ($)</label>
+                    <input type="number" min="0" placeholder="e.g. 5000" value={roiLtv} onChange={e => setRoiLtv(e.target.value)}
+                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FH, fontWeight: 700 }} />
+                  </div>
+                </div>
                 <button onClick={async () => {
                   setRoiLoading(true)
                   toast.loading('Calculating ROI projections...', { id: 'roi' })
                   try {
-                    const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'roi_projections', client_id: clientId }) })
+                    const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'roi_projections', client_id: clientId, ...(roiJobValue ? { job_value: Number(roiJobValue) } : {}), ...(roiLtv ? { ltv: Number(roiLtv) } : {}) }) })
                     const data = await res.json()
                     if (data.error) { toast.error(data.error, { id: 'roi' }); setRoiLoading(false); return }
                     toast.success('ROI projections ready', { id: 'roi' })
@@ -3258,10 +3272,20 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   </div>
                 )}
 
-                <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, justifyContent: 'center', padding: '16px 0' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4, textTransform: 'uppercase', fontFamily: FH }}>Avg Job Value ($)</label>
+                    <input type="number" min="0" placeholder="e.g. 500" value={roiJobValue} onChange={e => setRoiJobValue(e.target.value)}
+                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FH, fontWeight: 700 }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4, textTransform: 'uppercase', fontFamily: FH }}>Customer LTV ($)</label>
+                    <input type="number" min="0" placeholder="e.g. 5000" value={roiLtv} onChange={e => setRoiLtv(e.target.value)}
+                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FH, fontWeight: 700 }} />
+                  </div>
                   <button onClick={async () => {
                     setRoiLoading(true)
-                    const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'roi_projections', client_id: clientId }) })
+                    const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'roi_projections', client_id: clientId, ...(roiJobValue ? { job_value: Number(roiJobValue) } : {}), ...(roiLtv ? { ltv: Number(roiLtv) } : {}) }) })
                     const data = await res.json()
                     setRoiData(data.projections)
                     setRoiLoading(false)

@@ -169,6 +169,44 @@ export default function SemanticTab({ clientId, agencyId }) {
             </div>
           </div>
 
+          {/* What These Scores Mean + What To Do */}
+          <div style={{ ...card, background: '#f9fafb' }}>
+            <div style={titleStyle}><Brain size={15} color={T} /> What This Data Means</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Overall Score</div>
+                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
+                  Measures how well your site content is organized as a topical network. Google rewards sites with deep, interconnected content around core topics. 70+ is strong; below 40 means search engines may not understand your expertise areas.
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Flow Score</div>
+                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
+                  Evaluates heading hierarchy (H1 &rarr; H2 &rarr; H3) and logical content order. Low flow means readers and crawlers get lost. Fix by restructuring headings to follow a clear outline on each page.
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Consistency Score</div>
+                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
+                  Checks whether heading text matches the content beneath it. If headings promise one thing but paragraphs deliver another, both users and search engines lose trust. Rewrite mismatched headings or reorganize content.
+                </div>
+              </div>
+            </div>
+            {a.overall_score > 0 && a.overall_score < 70 && (
+              <div style={{ marginTop: 16, padding: '12px 16px', background: AMB + '12', borderRadius: 8, border: `1px solid ${AMB}30` }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Recommended Next Steps</div>
+                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#374151', lineHeight: 1.8 }}>
+                  {(a.thin_content_pages || []).length > 0 && <li>Expand or consolidate your {(a.thin_content_pages || []).length} thin pages (under 300 words). Add depth or merge them into related pages.</li>}
+                  {(a.context_dilution_pages || []).length > 0 && <li>Split your {(a.context_dilution_pages || []).length} diluted pages so each page focuses on 1-3 topics max.</li>}
+                  {(a.orphan_contexts || []).length > 0 && <li>Create dedicated pages for your {(a.orphan_contexts || []).length} orphan topics, then interlink them with existing content.</li>}
+                  {mainPct < 60 && <li>Your main content ratio is only {mainPct}%. Reduce boilerplate/sidebar content and add more substantive body copy.</li>}
+                  {a.contextual_flow_score < 60 && <li>Restructure page headings into clear H1 &rarr; H2 &rarr; H3 hierarchies. Avoid skipping heading levels.</li>}
+                  {a.contextual_consistency_score < 60 && <li>Audit headings that do not match their section content. Rewrite headings to accurately describe what follows.</li>}
+                </ul>
+              </div>
+            )}
+          </div>
+
           {/* Site-Wide Semantics grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
             {/* N-grams */}
@@ -189,6 +227,9 @@ export default function SemanticTab({ clientId, agencyId }) {
               {!ngrams.trigrams?.length && !ngrams.bigrams?.length && (
                 <div style={{ color: '#1f2937', fontSize: 12, padding: 20, textAlign: 'center' }}>No N-gram data</div>
               )}
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+                These are the most-repeated multi-word phrases across your site. They reveal your topical focus areas. If your core services are missing, you need more content about them. If irrelevant phrases dominate, you may have off-topic content diluting your signal.
+              </div>
             </div>
 
             {/* Nouns / Predicates / Adjectives */}
@@ -198,6 +239,9 @@ export default function SemanticTab({ clientId, agencyId }) {
                 <WordList title="Nouns" items={a.top_nouns} icon={FileText} color={T} />
                 <WordList title="Verbs" items={a.top_predicates} icon={Zap} color={GRN} />
                 <WordList title="Adjectives" items={a.top_adjectives} icon={Eye} color={AMB} />
+              </div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+                Your vocabulary profile shows the language identity of your site. Nouns reflect your topics, verbs show what actions you emphasize, and adjectives reveal your tone. Compare these against your target keywords — if there is a mismatch, your content may not align with what customers search for.
               </div>
             </div>
 
@@ -226,6 +270,9 @@ export default function SemanticTab({ clientId, agencyId }) {
               ) : (
                 <div style={{ color: '#1f2937', fontSize: 12, padding: 20, textAlign: 'center' }}>No heading patterns</div>
               )}
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+                Heading patterns reveal how your pages are structured. Repetitive patterns (e.g. every page uses the same H2s) can signal template-driven content that Google may see as low-value. Vary your headings to match each page's unique topic.
+              </div>
             </div>
           </div>
 
@@ -246,6 +293,9 @@ export default function SemanticTab({ clientId, agencyId }) {
                 </div>
                 <div style={{ fontSize: 12, color: ratioIdeal ? GRN : AMB, fontWeight: 600, marginTop: 4 }}>
                   {ratioIdeal ? 'Ideal range (60-80%)' : mainPct < 60 ? 'Too much supplementary content' : 'Needs more supporting content'}
+                </div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6, lineHeight: 1.4 }}>
+                  Main content is your unique page body. Supplementary is nav, sidebars, footers. Aim for 60-80% main content so search engines focus on what matters.
                 </div>
               </div>
 
@@ -299,6 +349,9 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No thin content pages detected
                 </div>
               )}
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+                Pages under 300 words rarely rank. Either expand them with useful detail or merge them into a related, stronger page.
+              </div>
             </div>
 
             {/* Context Dilution */}
@@ -326,6 +379,9 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No diluted pages detected
                 </div>
               )}
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+                Pages covering 4+ unrelated topics confuse search engines about what the page is really about. Split into focused pages, each targeting one topic cluster.
+              </div>
             </div>
 
             {/* Orphan Contexts */}
@@ -353,6 +409,9 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No orphan contexts detected
                 </div>
               )}
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+                Topics mentioned but never given their own page or internal links. Create a dedicated page for each orphan topic and link to it from the pages that mention it.
+              </div>
             </div>
           </div>
 
