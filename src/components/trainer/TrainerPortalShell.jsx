@@ -99,6 +99,7 @@ export default function TrainerPortalShell({ children }) {
               Athletes
             </div>
             <NavItem to="/trainer" exact icon={Users} label="Dashboard" />
+            <NavItem to="/trainer/athletes" icon={Users} label="Athletes" />
             <NavItem to="/trainer/new" icon={Plus} label="Add Athlete" />
           </div>
 

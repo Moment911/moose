@@ -12,14 +12,18 @@ const RED = '#dc2626'
 const BLUE = '#2563eb'
 const BLK = '#0a0a0a'
 
-// National totals from NCSA
+// National totals — updated for 2025-26 NCAA rule changes
+// Key change: D1 baseball went from 11.7 equivalency scholarships to 34
+// roster-limit scholarships starting 2025-26. This is the biggest change
+// in college baseball scholarship history. Each scholarship must be at
+// least a 50% grant (tuition + fees + books + room/board).
 const NATIONAL = {
   totalPrograms: 1727,
-  d1: { programs: 311, scholarshipsPerSchool: 11.7, athletes: 10400 },
-  d2: { programs: 260, scholarshipsPerSchool: 9, athletes: 9000 },
-  d3: { programs: 404, scholarshipsPerSchool: 0, athletes: 11200 },
-  naia: { programs: 199, scholarshipsPerSchool: 12, athletes: 6300 },
-  juco: { programs: 538, scholarshipsPerSchool: 24, athletes: 15300 },
+  d1: { programs: 311, scholarshipsPerSchool: 34, athletes: 10400, note: 'NEW 2025-26: up from 11.7 — each min 50% of full cost' },
+  d2: { programs: 260, scholarshipsPerSchool: 9, athletes: 9000, note: null },
+  d3: { programs: 404, scholarshipsPerSchool: 0, athletes: 11200, note: 'Merit & need-based aid only' },
+  naia: { programs: 199, scholarshipsPerSchool: 12, athletes: 6300, note: null },
+  juco: { programs: 538, scholarshipsPerSchool: 24, athletes: 15300, note: null },
   hsAthletes: 473503,
 }
 
@@ -121,9 +125,9 @@ export default function ScholarshipsPage() {
         <div style={{ padding: '24px 40px 40px' }}>
           {/* National stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24 }}>
-            <DivisionCard label="D1" programs={NATIONAL.d1.programs} perSchool={NATIONAL.d1.scholarshipsPerSchool} athletes={NATIONAL.d1.athletes} color={RED} />
+            <DivisionCard label="D1" programs={NATIONAL.d1.programs} perSchool={NATIONAL.d1.scholarshipsPerSchool} athletes={NATIONAL.d1.athletes} color={RED} note={NATIONAL.d1.note} />
             <DivisionCard label="D2" programs={NATIONAL.d2.programs} perSchool={NATIONAL.d2.scholarshipsPerSchool} athletes={NATIONAL.d2.athletes} color={BLUE} />
-            <DivisionCard label="D3" programs={NATIONAL.d3.programs} perSchool={0} athletes={NATIONAL.d3.athletes} color="#6b7280" note="No athletic scholarships" />
+            <DivisionCard label="D3" programs={NATIONAL.d3.programs} perSchool={0} athletes={NATIONAL.d3.athletes} color="#6b7280" note={NATIONAL.d3.note} />
             <DivisionCard label="NAIA" programs={NATIONAL.naia.programs} perSchool={NATIONAL.naia.scholarshipsPerSchool} athletes={NATIONAL.naia.athletes} color="#7c3aed" />
             <DivisionCard label="JUCO" programs={NATIONAL.juco.programs} perSchool={NATIONAL.juco.scholarshipsPerSchool} athletes={NATIONAL.juco.athletes} color="#f59e0b" />
           </div>
