@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Loader2, Send, Check, Circle } from 'lucide-react'
+import { Loader2, Send, Check, Circle, Camera, Pencil, RefreshCw, Bookmark, Map as MapIcon, Dumbbell, BookOpen, Timer, GraduationCap, ExternalLink } from 'lucide-react'
 import { T, BLK, GRN } from '../../lib/theme'
 // Trainer portal uses red/blue accents, not Koto Pink. Local override.
 const R = '#dc2626'
@@ -1027,7 +1027,7 @@ function WelcomeScreen({ name, onStart }) {
             Tell us your goals and we&apos;ll build a program to help you get there.
           </p>
           <div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#6b7280' }}>
-            <span>⏱ About 5 minutes</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Timer size={12} strokeWidth={1.75} /> About 5 minutes</span>
             <span style={{ color: '#d1d5db' }}>·</span>
             <span>Pause & return anytime</span>
           </div>
@@ -1047,7 +1047,7 @@ function WelcomeScreen({ name, onStart }) {
                 cursor: 'pointer', textAlign: 'left',
               }}
             >
-              <span style={{ fontSize: 13 }}>🎓</span>
+              <GraduationCap size={14} strokeWidth={1.75} color="#0f172a" />
               <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#374151' }}>
                 AI tool modeled after a PhD + ex-MLB + pro-coach expert stack
               </span>
@@ -1459,7 +1459,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
               fontSize: 13, fontWeight: 800, cursor: 'pointer',
             }}
           >
-            ✏️  Update my profile
+            <Pencil size={16} strokeWidth={1.75} />  Update my profile
           </button>
           <button
             type="button"
@@ -1471,14 +1471,14 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
               fontSize: 13, fontWeight: 800, cursor: 'pointer',
             }}
           >
-            🔄  Regenerate my plan
+            <RefreshCw size={16} strokeWidth={1.75} />  Regenerate my plan
           </button>
         </section>
 
         {/* Footer — bookmark + support */}
         <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px 18px', marginTop: 12 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <span style={{ fontSize: 20, flexShrink: 0 }}>🔖</span>
+            <Bookmark size={20} strokeWidth={1.75} style={{ flexShrink: 0, color: '#0f172a' }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 3 }}>Bookmark this page</div>
               <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
@@ -1641,7 +1641,11 @@ function WorkoutBlockCard({ workout }) {
 function NutritionToday({ traineeId }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
+  // Queue model: users can pick multiple photos back-to-back and walk
+  // away. Each photo scans sequentially (Anthropic rate-limits parallel
+  // vision calls) but the UI stays unblocked. queue holds pending +
+  // in-flight items with status so the user sees progress.
+  const [queue, setQueue] = useState([]) // {id, name, status: 'pending'|'scanning'|'done'|'error', errorMsg?}
   const [error, setError] = useState(null)
   const fileInputRef = useRef(null)
 
@@ -1665,14 +1669,12 @@ function NutritionToday({ traineeId }) {
 
   useEffect(() => { reload() }, [reload])
 
-  async function handleFile(file) {
-    if (!file) return
-    if (!file.type.startsWith('image/')) { setError('Pick an image file.'); return }
-    if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5MB.'); return }
-    setUploading(true)
-    setError(null)
+  // Enqueue multiple photos, scan sequentially. UI stays unblocked so the
+  // athlete can keep picking more while prior scans are still running.
+  const processingRef = useRef(false)
+  const scanOne = useCallback(async (item) => {
     try {
-      const base64 = await fileToBase64(file)
+      const base64 = await fileToBase64(item.file)
       const res = await fetch('/api/trainer/food-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1680,18 +1682,53 @@ function NutritionToday({ traineeId }) {
           action: 'scan_photo',
           trainee_id: traineeId,
           photo_base64: base64,
-          photo_mime: file.type,
+          photo_mime: item.file.type,
         }),
       })
       const body = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(body?.detail || body?.error || `Failed (${res.status})`)
-      await reload()
+      setQueue((q) => q.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it)))
+      return true
     } catch (e) {
-      setError(e.message || 'Scan failed')
-    } finally {
-      setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      setQueue((q) => q.map((it) => (it.id === item.id ? { ...it, status: 'error', errorMsg: e.message || 'Scan failed' } : it)))
+      return false
     }
+  }, [traineeId])
+
+  useEffect(() => {
+    // Drain the queue one item at a time whenever there's a pending entry.
+    if (processingRef.current) return
+    const next = queue.find((it) => it.status === 'pending')
+    if (!next) return
+    processingRef.current = true
+    ;(async () => {
+      setQueue((q) => q.map((it) => (it.id === next.id ? { ...it, status: 'scanning' } : it)))
+      await scanOne(next)
+      processingRef.current = false
+      // Reload totals; drop completed items from the visible list after 2s.
+      await reload()
+      setTimeout(() => {
+        setQueue((q) => q.filter((it) => it.status !== 'done'))
+      }, 2000)
+    })()
+  }, [queue, scanOne, reload])
+
+  function handleFiles(files) {
+    setError(null)
+    if (!files || files.length === 0) return
+    const toAdd = []
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) { setError('One of the files is not an image.'); continue }
+      if (file.size > 5 * 1024 * 1024) { setError(`${file.name} is over 5MB — skipped.`); continue }
+      toAdd.push({
+        id: Math.random().toString(36).slice(2),
+        name: file.name || 'photo',
+        file,
+        status: 'pending',
+      })
+    }
+    if (toAdd.length > 0) setQueue((q) => [...q, ...toAdd])
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   async function handleDelete(logId) {
@@ -1743,35 +1780,57 @@ function NutritionToday({ traineeId }) {
             ))}
           </div>
 
-          {/* Photo + manual buttons */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+          {/* Photo picker — multiple files, scan queue, keep it modern */}
+          <div style={{ marginBottom: 14 }}>
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               capture="environment"
               style={{ display: 'none' }}
-              onChange={(e) => handleFile(e.target.files?.[0])}
+              onChange={(e) => handleFiles(e.target.files)}
             />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
               style={{
-                flex: '1 1 220px', padding: '12px 16px',
-                background: uploading ? '#94a3b8' : '#0f172a', color: '#fff',
-                border: 'none', borderRadius: 10,
-                fontSize: 14, fontWeight: 700, cursor: uploading ? 'wait' : 'pointer',
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                width: '100%',
+                padding: '14px 18px',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 14,
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                letterSpacing: '-.01em',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.08), 0 8px 24px -12px rgba(15, 23, 42, 0.4)',
+                transition: 'transform .12s ease, box-shadow .12s ease',
               }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.98)' }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
             >
-              {uploading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Scanning photo…</> : <>📸 Snap a photo of what you ate</>}
+              <Camera size={18} strokeWidth={1.75} />
+              <span>Snap photos of what you ate</span>
+              <span style={{ fontSize: 11, opacity: 0.65, fontWeight: 500, marginLeft: 4 }}>· pick many at once</span>
               <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
             </button>
           </div>
 
+          {/* Active scan queue */}
+          {queue.length > 0 && (
+            <div style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
+              {queue.map((item) => (
+                <ScanQueueRow key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+
           {error && (
-            <div style={{ marginBottom: 12, padding: '8px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>
+            <div style={{ marginBottom: 12, padding: '10px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, fontSize: 12, color: '#991b1b' }}>
               {error}
             </div>
           )}
@@ -1819,7 +1878,7 @@ function FoodLogRow({ log, onDelete }) {
     <div style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 8 }}>
         <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>
-          {time} · {log.source === 'photo' ? '📸 Photo' : '✍️ Manual'} · {log.total_kcal} kcal · {log.total_protein_g}g P
+          {time} · {log.source === 'photo' ? 'Photo' : 'Manual'} · {log.total_kcal} kcal · {log.total_protein_g}g P
         </div>
         <button
           type="button"
@@ -1855,6 +1914,36 @@ function fileToBase64(file) {
     reader.onerror = () => reject(new Error('Could not read file'))
     reader.readAsDataURL(file)
   })
+}
+
+// One row in the in-flight scan queue — shows per-photo status with a
+// subtle pulsing dot while scanning. Fades (via parent's delayed cleanup)
+// once done.
+function ScanQueueRow({ item }) {
+  const s = item.status
+  const color = s === 'done' ? '#16a34a' : s === 'error' ? '#dc2626' : s === 'scanning' ? '#2563eb' : '#94a3b8'
+  const label = s === 'done' ? 'Added to today' : s === 'error' ? (item.errorMsg || 'Failed') : s === 'scanning' ? 'Scanning…' : 'Queued'
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '10px 14px',
+      background: 'rgba(15, 23, 42, 0.02)',
+      border: '1px solid rgba(15, 23, 42, 0.08)',
+      borderRadius: 12,
+      fontSize: 13,
+    }}>
+      <span style={{
+        width: 9, height: 9, borderRadius: '50%', background: color, flexShrink: 0,
+        boxShadow: s === 'scanning' ? `0 0 0 4px ${color}25` : 'none',
+        animation: s === 'scanning' ? 'kotoScanPulse 1.2s ease-in-out infinite' : 'none',
+      }} />
+      <style>{'@keyframes kotoScanPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}'}</style>
+      <span style={{ flex: 1, color: '#0f172a', fontWeight: 500, letterSpacing: '-.005em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {item.name}
+      </span>
+      <span style={{ color, fontWeight: 600, fontSize: 12, letterSpacing: '-.01em', flexShrink: 0 }}>{label}</span>
+    </div>
+  )
 }
 
 // ── Sleep tracker (Phase C) ─────────────────────────────────────────────────

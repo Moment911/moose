@@ -22,6 +22,7 @@ import {
   ExternalLink,
   Activity,
   Trash2,
+  Camera,
 } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { FeatureDisabledPanel } from './TrainerListPage'
@@ -2533,7 +2534,7 @@ function CoachNutritionTracker({ traineeId }) {
               display: 'inline-flex', alignItems: 'center', gap: 6,
             }}
           >
-            {uploading ? 'Scanning…' : '📸 Log a photo'}
+            {uploading ? 'Scanning…' : (<><Camera size={14} strokeWidth={1.75} /> Log a photo</>)}
           </button>
         </div>
       </div>
@@ -2618,7 +2619,7 @@ function CoachNutritionTracker({ traineeId }) {
             return (
               <div key={log.id} style={{ padding: '8px 10px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}>
                 <div style={{ color: '#475569', marginBottom: 4 }}>
-                  {time} · {log.source === 'photo' ? '📸' : '✍️'} · {log.total_kcal} kcal · {log.total_protein_g}g P
+                  {time} · {log.source === 'photo' ? 'Photo' : 'Manual'} · {log.total_kcal} kcal · {log.total_protein_g}g P
                 </div>
                 <div style={{ color: '#0f172a' }}>
                   {items.map((it) => it.name).join(' · ')}
