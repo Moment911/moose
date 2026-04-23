@@ -1,7 +1,7 @@
 "use client"
 import { useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-import { Users, Plus, Target, Mail, BarChart2, Clock, LogOut, Dumbbell, DollarSign } from 'lucide-react'
+import { Users, Plus, Target, Mail, BarChart2, Clock, LogOut, Dumbbell, DollarSign, BookOpen } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { signOut } from '../../lib/supabase'
 import {
