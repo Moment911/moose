@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import {
-  Link2, RefreshCw, Loader2, AlertTriangle, CheckCircle, Shield,
+  Link2, RefreshCw, Loader2, AlertTriangle, AlertCircle, CheckCircle, Shield,
   TrendingUp, Globe, ExternalLink, ChevronDown, ChevronUp, Target, Zap
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -138,6 +138,10 @@ export default function BacklinksTab({ clientId, agencyId }) {
 
       {!data && !analyzing && (
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
+          <div style={{ padding: '12px 16px', borderRadius: 10, background: '#fef3c7', border: '1px solid #f59e0b30', fontSize: 12, color: '#92400e', lineHeight: 1.6, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8, textAlign: 'left' }}>
+            <AlertCircle size={16} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+            <div><strong>Setup Required:</strong> Backlink analysis requires the Moz API. Configure MOZ_API_KEY in Vercel environment variables for domain authority, backlink counts, and spam scores.</div>
+          </div>
           <Link2 size={40} color="#d1d5db" style={{ marginBottom: 12 }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Backlink Data</div>
           <div style={{ fontSize: 13, color: '#1f2937' }}>Click "Analyze Backlinks" to pull your backlink profile from Moz</div>

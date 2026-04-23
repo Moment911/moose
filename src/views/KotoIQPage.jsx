@@ -2902,6 +2902,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
               {!compLandscape && !compLandscapeLoading && (
                 <div style={{ textAlign: 'center', padding: '30px 0', color: '#1f2937', fontSize: 13 }}>
+                  <div style={{ padding: '12px 16px', borderRadius: 10, background: '#fef3c7', border: '1px solid #f59e0b30', fontSize: 12, color: '#92400e', lineHeight: 1.6, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8, textAlign: 'left' }}>
+                    <AlertCircle size={16} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+                    <div><strong>Setup Required:</strong> Competitor Landscape requires the DataForSEO integration. Contact your admin to configure DATAFORSEO_AUTH in Vercel environment variables.</div>
+                  </div>
                   Click "Discover Competitors" to find all domains competing for the same keywords.
                 </div>
               )}
@@ -3132,6 +3136,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               </>
             )}
 
+            {compAnalysis && !compLoading && compAnalysis.analyses?.length === 0 && (
+              <div style={{ padding: '12px 16px', borderRadius: 10, background: '#fef3c7', border: '1px solid #f59e0b30', fontSize: 12, color: '#92400e', lineHeight: 1.6, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <AlertCircle size={16} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+                <div><strong>Setup Required:</strong> Competitor analysis uses DataForSEO for SERP data. Without it, results may be limited. Configure DATAFORSEO_AUTH for full competitor intelligence.</div>
+              </div>
+            )}
+
             {!compAnalysis && !compLoading && (
               <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
                 <div style={{ fontSize: 14, color: '#1f2937' }}>Enter a keyword above to analyze how competitors' pages are built and find your gaps.</div>
@@ -3339,6 +3350,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>{g.phone} · {g.primary_category?.replace(/_/g, ' ')}</div>
                       </div>
                       {g.maps_url && <a href={g.maps_url} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', borderRadius: 8, background: T, color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>View on Maps</a>}
+                    </div>
+
+                    <div style={{ padding: '12px 16px', borderRadius: 10, background: '#fef3c7', border: '1px solid #f59e0b30', fontSize: 12, color: '#92400e', lineHeight: 1.6, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                      <AlertCircle size={16} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <div><strong>Setup Required:</strong> Review counts are from Google Places API and may differ from your GBP dashboard. Configure GOOGLE_PLACES_API_KEY for GBP health checks.</div>
                     </div>
 
                     {/* Key metrics */}
