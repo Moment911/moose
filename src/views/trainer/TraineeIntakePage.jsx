@@ -1441,6 +1441,9 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
         {!planLoading && roadmap && <RoadmapCard roadmap={roadmap} />}
         {!planLoading && workout && <WorkoutBlockCard workout={workout} />}
 
+        {/* Today's nutrition tracker — photo log + running totals vs. target. */}
+        <NutritionToday traineeId={traineeId} />
+
         {/* Actions — edit profile, regenerate */}
         <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 16px', marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
@@ -1623,4 +1626,230 @@ function WorkoutBlockCard({ workout }) {
       ))}
     </section>
   )
+}
+
+// ── Today's nutrition (Phase B food log) ────────────────────────────────────
+// Fetches today's food_log rows + target macros, renders 4 progress bars
+// (kcal + P/F/C) and a list of today's entries. Photo upload sends a
+// base64 image to /api/trainer/food-log with action=scan_photo; Claude
+// Haiku vision reads the plate, caches the items at the agency level,
+// and pushes a new log row. On error we fall back to manual entry.
+
+function NutritionToday({ traineeId }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState(null)
+  const fileInputRef = useRef(null)
+
+  const reload = useCallback(async () => {
+    if (!traineeId) return
+    try {
+      const res = await fetch('/api/trainer/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list_today', trainee_id: traineeId }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(body?.error || `Failed (${res.status})`)
+      setData(body)
+    } catch (e) {
+      setError(e.message || 'Network error')
+    } finally {
+      setLoading(false)
+    }
+  }, [traineeId])
+
+  useEffect(() => { reload() }, [reload])
+
+  async function handleFile(file) {
+    if (!file) return
+    if (!file.type.startsWith('image/')) { setError('Pick an image file.'); return }
+    if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5MB.'); return }
+    setUploading(true)
+    setError(null)
+    try {
+      const base64 = await fileToBase64(file)
+      const res = await fetch('/api/trainer/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'scan_photo',
+          trainee_id: traineeId,
+          photo_base64: base64,
+          photo_mime: file.type,
+        }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(body?.detail || body?.error || `Failed (${res.status})`)
+      await reload()
+    } catch (e) {
+      setError(e.message || 'Scan failed')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  async function handleDelete(logId) {
+    setError(null)
+    try {
+      const res = await fetch('/api/trainer/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', trainee_id: traineeId, log_id: logId }),
+      })
+      if (!res.ok) throw new Error('Delete failed')
+      await reload()
+    } catch (e) {
+      setError(e.message || 'Delete failed')
+    }
+  }
+
+  const totals = data?.totals || { kcal: 0, protein_g: 0, fat_g: 0, carb_g: 0 }
+  const targets = data?.targets || {}
+  const logs = data?.logs || []
+
+  const macros = [
+    { label: 'Calories', total: totals.kcal, target: targets.kcal, unit: 'kcal', color: '#0f172a' },
+    { label: 'Protein', total: totals.protein_g, target: targets.protein_g, unit: 'g', color: '#2563eb' },
+    { label: 'Carbs', total: totals.carb_g, target: targets.carb_g, unit: 'g', color: '#059669' },
+    { label: 'Fat', total: totals.fat_g, target: targets.fat_g, unit: 'g', color: '#d97706' },
+  ]
+
+  return (
+    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginTop: 18 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase' }}>Today</div>
+          <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: BLK, letterSpacing: '-.2px' }}>Nutrition tracker</h2>
+        </div>
+        <div style={{ fontSize: 12, color: '#6b7280' }}>
+          {logs.length} {logs.length === 1 ? 'entry' : 'entries'} · {new Date().toLocaleDateString()}
+        </div>
+      </div>
+
+      {loading && <div style={{ padding: 16, fontSize: 13, color: '#6b7280' }}>Loading…</div>}
+
+      {!loading && (
+        <>
+          {/* Progress bars */}
+          <div style={{ display: 'grid', gap: 10, margin: '14px 0 16px' }}>
+            {macros.map((m) => (
+              <MacroBar key={m.label} {...m} />
+            ))}
+          </div>
+
+          {/* Photo + manual buttons */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={(e) => handleFile(e.target.files?.[0])}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              style={{
+                flex: '1 1 220px', padding: '12px 16px',
+                background: uploading ? '#94a3b8' : '#0f172a', color: '#fff',
+                border: 'none', borderRadius: 10,
+                fontSize: 14, fontWeight: 700, cursor: uploading ? 'wait' : 'pointer',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              {uploading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Scanning photo…</> : <>📸 Snap a photo of what you ate</>}
+              <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
+            </button>
+          </div>
+
+          {error && (
+            <div style={{ marginBottom: 12, padding: '8px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>
+              {error}
+            </div>
+          )}
+
+          {/* Today's log list */}
+          {logs.length === 0 ? (
+            <div style={{ padding: '14px 12px', fontSize: 13, color: '#9ca3af', textAlign: 'center', background: '#f9fafb', border: '1px dashed #e5e7eb', borderRadius: 8 }}>
+              Nothing logged yet today. Snap a photo to start tracking.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {logs.map((log) => <FoodLogRow key={log.id} log={log} onDelete={() => handleDelete(log.id)} />)}
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  )
+}
+
+function MacroBar({ label, total, target, unit, color }) {
+  const hasTarget = typeof target === 'number' && target > 0
+  const pct = hasTarget ? Math.min(100, Math.round((total / target) * 100)) : 0
+  const remaining = hasTarget ? Math.max(0, Math.round(target - total)) : null
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, fontSize: 12 }}>
+        <span style={{ fontWeight: 700, color: BLK }}>{label}</span>
+        <span style={{ color: '#6b7280', fontWeight: 600 }}>
+          <strong style={{ color: BLK }}>{Math.round(total)}</strong>{hasTarget ? ` / ${target}` : ''} {unit}
+          {hasTarget && <span style={{ marginLeft: 8, color: remaining === 0 ? '#059669' : color, fontWeight: 700 }}>{remaining}{unit} left</span>}
+        </span>
+      </div>
+      <div style={{ height: 8, background: '#f3f4f6', borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 999, transition: 'width 0.3s ease' }} />
+      </div>
+    </div>
+  )
+}
+
+function FoodLogRow({ log, onDelete }) {
+  const items = Array.isArray(log.items) ? log.items : []
+  const time = log.logged_at ? new Date(log.logged_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''
+  return (
+    <div style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 8 }}>
+        <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>
+          {time} · {log.source === 'photo' ? '📸 Photo' : '✍️ Manual'} · {log.total_kcal} kcal · {log.total_protein_g}g P
+        </div>
+        <button
+          type="button"
+          onClick={onDelete}
+          style={{ padding: '2px 8px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11, fontWeight: 600, color: '#6b7280', cursor: 'pointer' }}
+        >
+          Delete
+        </button>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {items.map((it, i) => (
+          <span key={i} style={{
+            padding: '4px 10px', background: '#fff', border: '1px solid #e5e7eb',
+            borderRadius: 6, fontSize: 12, color: BLK, fontWeight: 600,
+          }}>
+            {it.name}{it.portion ? ` · ${it.portion}` : ''}{' · '}
+            <span style={{ color: '#6b7280', fontWeight: 500 }}>{Math.round(it.kcal || 0)} kcal</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const str = String(reader.result || '')
+      const i = str.indexOf(',')
+      resolve(i >= 0 ? str.slice(i + 1) : str)
+    }
+    reader.onerror = () => reject(new Error('Could not read file'))
+    reader.readAsDataURL(file)
+  })
 }
