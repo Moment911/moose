@@ -5,6 +5,7 @@ import { Plus, Loader2, Archive, Users, ClipboardList, Clock, Database, Trash2, 
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { useAuth } from '../../hooks/useAuth'
+import { T_BG, T_SHADOW_SM, T_SHADOW_MD, T_TYPE } from '../../lib/trainer/ui'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Dashboard — /trainer
@@ -17,7 +18,7 @@ const RED = '#dc2626'
 const BLUE = '#2563eb'
 const BLK = '#111111'
 const GRY_TEXT = '#6b7280'
-const GRY_BG = '#f5f5f5'
+const GRY_BG = T_BG
 const BRD = '#e5e7eb'
 const WHITE = '#ffffff'
 
@@ -118,10 +119,8 @@ export default function TrainerListPage() {
             <div>
               <h1 style={{
                 margin: 0,
-                fontSize: 32,
-                fontWeight: 800,
+                ...T_TYPE.title1,
                 color: WHITE,
-                letterSpacing: '-0.02em',
               }}>
                 Athletes
               </h1>
@@ -132,6 +131,7 @@ export default function TrainerListPage() {
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <button
                 onClick={() => setShowArchived((v) => !v)}
+                className="t-press"
                 style={{
                   padding: '9px 16px',
                   background: showArchived ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)',
@@ -144,7 +144,6 @@ export default function TrainerListPage() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  transition: 'all .15s',
                 }}
               >
                 <Archive size={14} />
@@ -152,20 +151,21 @@ export default function TrainerListPage() {
               </button>
               <Link
                 to="/trainer/new"
+                className="t-press"
                 style={{
                   padding: '9px 18px',
                   background: RED,
                   color: WHITE,
                   borderRadius: 8,
                   fontSize: 13,
-                  fontWeight: 700,
+                  fontWeight: 600,
+                  letterSpacing: '-0.005em',
                   textDecoration: 'none',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
                   border: 'none',
-                  boxShadow: '0 1px 3px rgba(220,38,38,0.3)',
-                  transition: 'all .15s',
+                  boxShadow: `0 1px 2px rgba(220,38,38,0.35), 0 8px 24px rgba(220,38,38,0.18), inset 0 0 0 1px rgba(255,255,255,0.08)`,
                 }}
               >
                 <Plus size={14} strokeWidth={2.5} /> Add Athlete
@@ -311,10 +311,8 @@ export default function TrainerListPage() {
                       border: `1px solid ${isHovered ? '#d1d5db' : BRD}`,
                       borderRadius: 10,
                       cursor: 'pointer',
-                      transition: 'all .15s ease',
-                      boxShadow: isHovered
-                        ? '0 4px 12px rgba(0,0,0,0.08)'
-                        : '0 1px 2px rgba(0,0,0,0.03)',
+                      transition: 'transform 160ms cubic-bezier(.2,.7,.3,1), box-shadow 200ms ease, border-color 120ms ease',
+                      boxShadow: isHovered ? T_SHADOW_MD : T_SHADOW_SM,
                       transform: isHovered ? 'translateY(-1px)' : 'none',
                       opacity: pending ? 0.5 : 1,
                     }}

@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Loader2, Send, Check, Circle, Camera, Pencil, RefreshCw, Bookmark, Map as MapIcon, Dumbbell, BookOpen, Timer, GraduationCap, ExternalLink } from 'lucide-react'
+import { Loader2, Send, Check, Circle, Camera, Pencil, RefreshCw, Bookmark, Map as MapIcon, Dumbbell, BookOpen, Timer, GraduationCap, ExternalLink, Salad, ClipboardCheck, PauseCircle } from 'lucide-react'
 import { T, BLK, GRN } from '../../lib/theme'
 // Trainer portal uses red/blue accents, not Koto Pink. Local override.
 const R = '#dc2626'
@@ -874,15 +874,15 @@ function fmtVal(def, v) {
 }
 
 const SECTION_LABELS = {
-  basics: '👤 Basics',
-  training: '💪 Training',
-  health: '🏥 Health',
-  nutrition: '🥗 Nutrition',
-  lifestyle: '😴 Lifestyle',
-  workload: '⚾ Baseball Workload',
-  recruiting: '🎓 Recruiting',
-  academics: '📚 Academics',
-  measurables: '📊 Measurables',
+  basics: 'Basics',
+  training: 'Training',
+  health: 'Health',
+  nutrition: 'Nutrition',
+  lifestyle: 'Lifestyle',
+  workload: 'Baseball Workload',
+  recruiting: 'Recruiting',
+  academics: 'Academics',
+  measurables: 'Measurables',
 }
 
 function LiveCard({ extracted, missingFields, onGenerate, generating, generateError, services }) {
@@ -963,19 +963,19 @@ function CenteredSpinner({ label }) {
 }
 
 const SERVICE_OPTIONS = [
-  { id: 'training', label: 'Training Plan', desc: 'Workout programming, mechanics, strength & conditioning, recovery', icon: '💪', default: true },
-  { id: 'diet', label: 'Diet & Nutrition', desc: 'Meal plans, macros, recipes, fueling strategies', icon: '🥗' },
-  { id: 'recruiting', label: 'College Recruiting', desc: 'ProPath Score, school matching, coach outreach, recruiting timeline', icon: '🎓' },
+  { id: 'training', label: 'Training Plan', desc: 'Workout programming, mechanics, strength & conditioning, recovery', Icon: Dumbbell, default: true },
+  { id: 'diet', label: 'Diet & Nutrition', desc: 'Meal plans, macros, recipes, fueling strategies', Icon: Salad },
+  { id: 'recruiting', label: 'College Recruiting', desc: 'ProPath Score, school matching, coach outreach, recruiting timeline', Icon: GraduationCap },
 ]
 
 const OUTCOME_CHIPS = {
   training: [
-    { icon: '🗺️', label: '90-day roadmap' },
-    { icon: '🏋️', label: 'Custom workouts' },
-    { icon: '📘', label: 'Coaching playbook' },
+    { Icon: MapIcon, label: '90-day roadmap' },
+    { Icon: Dumbbell, label: 'Custom workouts' },
+    { Icon: BookOpen, label: 'Coaching playbook' },
   ],
-  diet: [{ icon: '🥗', label: 'Custom nutrition' }],
-  recruiting: [{ icon: '🎓', label: 'ProPath recruiting score' }],
+  diet: [{ Icon: Salad, label: 'Custom nutrition' }],
+  recruiting: [{ Icon: GraduationCap, label: 'ProPath recruiting score' }],
 }
 
 function WelcomeScreen({ name, onStart }) {
@@ -1079,9 +1079,9 @@ function WelcomeScreen({ name, onStart }) {
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '6px 12px',
                   background: '#f0fdfa', border: `1px solid ${T}30`,
-                  borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#0f766e',
+                  borderRadius: 999, fontSize: 12, fontWeight: 600, color: '#0f766e',
                 }}>
-                  <span>{c.icon}</span>{c.label}
+                  <c.Icon size={13} strokeWidth={2.2} />{c.label}
                 </span>
               ))}
             </div>
@@ -1109,7 +1109,15 @@ function WelcomeScreen({ name, onStart }) {
                       textAlign: 'left', transition: 'all .15s',
                     }}
                   >
-                    <span style={{ fontSize: 20, flexShrink: 0 }}>{svc.icon}</span>
+                    <div style={{
+                      width: 32, height: 32, flexShrink: 0,
+                      borderRadius: 8,
+                      background: isOn ? T + '14' : '#f3f4f6',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: isOn ? T : '#4b5563',
+                    }}>
+                      <svc.Icon size={17} strokeWidth={2} />
+                    </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{svc.label}{isLocked ? ' · included' : ''}</div>
                       <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.4 }}>{svc.desc}</div>
@@ -1322,10 +1330,10 @@ function GeneratingScreen({ progress }) {
 }
 
 const PLAN_PIECES = [
-  { key: 'baseline_ready', icon: '📋', label: 'Baseline assessment', desc: 'Where you are right now + what you\'re ready for' },
-  { key: 'roadmap_ready', icon: '🗺️', label: '90-day roadmap', desc: '3 phases, week by week, toward your goal' },
-  { key: 'workout_ready', icon: '🏋️', label: '2-week workout block', desc: 'Your first block of sessions, sets, and reps' },
-  { key: 'playbook_ready', icon: '📘', label: 'Coaching playbook', desc: 'How your coach will work with you day to day' },
+  { key: 'baseline_ready', label: 'Baseline assessment', desc: 'Where you are right now + what you\'re ready for' },
+  { key: 'roadmap_ready', label: '90-day roadmap', desc: '3 phases, week by week, toward your goal' },
+  { key: 'workout_ready', label: '2-week workout block', desc: 'Your first block of sessions, sets, and reps' },
+  { key: 'playbook_ready', label: 'Coaching playbook', desc: 'How your coach will work with you day to day' },
 ]
 
 function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRegenerate }) {
@@ -1365,7 +1373,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
       <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
         <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '36px 28px', maxWidth: 520, width: '100%' }}>
           <div style={{ width: 48, height: 48, margin: '0 auto 14px', background: '#fef3c7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 24 }}>⏸️</span>
+            <PauseCircle size={24} strokeWidth={2} color="#b45309" />
           </div>
           <h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 900, color: BLK, textAlign: 'center' }}>
             A quick review first{firstName ? `, ${firstName}` : ''}

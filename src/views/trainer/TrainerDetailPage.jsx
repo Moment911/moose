@@ -1050,7 +1050,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
             {initials}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <h1 style={{ margin: 0, fontSize: 22, color: '#0f172a', fontWeight: 700, letterSpacing: '-.015em', lineHeight: 1.15 }}>
+            <h1 style={{ margin: 0, fontSize: 24, color: '#0f172a', fontWeight: 700, letterSpacing: '-0.018em', lineHeight: 1.12 }}>
               {trainee.full_name}
             </h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6, alignItems: 'center' }}>
