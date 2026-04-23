@@ -830,6 +830,7 @@ export default function TrainerDetailPage() {
             {activeTab === 'overview' && (
               <OverviewTab
                 trainee={trainee}
+                traineeId={traineeId}
                 plan={plan}
                 okToTrain={okToTrain}
                 hasBaseline={hasBaseline}
@@ -924,7 +925,7 @@ export default function TrainerDetailPage() {
       )}
 
       <TrainerToast message={stepError} onClose={() => setStepError(null)} />
-      <CoachChatWidget traineeId={traineeId} traineeName={trainee?.full_name} />
+      {/* Coach chat is now inline on the overview tab — not a floating widget */}
     </TrainerPortalShell>
   )
 }
@@ -1129,6 +1130,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
 
 function OverviewTab({
   trainee,
+  traineeId,
   plan,
   okToTrain,
   hasBaseline,
@@ -1143,27 +1145,34 @@ function OverviewTab({
 }) {
   const Icon = nextStep.icon || Sparkles
   const hasAboutYou = !!(trainee.about_you && trainee.about_you.trim().length > 0)
+  const [aboutExpanded, setAboutExpanded] = useState(!hasAboutYou)
   return (
     <div>
-      {/* About-you editor — ONLY renders when context is missing.  Once on
-          file, editing moves to the basics editor below so we don't re-ask
-          the same question on the detail page. */}
-      {!hasAboutYou && (
-        <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
-      )}
+      {/* About-you accordion — collapses when filled */}
+      <section
+        style={{ ...panelStyle, marginBottom: 18, cursor: hasAboutYou ? 'pointer' : 'default' }}
+        onClick={() => hasAboutYou && setAboutExpanded(v => !v)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {hasAboutYou && <span style={{ color: '#16a34a', fontSize: 14, fontWeight: 800 }}>✓</span>}
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#dc2626', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+              About this athlete
+            </span>
+          </div>
+          {hasAboutYou && (
+            <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>{aboutExpanded ? '▲ Collapse' : '▼ Expand'}</span>
+          )}
+        </div>
+        {(aboutExpanded || !hasAboutYou) && (
+          <div style={{ marginTop: 10 }} onClick={e => e.stopPropagation()}>
+            <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
+          </div>
+        )}
+      </section>
 
-      {/* AI refinement — Sonnet asks 4-6 follow-up questions tailored to this
-          trainee.  Answers merge into about_you so they feed every downstream
-          prompt.  Only surfaces once about_you exists (otherwise there's
-          nothing to refine from). */}
-      {hasAboutYou && (
-        <RefineIntakeCard
-          traineeId={trainee.id}
-          traineeAboutYou={trainee.about_you}
-          onElicit={onRefineElicit}
-          onSubmit={onRefineSubmit}
-        />
-      )}
+      {/* Inline AI Coach Chat */}
+      <InlineCoachChat traineeId={traineeId || trainee.id} traineeName={trainee.full_name} />
 
       {/* Next-step CTA — hidden until about_you is filled in, since every
           Sonnet prompt reads it as primary steering input. */}
@@ -2930,5 +2939,169 @@ function IntakeLinkButton({ traineeId }) {
     >
       {copied ? <><Copy size={13} /> Copied!</> : <><Link2 size={13} /> Intake link</>}
     </button>
+  )
+}
+
+// ── Inline AI Coach Chat ─────────────────────────────────────────────────────
+
+function InlineCoachChat({ traineeId, traineeName }) {
+  const [messages, setMessages] = useState([])
+  const [input, setInput] = useState('')
+  const [streaming, setStreaming] = useState(false)
+  const [streamingText, setStreamingText] = useState('')
+  const [error, setError] = useState(null)
+  const scrollRef = useRef(null)
+  const textareaRef = useRef(null)
+  const initRef = useRef(false)
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+  }, [messages, streamingText])
+
+  useEffect(() => {
+    const ta = textareaRef.current
+    if (!ta) return
+    ta.style.height = 'auto'
+    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'
+  }, [input])
+
+  const streamTurn = useCallback(async (turnMessages) => {
+    setStreaming(true)
+    setStreamingText('')
+    setError(null)
+    try {
+      const res = await fetch('/api/trainer/coach-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trainee_id: traineeId, messages: turnMessages }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setError(body?.error || `Error (${res.status})`)
+        setStreaming(false)
+        return
+      }
+      const reader = res.body?.getReader()
+      if (!reader) { setError('No stream'); setStreaming(false); return }
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let fullText = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+        for (const line of lines) {
+          if (!line.trim()) continue
+          let event
+          try { event = JSON.parse(line) } catch { continue }
+          if (event.type === 'text_delta' && typeof event.text === 'string') {
+            fullText += event.text
+            setStreamingText(fullText)
+          }
+          if (event.type === 'error') setError(event.error || 'Stream error')
+        }
+      }
+      if (fullText) setMessages(prev => [...prev, { role: 'assistant', content: fullText }])
+    } catch (e) {
+      setError(e?.message || 'Network error')
+    }
+    setStreamingText('')
+    setStreaming(false)
+    setTimeout(() => textareaRef.current?.focus(), 50)
+  }, [traineeId])
+
+  // Auto-greet on first render
+  useEffect(() => {
+    if (initRef.current) return
+    initRef.current = true
+    streamTurn([])
+  }, [streamTurn])
+
+  function handleSend() {
+    const text = input.trim()
+    if (!text || streaming) return
+    setInput('')
+    const userMsg = { role: 'user', content: text }
+    const newMessages = [...messages, userMsg]
+    setMessages(newMessages)
+    streamTurn(newMessages)
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
+  }
+
+  const QUICK_PROMPTS = [
+    'What should I eat today?',
+    'Give me a pre-game meal plan',
+    'How do I add velocity?',
+    'Am I good enough for D1?',
+    'Build me a weekly workout',
+    'My arm is sore — what should I do?',
+  ]
+
+  return (
+    <section style={{ ...panelStyle, marginBottom: 18, padding: 0, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '12px 16px', background: '#0a0a0a', color: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff' }}>K</div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>AI Coach</div>
+          <div style={{ fontSize: 10, color: '#6b7280' }}>Ask me anything about training, nutrition, or recruiting</div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div ref={scrollRef} style={{ maxHeight: 400, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10, background: '#fafafa' }}>
+        {messages.length === 0 && !streaming && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {QUICK_PROMPTS.map((q, i) => (
+              <button key={i} onClick={() => { setInput(''); const m = [{ role: 'user', content: q }]; setMessages(m); streamTurn(m) }}
+                style={{ padding: '6px 12px', border: '1px solid #e5e7eb', borderRadius: 16, background: '#fff', color: '#374151', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc2626'; e.currentTarget.style.color = '#dc2626' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#374151' }}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+        {messages.map((m, i) => {
+          const isUser = m.role === 'user'
+          return (
+            <div key={i} style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth: '85%', padding: '10px 14px', borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: isUser ? '#dc2626' : '#fff', color: isUser ? '#fff' : '#0a0a0a', fontSize: 13, lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word', border: isUser ? 'none' : '1px solid #e5e7eb' }}>
+                {m.content}
+              </div>
+            </div>
+          )
+        })}
+        {streaming && streamingText && (
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <div style={{ maxWidth: '85%', padding: '10px 14px', borderRadius: '14px 14px 14px 4px', background: '#fff', color: '#0a0a0a', fontSize: 13, lineHeight: 1.55, whiteSpace: 'pre-wrap', border: '1px solid #e5e7eb' }}>
+              {streamingText}
+            </div>
+          </div>
+        )}
+        {streaming && !streamingText && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#9ca3af', fontSize: 12 }}>
+            <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Thinking...
+          </div>
+        )}
+        {error && <div style={{ padding: '6px 10px', background: '#fee2e2', borderRadius: 6, fontSize: 11, color: '#991b1b' }}>{error}</div>}
+      </div>
+
+      {/* Input */}
+      <div style={{ padding: '10px 12px', borderTop: '1px solid #e5e7eb', display: 'flex', alignItems: 'flex-end', gap: 8, background: '#fff' }}>
+        <textarea ref={textareaRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask your coach anything..." rows={1} disabled={streaming}
+          style={{ flex: 1, padding: '10px 12px', fontSize: 13, border: '1px solid #e5e7eb', borderRadius: 10, resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, color: '#0a0a0a', outline: 'none' }} />
+        <button onClick={handleSend} disabled={!input.trim() || streaming}
+          style={{ width: 36, height: 36, borderRadius: 8, border: 'none', background: input.trim() && !streaming ? '#dc2626' : '#e5e7eb', color: input.trim() && !streaming ? '#fff' : '#9ca3af', cursor: input.trim() && !streaming ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <ArrowRight size={16} />
+        </button>
+      </div>
+    </section>
   )
 }
