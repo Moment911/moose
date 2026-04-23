@@ -1,19 +1,20 @@
 "use client"
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Star, ChevronDown, Plus, Edit2, Trash2, Check, X, Loader2, ExternalLink, Mail, Phone, Globe } from 'lucide-react'
+import { Search, Star, ChevronDown, Plus, Edit2, Trash2, Check, X, Loader2, ExternalLink, Mail, Phone, Globe, Save } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { useAuth } from '../../hooks/useAuth'
-import { R, T, BLK, GRN } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /trainer/recruiting — College recruiting database.
-//
-// Browse/search/filter D1/D2/D3 programs, view + edit coach contact info,
-// manage hot list per trainee.
+// Color scheme: black/white/grey + red/blue (matches portal shell + dashboard)
 // ─────────────────────────────────────────────────────────────────────────────
 
+const RED = '#dc2626'
+const BLUE = '#2563eb'
+const BLK = '#0a0a0a'
 const BRD = '#e5e7eb'
+const GRN = '#16a34a'
 
 async function recruitingFetch(body) {
   const res = await fetch('/api/trainer/recruiting', {
@@ -67,31 +68,32 @@ export default function RecruitingPage() {
 
   return (
     <TrainerPortalShell>
-      <div style={{ padding: '32px 40px' }}>
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 28, color: BLK }}>Recruiting</h1>
-            <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 14 }}>
-              {programs.length} baseball programs loaded
-            </p>
-          </div>
-        </header>
+      <div style={{ background: '#f3f4f6', minHeight: '100vh' }}>
+        {/* Dark header */}
+        <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)', padding: '28px 40px 20px' }}>
+          <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-.5px' }}>Programs</h1>
+          <p style={{ margin: '0 0 18px', fontSize: 14, color: '#6b7280' }}>
+            {programs.length} baseball programs across D1, D2, D3 & JUCO
+          </p>
 
-        {/* Filters bar */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: `1px solid ${BRD}`, borderRadius: 8, padding: '6px 10px', flex: '1 1 240px', maxWidth: 360 }}>
-            <Search size={14} color="#9ca3af" />
-            <input
-              value={query}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search schools..."
-              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, color: BLK, background: 'transparent' }}
-            />
+          {/* Search + filters on dark bg */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, padding: '8px 12px', flex: '1 1 240px', maxWidth: 400 }}>
+              <Search size={14} color="#6b7280" />
+              <input
+                value={query}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search schools..."
+                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, color: '#fff', background: 'transparent' }}
+              />
+            </div>
+            <FilterSelect label="Division" value={division} onChange={setDivision} options={filters.divisions || []} dark />
+            <FilterSelect label="Conference" value={conference} onChange={setConference} options={filters.conferences || []} dark />
+            <FilterSelect label="State" value={state} onChange={setState} options={filters.states || []} dark />
           </div>
-          <FilterSelect label="Division" value={division} onChange={setDivision} options={filters.divisions || []} />
-          <FilterSelect label="Conference" value={conference} onChange={setConference} options={filters.conferences || []} />
-          <FilterSelect label="State" value={state} onChange={setState} options={filters.states || []} />
         </div>
+
+        <div style={{ padding: '20px 40px 40px' }}>
 
         {/* Programs list */}
         {loading ? (
@@ -131,13 +133,42 @@ export default function RecruitingPage() {
           </div>
         )}
       </div>
+      </div>
     </TrainerPortalShell>
   )
 }
 
+function scholarshipLabel(division) {
+  if (division === 'D1') return '11.7 scholarships / ~35 roster spots'
+  if (division === 'D2') return '9.0 scholarships'
+  if (division === 'D3') return 'No athletic scholarships'
+  return null
+}
+
 function ProgramRow({ program: p, isExpanded, onToggle, editingCoach, setEditingCoach, addingCoach, setAddingCoach, onRefresh }) {
   const coaches = p.koto_recruiting_coaches || []
-  const divColor = p.division === 'D1' ? R : p.division === 'D2' ? T : '#6b7280'
+  const divColor = p.division === 'D1' ? RED : p.division === 'D2' ? BLUE : p.division === 'JUCO' ? '#f59e0b' : '#6b7280'
+
+  // Private notes — localStorage for now
+  const notesKey = `recruiting_note_${p.id}`
+  const [note, setNote] = useState('')
+  const [noteSaved, setNoteSaved] = useState(false)
+
+  useEffect(() => {
+    if (isExpanded) {
+      const saved = localStorage.getItem(notesKey)
+      if (saved) setNote(saved)
+    }
+  }, [isExpanded, notesKey])
+
+  function saveNote() {
+    localStorage.setItem(notesKey, note)
+    setNoteSaved(true)
+    setTimeout(() => setNoteSaved(false), 1500)
+  }
+
+  const scholarshipInfo = scholarshipLabel(p.division)
+  const hasCWSOrRegional = p.cws_appearances || p.regional_appearances_5yr
 
   return (
     <div style={{ borderBottom: `1px solid #f3f4f6` }}>
@@ -180,23 +211,55 @@ function ProgramRow({ program: p, isExpanded, onToggle, editingCoach, setEditing
             {p.scholarship_available && <span style={{ color: GRN, fontWeight: 600 }}>Scholarships available</span>}
           </div>
 
-          {/* Stats grid */}
-          {(p.enrollment || p.tuition_in_state || p.roster_size || p.mlb_draft_picks_5yr || p.apr_score) && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8, padding: '8px 0 12px' }}>
-              {p.enrollment > 0 && <StatBox label="Enrollment" value={p.enrollment.toLocaleString()} />}
-              {p.tuition_in_state > 0 && <StatBox label="Tuition (in-state)" value={`$${(p.tuition_in_state).toLocaleString()}`} />}
-              {p.tuition_out_of_state > 0 && p.tuition_out_of_state !== p.tuition_in_state && <StatBox label="Tuition (out-of-state)" value={`$${(p.tuition_out_of_state).toLocaleString()}`} />}
-              {p.roster_size > 0 && <StatBox label="Roster size" value={String(p.roster_size)} />}
-              {p.mlb_draft_picks_5yr > 0 && <StatBox label="MLB draft picks (5yr)" value={String(p.mlb_draft_picks_5yr)} highlight />}
-              {p.apr_score > 0 && <StatBox label="APR score" value={String(p.apr_score)} />}
-              {p.graduation_rate > 0 && <StatBox label="Grad rate" value={`${p.graduation_rate}%`} />}
+          {/* CWS / Regional highlight bar */}
+          {hasCWSOrRegional && (
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', padding: '8px 0 4px' }}>
+              {p.cws_appearances && (
+                <div style={{ padding: '6px 12px', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8, fontSize: 13, fontWeight: 700, color: '#92400e' }}>
+                  CWS: {p.cws_appearances}
+                </div>
+              )}
+              {p.regional_appearances_5yr > 0 && (
+                <div style={{ padding: '6px 12px', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8, fontSize: 13, fontWeight: 700, color: '#92400e' }}>
+                  Regional appearances (5yr): {p.regional_appearances_5yr}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Notable */}
+          {/* Stats grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8, padding: '8px 0 12px' }}>
+            {p.enrollment > 0 && <StatBox label="Enrollment" value={p.enrollment.toLocaleString()} />}
+            {p.tuition_in_state > 0 && <StatBox label="Tuition (in-state)" value={`$${(p.tuition_in_state).toLocaleString()}`} />}
+            {p.tuition_out_of_state > 0 && p.tuition_out_of_state !== p.tuition_in_state && <StatBox label="Tuition (out-of-state)" value={`$${(p.tuition_out_of_state).toLocaleString()}`} />}
+            {p.roster_size > 0 && <StatBox label="Roster size" value={String(p.roster_size)} />}
+            {p.mlb_draft_picks_5yr > 0 && <StatBox label="MLB draft picks (5yr)" value={String(p.mlb_draft_picks_5yr)} highlight />}
+            {p.apr_score > 0 && <StatBox label="APR score" value={String(p.apr_score)} />}
+            {p.graduation_rate > 0 && <StatBox label="Grad rate" value={`${p.graduation_rate}%`} />}
+            {scholarshipInfo && <StatBox label="Scholarships" value={scholarshipInfo} />}
+          </div>
+
+          {/* Notable — split into chips */}
           {p.notable && (
-            <div style={{ padding: '8px 12px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: 8, fontSize: 12, color: '#92400e', lineHeight: 1.5, marginBottom: 12 }}>
-              {p.notable}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+              {p.notable.split(',').map((item, i) => (
+                <span key={i} style={{
+                  padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                  background: i === 0 ? '#fef3c7' : '#f3f4f6',
+                  color: i === 0 ? '#92400e' : '#374151',
+                  border: `1px solid ${i === 0 ? '#fde68a' : '#e5e7eb'}`,
+                }}>
+                  {item.trim()}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Facilities notes */}
+          {p.facilities_notes && (
+            <div style={{ padding: '8px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, fontSize: 12, color: '#0c4a6e', lineHeight: 1.5, marginBottom: 12 }}>
+              <span style={{ fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', color: '#0369a1' }}>Facilities</span>
+              <div style={{ marginTop: 4 }}>{p.facilities_notes}</div>
             </div>
           )}
 
@@ -226,6 +289,37 @@ function ProgramRow({ program: p, isExpanded, onToggle, editingCoach, setEditing
               <CoachEditRow coach={{ program_id: p.id }} isNew onSave={() => { setAddingCoach(null); onRefresh() }} onCancel={() => setAddingCoach(null)} />
             )}
           </div>
+
+          {/* Private Notes */}
+          <div style={{ marginTop: 16 }}>
+            <h4 style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 800, color: BLK, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+              Your Notes <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: '#9ca3af', fontSize: 11 }}>(private — only you can see this)</span>
+            </h4>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Add private notes about this program..."
+              style={{ width: '100%', minHeight: 64, padding: '8px 10px', border: `1px solid ${BRD}`, borderRadius: 8, fontSize: 12, color: BLK, resize: 'vertical', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5, background: '#fafafa' }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+              <button
+                onClick={saveNote}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: 'none', border: `1px solid ${BRD}`, borderRadius: 6, fontSize: 11, fontWeight: 600, color: BLK, cursor: 'pointer' }}
+              >
+                <Save size={11} /> Save note
+              </button>
+              {noteSaved && <span style={{ fontSize: 11, color: GRN, fontWeight: 600 }}>Saved</span>}
+            </div>
+          </div>
+
+          {/* Source link */}
+          {p.source_url && (
+            <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
+              <a href={p.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#9ca3af', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+                Data source <ExternalLink size={9} />
+              </a>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -318,12 +412,17 @@ function CoachEditRow({ coach, isNew, onSave, onCancel }) {
   )
 }
 
-function FilterSelect({ label, value, onChange, options }) {
+function FilterSelect({ label, value, onChange, options, dark }) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      style={{ padding: '8px 10px', border: `1px solid ${BRD}`, borderRadius: 8, fontSize: 12, color: value ? BLK : '#9ca3af', background: '#fff', cursor: 'pointer', outline: 'none', minWidth: 100 }}
+      style={{
+        padding: '8px 10px', borderRadius: 8, fontSize: 12, cursor: 'pointer', outline: 'none', minWidth: 100,
+        background: dark ? 'rgba(255,255,255,.08)' : '#fff',
+        border: dark ? '1px solid rgba(255,255,255,.12)' : `1px solid ${BRD}`,
+        color: value ? (dark ? '#fff' : BLK) : '#6b7280',
+      }}
     >
       <option value="">{label}</option>
       {options.map(o => <option key={o} value={o}>{o}</option>)}

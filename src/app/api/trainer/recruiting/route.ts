@@ -315,5 +315,29 @@ export async function POST(req: NextRequest) {
     return ok({ success: true })
   }
 
+  // ── Private notes per athlete per school ─────────────────────────────────
+  if (action === 'save_note') {
+    const traineeId = body.trainee_id as string
+    const programId = body.program_id as string
+    const note = typeof body.note === 'string' ? body.note : ''
+    if (!traineeId || !programId) return err(400, 'trainee_id and program_id required')
+    const { error: uErr } = await sb.from('koto_recruiting_notes').upsert({
+      trainee_id: traineeId, program_id: programId, note, updated_at: new Date().toISOString()
+    }, { onConflict: 'trainee_id,program_id' })
+    if (uErr) return err(500, uErr.message)
+    return ok({ success: true })
+  }
+
+  if (action === 'get_notes') {
+    const traineeId = body.trainee_id as string
+    if (!traineeId) return err(400, 'trainee_id required')
+    const programId = body.program_id as string
+    let q = sb.from('koto_recruiting_notes').select('*').eq('trainee_id', traineeId)
+    if (programId) q = q.eq('program_id', programId)
+    const { data, error: qErr } = await q
+    if (qErr) return err(500, qErr.message)
+    return ok({ notes: data || [] })
+  }
+
   return err(400, `Unknown action: ${action}`)
 }
