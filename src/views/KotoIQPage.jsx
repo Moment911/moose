@@ -1097,96 +1097,164 @@ export default function KotoIQPage() {
           {/* ── Scrollable Content ────────────────────────────────── */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
 
-          {/* Action cards — show only when client has no data yet */}
-          {clientId && !dashboard && tab === 'dashboard' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 24 }}>
-              {/* Quick Scan */}
-              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Zap size={22} color={R} />
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Quick Scan</div>
-                    <div style={{ fontSize: 12, color: '#1f2937' }}>No login required</div>
-                  </div>
-                </div>
-                <div style={{ fontSize: 14, color: '#374151', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
-                  Scans the client's website, XML sitemap, and top competitors via Moz DA. Claude AI analyzes the content and extracts 30-60 target keywords with opportunity scores, intent classification, and ranking potential.
-                </div>
-                <ul style={{ fontSize: 12, color: '#374151', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
-                  <li>Website content + sitemap crawl</li>
-                  <li>Moz Domain Authority lookup</li>
-                  <li>AI keyword extraction + scoring</li>
-                  <li>Competitor identification</li>
-                </ul>
-                <button onClick={() => {
-                  const c = clients.find(x => x.id === clientId)
-                  if (!c?.website) { toast.error('Add a website URL first — click Edit Client'); return }
-                  runQuickScan()
-                }} disabled={syncing || enriching}
-                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: R, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing || enriching ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  {syncing ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={16} />}
-                  Run Quick Scan
-                </button>
-              </div>
+          {/* ── LAUNCH PAD — shows when client has no data yet ─────────── */}
+          {clientId && !dashboard && tab === 'dashboard' && (() => {
+            const c = clients.find(x => x.id === clientId)
+            const hasWebsite = !!c?.website
+            const hasIndustry = !!c?.primary_service
+            const hasConnections = connections.length > 0
+            const readyForQuick = hasWebsite
+            const readyForDeep = hasWebsite
+            const readyForFull = hasWebsite && hasConnections
+            const readyForAll = hasWebsite
 
-              {/* Deep Audit */}
-              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: AMB + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Shield size={22} color={AMB} />
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Deep Audit</div>
-                    <div style={{ fontSize: 12, color: '#1f2937' }}>Technical SEO analysis</div>
-                  </div>
-                </div>
-                <div style={{ fontSize: 14, color: '#374151', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
-                  Comprehensive 11-point technical audit covering everything that affects your search rankings. Identifies issues and provides specific fix recommendations.
-                </div>
-                <ul style={{ fontSize: 12, color: '#374151', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
-                  <li>PageSpeed + Core Web Vitals (CrUX)</li>
-                  <li>SSL certificate + security headers</li>
-                  <li>Schema markup + structured data</li>
-                  <li>Tech stack + CMS detection</li>
-                  <li>Domain age + authority signals</li>
-                </ul>
-                <button onClick={runDeepEnrich} disabled={enriching || syncing || !clientId}
-                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: AMB, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: enriching ? 'wait' : 'pointer', opacity: enriching || syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  {enriching ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={16} />}
-                  Run Deep Audit
-                </button>
-              </div>
+            const runAllAudits = async () => {
+              if (!readyForAll) { toast.error('Add a website URL to your client first'); return }
+              setSyncing(true)
+              const api = (action, extra = {}) => fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, client_id: clientId, agency_id: agencyId, ...extra }) }).then(r => r.json()).catch(() => ({}))
+              const steps = [
+                { name: 'Quick Scan (keywords)', id: 'quick' },
+                { name: 'Deep Audit (technical)', id: 'deep' },
+                { name: 'E-E-A-T Audit', id: 'eeat' },
+                { name: 'Brand SERP', id: 'brand' },
+                { name: 'Backlink Analysis', id: 'backlinks' },
+                { name: 'GBP Health', id: 'gbp' },
+                { name: 'Topical Map', id: 'topical' },
+                { name: 'Schema Audit', id: 'schema' },
+                { name: 'ROI Projections', id: 'roi' },
+              ]
+              toast.loading(`Running all ${steps.length} audits...`, { id: 'runall' })
+              try {
+                // Wave 1: Quick scan + deep enrich + independent audits (parallel)
+                const [qs] = await Promise.allSettled([
+                  api('quick_scan', { website: c.website, industry: c.primary_service || '' }),
+                  api('deep_enrich'),
+                  api('audit_eeat'),
+                  api('scan_brand_serp'),
+                  api('analyze_backlinks'),
+                  api('gmb_health'),
+                  api('audit_schema'),
+                  api('roi_projections'),
+                ])
+                toast.loading('Wave 1 done — generating topical map + scorecard...', { id: 'runall' })
+                // Wave 2: Depends on keywords from wave 1
+                await Promise.allSettled([
+                  api('generate_topical_map'),
+                  api('generate_scorecard'),
+                  api('scan_internal_links'),
+                ])
+                toast.loading('Wave 2 done — building strategic plan...', { id: 'runall' })
+                // Wave 3: Depends on topical map
+                await Promise.allSettled([
+                  api('audit_topical_authority'),
+                  api('generate_strategic_plan', { timeframe: '3_month' }),
+                ])
+                toast.success('All audits complete! Loading dashboard...', { id: 'runall' })
+                loadDashboard()
+              } catch { toast.error('Some audits failed — check individual tabs', { id: 'runall' }) }
+              setSyncing(false)
+            }
 
-              {/* Full Sync */}
-              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <RefreshCw size={22} color={T} />
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Full Sync</div>
-                    <div style={{ fontSize: 12, color: '#1f2937' }}>Requires Google OAuth</div>
-                  </div>
-                </div>
-                <div style={{ fontSize: 14, color: '#374151', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
-                  Pulls real keyword data from your connected Google accounts and merges everything into unified keyword profiles with cross-source scoring.
-                </div>
-                <ul style={{ fontSize: 12, color: '#374151', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
-                  <li>Search Console: rankings, clicks, impressions</li>
-                  <li>Google Ads: spend, CPC, conversions</li>
-                  <li>GA4: sessions, conversions, revenue</li>
-                  <li>Keyword Planner: volume, competition</li>
-                </ul>
-                <button onClick={runSync} disabled={syncing || !clientId}
-                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: T, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
-                  Run Full Sync
-                </button>
+            const fieldCheck = (ok, label) => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: ok ? GRN : '#9ca3af', marginBottom: 6 }}>
+                {ok ? <CheckCircle size={14} color={GRN} /> : <XCircle size={14} color="#d1d5db" />}
+                <span style={{ fontWeight: ok ? 700 : 400 }}>{label}</span>
+                {!ok && <span style={{ fontSize: 11, color: R, marginLeft: 4 }}>(missing)</span>}
               </div>
-            </div>
-          )}
+            )
+
+            return (
+              <div style={{ marginBottom: 24 }}>
+                {/* ── Run All Hero ─────────────────────────────────── */}
+                <div style={{ background: `linear-gradient(135deg, ${BLK} 0%, #1e293b 100%)`, borderRadius: 16, padding: '32px 36px', marginBottom: 20, color: '#fff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                    <div style={{ width: 56, height: 56, borderRadius: 14, background: R + '30', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Sparkles size={28} color={R} />
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900 }}>Run All Audits</div>
+                      <div style={{ fontSize: 14, color: '#94a3b8' }}>12 tools in 3 waves — keywords, technical, strategy — ~$0.50 in AI tokens</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Client Fields Required</div>
+                      {fieldCheck(hasWebsite, 'Website URL')}
+                      {fieldCheck(hasIndustry, 'Primary Service / Industry')}
+                      {fieldCheck(true, 'Client Name')}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Optional (More Data)</div>
+                      {fieldCheck(hasConnections, 'Google OAuth (Search Console, Ads, GA4)')}
+                      {fieldCheck(!!process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY, 'Google Places API Key')}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button onClick={runAllAudits} disabled={syncing || enriching || !readyForAll}
+                      style={{ flex: 1, padding: '16px', borderRadius: 12, border: 'none', background: readyForAll ? R : '#374151', color: '#fff', fontSize: 16, fontWeight: 800, fontFamily: FH, cursor: syncing ? 'wait' : readyForAll ? 'pointer' : 'not-allowed', opacity: syncing || enriching ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      {syncing ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={18} />}
+                      {syncing ? 'Running All Audits...' : 'Run All Audits'}
+                    </button>
+                    {!hasWebsite && (
+                      <button onClick={() => { setEditingClient(c); setClientForm({ name: c?.name || '', website: c?.website || '', primary_service: c?.primary_service || '', location: '' }); setShowClientModal(true) }}
+                        style={{ padding: '16px 28px', borderRadius: 12, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                        Edit Client
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Individual scan cards ─────────────────────────── */}
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Or run individually</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                  {/* Quick Scan */}
+                  <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForQuick ? '#e5e7eb' : R + '30'}`, padding: '20px 22px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <Zap size={18} color={R} />
+                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Quick Scan</div>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#6b7280' }}>No OAuth</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>AI keyword extraction, competitor discovery, Moz DA</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b>, <span style={{ color: hasIndustry ? GRN : '#9ca3af' }}>Industry (optional)</span></div>
+                    <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing || enriching || !readyForQuick}
+                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing || !readyForQuick ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Run
+                    </button>
+                  </div>
+                  {/* Deep Audit */}
+                  <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForDeep ? '#e5e7eb' : R + '30'}`, padding: '20px 22px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <Shield size={18} color={AMB} />
+                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Deep Audit</div>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#6b7280' }}>11 tools</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>PageSpeed, CWV, SSL, schema, tech stack, domain signals</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b></div>
+                    <button onClick={runDeepEnrich} disabled={enriching || syncing || !readyForDeep}
+                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: AMB, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: enriching || !readyForDeep ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />} Run
+                    </button>
+                  </div>
+                  {/* Full Sync */}
+                  <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForFull ? '#e5e7eb' : AMB + '30'}`, padding: '20px 22px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <RefreshCw size={18} color={T} />
+                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Full Sync</div>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: T + '12', color: T }}>OAuth</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>Search Console, Google Ads, GA4, Keyword Planner</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b> + <b style={{ color: hasConnections ? GRN : R }}>Google OAuth</b></div>
+                    <button onClick={runSync} disabled={syncing || !readyForFull}
+                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: readyForFull ? T : '#e5e7eb', color: readyForFull ? '#fff' : '#9ca3af', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: readyForFull ? 'pointer' : 'not-allowed', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} {readyForFull ? 'Run' : 'Connect Google First'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
 
         {/* Export */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
