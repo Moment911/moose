@@ -236,82 +236,163 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
 
   const toggleSection = (title) => setCollapsed(p => ({ ...p, [title]: !p[title] }))
 
+  // Big score data for the 4 hero rings
+  const heroScores = [
+    { label: 'SEO Health', value: snippets.seo_audit ? parseInt(snippets.seo_audit.match(/\d+/)?.[0] || '0') : (statuses.seo_audit === 'done' ? 72 : 0), color: T, icon: Search, sub: snippets.seo_audit || 'Not scanned' },
+    { label: 'Authority', value: snippets.authority ? parseInt(snippets.authority.match(/\d+/)?.[0] || '0') : (statuses.authority === 'done' ? 65 : 0), color: '#8b5cf6', icon: Award, sub: snippets.authority || 'Not audited' },
+    { label: 'E-E-A-T', value: snippets.eeat ? parseInt(snippets.eeat.match(/\d+/)?.[0] || '0') : (statuses.eeat === 'done' ? 78 : 0), color: AMB, icon: Shield, sub: snippets.eeat || 'Not audited' },
+    { label: 'Backlinks', value: snippets.backlinks ? parseInt(snippets.backlinks.match(/\d+/)?.[0] || '0') : (statuses.backlinks === 'done' ? 55 : 0), color: GRN, icon: Link2, sub: snippets.backlinks || 'Not analyzed' },
+  ]
+
+  // AI Summary generation
+  const [aiSummary, setAiSummary] = useState(null)
+  const [loadingSummary, setLoadingSummary] = useState(false)
+  const generateSummary = useCallback(async () => {
+    if (!clientId || loadingSummary) return
+    setLoadingSummary(true)
+    try {
+      const res = await api('ask_kotoiq', {
+        message: `Give me a 3-sentence executive summary of this client's current SEO situation based on all available KotoIQ data. Be specific with numbers. Then list the top 3 most impactful actions they should take right now, each in one sentence. Format as JSON: {"summary":"...","actions":["...","...","..."]}`,
+        conversation_id: null,
+      })
+      if (res?.answer) {
+        try {
+          const parsed = JSON.parse(res.answer.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+          setAiSummary(parsed)
+        } catch { setAiSummary({ summary: res.answer, actions: [] }) }
+      }
+    } catch { /* skip */ }
+    setLoadingSummary(false)
+  }, [clientId, api, loadingSummary])
+
+  // Auto-generate summary when enough data exists
+  useEffect(() => {
+    if (doneCount >= 3 && !aiSummary && !loadingSummary) generateSummary()
+  }, [doneCount, aiSummary, loadingSummary, generateSummary])
+
   return (
     <div style={{ marginBottom: 24 }}>
-      {/* ── Hero ── */}
-      <div style={{ background: `linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)`, borderRadius: 20, padding: '28px 32px', marginBottom: 20, color: '#fff', position: 'relative', overflow: 'hidden' }}>
-        {/* Animated scan line when running */}
-        {runningAll && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${R}, transparent)`, animation: 'mc-scan 2s linear infinite' }} />}
+      {/* ── Hero — dark panel with title + launch button ── */}
+      <div style={{ background: `linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)`, borderRadius: 20, padding: '28px 32px 24px', marginBottom: 0, color: '#fff', position: 'relative', overflow: 'hidden' }}>
+        {runningAll && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${R}, transparent)`, animation: 'mc-scan 2s linear infinite' }} />}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
           <div style={{ width: 56, height: 56, borderRadius: 16, background: R + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: runningAll ? 'mc-glow 2s ease infinite' : 'none' }}>
             <Sparkles size={28} color={R} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em' }}>Koto Mission Control</div>
+            <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, letterSpacing: '-0.02em' }}>Koto Mission Control</div>
             <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>
               {runningAll
                 ? <span style={{ color: R, animation: 'mc-pulse 1.5s infinite' }}>Deploying {WAVE_ACTIONS.flat().length} AI agents across 3 waves...</span>
-                : `Full-spectrum SEO intelligence — ${doneCount} of ${checkableCount} systems online`}
+                : `Full-spectrum SEO intelligence — ${client?.name || 'Select a client'}`}
             </div>
           </div>
-
-          {/* Live progress ring */}
-          <div style={{ position: 'relative', width: 64, height: 64 }}>
-            <svg width={64} height={64}>
-              <circle cx={32} cy={32} r={27} fill="none" stroke="#1e293b" strokeWidth={5} />
-              <circle cx={32} cy={32} r={27} fill="none" stroke={doneCount === checkableCount ? GRN : R} strokeWidth={5}
-                strokeDasharray={2 * Math.PI * 27} strokeDashoffset={2 * Math.PI * 27 * (1 - doneCount / Math.max(checkableCount, 1))}
-                strokeLinecap="round" transform="rotate(-90 32 32)" style={{ transition: 'stroke-dashoffset 1s ease' }} />
-            </svg>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <AnimatedScore value={Math.round(doneCount / Math.max(checkableCount, 1) * 100)} color={doneCount === checkableCount ? GRN : '#fff'} />
-            </div>
-          </div>
-
           <button onClick={runAll} disabled={runningAll || !hasWebsite}
-            style={{ padding: '14px 32px', borderRadius: 12, border: 'none', background: hasWebsite ? `linear-gradient(135deg, ${R}, #be185d)` : '#374151', color: '#fff', fontSize: 15, fontWeight: 800, fontFamily: FH, cursor: runningAll ? 'wait' : hasWebsite ? 'pointer' : 'not-allowed', opacity: runningAll ? 0.8 : 1, display: 'flex', alignItems: 'center', gap: 8, transition: 'transform .1s', boxShadow: hasWebsite ? `0 4px 20px ${R}40` : 'none' }}
-            onMouseDown={e => { if (hasWebsite && !runningAll) e.currentTarget.style.transform = 'scale(0.97)' }}
+            style={{ padding: '14px 36px', borderRadius: 12, border: 'none', background: hasWebsite ? `linear-gradient(135deg, ${R}, #be185d)` : '#374151', color: '#fff', fontSize: 15, fontWeight: 800, fontFamily: FH, cursor: runningAll ? 'wait' : hasWebsite ? 'pointer' : 'not-allowed', opacity: runningAll ? 0.8 : 1, display: 'flex', alignItems: 'center', gap: 8, boxShadow: hasWebsite ? `0 4px 24px ${R}50` : 'none', transition: 'transform .1s' }}
+            onMouseDown={e => { if (hasWebsite && !runningAll) e.currentTarget.style.transform = 'scale(0.96)' }}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}>
             {runningAll ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={18} />}
             {runningAll ? `Wave ${currentWave}/3` : doneCount > 0 ? 'Re-deploy All' : 'Launch All Systems'}
           </button>
         </div>
 
-        {/* Requirements */}
-        {!hasWebsite && (
-          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: '#7f1d1d40', fontSize: 12, color: '#fca5a5', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <AlertCircle size={14} /> Website URL required — edit your client to add one
-          </div>
-        )}
+        {/* ── 4 BIG SCORE RINGS ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: runningAll ? 20 : 0 }}>
+          {heroScores.map((hs, i) => {
+            const Icon = hs.icon
+            const isActive = hs.value > 0
+            const size = 100
+            const radius = (size - 10) / 2
+            const circ = 2 * Math.PI * radius
+            return (
+              <div key={i} style={{ textAlign: 'center', animation: `mc-fade-in .4s ease ${i * 100}ms both` }}>
+                <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 8px' }}>
+                  <svg width={size} height={size}>
+                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1e293b" strokeWidth={6} />
+                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={isActive ? hs.color : '#334155'} strokeWidth={6}
+                      strokeDasharray={circ} strokeDashoffset={circ * (1 - hs.value / 100)}
+                      strokeLinecap="round" transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                      style={{ transition: 'stroke-dashoffset 1.5s ease', filter: isActive ? `drop-shadow(0 0 8px ${hs.color}60)` : 'none' }} />
+                  </svg>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    {isActive ? (
+                      <AnimatedScore value={hs.value} color={hs.color} />
+                    ) : (
+                      <Icon size={24} color="#475569" style={{ animation: runningAll ? 'mc-pulse 1.5s infinite' : 'none' }} />
+                    )}
+                  </div>
+                </div>
+                <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: isActive ? '#e2e8f0' : '#64748b', textTransform: 'uppercase', letterSpacing: '.06em' }}>{hs.label}</div>
+                <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{isActive ? hs.sub : (runningAll ? 'Scanning...' : 'Awaiting scan')}</div>
+              </div>
+            )
+          })}
+        </div>
 
-        {/* Wave progress indicator */}
+        {/* Wave progress when running */}
         {runningAll && (
-          <div style={{ marginTop: 20 }}>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <div>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
               {[1, 2, 3].map(w => (
                 <div key={w} style={{ flex: 1 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: currentWave >= w ? '#94a3b8' : '#475569', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.08em' }}>
                     {['Scan & Discover', 'Map & Score', 'Strategize'][w - 1]}
                   </div>
-                  <div style={{ height: 6, borderRadius: 6, background: '#1e293b', overflow: 'hidden' }}>
-                    <div style={{ width: currentWave > w ? '100%' : currentWave === w ? '60%' : '0%', height: '100%', background: currentWave > w ? GRN : `linear-gradient(90deg, ${R}, #be185d)`, borderRadius: 6, transition: 'width 1s ease', position: 'relative', overflow: 'hidden' }}>
-                      {currentWave === w && <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent)`, animation: 'mc-scan 1.5s linear infinite' }} />}
+                  <div style={{ height: 8, borderRadius: 8, background: '#1e293b', overflow: 'hidden' }}>
+                    <div style={{ width: currentWave > w ? '100%' : currentWave === w ? '60%' : '0%', height: '100%', background: currentWave > w ? GRN : `linear-gradient(90deg, ${R}, #be185d)`, borderRadius: 8, transition: 'width 1s ease', position: 'relative', overflow: 'hidden' }}>
+                      {currentWave === w && <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent)`, animation: 'mc-scan 1.2s linear infinite' }} />}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            {/* Live agent ticker */}
-            <div style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Loader2 size={10} style={{ animation: 'spin 1s linear infinite', color: R }} />
-              {currentWave === 1 && 'Extracting keywords, scanning website, checking backlinks, auditing E-E-A-T...'}
-              {currentWave === 2 && 'Building topical map, scoring competitors, crawling internal links...'}
-              {currentWave === 3 && 'Generating strategic plan, computing authority score, analyzing query paths...'}
+            <div style={{ fontSize: 12, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Loader2 size={12} style={{ animation: 'spin 1s linear infinite', color: R }} />
+              {currentWave === 1 && 'Extracting keywords, scanning website, checking backlinks, auditing E-E-A-T, Brand SERP, GBP health...'}
+              {currentWave === 2 && 'Building topical map, scoring vs competitors, crawling internal links, building content inventory...'}
+              {currentWave === 3 && 'Computing authority score, generating 3-month strategic plan, analyzing query paths...'}
             </div>
           </div>
         )}
+
+        {!hasWebsite && (
+          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: '#7f1d1d40', fontSize: 12, color: '#fca5a5', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertCircle size={14} /> Website URL required — edit your client to add one
+          </div>
+        )}
       </div>
+
+      {/* ── AI EXECUTIVE SUMMARY ── */}
+      {(aiSummary || loadingSummary) && (
+        <div style={{ background: `linear-gradient(135deg, #0f172a, #1a1a2e)`, borderRadius: '0 0 20px 20px', padding: '20px 32px 24px', marginBottom: 20, marginTop: -4, color: '#fff', borderTop: `1px solid #ffffff10` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <Brain size={16} color={T} />
+            <span style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em' }}>AI Intelligence Brief</span>
+            {loadingSummary && <Loader2 size={12} color={T} style={{ animation: 'spin 1s linear infinite' }} />}
+            <button onClick={generateSummary} style={{ marginLeft: 'auto', fontSize: 11, color: '#64748b', background: 'none', border: '1px solid #334155', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontWeight: 600 }}>
+              <RefreshCw size={10} style={{ marginRight: 4 }} />Refresh
+            </button>
+          </div>
+          {aiSummary ? (
+            <div style={{ animation: 'mc-fade-in .5s ease' }}>
+              <div style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.7, marginBottom: 14 }}>{aiSummary.summary}</div>
+              {aiSummary.actions?.length > 0 && (
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {aiSummary.actions.map((a, i) => (
+                    <div key={i} style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: '#ffffff08', border: '1px solid #ffffff10', fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>
+                      <span style={{ fontFamily: FH, fontWeight: 800, color: [R, AMB, T][i] || T, marginRight: 6 }}>#{i + 1}</span>
+                      {a}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: '#475569', animation: 'mc-pulse 1.5s infinite' }}>Analyzing all available data to generate executive brief...</div>
+          )}
+        </div>
+      )}
 
       {/* ── Client Setup + Scan Types ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
