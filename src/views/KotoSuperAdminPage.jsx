@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import {
-  AlertCircle, BarChart2, Building2, Check, ChevronRight, Clock, DollarSign, Edit2, ExternalLink, Globe, Loader2, Plus, RefreshCw, Save, Search, Settings, Shield, Sparkles, Star, Tag, ToggleLeft, ToggleRight, Trash2, TrendingUp, Users, Zap
+  AlertCircle, BarChart2, Building2, Check, ChevronRight, Clock, DollarSign, Edit2, ExternalLink, Globe, Loader2, Plus, RefreshCw, Save, Search, Settings, Shield, Sparkles, Star, Tag, ToggleLeft, ToggleRight, Trash2, TrendingUp, Users, X, Zap
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'

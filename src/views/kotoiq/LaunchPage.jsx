@@ -72,6 +72,33 @@ export default function LaunchPage() {
   const { clientId: routeClientId } = useParams()
   const { agencyId } = useAuth()
 
+  // Agency-aware wrappers: shadow the module-level helpers so every call
+  // to /api/kotoiq/profile carries x-koto-agency-id. Super-admin sessions
+  // return agencyId=null from verifySession unless this header is present,
+  // causing 401 rejections.
+  const postProfile = useCallback((body) => profileFetch(body, { agencyId }), [agencyId])
+  const streamSeed = useCallback(async ({ client_id, pasted_text, force_rebuild, onLine }) => {
+    const res = await profileStreamSeed({ client_id, pasted_text, force_rebuild }, undefined, { agencyId })
+    if (!res.ok || !res.body) {
+      onLine(`I hit a snag pulling — HTTP ${res.status}. I'll carry on without it.`)
+      return
+    }
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+      for (const line of lines) {
+        if (line.trim()) onLine(line)
+      }
+    }
+    if (buffer.trim()) onLine(buffer)
+  }, [agencyId])
+
   const [clientId, setClientId] = useState(routeClientId || '')
   const [profile, setProfile] = useState(null)
   const [discrepancies, setDiscrepancies] = useState([])
