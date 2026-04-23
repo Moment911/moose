@@ -256,7 +256,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                       }}>
                         {q.sentiment}
                       </span>
-                    </div>
+                    </a>
                   ))}
                 </div>
               )}
