@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
-  ChevronDown, ChevronLeft, ChevronUp, Circle, Code2, Copy, CreditCard, Download, Eye, EyeOff, FileText, FormInput, Grid3X3, Image, ImageIcon, Layers, Layout, Lock, Minus, MousePointer, PenLine, Plus, Redo2, Save, Square, Star, Trash2, Type, Undo2, Unlock, Upload, Wand2
+  ChevronDown, ChevronLeft, ChevronUp, Circle, Code2, Copy, CreditCard, Download, Eye, EyeOff, FileText, FormInput, Grid3X3, Image, ImageIcon, Layers, Layout, Lock, Minus, MousePointer, PenLine, Plus, Redo2, Save, Square, Star, Trash2, Type, Undo2, Unlock, Upload, Wand2, X
 } from 'lucide-react'
 import { supabase, createWireframeRecord, updateWireframeRecord, uploadFile, createFile } from '../lib/supabase'
 import { callClaude } from '../lib/ai'

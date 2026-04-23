@@ -288,6 +288,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
+    // ── Update (generic field update from edit drawer) ──
+    if (action === 'update') {
+      const { id, ...patch } = body
+      delete patch.action
+      if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
+      const allowed = [
+        'company_name','contact_name','contact_email','contact_phone','website','industry',
+        'notes','tags','monetary_value','custom_fields','score',
+      ]
+      const clean: any = {}
+      for (const k of allowed) if (patch[k] !== undefined) clean[k] = patch[k]
+      if (clean.monetary_value === '') clean.monetary_value = null
+      if (clean.score !== undefined) clean.hot = Number(clean.score) >= 70
+      clean.updated_at = new Date().toISOString()
+
+      const { data, error } = await sb.from('koto_opportunities').update(clean).eq('id', id).eq('agency_id', agency_id).select().single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      await sb.from('koto_opportunity_activities').insert({ opportunity_id: id, activity_type: 'edit', description: 'Opportunity updated' })
+      return NextResponse.json({ opportunity: data })
+    }
+
     // ── Delete ──
     if (action === 'delete') {
       const { id } = body

@@ -61,3 +61,4 @@ desktop-app/.claude/settings.local.json
 
 # Supabase CLI cache
 supabase/.temp/
+.gstack/
