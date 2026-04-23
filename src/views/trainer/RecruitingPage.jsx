@@ -312,7 +312,7 @@ function ProgramCard({ program: p, isExpanded, onToggle, editingCoach, setEditin
                   <Trophy size={16} color={AMBER} />
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 800, color: '#92400e', textTransform: 'uppercase', letterSpacing: '.04em' }}>College World Series</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#78350f' }}>{p.cws_appearances} appearance{p.cws_appearances !== 1 ? 's' : ''}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#78350f' }}>{p.cws_appearances}</div>
                   </div>
                 </div>
               )}
@@ -598,7 +598,7 @@ function StatBox({ label, value, highlight }) {
       }}>
         {label}
       </div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: highlight ? '#78350f' : TEXT_PRIMARY }}>{value}</div>
+      <div style={{ fontSize: 16, fontWeight: 800, color: highlight ? '#78350f' : TEXT_PRIMARY, fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"' }}>{value}</div>
     </div>
   )
 }
