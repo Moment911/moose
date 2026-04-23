@@ -6,6 +6,10 @@
 export const T_FONT =
   '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, "Segoe UI", Roboto, sans-serif'
 
+// Sporty condensed font for numbers — bold, tight, athletic feel
+export const T_FONT_NUM =
+  '"Barlow Condensed", "SF Pro Display", "Inter", system-ui, sans-serif'
+
 // Surfaces
 export const T_BG = '#faf9f6'       // warm-white page canvas
 export const T_BG_DIM = '#f4f2ec'   // slightly deeper warm
@@ -60,6 +64,14 @@ let _cssInjected = false
 export function injectTrainerUICSS() {
   if (_cssInjected) return
   if (typeof document === 'undefined') return
+  // Load Barlow Condensed for sporty number display
+  if (!document.querySelector('link[data-trainer-font]')) {
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&display=swap'
+    link.setAttribute('data-trainer-font', '1')
+    document.head.appendChild(link)
+  }
   const css = `
     .t-press { transition: transform 120ms cubic-bezier(.2,.7,.3,1), box-shadow 160ms ease, background-color 120ms ease, border-color 120ms ease; }
     .t-press:active { transform: scale(.97); }

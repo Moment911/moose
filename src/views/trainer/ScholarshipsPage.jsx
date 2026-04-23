@@ -194,7 +194,7 @@ export default function ScholarshipsPage() {
                   {stateInfo.scholarships > 0 && (
                     <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 12 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '.04em' }}>Scholarships</div>
-                      <div style={{ fontSize: 22, fontWeight: 900, color: '#92400e' }}>{stateInfo.scholarships}</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: '#92400e', fontFamily: '"Barlow Condensed", system-ui, sans-serif' }}>{stateInfo.scholarships}</div>
                       <div style={{ fontSize: 11, color: '#b45309' }}>{stateInfo.roster?.toLocaleString()} total roster spots</div>
                     </div>
                   )}
@@ -235,7 +235,7 @@ function DivisionCard({ label, programs, perSchool, athletes, color, note }) {
   return (
     <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', borderTop: `3px solid ${color}` }}>
       <div style={{ fontSize: 11, fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 900, color: BLK, lineHeight: 1 }}>{programs}</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: BLK, lineHeight: 1, fontFamily: '"Barlow Condensed", system-ui, sans-serif' }}>{programs}</div>
       <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>programs</div>
       {perSchool > 0 && <div style={{ fontSize: 12, fontWeight: 600, color, marginTop: 6 }}>{perSchool} scholarships/school</div>}
       {note && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, fontStyle: 'italic' }}>{note}</div>}
@@ -248,7 +248,7 @@ function MiniStat({ label, value, color }) {
   return (
     <div style={{ background: '#f9fafb', borderRadius: 6, padding: '8px 10px', borderLeft: `3px solid ${color}` }}>
       <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 900, color: BLK }}>{value}</div>
+      <div style={{ fontSize: 20, fontWeight: 800, color: BLK, fontFamily: '"Barlow Condensed", system-ui, sans-serif' }}>{value}</div>
     </div>
   )
 }

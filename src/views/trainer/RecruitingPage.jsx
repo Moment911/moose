@@ -598,7 +598,7 @@ function StatBox({ label, value, highlight }) {
       }}>
         {label}
       </div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: highlight ? '#78350f' : TEXT_PRIMARY, fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"' }}>{value}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: highlight ? '#78350f' : TEXT_PRIMARY, fontFamily: '"Barlow Condensed", system-ui, sans-serif', letterSpacing: '-.02em' }}>{value}</div>
     </div>
   )
 }

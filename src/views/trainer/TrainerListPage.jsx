@@ -449,11 +449,12 @@ function StatCard({ icon, label, value, accent, dark }) {
         </span>
       </div>
       <div style={{
-        fontSize: 32,
+        fontSize: 34,
         fontWeight: 800,
         color: dark ? WHITE : BLK,
         letterSpacing: '-0.02em',
         lineHeight: 1,
+        fontFamily: '"Barlow Condensed", system-ui, sans-serif',
       }}>
         {value}
       </div>
