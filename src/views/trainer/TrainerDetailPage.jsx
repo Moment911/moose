@@ -920,15 +920,22 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
     revoked: 'Send invite',
   })[status] || 'Send invite'
   const inviteBadgeColor = status === 'active' ? '#059669' : status === 'bounced' ? '#dc2626' : status === 'invited' ? '#0891b2' : '#6b7280'
+  // Initials for the avatar.
+  const initials = (trainee.full_name || 'A')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('') || 'A'
   return (
     <header
       style={{
         position: 'sticky',
         top: 0,
         zIndex: 20,
-        background: GRY,
-        padding: '14px 0 16px',
-        marginBottom: 10,
+        background: '#f8fafc',
+        padding: '16px 0 14px',
+        marginBottom: 14,
         borderBottom: `1px solid ${BRD}`,
       }}
     >
@@ -937,29 +944,45 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          gap: 16,
+          gap: 20,
           flexWrap: 'wrap',
-          marginBottom: 12,
+          marginBottom: 14,
         }}
       >
-        <div style={{ minWidth: 0, flex: '1 1 280px' }}>
-          <h1 style={{ margin: 0, fontSize: 26, color: BLK, fontWeight: 800, letterSpacing: '-.01em' }}>
-            {trainee.full_name}
-          </h1>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6, alignItems: 'center' }}>
-            {trainee.primary_goal && (
-              <span style={chipAccent}>
-                <Target size={12} /> {trainee.primary_goal}
+        <div style={{ minWidth: 0, flex: '1 1 300px', display: 'flex', gap: 14, alignItems: 'center' }}>
+          <div
+            aria-hidden
+            style={{
+              width: 48, height: 48, flexShrink: 0,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+              color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, fontWeight: 700, letterSpacing: '-.02em',
+              boxShadow: '0 1px 2px rgba(15, 23, 42, 0.1), inset 0 0 0 1px rgba(255,255,255,.06)',
+            }}
+          >
+            {initials}
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h1 style={{ margin: 0, fontSize: 22, color: '#0f172a', fontWeight: 700, letterSpacing: '-.015em', lineHeight: 1.15 }}>
+              {trainee.full_name}
+            </h1>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6, alignItems: 'center' }}>
+              {trainee.primary_goal && (
+                <span style={chipAccent}>
+                  <Target size={11} /> {trainee.primary_goal}
+                </span>
+              )}
+              {trainee.age != null && <span style={chip}>Age {trainee.age}</span>}
+              {trainee.sex && <span style={chip}>{trainee.sex}</span>}
+              {trainee.training_days_per_week != null && (
+                <span style={chip}>{trainee.training_days_per_week}×/wk</span>
+              )}
+              <span style={{ color: '#94a3b8', fontSize: 11.5, fontWeight: 500, marginLeft: 2 }}>
+                Created {trainee.created_at ? new Date(trainee.created_at).toLocaleDateString() : '—'}
               </span>
-            )}
-            {trainee.age != null && <span style={chip}>Age {trainee.age}</span>}
-            {trainee.sex && <span style={chip}>{trainee.sex}</span>}
-            {trainee.training_days_per_week != null && (
-              <span style={chip}>{trainee.training_days_per_week}×/wk</span>
-            )}
-            <span style={{ color: GRY5, fontSize: 12 }}>
-              · created {trainee.created_at ? new Date(trainee.created_at).toLocaleDateString() : '—'}
-            </span>
+            </div>
           </div>
         </div>
 
@@ -2245,36 +2268,52 @@ function EmptyHint({ title, desc, onGoto, ctaLabel }) {
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
+// ── Panels / cards — subtle layered shadow on clean white ────────────────
 const panelStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
-  borderRadius: 12,
-  padding: 22,
-  marginBottom: 16,
+  borderRadius: 10,
+  padding: '20px 22px',
+  marginBottom: 14,
+  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03)',
 }
 
-const panelTitle = { margin: '0 0 10px', fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }
+// Neutral titlecase — no more uppercase accent color, no exotic letterspacing.
+// Reads like a section heading in Linear / Stripe / Vercel.
+const panelTitle = {
+  margin: '0 0 6px',
+  fontSize: 15,
+  fontWeight: 700,
+  color: '#0f172a',
+  letterSpacing: '-.005em',
+}
 
-const paraStyle = { color: GRY7, fontSize: 13, margin: '0 0 14px', lineHeight: 1.5 }
+const paraStyle = {
+  color: '#475569',
+  fontSize: 13,
+  margin: '0 0 16px',
+  lineHeight: 1.55,
+}
 
 const chip = {
   display: 'inline-flex',
   alignItems: 'center',
-  gap: 4,
-  padding: '3px 10px',
-  background: '#fff',
+  gap: 5,
+  padding: '3px 9px',
+  background: '#f8fafc',
   border: `1px solid ${BRD}`,
-  color: GRY7,
-  borderRadius: 20,
-  fontSize: 12,
-  fontWeight: 700,
+  color: '#475569',
+  borderRadius: 6,
+  fontSize: 11.5,
+  fontWeight: 600,
+  letterSpacing: '-.005em',
 }
 
 const chipAccent = {
   ...chip,
-  background: R + '10',
-  border: `1px solid ${R}30`,
-  color: R,
+  background: '#eff6ff',
+  border: '1px solid #bfdbfe',
+  color: BLUE,
 }
 
 function btnPrimary(disabled) {
@@ -2282,15 +2321,18 @@ function btnPrimary(disabled) {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 6,
-    padding: '10px 18px',
-    background: disabled ? '#d1d5db' : R,
-    color: '#fff',
+    padding: '9px 16px',
+    background: disabled ? '#e2e8f0' : '#0f172a',
+    color: disabled ? '#94a3b8' : '#fff',
     border: 'none',
     borderRadius: 8,
     fontSize: 13,
-    fontWeight: 700,
+    fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',
     whiteSpace: 'nowrap',
+    boxShadow: disabled ? 'none' : '0 1px 2px rgba(15, 23, 42, 0.08)',
+    transition: 'background .12s, box-shadow .12s, transform .08s',
+    letterSpacing: '-.005em',
   }
 }
 
@@ -2299,14 +2341,16 @@ function btnSecondary(disabled) {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 6,
-    padding: '8px 14px',
+    padding: '7px 13px',
     background: '#fff',
-    color: disabled ? '#9ca3af' : GRY7,
+    color: disabled ? '#94a3b8' : '#334155',
     border: `1px solid ${BRD}`,
     borderRadius: 8,
     fontSize: 13,
     fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',
+    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+    transition: 'background .12s, border-color .12s',
   }
 }
 

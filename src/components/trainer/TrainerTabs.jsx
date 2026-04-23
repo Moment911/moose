@@ -1,17 +1,16 @@
 "use client"
-import { R, BLK } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Trainer Phase 2 — TrainerTabs.
+// TrainerTabs — page-level tab bar.
 //
-// Page-level tab bar shared by TrainerDetailPage.  Mirrors the visual language
-// of PlaybookCard's internal tabs so nested tabs (Playbook's 8 tabs inside the
-// Playbook top-level tab) don't clash.  Horizontal scroll on mobile.
+// Slate-based active state (no more accent pink), thicker underline
+// indicator, gentle hover state. Matches Linear / Vercel navigation.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BRD = '#e5e7eb'
-const GRY5 = '#6b7280'
-const GRY7 = '#374151'
+const SLATE400 = '#94a3b8'
+const SLATE600 = '#475569'
+const SLATE900 = '#0f172a'
 
 export default function TrainerTabs({ tabs, activeKey, onChange }) {
   return (
@@ -20,9 +19,9 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
       style={{
         display: 'flex',
         gap: 2,
-        padding: '0 4px',
+        padding: '0 2px',
         borderBottom: `1px solid ${BRD}`,
-        marginBottom: 22,
+        marginBottom: 20,
         overflowX: 'auto',
         scrollbarWidth: 'thin',
         WebkitOverflowScrolling: 'touch',
@@ -44,27 +43,28 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              padding: '12px 16px',
+              padding: '10px 14px',
+              marginBottom: -1,
               fontSize: 13,
-              fontWeight: active ? 800 : 600,
-              color: active ? R : GRY7,
+              fontWeight: active ? 700 : 500,
+              color: active ? SLATE900 : SLATE600,
               background: 'transparent',
               border: 'none',
-              borderBottom: `2px solid ${active ? R : 'transparent'}`,
+              borderBottom: `2px solid ${active ? SLATE900 : 'transparent'}`,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              letterSpacing: active ? '.01em' : 0,
+              letterSpacing: '-.005em',
               flexShrink: 0,
               transition: 'color .12s, border-color .12s',
             }}
             onMouseEnter={(e) => {
-              if (!active) e.currentTarget.style.color = BLK
+              if (!active) e.currentTarget.style.color = SLATE900
             }}
             onMouseLeave={(e) => {
-              if (!active) e.currentTarget.style.color = GRY7
+              if (!active) e.currentTarget.style.color = SLATE600
             }}
           >
-            {Icon && <Icon size={14} />}
+            {Icon && <Icon size={14} strokeWidth={active ? 2.25 : 2} />}
             {t.label}
             {dotColor && (
               <span
@@ -83,12 +83,13 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
               <span
                 style={{
                   marginLeft: 4,
-                  padding: '1px 7px',
-                  background: active ? R : '#e5e7eb',
-                  color: active ? '#fff' : GRY5,
-                  fontSize: 10,
-                  fontWeight: 800,
-                  borderRadius: 20,
+                  padding: '1px 6px',
+                  background: active ? SLATE900 : '#f1f5f9',
+                  color: active ? '#fff' : SLATE400,
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  borderRadius: 999,
+                  letterSpacing: '-.01em',
                 }}
               >
                 {t.count}
