@@ -43,9 +43,9 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              padding: '10px 14px',
+              padding: '12px 18px',
               marginBottom: -1,
-              fontSize: 13,
+              fontSize: 15,
               fontWeight: active ? 700 : 500,
               color: active ? SLATE900 : SLATE600,
               background: 'transparent',
@@ -64,7 +64,7 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
               if (!active) e.currentTarget.style.color = SLATE600
             }}
           >
-            {Icon && <Icon size={14} strokeWidth={active ? 2.25 : 2} />}
+            {Icon && <Icon size={16} strokeWidth={active ? 2.25 : 2} />}
             {t.label}
             {dotColor && (
               <span

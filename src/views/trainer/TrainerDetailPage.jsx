@@ -804,6 +804,12 @@ export default function TrainerDetailPage() {
               pendingKey={pendingKey}
             />
 
+            {/* Global jobs banner — sits above the tabs and stays visible
+                no matter which tab the trainer navigates to. Reads off
+                the page-level `pending` map, so any generate that fires
+                persists in UI across tab changes until it resolves. */}
+            <GlobalJobsBanner pending={pending} />
+
             {/* ── Top-level tabs ───────────────────────────────────────────── */}
             <TrainerTabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} />
 
@@ -904,6 +910,71 @@ export default function TrainerDetailPage() {
 
       <TrainerToast message={stepError} onClose={() => setStepError(null)} />
     </TrainerPortalShell>
+  )
+}
+
+// ── Global jobs banner ──────────────────────────────────────────────────────
+// A single, visible-on-every-tab indicator that one or more generators are
+// running in the background. The fetches themselves are already async — this
+// just promises the trainer visually that navigating away doesn't cancel
+// anything, and surfaces what's live across the whole page.
+
+const JOB_LABELS = {
+  baseline: 'Generating baseline',
+  roadmap: 'Generating 90-day roadmap',
+  workout: 'Generating workout block',
+  food_prefs: 'Building food preferences',
+  submit_prefs: 'Saving food preferences',
+  meals: 'Generating 2-week meal plan',
+  playbook: 'Generating coaching playbook',
+  adjust: 'Adjusting workout block',
+}
+
+function GlobalJobsBanner({ pending }) {
+  const active = Object.entries(pending).filter(([, v]) => v).map(([k]) => k)
+  if (active.length === 0) return null
+  const primary = JOB_LABELS[active[0]] || 'Generating'
+  const extras = active.length - 1
+
+  return (
+    <>
+      <style>{`@keyframes kotoJobPulse{0%,100%{opacity:1}50%{opacity:.55}}`}</style>
+      <div
+        role="status"
+        aria-live="polite"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '10px 14px',
+          marginBottom: 14,
+          background: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          borderRadius: 10,
+          boxShadow: '0 1px 2px rgba(37, 99, 235, 0.05)',
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 14, height: 14, flexShrink: 0,
+            border: '2px solid #bfdbfe',
+            borderTopColor: '#2563eb',
+            borderRadius: '50%',
+            animation: 'kotoSpin 0.8s linear infinite',
+          }}
+        />
+        <style>{'@keyframes kotoSpin{to{transform:rotate(360deg)}}'}</style>
+        <span style={{ fontSize: 14, fontWeight: 600, color: '#1e40af', letterSpacing: '-.01em' }}>
+          {primary}
+          {extras > 0 && <span style={{ color: '#3b82f6', fontWeight: 500, marginLeft: 6 }}>+{extras} more running</span>}
+        </span>
+        <span style={{ flex: 1 }} />
+        <span style={{ fontSize: 12, color: '#475569', fontWeight: 500, animation: 'kotoJobPulse 2s ease-in-out infinite' }}>
+          You can keep working — this runs in the background.
+        </span>
+      </div>
+    </>
   )
 }
 
@@ -2282,16 +2353,17 @@ const panelStyle = {
 // Reads like a section heading in Linear / Stripe / Vercel.
 const panelTitle = {
   margin: '0 0 6px',
-  fontSize: 15,
+  fontSize: 18,
   fontWeight: 700,
   color: '#0f172a',
-  letterSpacing: '-.005em',
+  letterSpacing: '-.015em',
+  lineHeight: 1.2,
 }
 
 const paraStyle = {
   color: '#475569',
-  fontSize: 13,
-  margin: '0 0 16px',
+  fontSize: 15,
+  margin: '0 0 18px',
   lineHeight: 1.55,
 }
 
@@ -2320,13 +2392,13 @@ function btnPrimary(disabled) {
   return {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 6,
-    padding: '9px 16px',
+    gap: 7,
+    padding: '11px 20px',
     background: disabled ? '#e2e8f0' : '#0f172a',
     color: disabled ? '#94a3b8' : '#fff',
     border: 'none',
     borderRadius: 8,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',
     whiteSpace: 'nowrap',
@@ -2341,12 +2413,12 @@ function btnSecondary(disabled) {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 6,
-    padding: '7px 13px',
+    padding: '9px 15px',
     background: '#fff',
     color: disabled ? '#94a3b8' : '#334155',
     border: `1px solid ${BRD}`,
     borderRadius: 8,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',
     boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
