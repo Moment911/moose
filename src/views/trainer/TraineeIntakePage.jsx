@@ -303,13 +303,16 @@ export default function TraineeIntakePage() {
     }
   }
 
-  const missing = getMissing(extracted, services)
+  // about_you lives in its own state (not in `extracted`) — merge it in
+  // before the completeness check so the ribbon button isn't wrongly
+  // disabled on a profile where the welcome paragraph was already written.
+  const missing = getMissing({ ...extracted, about_you: aboutYou || extracted.about_you }, services)
 
   if (phase === 'loading') return <CenteredSpinner label="Loading..." />
   if (phase === 'not_found') return <NotFoundScreen />
   if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={(text, selectedServices) => { setInitialText(text); setServices(selectedServices); setPhase('chat') }} />
   if (phase === 'generating') return <GeneratingScreen progress={planProgress} />
-  if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} agency={agency} planResult={planResult} />
+  if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} agency={agency} planResult={planResult} traineeId={traineeId} />
 
   // Compute overall progress once so the ribbon + sidebar agree on the number.
   const fieldDefs = getFieldDefs(services)
@@ -1210,9 +1213,33 @@ const PLAN_PIECES = [
   { key: 'playbook_ready', icon: '📘', label: 'Coaching playbook', desc: 'How your coach will work with you day to day' },
 ]
 
-function DoneScreen({ name, agency, planResult }) {
+function DoneScreen({ name, agency, planResult, traineeId }) {
   const firstName = name ? name.split(' ')[0] : null
   const supportEmail = agency?.support_email || null
+
+  // Fetch the actual plan data so the athlete can SEE it. The trainee_id
+  // in the URL is the token — no auth needed (same model as /intake/:id).
+  const [plan, setPlan] = useState(null)
+  const [planLoading, setPlanLoading] = useState(true)
+  useEffect(() => {
+    if (!traineeId) { setPlanLoading(false); return }
+    let cancelled = false
+    fetch('/api/trainer/intake-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trainee_id: traineeId }),
+    })
+      .then((r) => r.json().catch(() => ({})))
+      .then((data) => {
+        if (cancelled) return
+        setPlan(data?.plan || null)
+        setPlanLoading(false)
+      })
+      .catch(() => {
+        if (!cancelled) setPlanLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [traineeId])
 
   // Medical-hold variant — baseline said no-go, so no workouts generated.
   const okToTrain = planResult?.ok_to_train !== false
@@ -1249,12 +1276,16 @@ function DoneScreen({ name, agency, planResult }) {
     )
   }
 
-  return (
-    <div style={{ minHeight: '100vh', background: BG, padding: '32px 20px' }}>
-      <div style={{ maxWidth: 560, margin: '0 auto' }}>
+  const baseline = plan?.baseline
+  const roadmap = plan?.roadmap
+  const workout = plan?.workout_plan
 
-        {/* Hero — big green check, concrete headline */}
-        <div style={{ textAlign: 'center', marginBottom: 22 }}>
+  return (
+    <div style={{ minHeight: '100vh', background: BG, padding: '28px 20px 48px' }}>
+      <div style={{ maxWidth: 680, margin: '0 auto' }}>
+
+        {/* Hero */}
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{ width: 56, height: 56, margin: '0 auto 14px', background: GRN + '18', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Check size={28} color={GRN} strokeWidth={3} />
           </div>
@@ -1262,56 +1293,191 @@ function DoneScreen({ name, agency, planResult }) {
             Your plan is built{firstName ? `, ${firstName}` : ''}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: '#4b5563', lineHeight: 1.55 }}>
-            Here&apos;s what we built for you:
+            Bookmark this page — your plan lives here.
           </p>
         </div>
 
-        {/* Preview cards — what got generated */}
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px', marginBottom: 14 }}>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {PLAN_PIECES.map((p) => {
-              const ready = planResult?.[p.key] !== false
-              return (
-                <div key={p.key} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 12,
-                  padding: '12px 14px', borderRadius: 10,
-                  border: `1px solid ${ready ? GRN + '40' : '#e5e7eb'}`,
-                  background: ready ? GRN + '08' : '#f9fafb',
-                }}>
-                  <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{p.icon}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 2 }}>{p.label}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.45 }}>{p.desc}</div>
-                  </div>
-                  <div style={{ flexShrink: 0, marginTop: 2 }}>
-                    {ready ? <Check size={16} color={GRN} strokeWidth={3} /> : <Circle size={16} color="#d1d5db" />}
-                  </div>
+        {/* Readiness strip — compact */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 18 }}>
+          {PLAN_PIECES.map((p) => {
+            const ready = planResult?.[p.key] !== false
+            return (
+              <div key={p.key} style={{
+                padding: '8px 6px', borderRadius: 8, textAlign: 'center',
+                background: ready ? GRN + '10' : '#f9fafb',
+                border: `1px solid ${ready ? GRN + '40' : '#e5e7eb'}`,
+              }}>
+                <div style={{ fontSize: 16, marginBottom: 2 }}>{ready ? '✓' : '·'}</div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: ready ? GRN : '#9ca3af', textTransform: 'uppercase', letterSpacing: '.04em' }}>{p.label}</div>
+              </div>
+            )
+          })}
+        </div>
+
+        {planLoading && (
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
+            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite', marginBottom: 6 }} /><br />
+            Loading your plan…
+            <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
+          </div>
+        )}
+
+        {!planLoading && baseline && <BaselineCard baseline={baseline} />}
+        {!planLoading && roadmap && <RoadmapCard roadmap={roadmap} />}
+        {!planLoading && workout && <WorkoutBlockCard workout={workout} />}
+
+        {/* Footer — bookmark + support */}
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px 18px', marginTop: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <span style={{ fontSize: 20, flexShrink: 0 }}>🔖</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 3 }}>Bookmark this page</div>
+              <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
+                This link is your plan — keep it handy. You can come back anytime to review your workouts, roadmap, and targets.
+              </div>
+              {supportEmail && (
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
+                  Questions? Email <a href={`mailto:${supportEmail}`} style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a>.
                 </div>
-              )
-            })}
+              )}
+            </div>
           </div>
         </section>
-
-        {/* Next steps */}
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-            What happens next
-          </div>
-          <ol style={{ margin: 0, paddingLeft: 20, color: '#374151', fontSize: 13, lineHeight: 1.7 }}>
-            <li>Your personalized plan is built and saved.</li>
-            <li>You&apos;ll get a link to log in and start training.</li>
-          </ol>
-          {supportEmail && (
-            <p style={{ margin: '12px 0 0', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
-              Questions in the meantime? Email <a href={`mailto:${supportEmail}`} style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a>.
-            </p>
-          )}
-        </section>
-
-        <p style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', margin: 0 }}>
-          You can close this window. Your answers are saved.
-        </p>
       </div>
     </div>
+  )
+}
+
+// ── Plan render helpers ─────────────────────────────────────────────────────
+
+function SectionHeader({ eyebrow, title }) {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ fontSize: 10, fontWeight: 800, color: T, letterSpacing: '.08em', textTransform: 'uppercase' }}>{eyebrow}</div>
+      <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: BLK, letterSpacing: '-.2px' }}>{title}</h2>
+    </div>
+  )
+}
+
+function BaselineCard({ baseline }) {
+  const kcal = baseline?.calorie_target_kcal
+  const macros = baseline?.macro_targets_g
+  const focus = Array.isArray(baseline?.top_3_focus_areas) ? baseline.top_3_focus_areas : []
+  const level = baseline?.starting_fitness_level
+  const note = baseline?.coach_summary
+  return (
+    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
+      <SectionHeader eyebrow="01 · Baseline" title="Your starting point" />
+      {note && (
+        <p style={{ margin: '0 0 14px', fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{note}</p>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 14 }}>
+        {level && <Stat label="Starting level" value={level.replace(/^\w/, (c) => c.toUpperCase())} />}
+        {typeof kcal === 'number' && <Stat label="Daily calories" value={`${kcal} kcal`} />}
+        {macros?.protein_g != null && <Stat label="Protein" value={`${macros.protein_g}g`} />}
+        {macros?.fat_g != null && <Stat label="Fat" value={`${macros.fat_g}g`} />}
+        {macros?.carb_g != null && <Stat label="Carbs" value={`${macros.carb_g}g`} />}
+      </div>
+      {focus.length > 0 && (
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+            Top 3 focus areas
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 20, color: '#374151', fontSize: 13, lineHeight: 1.6 }}>
+            {focus.map((f, i) => <li key={i}>{f}</li>)}
+          </ul>
+        </div>
+      )}
+    </section>
+  )
+}
+
+function Stat({ label, value }) {
+  return (
+    <div style={{ padding: '8px 10px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+      <div style={{ fontSize: 10, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: BLK, marginTop: 2 }}>{value}</div>
+    </div>
+  )
+}
+
+function RoadmapCard({ roadmap }) {
+  const phases = Array.isArray(roadmap?.phases) ? roadmap.phases : []
+  const intro = roadmap?.client_context_summary
+  const strategy = roadmap?.overall_strategy_note
+  return (
+    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
+      <SectionHeader eyebrow="02 · Roadmap" title="Your 90-day plan" />
+      {intro && <p style={{ margin: '0 0 10px', fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{intro}</p>}
+      {strategy && <p style={{ margin: '0 0 14px', fontSize: 13, color: '#4b5563', lineHeight: 1.6, fontStyle: 'italic' }}>{strategy}</p>}
+      <div style={{ display: 'grid', gap: 10 }}>
+        {phases.map((p, i) => (
+          <div key={i} style={{ border: '1px solid #e5e7eb', borderLeft: `4px solid ${T}`, borderRadius: 8, padding: '10px 12px', background: '#f9fafb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: BLK }}>{p.phase_name || `Phase ${p.phase_number}`}</div>
+              {p.days_range && <div style={{ fontSize: 11, color: '#6b7280' }}>Days {p.days_range.start}–{p.days_range.end}</div>}
+            </div>
+            {p.training_theme && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><strong>Training:</strong> {p.training_theme}</div>}
+            {p.nutrition_theme && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><strong>Nutrition:</strong> {p.nutrition_theme}</div>}
+            {Array.isArray(p.end_of_phase_milestones) && p.end_of_phase_milestones.length > 0 && (
+              <details style={{ marginTop: 6 }}>
+                <summary style={{ fontSize: 11, color: T, fontWeight: 700, cursor: 'pointer' }}>Milestones by end of phase</summary>
+                <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 12, color: '#4b5563', lineHeight: 1.5 }}>
+                  {p.end_of_phase_milestones.map((m, j) => <li key={j}>{m}</li>)}
+                </ul>
+              </details>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function WorkoutBlockCard({ workout }) {
+  const weeks = Array.isArray(workout?.weeks) ? workout.weeks : []
+  return (
+    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
+      <SectionHeader eyebrow="03 · Training" title={workout?.program_name || 'Your first 2 weeks'} />
+      {weeks.map((w) => (
+        <div key={w.week_number} style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+            Week {w.week_number}
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {(Array.isArray(w.sessions) ? w.sessions : []).map((s, i) => (
+              <details key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb' }}>
+                <summary style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', cursor: 'pointer', fontSize: 13, color: BLK, fontWeight: 700 }}>
+                  <span>{s.day_label} · {s.session_name}</span>
+                  <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>{s.estimated_duration_min} min</span>
+                </summary>
+                <div style={{ padding: '0 12px 12px', fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
+                  {Array.isArray(s.warmup) && s.warmup.length > 0 && (
+                    <div style={{ marginTop: 6 }}><strong>Warmup:</strong> {s.warmup.join(' · ')}</div>
+                  )}
+                  {Array.isArray(s.blocks) && s.blocks.map((b, bi) => (
+                    <div key={bi} style={{ marginTop: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.05em' }}>{b.block_type.replace('_', ' ')}</div>
+                      <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+                        {(Array.isArray(b.exercises) ? b.exercises : []).map((ex, ei) => (
+                          <li key={ei}>
+                            <strong>{ex.name}</strong>
+                            {ex.sets && ex.reps ? ` — ${ex.sets}×${ex.reps}` : ''}
+                            {ex.load ? ` @ ${ex.load}` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  {Array.isArray(s.cooldown) && s.cooldown.length > 0 && (
+                    <div style={{ marginTop: 8 }}><strong>Cooldown:</strong> {s.cooldown.join(' · ')}</div>
+                  )}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
   )
 }
