@@ -1265,32 +1265,32 @@ function GeneratingScreen({ progress }) {
 
   return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-      <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '28px 24px', maxWidth: 540, width: '100%' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <div style={{ width: 36, height: 36, flexShrink: 0, border: '3px solid #f3f4f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoSpin 0.9s linear infinite' }} />
+      <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '32px 28px', maxWidth: 620, width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22 }}>
+          <div style={{ width: 48, height: 48, flexShrink: 0, border: '4px solid #f3f4f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoSpin 0.9s linear infinite' }} />
           <style>{'@keyframes kotoSpin{to{transform:rotate(360deg)}}@keyframes kotoFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}'}</style>
           <div>
-            <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>4 AI passes · about a minute</p>
+            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
+            <p style={{ margin: '4px 0 0', fontSize: 15, color: '#6b7280' }}>4 AI passes · about a minute</p>
           </div>
         </div>
 
         {/* Phase progression tiles */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 26 }}>
           {PLAN_PHASES.map((p, i) => {
             const done = completed.includes(p.key)
             const active = !done && i === activePhase
             return (
               <div key={p.key} style={{
-                padding: '10px 8px', borderRadius: 8, textAlign: 'center',
+                padding: '14px 10px', borderRadius: 10, textAlign: 'center',
                 background: done ? GRN + '12' : active ? T + '10' : '#f9fafb',
                 border: `1px solid ${done ? GRN + '40' : active ? T + '40' : '#e5e7eb'}`,
                 transition: 'all 0.3s ease',
               }}>
-                <div style={{ fontSize: 16, marginBottom: 2 }}>
+                <div style={{ fontSize: 22, marginBottom: 4 }}>
                   {done ? '✓' : active ? '⏳' : '·'}
                 </div>
-                <div style={{ fontSize: 10, fontWeight: 800, color: done ? GRN : active ? T : '#9ca3af', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: done ? GRN : active ? T : '#9ca3af', letterSpacing: '.04em', textTransform: 'uppercase' }}>
                   {p.label}
                 </div>
               </div>
@@ -1301,19 +1301,19 @@ function GeneratingScreen({ progress }) {
         {/* Rotating trivia card */}
         <div key={statIdx} style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-          color: '#fff', borderRadius: 10, padding: '22px 22px', textAlign: 'left',
+          color: '#fff', borderRadius: 12, padding: '26px 26px', textAlign: 'left',
           animation: 'kotoFadeUp 0.45s ease',
         }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 14 }}>
             Did you know?
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-            <span style={{ fontSize: 32, flexShrink: 0, lineHeight: 1 }}>{stat.icon}</span>
-            <div style={{ fontSize: 17, lineHeight: 1.45, color: '#e2e8f0', fontWeight: 500 }}>{stat.text}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18 }}>
+            <span style={{ fontSize: 40, flexShrink: 0, lineHeight: 1 }}>{stat.icon}</span>
+            <div style={{ fontSize: 20, lineHeight: 1.45, color: '#e2e8f0', fontWeight: 500 }}>{stat.text}</div>
           </div>
         </div>
 
-        <div style={{ marginTop: 12, fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>
+        <div style={{ marginTop: 18, fontSize: 14, color: '#6b7280', textAlign: 'center', fontWeight: 600 }}>
           {elapsed}s elapsed · {PLAN_PHASES[activePhase].desc}
         </div>
       </section>
