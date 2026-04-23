@@ -1286,15 +1286,11 @@ const DIET_LABEL = { none: 'No preference', vegetarian: 'Vegetarian', vegan: 'Ve
 const OCC_LABEL = { sedentary: 'Sedentary', light: 'Light', moderate: 'Moderate', heavy: 'Heavy' }
 const HAND_LABEL = { R: 'Right', L: 'Left', S: 'Switch' }
 
-function cmToFtIn(cm) {
-  if (cm == null) return null
-  const totalIn = Math.round(cm / 2.54)
-  const ft = Math.floor(totalIn / 12)
-  const inches = totalIn - ft * 12
-  return `${ft}′${inches}″`
+function heightLabel(cm) {
+  return cm == null ? null : cmToFeetInches(cm)
 }
-function kgToLbs(kg) {
-  return kg == null ? null : `${Math.round(kg * 2.20462)} lbs`
+function weightLabel(kg) {
+  return kg == null ? null : `${kgToLbs(kg)} lbs`
 }
 function fmt(v, map) {
   if (v == null || v === '') return null
@@ -1314,9 +1310,9 @@ function FullIntakeProfile({ trainee }) {
         ['Name', trainee.full_name],
         ['Age', trainee.age != null ? `${trainee.age}` : null],
         ['Sex', fmt(trainee.sex, { M: 'Male', F: 'Female', Other: 'Other' })],
-        ['Height', cmToFtIn(trainee.height_cm)],
-        ['Weight', kgToLbs(trainee.current_weight_kg)],
-        ['Target weight', kgToLbs(trainee.target_weight_kg)],
+        ['Height', heightLabel(trainee.height_cm)],
+        ['Weight', weightLabel(trainee.current_weight_kg)],
+        ['Target weight', weightLabel(trainee.target_weight_kg)],
         ['Goal', fmt(trainee.primary_goal, GOAL_LABEL)],
       ],
     },
