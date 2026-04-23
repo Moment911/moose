@@ -6,19 +6,26 @@ export const revalidate = 900
 
 export async function GET(req: NextRequest) {
   const division = req.nextUrl.searchParams.get('division') || 'all'
+  const school = req.nextUrl.searchParams.get('school') || ''
 
-  const feeds = {
-    all: 'https://news.google.com/rss/search?q=college+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
-    d1: 'https://news.google.com/rss/search?q=NCAA+division+1+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
-    d2: 'https://news.google.com/rss/search?q=NCAA+division+2+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
-    d3: 'https://news.google.com/rss/search?q=NCAA+division+3+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
-    juco: 'https://news.google.com/rss/search?q=JUCO+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
-    transfer: 'https://news.google.com/rss/search?q=college+baseball+transfer+portal&hl=en-US&gl=US&ceid=US:en',
-    draft: 'https://news.google.com/rss/search?q=MLB+draft+college+baseball&hl=en-US&gl=US&ceid=US:en',
-    cws: 'https://news.google.com/rss/search?q=college+world+series+baseball&hl=en-US&gl=US&ceid=US:en',
+  // If a specific school is requested, build a school-specific feed URL
+  let feedUrl: string
+
+  if (school) {
+    feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(school)}+baseball+recruiting&hl=en-US&gl=US&ceid=US:en`
+  } else {
+    const feeds = {
+      all: 'https://news.google.com/rss/search?q=college+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
+      d1: 'https://news.google.com/rss/search?q=NCAA+division+1+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
+      d2: 'https://news.google.com/rss/search?q=NCAA+division+2+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
+      d3: 'https://news.google.com/rss/search?q=NCAA+division+3+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
+      juco: 'https://news.google.com/rss/search?q=JUCO+baseball+recruiting&hl=en-US&gl=US&ceid=US:en',
+      transfer: 'https://news.google.com/rss/search?q=college+baseball+transfer+portal&hl=en-US&gl=US&ceid=US:en',
+      draft: 'https://news.google.com/rss/search?q=MLB+draft+college+baseball&hl=en-US&gl=US&ceid=US:en',
+      cws: 'https://news.google.com/rss/search?q=college+world+series+baseball&hl=en-US&gl=US&ceid=US:en',
+    }
+    feedUrl = feeds[division as keyof typeof feeds] || feeds.all
   }
-
-  const feedUrl = feeds[division as keyof typeof feeds] || feeds.all
 
   try {
     const res = await fetch(feedUrl, { next: { revalidate: 900 } })
@@ -46,7 +53,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ articles: items, division, fetched_at: new Date().toISOString() })
+    return NextResponse.json({ articles: items, division, school: school || undefined, fetched_at: new Date().toISOString() })
   } catch (e) {
     return NextResponse.json({ articles: [], error: (e as Error).message }, { status: 500 })
   }

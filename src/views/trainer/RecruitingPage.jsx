@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Star, ChevronDown, Plus, Edit2, Trash2, Check, X, Loader2, ExternalLink, Mail, Phone, Globe, Save, Users, MapPin, Trophy, Building } from 'lucide-react'
+import { Search, Star, ChevronDown, Plus, Edit2, Trash2, Check, X, Loader2, ExternalLink, Mail, Phone, Globe, Save, Users, MapPin, Trophy, Building, Newspaper } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { useAuth } from '../../hooks/useAuth'
 import { GRN } from '../../lib/theme'
@@ -173,10 +173,33 @@ function scholarshipLabel(division) {
   return null
 }
 
+// Module-level cache so news is only fetched once per school per session.
+const _newsCache = {}
+
 function ProgramCard({ program: p, isExpanded, onToggle, editingCoach, setEditingCoach, addingCoach, setAddingCoach, onRefresh }) {
   const coaches = p.koto_recruiting_coaches || []
   const divColor = divisionColor(p.division)
   const [hovered, setHovered] = useState(false)
+
+  // Recent news for this school
+  const [news, setNews] = useState(null) // null = not loaded, [] = loaded empty
+  const [newsLoading, setNewsLoading] = useState(false)
+
+  useEffect(() => {
+    if (!isExpanded) return
+    if (_newsCache[p.school_name]) { setNews(_newsCache[p.school_name]); return }
+    if (news !== null) return // already fetched this mount
+    setNewsLoading(true)
+    fetch(`/api/trainer/news?school=${encodeURIComponent(p.school_name)}`)
+      .then(r => r.json())
+      .then(d => {
+        const articles = (d.articles || []).slice(0, 5)
+        _newsCache[p.school_name] = articles
+        setNews(articles)
+      })
+      .catch(() => setNews([]))
+      .finally(() => setNewsLoading(false))
+  }, [isExpanded, p.school_name]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Private notes — localStorage for now
   const notesKey = `recruiting_note_${p.id}`
@@ -369,6 +392,47 @@ function ProgramCard({ program: p, isExpanded, onToggle, editingCoach, setEditin
               <div>{p.facilities_notes}</div>
             </div>
           )}
+
+          {/* Recent News */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <Newspaper size={12} color={TEXT_MUTED} />
+              <h4 style={{ margin: 0, fontSize: 12, fontWeight: 800, color: TEXT_PRIMARY, textTransform: 'uppercase', letterSpacing: '.06em' }}>Recent News</h4>
+            </div>
+            {newsLoading ? (
+              <div style={{ fontSize: 12, color: TEXT_MUTED, display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
+                <Loader2 size={12} className="spin" /> Loading news...
+              </div>
+            ) : news && news.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {news.map((article, i) => (
+                  <a
+                    key={i}
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+                      gap: 12, padding: '8px 12px', background: '#f9fafb',
+                      border: `1px solid ${BORDER_LIGHT}`, borderRadius: 8,
+                      textDecoration: 'none', transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f0f1f3'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#f9fafb'}
+                  >
+                    <span style={{ fontSize: 13, color: BLUE, fontWeight: 500, lineHeight: 1.4, flex: 1, minWidth: 0 }}>
+                      {article.title}
+                    </span>
+                    <span style={{ fontSize: 11, color: TEXT_MUTED, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {article.source}{article.date ? ` \u00B7 ${new Date(article.date).toLocaleDateString()}` : ''}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            ) : news && news.length === 0 ? (
+              <div style={{ fontSize: 12, color: TEXT_MUTED, fontStyle: 'italic', padding: '4px 0' }}>No recent news found.</div>
+            ) : null}
+          </div>
 
           {/* Coaches */}
           <div style={{ marginTop: 4 }}>
