@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Layers, Loader2, Play, Download, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
-  AlertCircle, FileText,
+  AlertCircle, FileText, Lightbulb,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -261,13 +261,15 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
                 <tbody>
                   {urls.map((u, i) => (
                     <tr key={u.id || i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={{ padding: '8px', color: T, maxWidth: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '8px', wordBreak: 'break-all' }}>
                         <a href={u.url} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'none' }}>{u.url}</a>
                       </td>
                       <td style={{ padding: '8px', color: '#374151', whiteSpace: 'nowrap' }}>{u.lastmod ? new Date(u.lastmod).toLocaleDateString() : '—'}</td>
                       <td style={{ padding: '8px', textAlign: 'center', color: '#374151' }}>{u.priority ?? '—'}</td>
                       <td style={{ padding: '8px', textAlign: 'center', color: '#374151' }}>{u.changefreq || '—'}</td>
-                      <td style={{ padding: '8px', color: '#6b7280', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.source_sitemap || '—'}</td>
+                      <td style={{ padding: '8px', color: '#6b7280', wordBreak: 'break-all' }}>
+                        {u.source_sitemap ? <a href={u.source_sitemap} target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>{u.source_sitemap}</a> : '—'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -292,6 +294,32 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
           </>
         )}
       </div>
+
+      {/* Recommendations */}
+      {urls.length > 0 && (
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <Lightbulb size={16} color={AMB} />
+            <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Sitemap Recommendations</div>
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: '#374151', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {(() => {
+              const missingLastmod = urls.filter(u => !u.lastmod).length
+              if (missingLastmod > 0) return (
+                <li><strong>{missingLastmod} URL{missingLastmod > 1 ? 's' : ''} missing lastmod</strong> — add lastmod dates to help search engines prioritize fresh content</li>
+              )
+              return null
+            })()}
+            {total > 500 && (
+              <li><strong>Large sitemap ({total.toLocaleString()} URLs)</strong> — consider splitting into sub-sitemaps of 500 URLs each</li>
+            )}
+            {crawl?.errors?.length > 0 && (
+              <li><strong>{crawl.errors.length} URL{crawl.errors.length > 1 ? 's' : ''} may have issues</strong> — review and remove broken URLs from your sitemap</li>
+            )}
+            <li>Ensure your <code style={{ background: '#f3f4f6', padding: '1px 5px', borderRadius: 4, fontSize: 12 }}>sitemap.xml</code> is referenced in <code style={{ background: '#f3f4f6', padding: '1px 5px', borderRadius: 4, fontSize: 12 }}>robots.txt</code></li>
+          </ul>
+        </div>
+      )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>

@@ -59,6 +59,7 @@ export async function runBulkOperation(s: any, _ai: any, body: RunBody) {
       .from('clients')
       .select('id, name')
       .in('id', client_ids)
+      .eq('agency_id', agency_id)
       .is('deleted_at', null)
     clients = data || []
   } else {

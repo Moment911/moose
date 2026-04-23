@@ -31,12 +31,12 @@ export interface StrategicPlanBody {
 // Helper — pull all of the ingredients the planner needs
 // ─────────────────────────────────────────────────────────────
 // Safe query wrapper — returns { data: null } instead of crashing on missing tables
-async function safeQuery<T>(q: PromiseLike<{ data: T; error: any }>): Promise<{ data: T }> {
+async function safeQuery(q: PromiseLike<{ data: any; error: any }>): Promise<{ data: any }> {
   try {
     const { data, error } = await q
-    if (error) return { data: null as any }
+    if (error) return { data: null }
     return { data }
-  } catch { return { data: null as any } }
+  } catch { return { data: null } }
 }
 
 async function gatherStrategicInputs(s: SB, client_id: string) {

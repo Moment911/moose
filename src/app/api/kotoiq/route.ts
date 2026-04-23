@@ -3557,6 +3557,10 @@ Provide a detailed analysis. Return ONLY valid JSON:
   // ── On-Page SEO Analyzer ─────────────────────────────────────────────────
   if (action === 'analyze_on_page') {
     try {
+      // Normalize: frontend sends `keyword`, engine expects `target_keyword`
+      if (body.keyword && !body.target_keyword) body.target_keyword = body.keyword
+      // Normalize bare domains: add https:// if no protocol
+      if (body.url && !/^https?:\/\//i.test(body.url)) body.url = `https://${body.url}`
       const result = await analyzeOnPage(s, ai, body)
       return NextResponse.json({ success: true, ...result })
     } catch (e: any) {

@@ -10,6 +10,37 @@ import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
+const SCHEMA_DESCRIPTIONS = {
+  LocalBusiness: 'Tells search engines your business name, address, phone, and hours',
+  Organization: 'Defines your brand, logo, social profiles, and contact info',
+  WebSite: 'Enables sitelinks search box in Google results',
+  WebPage: 'Describes individual pages with title, description, and breadcrumbs',
+  Product: 'Shows price, availability, and reviews as rich snippets',
+  Service: 'Describes services offered with pricing and service area',
+  FAQPage: 'Displays expandable Q&A directly in search results',
+  HowTo: 'Shows step-by-step instructions with images in search results',
+  Article: 'Enables article rich results with author, date, and headline',
+  BlogPosting: 'Rich results for blog posts with author and publish date',
+  BreadcrumbList: 'Shows page hierarchy as clickable breadcrumbs in results',
+  Review: 'Displays star ratings and review snippets',
+  AggregateRating: 'Shows average star rating from multiple reviews',
+  Event: 'Shows event dates, location, and ticket info in search',
+  Person: 'Identifies people with their role, image, and social links',
+  VideoObject: 'Enables video thumbnails and key moments in search',
+  ImageObject: 'Provides image metadata for Google Images rich results',
+  ItemList: 'Displays lists as carousels or numbered items in search',
+  ContactPoint: 'Highlights customer service phone numbers and hours',
+  GeoCoordinates: 'Pins your exact location for maps and local search',
+  OpeningHoursSpecification: 'Shows business hours directly in search results',
+  PostalAddress: 'Standardizes your address for local SEO signals',
+  Offer: 'Displays pricing and availability for products or services',
+  SoftwareApplication: 'Shows app details with ratings and download info',
+  MedicalBusiness: 'Specialized markup for medical practices and clinics',
+  Attorney: 'Specialized markup for law firms and legal professionals',
+  Restaurant: 'Shows menu, cuisine type, and reservations in search',
+  RealEstateAgent: 'Specialized markup for real estate professionals',
+}
+
 function ScoreRing({ score, label, color, size = 64 }) {
   const radius = (size - 8) / 2
   const circumference = 2 * Math.PI * radius
@@ -135,10 +166,34 @@ export default function SchemaTab({ clientId, agencyId }) {
   const generated = audit.generated_schemas || []
   const semanticIssues = audit.semantic_issues || []
   const maxTypeCount = Math.max(...Object.values(schemaTypes).map(Number), 1)
+  const hasNoData = Object.keys(schemaTypes).length === 0 && eligible.length === 0 && schemaErrors.length === 0 && semanticIssues.length === 0
 
   return (
     <>
       <HowItWorks tool="schema" />
+
+      {/* Title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <Code size={22} color={T} />
+        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>Schema Markup Audit</div>
+      </div>
+
+      {/* Explanation card */}
+      <div style={{ ...card, background: T + '06', borderColor: T + '20' }}>
+        <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+          Schema markup helps search engines understand your content. Pages with proper schema get rich snippets in search results — stars, prices, FAQs, and more.
+        </div>
+      </div>
+
+      {/* No data hint */}
+      {hasNoData && (
+        <div style={{ ...card, textAlign: 'center', padding: '32px 24px', background: '#fffbeb', borderColor: AMB + '30' }}>
+          <AlertTriangle size={24} color={AMB} style={{ margin: '0 auto 10px' }} />
+          <div style={{ fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 6, fontFamily: FH }}>No schema data yet</div>
+          <div style={{ fontSize: 13, color: '#374151' }}>Run a sitemap crawl first to discover all pages, then run a deep enrich to populate schema data.</div>
+        </div>
+      )}
+
       {/* Header — score + stats */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 24 }}>
         <ScoreRing score={audit.overall_score || 0} label="Overall" color={audit.overall_score >= 70 ? GRN : audit.overall_score >= 40 ? AMB : R} size={80} />
@@ -162,13 +217,18 @@ export default function SchemaTab({ clientId, agencyId }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {Object.entries(schemaTypes).sort((a, b) => Number(b[1]) - Number(a[1])).map(([type, count]) => (
-              <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 140, fontSize: 13, fontWeight: 600, color: BLK, fontFamily: FB }}>{type}</div>
-                <div style={{ flex: 1, height: 20, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
-                  <div style={{ width: `${(Number(count) / maxTypeCount) * 100}%`, height: '100%', borderRadius: 4, background: T, transition: 'width .4s ease', display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', fontFamily: FH }}>{String(count)}</span>
+              <div key={type}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 140, fontSize: 13, fontWeight: 600, color: BLK, fontFamily: FB }}>{type}</div>
+                  <div style={{ flex: 1, height: 20, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
+                    <div style={{ width: `${(Number(count) / maxTypeCount) * 100}%`, height: '100%', borderRadius: 4, background: T, transition: 'width .4s ease', display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', fontFamily: FH }}>{String(count)}</span>
+                    </div>
                   </div>
                 </div>
+                {SCHEMA_DESCRIPTIONS[type] && (
+                  <div style={{ marginLeft: 152, fontSize: 11, color: '#6b7280', marginTop: 2 }}>{SCHEMA_DESCRIPTIONS[type]}</div>
+                )}
               </div>
             ))}
           </div>
@@ -232,7 +292,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <XCircle size={12} color={R} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{err.type}</span>
-                    <span style={{ fontSize: 12, color: '#1f2937' }}>{err.url.replace(/^https?:\/\/[^/]+/, '')}</span>
+                    <a href={err.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: T, textDecoration: 'none' }}>{err.url.replace(/^https?:\/\/[^/]+/, '')}</a>
                   </div>
                   {err.errors.map((e, j) => (
                     <div key={j} style={{ fontSize: 12, color: R, marginLeft: 20 }}>{e}</div>

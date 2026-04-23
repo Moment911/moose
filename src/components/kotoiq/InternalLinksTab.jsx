@@ -53,7 +53,7 @@ function StatBox({ label, value, icon: Icon, color }) {
   )
 }
 
-function IssueCard({ title, icon, color, items, renderItem, emptyMsg }) {
+function IssueCard({ title, icon, color, items, renderItem, emptyMsg, description }) {
   const [expanded, setExpanded] = useState(false)
   const shown = expanded ? items : items.slice(0, 5)
   return (
@@ -69,6 +69,9 @@ function IssueCard({ title, icon, color, items, renderItem, emptyMsg }) {
           {items.length > 0 ? items.length : 'None'}
         </span>
       </div>
+      {description && items.length > 0 && (
+        <div style={{ padding: '8px 18px 4px', fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{description}</div>
+      )}
       {items.length === 0 && (
         <div style={{ padding: '16px 18px', fontSize: 12, color: '#1f2937' }}>{emptyMsg || 'No issues found'}</div>
       )}
@@ -99,9 +102,11 @@ function EquityBar({ url, count, maxCount, isOverLinked, isStarved }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, color: '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: 'none', display: 'block' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+        >
           {shortUrl(url)}
-        </div>
+        </a>
       </div>
       <div style={{ width: 180, height: 14, background: '#f3f4f6', borderRadius: 7, overflow: 'hidden', flexShrink: 0 }}>
         <div style={{ height: '100%', width: `${Math.min(pct, 100)}%`, background: color, borderRadius: 7, transition: 'width 0.4s ease' }} />
@@ -218,9 +223,15 @@ export default function InternalLinksTab({ clientId, agencyId }) {
           <Link2 size={28} color={T} />
         </div>
         <h2 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Internal Link Intelligence</h2>
-        <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 24 }}>
-          Crawl your site to discover orphan pages, equity-starved content, duplicate anchors, and linking opportunities.
+        <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>
+          Run an internal link scan to analyze your site's link structure. This requires a sitemap crawl to be completed first.
         </p>
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '12px 16px', marginBottom: 24, textAlign: 'left' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0c4a6e', marginBottom: 4 }}>Why internal links matter</div>
+          <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.6, margin: 0 }}>
+            Internal links distribute page authority across your site and help search engines discover content. Pages with few inbound links are "orphaned" and may not rank.
+          </p>
+        </div>
         <button onClick={runScan} disabled={scanning} style={{
           padding: '12px 28px', borderRadius: 10, border: 'none', background: BLK, color: '#fff',
           fontFamily: FH, fontWeight: 700, fontSize: 13, cursor: scanning ? 'wait' : 'pointer',
@@ -237,6 +248,14 @@ export default function InternalLinksTab({ clientId, agencyId }) {
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto' }}>
       <HowItWorks tool="internal_links" />
+
+      {/* Explanation Card */}
+      <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#0c4a6e', marginBottom: 4 }}>Why internal links matter</div>
+        <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.6, margin: 0 }}>
+          Internal links distribute page authority across your site and help search engines discover content. Pages with few inbound links are "orphaned" and may not rank.
+        </p>
+      </div>
 
       {/* Score Header */}
       <div style={{
@@ -278,11 +297,14 @@ export default function InternalLinksTab({ clientId, agencyId }) {
           icon="🏝️"
           color={R}
           items={orphans}
+          description="These pages have zero or very few internal links pointing to them. Add links from related content pages to boost their authority."
           emptyMsg="All pages have at least one inbound internal link."
           renderItem={(url) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <XCircle size={11} color={R} />
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shortUrl(url)}</span>
+              <a href={url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+              >{shortUrl(url)}</a>
               <button onClick={() => getSuggestions(url)} title="Get link suggestions" style={{
                 border: 'none', background: 'none', cursor: 'pointer', padding: 2, color: T,
               }}>
@@ -296,12 +318,15 @@ export default function InternalLinksTab({ clientId, agencyId }) {
           icon="🥀"
           color={AMB}
           items={starved}
+          description="These pages have high potential but aren't receiving enough internal link equity. Link to them from your highest-authority pages."
           emptyMsg="No high-value pages are lacking internal links."
           renderItem={(item) => (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <AlertTriangle size={11} color={AMB} />
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>{shortUrl(item.url)}</span>
+                <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, color: '#374151', textDecoration: 'none' }}
+                  onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+                >{shortUrl(item.url)}</a>
                 <span style={{ fontSize: 12, color: '#1f2937', flexShrink: 0 }}>{item.inbound_links} inbound</span>
               </div>
               <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2, paddingLeft: 17 }}>
@@ -325,7 +350,11 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                 <span style={{ fontSize: 12, color: R, fontWeight: 700, flexShrink: 0 }}>{item.count} targets</span>
               </div>
               <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2, paddingLeft: 17 }}>
-                {item.targets?.slice(0, 3).map(t => shortUrl(t)).join(' | ')}
+                {item.targets?.slice(0, 3).map((t, ti) => (
+                  <span key={ti}>{ti > 0 && ' | '}<a href={t} target="_blank" rel="noopener noreferrer" style={{ color: '#374151', textDecoration: 'none' }}
+                    onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+                  >{shortUrl(t)}</a></span>
+                ))}
               </div>
             </div>
           )}
@@ -339,7 +368,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
           renderItem={(item) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <AlertTriangle size={11} color={R} />
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shortUrl(item.url)}</span>
+              <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+              >{shortUrl(item.url)}</a>
               <span style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: R }}>{item.link_count} links</span>
             </div>
           )}
@@ -406,7 +437,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                 {qualityNodes.map((node, i) => (
                   <tr key={i} style={{ borderTop: '1px solid #f3f4f6' }}>
                     <td style={{ padding: '8px 12px', fontWeight: 500, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {shortUrl(node.url)}
+                      <a href={node.url} target="_blank" rel="noopener noreferrer" style={{ color: '#374151', textDecoration: 'none' }}
+                        onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+                      >{shortUrl(node.url)}</a>
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, color: GRN }}>{fmtN(node.organic_clicks)}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, color: node.inbound_links < 3 ? R : BLK }}>{node.inbound_links}</td>
@@ -453,12 +486,12 @@ export default function InternalLinksTab({ clientId, agencyId }) {
             <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Pages missing breadcrumbs ({breadcrumbIssues.length}):</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               {breadcrumbIssues.slice(0, 15).map((url, i) => (
-                <span key={i} style={{
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer" style={{
                   fontSize: 12, padding: '3px 8px', borderRadius: 6, background: '#fef2f2',
-                  color: R, fontWeight: 500, border: '1px solid #fecaca',
+                  color: R, fontWeight: 500, border: '1px solid #fecaca', textDecoration: 'none',
                 }}>
                   {shortUrl(url)}
-                </span>
+                </a>
               ))}
               {breadcrumbIssues.length > 15 && (
                 <span style={{ fontSize: 12, padding: '3px 8px', color: '#1f2937' }}>+{breadcrumbIssues.length - 15} more</span>
@@ -526,7 +559,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                     <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <ArrowRight size={11} color={GRN} />
-                        <span style={{ fontWeight: 600 }}>{shortUrl(s.url)}</span>
+                        <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: '#374151', textDecoration: 'none' }}
+                          onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+                        >{shortUrl(s.url)}</a>
                         {s.suggested_anchor && <span style={{ fontSize: 12, color: '#0e7490', fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
                       </div>
                       {s.reason && <div style={{ fontSize: 12, color: '#1f2937', paddingLeft: 17, marginTop: 2 }}>{s.reason}</div>}
@@ -543,7 +578,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                     <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <ArrowRight size={11} color={T} style={{ transform: 'rotate(180deg)' }} />
-                        <span style={{ fontWeight: 600 }}>{shortUrl(s.url)}</span>
+                        <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: '#374151', textDecoration: 'none' }}
+                          onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+                        >{shortUrl(s.url)}</a>
                         {s.suggested_anchor && <span style={{ fontSize: 12, color: '#0e7490', fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
                       </div>
                       {s.reason && <div style={{ fontSize: 12, color: '#1f2937', paddingLeft: 17, marginTop: 2 }}>{s.reason}</div>}
