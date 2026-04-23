@@ -101,13 +101,26 @@ export async function POST(req: NextRequest) {
 
   const trainee = { ...traineeRow, ...valid.data, id: traineeId, agency_id: agencyId } as IntakeInput & { id: string; agency_id: string }
 
-  // Create plan row up front so we can emit plan_id in the start event.
+  // If the athlete has an existing plan, bump to the next block_number
+  // so the new generation supersedes (doesn't duplicate) block 1 in the
+  // UI. intake-plan orders block_number DESC, so the latest always wins.
+  // Keeping prior blocks preserves workout_logs history (FK cascade).
+  const { data: latestPlan } = await sb
+    .from('koto_fitness_plans')
+    .select('block_number')
+    .eq('trainee_id', traineeId)
+    .eq('agency_id', agencyId)
+    .order('block_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const nextBlockNumber = ((latestPlan as { block_number?: number } | null)?.block_number ?? 0) + 1
+
   const { data: planRow, error: planErr } = await sb
     .from('koto_fitness_plans')
     .insert({
       agency_id: agencyId,
       trainee_id: traineeId,
-      block_number: 1,
+      block_number: nextBlockNumber,
       generated_at: new Date().toISOString(),
     })
     .select('id')

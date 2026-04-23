@@ -388,7 +388,17 @@ export default function TraineeIntakePage() {
   if (phase === 'not_found') return <NotFoundScreen />
   if (phase === 'welcome') return <WelcomeScreen name={trainee?.full_name} onStart={(text, selectedServices) => { setInitialText(text); setServices(selectedServices); setPhase('chat') }} />
   if (phase === 'generating') return <GeneratingScreen progress={planProgress} />
-  if (phase === 'done') return <DoneScreen name={extracted.full_name || trainee?.full_name} agency={agency} planResult={planResult} traineeId={traineeId} />
+  if (phase === 'done') return (
+    <DoneScreen
+      name={extracted.full_name || trainee?.full_name}
+      agency={agency}
+      planResult={planResult}
+      traineeId={traineeId}
+      onEditProfile={() => setPhase('chat')}
+      onRegenerate={handleGenerate}
+      regenerating={false}
+    />
+  )
 
   // Compute overall progress once so the ribbon + sidebar agree on the number.
   const fieldDefs = getFieldDefs(services)
@@ -423,6 +433,7 @@ export default function TraineeIntakePage() {
           <TokenChatWidget
             traineeId={traineeId}
             extracted={extracted}
+            aboutYou={aboutYou}
             onFieldsUpdate={handleFieldsUpdate}
             onAboutYouAppend={handleAboutYouAppend}
             traineeName={trainee?.full_name || ''}
@@ -508,7 +519,7 @@ function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, gen
 
 // ── Token-based chat widget (uses trainee_id auth, not JWT) ─────────────────
 
-function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppend, traineeName, initialText, services }) {
+function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAboutYouAppend, traineeName, initialText, services }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -549,7 +560,15 @@ function TokenChatWidget({ traineeId, extracted, onFieldsUpdate, onAboutYouAppen
       const res = await fetch('/api/trainer/intake-chat-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trainee_id: traineeId, messages: turnMessages, extracted, services: services || ['training'] }),
+        body: JSON.stringify({
+          trainee_id: traineeId,
+          messages: turnMessages,
+          // Merge aboutYou into the fields payload so the server persists
+          // the welcome paragraph / running narrative on every turn, not
+          // just at Generate time. Protects against mid-chat abandonment.
+          extracted: aboutYou ? { ...extracted, about_you: aboutYou } : extracted,
+          services: services || ['training'],
+        }),
         signal: controller.signal,
       })
 
@@ -1309,7 +1328,7 @@ const PLAN_PIECES = [
   { key: 'playbook_ready', icon: '📘', label: 'Coaching playbook', desc: 'How your coach will work with you day to day' },
 ]
 
-function DoneScreen({ name, agency, planResult, traineeId }) {
+function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRegenerate }) {
   const firstName = name ? name.split(' ')[0] : null
   const supportEmail = agency?.support_email || null
 
@@ -1422,14 +1441,42 @@ function DoneScreen({ name, agency, planResult, traineeId }) {
         {!planLoading && roadmap && <RoadmapCard roadmap={roadmap} />}
         {!planLoading && workout && <WorkoutBlockCard workout={workout} />}
 
+        {/* Actions — edit profile, regenerate */}
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 16px', marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={onEditProfile}
+            style={{
+              flex: '1 1 200px', padding: '10px 16px',
+              background: '#fff', color: BLK,
+              border: '1px solid #d1d5db', borderRadius: 10,
+              fontSize: 13, fontWeight: 800, cursor: 'pointer',
+            }}
+          >
+            ✏️  Update my profile
+          </button>
+          <button
+            type="button"
+            onClick={onRegenerate}
+            style={{
+              flex: '1 1 200px', padding: '10px 16px',
+              background: R, color: '#fff',
+              border: 'none', borderRadius: 10,
+              fontSize: 13, fontWeight: 800, cursor: 'pointer',
+            }}
+          >
+            🔄  Regenerate my plan
+          </button>
+        </section>
+
         {/* Footer — bookmark + support */}
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px 18px', marginTop: 18 }}>
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px 18px', marginTop: 12 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <span style={{ fontSize: 20, flexShrink: 0 }}>🔖</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 3 }}>Bookmark this page</div>
               <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
-                This link is your plan — keep it handy. You can come back anytime to review your workouts, roadmap, and targets.
+                This link is your plan — keep it handy. You can come back anytime to update your profile or regenerate.
               </div>
               {supportEmail && (
                 <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
