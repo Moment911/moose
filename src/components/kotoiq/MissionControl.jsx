@@ -17,6 +17,15 @@ const STYLE_TAG = `
 @keyframes mc-fade-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 @keyframes mc-count { from{opacity:0;transform:scale(.5)} to{opacity:1;transform:scale(1)} }
 @keyframes mc-glow { 0%,100%{box-shadow:0 0 4px ${R}40} 50%{box-shadow:0 0 20px ${R}60} }
+@keyframes mc-ring-flash-1 { 0%{filter:drop-shadow(0 0 4px ${T}30)} 25%{filter:drop-shadow(0 0 18px ${T}90)} 50%{filter:drop-shadow(0 0 4px ${T}30)} 100%{filter:drop-shadow(0 0 4px ${T}30)} }
+@keyframes mc-ring-flash-2 { 0%{filter:drop-shadow(0 0 4px #8b5cf630)} 35%{filter:drop-shadow(0 0 18px #8b5cf690)} 60%{filter:drop-shadow(0 0 4px #8b5cf630)} 100%{filter:drop-shadow(0 0 4px #8b5cf630)} }
+@keyframes mc-ring-flash-3 { 0%{filter:drop-shadow(0 0 4px ${AMB}30)} 45%{filter:drop-shadow(0 0 18px ${AMB}90)} 70%{filter:drop-shadow(0 0 4px ${AMB}30)} 100%{filter:drop-shadow(0 0 4px ${AMB}30)} }
+@keyframes mc-ring-flash-4 { 0%{filter:drop-shadow(0 0 4px ${GRN}30)} 55%{filter:drop-shadow(0 0 18px ${GRN}90)} 80%{filter:drop-shadow(0 0 4px ${GRN}30)} 100%{filter:drop-shadow(0 0 4px ${GRN}30)} }
+@keyframes mc-ring-rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes mc-color-cycle-1 { 0%,100%{stroke:${T}} 33%{stroke:#6366f1} 66%{stroke:#06b6d4} }
+@keyframes mc-color-cycle-2 { 0%,100%{stroke:#8b5cf6} 33%{stroke:#ec4899} 66%{stroke:#6366f1} }
+@keyframes mc-color-cycle-3 { 0%,100%{stroke:${AMB}} 33%{stroke:#f97316} 66%{stroke:#eab308} }
+@keyframes mc-color-cycle-4 { 0%,100%{stroke:${GRN}} 33%{stroke:#06b6d4} 66%{stroke:#10b981} }
 `
 
 // ── Tool registry ──
@@ -298,42 +307,68 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
         </div>
 
         {/* ── 4 BIG SCORE RINGS ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: runningAll ? 20 : 0 }}>
+        {/* ── 4 BIG ANIMATED SCORE RINGS ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 20, marginBottom: runningAll ? 24 : 0 }}>
           {heroScores.map((hs, i) => {
             const Icon = hs.icon
             const isActive = hs.value > 0
-            const size = 100
-            const radius = (size - 10) / 2
+            const isScanning = runningAll && !isActive
+            const size = 130
+            const radius = (size - 12) / 2
             const circ = 2 * Math.PI * radius
+            const flashAnim = `mc-ring-flash-${i + 1} 3s ease infinite`
+            const colorCycle = `mc-color-cycle-${i + 1} 4s ease infinite`
             return (
-              <div key={i} style={{ textAlign: 'center', animation: `mc-fade-in .4s ease ${i * 100}ms both` }}>
-                <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 8px' }}>
-                  <svg width={size} height={size}>
-                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1e293b" strokeWidth={6} />
-                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={isActive ? hs.color : '#334155'} strokeWidth={6}
-                      strokeDasharray={circ} strokeDashoffset={circ * (1 - hs.value / 100)}
+              <div key={i} style={{ textAlign: 'center', animation: `mc-fade-in .5s ease ${i * 120}ms both` }}>
+                <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 10px' }}>
+                  {/* Outer spinning ring when scanning */}
+                  {isScanning && (
+                    <svg width={size} height={size} style={{ position: 'absolute', top: 0, left: 0, animation: 'mc-ring-rotate 3s linear infinite', opacity: 0.3 }}>
+                      <circle cx={size / 2} cy={size / 2} r={radius + 2} fill="none" stroke={hs.color} strokeWidth={2}
+                        strokeDasharray={`${circ * 0.15} ${circ * 0.85}`} strokeLinecap="round" />
+                    </svg>
+                  )}
+                  <svg width={size} height={size} style={{ animation: isActive ? flashAnim : 'none' }}>
+                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1e293b" strokeWidth={7} />
+                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none"
+                      stroke={isActive ? hs.color : '#334155'} strokeWidth={7}
+                      strokeDasharray={circ} strokeDashoffset={isScanning ? circ * 0.7 : circ * (1 - hs.value / 100)}
                       strokeLinecap="round" transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                      style={{ transition: 'stroke-dashoffset 1.5s ease', filter: isActive ? `drop-shadow(0 0 8px ${hs.color}60)` : 'none' }} />
+                      style={{
+                        transition: isScanning ? 'none' : 'stroke-dashoffset 2s ease',
+                        animation: isScanning ? `${colorCycle}, mc-ring-rotate 2.5s linear infinite` : 'none',
+                        transformOrigin: `${size / 2}px ${size / 2}px`,
+                      }} />
                   </svg>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     {isActive ? (
                       <AnimatedScore value={hs.value} color={hs.color} />
                     ) : (
-                      <Icon size={24} color="#475569" style={{ animation: runningAll ? 'mc-pulse 1.5s infinite' : 'none' }} />
+                      <Icon size={28} color={isScanning ? hs.color : '#475569'} style={{ animation: isScanning ? 'mc-pulse 1s infinite' : 'none', transition: 'color .5s' }} />
                     )}
                   </div>
                 </div>
-                <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: isActive ? '#e2e8f0' : '#64748b', textTransform: 'uppercase', letterSpacing: '.06em' }}>{hs.label}</div>
-                <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{isActive ? hs.sub : (runningAll ? 'Scanning...' : 'Awaiting scan')}</div>
+                <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: isActive ? '#e2e8f0' : '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em' }}>{hs.label}</div>
+                <div style={{ fontSize: 12, color: isActive ? '#94a3b8' : '#64748b', marginTop: 3 }}>
+                  {isActive ? hs.sub : (isScanning ? <span style={{ animation: 'mc-pulse 1.5s infinite' }}>Analyzing...</span> : 'Awaiting scan')}
+                </div>
               </div>
             )
           })}
         </div>
 
-        {/* Wave progress when running */}
+        {/* Wave progress + large white status text when running */}
         {runningAll && (
           <div>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+            {/* Large white status text */}
+            <div style={{ textAlign: 'center', marginBottom: 18 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#ffffff', fontFamily: FH, lineHeight: 1.6 }}>
+                {currentWave === 1 && 'Extracting keywords, scanning website, checking backlinks, auditing E-E-A-T, Brand SERP, GBP health...'}
+                {currentWave === 2 && 'Building topical map, scoring vs competitors, crawling internal links, building content inventory...'}
+                {currentWave === 3 && 'Computing authority score, generating 3-month strategic plan, analyzing query paths...'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
               {[1, 2, 3].map(w => (
                 <div key={w} style={{ flex: 1 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: currentWave >= w ? '#94a3b8' : '#475569', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.08em' }}>
@@ -346,12 +381,6 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
                   </div>
                 </div>
               ))}
-            </div>
-            <div style={{ fontSize: 12, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Loader2 size={12} style={{ animation: 'spin 1s linear infinite', color: R }} />
-              {currentWave === 1 && 'Extracting keywords, scanning website, checking backlinks, auditing E-E-A-T, Brand SERP, GBP health...'}
-              {currentWave === 2 && 'Building topical map, scoring vs competitors, crawling internal links, building content inventory...'}
-              {currentWave === 3 && 'Computing authority score, generating 3-month strategic plan, analyzing query paths...'}
             </div>
           </div>
         )}
