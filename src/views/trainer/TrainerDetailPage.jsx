@@ -1247,6 +1247,8 @@ function OverviewTab({
       </div>
 
       {/* ── Workload section ──────────────────────────────────────────── */}
+      <FullIntakeProfile trainee={trainee} />
+
       <WorkloadSection trainee={trainee} />
 
       {hasBaseline && !okToTrain && (
@@ -1266,6 +1268,220 @@ function OverviewTab({
         </section>
       )}
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FullIntakeProfile — single-pane surface of EVERY intake column on the
+// trainee row, grouped by section. Collapsible so it doesn't dominate the
+// Overview tab but is always one click away. Works as the "nothing is
+// lost" receipt for trainers — if an athlete answered it in chat, it
+// shows here, including optional measurables / recruiting fields even
+// when recruiting wasn't a selected service.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GOAL_LABEL = { lose_fat: 'Lose fat', gain_muscle: 'Gain muscle', maintain: 'Maintain', performance: 'Performance', recomp: 'Recomp' }
+const EQUIP_LABEL = { none: 'None', bands: 'Bands', home_gym: 'Home gym', full_gym: 'Full gym' }
+const DIET_LABEL = { none: 'No preference', vegetarian: 'Vegetarian', vegan: 'Vegan', pescatarian: 'Pescatarian', keto: 'Keto', paleo: 'Paleo', custom: 'Custom' }
+const OCC_LABEL = { sedentary: 'Sedentary', light: 'Light', moderate: 'Moderate', heavy: 'Heavy' }
+const HAND_LABEL = { R: 'Right', L: 'Left', S: 'Switch' }
+
+function cmToFtIn(cm) {
+  if (cm == null) return null
+  const totalIn = Math.round(cm / 2.54)
+  const ft = Math.floor(totalIn / 12)
+  const inches = totalIn - ft * 12
+  return `${ft}′${inches}″`
+}
+function kgToLbs(kg) {
+  return kg == null ? null : `${Math.round(kg * 2.20462)} lbs`
+}
+function fmt(v, map) {
+  if (v == null || v === '') return null
+  if (Array.isArray(v)) return v.length > 0 ? v.join(', ') : null
+  if (map && map[v]) return map[v]
+  return String(v)
+}
+
+function FullIntakeProfile({ trainee }) {
+  const [open, setOpen] = useState(true)
+  if (!trainee) return null
+
+  const sections = [
+    {
+      label: 'Basics',
+      rows: [
+        ['Name', trainee.full_name],
+        ['Age', trainee.age != null ? `${trainee.age}` : null],
+        ['Sex', fmt(trainee.sex, { M: 'Male', F: 'Female', Other: 'Other' })],
+        ['Height', cmToFtIn(trainee.height_cm)],
+        ['Weight', kgToLbs(trainee.current_weight_kg)],
+        ['Target weight', kgToLbs(trainee.target_weight_kg)],
+        ['Goal', fmt(trainee.primary_goal, GOAL_LABEL)],
+      ],
+    },
+    {
+      label: 'Training',
+      rows: [
+        ['Experience', trainee.training_experience_years != null ? `${trainee.training_experience_years} yrs` : null],
+        ['Days / week', trainee.training_days_per_week != null ? `${trainee.training_days_per_week}` : null],
+        ['Equipment', fmt(trainee.equipment_access, EQUIP_LABEL)],
+      ],
+    },
+    {
+      label: 'Health',
+      rows: [
+        ['Medical flags', trainee.medical_flags],
+        ['Injuries', trainee.injuries],
+        ['Allergies', trainee.allergies],
+      ],
+    },
+    {
+      label: 'Nutrition',
+      rows: [
+        ['Diet preference', fmt(trainee.dietary_preference, DIET_LABEL)],
+        ['Meals / day', trainee.meals_per_day != null ? `${trainee.meals_per_day}` : null],
+      ],
+    },
+    {
+      label: 'Lifestyle',
+      rows: [
+        ['Sleep', trainee.sleep_hours_avg != null ? `${trainee.sleep_hours_avg} hrs` : null],
+        ['Stress', trainee.stress_level != null ? `${trainee.stress_level}/10` : null],
+        ['Daytime activity', fmt(trainee.occupation_activity, OCC_LABEL)],
+      ],
+    },
+    {
+      label: 'Workload (baseball)',
+      rows: [
+        ['Club / travel team', trainee.club_team || trainee.travel_team],
+        ['Practices / week', trainee.practices_per_week != null ? `${trainee.practices_per_week}×` : null],
+        ['Bullpens / week', trainee.bullpen_sessions_per_week != null ? `${trainee.bullpen_sessions_per_week}×` : null],
+        ['Games / week', trainee.games_per_week != null ? `${trainee.games_per_week}×` : null],
+        ['Game appearances / week', trainee.game_appearances_per_week != null ? `${trainee.game_appearances_per_week}×` : null],
+        ['Avg pitch count', trainee.avg_pitch_count != null ? `${trainee.avg_pitch_count}` : null],
+        ['Pitch arsenal', trainee.pitch_arsenal],
+        ['Long toss routine', trainee.long_toss_routine],
+        ['Arm soreness', trainee.arm_soreness],
+        ['Off-season', trainee.offseason_training],
+        ['Other sports', trainee.other_sports],
+      ],
+    },
+    {
+      label: 'Recruiting',
+      rows: [
+        ['Grad year', trainee.grad_year != null ? `${trainee.grad_year}` : null],
+        ['Position', [trainee.position_primary, trainee.position_secondary].filter(Boolean).join(' / ') || null],
+        ['Throws', fmt(trainee.throwing_hand, HAND_LABEL)],
+        ['Bats', fmt(trainee.batting_hand, HAND_LABEL)],
+        ['High school', trainee.high_school],
+        ['HS state', trainee.high_school_state],
+        ['Preferred divisions', Array.isArray(trainee.preferred_divisions) ? trainee.preferred_divisions.join(', ') : trainee.preferred_divisions],
+        ['Preferred states', Array.isArray(trainee.preferred_states) ? trainee.preferred_states.join(', ') : trainee.preferred_states],
+        ['Intended major', trainee.intended_major],
+        ['Video link', trainee.video_link],
+      ],
+    },
+    {
+      label: 'Academics',
+      rows: [
+        ['GPA', trainee.gpa != null ? `${trainee.gpa}` : null],
+        ['Test', trainee.test_score ? `${trainee.test_type || ''} ${trainee.test_score}`.trim() : null],
+      ],
+    },
+    {
+      label: 'Measurables',
+      rows: [
+        ['FB velo peak', trainee.fastball_velo_peak != null ? `${trainee.fastball_velo_peak} mph` : null],
+        ['FB velo sit', trainee.fastball_velo_sit != null ? `${trainee.fastball_velo_sit} mph` : null],
+        ['Exit velo', trainee.exit_velo != null ? `${trainee.exit_velo} mph` : null],
+        ['60-yard dash', trainee.sixty_time != null ? `${trainee.sixty_time} s` : null],
+        ['Pop time', trainee.pop_time != null ? `${trainee.pop_time} s` : null],
+      ],
+    },
+  ]
+
+  // Count for the header badge.
+  const total = sections.reduce((acc, s) => acc + s.rows.length, 0)
+  const filled = sections.reduce((acc, s) => acc + s.rows.filter(([, v]) => v != null && v !== '').length, 0)
+
+  return (
+    <section style={panelStyle}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: 12, background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <div>
+          <h2 style={panelTitle}>Full intake profile</h2>
+          <p style={{ ...paraStyle, margin: '0' }}>
+            Every field the athlete shared — across chat intake, welcome paragraph, and manual edits.
+          </p>
+        </div>
+        <span style={{
+          flexShrink: 0,
+          padding: '4px 10px', background: '#f8fafc', border: `1px solid ${BRD}`,
+          borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#475569',
+        }}>
+          {filled} / {total} · {open ? 'Hide' : 'Show'}
+        </span>
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
+          {sections.map((sec) => {
+            const secFilled = sec.rows.filter(([, v]) => v != null && v !== '').length
+            return (
+              <div key={sec.label}>
+                <div style={{
+                  fontSize: 11.5, fontWeight: 700, color: '#0f172a', letterSpacing: '-.005em',
+                  textTransform: 'uppercase', marginBottom: 8,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                  <span>{sec.label}</span>
+                  <span style={{ color: '#94a3b8', fontWeight: 600, letterSpacing: 'normal', textTransform: 'none' }}>
+                    {secFilled}/{sec.rows.length}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {sec.rows.map(([label, value]) => {
+                    const isEmpty = value == null || value === ''
+                    const isLink = label === 'Video link' && typeof value === 'string' && /^https?:\/\//.test(value)
+                    return (
+                      <div key={label} style={{
+                        display: 'grid', gridTemplateColumns: '1fr auto',
+                        alignItems: 'baseline', gap: 10,
+                        padding: '6px 0',
+                        borderBottom: '1px solid #f1f5f9',
+                      }}>
+                        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>{label}</span>
+                        <span style={{
+                          fontSize: 14,
+                          fontWeight: isEmpty ? 500 : 600,
+                          color: isEmpty ? '#cbd5e1' : '#0f172a',
+                          textAlign: 'right',
+                          maxWidth: 180,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {isEmpty ? '—' : isLink ? (
+                            <a href={value} target="_blank" rel="noopener noreferrer" style={{ color: BLUE, textDecoration: 'none' }}>
+                              View <ExternalLink size={11} style={{ display: 'inline', verticalAlign: -1 }} />
+                            </a>
+                          ) : String(value)}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }
 
