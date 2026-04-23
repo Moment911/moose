@@ -1105,6 +1105,10 @@ export default function KotoIQPage() {
               agencyId={agencyId}
               clients={clients}
               onSwitchTab={setTab}
+              onEditClient={(c) => { setEditingClient(c); setClientForm({ name: c?.name || '', website: c?.website || '', primary_service: c?.primary_service || '', location: '' }); setShowClientModal(true) }}
+              onRunQuickScan={runQuickScan}
+              onRunDeepEnrich={runDeepEnrich}
+              onRunSync={runSync}
               syncing={syncing}
               enriching={enriching}
             />

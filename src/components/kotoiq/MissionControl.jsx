@@ -109,7 +109,7 @@ function AnimatedScore({ value, color }) {
   return <span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color, animation: 'mc-count .3s ease' }}>{display}</span>
 }
 
-export default function MissionControl({ clientId, agencyId, clients, onSwitchTab, syncing, enriching }) {
+export default function MissionControl({ clientId, agencyId, clients, onSwitchTab, onEditClient, onRunQuickScan, onRunDeepEnrich, onRunSync, syncing, enriching }) {
   const [statuses, setStatuses] = useState({})
   const [snippets, setSnippets] = useState({})
   const [collapsed, setCollapsed] = useState({})
@@ -287,14 +287,108 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
 
         {/* Wave progress indicator */}
         {runningAll && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-            {[1, 2, 3].map(w => (
-              <div key={w} style={{ flex: 1, height: 4, borderRadius: 4, background: currentWave > w ? GRN : currentWave === w ? R : '#334155', transition: 'background .5s', position: 'relative', overflow: 'hidden' }}>
-                {currentWave === w && <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, transparent, ${R}80, transparent)`, animation: 'mc-scan 1.5s linear infinite' }} />}
+          <div style={{ marginTop: 20 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {[1, 2, 3].map(w => (
+                <div key={w} style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: currentWave >= w ? '#94a3b8' : '#475569', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                    {['Scan & Discover', 'Map & Score', 'Strategize'][w - 1]}
+                  </div>
+                  <div style={{ height: 6, borderRadius: 6, background: '#1e293b', overflow: 'hidden' }}>
+                    <div style={{ width: currentWave > w ? '100%' : currentWave === w ? '60%' : '0%', height: '100%', background: currentWave > w ? GRN : `linear-gradient(90deg, ${R}, #be185d)`, borderRadius: 6, transition: 'width 1s ease', position: 'relative', overflow: 'hidden' }}>
+                      {currentWave === w && <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent)`, animation: 'mc-scan 1.5s linear infinite' }} />}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Live agent ticker */}
+            <div style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Loader2 size={10} style={{ animation: 'spin 1s linear infinite', color: R }} />
+              {currentWave === 1 && 'Extracting keywords, scanning website, checking backlinks, auditing E-E-A-T...'}
+              {currentWave === 2 && 'Building topical map, scoring competitors, crawling internal links...'}
+              {currentWave === 3 && 'Generating strategic plan, computing authority score, analyzing query paths...'}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Client Setup + Scan Types ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+        {/* Client info panel */}
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '22px 26px' }}>
+          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Settings size={15} color={T} /> Client Setup
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { label: 'Client Name', value: client?.name, ok: !!client?.name, required: true },
+              { label: 'Website URL', value: client?.website, ok: hasWebsite, required: true },
+              { label: 'Primary Service', value: client?.primary_service, ok: hasIndustry, required: false },
+              { label: 'Industry', value: client?.industry, ok: !!client?.industry, required: false },
+            ].map(f => (
+              <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {f.ok ? <CheckCircle size={14} color={GRN} /> : f.required ? <XCircle size={14} color={R} /> : <Clock size={14} color="#d1d5db" />}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>{f.label} {f.required && !f.ok && <span style={{ color: R }}>*required</span>}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: f.ok ? BLK : '#9ca3af' }}>{f.value || 'Not set'}</div>
+                </div>
               </div>
             ))}
           </div>
-        )}
+          {onEditClient && (
+            <button onClick={() => onEditClient(client)}
+              style={{ marginTop: 14, width: '100%', padding: '10px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: T, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <Settings size={12} /> Edit Client Info
+            </button>
+          )}
+        </div>
+
+        {/* Scan types */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Quick Scan card */}
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Zap size={20} color={R} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Quick Scan</div>
+              <div style={{ fontSize: 11, color: '#6b7280' }}>Keywords + competitors + Moz DA — needs <b style={{ color: hasWebsite ? GRN : R }}>website</b></div>
+            </div>
+            <button onClick={() => { if (!hasWebsite) { toast.error('Add website first'); return }; onRunQuickScan?.() }} disabled={syncing || !hasWebsite}
+              style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing || !hasWebsite ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+              {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : 'Run'}
+            </button>
+          </div>
+          {/* Deep Audit card */}
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: AMB + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Shield size={20} color={AMB} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Deep Audit</div>
+              <div style={{ fontSize: 11, color: '#6b7280' }}>11-point technical SEO — needs <b style={{ color: hasWebsite ? GRN : R }}>website</b></div>
+            </div>
+            <button onClick={() => onRunDeepEnrich?.()} disabled={enriching || !hasWebsite}
+              style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: AMB, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: enriching || !hasWebsite ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+              {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : 'Run'}
+            </button>
+          </div>
+          {/* Full Sync card */}
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <RefreshCw size={20} color={T} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Full Sync</div>
+              <div style={{ fontSize: 11, color: '#6b7280' }}>Real Google data — needs <b style={{ color: hasWebsite ? GRN : R }}>website</b> + <b style={{ color: false ? GRN : AMB }}>Google OAuth</b></div>
+            </div>
+            <button onClick={() => onRunSync?.()} disabled={syncing || !hasWebsite}
+              style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing || !hasWebsite ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+              {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : 'Run'}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Tool grid ── */}
