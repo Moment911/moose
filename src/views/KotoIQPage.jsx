@@ -1097,8 +1097,9 @@ export default function KotoIQPage() {
           {/* ── Scrollable Content ────────────────────────────────── */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
 
-          {/* ── LAUNCH PAD — shows when client has no data yet ─────────── */}
-          {clientId && !dashboard && tab === 'dashboard' && (() => {
+          {/* ── LAUNCH PAD — always shows on dashboard tab ── */}
+          {clientId && tab === 'dashboard' && !loading && (() => {
+            const hasData = dashboard && !dashboard.empty && dashboard.summary?.total_keywords > 0
             const c = clients.find(x => x.id === clientId)
             const hasWebsite = !!c?.website
             const hasIndustry = !!c?.primary_service
@@ -1163,6 +1164,29 @@ export default function KotoIQPage() {
               </div>
             )
 
+            // ── Compact re-run bar (when data exists) ──
+            if (hasData) return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 20 }}>
+                <Sparkles size={18} color={R} />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Re-run All Audits</span>
+                  <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>12 tools in 3 waves — ~$0.50</span>
+                </div>
+                <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Zap size={12} /> Quick Scan
+                </button>
+                <button onClick={runDeepEnrich} disabled={enriching || syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Shield size={12} /> Deep Audit
+                </button>
+                <button onClick={runAllAudits} disabled={syncing || enriching || !readyForAll}
+                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 800, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
+                  {syncing ? 'Running...' : 'Run All'}
+                </button>
+              </div>
+            )
+
+            // ── Full launch pad (no data yet) ──
             return (
               <div style={{ marginBottom: 24 }}>
                 {/* ── Run All Hero ─────────────────────────────────── */}
@@ -1187,7 +1211,6 @@ export default function KotoIQPage() {
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Optional (More Data)</div>
                       {fieldCheck(hasConnections, 'Google OAuth (Search Console, Ads, GA4)')}
-                      {fieldCheck(!!process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY, 'Google Places API Key')}
                     </div>
                   </div>
 
