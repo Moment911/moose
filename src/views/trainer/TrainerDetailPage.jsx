@@ -399,11 +399,19 @@ export default function TrainerDetailPage() {
   }
 
   // ── Generate dispatcher ────────────────────────────────────────────────────
+  // Auto-retries transient Anthropic failures (502 sonnet_error, 429 rate
+  // limit, 529 overloaded) once after a short backoff so a single blip
+  // doesn't land on the trainer. Any non-retryable error still surfaces.
   async function generate(step, body, onSuccess) {
     setPendingStep(step, true)
     setStepError(null)
+    const RETRY_STATUSES = new Set([502, 429, 529])
     try {
-      const res = await trainerGenerateFetch(body, { agencyId })
+      let res = await trainerGenerateFetch(body, { agencyId })
+      if (RETRY_STATUSES.has(res.status)) {
+        await new Promise((r) => setTimeout(r, 1500))
+        res = await trainerGenerateFetch(body, { agencyId })
+      }
       if (res.status === 401) {
         navigate('/login')
         return
@@ -413,7 +421,11 @@ export default function TrainerDetailPage() {
         return
       }
       if (res.status === 502) {
-        flashError('Plan generation failed (Sonnet). Retry in a moment or contact support.')
+        // Still 502 after retry. Surface the detail so support can diagnose
+        // quickly (rate limit vs schema error vs overloaded vs timeout).
+        const body502 = await res.json().catch(() => null)
+        const detail = body502?.detail || body502?.error || ''
+        flashError(`Plan generation failed after retry (Sonnet)${detail ? `: ${String(detail).slice(0, 180)}` : ''}. Try again in a minute.`)
         return
       }
       if (!res.ok) {
@@ -2183,26 +2195,40 @@ function RecruitingTab({ trainee }) {
   // Resolve from trainee row first, fall back to extracted data
   const g = (key) => trainee[key] ?? ext[key] ?? null
 
+  // Column names here MUST match the koto_fitness_trainees schema and the
+  // allowedFields list in /api/trainer/intake-chat-token — otherwise values
+  // the athlete typed in chat will silently fail to surface here.
+  // Handedness maps: DB stores R/L/S codes.
+  const handLabel = { R: 'Right', L: 'Left', S: 'Switch' }
+  const throws = g('throwing_hand')
+  const bats = g('batting_hand')
+  const primaryPos = g('position_primary')
+  const secondaryPos = g('position_secondary')
+  const position = primaryPos && secondaryPos ? `${primaryPos} / ${secondaryPos}` : primaryPos
+  const testType = g('test_type')
+  const testScore = g('test_score')
+
   const profileFields = [
     { label: 'Graduation year', value: g('grad_year') },
-    { label: 'Position', value: g('position') },
-    { label: 'Throws', value: g('throws') },
-    { label: 'Bats', value: g('bats') },
+    { label: 'Position', value: position },
+    { label: 'Throws', value: throws ? (handLabel[throws] || throws) : null },
+    { label: 'Bats', value: bats ? (handLabel[bats] || bats) : null },
     { label: 'GPA', value: g('gpa') },
-    { label: 'Test score', value: g('test_score') || g('sat_score') || g('act_score') },
+    { label: 'Test score', value: testScore ? (testType ? `${testType} ${testScore}` : testScore) : null },
     { label: 'High school', value: g('high_school') },
     { label: 'Travel / club team', value: g('travel_team') || g('club_team') },
-    { label: 'Video link', value: g('video_link') || g('video_url') },
+    { label: 'Video link', value: g('video_link') },
     { label: 'Preferred divisions', value: Array.isArray(g('preferred_divisions')) ? g('preferred_divisions').join(', ') : g('preferred_divisions') },
     { label: 'Preferred states', value: Array.isArray(g('preferred_states')) ? g('preferred_states').join(', ') : g('preferred_states') },
     { label: 'Intended major', value: g('intended_major') },
   ]
 
   const measurables = [
-    { label: 'FB velo peak', value: g('fb_velo_peak'), unit: 'mph' },
-    { label: 'FB velo sit', value: g('fb_velo_sit'), unit: 'mph' },
+    { label: 'FB velo peak', value: g('fastball_velo_peak'), unit: 'mph' },
+    { label: 'FB velo sit', value: g('fastball_velo_sit'), unit: 'mph' },
     { label: 'Exit velo', value: g('exit_velo'), unit: 'mph' },
-    { label: '60-yard time', value: g('sixty_time') || g('sixty_yard_time'), unit: 's' },
+    { label: '60-yard time', value: g('sixty_time'), unit: 's' },
+    { label: 'Pop time', value: g('pop_time'), unit: 's' },
   ]
 
   const hasProfile = profileFields.some((f) => f.value != null && f.value !== '')
