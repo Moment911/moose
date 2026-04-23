@@ -53,6 +53,7 @@ import WorkoutLogGrid from '../../components/trainer/WorkoutLogGrid'
 import TrainerTabs from '../../components/trainer/TrainerTabs'
 import TrainerStatusStrip from '../../components/trainer/TrainerStatusStrip'
 import TrainerToast from '../../components/trainer/TrainerToast'
+import CoachChatWidget from '../../components/trainer/CoachChatWidget'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — /trainer/:traineeId full plan view.
@@ -923,6 +924,7 @@ export default function TrainerDetailPage() {
       )}
 
       <TrainerToast message={stepError} onClose={() => setStepError(null)} />
+      <CoachChatWidget traineeId={traineeId} traineeName={trainee?.full_name} />
     </TrainerPortalShell>
   )
 }

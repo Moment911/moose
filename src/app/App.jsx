@@ -470,6 +470,7 @@ function AppRoutes() {
           <Route path="/trainer/propath" element={<ProPathPage />} />
           <Route path="/trainer/benchmarks" element={<BenchmarksPage />} />
           <Route path="/trainer/scholarships" element={<ScholarshipsPage />} />
+          <Route path="/trainer/guide" element={<RecruitingGuidePage />} />
           <Route path="/trainer/:traineeId" element={<TrainerDetailPage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/kotoiq/pixels" element={<PixelTrackingPage />} />

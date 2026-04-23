@@ -111,6 +111,7 @@ export default function TrainerPortalShell({ children }) {
             <NavItem to="/trainer/recruiting" icon={Target} label="Programs" badge="549" />
             <NavItem to="/trainer/propath" icon={BarChart2} label="ProPath Score" />
             <NavItem to="/trainer/outreach" icon={Mail} label="Outreach" />
+            <NavItem to="/trainer/guide" icon={BookOpen} label="Recruiting Guide" />
             <NavItem to="/trainer/timeline" icon={Clock} label="Timeline" />
           </div>
 
