@@ -21,6 +21,7 @@ import {
   UserCheck,
   ExternalLink,
   Activity,
+  Trash2,
 } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { FeatureDisabledPanel } from './TrainerListPage'
@@ -275,6 +276,23 @@ export default function TrainerDetailPage() {
         return
       }
       await loadTrainee()
+    } finally {
+      setActionPending(false)
+    }
+  }
+
+  async function handleDeleteTrainee() {
+    const label = trainee?.full_name || 'this athlete'
+    if (!window.confirm(`Delete ${label} permanently? This wipes their plan, workout logs, and intake data and can't be undone.`)) return
+    setActionPending(true)
+    try {
+      const res = await trainerFetch({ action: 'delete', trainee_id: traineeId }, { agencyId })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        flashError(body?.error || `Delete failed (${res.status})`)
+        return
+      }
+      navigate('/trainer')
     } finally {
       setActionPending(false)
     }
@@ -778,6 +796,7 @@ export default function TrainerDetailPage() {
               actionPending={actionPending}
               onArchive={() => callTraineeAction('archive')}
               onUnarchive={() => callTraineeAction('unarchive')}
+              onDelete={handleDeleteTrainee}
               inviteStatus={inviteStatus}
               invitePending={invitePending}
               onSendInvite={handleSendInvite}
@@ -890,7 +909,7 @@ export default function TrainerDetailPage() {
 
 // ── Sticky header ────────────────────────────────────────────────────────────
 
-function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, inviteStatus, invitePending, onSendInvite, doneMap, pendingKey }) {
+function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete, inviteStatus, invitePending, onSendInvite, doneMap, pendingKey }) {
   const status = inviteStatus?.status || 'pending'
   const canInvite = !!trainee.email && !trainee.archived_at
   const inviteLabel = ({
@@ -974,6 +993,20 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, inviteSt
               <Archive size={14} /> Archive
             </button>
           )}
+          <button
+            onClick={onDelete}
+            disabled={actionPending}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '7px 13px', fontSize: 13, fontWeight: 600,
+              cursor: actionPending ? 'not-allowed' : 'pointer',
+              background: '#fff', color: '#dc2626',
+              border: '1px solid #fecaca', borderRadius: 8,
+            }}
+            title="Permanently delete this athlete + their plan + workout logs"
+          >
+            <Trash2 size={14} /> Delete
+          </button>
         </div>
       </div>
 

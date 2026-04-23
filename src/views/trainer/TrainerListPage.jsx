@@ -1,7 +1,7 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Loader2, Archive, Users, ClipboardList, Clock, Database } from 'lucide-react'
+import { Plus, Loader2, Archive, Users, ClipboardList, Clock, Database, Trash2, Undo2 } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { useAuth } from '../../hooks/useAuth'
@@ -39,6 +39,12 @@ const STATUS_LABELS = {
   archived: 'Archived',
 }
 
+const iconBtnStyle = {
+  width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+  color: '#6b7280', cursor: 'pointer', padding: 0, flexShrink: 0,
+}
+
 export default function TrainerListPage() {
   const navigate = useNavigate()
   const { agencyId } = useAuth()
@@ -48,38 +54,51 @@ export default function TrainerListPage() {
   const [showArchived, setShowArchived] = useState(false)
   const [featureDisabled, setFeatureDisabled] = useState(false)
   const [hoveredId, setHoveredId] = useState(null)
+  const [actionPending, setActionPending] = useState(null) // trainee_id currently being archived/deleted
 
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await trainerFetch({ action: 'list', archived: showArchived }, { agencyId })
-        if (cancelled) return
-        if (res.status === 404) {
-          setFeatureDisabled(true)
-          setTrainees([])
-          return
-        }
-        if (!res.ok) {
-          setError(`Failed to load athletes (${res.status})`)
-          setTrainees([])
-          return
-        }
-        const data = await res.json()
-        setTrainees(data.trainees || [])
-      } catch (e) {
-        if (!cancelled) setError(e.message || 'Network error')
-      } finally {
-        if (!cancelled) setLoading(false)
+  const loadTrainees = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await trainerFetch({ action: 'list', archived: showArchived }, { agencyId })
+      if (res.status === 404) {
+        setFeatureDisabled(true)
+        setTrainees([])
+        return
       }
-    }
-    load()
-    return () => {
-      cancelled = true
+      if (!res.ok) {
+        setError(`Failed to load athletes (${res.status})`)
+        setTrainees([])
+        return
+      }
+      const data = await res.json()
+      setTrainees(data.trainees || [])
+    } catch (e) {
+      setError(e.message || 'Network error')
+    } finally {
+      setLoading(false)
     }
   }, [showArchived, agencyId])
+
+  useEffect(() => { loadTrainees() }, [loadTrainees])
+
+  async function handleRowAction(traineeId, action, confirmMsg) {
+    if (confirmMsg && !window.confirm(confirmMsg)) return
+    setActionPending(traineeId)
+    try {
+      const res = await trainerFetch({ action, trainee_id: traineeId }, { agencyId })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        alert(body?.error || `Failed (${res.status})`)
+        return
+      }
+      await loadTrainees()
+    } catch (e) {
+      alert(e.message || 'Network error')
+    } finally {
+      setActionPending(null)
+    }
+  }
 
   const totalAthletes = trainees.length
   const activePlans = trainees.filter((t) => t.status === 'plan_generated').length
@@ -257,7 +276,7 @@ export default function TrainerListPage() {
               {/* Column headers */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: '2fr 1fr 80px 1fr 120px',
+                gridTemplateColumns: '2fr 1fr 80px 1fr 120px 88px',
                 padding: '0 20px',
                 fontSize: 11,
                 fontWeight: 700,
@@ -270,10 +289,13 @@ export default function TrainerListPage() {
                 <span>Age</span>
                 <span>Added</span>
                 <span style={{ textAlign: 'right' }}>Status</span>
+                <span></span>
               </div>
 
               {trainees.map((t) => {
                 const isHovered = hoveredId === t.id
+                const isArchived = !!t.archived_at
+                const pending = actionPending === t.id
                 return (
                   <div
                     key={t.id}
@@ -282,7 +304,7 @@ export default function TrainerListPage() {
                     onMouseLeave={() => setHoveredId(null)}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '2fr 1fr 80px 1fr 120px',
+                      gridTemplateColumns: '2fr 1fr 80px 1fr 120px 88px',
                       alignItems: 'center',
                       padding: '16px 20px',
                       background: WHITE,
@@ -294,6 +316,7 @@ export default function TrainerListPage() {
                         ? '0 4px 12px rgba(0,0,0,0.08)'
                         : '0 1px 2px rgba(0,0,0,0.03)',
                       transform: isHovered ? 'translateY(-1px)' : 'none',
+                      opacity: pending ? 0.5 : 1,
                     }}
                   >
                     {/* Name */}
@@ -330,6 +353,46 @@ export default function TrainerListPage() {
                     {/* Status */}
                     <div style={{ textAlign: 'right' }}>
                       <StatusPill status={t.status} />
+                    </div>
+
+                    {/* Actions — archive/unarchive + delete, shown on hover */}
+                    <div
+                      style={{
+                        display: 'flex', justifyContent: 'flex-end', gap: 4,
+                        opacity: isHovered ? 1 : 0,
+                        transition: 'opacity .15s ease',
+                      }}
+                    >
+                      {isArchived ? (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleRowAction(t.id, 'unarchive') }}
+                          disabled={pending}
+                          title="Unarchive"
+                          style={iconBtnStyle}
+                        >
+                          <Undo2 size={15} />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleRowAction(t.id, 'archive') }}
+                          disabled={pending}
+                          title="Archive"
+                          style={iconBtnStyle}
+                        >
+                          <Archive size={15} />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleRowAction(t.id, 'delete', `Delete ${t.full_name} permanently? This wipes their plan, workout logs, and intake data and can't be undone.`) }}
+                        disabled={pending}
+                        title="Delete permanently"
+                        style={{ ...iconBtnStyle, color: '#dc2626', borderColor: '#fecaca' }}
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </div>
                 )

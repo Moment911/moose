@@ -47,6 +47,7 @@ const ALLOWED_ACTIONS = [
   'update',
   'archive',
   'unarchive',
+  'delete',
 ] as const
 
 type Action = (typeof ALLOWED_ACTIONS)[number]
@@ -127,6 +128,7 @@ export async function POST(req: NextRequest) {
     if (action === 'update') return await handleUpdate(sb, agencyId, body)
     if (action === 'archive') return await handleArchive(sb, agencyId, body)
     if (action === 'unarchive') return await handleUnarchive(sb, agencyId, body)
+    if (action === 'delete') return await handleDelete(sb, agencyId, body)
     // Exhaustiveness — TS narrows action; this is unreachable
     return err(400, 'Unknown action')
   } catch (e) {
@@ -298,5 +300,51 @@ async function handleUnarchive(
     return err(500, 'Unarchive failed')
   }
   if (!data) return err(404, 'Not found')
+  return NextResponse.json({ ok: true })
+}
+
+// Hard delete — cascades plans + workout_logs (FK ON DELETE CASCADE) and
+// explicitly removes the trainee_user mapping + any invite tokens that
+// tie this row to an auth user. Agency-scoped every step — a trainer
+// from a different agency cannot delete rows they don't own.
+async function handleDelete(
+  sb: SupabaseClient,
+  agencyId: string,
+  body: Record<string, unknown>,
+) {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+
+  // Verify the trainee belongs to this agency before any delete runs.
+  const { data: existing, error: lookupErr } = await sb
+    .from('koto_fitness_trainees')
+    .select('id')
+    .eq('id', traineeId)
+    .eq('agency_id', agencyId)
+    .maybeSingle()
+  if (lookupErr) {
+    console.error('[trainer/trainees] delete lookup error:', lookupErr.message)
+    return err(500, 'Delete lookup failed')
+  }
+  if (!existing) return err(404, 'Not found')
+
+  // Best-effort: remove the auth mapping row so any existing session is
+  // orphaned (the trainee can no longer sign into /my-plan). FK cascade
+  // from koto_fitness_plans handles the plan + workout_logs cleanup.
+  await sb
+    .from('koto_fitness_trainee_users')
+    .delete()
+    .eq('trainee_id', traineeId)
+    .eq('agency_id', agencyId)
+
+  const { error: delErr } = await sb
+    .from('koto_fitness_trainees')
+    .delete()
+    .eq('id', traineeId)
+    .eq('agency_id', agencyId)
+  if (delErr) {
+    console.error('[trainer/trainees] delete error:', delErr.message)
+    return err(500, 'Delete failed')
+  }
   return NextResponse.json({ ok: true })
 }
