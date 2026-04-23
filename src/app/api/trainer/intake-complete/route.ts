@@ -217,6 +217,12 @@ export async function POST(req: NextRequest) {
           errors.push(`roadmap:${e instanceof Error ? e.message : String(e)}`)
         }
       }
+      // Persist IMMEDIATELY so if the stream dies later (e.g. playbook
+      // timeout), the athlete can still see the roadmap on refresh.
+      await sb
+        .from('koto_fitness_plans')
+        .update({ roadmap: progress.roadmap ?? null })
+        .eq('id', planId)
       emit({ type: 'phase_complete', phase: 'roadmap' })
 
       // Workout (phase 1)
@@ -237,9 +243,28 @@ export async function POST(req: NextRequest) {
           errors.push(`workout:${e instanceof Error ? e.message : String(e)}`)
         }
       }
+      // Persist workout immediately. If playbook later fails, the athlete
+      // already has a usable plan (baseline + roadmap + 2-week block).
+      await sb
+        .from('koto_fitness_plans')
+        .update({
+          workout_plan: progress.workout ?? null,
+          phase_ref: progress.workout ? 1 : null,
+        })
+        .eq('id', planId)
+      // Flip trainee status as soon as a usable workout exists, not after
+      // playbook — the athlete can start training without the playbook.
+      if (progress.workout) {
+        await sb
+          .from('koto_fitness_trainees')
+          .update({ status: 'plan_generated' })
+          .eq('id', traineeId)
+      }
       emit({ type: 'phase_complete', phase: 'workout' })
 
-      // Playbook
+      // Playbook — last and longest (maxTokens 16000). If this call
+      // hangs / times out, baseline + roadmap + workout have already
+      // been persisted above, so the athlete still has a usable plan.
       if (progress.baseline && progress.roadmap) {
         try {
           const { systemPrompt, userMessage } = buildPlaybookPrompt({ intake: trainee, baseline: progress.baseline, roadmap: progress.roadmap })
@@ -258,26 +283,12 @@ export async function POST(req: NextRequest) {
           errors.push(`playbook:${e instanceof Error ? e.message : String(e)}`)
         }
       }
-      emit({ type: 'phase_complete', phase: 'playbook' })
-
-      // Persist remaining plan pieces + flip trainee status on success.
+      // Persist playbook immediately too.
       await sb
         .from('koto_fitness_plans')
-        .update({
-          baseline: progress.baseline ?? null,
-          roadmap: progress.roadmap ?? null,
-          workout_plan: progress.workout ?? null,
-          playbook: progress.playbook ?? null,
-          phase_ref: progress.workout ? 1 : null,
-        })
+        .update({ playbook: progress.playbook ?? null })
         .eq('id', planId)
-
-      if (progress.workout) {
-        await sb
-          .from('koto_fitness_trainees')
-          .update({ status: 'plan_generated' })
-          .eq('id', traineeId)
-      }
+      emit({ type: 'phase_complete', phase: 'playbook' })
 
       emit({
         type: 'done',

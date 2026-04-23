@@ -285,13 +285,46 @@ export default function TraineeIntakePage() {
           // 'heartbeat' and 'start' events only keep the connection alive — no UI update.
         }
       }
+      // If the stream died without a 'done' event (e.g. gateway closed
+      // during the long playbook pass), the server may still have
+      // persisted whatever phases finished. Poll intake-plan and salvage.
+      async function recoverPartialPlan() {
+        try {
+          await new Promise((r) => setTimeout(r, 2500))
+          const res2 = await fetch('/api/trainer/intake-plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trainee_id: traineeId }),
+          })
+          const body = await res2.json().catch(() => ({}))
+          const plan = body?.plan
+          // Need at least a baseline — anything less isn't usable.
+          if (plan?.baseline) {
+            setPlanResult({
+              baseline_ready: !!plan.baseline,
+              roadmap_ready: !!plan.roadmap,
+              workout_ready: !!plan.workout_plan,
+              playbook_ready: !!plan.playbook,
+              ok_to_train: plan.baseline?.training_readiness?.ok_to_train,
+            })
+            setPhase('done')
+            return true
+          }
+        } catch {
+          // fall through to error
+        }
+        return false
+      }
+
       if (streamError) {
+        if (await recoverPartialPlan()) return
         setGenerateError(streamError)
         setPhase('chat')
         return
       }
       if (!finalBody) {
-        setGenerateError('Plan generation ended without a result')
+        if (await recoverPartialPlan()) return
+        setGenerateError('Plan generation stalled — please try again. Your answers are saved.')
         setPhase('chat')
         return
       }
@@ -1118,6 +1151,26 @@ const BASEBALL_TRIVIA = [
   { icon: '🏟', text: 'D2 and JUCO are the largest growing segments of college baseball recruiting.' },
   { icon: '🧢', text: 'Switch hitters represent ~12% of MLB starters and ~7% of college starters.' },
   { icon: '📊', text: 'Barrel rate — hard contact at the right launch angle — correlates more with success than exit velo alone.' },
+  { icon: '🎣', text: 'Curveball spin rates above 2800 rpm consistently grade out plus at the D1 level.' },
+  { icon: '🔥', text: 'The average MLB fastball today sits at 94.2 mph — up from 91.6 mph in 2008.' },
+  { icon: '🧤', text: 'First-step quickness matters more than top speed for middle infielders. Roughly 90% of plays close in under 2 seconds.' },
+  { icon: '⚡', text: 'Pitchers who finish strongly into their front hip generate 15-20% more rotational power.' },
+  { icon: '🥜', text: 'For a 15-year-old training hard, 1 g protein per pound of bodyweight is the recovery gold standard.' },
+  { icon: '🛌', text: 'Every extra hour of sleep correlates with ~0.6% better athletic reaction time in teen athletes (Stanford study).' },
+  { icon: '🦵', text: 'Jump rope for 10 min = roughly a 10-min mile, with zero wasted impact on the knees.' },
+  { icon: '🍌', text: 'Pre-workout carbs within 60 min of training boost sprint output by up to 7%.' },
+  { icon: '🔁', text: 'Consistent sleep/wake times matter more than total hours for next-day performance.' },
+  { icon: '🧊', text: 'Post-game cold exposure can cut perceived soreness by ~20% in high-volume weeks.' },
+  { icon: '🎢', text: 'Most college arms log 8-12% velocity swings between cold starts and late-inning adrenaline.' },
+  { icon: '🧱', text: 'The deadlift at 1.5x bodyweight correlates strongly with pitching velo gains in teen athletes.' },
+  { icon: '📡', text: 'MLB teams now track "attack angle" on swings — the closer to +10°, the more extra-base contact.' },
+  { icon: '🗓', text: 'Top recruiters watch you in FALL of your junior year. The summer before is when commitments accelerate.' },
+  { icon: '🔬', text: 'Force-plate data shows peak power output happens between ages 16-22 for most athletes.' },
+  { icon: '🏆', text: 'The CWS (College World Series) has been contested 77+ times — only 14 programs have ever won it.' },
+  { icon: '🌎', text: 'Over 35% of MLB rosters were born outside the US — pipelines like the Dominican Republic shape the sport.' },
+  { icon: '🏋', text: 'Trap bar deadlifts produce 9% more peak power than conventional for most athletes — safer for teenagers too.' },
+  { icon: '🧯', text: 'Arm soreness lasting over 72 hours after an outing is a yellow flag — check mechanics, volume, sleep.' },
+  { icon: '⏳', text: 'Bone density for throwing athletes peaks at age 20-24 — the training you do NOW sets your ceiling.' },
 ]
 
 const PLAN_PHASES = [
@@ -1186,15 +1239,15 @@ function GeneratingScreen({ progress }) {
         {/* Rotating trivia card */}
         <div key={statIdx} style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-          color: '#fff', borderRadius: 10, padding: '16px 18px', textAlign: 'left',
+          color: '#fff', borderRadius: 10, padding: '22px 22px', textAlign: 'left',
           animation: 'kotoFadeUp 0.45s ease',
         }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 6 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 10 }}>
             Did you know?
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <span style={{ fontSize: 22, flexShrink: 0 }}>{stat.icon}</span>
-            <div style={{ fontSize: 13, lineHeight: 1.5, color: '#e2e8f0' }}>{stat.text}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+            <span style={{ fontSize: 32, flexShrink: 0, lineHeight: 1 }}>{stat.icon}</span>
+            <div style={{ fontSize: 17, lineHeight: 1.45, color: '#e2e8f0', fontWeight: 500 }}>{stat.text}</div>
           </div>
         </div>
 
