@@ -286,8 +286,8 @@ function TravelTab({ otr }) {
               <div style={{ fontSize: 13, color: BLK, fontWeight: 600, letterSpacing: '-.005em' }}>{name}</div>
               {(kcal != null || protein != null) && (
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {kcal != null && <MacroChip label="kcal" value={kcal} color="#0f172a" />}
-                  {protein != null && <MacroChip label="P" value={`${protein}g`} color="#2563eb" />}
+                  {kcal != null && <MacroChip label="Calories" value={kcal} color="#0f172a" />}
+                  {protein != null && <MacroChip label="Protein" value={`${protein}g`} color="#2563eb" />}
                 </div>
               )}
             </div>
@@ -308,8 +308,8 @@ function TravelTab({ otr }) {
             </div>
             {(b.kcal_est != null || b.protein_g_est != null) && (
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flexShrink: 0 }}>
-                {b.kcal_est != null && <MacroChip label="kcal" value={b.kcal_est} color="#0f172a" />}
-                {b.protein_g_est != null && <MacroChip label="P" value={`${b.protein_g_est}g`} color="#2563eb" />}
+                {b.kcal_est != null && <MacroChip label="Calories" value={b.kcal_est} color="#0f172a" />}
+                {b.protein_g_est != null && <MacroChip label="Protein" value={`${b.protein_g_est}g`} color="#2563eb" />}
               </div>
             )}
           </div>
@@ -690,9 +690,9 @@ function MealOptionGrid({ items }) {
           </div>
           <div style={{ fontSize: 12.5, color: GRY, lineHeight: 1.55, marginBottom: 10 }}>{m.description}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
-            {m.protein_g_est != null && <MacroChip label="P" value={`${m.protein_g_est}g`} color="#2563eb" />}
-            {m.carb_g_est != null && <MacroChip label="C" value={`${m.carb_g_est}g`} color="#059669" />}
-            {m.fat_g_est != null && <MacroChip label="F" value={`${m.fat_g_est}g`} color="#d97706" />}
+            {m.protein_g_est != null && <MacroChip label="Protein" value={`${m.protein_g_est}g`} color="#2563eb" />}
+            {m.carb_g_est != null && <MacroChip label="Carbs" value={`${m.carb_g_est}g`} color="#059669" />}
+            {m.fat_g_est != null && <MacroChip label="Fat" value={`${m.fat_g_est}g`} color="#d97706" />}
           </div>
           <div style={{ fontSize: 11, color: GRY5 }}>{m.prep_time_min} min prep</div>
         </div>

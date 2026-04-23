@@ -1444,6 +1444,9 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
         {/* Today's nutrition tracker — photo log + running totals vs. target. */}
         <NutritionToday traineeId={traineeId} />
 
+        {/* Sleep tracker — one entry per night, 14-day trend. */}
+        <SleepTracker traineeId={traineeId} />
+
         {/* Actions — edit profile, regenerate */}
         <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 16px', marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
@@ -1852,4 +1855,175 @@ function fileToBase64(file) {
     reader.onerror = () => reject(new Error('Could not read file'))
     reader.readAsDataURL(file)
   })
+}
+
+// ── Sleep tracker (Phase C) ─────────────────────────────────────────────────
+// Minimum-viable sleep log: hours slept + quality 1-10. Upsert per night
+// (UNIQUE(trainee_id, sleep_date)). 14-day trailing chart + an honest
+// "performance impact" note tied to hours.
+
+function SleepTracker({ traineeId }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [hours, setHours] = useState('')
+  const [quality, setQuality] = useState('')
+  const [error, setError] = useState(null)
+
+  const reload = useCallback(async () => {
+    try {
+      const res = await fetch('/api/trainer/sleep-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'latest', trainee_id: traineeId }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setData(body)
+        if (body.latest && body.latest.sleep_date === new Date().toISOString().slice(0, 10)) {
+          setHours(String(body.latest.hours_slept))
+          setQuality(body.latest.quality_1_10 ? String(body.latest.quality_1_10) : '')
+        }
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [traineeId])
+
+  useEffect(() => { if (traineeId) reload() }, [traineeId, reload])
+
+  async function handleSave() {
+    const h = Number(hours)
+    if (!Number.isFinite(h) || h <= 0 || h > 24) { setError('Enter hours between 0 and 24.'); return }
+    setSaving(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/trainer/sleep-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'upsert',
+          trainee_id: traineeId,
+          sleep_date: new Date().toISOString().slice(0, 10),
+          hours_slept: h,
+          quality_1_10: quality ? Number(quality) : undefined,
+        }),
+      })
+      if (!res.ok) throw new Error('Save failed')
+      await reload()
+    } catch (e) {
+      setError(e.message || 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading || !data) return null
+
+  const logs = data.logs || []
+  const latest = data.latest
+
+  // 14-day trailing chart
+  const byDate = new Map(logs.map((l) => [l.sleep_date, l.hours_slept]))
+  const days = []
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10)
+    days.push({ date: d, hours: Number(byDate.get(d) || 0) })
+  }
+  const recorded = days.filter((d) => d.hours > 0)
+  const avg = recorded.length > 0 ? recorded.reduce((a, d) => a + d.hours, 0) / recorded.length : 0
+  const debtNights = days.filter((d) => d.hours > 0 && d.hours < 7).length
+
+  return (
+    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginTop: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase' }}>Sleep</div>
+          <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: BLK, letterSpacing: '-.2px' }}>Last night + 14-day trend</h2>
+        </div>
+        {recorded.length > 0 && (
+          <div style={{ fontSize: 12, color: '#6b7280' }}>
+            Avg {avg.toFixed(1)} hrs · {debtNights} night{debtNights !== 1 ? 's' : ''} under 7
+          </div>
+        )}
+      </div>
+
+      {/* Log form */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', margin: '14px 0 10px' }}>
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>
+          Hours slept
+          <input
+            type="number" step="0.5" min="0" max="24"
+            value={hours}
+            onChange={(e) => { setHours(e.target.value); setError(null) }}
+            placeholder="7.5"
+            style={{ marginLeft: 8, padding: '8px 10px', fontSize: 14, border: '1px solid #d1d5db', borderRadius: 8, width: 80, fontFamily: 'inherit' }}
+          />
+        </label>
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>
+          Quality
+          <select
+            value={quality}
+            onChange={(e) => setQuality(e.target.value)}
+            style={{ marginLeft: 8, padding: '8px 10px', fontSize: 14, border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', fontFamily: 'inherit' }}
+          >
+            <option value="">—</option>
+            {[1,2,3,4,5,6,7,8,9,10].map((q) => <option key={q} value={q}>{q}/10</option>)}
+          </select>
+        </label>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving || !hours}
+          style={{
+            padding: '9px 16px', background: saving || !hours ? '#e5e7eb' : '#0f172a',
+            color: saving || !hours ? '#9ca3af' : '#fff',
+            border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
+            cursor: saving || !hours ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {saving ? 'Saving…' : latest && latest.sleep_date === new Date().toISOString().slice(0, 10) ? 'Update tonight' : 'Log last night'}
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ marginBottom: 10, padding: '6px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>
+          {error}
+        </div>
+      )}
+
+      {/* 14-day bars */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(14, 1fr)', gap: 3, alignItems: 'end', height: 90, position: 'relative', marginBottom: 8 }}>
+        {/* 7-hour target reference line */}
+        <div aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: `${(7 / 12) * 100}%`, borderTop: '1px dashed #94a3b8', pointerEvents: 'none' }} />
+        {days.map((d) => {
+          const h = d.hours
+          const pct = Math.min(100, (h / 12) * 100)
+          const color = h === 0 ? '#e5e7eb' : h < 6 ? '#dc2626' : h < 7 ? '#d97706' : h >= 9 ? '#2563eb' : '#059669'
+          return (
+            <div key={d.date} title={`${d.date}: ${h ? h + ' hrs' : 'no entry'}`} style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
+              <div style={{ width: '100%', height: `${pct}%`, background: color, borderRadius: 2, transition: 'height .3s' }} />
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#94a3b8', fontWeight: 600, marginBottom: 14 }}>
+        <span>14 days ago</span>
+        <span style={{ color: '#94a3b8' }}>--- 7 hr target</span>
+        <span>Today</span>
+      </div>
+
+      {/* Performance note — honest, not preachy */}
+      {recorded.length >= 3 && (
+        <div style={{ padding: '10px 12px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, color: '#475569', lineHeight: 1.55 }}>
+          <strong style={{ color: '#0f172a' }}>Performance note:</strong>{' '}
+          {debtNights >= 3
+            ? `${debtNights} nights under 7 hrs in the last 14. Expect a measurable drop in reaction time + velo during training this week.`
+            : avg >= 8
+            ? `Averaging ${avg.toFixed(1)} hrs — you're in the recovery sweet spot. Growth hormone + CNS recovery both peak at 8-9 hrs.`
+            : `Averaging ${avg.toFixed(1)} hrs. Consistent > total — same bedtime every night matters more than hitting 8 sometimes.`}
+        </div>
+      )}
+    </section>
+  )
 }

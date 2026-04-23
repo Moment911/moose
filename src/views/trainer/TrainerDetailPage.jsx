@@ -862,6 +862,7 @@ export default function TrainerDetailPage() {
 
             {activeTab === 'nutrition' && (
               <NutritionTab
+                trainee={trainee}
                 plan={plan}
                 hasWorkout={hasWorkout}
                 hasPrefs={hasPrefs}
@@ -2218,6 +2219,7 @@ function PlanTab({
 // ── Nutrition tab ────────────────────────────────────────────────────────────
 
 function NutritionTab({
+  trainee,
   plan,
   hasWorkout,
   hasPrefs,
@@ -2228,18 +2230,27 @@ function NutritionTab({
   onGenerateMeals,
   onGotoTab,
 }) {
+  // Live athlete adherence — shows above the meal plan so coaches see
+  // what the athlete actually ate today before reviewing what they were
+  // supposed to eat.
+  const liveTracker = trainee ? <CoachNutritionTracker traineeId={trainee.id} /> : null
+
   if (!hasWorkout) {
     return (
-      <EmptyHint
-        title="Workout required first"
-        desc="Generate the workout block in Plan before collecting food preferences — meal targets read from the workout plan."
-        onGoto={() => onGotoTab('plan')}
-        ctaLabel="Open Plan tab"
-      />
+      <>
+        {liveTracker}
+        <EmptyHint
+          title="Workout required first"
+          desc="Generate the workout block in Plan before collecting food preferences — meal targets read from the workout plan."
+          onGoto={() => onGotoTab('plan')}
+          ctaLabel="Open Plan tab"
+        />
+      </>
     )
   }
   return (
     <div>
+      {liveTracker}
       {!hasPrefs && (
         <section style={panelStyle}>
           <h2 style={panelTitle}>Food preferences</h2>
@@ -2396,6 +2407,228 @@ function ProgressTab({
         </div>
       </section>
     </div>
+  )
+}
+
+// ── Coach-side nutrition tracker (read-only view of athlete adherence) ──────
+// Reuses /api/trainer/food-log (trainee_id is the token — no session
+// required because the agency scoping was verified when loading the
+// trainee row above). Shows today's totals + 7-day kcal bars.
+
+function CoachNutritionTracker({ traineeId }) {
+  const [today, setToday] = useState(null)
+  const [week, setWeek] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [scanError, setScanError] = useState(null)
+  const fileInputRef = useRef(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [todayRes, rangeRes] = await Promise.all([
+        fetch('/api/trainer/food-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'list_today', trainee_id: traineeId }),
+        }),
+        fetch('/api/trainer/food-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'list_range',
+            trainee_id: traineeId,
+            from: new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10),
+            to: new Date().toISOString().slice(0, 10),
+          }),
+        }),
+      ])
+      if (todayRes.ok) setToday(await todayRes.json())
+      if (rangeRes.ok) setWeek((await rangeRes.json()).logs || [])
+    } finally {
+      setLoading(false)
+    }
+  }, [traineeId])
+
+  useEffect(() => { if (traineeId) load() }, [traineeId, load])
+
+  async function handleFile(file) {
+    if (!file) return
+    if (!file.type.startsWith('image/')) { setScanError('Pick an image file.'); return }
+    setUploading(true); setScanError(null)
+    try {
+      const reader = new FileReader()
+      const base64 = await new Promise((resolve, reject) => {
+        reader.onload = () => {
+          const s = String(reader.result || '')
+          const i = s.indexOf(',')
+          resolve(i >= 0 ? s.slice(i + 1) : s)
+        }
+        reader.onerror = () => reject(new Error('Could not read file'))
+        reader.readAsDataURL(file)
+      })
+      const res = await fetch('/api/trainer/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'scan_photo', trainee_id: traineeId, photo_base64: base64, photo_mime: file.type }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.detail || body?.error || `Scan failed (${res.status})`)
+      }
+      await load()
+    } catch (e) {
+      setScanError(e.message || 'Scan failed')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  if (loading) return null
+  if (!today) return null
+
+  const totals = today.totals || {}
+  const targets = today.targets || {}
+  const logs = today.logs || []
+
+  // Group week by date so we can bar-chart daily kcal totals.
+  const byDate = new Map()
+  for (const row of week) {
+    const d = row.log_date
+    byDate.set(d, (byDate.get(d) || 0) + (row.total_kcal || 0))
+  }
+  const days = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10)
+    days.push({ date: d, kcal: byDate.get(d) || 0 })
+  }
+  const maxKcal = Math.max(...days.map((d) => d.kcal), targets.kcal || 1)
+  const kcalTarget = typeof targets.kcal === 'number' ? targets.kcal : null
+
+  return (
+    <section style={panelStyle}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
+        <div>
+          <h2 style={panelTitle}>Athlete adherence — today</h2>
+          <p style={{ ...paraStyle, margin: 0 }}>Live food log. Snap a photo on the athlete&apos;s behalf if they forgot.</p>
+        </div>
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={(e) => handleFile(e.target.files?.[0])}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            style={{
+              padding: '9px 14px',
+              background: uploading ? '#94a3b8' : '#0f172a', color: '#fff',
+              border: 'none', borderRadius: 8,
+              fontSize: 13, fontWeight: 600, cursor: uploading ? 'wait' : 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            {uploading ? 'Scanning…' : '📸 Log a photo'}
+          </button>
+        </div>
+      </div>
+      {scanError && (
+        <div style={{ marginTop: 6, marginBottom: 6, padding: '8px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>
+          {scanError}
+        </div>
+      )}
+
+      {/* Today's 4 bars */}
+      <div style={{ display: 'grid', gap: 10, marginBottom: 18 }}>
+        {[
+          { label: 'Calories', total: totals.kcal || 0, target: targets.kcal, unit: 'kcal', color: '#0f172a' },
+          { label: 'Protein', total: totals.protein_g || 0, target: targets.protein_g, unit: 'g', color: '#2563eb' },
+          { label: 'Carbs', total: totals.carb_g || 0, target: targets.carb_g, unit: 'g', color: '#059669' },
+          { label: 'Fat', total: totals.fat_g || 0, target: targets.fat_g, unit: 'g', color: '#d97706' },
+        ].map((m) => {
+          const hasTarget = typeof m.target === 'number' && m.target > 0
+          const pct = hasTarget ? Math.min(100, Math.round((m.total / m.target) * 100)) : 0
+          return (
+            <div key={m.label}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
+                <span style={{ fontWeight: 700, color: '#0f172a' }}>{m.label}</span>
+                <span style={{ color: '#475569', fontWeight: 600 }}>
+                  <strong style={{ color: '#0f172a' }}>{Math.round(m.total)}</strong>{hasTarget ? ` / ${m.target}` : ''} {m.unit}
+                </span>
+              </div>
+              <div style={{ height: 8, background: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ width: `${pct}%`, height: '100%', background: m.color, borderRadius: 999, transition: 'width .3s' }} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 7-day kcal bars */}
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>
+        Last 7 days · calories
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, alignItems: 'end', height: 90, marginBottom: 18, position: 'relative' }}>
+        {kcalTarget && (
+          <div
+            aria-hidden
+            title={`Target: ${kcalTarget} kcal/day`}
+            style={{
+              position: 'absolute', left: 0, right: 0,
+              bottom: `${(kcalTarget / maxKcal) * 100}%`,
+              borderTop: '1px dashed #94a3b8',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+        {days.map((d) => {
+          const pct = maxKcal > 0 ? (d.kcal / maxKcal) * 100 : 0
+          const dateLabel = new Date(d.date + 'T00:00:00').toLocaleDateString([], { weekday: 'short' })[0]
+          return (
+            <div key={d.date} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%' }}>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', width: '100%' }}>
+                <div title={`${d.date}: ${d.kcal} kcal`}
+                  style={{ width: '100%', height: `${pct}%`, background: d.kcal > 0 ? '#0f172a' : '#e5e7eb', borderRadius: 4, transition: 'height .3s' }}
+                />
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>{dateLabel}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Today's entries list */}
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>
+        Today&apos;s entries ({logs.length})
+      </div>
+      {logs.length === 0 ? (
+        <div style={{ padding: 12, fontSize: 13, color: '#94a3b8', background: '#f8fafc', border: '1px dashed #e5e7eb', borderRadius: 8, textAlign: 'center' }}>
+          Nothing logged yet today.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {logs.map((log) => {
+            const items = Array.isArray(log.items) ? log.items : []
+            const time = log.logged_at ? new Date(log.logged_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''
+            return (
+              <div key={log.id} style={{ padding: '8px 10px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}>
+                <div style={{ color: '#475569', marginBottom: 4 }}>
+                  {time} · {log.source === 'photo' ? '📸' : '✍️'} · {log.total_kcal} kcal · {log.total_protein_g}g P
+                </div>
+                <div style={{ color: '#0f172a' }}>
+                  {items.map((it) => it.name).join(' · ')}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }
 

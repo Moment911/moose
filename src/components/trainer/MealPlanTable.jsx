@@ -44,10 +44,10 @@ export default function MealPlanTable({ mealPlan }) {
           </div>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          <Badge icon={<Flame size={12} />} label="kcal" value={mealPlan.calorie_daily_target_kcal} />
-          <Badge label="P" value={macros.protein_g} unit="g" />
-          <Badge label="F" value={macros.fat_g} unit="g" />
-          <Badge label="C" value={macros.carb_g} unit="g" />
+          <Badge icon={<Flame size={12} />} label="Calories" value={mealPlan.calorie_daily_target_kcal} />
+          <Badge label="Protein" value={macros.protein_g} unit="g" />
+          <Badge label="Fat" value={macros.fat_g} unit="g" />
+          <Badge label="Carbs" value={macros.carb_g} unit="g" />
         </div>
       </header>
 
@@ -154,39 +154,63 @@ function MealDetail({ meal, onClose }) {
   const macros = meal.macros_per_serving || meal.macros || {}
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
       style={{
-        marginTop: 16,
-        padding: 16,
-        background: '#fafbfd',
-        border: `1px solid ${BRD}`,
-        borderRadius: 10,
+        position: 'fixed', inset: 0, zIndex: 60,
+        background: 'rgba(15, 23, 42, 0.55)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 20, animation: 'kotoFade .15s ease',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: 16, color: BLK, fontWeight: 800 }}>
-            {meal.recipe_name || meal.name}
-          </h3>
-          <div style={{ color: GRY5, fontSize: 12, marginTop: 4 }}>
-            Prep {meal.prep_minutes ?? 0} min · Cook {meal.cook_minutes ?? 0} min
-            {meal.servings ? ` · ${meal.servings} servings` : ''}
+      <style>{'@keyframes kotoFade{from{opacity:0}to{opacity:1}}'}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: '#fff',
+          border: `1px solid ${BRD}`,
+          borderRadius: 14,
+          padding: '22px 24px',
+          maxWidth: 560, width: '100%',
+          maxHeight: 'calc(100vh - 40px)', overflowY: 'auto',
+          boxShadow: '0 20px 50px rgba(15, 23, 42, 0.25)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 10 }}>
+          <div style={{ minWidth: 0 }}>
+            <h3 style={{ margin: 0, fontSize: 20, color: BLK, fontWeight: 800, letterSpacing: '-.015em', lineHeight: 1.2 }}>
+              {meal.recipe_name || meal.name}
+            </h3>
+            <div style={{ color: GRY5, fontSize: 13, marginTop: 6 }}>
+              Prep {meal.prep_minutes ?? 0} min · Cook {meal.cook_minutes ?? 0} min
+              {meal.servings ? ` · ${meal.servings} servings` : ''}
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              flexShrink: 0,
+              width: 32, height: 32,
+              background: '#f8fafc', border: `1px solid ${BRD}`, borderRadius: 8,
+              cursor: 'pointer', color: GRY7,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, fontWeight: 700, lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: GRY5, fontSize: 12, fontWeight: 700 }}
-        >
-          Close
-        </button>
-      </div>
 
-      <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-        {meal.kcal && <MiniBadge label="kcal" value={meal.kcal} />}
-        {macros.protein_g && <MiniBadge label="P" value={`${macros.protein_g}g`} />}
-        {macros.fat_g && <MiniBadge label="F" value={`${macros.fat_g}g`} />}
-        {macros.carb_g && <MiniBadge label="C" value={`${macros.carb_g}g`} />}
-      </div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+          {meal.kcal && <MiniBadge label="Calories" value={meal.kcal} color="#0f172a" />}
+          {macros.protein_g && <MiniBadge label="Protein" value={`${macros.protein_g}g`} color="#2563eb" />}
+          {macros.carb_g && <MiniBadge label="Carbs" value={`${macros.carb_g}g`} color="#059669" />}
+          {macros.fat_g && <MiniBadge label="Fat" value={`${macros.fat_g}g`} color="#d97706" />}
+          {macros.fiber_g && <MiniBadge label="Fiber" value={`${macros.fiber_g}g`} color="#7c3aed" />}
+        </div>
 
       {Array.isArray(meal.ingredients) && meal.ingredients.length > 0 && (
         <div style={{ marginTop: 12 }}>
@@ -217,6 +241,7 @@ function MealDetail({ meal, onClose }) {
           <strong style={{ color: T }}>Leftover strategy:</strong> {meal.leftover_strategy}
         </div>
       )}
+      </div>
     </div>
   )
 }
@@ -252,10 +277,20 @@ function Badge({ icon, label, value, unit }) {
   )
 }
 
-function MiniBadge({ label, value }) {
+function MiniBadge({ label, value, color }) {
+  const c = color || '#0f172a'
   return (
-    <span style={{ padding: '3px 8px', background: '#fff', border: `1px solid ${BRD}`, borderRadius: 20, fontSize: 11, color: GRY7 }}>
-      <strong style={{ color: BLK }}>{label}</strong> {value}
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '5px 12px',
+      background: c + '10',
+      border: `1px solid ${c}30`,
+      color: c,
+      borderRadius: 999, fontSize: 12, fontWeight: 700,
+      letterSpacing: '-.005em',
+    }}>
+      <span style={{ opacity: 0.75 }}>{label}</span>
+      <span>{value}</span>
     </span>
   )
 }
