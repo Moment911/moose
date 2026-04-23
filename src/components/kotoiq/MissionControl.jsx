@@ -394,6 +394,18 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
         </div>
       )}
 
+      {/* ── View Full Report button ── */}
+      {doneCount >= 1 && (
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+          <button onClick={() => onSwitchTab('master_report')}
+            style={{ padding: '14px 40px', borderRadius: 12, border: `2px solid ${T}40`, background: `linear-gradient(135deg, ${T}08, ${T}14)`, color: T, fontSize: 15, fontWeight: 800, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, transition: 'all .15s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = T + '20'; e.currentTarget.style.borderColor = T }}
+            onMouseLeave={e => { e.currentTarget.style.background = `linear-gradient(135deg, ${T}08, ${T}14)`; e.currentTarget.style.borderColor = T + '40' }}>
+            <FileText size={18} /> View Full Intelligence Report
+          </button>
+        </div>
+      )}
+
       {/* ── Client Setup + Scan Types ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
         {/* Client info panel */}

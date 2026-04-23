@@ -17,6 +17,7 @@ import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 import ContentRefreshTab from '../components/kotoiq/ContentRefreshTab'
 import ContentVariantModules from '../components/kotoiq/ContentVariantModules'
 import MissionControl from '../components/kotoiq/MissionControl'
+import MasterReport from '../components/kotoiq/MasterReport'
 import SemanticTab from '../components/kotoiq/SemanticTab'
 import InternalLinksTab from '../components/kotoiq/InternalLinksTab'
 import EEATTab from '../components/kotoiq/EEATTab'
@@ -1697,6 +1698,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Content Variant Modules — KP System */}
             <ContentVariantModules clientId={clientId} agencyId={agencyId} />
           </>
+        )}
+
+        {/* ══ MASTER REPORT TAB ══ */}
+        {clientId && tab === 'master_report' && (
+          <MasterReport clientId={clientId} agencyId={agencyId} onSwitchTab={setTab} />
         )}
 
         {/* ══ ASK KOTOIQ (AI CHAT) TAB ══ */}
