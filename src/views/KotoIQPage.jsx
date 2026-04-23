@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 import ContentRefreshTab from '../components/kotoiq/ContentRefreshTab'
 import ContentVariantModules from '../components/kotoiq/ContentVariantModules'
+import MissionControl from '../components/kotoiq/MissionControl'
 import SemanticTab from '../components/kotoiq/SemanticTab'
 import InternalLinksTab from '../components/kotoiq/InternalLinksTab'
 import EEATTab from '../components/kotoiq/EEATTab'
@@ -1097,8 +1098,20 @@ export default function KotoIQPage() {
           {/* ── Scrollable Content ────────────────────────────────── */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
 
-          {/* ── LAUNCH PAD — always shows on dashboard tab ── */}
-          {clientId && tab === 'dashboard' && !loading && (() => {
+          {/* ── MISSION CONTROL — always shows on dashboard tab ── */}
+          {clientId && tab === 'dashboard' && (
+            <MissionControl
+              clientId={clientId}
+              agencyId={agencyId}
+              clients={clients}
+              onSwitchTab={setTab}
+              syncing={syncing}
+              enriching={enriching}
+            />
+          )}
+
+          {/* ── LEGACY LAUNCH PAD (hidden — replaced by MissionControl) ── */}
+          {false && clientId && tab === 'dashboard' && !loading && (() => {
             const hasData = dashboard && !dashboard.empty && dashboard.summary?.total_keywords > 0
             const c = clients.find(x => x.id === clientId)
             const hasWebsite = !!c?.website
