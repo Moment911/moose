@@ -272,14 +272,46 @@ function TravelTab({ otr }) {
       <MealOptionGrid items={otr.lunch_options} />
 
       <SectionTitle>Snack Bag</SectionTitle>
-      <Chips items={otr.snack_bag_items} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 8, marginBottom: 14 }}>
+        {(otr.snack_bag_items || []).map((s, i) => {
+          // Back-compat: older playbooks stored plain strings.
+          const name = typeof s === 'string' ? s : s?.name
+          const kcal = typeof s === 'object' ? s?.kcal_est : null
+          const protein = typeof s === 'object' ? s?.protein_g_est : null
+          return (
+            <div key={i} style={{
+              padding: '10px 12px', border: `1px solid ${BRD_LT}`, borderRadius: 8,
+              background: '#fff', display: 'flex', flexDirection: 'column', gap: 6,
+            }}>
+              <div style={{ fontSize: 13, color: BLK, fontWeight: 600, letterSpacing: '-.005em' }}>{name}</div>
+              {(kcal != null || protein != null) && (
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {kcal != null && <MacroChip label="kcal" value={kcal} color="#0f172a" />}
+                  {protein != null && <MacroChip label="P" value={`${protein}g`} color="#2563eb" />}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
 
       <SectionTitle>Drive-Thru Backup</SectionTitle>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {(otr.drive_thru_backup || []).map((b, i) => (
-          <div key={i} style={{ padding: '8px 12px', border: `1px solid ${BRD_LT}`, borderRadius: 6, fontSize: 13 }}>
-            <strong style={{ color: BLK }}>{b.chain}:</strong>{' '}
-            <span style={{ color: GRY }}>{b.order}</span>
+          <div key={i} style={{
+            padding: '12px 14px', border: `1px solid ${BRD_LT}`, borderRadius: 8,
+            background: '#fff', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap',
+          }}>
+            <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 13 }}>
+              <strong style={{ color: BLK, letterSpacing: '-.005em' }}>{b.chain}:</strong>{' '}
+              <span style={{ color: GRY, lineHeight: 1.55 }}>{b.order}</span>
+            </div>
+            {(b.kcal_est != null || b.protein_g_est != null) && (
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flexShrink: 0 }}>
+                {b.kcal_est != null && <MacroChip label="kcal" value={b.kcal_est} color="#0f172a" />}
+                {b.protein_g_est != null && <MacroChip label="P" value={`${b.protein_g_est}g`} color="#2563eb" />}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -639,26 +671,51 @@ function MacroTile({ label, value, unit, accent }) {
 function MealOptionGrid({ items }) {
   if (!items?.length) return null
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 14 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10, marginBottom: 14 }}>
       {items.map((m, i) => (
         <div
           key={i}
           style={{
-            padding: '10px 12px',
+            padding: '12px 14px',
             border: `1px solid ${BRD_LT}`,
-            borderRadius: 6,
+            borderRadius: 8,
             background: '#fff',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-            <strong style={{ fontSize: 13, color: BLK }}>{m.name}</strong>
-            <span style={{ fontSize: 11, color: T, fontWeight: 700 }}>{m.protein_g_est}g P</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+            <strong style={{ fontSize: 14, color: BLK, letterSpacing: '-.01em' }}>{m.name}</strong>
+            {m.kcal_est != null && (
+              <span style={{ fontSize: 12, color: '#0f172a', fontWeight: 700, whiteSpace: 'nowrap' }}>{m.kcal_est} kcal</span>
+            )}
           </div>
-          <div style={{ fontSize: 12, color: GRY, lineHeight: 1.5, marginBottom: 4 }}>{m.description}</div>
+          <div style={{ fontSize: 12.5, color: GRY, lineHeight: 1.55, marginBottom: 10 }}>{m.description}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+            {m.protein_g_est != null && <MacroChip label="P" value={`${m.protein_g_est}g`} color="#2563eb" />}
+            {m.carb_g_est != null && <MacroChip label="C" value={`${m.carb_g_est}g`} color="#059669" />}
+            {m.fat_g_est != null && <MacroChip label="F" value={`${m.fat_g_est}g`} color="#d97706" />}
+          </div>
           <div style={{ fontSize: 11, color: GRY5 }}>{m.prep_time_min} min prep</div>
         </div>
       ))}
     </div>
+  )
+}
+
+function MacroChip({ label, value, color }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      padding: '2px 8px',
+      background: color + '10',
+      border: `1px solid ${color}30`,
+      color: color,
+      borderRadius: 999,
+      fontSize: 11, fontWeight: 700,
+      letterSpacing: '-.01em',
+    }}>
+      <span style={{ opacity: 0.7 }}>{label}</span>
+      <span>{value}</span>
+    </span>
   )
 }
 

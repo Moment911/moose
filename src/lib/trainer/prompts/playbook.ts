@@ -54,10 +54,10 @@ export type CoachingPlaybookOutput = {
     non_negotiables: string[]      // 5-8 rules (e.g. "Protein at every meal", "Water before coffee", "Don't drink your calories")
     on_the_road_strategy: {
       context_note: string         // 1-2 sentences describing how their life looks on the road
-      breakfast_options: Array<{ name: string; description: string; protein_g_est: number; prep_time_min: number }>
-      lunch_options: Array<{ name: string; description: string; protein_g_est: number; prep_time_min: number }>
-      snack_bag_items: string[]
-      drive_thru_backup: Array<{ chain: string; order: string }>
+      breakfast_options: Array<{ name: string; description: string; kcal_est: number; protein_g_est: number; fat_g_est: number; carb_g_est: number; prep_time_min: number }>
+      lunch_options: Array<{ name: string; description: string; kcal_est: number; protein_g_est: number; fat_g_est: number; carb_g_est: number; prep_time_min: number }>
+      snack_bag_items: Array<{ name: string; kcal_est: number; protein_g_est: number }>
+      drive_thru_backup: Array<{ chain: string; order: string; kcal_est: number; protein_g_est: number }>
     }
     home_cooking_framework: {
       dinner_template: string      // "6-8 oz lean protein + 2 fistfuls vegetables + 1 fist smart carbs + 1 thumb fat"
@@ -158,11 +158,14 @@ export const playbookTool: SonnetTool = {
                 type: 'array', minItems: 3, maxItems: 6,
                 items: {
                   type: 'object',
-                  required: ['name', 'description', 'protein_g_est', 'prep_time_min'],
+                  required: ['name', 'description', 'kcal_est', 'protein_g_est', 'fat_g_est', 'carb_g_est', 'prep_time_min'],
                   properties: {
                     name: { type: 'string' },
                     description: { type: 'string' },
+                    kcal_est: { type: 'integer', description: 'Estimated calories for the full option as described.' },
                     protein_g_est: { type: 'integer' },
+                    fat_g_est: { type: 'integer' },
+                    carb_g_est: { type: 'integer' },
                     prep_time_min: { type: 'integer' },
                   },
                 },
@@ -171,22 +174,41 @@ export const playbookTool: SonnetTool = {
                 type: 'array', minItems: 3, maxItems: 6,
                 items: {
                   type: 'object',
-                  required: ['name', 'description', 'protein_g_est', 'prep_time_min'],
+                  required: ['name', 'description', 'kcal_est', 'protein_g_est', 'fat_g_est', 'carb_g_est', 'prep_time_min'],
                   properties: {
                     name: { type: 'string' },
                     description: { type: 'string' },
+                    kcal_est: { type: 'integer' },
                     protein_g_est: { type: 'integer' },
+                    fat_g_est: { type: 'integer' },
+                    carb_g_est: { type: 'integer' },
                     prep_time_min: { type: 'integer' },
                   },
                 },
               },
-              snack_bag_items: { type: 'array', items: { type: 'string' }, minItems: 3 },
+              snack_bag_items: {
+                type: 'array', minItems: 3,
+                items: {
+                  type: 'object',
+                  required: ['name', 'kcal_est', 'protein_g_est'],
+                  properties: {
+                    name: { type: 'string', description: 'Short item name with portion, e.g. "Protein bar (Quest, 20g)"' },
+                    kcal_est: { type: 'integer' },
+                    protein_g_est: { type: 'integer' },
+                  },
+                },
+              },
               drive_thru_backup: {
                 type: 'array', minItems: 3,
                 items: {
                   type: 'object',
-                  required: ['chain', 'order'],
-                  properties: { chain: { type: 'string' }, order: { type: 'string' } },
+                  required: ['chain', 'order', 'kcal_est', 'protein_g_est'],
+                  properties: {
+                    chain: { type: 'string' },
+                    order: { type: 'string' },
+                    kcal_est: { type: 'integer' },
+                    protein_g_est: { type: 'integer' },
+                  },
                 },
               },
             },
@@ -371,6 +393,7 @@ Structural requirements:
 Hard constraints:
 - Daily_targets.calories MUST equal baseline.calorie_target_kcal exactly.
 - Daily_targets.protein_g MUST equal baseline.macro_targets_g.protein_g.
+- Every breakfast / lunch / snack / drive-thru item MUST include kcal_est and protein_g_est. Breakfast + lunch items ALSO require fat_g_est and carb_g_est. Estimates should be realistic and roughly internally consistent: 4*protein_g + 4*carb_g + 9*fat_g ≈ kcal (within ~15%). These numbers power the athlete's daily tracker and must be usable, not decorative.
 - No supplement recommendation exceeds $25/month on its own — flag budget impact if client has a low grocery_budget_usd_per_week.
 - Allergies are HARD — zero mentions of allergens in food lists.
 - Dietary_preference is HARD — no animal-product suggestions for vegan, etc.
