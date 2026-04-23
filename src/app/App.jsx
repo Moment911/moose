@@ -178,6 +178,7 @@ import OutreachPage from '../views/trainer/OutreachPage'
 import EmailTemplatesPage from '../views/trainer/EmailTemplatesPage'
 import ProPathPage from '../views/trainer/ProPathPage'
 import BenchmarksPage from '../views/trainer/BenchmarksPage'
+import ScholarshipsPage from '../views/trainer/ScholarshipsPage'
 import FourrIntakePage from '../views/fourr/FourrIntakePage'
 import FourrProtocolPage from '../views/fourr/FourrProtocolPage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
@@ -465,6 +466,7 @@ function AppRoutes() {
           <Route path="/trainer/templates" element={<EmailTemplatesPage />} />
           <Route path="/trainer/propath" element={<ProPathPage />} />
           <Route path="/trainer/benchmarks" element={<BenchmarksPage />} />
+          <Route path="/trainer/scholarships" element={<ScholarshipsPage />} />
           <Route path="/trainer/:traineeId" element={<TrainerDetailPage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/kotoiq/pixels" element={<PixelTrackingPage />} />

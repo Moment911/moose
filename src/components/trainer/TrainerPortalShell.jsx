@@ -1,7 +1,7 @@
 "use client"
 import { useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-import { Users, Plus, Target, Mail, BarChart2, Clock, LogOut, Dumbbell } from 'lucide-react'
+import { Users, Plus, Target, Mail, BarChart2, Clock, LogOut, Dumbbell, DollarSign } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { signOut } from '../../lib/supabase'
 import {
@@ -118,6 +118,7 @@ export default function TrainerPortalShell({ children }) {
             <div style={{ fontSize: 10, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.1em', padding: '0 12px 6px' }}>
               Tools
             </div>
+            <NavItem to="/trainer/scholarships" icon={DollarSign} label="Scholarships" />
             <NavItem to="/trainer/templates" icon={Mail} label="Email Templates" />
             <NavItem to="/trainer/benchmarks" icon={Dumbbell} label="Benchmarks" />
           </div>
