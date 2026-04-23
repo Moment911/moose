@@ -19,28 +19,29 @@ import { supabase } from '../../lib/supabase'
 
 const BG = '#f9fafb'
 
-// Fields always required regardless of what services the athlete picked.
+// Hard minimum required for a SAFE, TARGETED plan. Everything else is
+// optional — the coach still asks about lifestyle, diet, recruiting,
+// workload in chat, but missing answers don't block Generate. The
+// server validator + Sonnet prompts handle the gaps with reasonable
+// defaults (moderate activity, 7 hrs sleep, no-preference diet, etc.).
+// A partial plan beats a dead-end "answer 4 more questions".
 const CORE_REQUIRED = [
-  'about_you', 'age', 'sex', 'height_cm', 'current_weight_kg', 'primary_goal',
-  'training_experience_years', 'training_days_per_week', 'equipment_access',
-  'medical_flags', 'injuries', 'allergies',
-  'sleep_hours_avg', 'stress_level', 'occupation_activity',
+  'about_you',             // prompts need context
+  'age', 'sex',            // calorie + training-load calc
+  'height_cm', 'current_weight_kg', // BMR + macros
+  'primary_goal',          // what to aim for
+  'training_days_per_week', 'equipment_access', // what to program
+  'medical_flags', 'injuries', // safety — never skip these
 ]
-// Only required if athlete added that service — keeps Training-only athletes
-// from being blocked on fields that exist purely for diet/recruiting plans.
-const DIET_EXTRA = ['dietary_preference', 'meals_per_day']
-const RECRUITING_EXTRA = ['grad_year', 'position_primary', 'throwing_hand', 'batting_hand']
 
-function getRequiredFields(services) {
-  const fields = [...CORE_REQUIRED]
-  if (services?.includes('diet')) fields.push(...DIET_EXTRA)
-  if (services?.includes('recruiting')) fields.push(...RECRUITING_EXTRA)
-  return fields
+function getRequiredFields(_services) {
+  return [...CORE_REQUIRED]
 }
 
-// Kept for the small number of other file-scoped readers that still want
-// the canonical ordered list (e.g. findNextMissingField walks this).
-const REQUIRED_FIELDS = [...CORE_REQUIRED, ...DIET_EXTRA]
+// Kept for the in-file iterators (findNextMissingField walks this to
+// pick the next missing CHAT question). Includes diet fields so the
+// coach naturally asks about meals/diet, even though they're optional.
+const REQUIRED_FIELDS = [...CORE_REQUIRED, 'dietary_preference', 'meals_per_day']
 
 function getMissing(extracted, services) {
   const required = getRequiredFields(services)
@@ -131,6 +132,39 @@ function buildSmartFallback(prevExtracted, currentExtracted, services) {
   }
 }
 
+// Dev helper — visiting /intake/:id?preset=test prefills a complete,
+// safe-to-train profile so you can hit Generate immediately without
+// retyping every intake. Harmless in prod: it only fills extracted
+// state, doesn't bypass validation, doesn't persist anything by itself.
+const TEST_PRESET = {
+  full_name: 'Test Athlete',
+  age: 16,
+  sex: 'M',
+  height_cm: 180,
+  current_weight_kg: 75,
+  primary_goal: 'performance',
+  training_experience_years: 2,
+  training_days_per_week: 4,
+  equipment_access: 'full_gym',
+  medical_flags: 'None',
+  injuries: 'None',
+  dietary_preference: 'none',
+  allergies: 'None',
+  sleep_hours_avg: 8,
+  stress_level: 4,
+  occupation_activity: 'light',
+  meals_per_day: 4,
+  grad_year: 2028,
+  position_primary: 'RHP',
+  throwing_hand: 'R',
+  batting_hand: 'R',
+  gpa: 3.5,
+  fastball_velo_peak: 84,
+  high_school: 'Test HS',
+  travel_team: 'Test Travel',
+}
+const TEST_ABOUT_YOU = "16 yo RHP, 5'11\", 165 lbs. Two years training, throwing low 80s. Want to add velocity and get recruited. Full gym access, 4 days a week. No injuries, sleep well, eat 4 meals a day."
+
 export default function TraineeIntakePage() {
   const { traineeId } = useParams()
   const [phase, setPhase] = useState('loading') // loading | not_found | welcome | chat | generating | done
@@ -147,6 +181,8 @@ export default function TraineeIntakePage() {
   // Load trainee on mount.
   useEffect(() => {
     if (!traineeId) { setPhase('not_found'); return }
+    // Dev helper: ?preset=test skips to chat with a complete profile.
+    const usePreset = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('preset') === 'test'
     supabase
       .from('koto_fitness_trainees')
       .select('*')
@@ -155,6 +191,13 @@ export default function TraineeIntakePage() {
       .then(({ data, error }) => {
         if (error || !data) { setPhase('not_found'); return }
         setTrainee(data)
+        if (usePreset) {
+          setExtracted({ ...TEST_PRESET })
+          setAboutYou(TEST_ABOUT_YOU)
+          setServices(['training', 'diet', 'recruiting'])
+          setPhase('chat')
+          return
+        }
         // Load agency for the "coach at {Agency}" framing + brand bits.
         supabase
           .from('agencies')

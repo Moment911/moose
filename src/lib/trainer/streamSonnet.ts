@@ -146,9 +146,33 @@ export function streamSonnetChat(args: StreamSonnetArgs): ReadableStream<Uint8Ar
             if (eventType === 'content_block_stop' && toolJsonBuffer) {
               try {
                 const toolResult = JSON.parse(toolJsonBuffer) as Record<string, unknown>
+                // Defensive: harvest any recruiting / workload keys that
+                // landed at the top level of the tool input (past schema
+                // revisions had them there; the model sometimes reverts).
+                // Merge them INTO extracted so the client's regular field
+                // updater picks them up.
+                const HARVEST_KEYS = [
+                  'grad_year', 'position_primary', 'position_secondary', 'throwing_hand', 'batting_hand',
+                  'gpa', 'test_type', 'test_score', 'fastball_velo_peak', 'fastball_velo_sit',
+                  'exit_velo', 'sixty_time', 'pop_time', 'high_school', 'high_school_state',
+                  'travel_team', 'video_link', 'preferred_divisions', 'preferred_states', 'intended_major',
+                  'club_team', 'practices_per_week', 'practice_description', 'bullpen_sessions_per_week',
+                  'game_appearances_per_week', 'avg_pitch_count', 'long_toss_routine', 'pitch_arsenal',
+                  'arm_soreness', 'games_per_week', 'offseason_training', 'other_sports',
+                ]
+                const extracted =
+                  (toolResult.extracted && typeof toolResult.extracted === 'object')
+                    ? { ...(toolResult.extracted as Record<string, unknown>) }
+                    : {}
+                for (const k of HARVEST_KEYS) {
+                  const v = toolResult[k]
+                  if (v !== undefined && v !== null && v !== '' && extracted[k] === undefined) {
+                    extracted[k] = v
+                  }
+                }
                 emit(controller, {
                   type: 'fields',
-                  extracted: toolResult.extracted ?? {},
+                  extracted,
                   about_you_append: toolResult.about_you_append ?? '',
                   suggested_replies: toolResult.suggested_replies ?? [],
                   asking_field: typeof toolResult.asking_field === 'string' ? toolResult.asking_field : '',
