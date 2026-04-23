@@ -116,7 +116,8 @@ export async function auditEEAT(
   const { data: client } = await s.from('clients').select('name, website').eq('id', client_id).single()
   if (!client?.website && !targetUrl) throw new Error('No website found for client — set it on the client record first')
 
-  const pageUrl = targetUrl || client?.website || ''
+  let pageUrl = targetUrl || client?.website || ''
+  if (pageUrl && !pageUrl.startsWith('http')) pageUrl = `https://${pageUrl}`
   const html = await fetchPage(pageUrl)
   if (!html) throw new Error(`Could not fetch ${pageUrl} — check the URL is accessible`)
 

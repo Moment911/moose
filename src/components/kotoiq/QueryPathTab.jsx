@@ -12,10 +12,10 @@ import HowItWorks from './HowItWorks'
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
 const TYPE_CONFIG = {
-  topical:     { color: T,        label: 'Topical',     icon: Layers },
-  intent:      { color: '#8b5cf6', label: 'Intent',      icon: Target },
-  sequential:  { color: AMB,      label: 'Sequential',  icon: GitBranch },
-  correlative: { color: GRN,      label: 'Correlative', icon: Search },
+  topical:     { color: T,        label: 'Topical',     icon: Layers,    explanation: 'These queries share a common topic or theme. Users searching these terms are exploring a subject area broadly.', actions: ['Create a pillar page covering the core topic, then link supporting articles for each sub-query.', 'Add FAQ sections to existing pages that directly answer the related queries.', 'Build internal links between pages that cover queries in this cluster.'] },
+  intent:      { color: '#8b5cf6', label: 'Intent',      icon: Target,    explanation: 'These queries represent different stages of the buyer journey — from awareness to decision. Users progress from learning to comparing to purchasing.', actions: ['Create content for each stage: educational posts for awareness, comparisons for consideration, landing pages for decision.', 'Add clear calls-to-action that guide users from informational content toward conversion pages.', 'Target the high-intent (bottom-of-funnel) gap queries first — they convert best.'] },
+  sequential:  { color: AMB,      label: 'Sequential',  icon: GitBranch, explanation: 'These queries are searched in sequence — users typically search one, then refine to the next. This reveals a step-by-step research path.', actions: ['Build content that anticipates the next question and links to it, keeping users on your site longer.', 'Create a multi-step guide or series that mirrors this natural search progression.', 'Add "Next steps" or "Related" sections at the bottom of each page to match the user flow.'] },
+  correlative: { color: GRN,      label: 'Correlative', icon: Search,    explanation: 'These queries are frequently searched together in the same session. They indicate related needs or concerns users have simultaneously.', actions: ['Create comprehensive pages that address multiple related queries at once to capture bundled search intent.', 'Cross-link content between correlated topics so users find everything they need.', 'Consider a resource hub or comparison page that covers all related queries in one place.'] },
 }
 
 function TypeBadge({ type }) {
@@ -130,6 +130,20 @@ export default function QueryPathTab({ clientId, agencyId }) {
   return (
     <>
       <HowItWorks tool="query_paths" />
+
+      {/* Intro Explanation */}
+      <div style={{ ...card, background: T + '06', border: `1px solid ${T}20` }}>
+        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <GitBranch size={15} color={T} /> How to Read Query Paths
+        </div>
+        <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
+          Query paths show how people search for your services. Keywords are grouped into <strong>clusters</strong> based on
+          how they relate to each other. <span style={{ color: GRN, fontWeight: 700 }}>Green</span> queries have ranking content on your
+          site. <span style={{ color: R, fontWeight: 700 }}>Red</span> queries are gaps where you have no content and are losing potential traffic.
+          A higher coverage percentage means you are capturing more of the search demand in that cluster.
+        </div>
+      </div>
+
       {/* Header Stats */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
         <StatBox label="Clusters" value={data.total_clusters || 0} color={T} />
@@ -184,6 +198,17 @@ export default function QueryPathTab({ clientId, agencyId }) {
 
               {/* Coverage Bar */}
               <CoverageBar covered={cluster.covered_queries || 0} total={cluster.total_queries || 0} />
+
+              {/* Cluster Type Explanation */}
+              {(() => {
+                const cfg = TYPE_CONFIG[cluster.cluster_type]
+                if (!cfg?.explanation) return null
+                return (
+                  <div style={{ marginTop: 10, padding: '8px 12px', background: '#f9fafb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
+                    <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.5 }}>{cfg.explanation}</div>
+                  </div>
+                )
+              })()}
 
               {/* Query Pills */}
               <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap' }}>
@@ -250,6 +275,25 @@ export default function QueryPathTab({ clientId, agencyId }) {
                       <FileText size={11} /> Create Content for {gapQueries.length} Gaps
                     </button>
                   )}
+
+                  {/* What to do */}
+                  {(() => {
+                    const cfg = TYPE_CONFIG[cluster.cluster_type]
+                    if (!cfg?.actions) return null
+                    return (
+                      <div style={{ marginTop: 12, padding: '10px 14px', background: '#f9fafb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Zap size={10} color={T} /> What to do
+                        </div>
+                        {cfg.actions.map((action, j) => (
+                          <div key={j} style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: j < cfg.actions.length - 1 ? 4 : 0 }}>
+                            <span style={{ position: 'absolute', left: 0, color: T, fontWeight: 700 }}>{j + 1}.</span>
+                            {action}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
                 </div>
               )}
             </div>
@@ -264,7 +308,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
             <XCircle size={15} color={R} /> Gap Queries — No Ranking Content
           </div>
           <div style={{ fontSize: 12, color: '#374151', marginBottom: 12 }}>
-            {(data.all_gaps || []).length} keywords with no ranking page. Create content to capture this traffic.
+            {(data.all_gaps || []).length} keywords with no ranking page. These are searches people make where your site does not appear — each one is a missed opportunity to attract potential customers.
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap' }}>
             {(data.all_gaps || []).slice(0, 40).map((q, i) => (
@@ -280,6 +324,24 @@ export default function QueryPathTab({ clientId, agencyId }) {
                 +{(data.all_gaps || []).length - 40} more
               </span>
             )}
+          </div>
+          {/* What to do about gaps */}
+          <div style={{ marginTop: 14, padding: '10px 14px', background: R + '06', borderRadius: 8, border: `1px solid ${R}15` }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Zap size={10} color={R} /> What to do
+            </div>
+            <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
+              <span style={{ position: 'absolute', left: 0, color: R, fontWeight: 700 }}>1.</span>
+              Prioritize gaps that appear in high-intent clusters (Intent type) — these are closest to converting into customers.
+            </div>
+            <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
+              <span style={{ position: 'absolute', left: 0, color: R, fontWeight: 700 }}>2.</span>
+              Use the Content Briefs tab to generate optimized content outlines for each gap query.
+            </div>
+            <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, paddingLeft: 14, position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0, color: R, fontWeight: 700 }}>3.</span>
+              Group similar gaps together and cover them in a single comprehensive page rather than creating thin pages for each.
+            </div>
           </div>
         </div>
       )}

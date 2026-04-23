@@ -205,10 +205,10 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
   }
 
   // Load client context so the AI knows *who* it is helping
-  let clientContext: { name?: string; website?: string; primary_service?: string; location?: string } = {}
+  let clientContext: { name?: string; website?: string; primary_service?: string; industry?: string } = {}
   if (client_id && agency_id) {
     const { data: client } = await s.from('clients')
-      .select('name, website, primary_service, location')
+      .select('name, website, primary_service, industry')
       .eq('id', client_id).eq('agency_id', agency_id).single()
     if (client) clientContext = client
   }
@@ -250,7 +250,7 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
   if (clientContext.name) ctxPieces.push(`Active client: ${clientContext.name}`)
   if (clientContext.website) ctxPieces.push(`Client website: ${clientContext.website}`)
   if (clientContext.primary_service) ctxPieces.push(`Primary service: ${clientContext.primary_service}`)
-  if (clientContext.location) ctxPieces.push(`Location: ${clientContext.location}`)
+  if (clientContext.industry) ctxPieces.push(`Industry: ${clientContext.industry}`)
   if (clientContext.website) {
     ctxPieces.push(`When the user says "my homepage", "my site", "our page", or otherwise implies the active client's own URL, autofill form_fields.url with: ${clientContext.website}. Do not ask for the URL unless they clearly mean a different page.`)
   }

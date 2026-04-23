@@ -628,5 +628,9 @@ export async function getBacklinkOpportunities(
     .eq('client_id', client_id)
     .order('created_at', { ascending: false })
 
-  return data || []
+  // Map DB column names to the shape the frontend expects
+  return (data || []).map((row: any) => ({
+    ...row,
+    type: row.opportunity_type || row.type || 'other',
+  }))
 }

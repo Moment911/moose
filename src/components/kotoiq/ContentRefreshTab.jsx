@@ -86,7 +86,12 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
       const res = await api('build_content_inventory')
       if (res.error) { toast.error(res.error, { id: 'build-inv' }); setBuilding(false); return }
       toast.success(`Inventory built: ${res.total_pages} pages scanned`, { id: 'build-inv' })
-      loadInventory()
+      // Use inventory returned directly from build if available, then refresh from DB
+      if (res.inventory?.length) {
+        setInventory(res.inventory)
+        setSummary(res.summary || null)
+      }
+      await loadInventory()
     } catch { toast.error('Failed to build inventory', { id: 'build-inv' }) }
     setBuilding(false)
   }

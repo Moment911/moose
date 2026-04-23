@@ -213,13 +213,14 @@ Produce the ${export_format} output per the format rules above. Return ONLY vali
     wikidata_entry_id: null,
   }
 
-  const { data: saved, error } = await s.from('kotoiq_knowledge_graph_exports').insert(insertRow).select().single()
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+  let export_id: string | null = null
+  try {
+    const { data: saved } = await s.from('kotoiq_knowledge_graph_exports').insert(insertRow).select().single()
+    if (saved) export_id = saved.id
+  } catch { /* table may not exist yet — non-fatal, still return results */ }
 
   return NextResponse.json({
-    export_id: saved.id,
+    export_id,
     format: export_format,
     content: contentStr,
     entity_properties: entityProps,

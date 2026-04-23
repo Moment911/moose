@@ -15,6 +15,7 @@ import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 import ContentRefreshTab from '../components/kotoiq/ContentRefreshTab'
+import ContentVariantModules from '../components/kotoiq/ContentVariantModules'
 import SemanticTab from '../components/kotoiq/SemanticTab'
 import InternalLinksTab from '../components/kotoiq/InternalLinksTab'
 import EEATTab from '../components/kotoiq/EEATTab'
@@ -436,6 +437,7 @@ export default function KotoIQPage() {
   const [compKeyword, setCompKeyword] = useState('')
   const [compAnalysis, setCompAnalysis] = useState(null)
   const [compLoading, setCompLoading] = useState(false)
+  const [expandedCompIdx, setExpandedCompIdx] = useState(null)
   const [rankData, setRankData] = useState(null)
   const [rankLoading, setRankLoading] = useState(false)
   const [rankFilter, setRankFilter] = useState('all') // all, improved, declined, top3, top10
@@ -1583,42 +1585,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             </div>
 
             {/* Content Variant Modules — KP System */}
-            <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <LayoutGrid size={18} color={AMB} /> Content Variant Modules
-              </div>
-              <div style={{ fontSize: 13, color: '#374151', marginBottom: 16, lineHeight: 1.6 }}>
-                Each page section has multiple content variants. The WP plugin automatically rotates variants every N page views, signaling freshness to Google and triggering re-indexing.
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {[
-                  { id: 'intro', label: 'Introduction', desc: 'Opening headline + value proposition', variants: 3, icon: '📝' },
-                  { id: 'what_is', label: 'What Is This Service', desc: 'Educational explainer content', variants: 2, icon: '❓' },
-                  { id: 'why_us', label: 'Why Choose Us', desc: 'Trust signals + differentiators', variants: 2, icon: '✅' },
-                  { id: 'services', label: 'Services Offered', desc: 'Service breakdown with descriptions', variants: 2, icon: '📋' },
-                  { id: 'local', label: 'Local Area Focus', desc: 'Hyperlocal city/area content', variants: 2, icon: '📍' },
-                  { id: 'process', label: 'Our Process', desc: 'Step-by-step how-it-works', variants: 2, icon: '⚙️' },
-                  { id: 'trust', label: 'Trust & Social Proof', desc: 'Reviews + testimonials', variants: 2, icon: '⭐' },
-                  { id: 'comparison', label: 'Comparison / vs.', desc: 'Pro vs DIY, local vs national', variants: 2, icon: '⚖️' },
-                  { id: 'faq', label: 'FAQ Block', desc: 'AEO-optimized with schema markup', variants: 2, icon: '💬' },
-                  { id: 'internal_links', label: 'Internal Links', desc: 'Service area + related page links', variants: 2, icon: '🔗' },
-                  { id: 'cta', label: 'Call to Action', desc: 'Conversion-focused closing section', variants: 2, icon: '📞' },
-                ].map(mod => (
-                  <div key={mod.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff' }}>
-                    <span style={{ fontSize: 20, width: 36, textAlign: 'center' }}>{mod.icon}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
-                      <div style={{ fontSize: 12, color: '#374151' }}>{mod.desc}</div>
-                    </div>
-                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: T + '12', color: T }}>{mod.variants} variants</span>
-                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: GRN + '12', color: GRN }}>Auto-rotate</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 10, background: AMB + '06', border: `1px solid ${AMB}20`, fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
-                <strong>How rotation works:</strong> After publishing via the WP plugin, each section's variants rotate every 10 page views — updating <code>last_modified</code> and pinging Google/Bing for re-indexing.
-              </div>
-            </div>
+            <ContentVariantModules clientId={clientId} agencyId={agencyId} />
           </>
         )}
 
@@ -2699,7 +2666,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
         {/* ══ NEW: HYPERLOCAL CONTENT ══ */}
         {clientId && tab === 'hyperlocal' && (
-          <HyperlocalTab clientId={clientId} agencyId={agencyId} />
+          <HyperlocalTab clientId={clientId} agencyId={agencyId} onSwitchTab={setTab} />
         )}
 
         {/* ══ NEW: SITEMAP CRAWLER ══ */}
@@ -2992,9 +2959,17 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         </thead>
                         <tbody>
                           {compAnalysis.analyses.map((a, i) => (
-                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: a.is_client ? T + '06' : 'transparent' }}>
-                              <td style={{ padding: '10px', fontSize: 12, fontWeight: a.is_client ? 800 : 600, color: BLK, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {a.is_client && <span style={{ color: T, marginRight: 4 }}>★</span>}{a.name}
+                            <React.Fragment key={i}>
+                            <tr style={{ borderBottom: expandedCompIdx === i ? 'none' : '1px solid #f3f4f6', background: a.is_client ? T + '06' : 'transparent', cursor: 'pointer' }}
+                              onClick={() => setExpandedCompIdx(expandedCompIdx === i ? null : i)}
+                              onMouseEnter={e => { if (!a.is_client) e.currentTarget.style.background = '#f9fafb' }}
+                              onMouseLeave={e => { if (!a.is_client) e.currentTarget.style.background = a.is_client ? T + '06' : 'transparent' }}>
+                              <td style={{ padding: '10px', fontSize: 12, fontWeight: a.is_client ? 800 : 600, color: BLK, maxWidth: 220 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  {a.is_client && <span style={{ color: T }}>★</span>}
+                                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.rank > 0 ? `#${a.rank} ` : ''}{a.name}</span>
+                                  <ChevronDown size={12} color="#9ca3af" style={{ marginLeft: 'auto', transition: 'transform .2s', transform: expandedCompIdx === i ? 'rotate(180deg)' : 'none' }} />
+                                </div>
                               </td>
                               <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>{a.word_count?.toLocaleString()}</td>
                               <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.h2_count}</td>
@@ -3013,6 +2988,38 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <td style={{ textAlign: 'center', color: a.keyword_in_title ? GRN : R, fontSize: 14 }}>{a.keyword_in_title ? '✓' : '✕'}</td>
                               <td style={{ textAlign: 'center', color: a.keyword_in_h1 ? GRN : R, fontSize: 14 }}>{a.keyword_in_h1 ? '✓' : '✕'}</td>
                             </tr>
+                            {expandedCompIdx === i && (
+                              <tr style={{ borderBottom: '1px solid #e5e7eb', background: '#f9fafb' }}>
+                                <td colSpan={12} style={{ padding: '16px 20px' }}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                    <div>
+                                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', marginBottom: 8 }}>Page Details</div>
+                                      <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>URL:</b> <a href={a.url} target="_blank" rel="noopener" style={{ color: T, textDecoration: 'underline' }}>{a.url}</a></div>
+                                      <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>Title:</b> {a.title || '—'}</div>
+                                      <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>Meta Description:</b> {a.meta_description || '—'}</div>
+                                      {a.da > 0 && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>DA:</b> {a.da} | <b>PA:</b> {a.pa} | <b>Spam Score:</b> {a.spam_score || 0} | <b>Linking Domains:</b> {a.linking_domains?.toLocaleString() || '—'}</div>}
+                                      {a.rank > 0 && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>SERP Position:</b> #{a.rank}</div>}
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', marginBottom: 8 }}>Content Structure</div>
+                                      <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>Words:</b> {a.word_count?.toLocaleString()} | <b>Images:</b> {a.image_count} ({a.images_with_alt} with alt)</div>
+                                      <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>Internal Links:</b> {a.internal_links} | <b>External Links:</b> {a.external_links || 0}</div>
+                                      <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>Schema:</b> {(a.schemas || []).join(', ') || 'None'}</div>
+                                      <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><b>FAQ:</b> {a.has_faq ? `Yes (${a.faq_count} items)` : 'No'}</div>
+                                    </div>
+                                  </div>
+                                  {(a.h2s || []).length > 0 && (
+                                    <div style={{ marginTop: 12 }}>
+                                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', marginBottom: 6 }}>H2 Headings ({a.h2s.length})</div>
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                        {a.h2s.map((h, j) => <span key={j} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, background: '#e5e7eb', color: '#374151' }}>{h}</span>)}
+                                      </div>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            )}
+                            </React.Fragment>
                           ))}
                         </tbody>
                       </table>

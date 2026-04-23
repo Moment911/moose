@@ -252,7 +252,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                     <tbody>
                       {data.toxic_links.slice(0, 15).map((l, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid #fef2f2' }}>
-                          <td style={{ padding: '8px', color: R, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.source_domain}</td>
+                          <td style={{ padding: '8px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><a href={`https://${l.source_domain}`} target="_blank" rel="noopener noreferrer" style={{ color: R, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>{l.source_domain} <ExternalLink size={10} /></a></td>
                           <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: R }}>{l.spam_score}</td>
                           <td style={{ padding: '8px', textAlign: 'center', color: '#374151' }}>{l.da}</td>
                           <td style={{ padding: '8px', color: '#374151', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.anchor_text || '(none)'}</td>
@@ -288,7 +288,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                     <tbody>
                       {data.high_quality_links.slice(0, 15).map((l, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid #f0fdf4' }}>
-                          <td style={{ padding: '8px', color: GRN, fontWeight: 600, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.source_domain}</td>
+                          <td style={{ padding: '8px', fontWeight: 600, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><a href={`https://${l.source_domain}`} target="_blank" rel="noopener noreferrer" style={{ color: GRN, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>{l.source_domain} <ExternalLink size={10} /></a></td>
                           <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: GRN }}>{l.da}</td>
                           <td style={{ padding: '8px', color: '#374151', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.anchor_text || '(none)'}</td>
                         </tr>
@@ -349,7 +349,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                       </tr>
                       {data.competitor_comparison.map((c, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '10px 8px', color: BLK, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.domain}</td>
+                          <td style={{ padding: '10px 8px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><a href={`https://${c.domain}`} target="_blank" rel="noopener noreferrer" style={{ color: BLK, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>{c.domain} <ExternalLink size={10} /></a></td>
                           <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700, color: c.domain_authority > data.domain_authority ? R : GRN }}>{c.domain_authority}</td>
                           <td style={{ padding: '10px 8px', textAlign: 'center', color: '#374151' }}>{fmtN(c.referring_domains)}</td>
                           <td style={{ padding: '10px 8px', textAlign: 'center', color: '#374151' }}>{fmtN(c.total_backlinks)}</td>

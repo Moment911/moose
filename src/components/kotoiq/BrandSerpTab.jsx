@@ -242,11 +242,13 @@ export default function BrandSerpTab({ clientId, agencyId }) {
               {showPaa && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {data.paa_questions.map((q, i) => (
-                    <div key={i} style={{
+                    <a key={i} href={q.url || `https://www.google.com/search?q=${encodeURIComponent(q.question)}`} target="_blank" rel="noopener noreferrer" style={{
                       display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
                       borderRadius: 8, background: sentimentBg(q.sentiment), border: `1px solid ${sentimentColor(q.sentiment)}20`,
-                    }}>
+                      textDecoration: 'none', transition: 'filter 0.15s',
+                    }} onMouseEnter={e => e.currentTarget.style.filter = 'brightness(0.96)'} onMouseLeave={e => e.currentTarget.style.filter = 'none'}>
                       <div style={{ flex: 1, fontSize: 13, color: BLK }}>{q.question}</div>
+                      <ExternalLink size={12} color="#9ca3af" style={{ flexShrink: 0 }} />
                       <span style={{
                         fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
                         background: sentimentColor(q.sentiment) + '20', color: sentimentColor(q.sentiment),
@@ -268,14 +270,17 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                 <AlertTriangle size={16} color={R} /> Negative Results Detected ({data.negative_results.length})
               </div>
               {data.negative_results.map((nr, i) => (
-                <div key={i} style={{
-                  padding: '12px 14px', borderRadius: 8, background: '#fff', border: '1px solid #fecaca',
-                  marginBottom: i < data.negative_results.length - 1 ? 8 : 0,
-                }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>{nr.title}</div>
-                  <div style={{ fontSize: 11, color: '#374151', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nr.url}</div>
+                <a key={i} href={nr.url} target="_blank" rel="noopener noreferrer" style={{
+                  display: 'block', padding: '12px 14px', borderRadius: 8, background: '#fff', border: '1px solid #fecaca',
+                  marginBottom: i < data.negative_results.length - 1 ? 8 : 0, textDecoration: 'none', transition: 'filter 0.15s',
+                }} onMouseEnter={e => e.currentTarget.style.filter = 'brightness(0.97)'} onMouseLeave={e => e.currentTarget.style.filter = 'none'}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: BLK, flex: 1 }}>{nr.title}</div>
+                    <ExternalLink size={12} color="#9ca3af" style={{ flexShrink: 0 }} />
+                  </div>
+                  <div style={{ fontSize: 11, color: T, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nr.url}</div>
                   <div style={{ fontSize: 12, color: R }}>{nr.reason}</div>
-                </div>
+                </a>
               ))}
             </div>
           )}
@@ -297,7 +302,14 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                 <Globe size={16} color={T} /> Knowledge Panel
               </div>
               <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{data.kp_description}</div>
-              {data.kp_source && <div style={{ fontSize: 11, color: '#1f2937', marginTop: 6 }}>Source: {data.kp_source}</div>}
+              {data.kp_source && (
+                <div style={{ fontSize: 11, color: '#1f2937', marginTop: 6 }}>
+                  Source: {data.kp_source.startsWith('http') ? (
+                    <a href={data.kp_source} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'none', transition: 'opacity 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.opacity = '0.7'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>{data.kp_source}</a>
+                  ) : data.kp_source}
+                </div>
+              )}
             </div>
           )}
 

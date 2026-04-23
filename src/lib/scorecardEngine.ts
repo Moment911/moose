@@ -94,26 +94,33 @@ export async function generateScorecard(
   // Resolve competitor domains
   let competitor_domains = (body.competitor_domains || []).map(extractDomain).filter(Boolean)
   if (competitor_domains.length === 0) {
-    const { data: comps } = await s.from('kotoiq_competitors')
-      .select('domain')
-      .eq('client_id', client_id)
-      .order('overlap_score', { ascending: false, nullsFirst: false })
-      .limit(3)
-    competitor_domains = (comps || []).map((c: any) => extractDomain(c.domain)).filter(Boolean)
+    try {
+      const { data: comps } = await s.from('kotoiq_competitors')
+        .select('domain')
+        .eq('client_id', client_id)
+        .order('overlap_score', { ascending: false, nullsFirst: false })
+        .limit(3)
+      competitor_domains = (comps || []).map((c: any) => extractDomain(c.domain)).filter(Boolean)
+    } catch { /* table may not exist */ }
   }
   competitor_domains = Array.from(new Set(competitor_domains)).slice(0, 3)
 
-  // Pull all client KotoIQ metrics in parallel
+  // Safe query wrapper — returns { data: null } for missing tables
+  const sq = async <T,>(q: PromiseLike<{ data: T; error: any }>): Promise<{ data: T }> => {
+    try { const { data } = await q; return { data } } catch { return { data: null as any } }
+  }
+
+  // Pull all client KotoIQ metrics in parallel (tables may not all exist)
   const [topical, eeat, schema, bl, brandSerp, contentInv, rankGrid, techDeep, aeo] = await Promise.all([
-    s.from('kotoiq_topical_maps').select('authority_score, meta').eq('client_id', client_id).maybeSingle(),
-    s.from('kotoiq_eeat_audit').select('overall_score').eq('client_id', client_id).maybeSingle(),
-    s.from('kotoiq_schema_audit').select('coverage_pct').eq('client_id', client_id).maybeSingle(),
-    s.from('kotoiq_backlink_profile').select('domain_authority, total_backlinks, total_referring_domains, toxic_pct, dr_distribution').eq('client_id', client_id).maybeSingle(),
-    s.from('kotoiq_brand_serp').select('overall_score').eq('client_id', client_id).maybeSingle(),
-    s.from('kotoiq_content_inventory').select('url, published_date, word_count').eq('client_id', client_id),
-    s.from('kotoiq_grid_scans_pro').select('solv, avg_rank, created_at').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-    s.from('kotoiq_technical_deep').select('lcp, inp, cls, passing_pct').eq('client_id', client_id).maybeSingle(),
-    s.from('kotoiq_aeo_audits').select('overall_score').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    sq(s.from('kotoiq_topical_maps').select('authority_score, meta').eq('client_id', client_id).maybeSingle()),
+    sq(s.from('kotoiq_eeat_audit').select('overall_score').eq('client_id', client_id).maybeSingle()),
+    sq(s.from('kotoiq_schema_audit').select('coverage_pct').eq('client_id', client_id).maybeSingle()),
+    sq(s.from('kotoiq_backlink_profile').select('domain_authority, total_backlinks, total_referring_domains, toxic_pct, dr_distribution').eq('client_id', client_id).maybeSingle()),
+    sq(s.from('kotoiq_brand_serp').select('overall_score').eq('client_id', client_id).maybeSingle()),
+    sq(s.from('kotoiq_content_inventory').select('url, published_date, word_count').eq('client_id', client_id)),
+    sq(s.from('kotoiq_grid_scans_pro').select('solv, avg_rank, created_at').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).maybeSingle()),
+    sq(s.from('kotoiq_technical_deep').select('lcp, inp, cls, passing_pct').eq('client_id', client_id).maybeSingle()),
+    sq(s.from('kotoiq_aeo_audits').select('overall_score').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).maybeSingle()),
   ])
 
   // Publishing velocity + avg word count from content inventory
@@ -293,21 +300,24 @@ Return ONLY valid JSON with:
     recommended_focus = gaps.slice(0, 3).map(g => `Close ${g.metric} gap`)
   }
 
-  // Persist
-  const { data: saved, error: saveErr } = await s.from('kotoiq_scorecards').insert({
-    client_id,
-    competitor_domains,
-    client_scores,
-    competitor_scores,
-    gaps,
-    strengths,
-    recommended_focus,
-    overall_position,
-  }).select().single()
-  if (saveErr) throw saveErr
+  // Persist (table may not exist if migration 20260421 hasn't been applied yet)
+  let scorecard_id: string | null = null
+  try {
+    const { data: saved, error: saveErr } = await s.from('kotoiq_scorecards').insert({
+      client_id,
+      competitor_domains,
+      client_scores,
+      competitor_scores,
+      gaps,
+      strengths,
+      recommended_focus,
+      overall_position,
+    }).select().single()
+    if (!saveErr && saved) scorecard_id = saved.id
+  } catch { /* table may not exist yet — non-fatal */ }
 
   return {
-    scorecard_id: saved.id,
+    scorecard_id,
     client_scores,
     competitor_scores,
     gaps,

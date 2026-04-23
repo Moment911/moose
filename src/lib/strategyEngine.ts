@@ -30,6 +30,15 @@ export interface StrategicPlanBody {
 // ─────────────────────────────────────────────────────────────
 // Helper — pull all of the ingredients the planner needs
 // ─────────────────────────────────────────────────────────────
+// Safe query wrapper — returns { data: null } instead of crashing on missing tables
+async function safeQuery<T>(q: PromiseLike<{ data: T; error: any }>): Promise<{ data: T }> {
+  try {
+    const { data, error } = await q
+    if (error) return { data: null as any }
+    return { data }
+  } catch { return { data: null as any } }
+}
+
 async function gatherStrategicInputs(s: SB, client_id: string) {
   const [
     { data: client },
@@ -42,15 +51,15 @@ async function gatherStrategicInputs(s: SB, client_id: string) {
     { data: backlinkProfile },
     { data: contentInventory },
   ] = await Promise.all([
-    s.from('clients').select('id, name, website, primary_service, target_customer, industry, location').eq('id', client_id).maybeSingle(),
-    s.from('kotoiq_topical_maps').select('*').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1),
-    s.from('kotoiq_topical_nodes').select('*').eq('client_id', client_id),
-    s.from('kotoiq_query_clusters').select('*').eq('client_id', client_id),
-    s.from('kotoiq_keywords').select('keyword, fingerprint, kp_monthly_volume, sc_avg_position, sc_clicks, sc_impressions, opportunity_score, rank_propensity, competitor_domains, intent, category').eq('client_id', client_id).limit(2000),
-    s.from('kotoiq_snapshots').select('keyword_fingerprint, sc_position, sc_clicks, opportunity_score, created_at').eq('client_id', client_id).order('created_at', { ascending: false }).limit(4000),
-    s.from('kotoiq_sync_log').select('metadata, completed_at').eq('client_id', client_id).eq('source', 'deep_enrich').order('completed_at', { ascending: false }).limit(1).maybeSingle(),
-    s.from('kotoiq_backlink_profile').select('domain_authority, total_referring_domains, competitor_comparison').eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle(),
-    s.from('kotoiq_content_inventory').select('url, trajectory, sc_position, sc_clicks, freshness_status, refresh_priority').eq('client_id', client_id).limit(500),
+    safeQuery(s.from('clients').select('id, name, website, primary_service, target_customer, industry').eq('id', client_id).maybeSingle()),
+    safeQuery(s.from('kotoiq_topical_maps').select('*').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1)),
+    safeQuery(s.from('kotoiq_topical_nodes').select('*').eq('client_id', client_id)),
+    safeQuery(s.from('kotoiq_query_clusters').select('*').eq('client_id', client_id)),
+    safeQuery(s.from('kotoiq_keywords').select('keyword, fingerprint, kp_monthly_volume, sc_avg_position, sc_clicks, sc_impressions, opportunity_score, rank_propensity, competitor_domains, intent, category').eq('client_id', client_id).limit(2000)),
+    safeQuery(s.from('kotoiq_snapshots').select('keyword_fingerprint, sc_position, sc_clicks, opportunity_score, created_at').eq('client_id', client_id).order('created_at', { ascending: false }).limit(4000)),
+    safeQuery(s.from('kotoiq_sync_log').select('metadata, completed_at').eq('client_id', client_id).eq('source', 'deep_enrich').order('completed_at', { ascending: false }).limit(1).maybeSingle()),
+    safeQuery(s.from('kotoiq_backlink_profile').select('domain_authority, total_referring_domains, competitor_comparison').eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()),
+    safeQuery(s.from('kotoiq_content_inventory').select('url, trajectory, sc_position, sc_clicks, freshness_status, refresh_priority').eq('client_id', client_id).limit(500)),
   ])
 
   return {

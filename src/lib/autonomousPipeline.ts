@@ -122,14 +122,14 @@ export async function runAutonomousPipeline(
   // ── Load client info once for downstream prompts ──
   const { data: client } = await s
     .from('clients')
-    .select('id, name, website, primary_service, target_customer, industry, location, city, state, welcome_statement, unique_selling_prop, onboarding_answers')
+    .select('id, name, website, primary_service, target_customer, industry, city, state, welcome_statement, unique_selling_prop, onboarding_answers')
     .eq('id', client_id)
     .single()
 
   const clientName: string = client?.name || 'this business'
   const website: string = client?.website || ''
   const industry: string = client?.primary_service || client?.industry || 'general services'
-  const location: string = client?.location || [client?.city, client?.state].filter(Boolean).join(', ') || ''
+  const location: string = [client?.city, client?.state].filter(Boolean).join(', ') || ''
 
   // Keyword data from UKF — optional context for the brief
   const { data: kwData } = await s

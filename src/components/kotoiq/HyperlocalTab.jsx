@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   MapPin, Loader2, Sparkles, Grid, FileText, ArrowRight, AlertCircle,
 } from 'lucide-react'
@@ -9,12 +9,14 @@ import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
-export default function HyperlocalTab({ clientId, agencyId }) {
+export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
   const [gridScans, setGridScans] = useState([])
   const [selectedScanId, setSelectedScanId] = useState('')
-  const [loadingScans, setLoadingScans] = useState(false)
+  const [loadingScans, setLoadingScans] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState(null)
+  const [genError, setGenError] = useState('')
+  const didInitSelect = useRef(false)
 
   const loadScans = useCallback(async () => {
     if (!clientId) return
@@ -28,19 +30,27 @@ export default function HyperlocalTab({ clientId, agencyId }) {
       const j = await res.json()
       const scans = j.scans || j.history || j.data || []
       setGridScans(scans)
-      if (scans.length > 0 && !selectedScanId) setSelectedScanId(scans[0].id)
+      if (scans.length > 0 && !didInitSelect.current) {
+        setSelectedScanId(scans[0].id)
+        didInitSelect.current = true
+      }
     } catch {
-      // silent
+      // silent — scans list is optional
     } finally {
       setLoadingScans(false)
     }
-  }, [clientId, selectedScanId])
+  }, [clientId])
 
   useEffect(() => { loadScans() }, [loadScans])
 
   const generate = async () => {
+    if (!clientId) {
+      toast.error('No client selected')
+      return
+    }
     setGenerating(true)
     setResult(null)
+    setGenError('')
     try {
       const res = await fetch('/api/kotoiq', {
         method: 'POST',
@@ -57,16 +67,23 @@ export default function HyperlocalTab({ clientId, agencyId }) {
       setResult(j)
       toast.success(`${j.briefs_created?.length || 0} briefs created`)
     } catch (e) {
-      toast.error(e.message || 'Generation failed')
+      const msg = e.message || 'Generation failed'
+      setGenError(msg)
+      toast.error(msg)
     } finally {
       setGenerating(false)
     }
   }
 
   const openBrief = (brief) => {
-    // Navigate to briefs tab with brief preloaded
+    if (onSwitchTab) {
+      onSwitchTab('briefs')
+      return
+    }
+    // Fallback: navigate preserving client context
     const url = new URL(window.location.href)
     url.searchParams.set('tab', 'briefs')
+    if (clientId) url.searchParams.set('client', clientId)
     if (brief?.brief_id) url.searchParams.set('brief', brief.brief_id)
     window.location.href = url.toString()
   }
@@ -105,16 +122,27 @@ export default function HyperlocalTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <AlertCircle size={24} color={AMB} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>Run a Grid Scan first</div>
-              <div style={{ fontSize: 13, color: '#374151' }}>Hyperlocal content needs a Rank Grid Pro scan to identify dead zones.</div>
+              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>No Grid Scans Found</div>
+              <div style={{ fontSize: 13, color: '#374151' }}>Run a Rank Grid scan first to identify dead zones, or enter locations manually.</div>
             </div>
-            <a href="?tab=rank_grid" style={{
-              padding: '10px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff',
-              fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', textDecoration: 'none',
-              display: 'flex', alignItems: 'center', gap: 6,
-            }}>
+            <button
+              onClick={() => {
+                if (onSwitchTab) {
+                  onSwitchTab('rank_grid')
+                } else {
+                  const url = new URL(window.location.href)
+                  url.searchParams.set('tab', 'rank_grid')
+                  if (clientId) url.searchParams.set('client', clientId)
+                  window.location.href = url.toString()
+                }
+              }}
+              style={{
+                padding: '10px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff',
+                fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
               <Grid size={14} /> Run Grid Scan
-            </a>
+            </button>
           </div>
         </div>
       ) : (
@@ -150,6 +178,14 @@ export default function HyperlocalTab({ clientId, agencyId }) {
               {generating ? 'Generating...' : 'Generate Hyperlocal Content'}
             </button>
           </div>
+
+          {/* Inline error */}
+          {genError && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0 0' }}>
+              <AlertCircle size={14} color="#dc2626" />
+              <div style={{ fontSize: 13, color: '#dc2626', fontFamily: FB }}>{genError}</div>
+            </div>
+          )}
         </div>
       )}
 

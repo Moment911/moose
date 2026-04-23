@@ -115,7 +115,7 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
                            onClick={() => setExpanded(s => ({ ...s, [key]: !isExp }))}>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {o.target_url || o.domain || o.title || o.opportunity}
+                            {o.target_url || o.target_domain || o.domain || o.title || o.opportunity}
                           </div>
                           {o.description && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{o.description}</div>}
                         </div>

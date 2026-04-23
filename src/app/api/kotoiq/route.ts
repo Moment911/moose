@@ -653,9 +653,13 @@ Return ONLY valid JSON array:
     const { client_id, agency_id, website, industry, location } = body
     if (!client_id || !website) return NextResponse.json({ error: 'client_id and website required' }, { status: 400 })
 
-    const { data: syncLog } = await s.from('kotoiq_sync_log').insert({
-      client_id, source: 'quick_scan', status: 'running',
-    }).select().single()
+    let syncLog: any = null
+    try {
+      const { data } = await s.from('kotoiq_sync_log').insert({
+        client_id, source: 'quick_scan', status: 'running',
+      }).select().single()
+      syncLog = data
+    } catch { /* table may not exist */ }
 
     try {
       let normalizedUrl = website.trim()
@@ -780,15 +784,19 @@ Return ONLY valid JSON array:
         void logTokenUsage({ feature: 'kotoiq_quick_scan_recs', model: 'claude-sonnet-4-20250514', inputTokens: recMsg.usage?.input_tokens || 0, outputTokens: recMsg.usage?.output_tokens || 0, agencyId: agency_id })
         aiRecs = JSON.parse((recMsg.content[0].type === 'text' ? recMsg.content[0].text : '[]').replace(/```json?\n?/g, '').replace(/```/g, '').trim())
         if (aiRecs.length > 0) {
-          await s.from('kotoiq_recommendations').delete().eq('client_id', client_id).eq('status', 'pending')
-          await s.from('kotoiq_recommendations').insert(aiRecs.map((r: any) => ({ client_id, agency_id, type: r.type, priority: r.priority, title: r.title, detail: r.detail, estimated_impact: r.estimated_impact, effort: r.effort })))
+          try {
+            await s.from('kotoiq_recommendations').delete().eq('client_id', client_id).eq('status', 'pending')
+            await s.from('kotoiq_recommendations').insert(aiRecs.map((r: any) => ({ client_id, agency_id, type: r.type, priority: r.priority, title: r.title, detail: r.detail, estimated_impact: r.estimated_impact, effort: r.effort })))
+          } catch { /* table may not exist */ }
         }
       } catch { /* skip recs */ }
 
-      await s.from('kotoiq_sync_log').update({
-        status: 'complete', records_synced: ukfRecords.length, completed_at: new Date().toISOString(),
-        metadata: { scan_type: 'quick_scan', client_da: clientDA, competitors: competitors.length, sitemap_pages: sitemapUrls.length },
-      }).eq('id', syncLog?.id)
+      if (syncLog?.id) {
+        try { await s.from('kotoiq_sync_log').update({
+          status: 'complete', records_synced: ukfRecords.length, completed_at: new Date().toISOString(),
+          metadata: { scan_type: 'quick_scan', client_da: clientDA, competitors: competitors.length, sitemap_pages: sitemapUrls.length },
+        }).eq('id', syncLog.id) } catch { /* non-fatal */ }
+      }
 
       return NextResponse.json({
         success: true, total_keywords: ukfRecords.length, client_da: clientDA,
@@ -796,7 +804,7 @@ Return ONLY valid JSON array:
         recommendations: aiRecs,
       })
     } catch (e: any) {
-      await s.from('kotoiq_sync_log').update({ status: 'failed', error_message: e.message, completed_at: new Date().toISOString() }).eq('id', syncLog?.id)
+      if (syncLog?.id) { try { await s.from('kotoiq_sync_log').update({ status: 'failed', error_message: e.message, completed_at: new Date().toISOString() }).eq('id', syncLog.id) } catch {} }
       return NextResponse.json({ error: e.message }, { status: 500 })
     }
   }
@@ -1453,7 +1461,7 @@ Return ONLY valid JSON array:
 
     try {
       const serpResult = await getSERPResults(keyword)
-      serpUrls = serpResult.items.slice(0, 5).map(item => ({
+      serpUrls = serpResult.items.slice(0, 15).map(item => ({
         url: item.url, domain: item.domain, title: item.title, rank: item.rank_group,
       }))
     } catch {
@@ -1461,32 +1469,37 @@ Return ONLY valid JSON array:
       const { data: latestReport } = await s.from('koto_intel_reports').select('report_data')
         .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
       const competitors = latestReport?.report_data?.competitors || []
-      serpUrls = competitors.slice(0, 5).map((c: any, i: number) => ({
+      serpUrls = competitors.slice(0, 10).map((c: any, i: number) => ({
         url: c.website || `https://${c.domain}`, domain: c.domain || '', title: c.name || '', rank: i + 1,
       }))
     }
 
     // Analyze client's own page first (if ranking)
     if (kwData?.sc_top_page) {
-      const analysis = await analyzePageForKeyword(kwData.sc_top_page, keyword)
-      if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: 0 })
+      try {
+        const analysis = await analyzePageForKeyword(kwData.sc_top_page, keyword)
+        if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: 0 })
+      } catch { /* skip */ }
     } else if (clientDomain) {
-      // Check if client shows up in SERP results
       const clientSerp = serpUrls.find(u => u.domain.includes(clientDomain.replace('www.', '')))
       if (clientSerp) {
-        const analysis = await analyzePageForKeyword(clientSerp.url, keyword)
-        if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: clientSerp.rank })
-        serpUrls = serpUrls.filter(u => u !== clientSerp) // don't analyze again below
+        try {
+          const analysis = await analyzePageForKeyword(clientSerp.url, keyword)
+          if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: clientSerp.rank })
+        } catch { /* skip */ }
+        serpUrls = serpUrls.filter(u => u !== clientSerp)
       }
     }
 
-    // Analyze top SERP results
-    for (const comp of serpUrls.slice(0, 4)) {
-      if (!comp.url) continue
-      try {
+    // Analyze top 10 SERP results in parallel (fast)
+    const compResults = await Promise.allSettled(
+      serpUrls.slice(0, 10).filter(c => c.url).map(async comp => {
         const analysis = await analyzePageForKeyword(comp.url, keyword)
-        if (analysis) analyses.push({ ...analysis, is_client: false, name: comp.title || comp.domain, rank: comp.rank })
-      } catch { continue }
+        return analysis ? { ...analysis, is_client: false, name: comp.title || comp.domain, rank: comp.rank, domain: comp.domain } : null
+      })
+    )
+    for (const r of compResults) {
+      if (r.status === 'fulfilled' && r.value) analyses.push(r.value)
     }
 
     // Get Moz PA for all analyzed URLs
@@ -2069,7 +2082,7 @@ Return ONLY valid JSON:
     const { data: brief } = await s.from('kotoiq_content_briefs').select('*').eq('id', brief_id).single()
     if (!brief) return NextResponse.json({ error: 'Brief not found' }, { status: 404 })
 
-    const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer, industry, location').eq('id', brief.client_id).single()
+    const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer, industry').eq('id', brief.client_id).single()
 
     // ── Pre-generation: Run ALL applicable semantic agents in parallel ──
     let queryGap: any = null
@@ -2083,7 +2096,7 @@ Return ONLY valid JSON:
       const [qgResult, faResult, entityResult, lexResult] = await Promise.all([
         runQueryGapAnalyzer(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '', business_name: client?.name || '' }).catch(() => null),
         runFrameAnalyzer(ai, { keyword: brief.target_keyword }).catch(() => null),
-        runNamedEntitySuggester(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '', business_name: client?.name || '', location: client?.location || '' }).catch(() => null),
+        runNamedEntitySuggester(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '', business_name: client?.name || '', location: client?.industry || '' }).catch(() => null),
         runLexicalRelationAnalyzer(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '' }).catch(() => null),
       ])
       queryGap = qgResult
@@ -2093,7 +2106,7 @@ Return ONLY valid JSON:
 
       // Wave 2: Depends on wave 1 results (parallel)
       const [saResult, taResult] = await Promise.all([
-        runSafeAnswerGenerator(ai, { keyword: brief.target_keyword, business_name: client?.name || '', industry: client?.primary_service || '', location: client?.location || '' }).catch(() => null),
+        runSafeAnswerGenerator(ai, { keyword: brief.target_keyword, business_name: client?.name || '', industry: client?.primary_service || '', location: client?.industry || '' }).catch(() => null),
         runTitleQueryAuditor(ai, { title: brief.title_tag || '', target_keyword: brief.target_keyword }).catch(() => null),
       ])
       safeAnswer = saResult
@@ -2692,7 +2705,7 @@ Return ONLY valid JSON:
   }
 
   // ── AEO DEEP ANALYSIS ──────────────────────────────────────────────────
-  if (action === 'aeo_deep_analysis') {
+  if (action === 'aeo_deep_analysis' || action === 'aeo_research') {
     const { client_id, agency_id, keyword, target_url } = body
     if (!client_id || !keyword) return NextResponse.json({ error: 'client_id and keyword required' }, { status: 400 })
 
@@ -2796,6 +2809,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
       const analysis = JSON.parse(cleaned)
 
       return NextResponse.json({
+        success: true,
         keyword,
         aeo_score: aeoScore,
         page_analysis: pageAnalysis,
@@ -2873,7 +2887,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
     if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
 
     const { data: client } = await s.from('clients')
-      .select('name, website, primary_service, industry, target_customer, location')
+      .select('name, website, primary_service, industry, target_customer')
       .eq('id', client_id).single()
 
     const { data: existingKeywords } = await s.from('kotoiq_keywords')
@@ -2884,7 +2898,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
       const [queryGap, frameAnalysis, entitySuggestions] = await Promise.all([
         runQueryGapAnalyzer(ai, { keyword, industry: client?.primary_service || '', business_name: client?.name || '', existing_keywords: (existingKeywords || []).map((k: any) => k.keyword) }),
         runFrameAnalyzer(ai, { keyword }),
-        runNamedEntitySuggester(ai, { keyword, industry: client?.primary_service || '', business_name: client?.name || '', location: client?.location }),
+        runNamedEntitySuggester(ai, { keyword, industry: client?.primary_service || '', business_name: client?.name || '', location: client?.industry || '' }),
       ])
 
       void logTokenUsage({ feature: 'kotoiq_semantic_agents', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
@@ -2943,7 +2957,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
     if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
 
     const { data: client } = await s.from('clients')
-      .select('name, website, primary_service, target_customer, location')
+      .select('name, website, primary_service, target_customer, industry')
       .eq('id', client_id).single()
 
     try {
@@ -2951,7 +2965,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
         keyword,
         business_name: client?.name || '',
         industry: client?.primary_service || '',
-        location: client?.location || '',
+        location: client?.industry || '',
       })
 
       void logTokenUsage({ feature: 'kotoiq_safe_answer', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
@@ -2996,9 +3010,9 @@ Provide a detailed analysis. Return ONLY valid JSON:
     let ctx = business_context
     if (!ctx && client_id) {
       const { data: client } = await s.from('clients')
-        .select('name, primary_service, target_customer, location')
+        .select('name, primary_service, target_customer, industry')
         .eq('id', client_id).single()
-      if (client) ctx = `${client.name || ''} — ${client.primary_service || ''} targeting ${client.target_customer || ''} in ${client.location || ''}`
+      if (client) ctx = `${client.name || ''} — ${client.primary_service || ''} targeting ${client.target_customer || ''} (${client.industry || ''})`
     }
 
     try {
@@ -3078,9 +3092,9 @@ Provide a detailed analysis. Return ONLY valid JSON:
     let businessContext: string | undefined
     if (client_id) {
       const { data: client } = await s.from('clients')
-        .select('name, primary_service, target_customer, location')
+        .select('name, primary_service, target_customer, industry')
         .eq('id', client_id).single()
-      if (client) businessContext = `${client.name || ''} — ${client.primary_service || ''} targeting ${client.target_customer || ''} in ${client.location || ''}`
+      if (client) businessContext = `${client.name || ''} — ${client.primary_service || ''} targeting ${client.target_customer || ''} (${client.industry || ''})`
     }
 
     try {
@@ -3316,13 +3330,13 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
   // Helper — pull client location context for geo-tagging
   async function getClientLocationContext(client_id: string) {
-    const { data: client } = await s.from('clients').select('name, website, primary_service, location, address').eq('id', client_id).single()
+    const { data: client } = await s.from('clients').select('name, website, primary_service, address').eq('id', client_id).single()
     const { data: report } = await s.from('koto_intel_reports').select('report_data').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
     const gbp = report?.report_data?.gbp_audit || {}
     return {
       businessName: client?.name || '',
       primaryService: client?.primary_service || '',
-      address: client?.address || client?.location || gbp.address || '',
+      address: client?.address || gbp.address || '',
       lat: gbp.lat || gbp.latitude,
       lng: gbp.lng || gbp.longitude,
       city: gbp.city,
@@ -3714,7 +3728,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
       // Pull DA from domain enrichment if available
       const { data: client } = await s.from('clients')
-        .select('name, website, primary_service, target_customer, location')
+        .select('name, website, primary_service, target_customer, industry')
         .eq('id', client_id).single()
 
       const { data: daRow } = await s.from('kotoiq_domain_enrichment')
@@ -3744,7 +3758,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
           category: k.category,
         })),
         domain_authority: daRow?.domain_authority ?? null,
-        business_context: client ? `${client.name || ''} — ${client.primary_service || ''} serving ${client.target_customer || ''} in ${client.location || ''}` : undefined,
+        business_context: client ? `${client.name || ''} — ${client.primary_service || ''} serving ${client.target_customer || ''} (${client.industry || ''})` : undefined,
         agencyId: agency_id,
       })
 
@@ -3759,10 +3773,39 @@ Provide a detailed analysis. Return ONLY valid JSON:
         } catch { /* column may not exist yet; non-fatal */ }
       }
 
-      return NextResponse.json(result)
+      // Normalize field names for the frontend
+      return NextResponse.json({
+        overall_score: result.authority_score,
+        grade: result.grade,
+        coverage_score: result.topical_coverage,
+        historical_score: result.historical_data_strength,
+        depth_score: result.content_depth,
+        competitive_score: result.competitive_position,
+        clusters: (result.cluster_scores || []).map((c: any) => ({
+          name: c.cluster_name,
+          score: c.score,
+          strengths: c.strengths,
+          gaps: c.gaps,
+        })),
+        overall_verdict: result.overall_verdict,
+        recommendations: result.recommendations,
+        updated_at: new Date().toISOString(),
+      })
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
     }
+  }
+
+  // ── GET TOPICAL AUTHORITY (read-only — returns last audit) ────
+  if (action === 'get_topical_authority') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data: mapRow } = await s.from('kotoiq_topical_maps')
+      .select('authority_score, authority_grade, authority_audited_at, central_entity, source_context, coverage_pct, node_count')
+      .eq('client_id', client_id)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle()
+    if (!mapRow?.authority_score) return NextResponse.json({ data: null })
+    return NextResponse.json({ data: mapRow })
   }
 
   // ── CONTEXT VECTOR ALIGNER ────────────────────────────────────
@@ -3787,8 +3830,25 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
   // ── MULTI-ENGINE AEO SCORER ───────────────────────────────────
   if (action === 'score_multi_engine_aeo') {
-    const { content, keyword, url, has_schema, has_citations, agency_id } = body
-    if (!content || !keyword) return NextResponse.json({ error: 'content and keyword required' }, { status: 400 })
+    const { content: rawContent, keyword, url, has_schema, has_citations, agency_id, client_id } = body
+    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+
+    // Auto-fetch content from client website if none provided
+    let content = rawContent || ''
+    if (!content && client_id) {
+      const { data: client } = await s.from('clients').select('website').eq('id', client_id).single()
+      if (client?.website) {
+        try {
+          const fullUrl = client.website.startsWith('http') ? client.website : `https://${client.website}`
+          const r = await fetch(fullUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' }, signal: AbortSignal.timeout(10000) })
+          if (r.ok) {
+            const html = await r.text()
+            content = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 10000)
+          }
+        } catch { /* skip */ }
+      }
+    }
+    if (!content) return NextResponse.json({ error: 'content required — paste content or add a website to your client' }, { status: 400 })
 
     try {
       const result = await runMultiEngineAEO(ai, {
@@ -3808,7 +3868,19 @@ Provide a detailed analysis. Return ONLY valid JSON:
   // ── CONTENT DECAY PREDICTOR ───────────────────────────────────
   if (action === 'predict_content_decay') {
     const { client_id, url, agency_id } = body
-    if (!client_id || !url) return NextResponse.json({ error: 'client_id and url required' }, { status: 400 })
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // If no URL provided, return the inventory with existing decay data
+    if (!url) {
+      try {
+        const { data: inv } = await s.from('kotoiq_content_inventory')
+          .select('*').eq('client_id', client_id)
+          .order('refresh_priority', { ascending: true }).limit(100)
+        return NextResponse.json({ urls: inv || [] })
+      } catch {
+        return NextResponse.json({ urls: [] })
+      }
+    }
 
     try {
       // Pull inventory row for this URL
@@ -3889,7 +3961,8 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
   // ── COMPETITOR TOPICAL MAP EXTRACTOR ──────────────────────────
   if (action === 'extract_competitor_topical_map') {
-    const { competitor_url, client_id, agency_id } = body
+    const { competitor_url: _cu, url: _u, client_id, agency_id } = body
+    const competitor_url = _cu || _u
     if (!competitor_url) return NextResponse.json({ error: 'competitor_url required' }, { status: 400 })
 
     try {
@@ -4504,7 +4577,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
     // match a named client ("audit RDC's homepage") and emit client_id back to the UI.
     if (body.agency_id && !body.client_id) {
       const { data: availClients } = await sb().from('clients')
-        .select('id, name, website, primary_service, location')
+        .select('id, name, website, primary_service, industry')
         .eq('agency_id', body.agency_id)
         .is('deleted_at', null)
       body.available_clients = availClients || []
@@ -4626,6 +4699,111 @@ Provide a detailed analysis. Return ONLY valid JSON:
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
 
     return NextResponse.json({ reverted: true, activity_id })
+  }
+
+  // ── CONTENT VARIANT GENERATOR ────────────────────────────────────────
+  if (action === 'generate_content_variant') {
+    const { client_id, agency_id, module_id, module_label, module_desc, keyword, variant_count } = body
+    if (!client_id || !module_id) return NextResponse.json({ error: 'client_id and module_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer, industry').eq('id', client_id).single()
+    const count = Math.min(variant_count || 2, 4)
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        system: `You are an expert SEO content writer. Generate ${count} distinct content variants for a page section module. Each variant must be unique in angle, tone, or structure while covering the same topic. Write in natural, human language — no AI slop.`,
+        messages: [{ role: 'user', content: `Generate ${count} content variants for the "${module_label}" section.
+
+BUSINESS: ${client?.name || 'Unknown'}
+WEBSITE: ${client?.website || 'Unknown'}
+SERVICE: ${client?.primary_service || 'Unknown'}
+TARGET: ${client?.target_customer || 'Unknown'}
+INDUSTRY: ${client?.industry || 'Unknown'}
+${keyword ? `TARGET KEYWORD: ${keyword}` : ''}
+
+MODULE: ${module_label}
+PURPOSE: ${module_desc}
+
+Return ONLY valid JSON:
+{ "variants": ["variant 1 content (200-400 words, HTML formatting allowed)", "variant 2 content ..."] }` }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_content_variant', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+      const parsed = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+      return NextResponse.json({ module_id, ...parsed })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── ACTION ALIASES — frontend names that map to existing handlers ─────
+  if (action === 'get_keywords') {
+    // PipelineOrchestratorTab calls 'get_keywords', backend uses 'keywords'
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data: kws } = await s.from('kotoiq_keywords').select('keyword, fingerprint, category, sc_avg_position, search_volume, sc_clicks, sc_impressions, opportunity_score, intent')
+      .eq('client_id', client_id).order('opportunity_score', { ascending: false }).limit(200)
+    return NextResponse.json({ keywords: kws || [] })
+  }
+
+  if (action === 'get_content_decay') {
+    // ContentDecayTab calls 'get_content_decay', return content inventory with decay data
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data: urls } = await s.from('kotoiq_content_inventory')
+      .select('*').eq('client_id', client_id)
+      .order('refresh_priority', { ascending: true }).limit(100)
+    return NextResponse.json({ urls: urls || [] })
+  }
+
+  if (action === 'delete_scan') {
+    const { client_id, scan_type } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    if (scan_type === 'quick_scan') {
+      await s.from('kotoiq_keywords').delete().eq('client_id', client_id)
+      await s.from('kotoiq_snapshots').delete().eq('client_id', client_id)
+    }
+    return NextResponse.json({ success: true })
+  }
+
+  if (action === 'dfs_competitors') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data: client } = await s.from('clients').select('website').eq('id', client_id).single()
+    if (!client?.website) return NextResponse.json({ error: 'Client has no website' }, { status: 400 })
+    const domain = client.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
+    try {
+      const competitors = await getDomainCompetitors(domain)
+      return NextResponse.json({ success: true, domain, competitors })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'dfs_compare') {
+    const { domain1, domain2 } = body
+    if (!domain1 || !domain2) return NextResponse.json({ error: 'domain1 and domain2 required' }, { status: 400 })
+    try {
+      const intersection = await getDomainIntersection(domain1, domain2)
+      return NextResponse.json({ success: true, domain1, domain2, intersection })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'dfs_grid_scan') {
+    const { client_id, agency_id, keyword, business_name, lat, lng } = body
+    if (!keyword || !lat || !lng) return NextResponse.json({ error: 'keyword, lat, and lng required' }, { status: 400 })
+    try {
+      const result = await runGMBGridScan(
+        keyword, business_name || '', Number(lat), Number(lng), 5
+      )
+      return NextResponse.json({ success: true, result })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Map, Loader2, RefreshCw, CheckCircle, AlertCircle, XCircle,
   Target, Layers, TrendingUp, ChevronDown, ChevronUp, Filter,
-  FileText, Zap, Globe, ArrowRight, Edit2, Check, X, Search
+  FileText, Zap, Globe, ArrowRight, Edit2, Check, X, Search,
+  Info, PlusCircle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -96,6 +97,21 @@ function PriorityBadge({ priority }) {
   )
 }
 
+// ── Node Guidance ───────────────────────────────────────────────
+
+const NODE_GUIDANCE = {
+  pillar:     { covered: 'Pillar page exists. Keep it updated and interlink cluster pages to it.', partial: 'Pillar page needs expansion. Add depth, internal links, and cover subtopics.', gap: 'Create a pillar page targeting this core entity -- this anchors your topical authority.' },
+  cluster:    { covered: 'Cluster content is live. Ensure it links back to the parent pillar page.', partial: 'Cluster content is thin. Add detail, examples, and structured headings.', gap: 'Write a detailed cluster article and link it to the relevant pillar page.' },
+  support:    { covered: 'Supporting content is published. Monitor rankings and refresh quarterly.', partial: 'Supporting content exists but lacks depth. Expand with data, examples, or FAQs.', gap: 'Create a supporting article -- these build topical depth and capture long-tail queries.' },
+  faq:        { covered: 'FAQ page covers this topic. Keep answers current and add schema markup.', partial: 'FAQ exists but is incomplete. Add more questions and structured data.', gap: 'Add an FAQ section or page -- FAQ content captures "People Also Ask" and voice search.' },
+  comparison: { covered: 'Comparison content is live. Update as competitors and features change.', partial: 'Comparison page is outdated or incomplete. Refresh with current data.', gap: 'Create a comparison page -- high-intent searchers are ready to convert.' },
+}
+
+function getNodeGuidance(node) {
+  const typeGuide = NODE_GUIDANCE[node.content_type] || NODE_GUIDANCE.support
+  return typeGuide[node.status] || typeGuide.gap
+}
+
 // ── Node Card ───────────────────────────────────────────────────
 
 function NodeCard({ node, onGenerateBrief, onStatusChange }) {
@@ -105,6 +121,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
     <div style={{
       background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px',
       transition: 'box-shadow 0.15s', cursor: 'default',
+      borderLeft: `4px solid ${STATUS_CONFIG[node.status]?.color || '#e5e7eb'}`,
     }}
       onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'}
       onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
@@ -134,6 +151,27 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
         <div style={{ fontSize: 12, color: '#374151', marginBottom: 6, lineHeight: 1.4, fontStyle: 'italic' }}>
           {node.suggested_title}
         </div>
+      )}
+
+      {/* Actionable guidance */}
+      <div style={{
+        fontSize: 11, lineHeight: 1.5, padding: '6px 10px', borderRadius: 8, marginBottom: 8,
+        background: node.status === 'gap' ? R + '08' : node.status === 'partial' ? AMB + '08' : GRN + '08',
+        color: node.status === 'gap' ? '#991b1b' : node.status === 'partial' ? '#92400e' : '#166534',
+        borderLeft: `3px solid ${STATUS_CONFIG[node.status]?.color || R}`,
+      }}>
+        {getNodeGuidance(node)}
+      </div>
+
+      {/* Gap: prominent create content CTA */}
+      {node.status === 'gap' && (
+        <button onClick={() => onGenerateBrief(node)} style={{
+          display: 'flex', alignItems: 'center', gap: 5, width: '100%', padding: '8px 12px', borderRadius: 8,
+          border: `1.5px dashed ${R}`, background: R + '06', color: R, fontSize: 12, fontWeight: 700,
+          cursor: 'pointer', marginBottom: 8, justifyContent: 'center',
+        }}>
+          <PlusCircle size={13} /> Create Content for This Topic
+        </button>
       )}
 
       {/* Attributes as tags */}
@@ -451,6 +489,23 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
   return (
     <div>
       <HowItWorks tool="topical_map" />
+
+      {/* Explanation card */}
+      <div style={{ ...card, background: T + '06', border: `1px solid ${T}25`, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+        <div style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, background: T + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+          <Info size={18} color={T} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>What is a Topical Map?</div>
+          <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6, marginBottom: 6 }}>
+            A topical map is a structured plan of every piece of content your site needs to demonstrate complete expertise on a subject. Each node represents a topic to cover. <strong>Core nodes</strong> are directly tied to revenue -- these should be your pillar and cluster pages. <strong>Outer nodes</strong> build surrounding authority and capture long-tail searches.
+          </div>
+          <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
+            <strong>How to use it:</strong> Work through gaps (red) first -- these are missing content opportunities. Upgrade partials (amber) by adding depth. Keep covered (green) content fresh. Click "Generate Brief" on any gap node to get a ready-to-write content brief.
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
         <ScoreCircle score={coverageScore} />
@@ -671,6 +726,19 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         <div style={{ textAlign: 'center', padding: 40, color: '#1f2937' }}>
           <div style={{ fontSize: 14, fontWeight: 600 }}>No nodes match the current filter</div>
           <div style={{ fontSize: 12, marginTop: 4 }}>Try changing the filter or search term</div>
+        </div>
+      )}
+
+      {/* Few nodes hint */}
+      {(stats.total || 0) > 0 && (stats.total || 0) < 15 && (
+        <div style={{
+          ...card, background: AMB + '08', border: `1px solid ${AMB}25`,
+          display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px',
+        }}>
+          <AlertCircle size={16} color={AMB} style={{ flexShrink: 0 }} />
+          <div style={{ fontSize: 12, color: '#92400e', lineHeight: 1.5 }}>
+            <strong>Only {stats.total} nodes mapped.</strong> Your topical map may be incomplete. Run "Regenerate" with more seed topics or enrich your KotoIQ profile to discover additional content opportunities.
+          </div>
         </div>
       )}
     </div>

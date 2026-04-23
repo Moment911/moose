@@ -510,12 +510,24 @@ Return ONLY valid JSON: an array of objects, each with "url" and "recommendation
     } catch { /* AI recommendations are nice-to-have, don't block */ }
   }
 
+  // Guard: if no pages could be analyzed, don't wipe existing inventory
+  if (rows.length === 0) {
+    if (jobId) {
+      try { await s.from('kotoiq_processing_jobs').update({ status: 'complete', completed_at: new Date().toISOString() }).eq('id', jobId) } catch { /* non-critical */ }
+    }
+    return { error: `Scanned ${sitemapUrls.length} sitemap URLs but could not analyze any pages. The site may be blocking bots or returning errors.` }
+  }
+
   // Delete old inventory and insert new
-  await s.from('kotoiq_content_inventory').delete().eq('client_id', client_id)
+  const { error: delErr } = await s.from('kotoiq_content_inventory').delete().eq('client_id', client_id)
+  if (delErr) return { error: `Failed to clear old inventory: ${delErr.message}` }
 
   // Insert in batches of 50
+  let insertedCount = 0
   for (let i = 0; i < rows.length; i += 50) {
-    await s.from('kotoiq_content_inventory').insert(rows.slice(i, i + 50))
+    const { error: insErr } = await s.from('kotoiq_content_inventory').insert(rows.slice(i, i + 50))
+    if (insErr) return { error: `Failed to save inventory (batch at ${i}): ${insErr.message}` }
+    insertedCount += Math.min(50, rows.length - i)
   }
 
   // Mark processing job complete
@@ -529,17 +541,27 @@ Return ONLY valid JSON: an array of objects, each with "url" and "recommendation
     } catch { /* non-critical */ }
   }
 
-  return {
-    success: true,
-    job_id: jobId,
-    urls_processed: sitemapUrls.length,
-    total_pages: rows.length,
+  const summaryStats = {
+    total: rows.length,
     fresh: rows.filter(r => r.freshness_status === 'fresh').length,
     aging: rows.filter(r => r.freshness_status === 'aging').length,
     stale: rows.filter(r => r.freshness_status === 'stale').length,
     critical: rows.filter(r => r.freshness_status === 'critical').length,
     urgent: rows.filter(r => r.refresh_priority === 'urgent').length,
-    thin_content: rows.filter(r => r.thin_content).length,
+    declining: rows.filter(r => r.trajectory === 'declining').length,
+    thin: rows.filter(r => r.thin_content).length,
+  }
+
+  return {
+    success: true,
+    job_id: jobId,
+    urls_processed: sitemapUrls.length,
+    total_pages: rows.length,
+    // Include full inventory + summary so frontend can render immediately
+    inventory: rows,
+    summary: summaryStats,
+    // Legacy flat fields kept for backward compat
+    ...summaryStats,
   }
 }
 

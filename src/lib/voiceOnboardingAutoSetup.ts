@@ -220,7 +220,7 @@ export async function triggerAutoSetup(
   // ── Client readiness check ──
   const { data: client } = await s
     .from('clients')
-    .select('id, name, website, primary_service, location, city, state, industry, target_customer')
+    .select('id, name, website, primary_service, city, state, industry, target_customer')
     .eq('id', client_id)
     .single()
 
@@ -240,7 +240,7 @@ export async function triggerAutoSetup(
 
   const website = (client.website || '').trim()
   const industry = client.primary_service || client.industry || ''
-  const location = client.location || [client.city, client.state].filter(Boolean).join(', ')
+  const location = [client.city, client.state].filter(Boolean).join(', ')
 
   if (!client.name || !website || !industry || !location) {
     const missing = [
