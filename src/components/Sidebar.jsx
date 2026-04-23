@@ -456,6 +456,7 @@ export default function Sidebar() {
               <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub hidden={!match('Scout History') || !feat('scout')}/>
               <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" hidden={!match('Q&A Intelligence') || !feat('qa_intelligence')}/>
               <NavLink to="/opportunities" icon={Zap} label="Opportunities" hidden={!match('Opportunities') || !feat('opportunities')}/>
+              <NavLink to="/pipeline" icon={Target} label="Pipeline" hidden={!match('Pipeline')}/>
             </Section>
 
             {/* VOICE & AI */}
