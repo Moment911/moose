@@ -19,6 +19,12 @@ import { logTokenUsage } from '../../../../lib/tokenTracker'
 //   delete       — { trainee_id, log_id } -> remove a log row.
 //   list_range   — { trainee_id, from, to } -> rows across a date range
 //                  (for week / month views).
+//   log_planned  — { trainee_id, plan_key, items, servings_mult?, meal_name? }
+//                  -> persist a log row for a planned meal, scaled by
+//                  servings_mult (default 1.0). plan_key lands in notes as
+//                  JSON so unlog_planned can undo the row without guessing.
+//   unlog_planned— { trainee_id, plan_key } -> delete today's log rows whose
+//                  notes JSON carries this plan_key. Idempotent.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const runtime = 'nodejs'
@@ -95,7 +101,11 @@ export async function POST(req: NextRequest) {
   if (action === 'add_manual') return handleAddManual(sb, traineeId, agencyId, body)
   if (action === 'delete') return handleDelete(sb, traineeId, agencyId, body)
   if (action === 'list_range') return handleListRange(sb, traineeId, agencyId, body)
-  return err(400, 'Unknown action', { allowed: ['scan_photo', 'list_today', 'add_manual', 'delete', 'list_range'] })
+  if (action === 'log_planned') return handleLogPlanned(sb, traineeId, agencyId, body)
+  if (action === 'unlog_planned') return handleUnlogPlanned(sb, traineeId, agencyId, body)
+  return err(400, 'Unknown action', {
+    allowed: ['scan_photo', 'list_today', 'add_manual', 'delete', 'list_range', 'log_planned', 'unlog_planned'],
+  })
 }
 
 // ── scan_photo ──────────────────────────────────────────────────────────────
@@ -305,6 +315,127 @@ async function handleDelete(
     return err(500, 'Delete failed')
   }
   return NextResponse.json({ ok: true })
+}
+
+// ── log_planned ─────────────────────────────────────────────────────────────
+// Writes one food_logs row tied to a planned meal. plan_key is an opaque
+// client-generated identifier (e.g. "week:0|day:1|slot:breakfast"); we store
+// it in notes as JSON so unlog_planned can find and delete this exact row.
+async function handleLogPlanned(
+  sb: SupabaseClient,
+  traineeId: string,
+  agencyId: string,
+  body: Record<string, unknown>,
+) {
+  const planKey = typeof body.plan_key === 'string' ? body.plan_key.trim() : ''
+  if (!planKey) return err(400, 'plan_key required')
+
+  const mult = (() => {
+    const raw = Number(body.servings_mult)
+    if (!Number.isFinite(raw) || raw <= 0) return 1
+    return Math.min(5, raw) // cap so a typo can't stuff 50x macros
+  })()
+
+  const rawItems = Array.isArray(body.items) ? body.items : null
+  if (!rawItems) return err(400, 'items array required')
+  const items: FoodItem[] = rawItems
+    .filter((it): it is Record<string, unknown> => typeof it === 'object' && it !== null)
+    .map((it) => ({
+      name: String((it as Record<string, unknown>).name || '').trim(),
+      kcal: Math.round((Number((it as Record<string, unknown>).kcal) || 0) * mult),
+      protein_g: roundNum(Number((it as Record<string, unknown>).protein_g) * mult),
+      fat_g: roundNum(Number((it as Record<string, unknown>).fat_g) * mult),
+      carb_g: roundNum(Number((it as Record<string, unknown>).carb_g) * mult),
+      portion: typeof (it as Record<string, unknown>).portion === 'string'
+        ? ((it as Record<string, unknown>).portion as string)
+        : undefined,
+    }))
+    .filter((it) => it.name.length > 0)
+  if (items.length === 0) return err(400, 'at least one named item required')
+
+  // Remove any prior log for this plan_key before inserting so toggling the
+  // multiplier doesn't double-count. list_today will show the new row.
+  await deletePlannedLogsToday(sb, traineeId, agencyId, planKey)
+
+  const mealName = typeof body.meal_name === 'string' ? body.meal_name.slice(0, 200) : ''
+  const notesPayload = JSON.stringify({ plan_key: planKey, servings_mult: mult, meal_name: mealName || undefined })
+
+  const totals = sumItems(items)
+  const { data, error } = await sb
+    .from('koto_fitness_food_logs')
+    .insert({
+      agency_id: agencyId,
+      trainee_id: traineeId,
+      items,
+      total_kcal: Math.round(totals.kcal),
+      total_protein_g: roundNum(totals.p),
+      total_fat_g: roundNum(totals.f),
+      total_carb_g: roundNum(totals.c),
+      source: 'manual',
+      notes: notesPayload,
+    })
+    .select('id, logged_at')
+    .single()
+  if (error || !data) {
+    console.error('[food-log] log_planned insert failed:', error?.message)
+    return err(500, 'Insert failed')
+  }
+  return NextResponse.json({
+    log: { ...(data as Record<string, unknown>), items, totals, plan_key: planKey, servings_mult: mult },
+  })
+}
+
+// ── unlog_planned ───────────────────────────────────────────────────────────
+// Deletes any of today's food_logs rows that carry this plan_key in notes.
+async function handleUnlogPlanned(
+  sb: SupabaseClient,
+  traineeId: string,
+  agencyId: string,
+  body: Record<string, unknown>,
+) {
+  const planKey = typeof body.plan_key === 'string' ? body.plan_key.trim() : ''
+  if (!planKey) return err(400, 'plan_key required')
+  const removed = await deletePlannedLogsToday(sb, traineeId, agencyId, planKey)
+  return NextResponse.json({ ok: true, removed })
+}
+
+// Shared helper — scans today's rows for this trainee and deletes any whose
+// notes JSON carries the given plan_key. Returns count removed.
+async function deletePlannedLogsToday(
+  sb: SupabaseClient,
+  traineeId: string,
+  agencyId: string,
+  planKey: string,
+): Promise<number> {
+  const today = new Date().toISOString().slice(0, 10)
+  const { data: rows } = await sb
+    .from('koto_fitness_food_logs')
+    .select('id, notes')
+    .eq('trainee_id', traineeId)
+    .eq('agency_id', agencyId)
+    .eq('log_date', today)
+    .eq('source', 'manual')
+  const matchIds: string[] = []
+  for (const r of (rows || []) as Array<{ id: string; notes: string | null }>) {
+    const n = r.notes
+    if (!n) continue
+    try {
+      const parsed = JSON.parse(n) as { plan_key?: unknown }
+      if (typeof parsed?.plan_key === 'string' && parsed.plan_key === planKey) {
+        matchIds.push(r.id)
+      }
+    } catch { /* notes wasn't JSON — not a planned entry */ }
+  }
+  if (matchIds.length === 0) return 0
+  const { error: delErr } = await sb
+    .from('koto_fitness_food_logs')
+    .delete()
+    .in('id', matchIds)
+  if (delErr) {
+    console.error('[food-log] unlog_planned delete failed:', delErr.message)
+    return 0
+  }
+  return matchIds.length
 }
 
 // ── list_range ──────────────────────────────────────────────────────────────

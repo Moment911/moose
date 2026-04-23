@@ -2291,7 +2291,7 @@ function NutritionTab({
         </section>
       )}
 
-      {hasMeals && <MealPlanTable mealPlan={plan.meal_plan} />}
+      {hasMeals && <MealPlanTable mealPlan={plan.meal_plan} traineeId={trainee?.id} />}
       {hasGrocery && <GroceryList groceryList={plan.grocery_list} />}
     </div>
   )

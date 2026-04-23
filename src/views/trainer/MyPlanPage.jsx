@@ -237,7 +237,7 @@ export default function MyPlanPage() {
 
         {tab === 'meals' ? (
           plan.meal_plan ? (
-            <MealPlanTable mealPlan={plan.meal_plan} />
+            <MealPlanTable mealPlan={plan.meal_plan} traineeId={trainee?.id} />
           ) : (
             <EmptySection label="Your meal plan is being prepared." />
           )
