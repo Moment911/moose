@@ -165,6 +165,7 @@ import QAIntelligencePage from '../views/QAIntelligencePage'
 import IndustryAgentPage from '../views/IndustryAgentPage'
 import ClientIntelligencePage from '../views/ClientIntelligencePage'
 import OpportunitiesPage from '../views/OpportunitiesPage'
+import TrainerLandingPage from '../views/trainer/TrainerLandingPage'
 import TrainerHomePage from '../views/trainer/TrainerHomePage'
 import TrainerListPage from '../views/trainer/TrainerListPage'
 import TrainerIntakePage from '../views/trainer/TrainerIntakePage'
@@ -334,6 +335,7 @@ export default function App() {
           <Route path="/integrations/gmail/callback" element={<GmailCallbackPage />} />
           <Route path="/access-guide" element={<AccessGuidePage />} />
           <Route path="/my-plan" element={<MyPlanPage />} />
+          <Route path="/train" element={<TrainerLandingPage />} />
           <Route path="/start" element={<SelfSignupPage />} />
           <Route path="/my-intake" element={<SelfIntakePage />} />
           <Route path="/intake/:traineeId" element={<TraineeIntakePage />} />
