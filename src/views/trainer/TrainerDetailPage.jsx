@@ -1462,14 +1462,14 @@ function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlay
         }} />
       </div>
 
-      {/* Generate CTA */}
-      {!hasBaseline && canGenerate && (
+      {/* Generate CTA — shows whenever plan is incomplete */}
+      {doneCount < 6 && canGenerate && (
         <button type="button" onClick={onGenerateBaseline}
           disabled={anyGenerating}
           style={{
             width: '100%', padding: '14px 16px',
             background: anyGenerating
-              ? 'rgba(255,255,255,0.1)'
+              ? 'rgba(255,255,255,0.15)'
               : `linear-gradient(135deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]})`,
             color: '#fff', border: 'none', borderRadius: 12,
             fontSize: 15, fontWeight: 800, cursor: anyGenerating ? 'default' : 'pointer',
@@ -1480,7 +1480,11 @@ function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlay
           {anyGenerating
             ? <Loader2 size={16} style={{ animation: 'stepSpin 1s linear infinite' }} />
             : <Sparkles size={16} />}
-          {anyGenerating ? 'Building your plan…' : 'Generate my full plan'}
+          {anyGenerating
+            ? 'Building your plan…'
+            : doneCount > 0
+              ? `Continue building (${doneCount}/6 done)`
+              : 'Generate my full plan'}
         </button>
       )}
     </section>
