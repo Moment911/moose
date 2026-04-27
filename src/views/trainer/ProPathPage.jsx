@@ -65,9 +65,11 @@ export default function ProPathPage() {
 
   // Load trainees list.
   useEffect(() => {
+    if (!agencyId) return
     async function load() {
       try {
         const res = await trainerFetch({ action: 'list' }, { agencyId })
+        if (!res.ok) { setTraineesLoading(false); return }
         const data = await res.json()
         setTrainees(data.trainees || data || [])
       } catch (err) {
@@ -172,7 +174,7 @@ export default function ProPathPage() {
                 <option value="">Choose a trainee...</option>
                 {trainees.map(t => (
                   <option key={t.id} value={t.id}>
-                    {t.first_name} {t.last_name}{t.grad_year ? ` (${t.grad_year})` : ''}
+                    {t.full_name || t.email || 'Unnamed'}{t.grad_year ? ` (${t.grad_year})` : ''}
                   </option>
                 ))}
               </select>
