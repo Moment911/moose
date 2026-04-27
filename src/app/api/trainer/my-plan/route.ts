@@ -34,7 +34,7 @@ function getDb(): SupabaseClient {
   )
 }
 
-const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account'] as const
+const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account', 'get_progress_history', 'log_progress'] as const
 type Action = (typeof ALLOWED_ACTIONS)[number]
 
 function err(status: number, error: string, extra?: Record<string, unknown>) {
@@ -182,6 +182,8 @@ export async function POST(req: NextRequest) {
     if (action === 'update_log') return await handleUpdateLog(sb, ctx, body)
     if (action === 'update_intake') return await handleUpdateIntake(sb, ctx, body)
     if (action === 'delete_my_account') return await handleDeleteMyAccount(sb, ctx)
+    if (action === 'get_progress_history') return await handleGetProgressHistory(sb, ctx)
+    if (action === 'log_progress') return await handleLogProgress(sb, ctx, body)
     return err(400, 'Unknown action')
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Internal error'
@@ -514,4 +516,52 @@ async function handleDeleteMyAccount(sb: SupabaseClient, ctx: TraineeCtx) {
     return NextResponse.json({ ok: true, partial: true, failures })
   }
   return NextResponse.json({ ok: true })
+}
+
+// ── get_progress_history — weight check-ins + volume by date ──────────────
+async function handleGetProgressHistory(sb: SupabaseClient, ctx: TraineeCtx) {
+  // Weight check-ins from koto_fitness_progress
+  const { data: weightHistory } = await sb
+    .from('koto_fitness_progress')
+    .select('id, weight_kg, notes, checked_in_at, created_at')
+    .eq('trainee_id', ctx.traineeId)
+    .eq('agency_id', ctx.agencyId)
+    .order('created_at', { ascending: true })
+    .limit(100)
+
+  return NextResponse.json({
+    weight_history: weightHistory ?? [],
+  })
+}
+
+// ── log_progress — trainee records a weight check-in ─────────────────────
+async function handleLogProgress(
+  sb: SupabaseClient,
+  ctx: TraineeCtx,
+  body: Record<string, unknown>,
+) {
+  const weightKg =
+    typeof body.weight_kg === 'number' ? body.weight_kg : Number(body.weight_kg)
+  if (!Number.isFinite(weightKg) || weightKg <= 0) {
+    return err(400, 'weight_kg must be a positive number')
+  }
+  const notes = typeof body.notes === 'string' ? body.notes : null
+
+  const { data, error } = await sb
+    .from('koto_fitness_progress')
+    .insert({
+      trainee_id: ctx.traineeId,
+      agency_id: ctx.agencyId,
+      weight_kg: weightKg,
+      notes,
+      checked_in_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single()
+
+  if (error) {
+    console.error('[trainer/my-plan] log_progress error:', error.message)
+    return err(500, 'Insert failed')
+  }
+  return NextResponse.json({ id: (data as { id: string }).id }, { status: 201 })
 }

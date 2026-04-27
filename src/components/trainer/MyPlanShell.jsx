@@ -1,102 +1,126 @@
 "use client"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Trainer Phase 3 — MyPlanShell
+// Trainer Phase 4 — MyPlanShell (Apple-style redesign)
 //
-// Minimal layout wrapper for /my-plan. No Koto sidebar — trainees should
-// never see the agency's internal nav. Header reads agency branding from
-// the prop, falls back to the Koto brand if unset. Disclaimer footer is
-// pinned at the bottom per CONTEXT D-20.
+// Minimal layout wrapper for /my-plan. Clean white header with agency logo,
+// warm-white background, narrow content column (680px). No card nesting —
+// children render directly into the content area for a spacious feel.
+// Disclaimer is a subtle footer line, not a banner.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BG = '#f9fafb'
-const CARD = '#ffffff'
-const BRD = '#e5e7eb'
-const INK = '#0a0a0a'
-const GRY5 = '#6b7280'
+const A = {
+  bg:      '#fafafa',
+  card:    '#ffffff',
+  ink:     '#1d1d1f',
+  ink2:    '#424245',
+  ink3:    '#86868b',
+  accent:  '#0071e3',
+  border:  'rgba(0,0,0,0.08)',
+  font:    "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif",
+}
 
-export default function MyPlanShell({ agency, children }) {
+export default function MyPlanShell({ agency, children, hasMobileTabBar = false }) {
   const agencyName = agency?.name || 'Your Coach'
-  const brandColor = agency?.brand_color || '#0a0a0a'
   const logoUrl = agency?.logo_url || null
   const supportEmail = agency?.support_email || null
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, display: 'flex', flexDirection: 'column' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: A.bg,
+      display: 'flex',
+      flexDirection: 'column',
+      fontFamily: A.font,
+      WebkitFontSmoothing: 'antialiased',
+      MozOsxFontSmoothing: 'grayscale',
+    }}>
       {/* Header */}
       <header
+        className="myplan-header no-print"
         style={{
-          background: INK,
-          padding: '16px 28px',
+          background: A.card,
+          padding: '0 20px',
+          height: 52,
           display: 'flex',
           alignItems: 'center',
-          gap: 14,
-          borderBottom: `3px solid ${brandColor}`,
+          gap: 12,
+          borderBottom: `1px solid ${A.border}`,
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+          backdropFilter: 'saturate(180%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+          backgroundColor: 'rgba(255,255,255,0.72)',
         }}
       >
         {logoUrl ? (
           <img
             src={logoUrl}
             alt={agencyName}
-            style={{ height: 32, maxWidth: 180, objectFit: 'contain' }}
+            style={{ height: 28, maxWidth: 160, objectFit: 'contain' }}
           />
         ) : (
-          <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', letterSpacing: '-.01em' }}>
+          <div style={{
+            fontSize: 17,
+            fontWeight: 700,
+            color: A.ink,
+            letterSpacing: '-0.01em',
+          }}>
             {agencyName}
           </div>
         )}
-        <div style={{ flex: 1 }} />
-        <div style={{ fontSize: 13, color: '#e5e7eb', fontWeight: 600 }}>My Plan</div>
       </header>
 
-      {/* Disclaimer (pinned at top of content area per CONTEXT D-20) */}
-      <div
-        style={{
-          background: '#fffbeb',
-          borderBottom: `1px solid #fde68a`,
-          padding: '10px 28px',
-          fontSize: 12,
-          color: '#78350f',
-          textAlign: 'center',
-          lineHeight: 1.5,
-        }}
-      >
-        Not medical advice. Consult your physician before starting any new program.
-      </div>
-
       {/* Body */}
-      <main style={{ flex: 1, padding: '28px 20px 60px', maxWidth: 960, width: '100%', margin: '0 auto' }}>
-        <div style={{ background: CARD, border: `1px solid ${BRD}`, borderRadius: 16, padding: 24 }}>
-          {children}
-        </div>
+      <main style={{
+        flex: 1,
+        padding: '0 16px',
+        paddingBottom: hasMobileTabBar ? 100 : 40,
+        maxWidth: 680,
+        width: '100%',
+        margin: '0 auto',
+        boxSizing: 'border-box',
+      }}>
+        {children}
       </main>
 
       {/* Footer */}
       <footer
+        className="no-print"
         style={{
-          borderTop: `1px solid ${BRD}`,
-          padding: '18px 28px',
+          padding: '20px 20px 24px',
           textAlign: 'center',
           fontSize: 12,
-          color: GRY5,
+          color: A.ink3,
           lineHeight: 1.6,
+          fontFamily: A.font,
         }}
       >
         <div>
-          Coached by <strong style={{ color: INK }}>{agencyName}</strong>
+          Coached by <span style={{ color: A.ink2, fontWeight: 600 }}>{agencyName}</span>
           {supportEmail ? (
             <>
-              {' '}·{' '}
-              <a href={`mailto:${supportEmail}`} style={{ color: GRY5, textDecoration: 'underline' }}>
+              {' · '}
+              <a href={`mailto:${supportEmail}`} style={{ color: A.ink3, textDecoration: 'underline' }}>
                 {supportEmail}
               </a>
             </>
           ) : null}
         </div>
-        <div style={{ marginTop: 6, color: '#9ca3af' }}>
-          The guidance here is fitness coaching, not medical advice.
+        <div style={{ marginTop: 4, fontSize: 11, color: '#aeaeb2' }}>
+          Not medical advice. Consult your physician before starting any new program.
         </div>
       </footer>
+
+      {/* Print styles */}
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          body { background: #fff !important; }
+          @page { margin: 0.75in; }
+        }
+      `}</style>
     </div>
   )
 }
