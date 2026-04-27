@@ -1390,15 +1390,40 @@ function OverviewTab({
         onGotoTab={onGotoTab}
       />
 
-      {/* Baseline card (shows after generation) */}
+      {/* ══ Plan Content — all completed sections shown inline ══ */}
       {hasBaseline && (
-        <div style={{ marginBottom: 16 }}>
-          <PlanBaselineCard
-            baseline={plan.baseline}
-            onRegenerate={onGenerateBaseline}
-            regenerating={pending.baseline}
+        <CollapsibleSection title="Baseline" defaultOpen>
+          <PlanBaselineCard baseline={plan.baseline} onRegenerate={onGenerateBaseline} regenerating={pending.baseline} />
+        </CollapsibleSection>
+      )}
+      {plan?.roadmap && (
+        <CollapsibleSection title="Roadmap">
+          <RoadmapCard roadmap={plan.roadmap} currentPhase={plan.phase_ref || 1} />
+        </CollapsibleSection>
+      )}
+      {plan?.workout_plan && (
+        <CollapsibleSection title="Workout">
+          <WorkoutAccordion
+            workoutPlan={plan.workout_plan}
+            logs={[]}
+            onLogSet={() => {}}
           />
-        </div>
+        </CollapsibleSection>
+      )}
+      {plan?.playbook && (
+        <CollapsibleSection title="Playbook">
+          <PlaybookCard playbook={plan.playbook} />
+        </CollapsibleSection>
+      )}
+      {plan?.meal_plan && (
+        <CollapsibleSection title="Meal Plan">
+          <MealPlanTable mealPlan={plan.meal_plan} />
+        </CollapsibleSection>
+      )}
+      {plan?.grocery_list && (
+        <CollapsibleSection title="Grocery List">
+          <GroceryList groceryList={plan.grocery_list} />
+        </CollapsibleSection>
       )}
     </div>
   )
@@ -1407,6 +1432,37 @@ function OverviewTab({
 // ── Plan Steps Checklist ─────────────────────────────────────────────────────
 // Shows all 6 plan steps as a clickable progress strip. Each step shows
 // done/pending status. Click to navigate to the relevant tab.
+
+function CollapsibleSection({ title, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', padding: '14px 18px',
+          background: '#fff', border: `1px solid ${BRD}`,
+          borderRadius: open ? '12px 12px 0 0' : 12,
+          cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <span style={{ fontSize: 15, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>{title}</span>
+        <span style={{ color: '#9ca3af', fontSize: 18 }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div style={{
+          border: `1px solid ${BRD}`, borderTop: 'none',
+          borderRadius: '0 0 12px 12px', padding: 16,
+          background: '#fff',
+        }}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlaybook, hasMeals, hasGrocery, pending, extracted, onGenerateBaseline, onGotoTab }) {
   const STEP_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
