@@ -203,6 +203,16 @@ export default function MyPlanPage() {
     if (!plan && trainee && tab !== 'coach') setTab('coach')
   }, [plan, trainee])
 
+  // Tabs that surface plan content show a green dot when their section is ready,
+  // a faint gray dot when still pending — so the user can see at-a-glance what's
+  // accessible without opening each one. Always-available tabs (home/coach/
+  // learn/profile) get no dot since there's nothing to "wait for".
+  const tabReadiness = {
+    workouts: !!plan?.workout_plan,
+    meals: !!plan?.meal_plan,
+    progress: !!plan?.workout_plan,
+  }
+
   if (!plan && tab !== 'coach') {
     // While waiting for auto-nav, show nothing jarring
   }
@@ -219,6 +229,8 @@ export default function MyPlanPage() {
         }}>
           {TABS.map(({ key, label, Icon }) => {
             const active = tab === key
+            const hasContent = key in tabReadiness
+            const ready = tabReadiness[key]
             return (
               <button key={key} type="button" onClick={() => setTab(key)} style={{
                 display: 'flex', alignItems: 'center', gap: 6,
@@ -231,6 +243,13 @@ export default function MyPlanPage() {
               }}>
                 <Icon size={16} strokeWidth={active ? 2.25 : 1.75} />
                 {label}
+                {hasContent && (
+                  <span aria-hidden style={{
+                    width: 6, height: 6, borderRadius: 999,
+                    background: ready ? '#10b981' : 'rgba(0,0,0,0.18)',
+                    marginLeft: 2,
+                  }} />
+                )}
               </button>
             )
           })}
@@ -315,6 +334,8 @@ export default function MyPlanPage() {
         }}>
           {TABS.map(({ key, label, Icon }) => {
             const active = tab === key
+            const hasContent = key in tabReadiness
+            const ready = tabReadiness[key]
             return (
               <button key={key} type="button" onClick={() => setTab(key)} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -322,9 +343,17 @@ export default function MyPlanPage() {
                 color: active ? A.accent : A.ink3,
                 fontSize: 10, fontWeight: active ? 600 : 500,
                 cursor: 'pointer', fontFamily: A.font,
-                minWidth: 56,
+                minWidth: 56, position: 'relative',
               }}>
                 <Icon size={22} strokeWidth={active ? 2 : 1.5} />
+                {hasContent && ready && (
+                  <span aria-hidden style={{
+                    position: 'absolute', top: 4, right: 14,
+                    width: 6, height: 6, borderRadius: 999,
+                    background: '#10b981',
+                    boxShadow: '0 0 0 1.5px #fff',
+                  }} />
+                )}
                 <span>{label}</span>
               </button>
             )
@@ -714,7 +743,15 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
 
 function PlanSectionTile({ title, icon, color = '#0a0a0a', state, etaLabel, defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen)
-  useEffect(() => { if (state === 'ready' && defaultOpen) setOpen(true) }, [state, defaultOpen])
+  const wasReady = useRef(state === 'ready')
+  // Auto-open the FIRST time a tile becomes ready, so the user sees finished
+  // sections without having to click. Subsequent user-collapses are respected.
+  useEffect(() => {
+    if (state === 'ready' && !wasReady.current) {
+      setOpen(true)
+      wasReady.current = true
+    }
+  }, [state])
 
   const isReady = state === 'ready'
   const isBuilding = state === 'building'
