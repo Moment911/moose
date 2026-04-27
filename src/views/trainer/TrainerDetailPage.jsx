@@ -1334,99 +1334,151 @@ function OverviewTab({
 // done/pending status. Click to navigate to the relevant tab.
 
 function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlaybook, hasMeals, hasGrocery, pending, extracted, onGenerateBaseline, onGotoTab }) {
+  const STEP_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
   const steps = [
-    { key: 'baseline', label: 'Baseline', done: hasBaseline, tab: 'overview', generating: pending.baseline },
-    { key: 'roadmap', label: 'Roadmap', done: hasRoadmap, tab: 'plan', generating: pending.roadmap },
-    { key: 'workout', label: 'Workout', done: hasWorkout, tab: 'plan', generating: pending.workout },
-    { key: 'playbook', label: 'Playbook', done: hasPlaybook, tab: 'playbook', generating: pending.playbook },
-    { key: 'food', label: 'Food Prefs', done: !!plan?.food_preferences, tab: 'nutrition', generating: pending.food_prefs },
-    { key: 'meals', label: 'Meals', done: hasMeals, tab: 'nutrition', generating: pending.meals },
+    { key: 'baseline', label: 'Baseline', done: hasBaseline, tab: 'overview', generating: pending.baseline, icon: '⚡' },
+    { key: 'roadmap', label: 'Roadmap', done: hasRoadmap, tab: 'plan', generating: pending.roadmap, icon: '🗺' },
+    { key: 'workout', label: 'Workout', done: hasWorkout, tab: 'plan', generating: pending.workout, icon: '💪' },
+    { key: 'playbook', label: 'Playbook', done: hasPlaybook, tab: 'playbook', generating: pending.playbook, icon: '📋' },
+    { key: 'food', label: 'Food', done: !!plan?.food_preferences, tab: 'nutrition', generating: pending.food_prefs, icon: '🥗' },
+    { key: 'meals', label: 'Meals', done: hasMeals, tab: 'nutrition', generating: pending.meals, icon: '🍽' },
   ]
 
   const doneCount = steps.filter((s) => s.done).length
   const pct = Math.round((doneCount / steps.length) * 100)
   const canGenerate = Object.keys(extracted).length >= 5 || hasBaseline
+  const anyGenerating = steps.some((s) => s.generating)
 
   return (
-    <section style={{ ...panelStyle, marginBottom: 18 }}>
-      {/* Header with progress */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: BLK }}>
-          Your plan
+    <section style={{
+      background: '#0a0a0a', borderRadius: 16, padding: '20px 16px', marginBottom: 18,
+      boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+    }}>
+      {/* Spin animation */}
+      <style>{`
+        @keyframes stepSpin { to { transform: rotate(360deg) } }
+        @keyframes stepPulse { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }
+      `}</style>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>
+          Your Plan
         </div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: doneCount === 6 ? GRN : '#6b7280' }}>
-          {doneCount}/{steps.length} · {pct}%
+        <div style={{
+          padding: '4px 12px', borderRadius: 999,
+          background: doneCount === 6 ? GRN + '20' : 'rgba(255,255,255,0.1)',
+          fontSize: 13, fontWeight: 700,
+          color: doneCount === 6 ? GRN : 'rgba(255,255,255,0.6)',
+        }}>
+          {doneCount}/{steps.length}
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div style={{ height: 4, background: '#f3f4f6', borderRadius: 999, marginBottom: 14 }}>
-        <div style={{ height: '100%', borderRadius: 999, background: doneCount === 6 ? GRN : R, width: `${pct}%`, transition: 'width .3s' }} />
+      {/* Step circles */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6,
+        marginBottom: 16,
+      }}>
+        {steps.map((step, i) => {
+          const color = STEP_COLORS[i]
+          const size = 52
+          const r = 21
+          const circumference = 2 * Math.PI * r
+          const progress = step.done ? circumference : 0
+
+          return (
+            <button
+              key={step.key}
+              type="button"
+              onClick={() => {
+                if (step.key === 'baseline' && !step.done && canGenerate) onGenerateBaseline()
+                else if (step.done) onGotoTab(step.tab)
+              }}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                padding: '8px 2px', background: 'transparent', border: 'none',
+                cursor: step.done || (step.key === 'baseline' && canGenerate) ? 'pointer' : 'default',
+              }}
+            >
+              {/* Animated ring */}
+              <div style={{ position: 'relative', width: size, height: size }}>
+                <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+                  {/* Track */}
+                  <circle cx={size / 2} cy={size / 2} r={r} fill="none"
+                    stroke="rgba(255,255,255,0.08)" strokeWidth={4} />
+                  {/* Progress arc */}
+                  <circle cx={size / 2} cy={size / 2} r={r} fill="none"
+                    stroke={step.done ? color : step.generating ? color : 'transparent'}
+                    strokeWidth={4} strokeLinecap="round"
+                    strokeDasharray={`${progress} ${circumference}`}
+                    style={{
+                      transition: 'stroke-dasharray 0.6s ease',
+                      ...(step.generating ? { animation: 'stepSpin 1.5s linear infinite', transformOrigin: 'center' } : {}),
+                    }}
+                  />
+                  {step.generating && (
+                    <circle cx={size / 2} cy={size / 2} r={r} fill="none"
+                      stroke={color} strokeWidth={4} strokeLinecap="round"
+                      strokeDasharray={`${circumference * 0.25} ${circumference * 0.75}`}
+                      style={{ animation: 'stepSpin 1.2s linear infinite', transformOrigin: `${size / 2}px ${size / 2}px` }}
+                    />
+                  )}
+                </svg>
+                {/* Center content */}
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: step.done ? 18 : 16,
+                  ...(step.generating ? { animation: 'stepPulse 1.5s ease infinite' } : {}),
+                }}>
+                  {step.done
+                    ? <span style={{ color }}>✓</span>
+                    : <span style={{ color: step.generating ? color : 'rgba(255,255,255,0.3)' }}>{step.icon}</span>}
+                </div>
+              </div>
+              {/* Label */}
+              <div style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: '.04em',
+                textTransform: 'uppercase',
+                color: step.done ? color : step.generating ? color : 'rgba(255,255,255,0.35)',
+              }}>
+                {step.label}
+              </div>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Step cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
-        {steps.map((step, i) => (
-          <button
-            key={step.key}
-            type="button"
-            onClick={() => {
-              if (step.key === 'baseline' && !step.done && canGenerate) {
-                onGenerateBaseline()
-              } else if (step.done) {
-                onGotoTab(step.tab)
-              }
-            }}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-              padding: '12px 8px', background: step.done ? '#f0fdf4' : step.generating ? '#fffbeb' : '#f9fafb',
-              border: `1px solid ${step.done ? '#bbf7d0' : step.generating ? '#fde68a' : '#e5e7eb'}`,
-              borderRadius: 10, cursor: step.done || (step.key === 'baseline' && canGenerate) ? 'pointer' : 'default',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{
-              width: 28, height: 28, borderRadius: 999,
-              background: step.done ? GRN : step.generating ? '#f59e0b' : '#e5e7eb',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: step.done || step.generating ? '#fff' : '#9ca3af',
-              fontSize: 12, fontWeight: 800,
-            }}>
-              {step.done ? '✓' : step.generating ? '⟳' : i + 1}
-            </div>
-            <div style={{
-              fontSize: 11, fontWeight: 700, color: step.done ? '#065f46' : step.generating ? '#92400e' : '#6b7280',
-              textTransform: 'uppercase', letterSpacing: '.04em',
-            }}>
-              {step.label}
-            </div>
-            {step.generating && (
-              <div style={{ fontSize: 10, color: '#92400e' }}>Generating...</div>
-            )}
-          </button>
-        ))}
+      {/* Overall progress bar */}
+      <div style={{ height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 999, marginBottom: 14 }}>
+        <div style={{
+          height: '100%', borderRadius: 999,
+          background: `linear-gradient(90deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]}, ${STEP_COLORS[3]})`,
+          width: `${pct}%`, transition: 'width .6s ease',
+        }} />
       </div>
 
-      {/* Generate CTA if not started */}
+      {/* Generate CTA */}
       {!hasBaseline && canGenerate && (
         <button type="button" onClick={onGenerateBaseline}
-          disabled={pending.baseline || pending.roadmap || pending.workout}
+          disabled={anyGenerating}
           style={{
-            ...btnPrimary(pending.baseline || pending.roadmap || pending.workout),
-            width: '100%', marginTop: 14, padding: '14px 16px',
+            width: '100%', padding: '14px 16px',
+            background: anyGenerating
+              ? 'rgba(255,255,255,0.1)'
+              : `linear-gradient(135deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]})`,
+            color: '#fff', border: 'none', borderRadius: 12,
+            fontSize: 15, fontWeight: 800, cursor: anyGenerating ? 'default' : 'pointer',
+            letterSpacing: '-0.01em',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: anyGenerating ? 'none' : `0 4px 16px ${STEP_COLORS[0]}40`,
           }}>
-          {(pending.baseline || pending.roadmap || pending.workout)
-            ? <Loader2 size={14} />
-            : <Sparkles size={14} />}
-          {(pending.baseline || pending.roadmap || pending.workout)
-            ? 'Building your plan…'
-            : 'Generate my full plan'}
+          {anyGenerating
+            ? <Loader2 size={16} style={{ animation: 'stepSpin 1s linear infinite' }} />
+            : <Sparkles size={16} />}
+          {anyGenerating ? 'Building your plan…' : 'Generate my full plan'}
         </button>
-      )}
-      {doneCount > 0 && doneCount < 6 && !pending.baseline && !pending.roadmap && !pending.workout && (
-        <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#6b7280' }}>
-          Click completed steps above to view them
-        </div>
       )}
     </section>
   )
