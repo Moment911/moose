@@ -665,6 +665,8 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
         color="#7c3aed"
         state={hasWorkout ? 'ready' : (generating && firstPendingKey === 'workout') ? 'building' : 'pending'}
         etaLabel="~90s"
+        onOpenFull={hasWorkout ? () => onGotoTab('workouts') : undefined}
+        openFullLabel="Open Workouts tab"
       >
         {hasWorkout && <WorkoutAccordion workoutPlan={plan.workout_plan} logs={logs || []} onLogSet={() => {}} />}
       </PlanSectionTile>
@@ -699,6 +701,8 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
         color="#d97706"
         state={hasMeals ? 'ready' : (generating && firstPendingKey === 'meals') ? 'building' : 'pending'}
         etaLabel="~120s"
+        onOpenFull={hasMeals ? () => onGotoTab('meals') : undefined}
+        openFullLabel="Open Meals tab"
       >
         {hasMeals && <MealPlanTable mealPlan={plan.meal_plan} traineeId={trainee?.id} />}
       </PlanSectionTile>
@@ -741,7 +745,7 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
   )
 }
 
-function PlanSectionTile({ title, icon, color = '#0a0a0a', state, etaLabel, defaultOpen = false, children }) {
+function PlanSectionTile({ title, icon, color = '#0a0a0a', state, etaLabel, defaultOpen = false, onOpenFull, openFullLabel, children }) {
   const [open, setOpen] = useState(defaultOpen)
   const wasReady = useRef(state === 'ready')
   // Auto-open the FIRST time a tile becomes ready, so the user sees finished
@@ -825,6 +829,24 @@ function PlanSectionTile({ title, icon, color = '#0a0a0a', state, etaLabel, defa
           padding: 18, background: A.card,
         }}>
           {children}
+          {onOpenFull && (
+            <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${A.border}`, display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={onOpenFull}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 12px', background: 'transparent',
+                  border: `1px solid ${color}30`,
+                  borderRadius: A.rPill, color,
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  fontFamily: A.font, letterSpacing: '.01em',
+                }}
+              >
+                {openFullLabel || 'Open full view'} <ArrowRight size={12} strokeWidth={2.25} />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
