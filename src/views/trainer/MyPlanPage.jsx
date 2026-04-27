@@ -46,26 +46,29 @@ import { feetInchesToCm, lbsToKg } from '../../lib/trainer/units'
 
 // ── Apple Design Tokens ─────────────────────────────────────────────────────
 
+// Phase 1 token swap — Cal-AI-inspired neutral palette.
+// Same keys as before so nothing downstream breaks; just hex shifts.
+// Headline / body weight changes belong to Phase 2 (per-component).
 const A = {
-  bg:       '#f5f5f7',
+  bg:       '#ffffff',
   card:     '#ffffff',
-  cardAlt:  '#f9f9fb',
-  ink:      '#1d1d1f',
-  ink2:     '#424245',
-  ink3:     '#86868b',
-  accent:   '#0071e3',
-  accentBg: 'rgba(0,113,227,0.06)',
-  green:    '#34c759',
-  greenBg:  'rgba(52,199,89,0.08)',
-  red:      '#ff3b30',
-  amber:    '#ff9f0a',
-  border:   'rgba(0,0,0,0.06)',
+  cardAlt:  '#f1f1f6',
+  ink:      '#0a0a0a',
+  ink2:     '#1f1f22',
+  ink3:     '#6b6b70',
+  accent:   '#d89a6a',
+  accentBg: 'rgba(216,154,106,0.10)',
+  green:    '#10b981',
+  greenBg:  'rgba(16,185,129,0.10)',
+  red:      '#e9695c',
+  amber:    '#f0b400',
+  border:   '#ececef',
   shadow1:  '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
-  shadow2:  '0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08)',
-  font:     "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif",
+  shadow2:  '0 6px 16px rgba(0,0,0,0.06)',
+  font:     "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
   mono:     "'SF Mono', 'Menlo', monospace",
   r:        16,
-  rSm:      10,
+  rSm:      12,
   rPill:    999,
 }
 

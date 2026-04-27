@@ -9,15 +9,16 @@
 // Disclaimer is a subtle footer line, not a banner.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Phase 1 token swap — keep keys, shift values to Cal-AI palette.
 const A = {
-  bg:      '#fafafa',
+  bg:      '#ffffff',
   card:    '#ffffff',
-  ink:     '#1d1d1f',
-  ink2:    '#424245',
-  ink3:    '#86868b',
-  accent:  '#0071e3',
-  border:  'rgba(0,0,0,0.08)',
-  font:    "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif",
+  ink:     '#0a0a0a',
+  ink2:    '#1f1f22',
+  ink3:    '#6b6b70',
+  accent:  '#d89a6a',
+  border:  '#ececef',
+  font:    "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
 }
 
 export default function MyPlanShell({ agency, children, hasMobileTabBar = false }) {
