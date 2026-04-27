@@ -213,7 +213,7 @@ async function handleGetMyPlan(sb: SupabaseClient, ctx: TraineeCtx) {
 
   const { data: traineeRow } = await sb
     .from('koto_fitness_trainees')
-    .select('full_name, primary_goal')
+    .select('*')
     .eq('id', ctx.traineeId)
     .eq('agency_id', ctx.agencyId)
     .maybeSingle()
@@ -256,8 +256,7 @@ async function handleGetMyPlan(sb: SupabaseClient, ctx: TraineeCtx) {
     logs,
     trainee: {
       id: ctx.traineeId,
-      full_name: (traineeRow as { full_name?: string } | null)?.full_name ?? null,
-      primary_goal: (traineeRow as { primary_goal?: string } | null)?.primary_goal ?? null,
+      ...(traineeRow || {}),
     },
     agency: agencyRow
       ? {

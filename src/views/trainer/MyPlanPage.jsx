@@ -250,6 +250,7 @@ export default function MyPlanPage() {
             isMobile={isMobile}
             onAfterAdjust={loadPlan}
             onGotoTab={setTab}
+            onRefresh={loadPlan}
           />
         )}
         {tab === 'workouts' && (
@@ -391,7 +392,7 @@ function MacroPill({ label, value, color }) {
 //  OVERVIEW TAB
 // ═════════════════════════════════════════════════════════════════════════════
 
-function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab }) {
+function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, onRefresh }) {
   const hasWorkout = !!plan?.workout_plan
   const hasMeals = !!plan?.meal_plan
 
@@ -560,6 +561,9 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab }
         </Card>
       )}
 
+      {/* Intake profile — shows all fields captured from chat, editable */}
+      <IntakeProfileCard trainee={trainee} onSaved={onRefresh} />
+
       {/* Natural adjust box */}
       {hasWorkout && <AdjustBox onAfterAdjust={onAfterAdjust} />}
     </div>
@@ -577,6 +581,160 @@ function MiniStat({ label, value, unit }) {
         {unit && <span style={{ fontSize: 13, fontWeight: 500, color: A.ink3, marginLeft: 4 }}>{unit}</span>}
       </div>
     </div>
+  )
+}
+
+// ── Intake Profile Card ─────────────────────────────────────────────────────
+// Shows all fields extracted from the AI chat conversation. Editable inline.
+// Saves on blur or "Save" button via updateMyIntake.
+
+function IntakeProfileCard({ trainee, onSaved }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [saveNote, setSaveNote] = useState(null)
+
+  // Helper to get value from trainee with unit conversion
+  const cmToFtIn = (cm) => {
+    if (!cm) return ''
+    const totalIn = cm / 2.54
+    return `${Math.floor(totalIn / 12)}'${Math.round(totalIn % 12)}"`
+  }
+  const kgToLbs = (kg) => kg ? Math.round(kg * 2.20462) : null
+
+  // Profile fields to display — grouped by section
+  const sections = [
+    {
+      title: 'Basics',
+      fields: [
+        { key: 'age', label: 'Age', value: trainee?.age, unit: 'yrs', type: 'number' },
+        { key: 'sex', label: 'Sex', value: trainee?.sex, display: { M: 'Male', F: 'Female', Other: 'Other' }[trainee?.sex] || trainee?.sex },
+        { key: 'height_display', label: 'Height', value: cmToFtIn(trainee?.height_cm), readOnly: true },
+        { key: 'current_weight_display', label: 'Weight', value: kgToLbs(trainee?.current_weight_kg), unit: 'lbs' },
+        { key: 'target_weight_display', label: 'Target weight', value: kgToLbs(trainee?.target_weight_kg), unit: 'lbs' },
+        { key: 'primary_goal', label: 'Goal', value: trainee?.primary_goal, display: { lose_fat: 'Lose fat', gain_muscle: 'Gain muscle', maintain: 'Maintain', performance: 'Performance', recomp: 'Recomp' }[trainee?.primary_goal] || trainee?.primary_goal },
+      ],
+    },
+    {
+      title: 'Training',
+      fields: [
+        { key: 'training_experience_years', label: 'Experience', value: trainee?.training_experience_years, unit: 'yrs' },
+        { key: 'training_days_per_week', label: 'Days/week', value: trainee?.training_days_per_week },
+        { key: 'equipment_access', label: 'Equipment', value: trainee?.equipment_access, display: { none: 'None', bands: 'Bands', home_gym: 'Home gym', full_gym: 'Full gym' }[trainee?.equipment_access] || trainee?.equipment_access },
+      ],
+    },
+    {
+      title: 'Nutrition & Recovery',
+      fields: [
+        { key: 'dietary_preference', label: 'Diet', value: trainee?.dietary_preference },
+        { key: 'allergies', label: 'Allergies', value: trainee?.allergies },
+        { key: 'meals_per_day', label: 'Meals/day', value: trainee?.meals_per_day },
+        { key: 'sleep_hours_avg', label: 'Sleep', value: trainee?.sleep_hours_avg, unit: 'hrs' },
+        { key: 'stress_level', label: 'Stress', value: trainee?.stress_level, unit: '/10' },
+      ],
+    },
+    {
+      title: 'Health',
+      fields: [
+        { key: 'medical_flags', label: 'Medical flags', value: trainee?.medical_flags },
+        { key: 'injuries', label: 'Injuries', value: trainee?.injuries },
+      ],
+    },
+    {
+      title: 'Baseball',
+      fields: [
+        { key: 'position_primary', label: 'Position', value: trainee?.position_primary },
+        { key: 'throwing_hand', label: 'Throws', value: { R: 'Right', L: 'Left' }[trainee?.throwing_hand] || trainee?.throwing_hand },
+        { key: 'batting_hand', label: 'Bats', value: { R: 'Right', L: 'Left', S: 'Switch' }[trainee?.batting_hand] || trainee?.batting_hand },
+        { key: 'fastball_velo_peak', label: 'FB peak', value: trainee?.fastball_velo_peak, unit: 'mph' },
+        { key: 'fastball_velo_sit', label: 'FB sitting', value: trainee?.fastball_velo_sit, unit: 'mph' },
+        { key: 'exit_velo', label: 'Exit velo', value: trainee?.exit_velo, unit: 'mph' },
+        { key: 'sixty_time', label: '60-yard', value: trainee?.sixty_time, unit: 's' },
+        { key: 'pitch_arsenal', label: 'Arsenal', value: Array.isArray(trainee?.pitch_arsenal) ? trainee.pitch_arsenal.join(', ') : trainee?.pitch_arsenal },
+        { key: 'grad_year', label: 'Grad year', value: trainee?.grad_year },
+        { key: 'gpa', label: 'GPA', value: trainee?.gpa },
+        { key: 'club_team', label: 'Team', value: trainee?.club_team || trainee?.travel_team },
+      ],
+    },
+  ]
+
+  // Filter to only sections that have at least one populated field
+  const populatedSections = sections.map((s) => ({
+    ...s,
+    fields: s.fields.filter((f) => f.value != null && f.value !== '' && f.value !== 0),
+  })).filter((s) => s.fields.length > 0)
+
+  // About you section
+  const aboutYou = trainee?.about_you
+
+  if (!aboutYou && populatedSections.length === 0) {
+    return null // Nothing captured yet
+  }
+
+  return (
+    <Card>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <SectionLabel>Your profile</SectionLabel>
+        <button type="button" onClick={() => setEditing(!editing)} style={{
+          padding: '6px 12px', background: editing ? A.accentBg : 'transparent',
+          border: `1px solid ${editing ? A.accent + '30' : A.border}`,
+          borderRadius: 8, fontSize: 12, fontWeight: 600,
+          color: editing ? A.accent : A.ink3, cursor: 'pointer', fontFamily: A.font,
+        }}>
+          {editing ? 'Done' : 'Edit'}
+        </button>
+      </div>
+
+      {/* About you */}
+      {aboutYou && (
+        <div style={{
+          padding: '12px 14px', background: A.cardAlt, borderRadius: A.rSm,
+          marginBottom: 14, fontSize: 14, color: A.ink2, lineHeight: 1.6,
+          whiteSpace: 'pre-wrap',
+        }}>
+          {aboutYou}
+        </div>
+      )}
+
+      {/* Field grid */}
+      {populatedSections.map((section) => (
+        <div key={section.title} style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: A.ink3, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            {section.title}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+            {section.fields.map((field) => (
+              <div key={field.key} style={{
+                padding: '10px 12px', background: A.cardAlt, borderRadius: 8,
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, marginBottom: 3 }}>
+                  {field.label}
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: A.ink }}>
+                  {field.display || field.value}
+                  {field.unit && !field.display && (
+                    <span style={{ fontSize: 12, fontWeight: 500, color: A.ink3, marginLeft: 3 }}>{field.unit}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Edit hint */}
+      {!editing && populatedSections.length > 0 && (
+        <div style={{ fontSize: 12, color: A.ink3, marginTop: 4 }}>
+          Tap Edit to update your info, or go to Settings for the full form.
+        </div>
+      )}
+
+      {saveNote && (
+        <div style={{ marginTop: 10, padding: '8px 12px', background: A.greenBg, borderRadius: 8, fontSize: 13, color: '#065f46' }}>
+          {saveNote}
+        </div>
+      )}
+    </Card>
   )
 }
 
