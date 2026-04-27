@@ -44,8 +44,8 @@ const CANONICAL_PILLS = {
   other_sports: ['Baseball only', 'Yes — let me list them'],
 }
 
-export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYouAppend, userName, mode = 'onboarding' }) {
-  const [messages, setMessages] = useState([]) // {role: 'user'|'assistant', content: string}
+export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYouAppend, onMessagesChange, initialMessages, userName, mode = 'onboarding' }) {
+  const [messages, setMessages] = useState(initialMessages || []) // {role: 'user'|'assistant', content: string}
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [streamingText, setStreamingText] = useState('')
@@ -148,9 +148,13 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
         }
       }
 
-      // Commit the assistant message.
+      // Commit the assistant message and persist.
       if (fullText) {
-        setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
+        setMessages((prev) => {
+          const next = [...prev, { role: 'assistant', content: fullText }]
+          onMessagesChange?.(next)
+          return next
+        })
       }
     } catch (e) {
       setError(e?.message || 'Network error')
@@ -160,10 +164,11 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
     setStreaming(false)
   }, [extracted, onFieldsUpdate, onAboutYouAppend])
 
-  // Auto-fire first turn on mount to get the AI greeting.
+  // Auto-fire first turn on mount to get the AI greeting — skip if we have saved messages.
   useEffect(() => {
     if (initRef.current) return
     initRef.current = true
+    if (messages.length > 0) return // Already have history — don't re-greet
     streamTurn([])
   }, [streamTurn])
 
@@ -177,6 +182,7 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
     const userMsg = { role: 'user', content: text }
     const newMessages = [...messages, userMsg]
     setMessages(newMessages)
+    onMessagesChange?.(newMessages)
     streamTurn(newMessages)
   }
 

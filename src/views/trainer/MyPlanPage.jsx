@@ -1004,6 +1004,10 @@ function CoachTab({ trainee, plan, onFieldsUpdate, onRefresh }) {
           extracted={extracted}
           onFieldsUpdate={handleFieldsUpdate}
           onAboutYouAppend={handleAboutYouAppend}
+          onMessagesChange={(msgs) => {
+            updateMyIntake({ chat_history: msgs }).catch(() => {})
+          }}
+          initialMessages={Array.isArray(trainee?.chat_history) ? trainee.chat_history : []}
           userName={trainee?.full_name?.split(' ')[0] || ''}
           mode={mode}
         />

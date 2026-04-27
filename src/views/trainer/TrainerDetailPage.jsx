@@ -1359,6 +1359,14 @@ function OverviewTab({
           extracted={extracted}
           onFieldsUpdate={handleChatFieldsUpdate}
           onAboutYouAppend={handleChatAboutYouAppend}
+          onMessagesChange={(msgs) => {
+            // Persist chat history silently — survives page refresh
+            trainerFetch(
+              { action: 'update', trainee_id: traineeId, patch: { chat_history: msgs } },
+              { agencyId },
+            ).catch(() => {})
+          }}
+          initialMessages={Array.isArray(trainee?.chat_history) ? trainee.chat_history : []}
           userName={trainee?.full_name?.split(' ')[0] || ''}
           mode={hasBaseline ? 'coaching' : 'onboarding'}
         />

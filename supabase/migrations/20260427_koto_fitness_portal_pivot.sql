@@ -41,6 +41,11 @@ ALTER TABLE public.koto_fitness_trainees
 COMMENT ON COLUMN public.koto_fitness_trainees.field_confidence IS
   'Tracks whether each field value was user-confirmed or AI-estimated. Shape: { "field_key": "confirmed"|"estimated" }';
 
+-- ── 2b. Chat history persistence ────────────────────────────────────────────
+
+ALTER TABLE public.koto_fitness_trainees
+  ADD COLUMN IF NOT EXISTS chat_history jsonb DEFAULT '[]'::jsonb;
+
 -- ── 3. Longitudinal measurable logs ─────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS public.koto_fitness_measurable_logs (
