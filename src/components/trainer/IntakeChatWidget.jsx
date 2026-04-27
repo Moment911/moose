@@ -14,7 +14,9 @@ import { supabase } from '../../lib/supabase'
 // Canonical pill sets — fallback when Haiku doesn't produce suggested_replies
 const CANONICAL_PILLS = {
   sex: ['Male', 'Female', 'Other'],
-  primary_goal: ['Lose fat', 'Gain muscle', 'Performance', 'Maintain', 'Recomp'],
+  primary_goal: ['Gain muscle', 'Get stronger', 'Throw harder', 'Hit harder', 'Run faster', 'Lose weight', 'Stay healthy', 'Get recruited'],
+  sports: ['Baseball', 'Football', 'Basketball', 'Soccer', 'Track', 'Swimming', 'Multiple sports', 'None'],
+  other_sports: ['Baseball', 'Football', 'Basketball', 'Soccer', 'Track', 'Swimming', 'Wrestling', 'None'],
   training_experience_years: ['Less than 1 year', '1-2 years', '3-5 years', '5+ years'],
   training_days_per_week: ['2', '3', '4', '5', '6'],
   equipment_access: ['Full gym', 'Home gym', 'Bands only', 'No equipment'],
