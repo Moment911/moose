@@ -308,21 +308,22 @@ export default function TrainerDetailPage() {
       flashError(`Save failed (${res.status})`)
       return false
     }
-    await loadTrainee()
-    // Auto-extract structured fields from the about_you text
+    // Auto-extract structured fields from the about_you text BEFORE reloading
     if (newText && newText.trim().length >= 10) {
-      trainerGenerateFetch(
-        { action: 'extract_from_about', trainee_id: traineeId },
-        { agencyId },
-      ).then(async (extractRes) => {
+      try {
+        const extractRes = await trainerGenerateFetch(
+          { action: 'extract_from_about', trainee_id: traineeId },
+          { agencyId },
+        )
         if (extractRes.ok) {
           const data = await extractRes.json()
           if (data.patched && data.patched.length > 0) {
-            await loadTrainee() // Reload to show newly populated fields
+            // Fields were extracted and saved — reload will show them
           }
         }
-      }).catch(() => { /* silent — extraction is best-effort */ })
+      } catch { /* extraction is best-effort */ }
     }
+    await loadTrainee()
     return true
   }
 
