@@ -5,6 +5,7 @@ import {
   Loader2, LayoutGrid, Dumbbell, Utensils, TrendingUp, User,
   MessageCircle, ChevronDown, ChevronRight, Info, ExternalLink,
   Check, Camera, Printer, ShoppingBag, ChevronLeft, ChevronUp,
+  BookOpen, Search,
 } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -82,6 +83,7 @@ const TABS = [
   { key: 'workouts',  label: 'Workouts',  Icon: Dumbbell },
   { key: 'meals',     label: 'Meals',     Icon: Utensils },
   { key: 'progress',  label: 'Progress',  Icon: TrendingUp },
+  { key: 'learn',     label: 'Learn',     Icon: BookOpen },
   { key: 'profile',   label: 'Profile',   Icon: User },
 ]
 
@@ -286,6 +288,7 @@ export default function MyPlanPage() {
             onRefresh={loadPlan}
           />
         )}
+        {tab === 'learn' && <LearnTab />}
         {tab === 'profile' && (
           <ProfileTab trainee={trainee} onAfterChange={loadPlan} />
         )}
@@ -2114,6 +2117,162 @@ function ProgressTab({ plan, logs, traineeId, isMobile, onRefresh }) {
 // ═════════════════════════════════════════════════════════════════════════════
 //  SETTINGS TAB
 // ═════════════════════════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  LEARN TAB — Dictionary + FAQ
+// ═════════════════════════════════════════════════════════════════════════════
+
+const DICTIONARY = [
+  { term: 'BMR', simple: 'Basal Metabolic Rate', explain: 'How many calories your body burns just staying alive — breathing, pumping blood, keeping your brain running. Even if you laid in bed all day, this is what you\'d burn.' },
+  { term: 'TDEE', simple: 'Total Daily Energy Expenditure', explain: 'Your BMR plus all the calories you burn from moving around, training, playing sports, and just living your life. This is the real number that determines if you gain or lose weight.' },
+  { term: 'Macros', simple: 'Macronutrients', explain: 'The three main types of fuel your body uses: protein (builds muscle), carbs (energy for training and games), and fat (hormones, brain function, joint health). Getting the right balance matters more than just calories.' },
+  { term: 'Protein', simple: 'Muscle-building fuel', explain: 'The nutrient that repairs and builds your muscles after training. Think chicken, eggs, beef, fish, Greek yogurt. Athletes need more than regular people — usually around 1 gram per pound of body weight.' },
+  { term: 'Caloric Surplus', simple: 'Eating more than you burn', explain: 'When you eat more calories than your body uses. This is how you gain weight and build muscle. To put on size, you need to be in a surplus — usually 300-500 extra calories per day.' },
+  { term: 'Caloric Deficit', simple: 'Eating less than you burn', explain: 'When you eat fewer calories than your body uses. This is how you lose fat. Your body makes up the difference by burning stored fat for energy.' },
+  { term: 'RPE', simple: 'Rate of Perceived Exertion', explain: 'A 1-10 scale of how hard a set felt. RPE 7 means you had about 3 reps left in the tank. RPE 9 means you barely got it. RPE 10 means absolute max effort. We use this to make sure you\'re training hard enough but not burning out.' },
+  { term: 'Progressive Overload', simple: 'Doing a little more each time', explain: 'The #1 rule of getting stronger: you have to gradually increase the challenge. Add 5 lbs, do 1 more rep, or do 1 more set. If you do the same thing every week, your body stops adapting.' },
+  { term: 'Periodization', simple: 'Training in phases', explain: 'Splitting your training into blocks (usually 3-4 weeks each) where each block has a different focus. Phase 1 might be building a base, Phase 2 adds intensity, Phase 3 peaks for your season. This prevents burnout and keeps you improving.' },
+  { term: 'Hypertrophy', simple: 'Muscle growth', explain: 'Training specifically to make muscles bigger. Usually means 3-4 sets of 8-12 reps with moderate weight. It\'s not just about strength — bigger muscles look better AND perform better.' },
+  { term: 'Compound Movement', simple: 'Exercises that work multiple muscles', explain: 'Exercises like squats, deadlifts, bench press, and pull-ups that hit several muscle groups at once. These give you the most bang for your buck and are the foundation of any good program.' },
+  { term: 'Isolation Movement', simple: 'Exercises that target one muscle', explain: 'Exercises like bicep curls, tricep extensions, or calf raises that focus on a single muscle. Good for bringing up weak areas after you\'ve done your compound work.' },
+  { term: 'Deload', simple: 'A planned easy week', explain: 'A week where you intentionally train lighter (50-60% of normal). It lets your body recover, repair, and come back stronger. Think of it like a rest day for your whole week. Usually every 4-6 weeks.' },
+  { term: 'Velo', simple: 'Velocity (pitch speed)', explain: 'How fast your pitch is moving when it reaches the plate, measured in mph. "Sitting velo" is your average speed. "Peak velo" is your hardest throw. College scouts care about both.' },
+  { term: 'Exit Velo', simple: 'How hard you hit the ball', explain: 'The speed of the ball coming off your bat, measured in mph. Higher exit velo = harder contact = more base hits and extra-base hits. It\'s the #1 offensive measurable scouts look at.' },
+  { term: '60-Yard Dash', simple: 'Speed test for baseball', explain: 'The standard speed test in baseball — sprint 60 yards as fast as you can. Under 7.0 seconds is elite for high schoolers. Scouts use this to evaluate baserunning and outfield range.' },
+  { term: 'Pop Time', simple: 'Catcher throw-down speed', explain: 'The time from when the pitch hits your glove to when the ball arrives at second base. A good high school pop time is under 2.0 seconds. College-level is 1.9 or better.' },
+  { term: 'Long Toss', simple: 'Throwing far to build arm strength', explain: 'A throwing program where you gradually increase distance (up to 200+ feet) to build arm strength and endurance. It\'s like cardio for your arm. Most pitching coaches recommend it 2-3 times per week.' },
+  { term: 'Rotational Power', simple: 'How explosively you can twist', explain: 'The ability to generate force by rotating your hips and torso. This is what drives both pitching velocity and bat speed. Exercises like med ball throws and cable chops build it.' },
+  { term: 'Posterior Chain', simple: 'The muscles on the back of your body', explain: 'Your glutes (butt), hamstrings (back of thighs), and lower back. These are the power muscles for sprinting, jumping, and throwing. Most athletes are weak here compared to their front side.' },
+  { term: 'Scapular Stability', simple: 'Shoulder blade control', explain: 'How well the muscles around your shoulder blades hold them in position during throwing and lifting. Weak scap stability = shoulder injuries waiting to happen. Face pulls, band pull-aparts, and rows build it.' },
+]
+
+const FAQ = [
+  { q: 'How many calories should I eat?', a: 'It depends on your age, size, activity level, and goal. Your plan has a specific calorie target calculated for you. The general rule: eat more than you burn to gain muscle, less to lose fat. Check your Meals tab for your daily target.' },
+  { q: 'How much protein do I need?', a: 'For athletes building muscle, aim for about 1 gram of protein per pound of body weight per day. So if you\'re 150 lbs, that\'s ~150g of protein. Spread it across 4-5 meals. Chicken, eggs, beef, fish, Greek yogurt, and protein shakes are your best sources.' },
+  { q: 'Can I gain muscle and lose fat at the same time?', a: 'Yes, especially if you\'re a teenager or just starting to train seriously. It\'s called "recomp." Eat at maintenance calories (not too much, not too little), hit your protein target, and train hard. It\'s slower than bulking, but it works.' },
+  { q: 'How do I throw harder?', a: 'Velocity comes from three things: (1) lower body power — hip drive and leg strength, (2) rotational power — core and torso, (3) arm health and mechanics. Squats, deadlifts, med ball throws, and a consistent long-toss program are the foundation. Gaining 10-15 lbs of muscle usually adds 3-5 mph.' },
+  { q: 'How do I increase my exit velo?', a: 'Exit velo = bat speed + quality of contact. Train rotational power (cable chops, med ball slams), build your legs and core (squats, lunges), and get stronger overall. Heavier bat? No — swing a normal bat faster. Bat speed drills with underload/overload bats help too.' },
+  { q: 'Should I lift heavy or light?', a: 'Both, at different times. Heavy (3-5 reps) builds strength. Moderate (8-12 reps) builds muscle size. Light (15-20 reps) builds endurance. Your plan phases through all of these. For most teen athletes, moderate weight with good form is the sweet spot.' },
+  { q: 'My arm is sore — should I still throw?', a: 'Stop. Arm soreness is your body telling you something. Rest it, ice it, and see a doctor or athletic trainer if it doesn\'t go away in 2-3 days. Playing through arm pain is how you end up with serious injuries. We can adjust your plan to work around it.' },
+  { q: 'How much sleep do I need?', a: 'Teenagers need 8-10 hours. Sleep is when your body builds muscle, repairs tissue, and consolidates motor learning (throwing mechanics, swing adjustments). Bad sleep = bad recovery = slower gains. It\'s not optional — it\'s part of training.' },
+  { q: 'What should I eat before a game?', a: 'A meal 2-3 hours before: lean protein + complex carbs + low fat. Example: chicken breast with rice and vegetables. Then a small snack 30-60 minutes before: banana, granola bar, or toast with peanut butter. Avoid anything heavy, greasy, or high-fiber right before playing.' },
+  { q: 'What supplements should I take?', a: 'For teen athletes: a basic multivitamin and creatine monohydrate (5g/day) are the only supplements with strong evidence. Creatine is safe, well-studied, and helps with strength and power. Everything else — pre-workout, BCAAs, fat burners — is either unnecessary or not appropriate for your age. Talk to your doctor first.' },
+  { q: 'How do college coaches find me?', a: 'They don\'t find you — you find them. Email coaches directly with your highlight video, stats, and academic info. Attend camps and showcases at schools you\'re interested in. Register with the NCAA Eligibility Center. Your ProPath Score in the Recruiting tab shows which programs fit your measurables.' },
+  { q: 'What\'s a good GPA for recruiting?', a: 'D1 programs generally want 3.0+. D2 and D3 are more flexible. JUCO has minimal requirements. But higher GPA = more options and more academic scholarship money to stack on top of athletic aid. Grades are leverage — don\'t ignore them.' },
+]
+
+function LearnTab() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [openFaq, setOpenFaq] = useState(null)
+
+  const filteredDict = searchTerm
+    ? DICTIONARY.filter((d) =>
+        d.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        d.simple.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        d.explain.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : DICTIONARY
+
+  const filteredFaq = searchTerm
+    ? FAQ.filter((f) =>
+        f.q.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        f.a.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : FAQ
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
+        Learn
+      </h2>
+      <p style={{ margin: 0, fontSize: 14, color: A.ink3, lineHeight: 1.5 }}>
+        Everything explained in plain English. No jargon. Search or scroll to learn what any term means.
+      </p>
+
+      {/* Search */}
+      <div style={{ position: 'relative' }}>
+        <Search size={18} color={A.ink3} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+        <input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search terms or questions..."
+          style={{
+            width: '100%', padding: '12px 14px 12px 42px', fontSize: 15,
+            border: `1px solid ${A.border}`, borderRadius: A.rSm,
+            background: A.card, color: A.ink, fontFamily: A.font,
+            outline: 'none', boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      {/* Dictionary */}
+      <Card>
+        <SectionLabel>Dictionary</SectionLabel>
+        <div style={{ display: 'grid', gap: 2 }}>
+          {filteredDict.map((d) => (
+            <div key={d.term} style={{
+              padding: '14px 16px', borderRadius: A.rSm,
+              background: A.cardAlt, marginBottom: 6,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: A.accent }}>{d.term}</span>
+                <span style={{ fontSize: 13, color: A.ink3 }}>— {d.simple}</span>
+              </div>
+              <div style={{ fontSize: 14, color: A.ink2, lineHeight: 1.6 }}>
+                {d.explain}
+              </div>
+            </div>
+          ))}
+          {filteredDict.length === 0 && (
+            <div style={{ padding: 20, textAlign: 'center', color: A.ink3, fontSize: 14 }}>
+              No terms match &ldquo;{searchTerm}&rdquo;
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* FAQ */}
+      <Card>
+        <SectionLabel>Frequently Asked Questions</SectionLabel>
+        <div style={{ display: 'grid', gap: 2 }}>
+          {filteredFaq.map((f, i) => {
+            const isOpen = openFaq === i
+            return (
+              <div key={i} style={{ marginBottom: 4 }}>
+                <button type="button" onClick={() => setOpenFaq(isOpen ? null : i)} style={{
+                  width: '100%', textAlign: 'left', padding: '14px 16px',
+                  background: isOpen ? A.accentBg : A.cardAlt,
+                  border: `1px solid ${isOpen ? A.accent + '20' : 'transparent'}`,
+                  borderRadius: isOpen ? `${A.rSm}px ${A.rSm}px 0 0` : A.rSm,
+                  cursor: 'pointer', fontFamily: A.font,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                }}>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: A.ink }}>{f.q}</span>
+                  {isOpen ? <ChevronUp size={18} color={A.ink3} /> : <ChevronDown size={18} color={A.ink3} />}
+                </button>
+                {isOpen && (
+                  <div style={{
+                    padding: '14px 16px', background: A.card,
+                    border: `1px solid ${A.accent}20`, borderTop: 'none',
+                    borderRadius: `0 0 ${A.rSm}px ${A.rSm}px`,
+                    fontSize: 14, color: A.ink2, lineHeight: 1.7,
+                  }}>
+                    {f.a}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          {filteredFaq.length === 0 && (
+            <div style={{ padding: 20, textAlign: 'center', color: A.ink3, fontSize: 14 }}>
+              No questions match &ldquo;{searchTerm}&rdquo;
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
+  )
+}
 
 function ProfileTab({ trainee, onAfterChange }) {
   const [draft, setDraft] = useState(() => seedDraft(trainee))
