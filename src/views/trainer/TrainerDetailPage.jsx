@@ -846,6 +846,7 @@ export default function TrainerDetailPage() {
               <OverviewTab
                 trainee={trainee}
                 traineeId={traineeId}
+                agencyId={agencyId}
                 plan={plan}
                 okToTrain={okToTrain}
                 hasBaseline={hasBaseline}
@@ -1146,6 +1147,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
 function OverviewTab({
   trainee,
   traineeId,
+  agencyId,
   plan,
   okToTrain,
   hasBaseline,
@@ -1188,16 +1190,25 @@ function OverviewTab({
   async function handleChatFieldsUpdate(fields) {
     if (!fields || Object.keys(fields).length === 0) return
     setExtracted((prev) => ({ ...prev, ...fields }))
-    // Save to DB in real time
+    // Save to DB silently — do NOT reload trainee (would remount chat and lose conversation)
     try {
-      await onUpdateFields(fields)
-    } catch { /* */ }
+      await trainerFetch(
+        { action: 'update', trainee_id: traineeId, patch: fields },
+        { agencyId },
+      )
+    } catch { /* silent */ }
   }
 
   async function handleChatAboutYouAppend(text) {
     if (!text) return
     const updated = ((trainee?.about_you || '') + ' ' + text).trim()
-    await onUpdateAboutYou(updated)
+    // Save silently — do NOT reload
+    try {
+      await trainerFetch(
+        { action: 'update', trainee_id: traineeId, patch: { about_you: updated } },
+        { agencyId },
+      )
+    } catch { /* silent */ }
   }
 
   return (
