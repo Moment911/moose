@@ -11,6 +11,37 @@ import { supabase } from '../../lib/supabase'
 // fields events push extracted data to the parent via onFieldsUpdate.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Canonical pill sets — fallback when Haiku doesn't produce suggested_replies
+const CANONICAL_PILLS = {
+  sex: ['Male', 'Female', 'Other'],
+  primary_goal: ['Lose fat', 'Gain muscle', 'Performance', 'Maintain', 'Recomp'],
+  training_experience_years: ['Less than 1 year', '1-2 years', '3-5 years', '5+ years'],
+  training_days_per_week: ['2', '3', '4', '5', '6'],
+  equipment_access: ['Full gym', 'Home gym', 'Bands only', 'No equipment'],
+  dietary_preference: ['No preference', 'Vegetarian', 'Vegan', 'Keto', 'Paleo'],
+  occupation_activity: ['Desk job', 'Light activity', 'On my feet all day', 'Physical labor'],
+  medical_flags: ['None', 'Yes — let me explain'],
+  injuries: ['None', 'Yes — let me explain'],
+  allergies: ['None', 'Yes — let me explain'],
+  sleep_hours_avg: ['5-6', '7', '8', '9+'],
+  stress_level: ['1-3 (low)', '4-6 (moderate)', '7-8 (high)', '9-10 (very high)'],
+  meals_per_day: ['3', '4', '5', '6'],
+  throwing_hand: ['Right', 'Left'],
+  batting_hand: ['Right', 'Left', 'Switch'],
+  position_primary: ['RHP', 'LHP', 'C', 'SS', '2B', '3B', '1B', 'OF'],
+  preferred_divisions: ['D1', 'D2', 'D3', 'JUCO', 'Wherever I fit'],
+  grad_year: ['2026', '2027', '2028', '2029'],
+  practices_per_week: ['2-3', '4-5', '6+'],
+  bullpen_sessions_per_week: ['1', '2', '3+'],
+  games_per_week: ['2-3', '4-5', '6+'],
+  avg_pitch_count: ['40-60', '60-80', '80-100', '100+'],
+  pitch_arsenal: ['FB only', 'FB + CB', 'FB + SL', 'FB + CH', '3+ pitches'],
+  long_toss_routine: ['Yes', 'No', 'Sometimes'],
+  arm_soreness: ['None', 'Sometimes after games', 'Frequent', 'Currently sore'],
+  offseason_training: ['Lift + throw', 'Just throw', 'Nothing structured'],
+  other_sports: ['Baseball only', 'Yes — let me list them'],
+}
+
 export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYouAppend, userName, mode = 'onboarding' }) {
   const [messages, setMessages] = useState([]) // {role: 'user'|'assistant', content: string}
   const [input, setInput] = useState('')
@@ -101,9 +132,11 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
             if (event.about_you_append && typeof event.about_you_append === 'string') {
               onAboutYouAppend(event.about_you_append)
             }
-            if (Array.isArray(event.suggested_replies) && event.suggested_replies.length > 0) {
-              setSuggestedReplies(event.suggested_replies)
-            }
+            // Use AI-provided pills, or fall back to canonical set for the field
+            const pills = Array.isArray(event.suggested_replies) && event.suggested_replies.length > 0
+              ? event.suggested_replies
+              : CANONICAL_PILLS[event.asking_field] || []
+            setSuggestedReplies(pills)
           }
 
           if (event.type === 'error') {
