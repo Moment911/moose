@@ -1224,10 +1224,33 @@ function OverviewTab({
         />
       </section>
 
+      {/* Generate plan CTA — shows when chat has collected enough fields */}
+      {!hasBaseline && Object.keys(extracted).length >= 5 && (
+        <section style={{
+          background: '#fff', border: `1px solid ${BRD}`, borderLeft: `4px solid ${GRN}`,
+          borderRadius: 12, padding: '18px 22px', marginBottom: 18,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: 16, flexWrap: 'wrap',
+        }}>
+          <div style={{ minWidth: 0, flex: '1 1 300px' }}>
+            <div style={{ color: GRN, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6 }}>
+              Ready to generate
+            </div>
+            <div style={{ color: BLK, fontSize: 17, fontWeight: 800, marginBottom: 4 }}>Generate baseline</div>
+            <div style={{ color: '#6b7280', fontSize: 13, lineHeight: 1.5 }}>
+              {Object.keys(extracted).length} fields collected. Generate the baseline to unlock workout, meal plan, and coaching playbook.
+            </div>
+          </div>
+          <button type="button" onClick={onGenerateBaseline} disabled={pending.baseline}
+            style={btnPrimary(pending.baseline)}>
+            {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
+            {pending.baseline ? 'Generating…' : 'Generate my plan'}
+          </button>
+        </section>
+      )}
 
-      {/* Next-step CTA — hidden until about_you is filled in, since every
-          Sonnet prompt reads it as primary steering input. */}
-      {hasAboutYou && (
+      {/* Next-step CTA — shown after baseline exists */}
+      {hasBaseline && (
         <section
           style={{
             background: '#fff',
@@ -1273,42 +1296,16 @@ function OverviewTab({
         </section>
       )}
 
-      {/* Always-editable intake basics — handles both "brand new trainee with
-          gaps" and "existing trainee needs a value fixed."  Renders in the
-          left column of a 2-col grid next to the baseline card. */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
-        <IntakeBasicsEditor trainee={trainee} onSave={onUpdateFields} />
-        {hasBaseline ? (
+      {/* Baseline card (shows after generation) */}
+      {hasBaseline && (
+        <div style={{ marginBottom: 16 }}>
           <PlanBaselineCard
             baseline={plan.baseline}
             onRegenerate={onGenerateBaseline}
             regenerating={pending.baseline}
           />
-        ) : (
-          <section style={panelStyle}>
-            <h2 style={panelTitle}>Baseline</h2>
-            <p style={paraStyle}>
-              Generate the baseline assessment — calories, macros, training readiness, and the three
-              focus areas that will move the needle most for this trainee. This is the input every
-              downstream step reads from.
-            </p>
-            <button
-              type="button"
-              onClick={onGenerateBaseline}
-              disabled={pending.baseline || !hasAboutYou}
-              style={btnPrimary(pending.baseline || !hasAboutYou)}
-              title={!hasAboutYou ? 'Add "About this athlete" context first' : undefined}
-            >
-              {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
-              {pending.baseline
-                ? 'Generating baseline…'
-                : !hasAboutYou
-                  ? 'Add About you first'
-                  : 'Generate baseline'}
-            </button>
-          </section>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ── Workload section ──────────────────────────────────────────── */}
       <FullIntakeProfile trainee={trainee} />
