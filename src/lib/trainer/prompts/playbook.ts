@@ -353,7 +353,9 @@ export function buildPlaybookPrompt(input: {
 }): { systemPrompt: string; userMessage: string } {
   const systemPrompt = `${VOICE_DIRECTION}
 
-You are producing a COMPLETE COACHING PLAYBOOK for a real client.  This is the one-time comprehensive guide they'll reference for the next 90 days.  It must read like something a $150/hour private coach hand-wrote for THEIR actual life — NOT a generic wellness article.
+You are producing a COMPLETE COACHING PLAYBOOK for a real athlete.  This is the one-time comprehensive guide they'll reference for the next 90 days.  It must read like something a personal AI coach hand-wrote for THEIR actual life — NOT a generic wellness article.
+
+IMPORTANT: Speak directly to the athlete in second person ("you", "your"). This is athlete-facing — no coach in between. You are AI, not a doctor — always remind them to consult a physician for medical concerns.
 
 Use the intake + baseline + roadmap you've been given.  Tailor every section to this specific person.  Adapt context intelligently:
 - Sport / activity (if any surfaces in trainer_notes) → sport-specific notes

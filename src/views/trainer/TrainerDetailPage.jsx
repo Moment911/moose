@@ -549,11 +549,33 @@ export default function TrainerDetailPage() {
     }
     setPendingStep('playbook', false)
 
-    // 4. Food prefs (auto-submit) → Meals
-    const foodData = await callStep('food_prefs', { action: 'submit_food_prefs', trainee_id: traineeId, plan_id: planId, answers: {} })
-    if (foodData) {
-      setPlan((prev) => ({ ...(prev || {}), food_preferences: {} }))
-    }
+    // 4. Elicit food prefs → auto-answer with defaults → generate meals
+    setPendingStep('food_prefs', true)
+    try {
+      // Elicit questions
+      const elicitRes = await trainerGenerateFetch(
+        { action: 'elicit_food_prefs', trainee_id: traineeId, plan_id: planId },
+        { agencyId },
+      )
+      if (elicitRes.ok) {
+        const elicitData = await elicitRes.json()
+        const questions = elicitData.questions || []
+        // Auto-answer each question with a reasonable default
+        const defaultAnswers = questions.map((q) => ({
+          question_id: q.question_id || q.id || `q${Math.random()}`,
+          answer: q.options?.[0] || 'No preference',
+        }))
+        // Submit answers
+        const submitRes = await trainerGenerateFetch(
+          { action: 'submit_food_prefs', trainee_id: traineeId, plan_id: planId, answers: defaultAnswers },
+          { agencyId },
+        )
+        if (submitRes.ok) {
+          setPlan((prev) => ({ ...(prev || {}), food_preferences: { questions, answers: defaultAnswers } }))
+        }
+      }
+    } catch { /* best effort */ }
+    setPendingStep('food_prefs', false)
 
     const mealsData = await callStep('meals', { action: 'generate_meals', trainee_id: traineeId, plan_id: planId })
     if (mealsData) {

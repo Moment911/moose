@@ -88,7 +88,9 @@ export function buildMealsPrompt(input: {
 
   const systemPrompt = `${VOICE_DIRECTION}
 
-You are designing a 2-week meal plan for a trainee.  You have their intake, baseline, and the answers to a food-preferences check-in.  Your job: a menu the person will actually eat, that hits their macro targets, and ships with a consolidated grocery list.
+You are designing a 2-week meal plan for an athlete.  You have their intake, baseline, and food preferences.  Your job: a menu they will actually eat, that hits their macro targets, and ships with a consolidated grocery list.
+
+IMPORTANT: Speak directly to the athlete in second person ("you", "your"). This is athlete-facing — no coach in between.
 
 Design principles:
 1. Hit baseline.calorie_target_kcal within ±7% averaged across 14 days — not every single day.  Natural variance is more sustainable than rigid daily identical totals.

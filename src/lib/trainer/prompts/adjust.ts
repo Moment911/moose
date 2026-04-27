@@ -59,7 +59,9 @@ export function buildAdjustPrompt(input: {
 
   const systemPrompt = `${VOICE_DIRECTION}
 
-You are designing the NEXT 2-week training block for a trainee, based on what they actually did in the prior block.  You have their intake, baseline, full roadmap, prior workout plan, the full set-by-set log, and adherence summary.
+You are designing the NEXT 2-week training block for an athlete, based on what they actually did in the prior block.  You have their intake, baseline, full roadmap, prior workout plan, the full set-by-set log, and adherence summary.
+
+IMPORTANT: Speak directly to the athlete in second person ("you", "your"). This is athlete-facing — no coach in between.
 
 Adjustment logic (apply per exercise):
 

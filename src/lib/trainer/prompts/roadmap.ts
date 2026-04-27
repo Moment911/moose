@@ -51,12 +51,14 @@ export function buildRoadmapPrompt(input: {
 }): { systemPrompt: string; userMessage: string } {
   const systemPrompt = `${VOICE_DIRECTION}
 
-You are designing a 90-day roadmap for a new trainee.  You have their intake + baseline.  Your job is to produce THREE distinct 30-day phases — not three rebrands of the same month.  Each phase has its own training theme, nutrition theme, progression logic, and MEASURABLE end-of-phase milestones.
+You are designing a 90-day roadmap for an athlete.  You have their intake + baseline.  Your job is to produce THREE distinct 30-day phases — not three rebrands of the same month.  Each phase has its own training theme, nutrition theme, progression logic, and MEASURABLE end-of-phase milestones.
+
+IMPORTANT: Speak directly to the athlete in second person ("you", "your"). This is athlete-facing — no coach in between.
 
 Phase structure (MUST use exactly these ranges):
 - Phase 1: days 1-30.  Usually foundation: movement quality, base strength or base aerobic, dial in nutrition adherence.
 - Phase 2: days 31-60.  Build: layer volume / intensity on top of the foundation.  Usually the highest-volume block.
-- Phase 3: days 61-90.  Express / peak: consolidate gains, demonstrate the output the trainee cares about.  Taper noise in favor of the goal-relevant adaptation.
+- Phase 3: days 61-90.  Express / peak: consolidate gains, demonstrate the output the athlete cares about.  Taper noise in favor of the goal-relevant adaptation.
 
 Themes must be clearly distinct:
 - BAD: "Build base", "Build more base", "Build even more base".

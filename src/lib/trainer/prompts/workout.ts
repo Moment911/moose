@@ -103,7 +103,9 @@ export function buildWorkoutPrompt(input: {
 
   const systemPrompt = `${VOICE_DIRECTION}
 
-You are designing a 2-week training block for a trainee.  You have their intake, baseline, roadmap, and the current roadmap phase that this block belongs to.  Your job: produce a fully tracked program where every prescription is loggable and every next-block decision can be made from logged numbers.
+You are designing a 2-week training block for an athlete.  You have their intake, baseline, roadmap, and the current roadmap phase that this block belongs to.  Your job: produce a fully tracked program where every prescription is loggable and every next-block decision can be made from logged numbers.
+
+IMPORTANT: Speak directly to the athlete in second person ("you", "your"). This is athlete-facing — no coach in between.
 
 Design principles:
 1. Match their training_days_per_week exactly.  If they said 3 days, 3 sessions per week.  Unused capacity beats undone sessions.
