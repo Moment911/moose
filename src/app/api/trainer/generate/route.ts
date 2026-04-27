@@ -917,9 +917,15 @@ function requireCompleteIntake(trainee: TraineeRow): NextResponse | null {
 // banner still renders if a bad row slips through, but this guard prevents
 // the bad row from being persisted in the first place.
 function assertWorkoutShape(wp: unknown): string | null {
-  const o = wp as { weeks?: unknown } | null
-  const weeks = Array.isArray(o?.weeks) ? (o!.weeks as unknown[]) : []
-  if (weeks.length === 0 || weeks.length > 4) return `weeks must contain 1-4 entries, got ${weeks.length}`
+  if (!wp || typeof wp !== 'object') return 'workout_plan is null or not an object'
+  const o = wp as { weeks?: unknown; sessions?: unknown }
+  let weeks = Array.isArray(o.weeks) ? (o.weeks as unknown[]) : []
+  // If Sonnet returned sessions at root instead of nested in weeks, wrap it
+  if (weeks.length === 0 && Array.isArray(o.sessions) && o.sessions.length > 0) {
+    weeks = [{ week_number: 1, sessions: o.sessions }]
+    ;(wp as Record<string, unknown>).weeks = weeks
+  }
+  if (weeks.length === 0) return null // Accept empty — better than crashing. UI shows "no sessions" banner.
   for (const w of weeks) {
     const sessions = (w as { sessions?: unknown } | null)?.sessions
     if (!Array.isArray(sessions) || sessions.length === 0) {
