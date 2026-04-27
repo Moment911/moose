@@ -17,6 +17,7 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
   const [streaming, setStreaming] = useState(false)
   const [streamingText, setStreamingText] = useState('')
   const [error, setError] = useState(null)
+  const [suggestedReplies, setSuggestedReplies] = useState([])
   const scrollRef = useRef(null)
   const textareaRef = useRef(null)
   const initRef = useRef(false)
@@ -100,6 +101,9 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
             if (event.about_you_append && typeof event.about_you_append === 'string') {
               onAboutYouAppend(event.about_you_append)
             }
+            if (Array.isArray(event.suggested_replies) && event.suggested_replies.length > 0) {
+              setSuggestedReplies(event.suggested_replies)
+            }
           }
 
           if (event.type === 'error') {
@@ -127,10 +131,11 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
     streamTurn([])
   }, [streamTurn])
 
-  function handleSend() {
-    const text = input.trim()
+  function handleSend(overrideText) {
+    const text = (overrideText || input).trim()
     if (!text || streaming) return
     setInput('')
+    setSuggestedReplies([])
 
     const userMsg = { role: 'user', content: text }
     const newMessages = [...messages, userMsg]
@@ -207,10 +212,45 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
         )}
       </div>
 
+      {/* Suggested reply pills */}
+      {suggestedReplies.length > 0 && !streaming && (
+        <div style={{
+          padding: '8px 12px 4px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 6,
+          borderTop: '1px solid #f3f4f6',
+        }}>
+          {suggestedReplies.map((reply, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => handleSend(reply)}
+              style={{
+                padding: '8px 16px',
+                background: '#fff',
+                border: '1.5px solid #e5e7eb',
+                borderRadius: 20,
+                fontSize: 14,
+                fontWeight: 500,
+                color: BLK,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'border-color .12s, background .12s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = R; e.currentTarget.style.background = R + '08' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff' }}
+            >
+              {reply}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Input bar */}
       <div style={{
         padding: '10px 12px',
-        borderTop: '1px solid #f3f4f6',
+        borderTop: suggestedReplies.length > 0 ? 'none' : '1px solid #f3f4f6',
         display: 'flex',
         alignItems: 'flex-end',
         gap: 8,
