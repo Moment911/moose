@@ -585,157 +585,259 @@ function MiniStat({ label, value, unit }) {
 }
 
 // ── Intake Profile Card ─────────────────────────────────────────────────────
-// Shows all fields extracted from the AI chat conversation. Editable inline.
-// Saves on blur or "Save" button via updateMyIntake.
+// Shows all fields extracted from the AI chat conversation.
+// Always editable — fields are inline inputs that auto-save on blur.
 
 function IntakeProfileCard({ trainee, onSaved }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState({})
+  const [draft, setDraft] = useState(() => buildProfileDraft(trainee))
   const [saving, setSaving] = useState(false)
   const [saveNote, setSaveNote] = useState(null)
+  const [saveError, setSaveError] = useState(null)
+  const dirty = useRef(false)
 
-  // Helper to get value from trainee with unit conversion
-  const cmToFtIn = (cm) => {
-    if (!cm) return ''
-    const totalIn = cm / 2.54
-    return `${Math.floor(totalIn / 12)}'${Math.round(totalIn % 12)}"`
+  // Re-seed when trainee updates upstream
+  useEffect(() => { setDraft(buildProfileDraft(trainee)) }, [trainee])
+
+  function set(key, value) {
+    setDraft((d) => ({ ...d, [key]: value }))
+    dirty.current = true
   }
-  const kgToLbs = (kg) => kg ? Math.round(kg * 2.20462) : null
 
-  // Profile fields to display — grouped by section
-  const sections = [
+  async function save() {
+    if (!dirty.current) return
+    setSaving(true); setSaveNote(null); setSaveError(null)
+    try {
+      const patch = {}
+      if (draft.age !== '') patch.age = Number(draft.age)
+      if (draft.sex) patch.sex = draft.sex
+      if (draft.primary_goal) patch.primary_goal = draft.primary_goal
+      if (draft.training_experience_years !== '') patch.training_experience_years = Number(draft.training_experience_years)
+      if (draft.training_days_per_week !== '') patch.training_days_per_week = Number(draft.training_days_per_week)
+      if (draft.equipment_access) patch.equipment_access = draft.equipment_access
+      if (draft.dietary_preference) patch.dietary_preference = draft.dietary_preference
+      if (draft.allergies) patch.allergies = draft.allergies
+      if (draft.meals_per_day !== '') patch.meals_per_day = Number(draft.meals_per_day)
+      if (draft.sleep_hours_avg !== '') patch.sleep_hours_avg = Number(draft.sleep_hours_avg)
+      if (draft.stress_level !== '') patch.stress_level = Number(draft.stress_level)
+      if (draft.medical_flags) patch.medical_flags = draft.medical_flags
+      if (draft.injuries) patch.injuries = draft.injuries
+      if (draft.about_you) patch.about_you = draft.about_you
+      // Weight in lbs → kg
+      if (draft.current_weight_lbs !== '') patch.current_weight_kg = Number(draft.current_weight_lbs) / 2.20462
+      if (draft.target_weight_lbs !== '') patch.target_weight_kg = Number(draft.target_weight_lbs) / 2.20462
+      // Height ft/in → cm
+      const ft = Number(draft.height_ft) || 0
+      const inches = Number(draft.height_in) || 0
+      if (ft || inches) patch.height_cm = (ft * 12 + inches) * 2.54
+      // Baseball fields
+      if (draft.position_primary) patch.position_primary = draft.position_primary
+      if (draft.throwing_hand) patch.throwing_hand = draft.throwing_hand
+      if (draft.batting_hand) patch.batting_hand = draft.batting_hand
+      if (draft.fastball_velo_peak !== '') patch.fastball_velo_peak = Number(draft.fastball_velo_peak)
+      if (draft.fastball_velo_sit !== '') patch.fastball_velo_sit = Number(draft.fastball_velo_sit)
+      if (draft.exit_velo !== '') patch.exit_velo = Number(draft.exit_velo)
+      if (draft.sixty_time !== '') patch.sixty_time = Number(draft.sixty_time)
+      if (draft.grad_year !== '') patch.grad_year = Number(draft.grad_year)
+      if (draft.gpa !== '') patch.gpa = Number(draft.gpa)
+      if (draft.club_team) patch.club_team = draft.club_team
+
+      if (Object.keys(patch).length === 0) return
+      await updateMyIntake(patch)
+      dirty.current = false
+      setSaveNote('Saved')
+      setTimeout(() => setSaveNote(null), 2000)
+      onSaved?.()
+    } catch (e) {
+      setSaveError(e?.message || 'Save failed')
+    } finally { setSaving(false) }
+  }
+
+  // Field definitions for display
+  const fieldGroups = [
     {
       title: 'Basics',
       fields: [
-        { key: 'age', label: 'Age', value: trainee?.age, unit: 'yrs', type: 'number' },
-        { key: 'sex', label: 'Sex', value: trainee?.sex, display: { M: 'Male', F: 'Female', Other: 'Other' }[trainee?.sex] || trainee?.sex },
-        { key: 'height_display', label: 'Height', value: cmToFtIn(trainee?.height_cm), readOnly: true },
-        { key: 'current_weight_display', label: 'Weight', value: kgToLbs(trainee?.current_weight_kg), unit: 'lbs' },
-        { key: 'target_weight_display', label: 'Target weight', value: kgToLbs(trainee?.target_weight_kg), unit: 'lbs' },
-        { key: 'primary_goal', label: 'Goal', value: trainee?.primary_goal, display: { lose_fat: 'Lose fat', gain_muscle: 'Gain muscle', maintain: 'Maintain', performance: 'Performance', recomp: 'Recomp' }[trainee?.primary_goal] || trainee?.primary_goal },
+        { key: 'age', label: 'Age', type: 'number', placeholder: 'yrs' },
+        { key: 'sex', label: 'Sex', type: 'pills', options: ['M', 'F'], labels: { M: 'Male', F: 'Female' } },
+        { key: 'height_ft', label: 'Height (ft)', type: 'number', placeholder: 'ft', half: true },
+        { key: 'height_in', label: 'Height (in)', type: 'number', placeholder: 'in', half: true },
+        { key: 'current_weight_lbs', label: 'Weight (lbs)', type: 'number', placeholder: 'lbs' },
+        { key: 'target_weight_lbs', label: 'Target (lbs)', type: 'number', placeholder: 'lbs' },
+        { key: 'primary_goal', label: 'Goal', type: 'pills', options: ['lose_fat', 'gain_muscle', 'maintain', 'performance'], labels: { lose_fat: 'Lose fat', gain_muscle: 'Gain muscle', maintain: 'Maintain', performance: 'Performance' } },
       ],
     },
     {
       title: 'Training',
       fields: [
-        { key: 'training_experience_years', label: 'Experience', value: trainee?.training_experience_years, unit: 'yrs' },
-        { key: 'training_days_per_week', label: 'Days/week', value: trainee?.training_days_per_week },
-        { key: 'equipment_access', label: 'Equipment', value: trainee?.equipment_access, display: { none: 'None', bands: 'Bands', home_gym: 'Home gym', full_gym: 'Full gym' }[trainee?.equipment_access] || trainee?.equipment_access },
+        { key: 'training_experience_years', label: 'Experience (yrs)', type: 'number', placeholder: 'yrs' },
+        { key: 'training_days_per_week', label: 'Days/week', type: 'number', placeholder: '0-7' },
+        { key: 'equipment_access', label: 'Equipment', type: 'pills', options: ['none', 'bands', 'home_gym', 'full_gym'], labels: { none: 'None', bands: 'Bands', home_gym: 'Home gym', full_gym: 'Full gym' } },
       ],
     },
     {
       title: 'Nutrition & Recovery',
       fields: [
-        { key: 'dietary_preference', label: 'Diet', value: trainee?.dietary_preference },
-        { key: 'allergies', label: 'Allergies', value: trainee?.allergies },
-        { key: 'meals_per_day', label: 'Meals/day', value: trainee?.meals_per_day },
-        { key: 'sleep_hours_avg', label: 'Sleep', value: trainee?.sleep_hours_avg, unit: 'hrs' },
-        { key: 'stress_level', label: 'Stress', value: trainee?.stress_level, unit: '/10' },
+        { key: 'dietary_preference', label: 'Diet', type: 'text', placeholder: 'e.g. no restrictions' },
+        { key: 'allergies', label: 'Allergies', type: 'text', placeholder: 'e.g. none' },
+        { key: 'meals_per_day', label: 'Meals/day', type: 'number', placeholder: '3-6' },
+        { key: 'sleep_hours_avg', label: 'Sleep (hrs)', type: 'number', placeholder: 'hrs' },
+        { key: 'stress_level', label: 'Stress (1-10)', type: 'number', placeholder: '1-10' },
       ],
     },
     {
       title: 'Health',
       fields: [
-        { key: 'medical_flags', label: 'Medical flags', value: trainee?.medical_flags },
-        { key: 'injuries', label: 'Injuries', value: trainee?.injuries },
+        { key: 'medical_flags', label: 'Medical flags', type: 'text', placeholder: 'None' },
+        { key: 'injuries', label: 'Injuries', type: 'text', placeholder: 'None' },
       ],
     },
     {
       title: 'Baseball',
       fields: [
-        { key: 'position_primary', label: 'Position', value: trainee?.position_primary },
-        { key: 'throwing_hand', label: 'Throws', value: { R: 'Right', L: 'Left' }[trainee?.throwing_hand] || trainee?.throwing_hand },
-        { key: 'batting_hand', label: 'Bats', value: { R: 'Right', L: 'Left', S: 'Switch' }[trainee?.batting_hand] || trainee?.batting_hand },
-        { key: 'fastball_velo_peak', label: 'FB peak', value: trainee?.fastball_velo_peak, unit: 'mph' },
-        { key: 'fastball_velo_sit', label: 'FB sitting', value: trainee?.fastball_velo_sit, unit: 'mph' },
-        { key: 'exit_velo', label: 'Exit velo', value: trainee?.exit_velo, unit: 'mph' },
-        { key: 'sixty_time', label: '60-yard', value: trainee?.sixty_time, unit: 's' },
-        { key: 'pitch_arsenal', label: 'Arsenal', value: Array.isArray(trainee?.pitch_arsenal) ? trainee.pitch_arsenal.join(', ') : trainee?.pitch_arsenal },
-        { key: 'grad_year', label: 'Grad year', value: trainee?.grad_year },
-        { key: 'gpa', label: 'GPA', value: trainee?.gpa },
-        { key: 'club_team', label: 'Team', value: trainee?.club_team || trainee?.travel_team },
+        { key: 'position_primary', label: 'Position', type: 'text', placeholder: 'e.g. RHP, OF' },
+        { key: 'throwing_hand', label: 'Throws', type: 'pills', options: ['R', 'L'], labels: { R: 'Right', L: 'Left' } },
+        { key: 'batting_hand', label: 'Bats', type: 'pills', options: ['R', 'L', 'S'], labels: { R: 'Right', L: 'Left', S: 'Switch' } },
+        { key: 'fastball_velo_peak', label: 'FB peak (mph)', type: 'number', placeholder: 'mph' },
+        { key: 'fastball_velo_sit', label: 'FB sitting (mph)', type: 'number', placeholder: 'mph' },
+        { key: 'exit_velo', label: 'Exit velo (mph)', type: 'number', placeholder: 'mph' },
+        { key: 'sixty_time', label: '60-yard (s)', type: 'number', placeholder: 'sec' },
+        { key: 'grad_year', label: 'Grad year', type: 'number', placeholder: '2028' },
+        { key: 'gpa', label: 'GPA', type: 'number', placeholder: '0-4.0' },
+        { key: 'club_team', label: 'Team', type: 'text', placeholder: 'Club or travel team' },
       ],
     },
   ]
 
-  // Filter to only sections that have at least one populated field
-  const populatedSections = sections.map((s) => ({
-    ...s,
-    fields: s.fields.filter((f) => f.value != null && f.value !== '' && f.value !== 0),
-  })).filter((s) => s.fields.length > 0)
-
-  // About you section
-  const aboutYou = trainee?.about_you
-
-  if (!aboutYou && populatedSections.length === 0) {
-    return null // Nothing captured yet
-  }
-
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <SectionLabel>Your profile</SectionLabel>
-        <button type="button" onClick={() => setEditing(!editing)} style={{
-          padding: '6px 12px', background: editing ? A.accentBg : 'transparent',
-          border: `1px solid ${editing ? A.accent + '30' : A.border}`,
-          borderRadius: 8, fontSize: 12, fontWeight: 600,
-          color: editing ? A.accent : A.ink3, cursor: 'pointer', fontFamily: A.font,
-        }}>
-          {editing ? 'Done' : 'Edit'}
-        </button>
+        {saving && <Loader2 size={14} color={A.ink3} style={{ animation: 'spin 1s linear infinite' }} />}
+        {saveNote && <span style={{ fontSize: 12, color: A.green, fontWeight: 600 }}>{saveNote}</span>}
+        {saveError && <span style={{ fontSize: 12, color: A.red, fontWeight: 600 }}>{saveError}</span>}
       </div>
 
       {/* About you */}
-      {aboutYou && (
-        <div style={{
-          padding: '12px 14px', background: A.cardAlt, borderRadius: A.rSm,
-          marginBottom: 14, fontSize: 14, color: A.ink2, lineHeight: 1.6,
-          whiteSpace: 'pre-wrap',
-        }}>
-          {aboutYou}
-        </div>
-      )}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: A.ink3, marginBottom: 6 }}>About you</div>
+        <textarea
+          value={draft.about_you}
+          onChange={(e) => set('about_you', e.target.value)}
+          onBlur={save}
+          rows={3}
+          placeholder="Tell us about yourself, your goals, schedule..."
+          style={{
+            width: '100%', padding: '12px 14px', fontSize: 15,
+            border: `1px solid ${A.border}`, borderRadius: A.rSm,
+            background: A.cardAlt, color: A.ink, fontFamily: A.font,
+            lineHeight: 1.5, resize: 'vertical', outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
 
-      {/* Field grid */}
-      {populatedSections.map((section) => (
-        <div key={section.title} style={{ marginBottom: 14 }}>
+      {/* Field sections */}
+      {fieldGroups.map((group) => (
+        <div key={group.title} style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: A.ink3, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            {section.title}
+            {group.title}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
-            {section.fields.map((field) => (
-              <div key={field.key} style={{
-                padding: '10px 12px', background: A.cardAlt, borderRadius: 8,
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, marginBottom: 3 }}>
-                  {field.label}
+            {group.fields.map((field) => {
+              if (field.type === 'pills') {
+                return (
+                  <div key={field.key} style={{ gridColumn: 'span 2' }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, marginBottom: 4 }}>{field.label}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {field.options.map((opt) => {
+                        const active = String(draft[field.key]) === String(opt)
+                        return (
+                          <button key={opt} type="button" onClick={() => { set(field.key, opt); setTimeout(save, 50) }} style={{
+                            padding: '8px 14px',
+                            border: `1.5px solid ${active ? A.accent : A.border}`,
+                            borderRadius: A.rPill,
+                            background: active ? A.accentBg : A.card,
+                            color: active ? A.accent : A.ink2,
+                            fontSize: 13, fontWeight: active ? 600 : 500,
+                            cursor: 'pointer', fontFamily: A.font,
+                          }}>
+                            {field.labels?.[opt] || opt}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              }
+              return (
+                <div key={field.key}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, marginBottom: 4 }}>{field.label}</div>
+                  <input
+                    type={field.type === 'number' ? 'number' : 'text'}
+                    inputMode={field.type === 'number' ? 'decimal' : 'text'}
+                    value={draft[field.key] ?? ''}
+                    onChange={(e) => set(field.key, e.target.value)}
+                    onBlur={save}
+                    placeholder={field.placeholder}
+                    style={{
+                      width: '100%', padding: '10px 12px', fontSize: 15, height: 42,
+                      border: `1px solid ${A.border}`, borderRadius: 8,
+                      background: A.cardAlt, color: A.ink, fontFamily: A.font,
+                      fontWeight: 600, outline: 'none', boxSizing: 'border-box',
+                    }}
+                  />
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: A.ink }}>
-                  {field.display || field.value}
-                  {field.unit && !field.display && (
-                    <span style={{ fontSize: 12, fontWeight: 500, color: A.ink3, marginLeft: 3 }}>{field.unit}</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       ))}
 
-      {/* Edit hint */}
-      {!editing && populatedSections.length > 0 && (
-        <div style={{ fontSize: 12, color: A.ink3, marginTop: 4 }}>
-          Tap Edit to update your info, or go to Settings for the full form.
-        </div>
-      )}
-
-      {saveNote && (
-        <div style={{ marginTop: 10, padding: '8px 12px', background: A.greenBg, borderRadius: 8, fontSize: 13, color: '#065f46' }}>
-          {saveNote}
-        </div>
-      )}
+      {/* Manual save button for good measure */}
+      <button type="button" onClick={save} disabled={saving} style={{
+        width: '100%', padding: '14px', marginTop: 4,
+        background: saving ? A.ink3 : A.ink, color: '#fff',
+        border: 'none', borderRadius: A.rSm,
+        fontSize: 15, fontWeight: 600, cursor: saving ? 'default' : 'pointer',
+        fontFamily: A.font,
+      }}>
+        {saving ? 'Saving...' : 'Save profile'}
+      </button>
     </Card>
   )
+}
+
+function buildProfileDraft(t) {
+  return {
+    about_you: t?.about_you || '',
+    age: t?.age ?? '',
+    sex: normalizeSex(t?.sex),
+    primary_goal: t?.primary_goal || '',
+    training_experience_years: t?.training_experience_years ?? '',
+    training_days_per_week: t?.training_days_per_week ?? '',
+    equipment_access: t?.equipment_access || '',
+    dietary_preference: t?.dietary_preference || '',
+    allergies: t?.allergies || '',
+    meals_per_day: t?.meals_per_day ?? '',
+    sleep_hours_avg: t?.sleep_hours_avg ?? '',
+    stress_level: t?.stress_level ?? '',
+    medical_flags: t?.medical_flags || '',
+    injuries: t?.injuries || '',
+    height_ft: t?.height_cm ? String(Math.floor((t.height_cm / 2.54) / 12)) : '',
+    height_in: t?.height_cm ? String(Math.round((t.height_cm / 2.54) % 12)) : '',
+    current_weight_lbs: t?.current_weight_kg ? String(Math.round(t.current_weight_kg * 2.20462)) : '',
+    target_weight_lbs: t?.target_weight_kg ? String(Math.round(t.target_weight_kg * 2.20462)) : '',
+    position_primary: t?.position_primary || '',
+    throwing_hand: t?.throwing_hand || '',
+    batting_hand: t?.batting_hand || '',
+    fastball_velo_peak: t?.fastball_velo_peak ?? '',
+    fastball_velo_sit: t?.fastball_velo_sit ?? '',
+    exit_velo: t?.exit_velo ?? '',
+    sixty_time: t?.sixty_time ?? '',
+    grad_year: t?.grad_year ?? '',
+    gpa: t?.gpa ?? '',
+    club_team: t?.club_team || t?.travel_team || '',
+  }
 }
 
 function AdjustBox({ onAfterAdjust }) {
