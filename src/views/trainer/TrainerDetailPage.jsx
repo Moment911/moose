@@ -494,7 +494,7 @@ export default function TrainerDetailPage() {
       setPendingStep(k, true)
     }
 
-    // Fire server-side cascade (don't await — it runs in background)
+    // Fire server-side cascade — returns immediately, work continues on server
     trainerGenerateFetch(
       { action: 'generate_full_plan', trainee_id: traineeId },
       { agencyId },
@@ -511,16 +511,11 @@ export default function TrainerDetailPage() {
         for (const k of ['baseline', 'roadmap', 'workout', 'playbook', 'food_prefs', 'meals']) {
           setPendingStep(k, false)
         }
+        if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
       }
-      // Server finished — do a final poll
-      await pollPlanProgress()
-      for (const k of ['baseline', 'roadmap', 'workout', 'playbook', 'food_prefs', 'meals']) {
-        setPendingStep(k, false)
-      }
+      // Server accepted — polling will pick up results as they complete
     }).catch(() => {
-      for (const k of ['baseline', 'roadmap', 'workout', 'playbook', 'food_prefs', 'meals']) {
-        setPendingStep(k, false)
-      }
+      // Network error — polling continues in case server is still working
     })
 
     // Start polling every 5 seconds to show progress in real time
@@ -934,6 +929,7 @@ export default function TrainerDetailPage() {
                 pending={pending}
                 nextStep={nextStep}
                 onGenerateBaseline={handleGenerateAll}
+                onRegenerateWorkout={() => handleGenerateWorkout(currentPhase)}
                 onUpdateAboutYou={handleUpdateAboutYou}
                 onUpdateFields={handleUpdateTraineeFields}
                 onRefineElicit={handleRefineElicit}
@@ -1235,6 +1231,7 @@ function OverviewTab({
   pending,
   nextStep,
   onGenerateBaseline,
+  onRegenerateWorkout,
   onUpdateAboutYou,
   onUpdateFields,
   onRefineElicit,
@@ -1421,7 +1418,13 @@ function OverviewTab({
       )}
       {plan?.workout_plan && (
         <PlanSection title="Workout" icon={<Dumbbell size={16} />} color="#7c3aed">
-          <WorkoutAccordion workoutPlan={plan.workout_plan} logs={[]} onLogSet={() => {}} />
+          <WorkoutAccordion
+            workoutPlan={plan.workout_plan}
+            logs={[]}
+            onLogSet={() => {}}
+            onRegenerate={onRegenerateWorkout}
+            regenerating={pending.workout}
+          />
         </PlanSection>
       )}
       {plan?.playbook && (

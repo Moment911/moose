@@ -210,7 +210,20 @@ export async function POST(req: NextRequest) {
     if (action === 'refine_elicit') return await handleRefineElicit(sb, agencyId, body)
     if (action === 'refine_submit') return await handleRefineSubmit(sb, agencyId, body)
     if (action === 'extract_from_about') return await handleExtractFromAbout(sb, agencyId, body)
-    if (action === 'generate_full_plan') return await handleGenerateFullPlan(sb, agencyId, body)
+    if (action === 'generate_full_plan') {
+      // Validate first (fast), then fire cascade without awaiting
+      const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+      if (!traineeId) return err(400, 'trainee_id required')
+      const trainee = await loadTrainee(sb, agencyId, traineeId)
+      if (!trainee) return err(404, 'Not found')
+      const gateErr = requireCompleteIntake(trainee)
+      if (gateErr) return gateErr
+      // Fire cascade in background — don't await
+      handleGenerateFullPlan(sb, agencyId, body).catch((e) => {
+        console.error('[generate_full_plan] background error:', e instanceof Error ? e.message : e)
+      })
+      return NextResponse.json({ ok: true, started: true })
+    }
     return err(400, 'Unknown action')
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Internal error'
