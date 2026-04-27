@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
     messages: messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     agencyId,
     maxTokens: 1024,
+    model: 'haiku',
     metadata: { user_id: userData.user.id, stage: mode === 'coaching' ? 'coach_chat' : 'intake_chat', turn: turnCount },
   })
 
