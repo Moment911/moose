@@ -483,109 +483,85 @@ export default function TrainerDetailPage() {
     )
   }
 
-  // ── Generate ALL — cascades all 6 steps respecting dependency chain ───────
-  // Order: Baseline → Roadmap → (Workout + Playbook parallel) → Food → Meals
+  // ── Generate ALL — fires server-side cascade, polls for results ──────────
+  // The server runs all 6 steps (baseline → roadmap → workout + playbook → food → meals).
+  // Client fires one POST and polls every 5s to pick up completed sections.
+  const pollRef = useRef(null)
+
   async function handleGenerateAll() {
-    async function callStep(step, body) {
-      setPendingStep(step, true)
-      try {
-        const res = await trainerGenerateFetch(body, { agencyId })
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => ({}))
-          if (errBody.error === 'intake_incomplete' && Array.isArray(errBody.missing_fields)) {
-            const friendly = errBody.missing_fields.map((f) => f.replace(/_/g, ' ')).join(', ')
-            flashError(`Almost there! I still need: ${friendly}. Tell me in the chat above and I'll fill them in.`)
-            // Scroll chat into view
-            try { document.querySelector('[data-chat-widget]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) } catch {}
-          } else {
-            flashError(`${step} failed: ${errBody.error || errBody.detail || res.status}`)
-          }
-          setPendingStep(step, false)
-          return null
+    // Mark all steps as generating
+    for (const k of ['baseline', 'roadmap', 'workout', 'playbook', 'food_prefs', 'meals']) {
+      setPendingStep(k, true)
+    }
+
+    // Fire server-side cascade (don't await — it runs in background)
+    trainerGenerateFetch(
+      { action: 'generate_full_plan', trainee_id: traineeId },
+      { agencyId },
+    ).then(async (res) => {
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        if (errBody.error === 'intake_incomplete' && Array.isArray(errBody.missing_fields)) {
+          const friendly = errBody.missing_fields.map((f) => f.replace(/_/g, ' ')).join(', ')
+          flashError(`Almost there! I still need: ${friendly}. Tell me in the chat above and I'll fill them in.`)
+          try { document.querySelector('[data-chat-widget]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) } catch {}
+        } else {
+          flashError(`Plan generation failed: ${errBody.error || errBody.detail || res.status}`)
         }
-        const data = await res.json()
-        setPendingStep(step, false)
-        return data
-      } catch (e) {
-        flashError(`${step}: ${e.message || 'Network error'}`)
-        setPendingStep(step, false)
-        return null
+        for (const k of ['baseline', 'roadmap', 'workout', 'playbook', 'food_prefs', 'meals']) {
+          setPendingStep(k, false)
+        }
       }
-    }
+      // Server finished — do a final poll
+      await pollPlanProgress()
+      for (const k of ['baseline', 'roadmap', 'workout', 'playbook', 'food_prefs', 'meals']) {
+        setPendingStep(k, false)
+      }
+    }).catch(() => {
+      for (const k of ['baseline', 'roadmap', 'workout', 'playbook', 'food_prefs', 'meals']) {
+        setPendingStep(k, false)
+      }
+    })
 
-    // 1. Baseline
-    const baselineData = await callStep('baseline', { action: 'generate_baseline', trainee_id: traineeId })
-    if (!baselineData) return
-    const planId = baselineData.plan_id || plan?.id
-    if (!planId) { flashError('No plan ID'); return }
-    setPlan((prev) => ({ ...(prev || {}), id: planId, baseline: baselineData.baseline }))
+    // Start polling every 5 seconds to show progress in real time
+    if (pollRef.current) clearInterval(pollRef.current)
+    pollRef.current = setInterval(pollPlanProgress, 5000)
+    // Stop polling after 5 minutes max
+    setTimeout(() => { if (pollRef.current) clearInterval(pollRef.current) }, 300000)
+  }
 
-    // 2. Roadmap (needs baseline on the plan row)
-    const roadmapData = await callStep('roadmap', { action: 'generate_roadmap', trainee_id: traineeId, plan_id: planId })
-    if (!roadmapData) return
-    setPlan((prev) => ({ ...(prev || {}), roadmap: roadmapData.roadmap }))
-
-    // 3. Workout + Playbook in parallel (both need roadmap)
-    setPendingStep('workout', true)
-    setPendingStep('playbook', true)
-
-    const [workoutRes, playbookRes] = await Promise.allSettled([
-      trainerGenerateFetch({ action: 'generate_workout', trainee_id: traineeId, plan_id: planId, phase: 1 }, { agencyId }),
-      trainerGenerateFetch({ action: 'generate_playbook', trainee_id: traineeId, plan_id: planId }, { agencyId }),
-    ])
-
-    if (workoutRes.status === 'fulfilled' && workoutRes.value.ok) {
-      const d = await workoutRes.value.json()
-      setPlan((prev) => ({ ...(prev || {}), workout_plan: d.workout_plan, generated_at: new Date().toISOString() }))
-      setLogs([]); setAdherence(null)
-    } else {
-      const errBody = workoutRes.status === 'fulfilled' ? await workoutRes.value.json().catch(() => ({})) : {}
-      flashError(`Workout: ${errBody.error || errBody.detail || 'failed'}`)
-    }
-    setPendingStep('workout', false)
-
-    if (playbookRes.status === 'fulfilled' && playbookRes.value.ok) {
-      const d = await playbookRes.value.json()
-      setPlan((prev) => ({ ...(prev || {}), playbook: d.playbook }))
-    } else {
-      const errBody = playbookRes.status === 'fulfilled' ? await playbookRes.value.json().catch(() => ({})) : {}
-      flashError(`Playbook: ${errBody.error || errBody.detail || 'failed'}`)
-    }
-    setPendingStep('playbook', false)
-
-    // 4. Elicit food prefs → auto-answer with defaults → generate meals
-    setPendingStep('food_prefs', true)
+  async function pollPlanProgress() {
     try {
-      // Elicit questions
-      const elicitRes = await trainerGenerateFetch(
-        { action: 'elicit_food_prefs', trainee_id: traineeId, plan_id: planId },
+      const res = await trainerGenerateFetch(
+        { action: 'get_current_plan', trainee_id: traineeId },
         { agencyId },
       )
-      if (elicitRes.ok) {
-        const elicitData = await elicitRes.json()
-        const questions = elicitData.questions || []
-        // Auto-answer each question with a reasonable default
-        const defaultAnswers = questions.map((q) => ({
-          question_id: q.question_id || q.id || `q${Math.random()}`,
-          answer: q.options?.[0] || 'No preference',
-        }))
-        // Submit answers
-        const submitRes = await trainerGenerateFetch(
-          { action: 'submit_food_prefs', trainee_id: traineeId, plan_id: planId, answers: defaultAnswers },
-          { agencyId },
-        )
-        if (submitRes.ok) {
-          setPlan((prev) => ({ ...(prev || {}), food_preferences: { questions, answers: defaultAnswers } }))
+      if (!res.ok) return
+      const data = await res.json()
+      if (data?.plan) {
+        setPlan(data.plan)
+        // Update pending flags based on what's now on the plan
+        const p = data.plan
+        if (p.baseline) setPendingStep('baseline', false)
+        if (p.roadmap) setPendingStep('roadmap', false)
+        if (p.workout_plan) { setPendingStep('workout', false); setLogs([]); setAdherence(null) }
+        if (p.playbook) setPendingStep('playbook', false)
+        if (p.food_preferences) setPendingStep('food_prefs', false)
+        if (p.meal_plan) setPendingStep('meals', false)
+        // Stop polling if all done
+        const allDone = p.baseline && p.roadmap && p.workout_plan && p.playbook && p.food_preferences && p.meal_plan
+        if (allDone && pollRef.current) {
+          clearInterval(pollRef.current)
+          pollRef.current = null
         }
       }
-    } catch { /* best effort */ }
-    setPendingStep('food_prefs', false)
-
-    const mealsData = await callStep('meals', { action: 'generate_meals', trainee_id: traineeId, plan_id: planId })
-    if (mealsData) {
-      setPlan((prev) => ({ ...(prev || {}), meal_plan: mealsData.meal_plan, grocery_list: mealsData.grocery_list }))
-    }
+    } catch { /* silent */ }
   }
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [])
 
   function handleGenerateRoadmap() {
     if (!plan?.id) return

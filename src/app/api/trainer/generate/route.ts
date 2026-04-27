@@ -101,6 +101,7 @@ const ALLOWED_ACTIONS = [
   'refine_elicit',
   'refine_submit',
   'extract_from_about',
+  'generate_full_plan',
 ] as const
 
 type Action = (typeof ALLOWED_ACTIONS)[number]
@@ -209,6 +210,7 @@ export async function POST(req: NextRequest) {
     if (action === 'refine_elicit') return await handleRefineElicit(sb, agencyId, body)
     if (action === 'refine_submit') return await handleRefineSubmit(sb, agencyId, body)
     if (action === 'extract_from_about') return await handleExtractFromAbout(sb, agencyId, body)
+    if (action === 'generate_full_plan') return await handleGenerateFullPlan(sb, agencyId, body)
     return err(400, 'Unknown action')
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Internal error'
@@ -1075,4 +1077,157 @@ Return ONLY valid JSON. No markdown, no explanation.`
     console.error('[trainer/generate] extract_from_about error:', e instanceof Error ? e.message : e)
     return NextResponse.json({ extracted: {}, patched: [], error: 'Extraction failed' })
   }
+}
+
+// ── generate_full_plan — server-side cascade, runs all 6 steps ──────────────
+// Client fires one POST and can navigate away. All results persist to the
+// plan row in the DB. Client polls via get_current_plan to see progress.
+
+async function handleGenerateFullPlan(
+  sb: SupabaseClient,
+  agencyId: string,
+  body: Record<string, unknown>,
+) {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+
+  const trainee = await loadTrainee(sb, agencyId, traineeId)
+  if (!trainee) return err(404, 'Not found')
+  const gateErr = requireCompleteIntake(trainee)
+  if (gateErr) return gateErr
+
+  const log = (step: string, msg: string) => console.log(`[generate_full_plan] ${traineeId} ${step}: ${msg}`)
+  const errors: string[] = []
+
+  // ── 1. Baseline ──────────────────────────────────────────────────────────
+  log('baseline', 'starting')
+  const { systemPrompt: bSys, userMessage: bMsg } = buildBaselinePrompt({ intake: trainee })
+  const bResult = await callSonnet<BaselineOutput>({
+    featureTag: FEATURE_TAGS.BASELINE, systemPrompt: bSys, tool: baselineTool,
+    userMessage: bMsg, agencyId, metadata: { trainee_id: traineeId },
+  })
+  if (!bResult.ok) { errors.push(`baseline: ${bResult.error}`); return NextResponse.json({ ok: false, errors }) }
+
+  const { data: planRow, error: planErr } = await sb
+    .from('koto_fitness_plans')
+    .insert({ agency_id: agencyId, trainee_id: traineeId, block_number: 1, baseline: bResult.data })
+    .select('id')
+    .single()
+  if (planErr) { errors.push(`baseline_persist: ${planErr.message}`); return NextResponse.json({ ok: false, errors }) }
+  const planId = (planRow as { id: string }).id
+  log('baseline', 'done')
+
+  // ── 2. Roadmap ───────────────────────────────────────────────────────────
+  log('roadmap', 'starting')
+  const { systemPrompt: rSys, userMessage: rMsg } = buildRoadmapPrompt({
+    intake: trainee, baseline: bResult.data,
+  })
+  const rResult = await callSonnet<RoadmapOutput>({
+    featureTag: FEATURE_TAGS.ROADMAP, systemPrompt: rSys, tool: roadmapTool,
+    userMessage: rMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId },
+  })
+  if (rResult.ok) {
+    await sb.from('koto_fitness_plans').update({ roadmap: rResult.data }).eq('id', planId).eq('agency_id', agencyId)
+    log('roadmap', 'done')
+  } else {
+    errors.push(`roadmap: ${rResult.error}`)
+    log('roadmap', `failed: ${rResult.error}`)
+  }
+
+  // ── 3. Workout + Playbook in parallel ────────────────────────────────────
+  const plan = await loadPlan(sb, agencyId, planId, traineeId)
+
+  const workoutPromise = (async () => {
+    if (!plan?.roadmap) { errors.push('workout: roadmap_missing'); return }
+    log('workout', 'starting')
+    const { systemPrompt: wSys, userMessage: wMsg } = buildWorkoutPrompt({
+      intake: trainee, baseline: bResult.data,
+      roadmap: plan.roadmap as RoadmapOutput, phase: 1,
+    })
+    let wResult = await callSonnet<WorkoutOutput>({
+      featureTag: FEATURE_TAGS.WORKOUT, systemPrompt: wSys, tool: workoutTool,
+      userMessage: wMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId, phase: 1 },
+    })
+    if (!wResult.ok) { errors.push(`workout: ${wResult.error}`); return }
+    let shapeErr = assertWorkoutShape(wResult.data)
+    if (shapeErr) {
+      wResult = await callSonnet<WorkoutOutput>({
+        featureTag: FEATURE_TAGS.WORKOUT, systemPrompt: wSys, tool: workoutTool,
+        userMessage: wMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId, phase: 1, retry: true },
+      })
+      if (!wResult.ok) { errors.push(`workout_retry: ${wResult.error}`); return }
+      shapeErr = assertWorkoutShape(wResult.data)
+      if (shapeErr) { errors.push(`workout_shape: ${shapeErr}`); return }
+    }
+    await sb.from('koto_fitness_plans').update({ workout_plan: wResult.data, phase_ref: 1 }).eq('id', planId).eq('agency_id', agencyId)
+    log('workout', 'done')
+  })()
+
+  const playbookPromise = (async () => {
+    if (!plan?.roadmap) { errors.push('playbook: roadmap_missing'); return }
+    log('playbook', 'starting')
+    const { systemPrompt: pSys, userMessage: pMsg } = buildPlaybookPrompt({
+      intake: trainee, baseline: bResult.data,
+      roadmap: plan.roadmap as RoadmapOutput,
+    })
+    const pResult = await callSonnet<CoachingPlaybookOutput>({
+      featureTag: FEATURE_TAGS.PLAYBOOK, systemPrompt: pSys, tool: playbookTool,
+      userMessage: pMsg, agencyId, maxTokens: 16000,
+      metadata: { trainee_id: traineeId, plan_id: planId },
+    })
+    if (pResult.ok) {
+      await sb.from('koto_fitness_plans').update({ playbook: pResult.data }).eq('id', planId).eq('agency_id', agencyId)
+      log('playbook', 'done')
+    } else {
+      errors.push(`playbook: ${pResult.error}`)
+      log('playbook', `failed: ${pResult.error}`)
+    }
+  })()
+
+  await Promise.allSettled([workoutPromise, playbookPromise])
+
+  // ── 4. Food prefs (elicit + auto-answer) → Meals ─────────────────────────
+  log('food_prefs', 'starting')
+  const { systemPrompt: fpSys, userMessage: fpMsg } = buildFoodPrefsPrompt({ intake: trainee, baseline: bResult.data })
+  const fpResult = await callSonnet<FoodPrefsOutput>({
+    featureTag: FEATURE_TAGS.FOOD_PREFS, systemPrompt: fpSys, tool: foodPrefsTool,
+    userMessage: fpMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId },
+  })
+  if (fpResult.ok) {
+    const questions = fpResult.data.questions || []
+    const defaultAnswers = questions.map((q: { question_id?: string; id?: string; options?: string[] }) => ({
+      question_id: q.question_id || q.id || '',
+      answer: q.options?.[0] || 'No preference',
+    }))
+    await sb.from('koto_fitness_plans').update({
+      food_preferences: { questions, answers: defaultAnswers },
+    }).eq('id', planId).eq('agency_id', agencyId)
+    log('food_prefs', 'done')
+
+    // Generate meals
+    log('meals', 'starting')
+    const { systemPrompt: mSys, userMessage: mMsg } = buildMealsPrompt({
+      intake: trainee, baseline: bResult.data,
+      foodPreferences: { questions, answers: defaultAnswers as FoodPrefsAnswer[] },
+    })
+    const mResult = await callSonnet<MealsOutput>({
+      featureTag: FEATURE_TAGS.MEALS, systemPrompt: mSys, tool: mealsTool,
+      userMessage: mMsg, agencyId, maxTokens: 16000,
+      metadata: { trainee_id: traineeId, plan_id: planId },
+    })
+    if (mResult.ok) {
+      const mealsData = mResult.data as Record<string, unknown>
+      await sb.from('koto_fitness_plans').update({
+        meal_plan: mealsData,
+        grocery_list: mealsData.grocery_list ?? null,
+      }).eq('id', planId).eq('agency_id', agencyId)
+      log('meals', 'done')
+    } else {
+      errors.push(`meals: ${mResult.error}`)
+    }
+  } else {
+    errors.push(`food_prefs: ${fpResult.error}`)
+  }
+
+  return NextResponse.json({ ok: true, plan_id: planId, errors: errors.length > 0 ? errors : undefined })
 }
