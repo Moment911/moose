@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Loader2, Send, Check, Circle, Camera, Pencil, RefreshCw, Bookmark, Map as MapIcon, Dumbbell, BookOpen, Timer, GraduationCap, ExternalLink, Salad, ClipboardCheck, PauseCircle } from 'lucide-react'
 import { T, BLK, GRN } from '../../lib/theme'
+import { PageHeader, PrimaryCTA } from '../../components/trainer/aesthetic'
 // Trainer portal uses red/blue accents, not Koto Pink. Local override.
 const R = '#dc2626'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
@@ -1007,33 +1008,21 @@ function WelcomeScreen({ name, onStart }) {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, padding: '28px 20px' }}>
+    <div style={{ minHeight: '100vh', background: '#ffffff', padding: '0 20px' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
-        {/* Header — who sent this, how long it takes */}
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 16, margin: '0 auto 12px',
-            background: `linear-gradient(135deg, ${BLK} 0%, #1e293b 100%)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(0,0,0,.12)',
-          }}>
-            <span style={{ fontSize: 22, fontWeight: 900, color: T, letterSpacing: '-1px' }}>K</span>
-          </div>
-          <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.4px' }}>
-            {firstName ? `Hi, ${firstName}` : 'Welcome'}
-          </h1>
-          <p style={{ margin: 0, fontSize: 14, color: '#4b5563', lineHeight: 1.55, maxWidth: 440, marginLeft: 'auto', marginRight: 'auto' }}>
-            Tell us your goals and we&apos;ll build a program to help you get there.
-          </p>
-          <div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#6b7280' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Timer size={12} strokeWidth={1.75} /> About 5 minutes</span>
-            <span style={{ color: '#d1d5db' }}>·</span>
-            <span>Pause & return anytime</span>
-          </div>
+        <PageHeader
+          title={firstName ? `Hi, ${firstName}` : 'Welcome'}
+          subtitle="Tell us your goals and we'll build a program to help you get there."
+        />
+
+        <div style={{ marginBottom: 20, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#6b7280' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Timer size={12} strokeWidth={1.75} /> About 5 minutes</span>
+          <span style={{ color: '#d1d5db' }}>·</span>
+          <span>Pause & return anytime</span>
         </div>
 
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '22px 22px 20px', marginBottom: 14 }}>
+        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: '22px 22px 20px', marginBottom: 14 }}>
 
           {/* Credentials — AI modeled after an expert stack */}
           <div style={{ marginBottom: 18 }}>
@@ -1164,19 +1153,9 @@ function WelcomeScreen({ name, onStart }) {
             </div>
           )}
 
-          <button
-            onClick={handleSubmit}
-            style={{
-              width: '100%',
-              padding: '14px 20px',
-              background: R, color: '#fff',
-              border: 'none', borderRadius: 10,
-              fontSize: 15, fontWeight: 800, cursor: 'pointer',
-              letterSpacing: '-.2px',
-            }}
-          >
-            Start building my plan →
-          </button>
+          <PrimaryCTA pinned={false} onClick={handleSubmit}>
+            Start building my plan
+          </PrimaryCTA>
           <p style={{ margin: '10px 0 0', fontSize: 11, color: '#9ca3af', textAlign: 'center', lineHeight: 1.5 }}>
             Answers save as you chat.
           </p>
