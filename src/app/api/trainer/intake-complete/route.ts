@@ -101,35 +101,64 @@ export async function POST(req: NextRequest) {
 
   const trainee = { ...traineeRow, ...valid.data, id: traineeId, agency_id: agencyId } as IntakeInput & { id: string; agency_id: string }
 
-  // If the athlete has an existing plan, bump to the next block_number
-  // so the new generation supersedes (doesn't duplicate) block 1 in the
-  // UI. intake-plan orders block_number DESC, so the latest always wins.
-  // Keeping prior blocks preserves workout_logs history (FK cascade).
-  const { data: latestPlan } = await sb
+  // intake-complete is the "initial generation" entrypoint — it always writes
+  // block_number=1 and upserts. Adjustment iterations (NaturalAdjustBox →
+  // /api/my-plan/adjust) are the only path that bumps block_number, which
+  // preserves the workout-log history for prior blocks via FK cascade.
+  //
+  // Previously this incremented block_number on every call, so clicking
+  // "Generate" twice produced two rows for the same intake — cluttering
+  // the DB and burning a duplicate plan-chain run.
+  const { data: existingPlan } = await sb
     .from('koto_fitness_plans')
-    .select('block_number')
+    .select('id')
     .eq('trainee_id', traineeId)
     .eq('agency_id', agencyId)
-    .order('block_number', { ascending: false })
-    .limit(1)
+    .eq('block_number', 1)
     .maybeSingle()
-  const nextBlockNumber = ((latestPlan as { block_number?: number } | null)?.block_number ?? 0) + 1
 
-  const { data: planRow, error: planErr } = await sb
-    .from('koto_fitness_plans')
-    .insert({
-      agency_id: agencyId,
-      trainee_id: traineeId,
-      block_number: nextBlockNumber,
-      generated_at: new Date().toISOString(),
-    })
-    .select('id')
-    .single()
-  if (planErr || !planRow) {
-    console.error('[trainer/intake-complete] plan insert error:', planErr?.message)
-    return errJson(500, 'Could not create plan row')
+  let planId: string
+  if (existingPlan) {
+    planId = (existingPlan as { id: string }).id
+    // Clear the previous output so a partial regen doesn't show stale
+    // sections from the prior run. Existing workout_logs survive — they
+    // FK to the plan row, which we're updating in place.
+    const { error: clearErr } = await sb
+      .from('koto_fitness_plans')
+      .update({
+        baseline: null,
+        roadmap: null,
+        workout_plan: null,
+        food_preferences: null,
+        meal_plan: null,
+        grocery_list: null,
+        playbook: null,
+        adjustment_summary: null,
+        phase_ref: null,
+        generated_at: new Date().toISOString(),
+      })
+      .eq('id', planId)
+    if (clearErr) {
+      console.error('[trainer/intake-complete] plan reset error:', clearErr.message)
+      return errJson(500, 'Could not reset plan row')
+    }
+  } else {
+    const { data: planRow, error: planErr } = await sb
+      .from('koto_fitness_plans')
+      .insert({
+        agency_id: agencyId,
+        trainee_id: traineeId,
+        block_number: 1,
+        generated_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single()
+    if (planErr || !planRow) {
+      console.error('[trainer/intake-complete] plan insert error:', planErr?.message)
+      return errJson(500, 'Could not create plan row')
+    }
+    planId = (planRow as { id: string }).id
   }
-  const planId = (planRow as { id: string }).id
 
   // ── Stream NDJSON for the plan chain ────────────────────────────────────
   const encoder = new TextEncoder()

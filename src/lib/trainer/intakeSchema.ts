@@ -125,21 +125,31 @@ export type IntakeInput = {
   exit_velo?: number | null
   sixty_time?: number | null
   pop_time?: number | null
-  pitch_arsenal?: unknown | null  // jsonb — string[] or comma-separated
+  pitch_arsenal?: string | null
   grad_year?: number | null
   gpa?: number | null
+  test_type?: string | null
+  test_score?: number | null
   high_school?: string | null
+  high_school_state?: string | null
   club_team?: string | null
   travel_team?: string | null
   video_link?: string | null
-  preferred_divisions?: unknown | null  // jsonb
-  preferred_states?: unknown | null     // jsonb
+  preferred_divisions?: string[] | null
+  preferred_states?: string[] | null
   intended_major?: string | null
 
-  // Workload
-  practices_per_week?: number | null
-  bullpen_sessions_per_week?: number | null
-  games_per_week?: number | null
+  // Workload — pill ranges (e.g. "2-3", "60-80") OR ints when Sonnet
+  // returns them via tool schema. Both store fine in the text DB columns.
+  practices_per_week?: string | number | null
+  bullpen_sessions_per_week?: string | number | null
+  game_appearances_per_week?: string | number | null
+  avg_pitch_count?: string | number | null
+  games_per_week?: string | number | null
+  long_toss_routine?: string | null
+  arm_soreness?: string | null
+  offseason_training?: string | null
+  other_sports?: string | null
 
   // Chat persistence
   chat_history?: unknown | null  // jsonb
@@ -301,8 +311,13 @@ export function validateIntake(input: unknown): ValidateResult<IntakeInput> {
     errors.trainer_notes = 'trainer_notes must be a string'
   }
 
-  // Baseball / sport-specific — light validation, accept any reasonable value
-  for (const k of ['position_primary', 'position_secondary', 'throwing_hand', 'batting_hand', 'high_school', 'club_team', 'travel_team', 'video_link', 'intended_major'] as const) {
+  // Baseball / sport-specific — light validation, accept any reasonable value.
+  for (const k of [
+    'position_primary', 'position_secondary', 'throwing_hand', 'batting_hand',
+    'test_type', 'high_school', 'high_school_state', 'club_team', 'travel_team',
+    'video_link', 'intended_major', 'pitch_arsenal',
+    'long_toss_routine', 'arm_soreness', 'offseason_training', 'other_sports',
+  ] as const) {
     const v = b[k]
     if (v !== undefined && v !== null && !isString(v)) {
       errors[k] = `${k} must be a string`
@@ -314,11 +329,31 @@ export function validateIntake(input: unknown): ValidateResult<IntakeInput> {
       errors[k] = `${k} must be a number`
     }
   }
-  for (const k of ['grad_year', 'practices_per_week', 'bullpen_sessions_per_week', 'games_per_week'] as const) {
+  for (const k of ['grad_year', 'test_score'] as const) {
     const v = b[k]
     if (v !== undefined && v !== null) {
       if (!isFiniteNumber(v) || !Number.isInteger(v)) {
         errors[k] = `${k} must be an integer`
+      }
+    }
+  }
+  // Workload pill columns — DB is text (see migration 20260607). The form
+  // sends ranges like "2-3" / "60-80"; Sonnet's tool schema sometimes
+  // emits ints. Accept either; both store fine in text columns.
+  for (const k of [
+    'practices_per_week', 'bullpen_sessions_per_week',
+    'game_appearances_per_week', 'avg_pitch_count', 'games_per_week',
+  ] as const) {
+    const v = b[k]
+    if (v !== undefined && v !== null && !isString(v) && !isFiniteNumber(v)) {
+      errors[k] = `${k} must be a string or number`
+    }
+  }
+  for (const k of ['preferred_divisions', 'preferred_states'] as const) {
+    const v = b[k]
+    if (v !== undefined && v !== null) {
+      if (!Array.isArray(v) || !v.every((x) => typeof x === 'string')) {
+        errors[k] = `${k} must be an array of strings`
       }
     }
   }

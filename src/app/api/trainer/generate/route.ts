@@ -496,8 +496,22 @@ async function handleElicitFoodPrefs(
     return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
   }
 
+  // Validate output BEFORE persisting. Without this guard, a malformed tool
+  // call (rare — schema drift, partial JSON, overload) persists
+  // `{questions: undefined, answers: null}`, which flips hasPrefs truthy
+  // in the UI. The trainer skips the wizard, clicks "Generate meals", and
+  // gets a generic 400 'answers_not_submitted' that looks unrelated to
+  // the elicit step that actually broke.
+  const questions = (result.data as FoodPrefsOutput).questions
+  if (!Array.isArray(questions) || questions.length === 0) {
+    console.error('[trainer/generate] elicit returned empty questions array')
+    return err(502, 'elicit_empty_questions', {
+      detail: 'The model returned no food-preference questions. Try again.',
+    })
+  }
+
   const envelope = {
-    questions: (result.data as FoodPrefsOutput).questions,
+    questions,
     answers: null,
   }
 

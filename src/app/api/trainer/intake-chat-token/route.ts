@@ -111,7 +111,14 @@ export async function POST(req: NextRequest) {
         .from('koto_fitness_trainees')
         .update(updatePayload)
         .eq('id', traineeId)
-        .then()
+        .then(({ error }) => {
+          // Was fire-and-forget — silently swallowed "column does not exist"
+          // when intake fields landed before their migration. Log so future
+          // schema drift surfaces in server logs instead of vanishing.
+          if (error) {
+            console.error('[trainer/intake-chat-token] trainee partial-save error:', error.message, 'fields:', Object.keys(updatePayload))
+          }
+        })
     }
   }
 

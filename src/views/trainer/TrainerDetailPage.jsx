@@ -447,13 +447,33 @@ export default function TrainerDetailPage() {
         return
       }
       if (!res.ok) {
-        // Special-case the intake-completeness gate so the trainer sees
-        // exactly which fields to finish instead of a raw JSON blob.
+        // Special-case known error codes so the trainer sees a real message
+        // instead of a raw JSON blob.
         const body = await res.json().catch(() => null)
         if (body?.error === 'intake_incomplete' && Array.isArray(body.missing_fields)) {
           flashError(
             `Finish the intake before generating: ${body.missing_fields.join(', ')}`,
           )
+          return
+        }
+        if (body?.error === 'elicit_empty_questions') {
+          flashError(
+            'Food-preferences questions came back empty. Click "Collect food preferences" again to retry.',
+          )
+          return
+        }
+        if (body?.error === 'answers_not_submitted') {
+          flashError(
+            'Meals can\'t generate yet — collect food preferences first, then submit the wizard.',
+          )
+          return
+        }
+        if (body?.error === 'baseline_missing') {
+          flashError('Generate the baseline before this step.')
+          return
+        }
+        if (body?.error === 'roadmap_missing') {
+          flashError('Generate the 90-day roadmap before this step.')
           return
         }
         const detail = body ? JSON.stringify(body).slice(0, 160) : ''
@@ -720,7 +740,12 @@ export default function TrainerDetailPage() {
   const hasRoadmap = !!plan?.roadmap
   const hasPlaybook = !!plan?.playbook
   const hasWorkout = !!plan?.workout_plan
-  const hasPrefs = !!plan?.food_preferences
+  // hasPrefs gates the meals UI — only count it as "ready" when the wizard
+  // produced a real question set AND the trainer's answers were saved.
+  // A bare envelope ({questions: undefined, answers: null}) used to pass
+  // `!!plan.food_preferences` and silently skipped the elicit step.
+  const prefsAnswers = plan?.food_preferences?.answers
+  const hasPrefs = Array.isArray(prefsAnswers) && prefsAnswers.length > 0
   const hasMeals = !!plan?.meal_plan
   const hasGrocery = !!plan?.grocery_list
 
