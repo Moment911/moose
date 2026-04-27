@@ -1224,77 +1224,20 @@ function OverviewTab({
         />
       </section>
 
-      {/* Generate plan CTA — shows when chat has collected enough fields */}
-      {!hasBaseline && Object.keys(extracted).length >= 5 && (
-        <section style={{
-          background: '#fff', border: `1px solid ${BRD}`, borderLeft: `4px solid ${GRN}`,
-          borderRadius: 12, padding: '18px 22px', marginBottom: 18,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: 16, flexWrap: 'wrap',
-        }}>
-          <div style={{ minWidth: 0, flex: '1 1 300px' }}>
-            <div style={{ color: GRN, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6 }}>
-              Ready to generate
-            </div>
-            <div style={{ color: BLK, fontSize: 17, fontWeight: 800, marginBottom: 4 }}>Generate baseline</div>
-            <div style={{ color: '#6b7280', fontSize: 13, lineHeight: 1.5 }}>
-              {Object.keys(extracted).length} fields collected. Generate the baseline to unlock workout, meal plan, and coaching playbook.
-            </div>
-          </div>
-          <button type="button" onClick={onGenerateBaseline} disabled={pending.baseline}
-            style={btnPrimary(pending.baseline)}>
-            {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
-            {pending.baseline ? 'Generating…' : 'Generate my plan'}
-          </button>
-        </section>
-      )}
-
-      {/* Next-step CTA — shown after baseline exists */}
-      {hasBaseline && (
-        <section
-          style={{
-            background: '#fff',
-            border: `1px solid ${BRD}`,
-            borderLeft: `4px solid ${R}`,
-            borderRadius: 12,
-            padding: '18px 22px',
-            marginBottom: 18,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 16,
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ minWidth: 0, flex: '1 1 340px' }}>
-            <div style={{ color: R, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon size={12} /> Next step
-            </div>
-            <div style={{ color: BLK, fontSize: 17, fontWeight: 800, marginBottom: 4 }}>{nextStep.title}</div>
-            <div style={{ color: GRY7, fontSize: 13, lineHeight: 1.5 }}>{nextStep.desc}</div>
-          </div>
-          {nextStep.action && (
-            <button
-              type="button"
-              onClick={nextStep.action}
-              disabled={nextStep.busy}
-              style={btnPrimary(nextStep.busy)}
-            >
-              {nextStep.busy ? <Loader2 size={14} /> : <Icon size={14} />}
-              {nextStep.busy ? 'Generating…' : nextStep.title}
-            </button>
-          )}
-          {!nextStep.action && nextStep.goto && (
-            <button
-              type="button"
-              onClick={() => onGotoTab(nextStep.goto)}
-              style={btnSecondary(false)}
-            >
-              Open {nextStep.goto} tab <ArrowRight size={13} />
-            </button>
-          )}
-        </section>
-      )}
+      {/* ══ Plan Steps Checklist ══ */}
+      <PlanStepsChecklist
+        plan={plan}
+        hasBaseline={hasBaseline}
+        hasRoadmap={!!plan?.roadmap}
+        hasWorkout={!!plan?.workout_plan}
+        hasPlaybook={!!plan?.playbook}
+        hasMeals={!!plan?.meal_plan}
+        hasGrocery={!!plan?.grocery_list}
+        pending={pending}
+        extracted={extracted}
+        onGenerateBaseline={onGenerateBaseline}
+        onGotoTab={onGotoTab}
+      />
 
       {/* Baseline card (shows after generation) */}
       {hasBaseline && (
@@ -1306,29 +1249,100 @@ function OverviewTab({
           />
         </div>
       )}
-
-      {/* ── Workload section ──────────────────────────────────────────── */}
-      <FullIntakeProfile trainee={trainee} />
-
-      <WorkloadSection trainee={trainee} />
-
-      {hasBaseline && !okToTrain && (
-        <section
-          style={{
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: 10,
-            padding: 20,
-            marginTop: 16,
-            color: '#991b1b',
-          }}
-        >
-          <strong>Plan is paused.</strong> This athlete needs physician clearance before Koto
-          Trainer generates a workout or meal plan. Update medical_flags / injuries in the intake
-          once clearance is documented, then regenerate.
-        </section>
-      )}
     </div>
+  )
+}
+
+// ── Plan Steps Checklist ─────────────────────────────────────────────────────
+// Shows all 6 plan steps as a clickable progress strip. Each step shows
+// done/pending status. Click to navigate to the relevant tab.
+
+function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlaybook, hasMeals, hasGrocery, pending, extracted, onGenerateBaseline, onGotoTab }) {
+  const steps = [
+    { key: 'baseline', label: 'Baseline', done: hasBaseline, tab: 'overview', generating: pending.baseline },
+    { key: 'roadmap', label: 'Roadmap', done: hasRoadmap, tab: 'plan', generating: pending.roadmap },
+    { key: 'workout', label: 'Workout', done: hasWorkout, tab: 'plan', generating: pending.workout },
+    { key: 'playbook', label: 'Playbook', done: hasPlaybook, tab: 'playbook', generating: pending.playbook },
+    { key: 'food', label: 'Food Prefs', done: !!plan?.food_preferences, tab: 'nutrition', generating: pending.food_prefs },
+    { key: 'meals', label: 'Meals', done: hasMeals, tab: 'nutrition', generating: pending.meals },
+  ]
+
+  const doneCount = steps.filter((s) => s.done).length
+  const pct = Math.round((doneCount / steps.length) * 100)
+  const canGenerate = Object.keys(extracted).length >= 5 || hasBaseline
+
+  return (
+    <section style={{ ...panelStyle, marginBottom: 18 }}>
+      {/* Header with progress */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: BLK }}>
+          Your plan
+        </div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: doneCount === 6 ? GRN : '#6b7280' }}>
+          {doneCount}/{steps.length} · {pct}%
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ height: 4, background: '#f3f4f6', borderRadius: 999, marginBottom: 14 }}>
+        <div style={{ height: '100%', borderRadius: 999, background: doneCount === 6 ? GRN : R, width: `${pct}%`, transition: 'width .3s' }} />
+      </div>
+
+      {/* Step cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+        {steps.map((step, i) => (
+          <button
+            key={step.key}
+            type="button"
+            onClick={() => {
+              if (step.key === 'baseline' && !step.done && canGenerate) {
+                onGenerateBaseline()
+              } else if (step.done) {
+                onGotoTab(step.tab)
+              }
+            }}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+              padding: '12px 8px', background: step.done ? '#f0fdf4' : step.generating ? '#fffbeb' : '#f9fafb',
+              border: `1px solid ${step.done ? '#bbf7d0' : step.generating ? '#fde68a' : '#e5e7eb'}`,
+              borderRadius: 10, cursor: step.done || (step.key === 'baseline' && canGenerate) ? 'pointer' : 'default',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{
+              width: 28, height: 28, borderRadius: 999,
+              background: step.done ? GRN : step.generating ? '#f59e0b' : '#e5e7eb',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: step.done || step.generating ? '#fff' : '#9ca3af',
+              fontSize: 12, fontWeight: 800,
+            }}>
+              {step.done ? '✓' : step.generating ? '⟳' : i + 1}
+            </div>
+            <div style={{
+              fontSize: 11, fontWeight: 700, color: step.done ? '#065f46' : step.generating ? '#92400e' : '#6b7280',
+              textTransform: 'uppercase', letterSpacing: '.04em',
+            }}>
+              {step.label}
+            </div>
+            {step.generating && (
+              <div style={{ fontSize: 10, color: '#92400e' }}>Generating...</div>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Generate CTA if not started */}
+      {!hasBaseline && canGenerate && (
+        <button type="button" onClick={onGenerateBaseline} disabled={pending.baseline}
+          style={{
+            ...btnPrimary(pending.baseline),
+            width: '100%', marginTop: 14, padding: '12px 16px',
+          }}>
+          {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
+          {pending.baseline ? 'Generating…' : 'Generate my plan'}
+        </button>
+      )}
+    </section>
   )
 }
 
