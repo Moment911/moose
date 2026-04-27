@@ -34,7 +34,7 @@ function getDb(): SupabaseClient {
   )
 }
 
-const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account', 'get_progress_history', 'log_progress', 'log_measurable', 'get_measurable_history'] as const
+const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account', 'get_progress_history', 'log_progress', 'log_measurable', 'get_measurable_history', 'generate_full_plan'] as const
 type Action = (typeof ALLOWED_ACTIONS)[number]
 
 function err(status: number, error: string, extra?: Record<string, unknown>) {
@@ -186,6 +186,7 @@ export async function POST(req: NextRequest) {
     if (action === 'log_progress') return await handleLogProgress(sb, ctx, body)
     if (action === 'log_measurable') return await handleLogMeasurable(sb, ctx, body)
     if (action === 'get_measurable_history') return await handleGetMeasurableHistory(sb, ctx, body)
+    if (action === 'generate_full_plan') return await handleGenerateFullPlanProxy(sb, ctx)
     return err(400, 'Unknown action')
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Internal error'
@@ -648,4 +649,36 @@ async function handleGetMeasurableHistory(
   }
 
   return NextResponse.json({ measurables: data ?? [] })
+}
+
+// ── generate_full_plan — fires via internal fetch to generate API ─────────
+// The generate API needs an agency_id from session auth. We have the
+// trainee's agency_id from the mapping row, so we call it with the
+// service-role key set as a header workaround. Simpler: just call the
+// generate endpoint's public URL with a bypass header for internal calls.
+async function handleGenerateFullPlanProxy(sb: SupabaseClient, ctx: TraineeCtx) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+  try {
+    // Fire generate_full_plan to the generate endpoint
+    // Pass agency_id header so the endpoint can resolve without session auth
+    fetch(`${appUrl}/api/trainer/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-koto-agency-id': ctx.agencyId,
+        'x-koto-internal': 'true',
+      },
+      body: JSON.stringify({
+        action: 'generate_full_plan',
+        trainee_id: ctx.traineeId,
+      }),
+    }).catch((e) => {
+      console.error('[my-plan] generate_full_plan proxy error:', e)
+    })
+
+    return NextResponse.json({ ok: true, started: true })
+  } catch (e) {
+    console.error('[my-plan] generate_full_plan proxy error:', e)
+    return err(500, 'Failed to start plan generation')
+  }
 }

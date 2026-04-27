@@ -80,6 +80,10 @@ export function fetchMyPlan(): Promise<MyPlanResponse> {
   return callMyPlan<MyPlanResponse>('get_my_plan')
 }
 
+export function generateFullPlan(): Promise<{ ok: boolean; started?: boolean; error?: string }> {
+  return callMyPlan<{ ok: boolean; started?: boolean; error?: string }>('generate_full_plan')
+}
+
 export interface LogSetInput {
   plan_id: string
   session_day_number: number

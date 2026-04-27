@@ -5,7 +5,7 @@ import {
   Loader2, LayoutGrid, Dumbbell, Utensils, TrendingUp, User,
   MessageCircle, ChevronDown, ChevronRight, Info, ExternalLink,
   Check, Camera, Printer, ShoppingBag, ChevronLeft, ChevronUp,
-  BookOpen, Search,
+  BookOpen, Search, Activity, Target, Sparkles, ArrowRight,
 } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -14,10 +14,16 @@ import {
 import { supabase } from '../../lib/supabase'
 import {
   fetchMyPlan, logSet as apiLogSet, updateMyIntake, deleteMyAccount,
-  adjustPlanNL,
+  adjustPlanNL, generateFullPlan,
 } from '../../lib/trainer/myPlanFetch'
 import MyPlanShell from '../../components/trainer/MyPlanShell'
 import IntakeChatWidget from '../../components/trainer/IntakeChatWidget'
+import PlanBaselineCard from '../../components/trainer/PlanBaselineCard'
+import RoadmapCard from '../../components/trainer/RoadmapCard'
+import WorkoutAccordion from '../../components/trainer/WorkoutAccordion'
+import PlaybookCard from '../../components/trainer/PlaybookCard'
+import MealPlanTable from '../../components/trainer/MealPlanTable'
+import GroceryList from '../../components/trainer/GroceryList'
 import TraineeDisclaimerAckModal from './TraineeDisclaimerAckModal'
 import NoneOrText from '../../components/trainer/NoneOrText'
 import {
@@ -405,10 +411,13 @@ function MacroPill({ label, value, color }) {
 // ═════════════════════════════════════════════════════════════════════════════
 
 function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, onRefresh }) {
+  const hasBaseline = !!plan?.baseline
   const hasWorkout = !!plan?.workout_plan
   const hasMeals = !!plan?.meal_plan
+  const [generating, setGenerating] = useState(false)
+  const pollRef = useRef(null)
 
-  // 7-day streak: count days with at least one workout log
+  // 7-day streak
   const streakDays = useMemo(() => {
     const s = new Set()
     for (const log of logs) {
@@ -425,97 +434,169 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
     return result
   }, [logs])
 
-  // Roadmap phases
-  const roadmap = plan?.roadmap
-  const currentPhaseNum = (() => {
-    const ref = plan?.phase_ref
-    if (typeof ref === 'number') return ref
-    if (typeof ref === 'string' && ref.startsWith('phase_')) {
-      const n = Number(ref.replace('phase_', ''))
-      return Number.isFinite(n) ? n : 1
-    }
-    return 1
-  })()
+  // Plan steps
+  const STEP_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
+  const steps = [
+    { key: 'baseline', label: 'Baseline', done: hasBaseline, Icon: Activity },
+    { key: 'roadmap', label: 'Roadmap', done: !!plan?.roadmap, Icon: Target },
+    { key: 'workout', label: 'Workout', done: hasWorkout, Icon: Dumbbell },
+    { key: 'playbook', label: 'Playbook', done: !!plan?.playbook, Icon: BookOpen },
+    { key: 'food', label: 'Food', done: !!plan?.food_preferences, Icon: Utensils },
+    { key: 'meals', label: 'Meals', done: hasMeals, Icon: TrendingUp },
+  ]
+  const doneCount = steps.filter((s) => s.done).length
 
-  // Update prompts — computed from log staleness
-  const prompts = useMemo(() => {
-    const items = []
-    // Check if no plan yet — prompt to chat
-    if (!plan) {
-      items.push({ key: 'onboard', text: 'Complete your profile to get a custom plan', cta: 'Start chat', tab: 'coach' })
-      return items
+  // Did you know facts
+  const DYK = [
+    'Your muscles grow during rest, not during the workout. Sleep is when the real gains happen.',
+    'Drinking water boosts performance by up to 25%. Most athletes are dehydrated.',
+    'Athletes who track food are 2x more likely to hit body composition goals.',
+    'A single night of bad sleep reduces power output by up to 20%.',
+    'Dynamic stretching before activity improves performance. Static stretching is for after.',
+    'Protein eaten within 30 min after training is absorbed 50% more efficiently.',
+    'Creatine is the most studied sports supplement — safe and effective for strength gains.',
+    'Foam rolling for 2 min per muscle group increases range of motion by 10-15%.',
+  ]
+  const [factIdx, setFactIdx] = useState(0)
+  useEffect(() => {
+    if (!generating) return
+    const t = setInterval(() => setFactIdx((i) => (i + 1) % DYK.length), 5000)
+    return () => clearInterval(t)
+  }, [generating])
+
+  async function handleGenerate() {
+    setGenerating(true)
+    try {
+      await generateFullPlan()
+    } catch { /* */ }
+    // Poll for results
+    if (pollRef.current) clearInterval(pollRef.current)
+    pollRef.current = setInterval(async () => {
+      await onRefresh()
+    }, 5000)
+    setTimeout(() => { if (pollRef.current) clearInterval(pollRef.current); setGenerating(false) }, 300000)
+  }
+
+  // Stop polling when all done
+  useEffect(() => {
+    if (doneCount >= 6 && pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+      setGenerating(false)
     }
-    return items
-  }, [plan])
+  }, [doneCount])
+
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
-      {/* Greeting (desktop only — mobile has it in header) */}
       {!isMobile && <GreetingHeader trainee={trainee} />}
 
-      {/* Update prompts */}
-      {prompts.map((p) => (
-        <button key={p.key} type="button" onClick={() => onGotoTab(p.tab)} style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '14px 18px', background: '#fffbeb', border: '1px solid #fde68a',
-          borderRadius: A.r, cursor: 'pointer', textAlign: 'left',
-          fontFamily: A.font, width: '100%',
-        }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#92400e' }}>{p.text}</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: A.accent, whiteSpace: 'nowrap' }}>{p.cta} →</span>
-        </button>
-      ))}
+      {/* ══ Plan Steps Checklist ══ */}
+      <div style={{
+        background: '#0a0a0a', borderRadius: A.r, padding: '24px 16px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+      }}>
+        <style>{`
+          @keyframes mpSpin { to { transform: rotate(360deg) } }
+          @keyframes mpPulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
+          @keyframes mpFade { 0% { opacity: 0; transform: translateY(8px) } 100% { opacity: 1; transform: translateY(0) } }
+        `}</style>
 
-      {/* Today's snapshot */}
-      <Card>
-        <div style={{ display: 'grid', gridTemplateColumns: hasMeals ? '1fr 1fr' : '1fr', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>Your Plan</span>
+          <span style={{ padding: '5px 14px', borderRadius: 999, background: doneCount === 6 ? '#34c75925' : 'rgba(255,255,255,0.1)', fontSize: 14, fontWeight: 700, color: doneCount === 6 ? '#34c759' : 'rgba(255,255,255,0.6)' }}>
+            {doneCount}/{steps.length}
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+          {steps.map((step, i) => {
+            const color = STEP_COLORS[i]
+            const sz = 68, r = 28, circ = 2 * Math.PI * r
+            const StepIcon = step.Icon
+            const isGen = generating && !step.done
+            return (
+              <div key={step.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <div style={{ position: 'relative', width: sz, height: sz }}>
+                  <svg width={sz} height={sz} style={{ transform: 'rotate(-90deg)' }}>
+                    <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={4} />
+                    <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke={step.done ? color : 'transparent'} strokeWidth={4} strokeLinecap="round" strokeDasharray={`${step.done ? circ : 0} ${circ}`} style={{ transition: 'stroke-dasharray 0.8s ease' }} />
+                    {isGen && <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke={color} strokeWidth={4} strokeLinecap="round" strokeDasharray={`${circ*0.3} ${circ*0.7}`} style={{ animation: 'mpSpin 1.2s linear infinite', transformOrigin: `${sz/2}px ${sz/2}px` }} />}
+                  </svg>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', ...(isGen ? { animation: 'mpPulse 1.5s ease infinite' } : {}) }}>
+                    {step.done ? <Check size={24} color={color} strokeWidth={3} /> : <StepIcon size={22} color={isGen ? color : 'rgba(255,255,255,0.25)'} strokeWidth={1.75} />}
+                  </div>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.03em', color: step.done ? color : isGen ? color : 'rgba(255,255,255,0.3)' }}>{step.label}</span>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 999, marginBottom: generating ? 16 : 14 }}>
+          <div style={{ height: '100%', borderRadius: 999, background: `linear-gradient(90deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]}, ${STEP_COLORS[3]})`, width: `${Math.round((doneCount/6)*100)}%`, transition: 'width .6s ease' }} />
+        </div>
+
+        {/* Did you know */}
+        {generating && (
+          <div key={factIdx} style={{ padding: '14px 16px', marginBottom: 14, background: 'rgba(255,255,255,0.04)', borderRadius: 10, borderLeft: `3px solid ${STEP_COLORS[factIdx % STEP_COLORS.length]}`, animation: 'mpFade 0.4s ease' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: STEP_COLORS[factIdx % STEP_COLORS.length], textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Did you know?</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{DYK[factIdx]}</div>
+          </div>
+        )}
+
+        {/* Generate CTA */}
+        {doneCount < 6 && (
+          <button type="button" onClick={handleGenerate} disabled={generating} style={{
+            width: '100%', padding: '14px 16px',
+            background: generating ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]})`,
+            color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
+            cursor: generating ? 'default' : 'pointer', fontFamily: A.font,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: generating ? 'none' : `0 4px 16px ${STEP_COLORS[0]}40`,
+          }}>
+            {generating ? <Loader2 size={16} style={{ animation: 'mpSpin 1s linear infinite' }} /> : <Sparkles size={16} />}
+            {generating ? 'Building your plan...' : doneCount > 0 ? `Continue building (${doneCount}/6)` : 'Generate my full plan'}
+          </button>
+        )}
+      </div>
+
+      {/* ══ Quick Actions ══ */}
+      {(hasWorkout || hasMeals) && (
+        <div style={{ display: 'grid', gridTemplateColumns: hasMeals ? '1fr 1fr' : '1fr', gap: 10 }}>
           {hasWorkout && (
             <button type="button" onClick={() => onGotoTab('workouts')} style={{
-              background: A.accentBg, border: 'none', borderRadius: A.rSm,
-              padding: 16, cursor: 'pointer', textAlign: 'left',
+              background: A.card, border: `1px solid ${A.border}`, borderRadius: A.r,
+              padding: 16, cursor: 'pointer', textAlign: 'left', boxShadow: A.shadow1,
             }}>
               <Dumbbell size={20} color={A.accent} strokeWidth={1.75} />
-              <div style={{ marginTop: 8, fontSize: 17, fontWeight: 600, color: A.ink, letterSpacing: '-0.01em' }}>
-                Today&apos;s workout
-              </div>
-              <div style={{ marginTop: 4, fontSize: 13, color: A.ink3 }}>
-                Tap to log your session
-              </div>
+              <div style={{ marginTop: 8, fontSize: 15, fontWeight: 600, color: A.ink }}>Today&apos;s workout</div>
             </button>
           )}
           {hasMeals && (
             <button type="button" onClick={() => onGotoTab('meals')} style={{
-              background: A.greenBg, border: 'none', borderRadius: A.rSm,
-              padding: 16, cursor: 'pointer', textAlign: 'left',
+              background: A.card, border: `1px solid ${A.border}`, borderRadius: A.r,
+              padding: 16, cursor: 'pointer', textAlign: 'left', boxShadow: A.shadow1,
             }}>
               <Utensils size={20} color={A.green} strokeWidth={1.75} />
-              <div style={{ marginTop: 8, fontSize: 17, fontWeight: 600, color: A.ink, letterSpacing: '-0.01em' }}>
-                Meal plan
-              </div>
-              <div style={{ marginTop: 4, fontSize: 13, color: A.ink3 }}>
-                Log meals &amp; snap photos
-              </div>
+              <div style={{ marginTop: 8, fontSize: 15, fontWeight: 600, color: A.ink }}>Meal plan</div>
             </button>
           )}
         </div>
-      </Card>
+      )}
 
-      {/* 7-day streak */}
+      {/* ══ Streak ══ */}
       <Card style={{ padding: '16px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <span style={{ fontSize: 15, fontWeight: 600, color: A.ink }}>This week</span>
-          <span style={{ fontSize: 13, color: A.ink3 }}>
-            {streakDays.filter((d) => d.active).length} of 7 days
-          </span>
+          <span style={{ fontSize: 13, color: A.ink3 }}>{streakDays.filter((d) => d.active).length} of 7</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {streakDays.map((d) => (
             <div key={d.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: 999,
-                background: d.active ? A.green : 'rgba(0,0,0,0.04)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+              <div style={{ width: 32, height: 32, borderRadius: 999, background: d.active ? A.green : 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {d.active && <Check size={16} color="#fff" strokeWidth={2.5} />}
               </div>
               <span style={{ fontSize: 11, fontWeight: 600, color: d.active ? A.ink2 : A.ink3 }}>{d.label}</span>
@@ -524,81 +605,64 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
         </div>
       </Card>
 
-      {/* Roadmap progress */}
-      {roadmap && (
-        <Card>
-          <SectionLabel>Development roadmap</SectionLabel>
-          <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
-            {[1, 2, 3].map((phase) => {
-              const isActive = phase === currentPhaseNum
-              const isDone = phase < currentPhaseNum
-              return (
-                <div key={phase} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: 999,
-                    background: isDone ? A.green : isActive ? A.accent : 'rgba(0,0,0,0.06)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 13, fontWeight: 700,
-                    color: isDone || isActive ? '#fff' : A.ink3,
-                  }}>
-                    {isDone ? <Check size={14} strokeWidth={2.5} /> : phase}
-                  </div>
-                  <div style={{
-                    marginTop: 6, fontSize: 12, fontWeight: isActive ? 600 : 500,
-                    color: isActive ? A.ink : A.ink3, textAlign: 'center',
-                  }}>
-                    Phase {phase}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          {/* Progress bar */}
-          <div style={{ marginTop: 12, height: 4, background: 'rgba(0,0,0,0.04)', borderRadius: 999 }}>
-            <div style={{
-              height: '100%', borderRadius: 999, background: A.accent,
-              width: `${Math.min(100, ((currentPhaseNum - 1) / 2) * 100)}%`,
-              transition: 'width .3s',
-            }} />
-          </div>
-        </Card>
+      {/* ══ Plan Sections ══ */}
+      {hasBaseline && (
+        <PlanCard title="Baseline" icon={<Activity size={16} />} color="#dc2626" defaultOpen>
+          <PlanBaselineCard baseline={plan.baseline} />
+        </PlanCard>
+      )}
+      {plan?.roadmap && (
+        <PlanCard title="Roadmap" icon={<Target size={16} />} color="#2563eb">
+          <RoadmapCard roadmap={plan.roadmap} currentPhase={plan.phase_ref || 1} />
+        </PlanCard>
+      )}
+      {plan?.workout_plan && (
+        <PlanCard title="Workout" icon={<Dumbbell size={16} />} color="#7c3aed">
+          <WorkoutAccordion workoutPlan={plan.workout_plan} logs={logs || []} onLogSet={() => {}} />
+        </PlanCard>
+      )}
+      {plan?.playbook && (
+        <PlanCard title="Playbook" icon={<BookOpen size={16} />} color="#059669">
+          <PlaybookCard playbook={plan.playbook} />
+        </PlanCard>
+      )}
+      {plan?.meal_plan && (
+        <PlanCard title="Meal Plan" icon={<Utensils size={16} />} color="#d97706">
+          <MealPlanTable mealPlan={plan.meal_plan} traineeId={trainee?.id} />
+        </PlanCard>
+      )}
+      {plan?.grocery_list && (
+        <PlanCard title="Grocery List" icon={<TrendingUp size={16} />} color="#0891b2">
+          <GroceryList groceryList={plan.grocery_list} />
+        </PlanCard>
       )}
 
-      {/* Baseline summary */}
-      {plan.baseline && (
-        <Card>
-          <SectionLabel>Your baseline</SectionLabel>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
-            {plan.baseline.daily_calories && (
-              <MiniStat label="Daily calories" value={plan.baseline.daily_calories} unit="kcal" />
-            )}
-            {plan.baseline.protein_g && (
-              <MiniStat label="Protein" value={plan.baseline.protein_g} unit="g/day" />
-            )}
-            {plan.baseline.training_readiness && (
-              <MiniStat label="Readiness" value={plan.baseline.training_readiness} />
-            )}
-          </div>
-          {Array.isArray(plan.baseline.focus_areas) && plan.baseline.focus_areas.length > 0 && (
-            <div style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: A.ink3, marginBottom: 6 }}>Focus areas</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {plan.baseline.focus_areas.map((f, i) => (
-                  <span key={i} style={{
-                    padding: '5px 12px', background: A.accentBg,
-                    borderRadius: A.rPill, fontSize: 13, fontWeight: 500, color: A.accent,
-                  }}>
-                    {f}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* Natural adjust box */}
+      {/* Adjust box */}
       {hasWorkout && <AdjustBox onAfterAdjust={onAfterAdjust} />}
+    </div>
+  )
+}
+
+function PlanCard({ title, icon, color = '#0a0a0a', defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <button type="button" onClick={() => setOpen(!open)} style={{
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+        padding: '14px 18px', background: open ? A.card : A.cardAlt,
+        border: `1px solid ${open ? color + '30' : A.border}`,
+        borderLeft: `3px solid ${color}`, borderRadius: open ? `${A.r}px ${A.r}px 0 0` : A.r,
+        cursor: 'pointer', textAlign: 'left', fontFamily: A.font,
+      }}>
+        <span style={{ color, display: 'flex' }}>{icon}</span>
+        <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: A.ink }}>{title}</span>
+        <span style={{ color: A.ink3, fontSize: 13 }}>{open ? '\u25B2' : '\u25BC'}</span>
+      </button>
+      {open && (
+        <div style={{ border: `1px solid ${color}20`, borderTop: 'none', borderLeft: `3px solid ${color}`, borderRadius: `0 0 ${A.r}px ${A.r}px`, padding: 18, background: A.card }}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }
