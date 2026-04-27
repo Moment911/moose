@@ -436,15 +436,23 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
 
   // Plan steps
   const STEP_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
+  // hasPrefs mirrors TrainerDetailPage — a bare envelope shouldn't pass as ready.
+  const prefsAnswers = plan?.food_preferences?.answers
+  const hasPrefs = Array.isArray(prefsAnswers) && prefsAnswers.length > 0
+  const hasRoadmap = !!plan?.roadmap
+  const hasPlaybook = !!plan?.playbook
+  const hasGrocery = !!plan?.grocery_list
   const steps = [
     { key: 'baseline', label: 'Baseline', done: hasBaseline, Icon: Activity },
-    { key: 'roadmap', label: 'Roadmap', done: !!plan?.roadmap, Icon: Target },
+    { key: 'roadmap', label: 'Roadmap', done: hasRoadmap, Icon: Target },
     { key: 'workout', label: 'Workout', done: hasWorkout, Icon: Dumbbell },
-    { key: 'playbook', label: 'Playbook', done: !!plan?.playbook, Icon: BookOpen },
-    { key: 'food', label: 'Food', done: !!plan?.food_preferences, Icon: Utensils },
+    { key: 'playbook', label: 'Playbook', done: hasPlaybook, Icon: BookOpen },
+    { key: 'food', label: 'Food', done: hasPrefs, Icon: Utensils },
     { key: 'meals', label: 'Meals', done: hasMeals, Icon: TrendingUp },
   ]
   const doneCount = steps.filter((s) => s.done).length
+  // Build order drives "building vs pending" — first not-done while generating is active.
+  const firstPendingKey = steps.find((s) => !s.done)?.key
 
   // Did you know facts
   const DYK = [
@@ -539,14 +547,6 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
           <div style={{ height: '100%', borderRadius: 999, background: `linear-gradient(90deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]}, ${STEP_COLORS[3]})`, width: `${Math.round((doneCount/6)*100)}%`, transition: 'width .6s ease' }} />
         </div>
 
-        {/* Did you know */}
-        {generating && (
-          <div key={factIdx} style={{ padding: '14px 16px', marginBottom: 14, background: 'rgba(255,255,255,0.04)', borderRadius: 10, borderLeft: `3px solid ${STEP_COLORS[factIdx % STEP_COLORS.length]}`, animation: 'mpFade 0.4s ease' }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: STEP_COLORS[factIdx % STEP_COLORS.length], textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Did you know?</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{DYK[factIdx]}</div>
-          </div>
-        )}
-
         {/* Generate CTA */}
         {doneCount < 6 && (
           <button type="button" onClick={handleGenerate} disabled={generating} style={{
@@ -605,33 +605,76 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
         </div>
       </Card>
 
-      {/* ══ Plan Sections ══ */}
-      {hasBaseline && (
-        <PlanCard title="Baseline" icon={<Activity size={16} />} color="#dc2626" defaultOpen>
-          <PlanBaselineCard baseline={plan.baseline} />
-        </PlanCard>
-      )}
-      {plan?.roadmap && (
-        <PlanCard title="Roadmap" icon={<Target size={16} />} color="#2563eb">
-          <RoadmapCard roadmap={plan.roadmap} currentPhase={plan.phase_ref || 1} />
-        </PlanCard>
-      )}
-      {plan?.workout_plan && (
-        <PlanCard title="Workout" icon={<Dumbbell size={16} />} color="#7c3aed">
-          <WorkoutAccordion workoutPlan={plan.workout_plan} logs={logs || []} onLogSet={() => {}} />
-        </PlanCard>
-      )}
-      {plan?.playbook && (
-        <PlanCard title="Playbook" icon={<BookOpen size={16} />} color="#059669">
-          <PlaybookCard playbook={plan.playbook} />
-        </PlanCard>
-      )}
-      {plan?.meal_plan && (
-        <PlanCard title="Meal Plan" icon={<Utensils size={16} />} color="#d97706">
-          <MealPlanTable mealPlan={plan.meal_plan} traineeId={trainee?.id} />
-        </PlanCard>
-      )}
-      {plan?.grocery_list && (
+      {/* ══ Plan Sections ══
+          Tiles always render. Each flips to ready as its key on `plan` lands;
+          building/pending show skeletons so the user can read finished sections
+          while heavier ones build. */}
+      <PlanSectionTile
+        title="Baseline"
+        icon={<Activity size={16} />}
+        color="#dc2626"
+        state={hasBaseline ? 'ready' : (generating && firstPendingKey === 'baseline') ? 'building' : 'pending'}
+        etaLabel="~15s"
+        defaultOpen
+      >
+        {hasBaseline && <PlanBaselineCard baseline={plan.baseline} />}
+      </PlanSectionTile>
+
+      <PlanSectionTile
+        title="Roadmap"
+        icon={<Target size={16} />}
+        color="#2563eb"
+        state={hasRoadmap ? 'ready' : (generating && firstPendingKey === 'roadmap') ? 'building' : 'pending'}
+        etaLabel="~30s"
+      >
+        {hasRoadmap && <RoadmapCard roadmap={plan.roadmap} currentPhase={plan.phase_ref || 1} />}
+      </PlanSectionTile>
+
+      <PlanSectionTile
+        title="Workout"
+        icon={<Dumbbell size={16} />}
+        color="#7c3aed"
+        state={hasWorkout ? 'ready' : (generating && firstPendingKey === 'workout') ? 'building' : 'pending'}
+        etaLabel="~90s"
+      >
+        {hasWorkout && <WorkoutAccordion workoutPlan={plan.workout_plan} logs={logs || []} onLogSet={() => {}} />}
+      </PlanSectionTile>
+
+      <PlanSectionTile
+        title="Playbook"
+        icon={<BookOpen size={16} />}
+        color="#059669"
+        state={hasPlaybook ? 'ready' : (generating && firstPendingKey === 'playbook') ? 'building' : 'pending'}
+        etaLabel="~120s"
+      >
+        {hasPlaybook && <PlaybookCard playbook={plan.playbook} />}
+      </PlanSectionTile>
+
+      <PlanSectionTile
+        title="Food preferences"
+        icon={<Utensils size={16} />}
+        color="#d97706"
+        state={hasPrefs ? 'ready' : (generating && firstPendingKey === 'food') ? 'building' : 'pending'}
+        etaLabel="~15s"
+      >
+        {hasPrefs && (
+          <div style={{ fontSize: 14, color: A.ink2, lineHeight: 1.6 }}>
+            Food preferences captured ({prefsAnswers.length} answer{prefsAnswers.length === 1 ? '' : 's'}). Used to tailor your meal plan.
+          </div>
+        )}
+      </PlanSectionTile>
+
+      <PlanSectionTile
+        title="Meal Plan"
+        icon={<Utensils size={16} />}
+        color="#d97706"
+        state={hasMeals ? 'ready' : (generating && firstPendingKey === 'meals') ? 'building' : 'pending'}
+        etaLabel="~120s"
+      >
+        {hasMeals && <MealPlanTable mealPlan={plan.meal_plan} traineeId={trainee?.id} />}
+      </PlanSectionTile>
+
+      {hasGrocery && (
         <PlanCard title="Grocery List" icon={<TrendingUp size={16} />} color="#0891b2">
           <GroceryList groceryList={plan.grocery_list} />
         </PlanCard>
@@ -639,6 +682,147 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
 
       {/* Adjust box */}
       {hasWorkout && <AdjustBox onAfterAdjust={onAfterAdjust} />}
+
+      {/* ══ Did you know? ══
+          Slim footer strip during generation — non-blocking, rotates every 5s. */}
+      {generating && (
+        <div key={factIdx} style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 14px',
+          background: A.cardAlt,
+          border: `1px solid ${A.border}`,
+          borderLeft: `3px solid ${STEP_COLORS[factIdx % STEP_COLORS.length]}`,
+          borderRadius: A.rSm,
+          animation: 'mpFade 0.4s ease',
+        }}>
+          <span style={{
+            fontSize: 10, fontWeight: 700,
+            color: STEP_COLORS[factIdx % STEP_COLORS.length],
+            textTransform: 'uppercase', letterSpacing: '.06em',
+            flexShrink: 0,
+          }}>
+            Did you know?
+          </span>
+          <span style={{ fontSize: 12, color: A.ink2, lineHeight: 1.45 }}>
+            {DYK[factIdx]}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PlanSectionTile({ title, icon, color = '#0a0a0a', state, etaLabel, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  useEffect(() => { if (state === 'ready' && defaultOpen) setOpen(true) }, [state, defaultOpen])
+
+  const isReady = state === 'ready'
+  const isBuilding = state === 'building'
+
+  const headerBg = isReady ? (open ? A.card : A.cardAlt) : A.cardAlt
+  const borderColor = isReady ? (open ? color + '30' : A.border) : A.border
+
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <button
+        type="button"
+        onClick={() => isReady && setOpen(!open)}
+        disabled={!isReady}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+          padding: '14px 18px', background: headerBg,
+          border: `1px solid ${borderColor}`,
+          borderLeft: `3px solid ${isReady ? color : color + '60'}`,
+          borderRadius: isReady && open ? `${A.r}px ${A.r}px 0 0` : A.r,
+          cursor: isReady ? 'pointer' : 'default',
+          textAlign: 'left', fontFamily: A.font,
+          opacity: isReady ? 1 : 0.95,
+        }}
+      >
+        <span style={{ color: isReady ? color : A.ink3, display: 'flex' }}>{icon}</span>
+        <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: isReady ? A.ink : A.ink2 }}>
+          {title}
+        </span>
+        {isReady && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            padding: '2px 8px', borderRadius: A.rPill,
+            background: color + '15', color,
+            fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em',
+          }}>
+            <Check size={11} strokeWidth={3} /> Ready
+          </span>
+        )}
+        {isBuilding && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '2px 8px', borderRadius: A.rPill,
+            background: color + '15', color,
+            fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em',
+          }}>
+            <Loader2 size={11} style={{ animation: 'mpSpin 1s linear infinite' }} />
+            Building{etaLabel ? ` (${etaLabel})` : ''}
+          </span>
+        )}
+        {!isReady && !isBuilding && (
+          <span style={{
+            padding: '2px 8px', borderRadius: A.rPill,
+            background: 'rgba(0,0,0,0.04)', color: A.ink3,
+            fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em',
+          }}>
+            Up next{etaLabel ? ` · ${etaLabel}` : ''}
+          </span>
+        )}
+        {isReady && (
+          <span style={{ color: A.ink3, fontSize: 13, marginLeft: 4 }}>
+            {open ? '▲' : '▼'}
+          </span>
+        )}
+      </button>
+
+      {isReady && open && (
+        <div style={{
+          border: `1px solid ${color}20`, borderTop: 'none',
+          borderLeft: `3px solid ${color}`,
+          borderRadius: `0 0 ${A.r}px ${A.r}px`,
+          padding: 18, background: A.card,
+        }}>
+          {children}
+        </div>
+      )}
+
+      {!isReady && (
+        <PlanSectionSkeleton color={color} building={isBuilding} />
+      )}
+    </div>
+  )
+}
+
+function PlanSectionSkeleton({ color, building }) {
+  const barBase = 'rgba(0,0,0,0.05)'
+  const shimmer = building
+    ? `linear-gradient(90deg, ${barBase} 0%, ${color}22 50%, ${barBase} 100%)`
+    : barBase
+  return (
+    <div style={{
+      border: `1px solid ${A.border}`, borderTop: 'none',
+      borderLeft: `3px solid ${color}40`,
+      borderRadius: `0 0 ${A.r}px ${A.r}px`,
+      padding: 18, background: A.cardAlt,
+    }}>
+      <style>{`
+        @keyframes mpShimmer { 0% { background-position: -300px 0 } 100% { background-position: 300px 0 } }
+      `}</style>
+      <div style={{ display: 'grid', gap: 10 }}>
+        {[88, 64, 76].map((w, i) => (
+          <div key={i} style={{
+            height: 12, width: `${w}%`, borderRadius: 6,
+            background: shimmer,
+            backgroundSize: building ? '600px 100%' : 'auto',
+            animation: building ? 'mpShimmer 1.4s linear infinite' : 'none',
+          }} />
+        ))}
+      </div>
     </div>
   )
 }
