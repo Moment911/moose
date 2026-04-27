@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2 } from 'lucide-react'
 import { T, BLK, R } from '../../lib/theme'
 import { supabase } from '../../lib/supabase'
+import { OptionListCard, PrimaryCTA, T as TK } from './aesthetic'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IntakeChatWidget — conversational intake panel.
@@ -266,73 +267,45 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
         )}
       </div>
 
-      {/* Suggested reply pills — multi-select with send */}
+      {/* Suggested replies — full-width OptionListCards (Cal-AI blend).
+          Single-tap auto-send for ≤3 simple options (yes/no, low-cardinality);
+          otherwise multi-select + dedicated send button. */}
       {suggestedReplies.length > 0 && !streaming && (
-        <div style={{
-          padding: '8px 12px 6px',
-          borderTop: '1px solid #f3f4f6',
-        }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {suggestedReplies.map((reply, i) => {
-              const selected = selectedPills.includes(reply)
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => {
-                    // If only 1 option makes sense (yes/no, none), send immediately
-                    if (suggestedReplies.length <= 3 && !selectedPills.length) {
-                      handleSend(reply)
-                    } else {
-                      togglePill(reply)
-                    }
-                  }}
-                  style={{
-                    padding: '8px 16px',
-                    background: selected ? R + '12' : '#fff',
-                    border: `1.5px solid ${selected ? R : '#e5e7eb'}`,
-                    borderRadius: 20,
-                    fontSize: 14,
-                    fontWeight: selected ? 600 : 500,
-                    color: selected ? R : BLK,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    transition: 'all .12s',
-                  }}
-                >
-                  {selected ? '✓ ' : ''}{reply}
-                </button>
-              )
-            })}
-          </div>
+        <div style={{ padding: '12px 12px 8px', borderTop: `1px solid ${TK.border}`, display: 'grid', gap: 8 }}>
+          {suggestedReplies.map((reply, i) => {
+            const selected = selectedPills.includes(reply)
+            return (
+              <OptionListCard
+                key={i}
+                variant="quiz"
+                label={reply}
+                selected={selected}
+                onClick={() => {
+                  if (suggestedReplies.length <= 3 && !selectedPills.length) {
+                    handleSend(reply)
+                  } else {
+                    togglePill(reply)
+                  }
+                }}
+              />
+            )
+          })}
           {selectedPills.length > 0 && (
-            <button
-              type="button"
-              onClick={sendSelectedPills}
-              style={{
-                marginTop: 8,
-                padding: '10px 20px',
-                background: R,
-                color: '#fff',
-                border: 'none',
-                borderRadius: 10,
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                width: '100%',
-              }}
-            >
-              Send ({selectedPills.length} selected)
-            </button>
+            <div style={{ marginTop: 4 }}>
+              <PrimaryCTA pinned={false} onClick={sendSelectedPills}>
+                Send ({selectedPills.length} selected)
+              </PrimaryCTA>
+            </div>
           )}
         </div>
       )}
 
-      {/* Input bar */}
+      {/* Input bar — restful Cal-AI blend: card-fill input, ink send button.
+          Stays a small affordance (not a hero CTA) — chat input belongs in
+          the background; the active OptionListCards above are the focus. */}
       <div style={{
         padding: '10px 12px',
-        borderTop: suggestedReplies.length > 0 ? 'none' : '1px solid #f3f4f6',
+        borderTop: suggestedReplies.length > 0 ? 'none' : `1px solid ${TK.border}`,
         display: 'flex',
         alignItems: 'flex-end',
         gap: 8,
@@ -347,34 +320,38 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
           disabled={streaming}
           style={{
             flex: 1,
-            padding: '10px 12px',
-            fontSize: 14,
-            border: '1px solid #e5e7eb',
-            borderRadius: 10,
+            padding: '11px 14px',
+            fontSize: TK.size.body,
+            border: 'none',
+            background: TK.card,
+            borderRadius: TK.rMd,
             resize: 'none',
-            fontFamily: 'inherit',
-            lineHeight: 1.4,
-            color: BLK,
+            fontFamily: TK.font,
+            lineHeight: TK.lh.body,
+            fontWeight: TK.weight.body,
+            color: TK.ink,
             outline: 'none',
           }}
         />
         <button
           onClick={handleSend}
           disabled={!input.trim() || streaming}
+          aria-label="Send"
           style={{
-            width: 38, height: 38,
-            borderRadius: 10,
+            width: 42, height: 42,
+            borderRadius: TK.rMd,
             border: 'none',
-            background: input.trim() && !streaming ? R : '#e5e7eb',
-            color: input.trim() && !streaming ? '#fff' : '#9ca3af',
+            background: input.trim() && !streaming ? TK.ink : TK.divider,
+            color: input.trim() && !streaming ? '#ffffff' : TK.ink4,
             cursor: input.trim() && !streaming ? 'pointer' : 'not-allowed',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            transition: 'background .15s ease',
           }}
         >
-          <Send size={16} />
+          <Send size={16} strokeWidth={2.25} />
         </button>
       </div>
     </div>
@@ -390,12 +367,14 @@ function MessageBubble({ role, content }) {
     }}>
       <div style={{
         maxWidth: '85%',
-        padding: '10px 14px',
-        borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-        background: isUser ? R : '#f3f4f6',
-        color: isUser ? '#fff' : BLK,
-        fontSize: 14,
-        lineHeight: 1.5,
+        padding: '12px 16px',
+        borderRadius: TK.rMd,
+        background: isUser ? TK.ink : TK.card,
+        color: isUser ? '#ffffff' : TK.ink,
+        fontFamily: TK.font,
+        fontSize: TK.size.body,
+        lineHeight: TK.lh.body,
+        fontWeight: TK.weight.body,
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
       }}>
