@@ -1269,10 +1269,49 @@ function OverviewTab({
   async function handleChatFieldsUpdate(fields) {
     if (!fields || Object.keys(fields).length === 0) return
     setExtracted((prev) => ({ ...prev, ...fields }))
-    // Save to DB silently — do NOT reload trainee (would remount chat and lose conversation)
+
+    // Clean the fields for the DB — filter to only known intake columns,
+    // coerce types, and strip any tool metadata that leaked through.
+    const INTAKE_KEYS = new Set([
+      'full_name', 'email', 'phone', 'about_you', 'age', 'sex',
+      'height_cm', 'current_weight_kg', 'target_weight_kg', 'primary_goal',
+      'training_experience_years', 'training_days_per_week', 'equipment_access',
+      'medical_flags', 'injuries', 'pregnancy_or_nursing',
+      'dietary_preference', 'allergies', 'grocery_budget_usd_per_week', 'meals_per_day',
+      'sleep_hours_avg', 'stress_level', 'occupation_activity', 'trainer_notes',
+      // Baseball columns
+      'position_primary', 'position_secondary', 'throwing_hand', 'batting_hand',
+      'fastball_velo_peak', 'fastball_velo_sit', 'exit_velo', 'sixty_time', 'pop_time',
+      'pitch_arsenal', 'grad_year', 'gpa', 'high_school', 'club_team', 'travel_team',
+      'video_link', 'preferred_divisions', 'preferred_states', 'intended_major',
+      'bullpen_sessions_per_week', 'games_per_week', 'practices_per_week',
+    ])
+    const NUMBER_KEYS = new Set([
+      'age', 'height_cm', 'current_weight_kg', 'target_weight_kg',
+      'training_experience_years', 'training_days_per_week', 'meals_per_day',
+      'sleep_hours_avg', 'stress_level', 'grocery_budget_usd_per_week',
+      'fastball_velo_peak', 'fastball_velo_sit', 'exit_velo', 'sixty_time', 'pop_time',
+      'grad_year', 'gpa', 'bullpen_sessions_per_week', 'games_per_week', 'practices_per_week',
+    ])
+
+    const patch = {}
+    for (const [k, v] of Object.entries(fields)) {
+      if (!INTAKE_KEYS.has(k)) continue
+      if (v === null || v === undefined || v === '') continue
+      if (NUMBER_KEYS.has(k)) {
+        const n = Number(v)
+        if (Number.isFinite(n)) patch[k] = n
+      } else {
+        patch[k] = v
+      }
+    }
+
+    if (Object.keys(patch).length === 0) return
+
+    // Save to DB silently — do NOT reload trainee (would remount chat)
     try {
       await trainerFetch(
-        { action: 'update', trainee_id: traineeId, patch: fields },
+        { action: 'update', trainee_id: traineeId, patch },
         { agencyId },
       )
     } catch { /* silent */ }
