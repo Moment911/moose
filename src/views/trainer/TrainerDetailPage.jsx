@@ -492,7 +492,10 @@ export default function TrainerDetailPage() {
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}))
           if (errBody.error === 'intake_incomplete' && Array.isArray(errBody.missing_fields)) {
-            flashError(`Missing fields: ${errBody.missing_fields.join(', ')}. Answer more questions in the chat first.`)
+            const friendly = errBody.missing_fields.map((f) => f.replace(/_/g, ' ')).join(', ')
+            flashError(`Almost there! I still need: ${friendly}. Tell me in the chat above and I'll fill them in.`)
+            // Scroll chat into view
+            try { document.querySelector('[data-chat-widget]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) } catch {}
           } else {
             flashError(`${step} failed: ${errBody.error || errBody.detail || res.status}`)
           }
@@ -1354,7 +1357,7 @@ function OverviewTab({
   return (
     <div>
       {/* AI Coach Chat — conversational intake with pill buttons */}
-      <section style={{ ...panelStyle, marginBottom: 18, padding: 0, overflow: 'hidden' }}>
+      <section data-chat-widget style={{ ...panelStyle, marginBottom: 18, padding: 0, overflow: 'hidden' }}>
         <IntakeChatWidget
           extracted={extracted}
           onFieldsUpdate={handleChatFieldsUpdate}
