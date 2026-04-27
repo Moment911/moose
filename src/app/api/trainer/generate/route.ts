@@ -1185,7 +1185,9 @@ async function handleGenerateFullPlan(
     log('roadmap', `failed: ${rResult.error}`)
   }
 
-  // ── 3. Workout + Playbook in parallel ────────────────────────────────────
+  // ── 3. Workout + Playbook + Food/Meals in parallel ───────────────────────
+  // food_prefs+meals run alongside workout+playbook because none of them
+  // depend on each other; cuts wall-clock from ~5-7 min to ~2-3 min.
   const plan = await loadPlan(sb, agencyId, planId, traineeId)
 
   const workoutPromise = (async () => {
@@ -1235,61 +1237,29 @@ async function handleGenerateFullPlan(
     }
   })()
 
-  await Promise.allSettled([workoutPromise, playbookPromise])
-
-  // ── 4. Food prefs (elicit + auto-answer) → Meals ─────────────────────────
-  log('food_prefs', 'starting')
-  const { systemPrompt: fpSys, userMessage: fpMsg } = buildFoodPrefsPrompt({ intake: trainee, baseline: bResult.data })
-  const fpResult = await callSonnet<FoodPrefsOutput>({
-    featureTag: FEATURE_TAGS.FOOD_PREFS, systemPrompt: fpSys, tool: foodPrefsTool,
-    userMessage: fpMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId },
-  })
-  if (fpResult.ok) {
-    const questions = fpResult.data.questions || []
-    const defaultAnswers = questions.map((q: { question_id?: string; id?: string; options?: string[] }) => ({
-      question_id: q.question_id || q.id || '',
-      answer: q.options?.[0] || 'No preference',
-    }))
-    await sb.from('koto_fitness_plans').update({
-      food_preferences: { questions, answers: defaultAnswers },
-    }).eq('id', planId).eq('agency_id', agencyId)
-    log('food_prefs', 'done')
-
-    // Generate meals
-    log('meals', 'starting')
-    const { systemPrompt: mSys, userMessage: mMsg } = buildMealsPrompt({
-      intake: trainee, baseline: bResult.data,
-      foodPreferences: { questions, answers: defaultAnswers as FoodPrefsAnswer[] },
+  const foodMealsChainPromise = (async () => {
+    log('food_prefs', 'starting')
+    const { systemPrompt: fpSys, userMessage: fpMsg } = buildFoodPrefsPrompt({ intake: trainee, baseline: bResult.data })
+    const fpResult = await callSonnet<FoodPrefsOutput>({
+      featureTag: FEATURE_TAGS.FOOD_PREFS, systemPrompt: fpSys, tool: foodPrefsTool,
+      userMessage: fpMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId },
     })
-    const mResult = await callSonnet<MealsOutput>({
-      featureTag: FEATURE_TAGS.MEALS, systemPrompt: mSys, tool: mealsTool,
-      userMessage: mMsg, agencyId, maxTokens: 16000,
-      metadata: { trainee_id: traineeId, plan_id: planId },
-    })
-    if (mResult.ok) {
-      const mealsData = mResult.data as Record<string, unknown>
+    if (fpResult.ok) {
+      const questions = fpResult.data.questions || []
+      const defaultAnswers = questions.map((q: { question_id?: string; id?: string; options?: string[] }) => ({
+        question_id: q.question_id || q.id || '',
+        answer: q.options?.[0] || 'No preference',
+      }))
       await sb.from('koto_fitness_plans').update({
-        meal_plan: mealsData,
-        grocery_list: mealsData.grocery_list ?? null,
+        food_preferences: { questions, answers: defaultAnswers },
       }).eq('id', planId).eq('agency_id', agencyId)
-      log('meals', 'done')
-    } else {
-      errors.push(`meals: ${mResult.error}`)
-    }
-  } else {
-    errors.push(`food_prefs: ${fpResult.error}`)
-    log('food_prefs', `failed: ${fpResult.error} — trying meals with default prefs`)
-    // Fallback: save empty food prefs and try meals anyway
-    const fallbackAnswers = [{ question_id: 'default', answer: 'No preference' }] as FoodPrefsAnswer[]
-    await sb.from('koto_fitness_plans').update({
-      food_preferences: { questions: [], answers: fallbackAnswers },
-    }).eq('id', planId).eq('agency_id', agencyId)
+      log('food_prefs', 'done')
 
-    try {
-      log('meals', 'starting (fallback)')
+      // Generate meals
+      log('meals', 'starting')
       const { systemPrompt: mSys, userMessage: mMsg } = buildMealsPrompt({
         intake: trainee, baseline: bResult.data,
-        foodPreferences: { questions: [], answers: fallbackAnswers },
+        foodPreferences: { questions, answers: defaultAnswers as FoodPrefsAnswer[] },
       })
       const mResult = await callSonnet<MealsOutput>({
         featureTag: FEATURE_TAGS.MEALS, systemPrompt: mSys, tool: mealsTool,
@@ -1302,14 +1272,47 @@ async function handleGenerateFullPlan(
           meal_plan: mealsData,
           grocery_list: mealsData.grocery_list ?? null,
         }).eq('id', planId).eq('agency_id', agencyId)
-        log('meals', 'done (fallback)')
+        log('meals', 'done')
       } else {
-        errors.push(`meals_fallback: ${mResult.error}`)
+        errors.push(`meals: ${mResult.error}`)
       }
-    } catch (e) {
-      errors.push(`meals_fallback: ${e instanceof Error ? e.message : 'unknown'}`)
+    } else {
+      errors.push(`food_prefs: ${fpResult.error}`)
+      log('food_prefs', `failed: ${fpResult.error} — trying meals with default prefs`)
+      // Fallback: save empty food prefs and try meals anyway
+      const fallbackAnswers = [{ question_id: 'default', answer: 'No preference' }] as FoodPrefsAnswer[]
+      await sb.from('koto_fitness_plans').update({
+        food_preferences: { questions: [], answers: fallbackAnswers },
+      }).eq('id', planId).eq('agency_id', agencyId)
+
+      try {
+        log('meals', 'starting (fallback)')
+        const { systemPrompt: mSys, userMessage: mMsg } = buildMealsPrompt({
+          intake: trainee, baseline: bResult.data,
+          foodPreferences: { questions: [], answers: fallbackAnswers },
+        })
+        const mResult = await callSonnet<MealsOutput>({
+          featureTag: FEATURE_TAGS.MEALS, systemPrompt: mSys, tool: mealsTool,
+          userMessage: mMsg, agencyId, maxTokens: 16000,
+          metadata: { trainee_id: traineeId, plan_id: planId },
+        })
+        if (mResult.ok) {
+          const mealsData = mResult.data as Record<string, unknown>
+          await sb.from('koto_fitness_plans').update({
+            meal_plan: mealsData,
+            grocery_list: mealsData.grocery_list ?? null,
+          }).eq('id', planId).eq('agency_id', agencyId)
+          log('meals', 'done (fallback)')
+        } else {
+          errors.push(`meals_fallback: ${mResult.error}`)
+        }
+      } catch (e) {
+        errors.push(`meals_fallback: ${e instanceof Error ? e.message : 'unknown'}`)
+      }
     }
-  }
+  })()
+
+  await Promise.allSettled([workoutPromise, playbookPromise, foodMealsChainPromise])
 
   return NextResponse.json({ ok: true, plan_id: planId, errors: errors.length > 0 ? errors : undefined })
 }
