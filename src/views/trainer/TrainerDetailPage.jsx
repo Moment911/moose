@@ -309,6 +309,20 @@ export default function TrainerDetailPage() {
       return false
     }
     await loadTrainee()
+    // Auto-extract structured fields from the about_you text
+    if (newText && newText.trim().length >= 10) {
+      trainerGenerateFetch(
+        { action: 'extract_from_about', trainee_id: traineeId },
+        { agencyId },
+      ).then(async (extractRes) => {
+        if (extractRes.ok) {
+          const data = await extractRes.json()
+          if (data.patched && data.patched.length > 0) {
+            await loadTrainee() // Reload to show newly populated fields
+          }
+        }
+      }).catch(() => { /* silent — extraction is best-effort */ })
+    }
     return true
   }
 

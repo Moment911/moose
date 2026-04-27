@@ -100,6 +100,7 @@ const ALLOWED_ACTIONS = [
   'adjust_block',
   'refine_elicit',
   'refine_submit',
+  'extract_from_about',
 ] as const
 
 type Action = (typeof ALLOWED_ACTIONS)[number]
@@ -207,6 +208,7 @@ export async function POST(req: NextRequest) {
     if (action === 'adjust_block') return await handleAdjust(sb, agencyId, body)
     if (action === 'refine_elicit') return await handleRefineElicit(sb, agencyId, body)
     if (action === 'refine_submit') return await handleRefineSubmit(sb, agencyId, body)
+    if (action === 'extract_from_about') return await handleExtractFromAbout(sb, agencyId, body)
     return err(400, 'Unknown action')
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Internal error'
@@ -941,5 +943,120 @@ function computeAdherenceSummary(
     scheduled_sessions: scheduledSessions,
     logged_sessions: loggedSessions,
     adherence_pct: adherencePct,
+  }
+}
+
+// ── extract_from_about — parse about_you text and extract structured fields ──
+//
+// Uses Haiku (fast + cheap) to pull age, height, weight, velocity, position,
+// etc. from the free-text "About this athlete" field. Patches the trainee row
+// with any fields it can confidently extract.
+
+async function handleExtractFromAbout(
+  sb: SupabaseClient,
+  agencyId: string,
+  body: Record<string, unknown>,
+) {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+
+  const trainee = await loadTrainee(sb, agencyId, traineeId)
+  if (!trainee) return err(404, 'Not found')
+
+  const aboutText = (trainee as Record<string, unknown>).about_you
+  if (!aboutText || typeof aboutText !== 'string' || aboutText.trim().length < 10) {
+    return NextResponse.json({ extracted: {}, patched: [] })
+  }
+
+  // Call Haiku for fast extraction
+  const Anthropic = (await import('@anthropic-ai/sdk')).default
+  const client = new Anthropic()
+
+  const extractionPrompt = `Extract structured athlete profile fields from this free-text description. Return ONLY a JSON object with the fields you can confidently extract. Do NOT guess or infer — only extract what is explicitly stated.
+
+Available fields:
+- age (number)
+- sex ("M" or "F")
+- height_cm (number — convert from feet/inches if stated. 5'10" = 177.8cm)
+- current_weight_kg (number — convert from lbs if stated. 160 lbs = 72.6kg)
+- target_weight_kg (number — convert from lbs if stated)
+- primary_goal (one of: "lose_fat", "gain_muscle", "maintain", "performance", "recomp")
+- training_experience_years (number)
+- training_days_per_week (number)
+- equipment_access (one of: "none", "bands", "home_gym", "full_gym")
+- position_primary (string, e.g. "RHP", "OF", "C", "1B")
+- position_secondary (string)
+- throwing_hand ("R" or "L")
+- batting_hand ("R", "L", or "S")
+- fastball_velo_peak (number in mph)
+- fastball_velo_sit (number in mph)
+- exit_velo (number in mph)
+- sixty_time (number in seconds)
+- pitch_arsenal (array of strings, e.g. ["fastball", "curveball", "changeup"])
+- grad_year (number, e.g. 2028)
+- gpa (number)
+- high_school (string)
+- club_team (string)
+- injuries (string)
+- medical_flags (string)
+- sleep_hours_avg (number)
+- meals_per_day (number)
+- dietary_preference (string)
+- allergies (string)
+- bullpen_sessions_per_week (number)
+- games_per_week (number)
+- practices_per_week (number)
+
+Athlete description:
+"""
+${aboutText}
+"""
+
+Return ONLY valid JSON. No markdown, no explanation.`
+
+  try {
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: extractionPrompt }],
+    })
+
+    const text = response.content?.[0]?.type === 'text' ? response.content[0].text : ''
+    let extracted: Record<string, unknown> = {}
+    try {
+      // Strip markdown code fences if present
+      const cleaned = text.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+      extracted = JSON.parse(cleaned)
+    } catch {
+      return NextResponse.json({ extracted: {}, patched: [], parse_error: true })
+    }
+
+    // Only patch fields that are currently empty on the trainee row
+    const patch: Record<string, unknown> = {}
+    const traineeData = trainee as Record<string, unknown>
+    for (const [key, value] of Object.entries(extracted)) {
+      if (value == null || value === '') continue
+      const current = traineeData[key]
+      // Only fill empty fields — don't overwrite existing data
+      if (current == null || current === '' || current === 0) {
+        patch[key] = value
+      }
+    }
+
+    if (Object.keys(patch).length > 0) {
+      const { error: updateErr } = await sb
+        .from('koto_fitness_trainees')
+        .update(patch)
+        .eq('id', traineeId)
+        .eq('agency_id', agencyId)
+      if (updateErr) {
+        console.error('[trainer/generate] extract_from_about update error:', updateErr.message)
+      }
+    }
+
+    return NextResponse.json({ extracted, patched: Object.keys(patch) })
+  } catch (e) {
+    console.error('[trainer/generate] extract_from_about error:', e instanceof Error ? e.message : e)
+    return NextResponse.json({ extracted: {}, patched: [], error: 'Extraction failed' })
   }
 }
