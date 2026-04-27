@@ -49,6 +49,7 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
   const [streamingText, setStreamingText] = useState('')
   const [error, setError] = useState(null)
   const [suggestedReplies, setSuggestedReplies] = useState([])
+  const [selectedPills, setSelectedPills] = useState([])
   const scrollRef = useRef(null)
   const textareaRef = useRef(null)
   const initRef = useRef(false)
@@ -169,11 +170,23 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
     if (!text || streaming) return
     setInput('')
     setSuggestedReplies([])
+    setSelectedPills([])
 
     const userMsg = { role: 'user', content: text }
     const newMessages = [...messages, userMsg]
     setMessages(newMessages)
     streamTurn(newMessages)
+  }
+
+  function togglePill(reply) {
+    setSelectedPills((prev) =>
+      prev.includes(reply) ? prev.filter((p) => p !== reply) : [...prev, reply]
+    )
+  }
+
+  function sendSelectedPills() {
+    if (selectedPills.length === 0) return
+    handleSend(selectedPills.join(', '))
   }
 
   function handleKeyDown(e) {
@@ -245,38 +258,66 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
         )}
       </div>
 
-      {/* Suggested reply pills */}
+      {/* Suggested reply pills — multi-select with send */}
       {suggestedReplies.length > 0 && !streaming && (
         <div style={{
-          padding: '8px 12px 4px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 6,
+          padding: '8px 12px 6px',
           borderTop: '1px solid #f3f4f6',
         }}>
-          {suggestedReplies.map((reply, i) => (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {suggestedReplies.map((reply, i) => {
+              const selected = selectedPills.includes(reply)
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    // If only 1 option makes sense (yes/no, none), send immediately
+                    if (suggestedReplies.length <= 3 && !selectedPills.length) {
+                      handleSend(reply)
+                    } else {
+                      togglePill(reply)
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    background: selected ? R + '12' : '#fff',
+                    border: `1.5px solid ${selected ? R : '#e5e7eb'}`,
+                    borderRadius: 20,
+                    fontSize: 14,
+                    fontWeight: selected ? 600 : 500,
+                    color: selected ? R : BLK,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all .12s',
+                  }}
+                >
+                  {selected ? '✓ ' : ''}{reply}
+                </button>
+              )
+            })}
+          </div>
+          {selectedPills.length > 0 && (
             <button
-              key={i}
               type="button"
-              onClick={() => handleSend(reply)}
+              onClick={sendSelectedPills}
               style={{
-                padding: '8px 16px',
-                background: '#fff',
-                border: '1.5px solid #e5e7eb',
-                borderRadius: 20,
+                marginTop: 8,
+                padding: '10px 20px',
+                background: R,
+                color: '#fff',
+                border: 'none',
+                borderRadius: 10,
                 fontSize: 14,
-                fontWeight: 500,
-                color: BLK,
+                fontWeight: 700,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
-                transition: 'border-color .12s, background .12s',
+                width: '100%',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = R; e.currentTarget.style.background = R + '08' }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff' }}
             >
-              {reply}
+              Send ({selectedPills.length} selected)
             </button>
-          ))}
+          )}
         </div>
       )}
 
