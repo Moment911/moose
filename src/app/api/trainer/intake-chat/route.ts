@@ -67,11 +67,13 @@ export async function POST(req: NextRequest) {
   const agencyId = process.env.DEFAULT_SELF_SIGNUP_AGENCY_ID || DEFAULT_AGENCY_FALLBACK
   const missing = missingIntakeFields(extracted)
   const turnCount = messages.filter((m) => m.role === 'user').length
+  const mode = typeof body.mode === 'string' ? body.mode : 'onboarding'
 
   const { systemPrompt, tools } = buildIntakeChatPrompt({
     extracted,
     missingFields: missing,
     turnCount,
+    mode: mode as 'onboarding' | 'coaching',
   })
 
   const stream = streamSonnetChat({
@@ -81,7 +83,7 @@ export async function POST(req: NextRequest) {
     messages: messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     agencyId,
     maxTokens: 1024,
-    metadata: { user_id: userData.user.id, stage: 'intake_chat', turn: turnCount },
+    metadata: { user_id: userData.user.id, stage: mode === 'coaching' ? 'coach_chat' : 'intake_chat', turn: turnCount },
   })
 
   return new Response(stream, {

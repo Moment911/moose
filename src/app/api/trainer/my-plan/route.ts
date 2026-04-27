@@ -34,7 +34,7 @@ function getDb(): SupabaseClient {
   )
 }
 
-const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account', 'get_progress_history', 'log_progress'] as const
+const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account', 'get_progress_history', 'log_progress', 'log_measurable', 'get_measurable_history'] as const
 type Action = (typeof ALLOWED_ACTIONS)[number]
 
 function err(status: number, error: string, extra?: Record<string, unknown>) {
@@ -184,6 +184,8 @@ export async function POST(req: NextRequest) {
     if (action === 'delete_my_account') return await handleDeleteMyAccount(sb, ctx)
     if (action === 'get_progress_history') return await handleGetProgressHistory(sb, ctx)
     if (action === 'log_progress') return await handleLogProgress(sb, ctx, body)
+    if (action === 'log_measurable') return await handleLogMeasurable(sb, ctx, body)
+    if (action === 'get_measurable_history') return await handleGetMeasurableHistory(sb, ctx, body)
     return err(400, 'Unknown action')
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Internal error'
@@ -563,4 +565,87 @@ async function handleLogProgress(
     return err(500, 'Insert failed')
   }
   return NextResponse.json({ id: (data as { id: string }).id }, { status: 201 })
+}
+
+// ── log_measurable — log a single metric reading (velocity, 60-yard, etc) ──
+async function handleLogMeasurable(
+  sb: SupabaseClient,
+  ctx: TraineeCtx,
+  body: Record<string, unknown>,
+) {
+  const metricKey = typeof body.metric_key === 'string' ? body.metric_key : ''
+  const value = typeof body.value === 'number' ? body.value : Number(body.value)
+  const unit = typeof body.unit === 'string' ? body.unit : ''
+  const source = typeof body.source === 'string' ? body.source : 'manual'
+  const notes = typeof body.notes === 'string' ? body.notes : null
+
+  if (!metricKey) return err(400, 'metric_key required')
+  if (!Number.isFinite(value)) return err(400, 'value must be numeric')
+  if (!unit) return err(400, 'unit required')
+
+  const { data, error } = await sb
+    .from('koto_fitness_measurable_logs')
+    .insert({
+      agency_id: ctx.agencyId,
+      trainee_id: ctx.traineeId,
+      metric_key: metricKey,
+      value,
+      unit,
+      source,
+      notes,
+      measured_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single()
+
+  if (error) {
+    console.error('[trainer/my-plan] log_measurable error:', error.message)
+    return err(500, 'Insert failed')
+  }
+
+  // Also update the trainee row's current value for this metric
+  const traineeFieldMap: Record<string, string> = {
+    fastball_velo_peak: 'fastball_velo_peak',
+    fastball_velo_sit: 'fastball_velo_sit',
+    exit_velo: 'exit_velo',
+    sixty_time: 'sixty_time',
+    pop_time: 'pop_time',
+  }
+  const traineeField = traineeFieldMap[metricKey]
+  if (traineeField) {
+    await sb
+      .from('koto_fitness_trainees')
+      .update({ [traineeField]: value })
+      .eq('id', ctx.traineeId)
+      .eq('agency_id', ctx.agencyId)
+  }
+
+  return NextResponse.json({ id: (data as { id: string }).id }, { status: 201 })
+}
+
+// ── get_measurable_history — all measurable logs for this trainee ────────────
+async function handleGetMeasurableHistory(
+  sb: SupabaseClient,
+  ctx: TraineeCtx,
+  body: Record<string, unknown>,
+) {
+  const metricKey = typeof body.metric_key === 'string' ? body.metric_key : null
+
+  let q = sb
+    .from('koto_fitness_measurable_logs')
+    .select('id, metric_key, value, unit, source, notes, measured_at')
+    .eq('trainee_id', ctx.traineeId)
+    .eq('agency_id', ctx.agencyId)
+    .order('measured_at', { ascending: true })
+    .limit(500)
+
+  if (metricKey) q = q.eq('metric_key', metricKey)
+
+  const { data, error } = await q
+  if (error) {
+    console.error('[trainer/my-plan] get_measurable_history error:', error.message)
+    return err(500, 'Load failed')
+  }
+
+  return NextResponse.json({ measurables: data ?? [] })
 }

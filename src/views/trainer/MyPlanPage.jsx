@@ -2,9 +2,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import {
-  Loader2, LayoutGrid, Dumbbell, Utensils, TrendingUp, Settings,
-  ChevronDown, ChevronRight, Info, ExternalLink, Check, Camera,
-  Printer, ShoppingBag, ChevronLeft, ChevronUp,
+  Loader2, LayoutGrid, Dumbbell, Utensils, TrendingUp, User,
+  MessageCircle, ChevronDown, ChevronRight, Info, ExternalLink,
+  Check, Camera, Printer, ShoppingBag, ChevronLeft, ChevronUp,
 } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -16,6 +16,7 @@ import {
   adjustPlanNL,
 } from '../../lib/trainer/myPlanFetch'
 import MyPlanShell from '../../components/trainer/MyPlanShell'
+import IntakeChatWidget from '../../components/trainer/IntakeChatWidget'
 import TraineeDisclaimerAckModal from './TraineeDisclaimerAckModal'
 import NoneOrText from '../../components/trainer/NoneOrText'
 import {
@@ -76,11 +77,12 @@ function useIsMobile() {
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { key: 'overview',  label: 'Overview',  Icon: LayoutGrid },
+  { key: 'home',      label: 'Home',      Icon: LayoutGrid },
+  { key: 'coach',     label: 'Coach',     Icon: MessageCircle },
   { key: 'workouts',  label: 'Workouts',  Icon: Dumbbell },
   { key: 'meals',     label: 'Meals',     Icon: Utensils },
   { key: 'progress',  label: 'Progress',  Icon: TrendingUp },
-  { key: 'settings',  label: 'Settings',  Icon: Settings },
+  { key: 'profile',   label: 'Profile',   Icon: User },
 ]
 
 // ── Main Page ───────────────────────────────────────────────────────────────
@@ -88,7 +90,7 @@ const TABS = [
 export default function MyPlanPage() {
   const [sessionState, setSessionState] = useState({ loading: true, user: null })
   const [planState, setPlanState] = useState({ loading: true, error: null, data: null })
-  const [tab, setTab] = useState('overview')
+  const [tab, setTab] = useState('home')
   const [showDisclaimer, setShowDisclaimer] = useState(false)
   const isMobile = useIsMobile()
 
@@ -188,19 +190,13 @@ export default function MyPlanPage() {
 
   const { plan, logs, trainee, agency } = planState.data || {}
 
-  if (!plan) {
-    return (
-      <MyPlanShell agency={agency}>
-        <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-          <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
-            {trainee?.full_name ? `Hi ${trainee.full_name.split(' ')[0]},` : 'Hi there,'}
-          </h2>
-          <p style={{ margin: 0, color: A.ink3, fontSize: 15, lineHeight: 1.6 }}>
-            Your coach hasn&apos;t finalized your plan yet. We&apos;ll email you as soon as it&apos;s ready.
-          </p>
-        </div>
-      </MyPlanShell>
-    )
+  // Auto-navigate new users to Coach tab for onboarding
+  useEffect(() => {
+    if (!plan && trainee && tab !== 'coach') setTab('coach')
+  }, [plan, trainee])
+
+  if (!plan && tab !== 'coach') {
+    // While waiting for auto-nav, show nothing jarring
   }
 
   return (
@@ -242,7 +238,7 @@ export default function MyPlanPage() {
 
       {/* Tab content */}
       <div style={{ paddingTop: isMobile ? 0 : 0 }}>
-        {tab === 'overview' && (
+        {tab === 'home' && (
           <OverviewTab
             trainee={trainee}
             plan={plan}
@@ -250,6 +246,19 @@ export default function MyPlanPage() {
             isMobile={isMobile}
             onAfterAdjust={loadPlan}
             onGotoTab={setTab}
+            onRefresh={loadPlan}
+          />
+        )}
+        {tab === 'coach' && (
+          <CoachTab
+            trainee={trainee}
+            plan={plan}
+            onFieldsUpdate={async (fields) => {
+              // Save extracted fields to trainee row
+              if (fields && Object.keys(fields).length > 0) {
+                try { await updateMyIntake(fields); await loadPlan() } catch {}
+              }
+            }}
             onRefresh={loadPlan}
           />
         )}
@@ -277,8 +286,8 @@ export default function MyPlanPage() {
             onRefresh={loadPlan}
           />
         )}
-        {tab === 'settings' && (
-          <SettingsTab trainee={trainee} onAfterChange={loadPlan} />
+        {tab === 'profile' && (
+          <ProfileTab trainee={trainee} onAfterChange={loadPlan} />
         )}
       </div>
 
@@ -425,10 +434,34 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
     return 1
   })()
 
+  // Update prompts — computed from log staleness
+  const prompts = useMemo(() => {
+    const items = []
+    // Check if no plan yet — prompt to chat
+    if (!plan) {
+      items.push({ key: 'onboard', text: 'Complete your profile to get a custom plan', cta: 'Start chat', tab: 'coach' })
+      return items
+    }
+    return items
+  }, [plan])
+
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Greeting (desktop only — mobile has it in header) */}
       {!isMobile && <GreetingHeader trainee={trainee} />}
+
+      {/* Update prompts */}
+      {prompts.map((p) => (
+        <button key={p.key} type="button" onClick={() => onGotoTab(p.tab)} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '14px 18px', background: '#fffbeb', border: '1px solid #fde68a',
+          borderRadius: A.r, cursor: 'pointer', textAlign: 'left',
+          fontFamily: A.font, width: '100%',
+        }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#92400e' }}>{p.text}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: A.accent, whiteSpace: 'nowrap' }}>{p.cta} →</span>
+        </button>
+      ))}
 
       {/* Today's snapshot */}
       <Card>
@@ -560,9 +593,6 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
           )}
         </Card>
       )}
-
-      {/* Intake profile — shows all fields captured from chat, editable */}
-      <IntakeProfileCard trainee={trainee} onSaved={onRefresh} />
 
       {/* Natural adjust box */}
       {hasWorkout && <AdjustBox onAfterAdjust={onAfterAdjust} />}
@@ -903,6 +933,79 @@ function AdjustBox({ onAfterAdjust }) {
         </div>
       )}
     </Card>
+  )
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  COACH TAB
+// ═════════════════════════════════════════════════════════════════════════════
+
+function CoachTab({ trainee, plan, onFieldsUpdate, onRefresh }) {
+  const [extracted, setExtracted] = useState(() => {
+    // Seed from trainee row so the chat knows what's already filled
+    if (!trainee) return {}
+    const t = trainee
+    const seed = {}
+    if (t.full_name) seed.full_name = t.full_name
+    if (t.age) seed.age = t.age
+    if (t.sex) seed.sex = t.sex
+    if (t.height_cm) seed.height_cm = t.height_cm
+    if (t.current_weight_kg) seed.current_weight_kg = t.current_weight_kg
+    if (t.primary_goal) seed.primary_goal = t.primary_goal
+    if (t.training_experience_years) seed.training_experience_years = t.training_experience_years
+    if (t.training_days_per_week) seed.training_days_per_week = t.training_days_per_week
+    if (t.equipment_access) seed.equipment_access = t.equipment_access
+    if (t.medical_flags) seed.medical_flags = t.medical_flags
+    if (t.injuries) seed.injuries = t.injuries
+    if (t.dietary_preference) seed.dietary_preference = t.dietary_preference
+    if (t.allergies) seed.allergies = t.allergies
+    if (t.sleep_hours_avg) seed.sleep_hours_avg = t.sleep_hours_avg
+    if (t.stress_level) seed.stress_level = t.stress_level
+    if (t.occupation_activity) seed.occupation_activity = t.occupation_activity
+    if (t.meals_per_day) seed.meals_per_day = t.meals_per_day
+    return seed
+  })
+
+  const hasPlan = !!plan
+  const mode = hasPlan ? 'coaching' : 'onboarding'
+
+  function handleFieldsUpdate(fields) {
+    setExtracted((prev) => ({ ...prev, ...fields }))
+    onFieldsUpdate?.(fields)
+  }
+
+  function handleAboutYouAppend(text) {
+    if (!text) return
+    // Append to about_you via the intake update
+    onFieldsUpdate?.({ about_you: ((trainee?.about_you || '') + ' ' + text).trim() })
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
+          {mode === 'onboarding' ? 'Let\u2019s get you set up' : 'Your AI Coach'}
+        </h2>
+      </div>
+      {mode === 'onboarding' && (
+        <div style={{ fontSize: 14, color: A.ink3, lineHeight: 1.5, marginTop: -8 }}>
+          Answer a few questions so we can build your custom plan. Tap the buttons or type freely.
+        </div>
+      )}
+      <div style={{
+        borderRadius: A.r, overflow: 'hidden',
+        boxShadow: A.shadow1, background: A.card,
+        minHeight: 480,
+      }}>
+        <IntakeChatWidget
+          extracted={extracted}
+          onFieldsUpdate={handleFieldsUpdate}
+          onAboutYouAppend={handleAboutYouAppend}
+          userName={trainee?.full_name?.split(' ')[0] || ''}
+          mode={mode}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -2012,7 +2115,7 @@ function ProgressTab({ plan, logs, traineeId, isMobile, onRefresh }) {
 //  SETTINGS TAB
 // ═════════════════════════════════════════════════════════════════════════════
 
-function SettingsTab({ trainee, onAfterChange }) {
+function ProfileTab({ trainee, onAfterChange }) {
   const [draft, setDraft] = useState(() => seedDraft(trainee))
   const [saving, setSaving] = useState(false)
   const [saveNote, setSaveNote] = useState(null)
@@ -2081,7 +2184,7 @@ function SettingsTab({ trainee, onAfterChange }) {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
-        Settings
+        Profile
       </h2>
 
       {/* About you */}

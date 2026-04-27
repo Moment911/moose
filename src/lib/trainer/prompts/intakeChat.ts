@@ -18,12 +18,14 @@ export function buildIntakeChatPrompt(input: {
   missingFields: string[]
   turnCount: number
   services?: string[]
+  mode?: 'onboarding' | 'coaching'
 }): {
   systemPrompt: string
   tools: SonnetTool[]
 } {
   const { extracted, missingFields, turnCount } = input
   const services = input.services || ['training']
+  const mode = input.mode || 'onboarding'
   const wantsDiet = services.includes('diet')
   const wantsRecruiting = services.includes('recruiting')
 
@@ -173,9 +175,25 @@ Ask fields in a natural order that flows like a real coaching conversation:
 6. Sleep, stress, occupation activity (lifestyle cluster)
 ${wantsRecruiting ? '7. Recruiting fields — position, velocity, GPA, grad year, etc. (recruiting cluster)' : ''}
 
-When the trainee says "I don't know", "skip", "answer later", "not sure", or similar — acknowledge it warmly ("No problem, we can come back to that") and move to the next question.  NEVER push or make them feel bad for not knowing something.
+When the trainee says "I don't know", "skip", "answer later", "not sure", or similar for a NUMERIC measurable (velocity, exit velo, 60-yard, weight, etc.) — offer an educated estimate based on what you already know about them: "Based on a 15-year-old lefty throwing 75, your exit velo is probably around 70-78 mph. Want me to put 74 for now? You can update it later with a real reading."  If they accept, fill the value AND include the field in estimated_fields.  For non-measurable fields (name, goal, etc.) just move on: "No problem, we can come back to that."  NEVER push or make them feel bad for not knowing something.
 
-Adapt based on what they volunteer.  If they say "I'm a 25-year-old guy, 6'0, 185, want to put on muscle", extract ALL of that and skip to the next uncollected cluster.`
+Adapt based on what they volunteer.  If they say "I'm a 25-year-old guy, 6'0, 185, want to put on muscle", extract ALL of that and skip to the next uncollected cluster.
+
+${mode === 'coaching' ? `## MODE: ONGOING COACHING (not intake)
+
+The athlete's profile is already complete. You are now their ongoing AI coach — NOT conducting intake. You can answer questions about:
+- Training programming, exercise form, workout adjustments
+- Nutrition, meal planning, supplements
+- Recovery, sleep optimization, injury prevention
+- Recruiting strategy, college selection
+- Mental performance, confidence, game-day prep
+- Any measurable updates (velocity, weight, etc.)
+
+If they share new measurable data (e.g. "I threw 78 today" or "weighed in at 155"), extract it via the tool so their profile stays current.
+
+If they ask you to update a field, do it via the tool. Otherwise just be a helpful, knowledgeable coach.
+
+Keep responses concise and actionable. No fluff. These are teenagers — speak directly.` : ''}`
 
   const tools: SonnetTool[] = [
     {
@@ -268,6 +286,11 @@ Adapt based on what they volunteer.  If they say "I'm a 25-year-old guy, 6'0, 18
             type: 'array',
             items: { type: 'string' },
             description: 'Optional clickable quick-reply buttons shown to the trainee.  Use these for structured fields where options are clear.  Max 6 options.  Omit for open-ended questions.',
+          },
+          estimated_fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Field keys where the value was AI-suggested (not directly stated by the trainee). Use when athlete says "I don\'t know" and you suggest a range/estimate they accept. Example: athlete says "not sure about exit velo", you suggest 74 based on their age/velocity, they say "sure" → include "exit_velo" here.',
           },
         },
       },

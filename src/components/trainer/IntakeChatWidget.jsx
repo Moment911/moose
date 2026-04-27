@@ -11,7 +11,7 @@ import { supabase } from '../../lib/supabase'
 // fields events push extracted data to the parent via onFieldsUpdate.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYouAppend, userName }) {
+export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYouAppend, userName, mode = 'onboarding' }) {
   const [messages, setMessages] = useState([]) // {role: 'user'|'assistant', content: string}
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -54,7 +54,7 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
       const res = await fetch('/api/trainer/intake-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ messages: turnMessages, extracted }),
+        body: JSON.stringify({ messages: turnMessages, extracted, mode }),
       })
 
       if (!res.ok) {
