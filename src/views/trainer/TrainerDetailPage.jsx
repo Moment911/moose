@@ -1411,12 +1411,12 @@ function OverviewTab({
 function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlaybook, hasMeals, hasGrocery, pending, extracted, onGenerateBaseline, onGotoTab }) {
   const STEP_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
   const steps = [
-    { key: 'baseline', label: 'Baseline', done: hasBaseline, tab: 'overview', generating: pending.baseline, icon: '⚡' },
-    { key: 'roadmap', label: 'Roadmap', done: hasRoadmap, tab: 'plan', generating: pending.roadmap, icon: '🗺' },
-    { key: 'workout', label: 'Workout', done: hasWorkout, tab: 'plan', generating: pending.workout, icon: '💪' },
-    { key: 'playbook', label: 'Playbook', done: hasPlaybook, tab: 'playbook', generating: pending.playbook, icon: '📋' },
-    { key: 'food', label: 'Food', done: !!plan?.food_preferences, tab: 'nutrition', generating: pending.food_prefs, icon: '🥗' },
-    { key: 'meals', label: 'Meals', done: hasMeals, tab: 'nutrition', generating: pending.meals, icon: '🍽' },
+    { key: 'baseline', label: 'Baseline', done: hasBaseline, tab: 'overview', generating: pending.baseline, Icon: Activity },
+    { key: 'roadmap', label: 'Roadmap', done: hasRoadmap, tab: 'plan', generating: pending.roadmap, Icon: Target },
+    { key: 'workout', label: 'Workout', done: hasWorkout, tab: 'plan', generating: pending.workout, Icon: Dumbbell },
+    { key: 'playbook', label: 'Playbook', done: hasPlaybook, tab: 'playbook', generating: pending.playbook, Icon: BookOpen },
+    { key: 'food', label: 'Food', done: !!plan?.food_preferences, tab: 'nutrition', generating: pending.food_prefs, Icon: Utensils },
+    { key: 'meals', label: 'Meals', done: hasMeals, tab: 'nutrition', generating: pending.meals, Icon: LineChart },
   ]
 
   const doneCount = steps.filter((s) => s.done).length
@@ -1424,43 +1424,75 @@ function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlay
   const canGenerate = Object.keys(extracted).length >= 5 || hasBaseline
   const anyGenerating = steps.some((s) => s.generating)
 
+  // Rotating facts while generating
+  const DID_YOU_KNOW = [
+    'Your muscles grow during rest, not during the workout itself. Sleep is when the real gains happen.',
+    'Drinking water boosts your performance by up to 25%. Most athletes are chronically dehydrated.',
+    'A 15-year-old athlete needs 8-10 hours of sleep per night for optimal recovery and growth.',
+    'Stretching after a workout reduces soreness by 20-30% compared to skipping it.',
+    'Protein eaten within 30 minutes after training is absorbed 50% more efficiently.',
+    'Baseball players who strength train throw an average of 4-6 mph harder than those who don\'t.',
+    'Your brain is 75% water. Even mild dehydration hurts reaction time and decision-making.',
+    'Eating breakfast improves athletic performance by 12-15% compared to training fasted.',
+    'The average MLB pitcher\'s fastball generates over 100 lbs of force on the elbow.',
+    'Foam rolling for 2 minutes per muscle group increases range of motion by 10-15%.',
+    'Athletes who track their food intake are 2x more likely to hit their body composition goals.',
+    'A single night of bad sleep reduces power output by up to 20% the next day.',
+    'Dynamic stretching before activity improves performance. Static stretching is for after.',
+    'Your body can absorb about 25-40g of protein per meal — spreading it out matters.',
+    'Cold water immersion after training reduces inflammation and speeds recovery by 15-20%.',
+    'The average D1 baseball player squats 1.5x their body weight and deadlifts 2x.',
+    'Creatine is the most studied sports supplement ever — safe and effective for strength gains.',
+    'Your grip strength is one of the best predictors of overall health and longevity.',
+    'Sprinting for 10 seconds burns as many calories as jogging for 30 seconds.',
+    'Athletes who warm up properly are 50% less likely to get injured during training.',
+  ]
+  const [factIdx, setFactIdx] = useState(0)
+  useEffect(() => {
+    if (!anyGenerating) return
+    const timer = setInterval(() => setFactIdx((i) => (i + 1) % DID_YOU_KNOW.length), 5000)
+    return () => clearInterval(timer)
+  }, [anyGenerating])
+
   return (
     <section style={{
-      background: '#0a0a0a', borderRadius: 16, padding: '20px 16px', marginBottom: 18,
+      background: '#0a0a0a', borderRadius: 16, padding: '24px 16px', marginBottom: 18,
       boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
     }}>
-      {/* Spin animation */}
       <style>{`
         @keyframes stepSpin { to { transform: rotate(360deg) } }
-        @keyframes stepPulse { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }
+        @keyframes stepPulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
+        @keyframes factFade { 0% { opacity: 0; transform: translateY(8px) } 100% { opacity: 1; transform: translateY(0) } }
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
           Your Plan
         </div>
         <div style={{
-          padding: '4px 12px', borderRadius: 999,
-          background: doneCount === 6 ? GRN + '20' : 'rgba(255,255,255,0.1)',
-          fontSize: 13, fontWeight: 700,
+          padding: '5px 14px', borderRadius: 999,
+          background: doneCount === 6 ? GRN + '25' : 'rgba(255,255,255,0.1)',
+          fontSize: 14, fontWeight: 700,
           color: doneCount === 6 ? GRN : 'rgba(255,255,255,0.6)',
         }}>
           {doneCount}/{steps.length}
         </div>
       </div>
 
-      {/* Step circles */}
+      {/* Step circles — 3 per row on mobile, all 6 on desktop */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6,
-        marginBottom: 16,
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12,
+        marginBottom: 20,
       }}>
         {steps.map((step, i) => {
           const color = STEP_COLORS[i]
-          const size = 52
-          const r = 21
+          const size = 68
+          const r = 28
+          const strokeW = 4
           const circumference = 2 * Math.PI * r
           const progress = step.done ? circumference : 0
+          const StepIcon = step.Icon
 
           return (
             <button
@@ -1471,52 +1503,43 @@ function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlay
                 else if (step.done) onGotoTab(step.tab)
               }}
               style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                padding: '8px 2px', background: 'transparent', border: 'none',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                padding: '10px 4px', background: 'transparent', border: 'none',
                 cursor: step.done || (step.key === 'baseline' && canGenerate) ? 'pointer' : 'default',
               }}
             >
-              {/* Animated ring */}
               <div style={{ position: 'relative', width: size, height: size }}>
                 <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-                  {/* Track */}
                   <circle cx={size / 2} cy={size / 2} r={r} fill="none"
-                    stroke="rgba(255,255,255,0.08)" strokeWidth={4} />
-                  {/* Progress arc */}
+                    stroke="rgba(255,255,255,0.06)" strokeWidth={strokeW} />
                   <circle cx={size / 2} cy={size / 2} r={r} fill="none"
                     stroke={step.done ? color : step.generating ? color : 'transparent'}
-                    strokeWidth={4} strokeLinecap="round"
+                    strokeWidth={strokeW} strokeLinecap="round"
                     strokeDasharray={`${progress} ${circumference}`}
-                    style={{
-                      transition: 'stroke-dasharray 0.6s ease',
-                      ...(step.generating ? { animation: 'stepSpin 1.5s linear infinite', transformOrigin: 'center' } : {}),
-                    }}
+                    style={{ transition: 'stroke-dasharray 0.8s ease' }}
                   />
                   {step.generating && (
                     <circle cx={size / 2} cy={size / 2} r={r} fill="none"
-                      stroke={color} strokeWidth={4} strokeLinecap="round"
-                      strokeDasharray={`${circumference * 0.25} ${circumference * 0.75}`}
+                      stroke={color} strokeWidth={strokeW} strokeLinecap="round"
+                      strokeDasharray={`${circumference * 0.3} ${circumference * 0.7}`}
                       style={{ animation: 'stepSpin 1.2s linear infinite', transformOrigin: `${size / 2}px ${size / 2}px` }}
                     />
                   )}
                 </svg>
-                {/* Center content */}
                 <div style={{
                   position: 'absolute', inset: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: step.done ? 18 : 16,
                   ...(step.generating ? { animation: 'stepPulse 1.5s ease infinite' } : {}),
                 }}>
                   {step.done
-                    ? <span style={{ color }}>✓</span>
-                    : <span style={{ color: step.generating ? color : 'rgba(255,255,255,0.3)' }}>{step.icon}</span>}
+                    ? <Check size={24} color={color} strokeWidth={3} />
+                    : <StepIcon size={22} color={step.generating ? color : 'rgba(255,255,255,0.25)'} strokeWidth={1.75} />}
                 </div>
               </div>
-              {/* Label */}
               <div style={{
-                fontSize: 10, fontWeight: 700, letterSpacing: '.04em',
+                fontSize: 11, fontWeight: 700, letterSpacing: '.03em',
                 textTransform: 'uppercase',
-                color: step.done ? color : step.generating ? color : 'rgba(255,255,255,0.35)',
+                color: step.done ? color : step.generating ? color : 'rgba(255,255,255,0.3)',
               }}>
                 {step.label}
               </div>
@@ -1525,8 +1548,8 @@ function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlay
         })}
       </div>
 
-      {/* Overall progress bar */}
-      <div style={{ height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 999, marginBottom: 14 }}>
+      {/* Progress bar */}
+      <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 999, marginBottom: anyGenerating ? 16 : 14 }}>
         <div style={{
           height: '100%', borderRadius: 999,
           background: `linear-gradient(90deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]}, ${STEP_COLORS[3]})`,
@@ -1534,14 +1557,31 @@ function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlay
         }} />
       </div>
 
-      {/* Generate CTA — shows whenever plan is incomplete */}
+      {/* Did you know — rotating facts while generating */}
+      {anyGenerating && (
+        <div key={factIdx} style={{
+          padding: '14px 16px', marginBottom: 14,
+          background: 'rgba(255,255,255,0.04)', borderRadius: 10,
+          borderLeft: `3px solid ${STEP_COLORS[factIdx % STEP_COLORS.length]}`,
+          animation: 'factFade 0.4s ease',
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: STEP_COLORS[factIdx % STEP_COLORS.length], textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+            Did you know?
+          </div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+            {DID_YOU_KNOW[factIdx]}
+          </div>
+        </div>
+      )}
+
+      {/* Generate CTA */}
       {doneCount < 6 && canGenerate && (
         <button type="button" onClick={onGenerateBaseline}
           disabled={anyGenerating}
           style={{
             width: '100%', padding: '14px 16px',
             background: anyGenerating
-              ? 'rgba(255,255,255,0.15)'
+              ? 'rgba(255,255,255,0.1)'
               : `linear-gradient(135deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]})`,
             color: '#fff', border: 'none', borderRadius: 12,
             fontSize: 15, fontWeight: 800, cursor: anyGenerating ? 'default' : 'pointer',
