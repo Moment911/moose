@@ -1331,28 +1331,12 @@ function OverviewTab({
     } catch { /* silent */ }
   }
 
+  const [chatOpen, setChatOpen] = useState(!hasBaseline) // Auto-open for new users
+  const hasPlan = hasBaseline || plan?.roadmap || plan?.workout_plan
+
   return (
     <div>
-      {/* AI Coach Chat — conversational intake with pill buttons */}
-      <section data-chat-widget style={{ ...panelStyle, marginBottom: 18, padding: 0, overflow: 'hidden' }}>
-        <IntakeChatWidget
-          extracted={extracted}
-          onFieldsUpdate={handleChatFieldsUpdate}
-          onAboutYouAppend={handleChatAboutYouAppend}
-          onMessagesChange={(msgs) => {
-            // Persist chat history silently — survives page refresh
-            trainerFetch(
-              { action: 'update', trainee_id: traineeId, patch: { chat_history: msgs } },
-              { agencyId },
-            ).catch(() => {})
-          }}
-          initialMessages={Array.isArray(trainee?.chat_history) ? trainee.chat_history : []}
-          userName={trainee?.full_name?.split(' ')[0] || ''}
-          mode={hasBaseline ? 'coaching' : 'onboarding'}
-        />
-      </section>
-
-      {/* ══ Plan Steps Checklist ══ */}
+      {/* ══ 1. Plan Progress — always first, always visible ══ */}
       <PlanStepsChecklist
         plan={plan}
         hasBaseline={hasBaseline}
@@ -1367,40 +1351,93 @@ function OverviewTab({
         onGotoTab={onGotoTab}
       />
 
-      {/* ══ Plan Content — all completed sections shown inline ══ */}
+      {/* ══ 2. AI Coach — compact CTA when closed, full chat when open ══ */}
+      {!chatOpen ? (
+        <button
+          type="button"
+          data-chat-widget
+          onClick={() => setChatOpen(true)}
+          style={{
+            width: '100%', padding: '16px 20px', marginBottom: 18,
+            background: '#fff', border: `1px solid ${BRD}`, borderRadius: 12,
+            display: 'flex', alignItems: 'center', gap: 12,
+            cursor: 'pointer', textAlign: 'left',
+          }}
+        >
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%', background: '#0a0a0a',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, fontWeight: 800, color: '#fff', flexShrink: 0,
+          }}>K</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: BLK }}>
+              {hasBaseline ? 'Ask your AI coach anything' : 'Complete your profile to get started'}
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>
+              {hasBaseline ? 'Training, nutrition, recruiting, or plan adjustments' : 'Answer a few questions — takes about 2 minutes'}
+            </div>
+          </div>
+          <ArrowRight size={18} color="#9ca3af" />
+        </button>
+      ) : (
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+            {hasPlan && (
+              <button type="button" onClick={() => setChatOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}>
+                Minimize chat ▲
+              </button>
+            )}
+          </div>
+          <section data-chat-widget style={{ ...panelStyle, padding: 0, overflow: 'hidden' }}>
+            <IntakeChatWidget
+              extracted={extracted}
+              onFieldsUpdate={handleChatFieldsUpdate}
+              onAboutYouAppend={handleChatAboutYouAppend}
+              onMessagesChange={(msgs) => {
+                trainerFetch(
+                  { action: 'update', trainee_id: traineeId, patch: { chat_history: msgs } },
+                  { agencyId },
+                ).catch(() => {})
+              }}
+              initialMessages={Array.isArray(trainee?.chat_history) ? trainee.chat_history : []}
+              userName={trainee?.full_name?.split(' ')[0] || ''}
+              mode={hasBaseline ? 'coaching' : 'onboarding'}
+            />
+          </section>
+        </div>
+      )}
+
+      {/* ══ 3. Plan Content — completed sections with styled cards ══ */}
       {hasBaseline && (
-        <CollapsibleSection title="Baseline" defaultOpen>
+        <PlanSection title="Baseline" icon={<Activity size={16} />} color="#dc2626" defaultOpen>
           <PlanBaselineCard baseline={plan.baseline} onRegenerate={onGenerateBaseline} regenerating={pending.baseline} />
-        </CollapsibleSection>
+        </PlanSection>
       )}
       {plan?.roadmap && (
-        <CollapsibleSection title="Roadmap">
+        <PlanSection title="Roadmap" icon={<Target size={16} />} color="#2563eb">
           <RoadmapCard roadmap={plan.roadmap} currentPhase={plan.phase_ref || 1} />
-        </CollapsibleSection>
+        </PlanSection>
       )}
       {plan?.workout_plan && (
-        <CollapsibleSection title="Workout">
-          <WorkoutAccordion
-            workoutPlan={plan.workout_plan}
-            logs={[]}
-            onLogSet={() => {}}
-          />
-        </CollapsibleSection>
+        <PlanSection title="Workout" icon={<Dumbbell size={16} />} color="#7c3aed">
+          <WorkoutAccordion workoutPlan={plan.workout_plan} logs={[]} onLogSet={() => {}} />
+        </PlanSection>
       )}
       {plan?.playbook && (
-        <CollapsibleSection title="Playbook">
+        <PlanSection title="Playbook" icon={<BookOpen size={16} />} color="#059669">
           <PlaybookCard playbook={plan.playbook} />
-        </CollapsibleSection>
+        </PlanSection>
       )}
       {plan?.meal_plan && (
-        <CollapsibleSection title="Meal Plan">
+        <PlanSection title="Meal Plan" icon={<Utensils size={16} />} color="#d97706">
           <MealPlanTable mealPlan={plan.meal_plan} />
-        </CollapsibleSection>
+        </PlanSection>
       )}
       {plan?.grocery_list && (
-        <CollapsibleSection title="Grocery List">
+        <PlanSection title="Grocery List" icon={<LineChart size={16} />} color="#0891b2">
           <GroceryList groceryList={plan.grocery_list} />
-        </CollapsibleSection>
+        </PlanSection>
       )}
     </div>
   )
@@ -1410,28 +1447,33 @@ function OverviewTab({
 // Shows all 6 plan steps as a clickable progress strip. Each step shows
 // done/pending status. Click to navigate to the relevant tab.
 
-function CollapsibleSection({ title, defaultOpen = false, children }) {
+function PlanSection({ title, icon, color = '#0a0a0a', defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ marginBottom: 12 }}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '14px 18px',
-          background: '#fff', border: `1px solid ${BRD}`,
+          display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+          padding: '14px 18px',
+          background: open ? '#fff' : '#fafbfc',
+          border: `1px solid ${open ? color + '30' : BRD}`,
+          borderLeft: `3px solid ${color}`,
           borderRadius: open ? '12px 12px 0 0' : 12,
           cursor: 'pointer', textAlign: 'left',
+          transition: 'all .15s',
         }}
       >
-        <span style={{ fontSize: 15, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>{title}</span>
-        <span style={{ color: '#9ca3af', fontSize: 18 }}>{open ? '▲' : '▼'}</span>
+        <span style={{ color, display: 'flex', alignItems: 'center' }}>{icon}</span>
+        <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: BLK, letterSpacing: '-0.01em' }}>{title}</span>
+        <span style={{ color: '#9ca3af', fontSize: 13, fontWeight: 600 }}>{open ? '▲' : '▼'}</span>
       </button>
       {open && (
         <div style={{
-          border: `1px solid ${BRD}`, borderTop: 'none',
-          borderRadius: '0 0 12px 12px', padding: 16,
+          border: `1px solid ${color}20`, borderTop: 'none',
+          borderLeft: `3px solid ${color}`,
+          borderRadius: '0 0 12px 12px', padding: 18,
           background: '#fff',
         }}>
           {children}
