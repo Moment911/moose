@@ -114,6 +114,35 @@ export type IntakeInput = {
 
   // Internal
   trainer_notes?: string | null
+
+  // Baseball / sport-specific
+  position_primary?: string | null
+  position_secondary?: string | null
+  throwing_hand?: string | null
+  batting_hand?: string | null
+  fastball_velo_peak?: number | null
+  fastball_velo_sit?: number | null
+  exit_velo?: number | null
+  sixty_time?: number | null
+  pop_time?: number | null
+  pitch_arsenal?: unknown | null  // jsonb — string[] or comma-separated
+  grad_year?: number | null
+  gpa?: number | null
+  high_school?: string | null
+  club_team?: string | null
+  travel_team?: string | null
+  video_link?: string | null
+  preferred_divisions?: unknown | null  // jsonb
+  preferred_states?: unknown | null     // jsonb
+  intended_major?: string | null
+
+  // Workload
+  practices_per_week?: number | null
+  bullpen_sessions_per_week?: number | null
+  games_per_week?: number | null
+
+  // Chat persistence
+  chat_history?: unknown | null  // jsonb
 }
 
 export type ValidateResult<T> =
@@ -270,6 +299,28 @@ export function validateIntake(input: unknown): ValidateResult<IntakeInput> {
   // Internal
   if (b.trainer_notes !== undefined && b.trainer_notes !== null && !isString(b.trainer_notes)) {
     errors.trainer_notes = 'trainer_notes must be a string'
+  }
+
+  // Baseball / sport-specific — light validation, accept any reasonable value
+  for (const k of ['position_primary', 'position_secondary', 'throwing_hand', 'batting_hand', 'high_school', 'club_team', 'travel_team', 'video_link', 'intended_major'] as const) {
+    const v = b[k]
+    if (v !== undefined && v !== null && !isString(v)) {
+      errors[k] = `${k} must be a string`
+    }
+  }
+  for (const k of ['fastball_velo_peak', 'fastball_velo_sit', 'exit_velo', 'sixty_time', 'pop_time', 'gpa'] as const) {
+    const v = b[k]
+    if (v !== undefined && v !== null && !isFiniteNumber(v)) {
+      errors[k] = `${k} must be a number`
+    }
+  }
+  for (const k of ['grad_year', 'practices_per_week', 'bullpen_sessions_per_week', 'games_per_week'] as const) {
+    const v = b[k]
+    if (v !== undefined && v !== null) {
+      if (!isFiniteNumber(v) || !Number.isInteger(v)) {
+        errors[k] = `${k} must be an integer`
+      }
+    }
   }
 
   if (Object.keys(errors).length > 0) {
