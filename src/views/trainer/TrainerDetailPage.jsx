@@ -53,6 +53,7 @@ import WorkoutLogGrid from '../../components/trainer/WorkoutLogGrid'
 import TrainerTabs from '../../components/trainer/TrainerTabs'
 import TrainerStatusStrip from '../../components/trainer/TrainerStatusStrip'
 import TrainerToast from '../../components/trainer/TrainerToast'
+import IntakeChatWidget from '../../components/trainer/IntakeChatWidget'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — /trainer/:traineeId full plan view.
@@ -1159,30 +1160,57 @@ function OverviewTab({
 }) {
   const Icon = nextStep.icon || Sparkles
   const hasAboutYou = !!(trainee.about_you && trainee.about_you.trim().length > 0)
-  const [aboutExpanded, setAboutExpanded] = useState(!hasAboutYou)
+
+  // Seed extracted state from trainee row so the chat knows what's filled
+  const [extracted, setExtracted] = useState(() => {
+    const t = trainee || {}
+    const seed = {}
+    if (t.full_name) seed.full_name = t.full_name
+    if (t.age) seed.age = t.age
+    if (t.sex) seed.sex = t.sex
+    if (t.height_cm) seed.height_cm = t.height_cm
+    if (t.current_weight_kg) seed.current_weight_kg = t.current_weight_kg
+    if (t.primary_goal) seed.primary_goal = t.primary_goal
+    if (t.training_experience_years) seed.training_experience_years = t.training_experience_years
+    if (t.training_days_per_week) seed.training_days_per_week = t.training_days_per_week
+    if (t.equipment_access) seed.equipment_access = t.equipment_access
+    if (t.medical_flags) seed.medical_flags = t.medical_flags
+    if (t.injuries) seed.injuries = t.injuries
+    if (t.dietary_preference) seed.dietary_preference = t.dietary_preference
+    if (t.allergies) seed.allergies = t.allergies
+    if (t.sleep_hours_avg) seed.sleep_hours_avg = t.sleep_hours_avg
+    if (t.stress_level) seed.stress_level = t.stress_level
+    if (t.occupation_activity) seed.occupation_activity = t.occupation_activity
+    if (t.meals_per_day) seed.meals_per_day = t.meals_per_day
+    return seed
+  })
+
+  async function handleChatFieldsUpdate(fields) {
+    if (!fields || Object.keys(fields).length === 0) return
+    setExtracted((prev) => ({ ...prev, ...fields }))
+    // Save to DB in real time
+    try {
+      await onUpdateFields(fields)
+    } catch { /* */ }
+  }
+
+  async function handleChatAboutYouAppend(text) {
+    if (!text) return
+    const updated = ((trainee?.about_you || '') + ' ' + text).trim()
+    await onUpdateAboutYou(updated)
+  }
+
   return (
     <div>
-      {/* About-you accordion — collapses when filled */}
-      <section
-        style={{ ...panelStyle, marginBottom: 18, cursor: hasAboutYou ? 'pointer' : 'default' }}
-        onClick={() => hasAboutYou && setAboutExpanded(v => !v)}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {hasAboutYou && <span style={{ color: '#16a34a', fontSize: 14, fontWeight: 800 }}>✓</span>}
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#dc2626', letterSpacing: '.04em', textTransform: 'uppercase' }}>
-              About this athlete
-            </span>
-          </div>
-          {hasAboutYou && (
-            <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>{aboutExpanded ? '▲ Collapse' : '▼ Expand'}</span>
-          )}
-        </div>
-        {(aboutExpanded || !hasAboutYou) && (
-          <div style={{ marginTop: 10 }} onClick={e => e.stopPropagation()}>
-            <AboutYouCard trainee={trainee} onUpdateAboutYou={onUpdateAboutYou} />
-          </div>
-        )}
+      {/* AI Coach Chat — conversational intake with pill buttons */}
+      <section style={{ ...panelStyle, marginBottom: 18, padding: 0, overflow: 'hidden' }}>
+        <IntakeChatWidget
+          extracted={extracted}
+          onFieldsUpdate={handleChatFieldsUpdate}
+          onAboutYouAppend={handleChatAboutYouAppend}
+          userName={trainee?.full_name?.split(' ')[0] || ''}
+          mode={hasBaseline ? 'coaching' : 'onboarding'}
+        />
       </section>
 
 
