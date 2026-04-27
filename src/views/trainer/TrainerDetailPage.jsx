@@ -482,6 +482,82 @@ export default function TrainerDetailPage() {
     )
   }
 
+  // ── Generate ALL — cascades all 6 steps automatically ────────────────────
+  async function handleGenerateAll() {
+    // Step 1: Baseline
+    setPendingStep('baseline', true)
+    let planId = plan?.id
+    try {
+      const res = await trainerGenerateFetch(
+        { action: 'generate_baseline', trainee_id: traineeId },
+        { agencyId },
+      )
+      if (!res.ok) { flashError('Baseline generation failed'); setPendingStep('baseline', false); return }
+      const data = await res.json()
+      planId = data.plan_id || planId
+      setPlan((prev) => ({ ...(prev || {}), id: planId, baseline: data.baseline }))
+    } catch (e) { flashError(e.message); setPendingStep('baseline', false); return }
+    setPendingStep('baseline', false)
+
+    if (!planId) { flashError('No plan ID after baseline'); return }
+
+    // Step 2: Roadmap + Workout + Playbook in parallel
+    setPendingStep('roadmap', true)
+    setPendingStep('workout', true)
+    setPendingStep('playbook', true)
+
+    const [roadmapRes, workoutRes, playbookRes] = await Promise.allSettled([
+      trainerGenerateFetch({ action: 'generate_roadmap', trainee_id: traineeId, plan_id: planId }, { agencyId }),
+      trainerGenerateFetch({ action: 'generate_workout', trainee_id: traineeId, plan_id: planId, phase: 1 }, { agencyId }),
+      trainerGenerateFetch({ action: 'generate_playbook', trainee_id: traineeId, plan_id: planId }, { agencyId }),
+    ])
+
+    if (roadmapRes.status === 'fulfilled' && roadmapRes.value.ok) {
+      const d = await roadmapRes.value.json()
+      setPlan((prev) => ({ ...(prev || {}), roadmap: d.roadmap }))
+    }
+    setPendingStep('roadmap', false)
+
+    if (workoutRes.status === 'fulfilled' && workoutRes.value.ok) {
+      const d = await workoutRes.value.json()
+      setPlan((prev) => ({ ...(prev || {}), workout_plan: d.workout_plan, generated_at: new Date().toISOString() }))
+      setLogs([]); setAdherence(null)
+    }
+    setPendingStep('workout', false)
+
+    if (playbookRes.status === 'fulfilled' && playbookRes.value.ok) {
+      const d = await playbookRes.value.json()
+      setPlan((prev) => ({ ...(prev || {}), playbook: d.playbook }))
+    }
+    setPendingStep('playbook', false)
+
+    // Step 3: Food prefs + Meals
+    setPendingStep('food_prefs', true)
+    setPendingStep('meals', true)
+    try {
+      // Skip food prefs elicitation — auto-submit defaults
+      const prefsRes = await trainerGenerateFetch(
+        { action: 'submit_food_prefs', trainee_id: traineeId, plan_id: planId, answers: {} },
+        { agencyId },
+      )
+      if (prefsRes.ok) {
+        setPlan((prev) => ({ ...(prev || {}), food_preferences: {} }))
+      }
+      setPendingStep('food_prefs', false)
+
+      const mealsRes = await trainerGenerateFetch(
+        { action: 'generate_meals', trainee_id: traineeId, plan_id: planId },
+        { agencyId },
+      )
+      if (mealsRes.ok) {
+        const d = await mealsRes.json()
+        setPlan((prev) => ({ ...(prev || {}), meal_plan: d.meal_plan, grocery_list: d.grocery_list }))
+      }
+    } catch { /* best effort */ }
+    setPendingStep('food_prefs', false)
+    setPendingStep('meals', false)
+  }
+
   function handleGenerateRoadmap() {
     if (!plan?.id) return
     generate(
@@ -852,7 +928,7 @@ export default function TrainerDetailPage() {
                 hasBaseline={hasBaseline}
                 pending={pending}
                 nextStep={nextStep}
-                onGenerateBaseline={handleGenerateBaseline}
+                onGenerateBaseline={handleGenerateAll}
                 onUpdateAboutYou={handleUpdateAboutYou}
                 onUpdateFields={handleUpdateTraineeFields}
                 onRefineElicit={handleRefineElicit}
@@ -1333,14 +1409,24 @@ function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlay
 
       {/* Generate CTA if not started */}
       {!hasBaseline && canGenerate && (
-        <button type="button" onClick={onGenerateBaseline} disabled={pending.baseline}
+        <button type="button" onClick={onGenerateBaseline}
+          disabled={pending.baseline || pending.roadmap || pending.workout}
           style={{
-            ...btnPrimary(pending.baseline),
-            width: '100%', marginTop: 14, padding: '12px 16px',
+            ...btnPrimary(pending.baseline || pending.roadmap || pending.workout),
+            width: '100%', marginTop: 14, padding: '14px 16px',
           }}>
-          {pending.baseline ? <Loader2 size={14} /> : <Sparkles size={14} />}
-          {pending.baseline ? 'Generating…' : 'Generate my plan'}
+          {(pending.baseline || pending.roadmap || pending.workout)
+            ? <Loader2 size={14} />
+            : <Sparkles size={14} />}
+          {(pending.baseline || pending.roadmap || pending.workout)
+            ? 'Building your plan…'
+            : 'Generate my full plan'}
         </button>
+      )}
+      {doneCount > 0 && doneCount < 6 && !pending.baseline && !pending.roadmap && !pending.workout && (
+        <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#6b7280' }}>
+          Click completed steps above to view them
+        </div>
       )}
     </section>
   )
