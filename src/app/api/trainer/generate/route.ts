@@ -1127,13 +1127,31 @@ async function handleGenerateFullPlan(
   })
   if (!bResult.ok) { errors.push(`baseline: ${bResult.error}`); return NextResponse.json({ ok: false, errors }) }
 
-  const { data: planRow, error: planErr } = await sb
+  // Check for existing plan — update if exists, insert if not
+  let planId: string
+  const { data: existingPlan } = await sb
     .from('koto_fitness_plans')
-    .insert({ agency_id: agencyId, trainee_id: traineeId, block_number: 1, baseline: bResult.data })
     .select('id')
-    .single()
-  if (planErr) { errors.push(`baseline_persist: ${planErr.message}`); return NextResponse.json({ ok: false, errors }) }
-  const planId = (planRow as { id: string }).id
+    .eq('agency_id', agencyId)
+    .eq('trainee_id', traineeId)
+    .order('block_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (existingPlan) {
+    planId = (existingPlan as { id: string }).id
+    await sb.from('koto_fitness_plans')
+      .update({ baseline: bResult.data })
+      .eq('id', planId).eq('agency_id', agencyId)
+  } else {
+    const { data: planRow, error: planErr } = await sb
+      .from('koto_fitness_plans')
+      .insert({ agency_id: agencyId, trainee_id: traineeId, block_number: 1, baseline: bResult.data })
+      .select('id')
+      .single()
+    if (planErr) { errors.push(`baseline_persist: ${planErr.message}`); return NextResponse.json({ ok: false, errors }) }
+    planId = (planRow as { id: string }).id
+  }
   log('baseline', 'done')
 
   // ── 2. Roadmap ───────────────────────────────────────────────────────────
@@ -1246,6 +1264,37 @@ async function handleGenerateFullPlan(
     }
   } else {
     errors.push(`food_prefs: ${fpResult.error}`)
+    log('food_prefs', `failed: ${fpResult.error} — trying meals with default prefs`)
+    // Fallback: save empty food prefs and try meals anyway
+    const fallbackAnswers = [{ question_id: 'default', answer: 'No preference' }] as FoodPrefsAnswer[]
+    await sb.from('koto_fitness_plans').update({
+      food_preferences: { questions: [], answers: fallbackAnswers },
+    }).eq('id', planId).eq('agency_id', agencyId)
+
+    try {
+      log('meals', 'starting (fallback)')
+      const { systemPrompt: mSys, userMessage: mMsg } = buildMealsPrompt({
+        intake: trainee, baseline: bResult.data,
+        foodPreferences: { questions: [], answers: fallbackAnswers },
+      })
+      const mResult = await callSonnet<MealsOutput>({
+        featureTag: FEATURE_TAGS.MEALS, systemPrompt: mSys, tool: mealsTool,
+        userMessage: mMsg, agencyId, maxTokens: 16000,
+        metadata: { trainee_id: traineeId, plan_id: planId },
+      })
+      if (mResult.ok) {
+        const mealsData = mResult.data as Record<string, unknown>
+        await sb.from('koto_fitness_plans').update({
+          meal_plan: mealsData,
+          grocery_list: mealsData.grocery_list ?? null,
+        }).eq('id', planId).eq('agency_id', agencyId)
+        log('meals', 'done (fallback)')
+      } else {
+        errors.push(`meals_fallback: ${mResult.error}`)
+      }
+    } catch (e) {
+      errors.push(`meals_fallback: ${e instanceof Error ? e.message : 'unknown'}`)
+    }
   }
 
   return NextResponse.json({ ok: true, plan_id: planId, errors: errors.length > 0 ? errors : undefined })
