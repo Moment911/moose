@@ -23,6 +23,7 @@ import {
   Activity,
   Trash2,
   Camera,
+  Check,
 } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { FeatureDisabledPanel } from './TrainerListPage'
