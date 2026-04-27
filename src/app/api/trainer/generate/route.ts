@@ -391,7 +391,7 @@ async function handleWorkout(
     roadmap: plan.roadmap as RoadmapOutput,
     phase: phase as 1 | 2 | 3,
   })
-  const result = await callSonnet<WorkoutOutput>({
+  let result = await callSonnet<WorkoutOutput>({
     featureTag: FEATURE_TAGS.WORKOUT,
     systemPrompt,
     tool: workoutTool,
@@ -403,10 +403,26 @@ async function handleWorkout(
     return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
   }
 
-  const shapeErr = assertWorkoutShape(result.data)
+  let shapeErr = assertWorkoutShape(result.data)
   if (shapeErr) {
-    console.error('[trainer/generate] workout shape violation:', shapeErr)
-    return err(502, 'sonnet_shape_violation', { detail: shapeErr })
+    // Retry once — Sonnet shape drift is transient
+    console.warn('[trainer/generate] workout shape violation, retrying:', shapeErr)
+    result = await callSonnet<WorkoutOutput>({
+      featureTag: FEATURE_TAGS.WORKOUT,
+      systemPrompt,
+      tool: workoutTool,
+      userMessage,
+      agencyId,
+      metadata: { trainee_id: traineeId, plan_id: planId, phase, retry: true },
+    })
+    if (!result.ok) {
+      return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
+    }
+    shapeErr = assertWorkoutShape(result.data)
+    if (shapeErr) {
+      console.error('[trainer/generate] workout shape violation after retry:', shapeErr)
+      return err(502, 'sonnet_shape_violation', { detail: shapeErr })
+    }
   }
 
   const { error: updErr } = await sb
@@ -901,7 +917,7 @@ function requireCompleteIntake(trainee: TraineeRow): NextResponse | null {
 function assertWorkoutShape(wp: unknown): string | null {
   const o = wp as { weeks?: unknown } | null
   const weeks = Array.isArray(o?.weeks) ? (o!.weeks as unknown[]) : []
-  if (weeks.length !== 2) return 'weeks must contain exactly 2 entries'
+  if (weeks.length === 0 || weeks.length > 4) return `weeks must contain 1-4 entries, got ${weeks.length}`
   for (const w of weeks) {
     const sessions = (w as { sessions?: unknown } | null)?.sessions
     if (!Array.isArray(sessions) || sessions.length === 0) {
