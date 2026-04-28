@@ -635,7 +635,7 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
           DateStrip selection is local-only for now — there's no per-day data
           to swap into yet. When food-log fetching lands here, the rings
           turn into "actual / target" instead of just showing the target. */}
-      <DateStripWithMacros plan={plan} streakDays={streakDays} />
+      <DateStripWithMacros plan={plan} traineeId={trainee?.id} streakDays={streakDays} />
 
       {/* ══ Plan Sections ══
           Tiles always render. Each flips to ready as its key on `plan` lands;
@@ -749,29 +749,72 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
 }
 
 // DateStripWithMacros — Cal-AI Home top: 7-day date selector + Calories ring
-// + 3-up Macros tile row. The streak data feeds the date strip's selection
-// hint; macro values come from the baseline (target only for now — actuals
-// land when food-log fetching is wired into /my-plan).
-function DateStripWithMacros({ plan, streakDays }) {
+// + 3-up Macros tile row.  Fetches food logs once per visible 7-day window
+// and computes per-day totals; selecting a day swaps which day's totals
+// drive the rings. Activity strip under the date row reflects food-logged
+// days, not workout days (workouts live in their own tab).
+function DateStripWithMacros({ plan, traineeId }) {
   const days = useMemo(() => lastNDays(7), [])
   const [selected, setSelected] = useState(() => new Date())
+  const [perDay, setPerDay] = useState({})  // { 'YYYY-MM-DD': { kcal, p, c, f } }
+  const [loading, setLoading] = useState(false)
+
   const baseline = plan?.baseline || null
   const calTarget = baseline?.calorie_target_kcal ?? null
   const macros = baseline?.macro_targets_g || {}
-  const protein = macros.protein_g ?? null
-  const carbs = macros.carb_g ?? null
-  const fat = macros.fat_g ?? null
-  // Mark logged days subtly under the strip until per-day intake lands here.
-  const loggedKeys = useMemo(() => new Set(streakDays.filter((d) => d.active).map((d) => d.key)), [streakDays])
+  const proteinTarget = macros.protein_g ?? null
+  const carbsTarget = macros.carb_g ?? null
+  const fatTarget = macros.fat_g ?? null
+
+  const fromKey = days[0].toISOString().slice(0, 10)
+  const toKey = days[days.length - 1].toISOString().slice(0, 10)
+
+  // One round-trip per 7-day window. The cancel ref guards against a stale
+  // response landing after an unmount or window change.
+  useEffect(() => {
+    if (!traineeId) return
+    let cancelled = false
+    setLoading(true)
+    fetch('/api/trainer/food-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'list_range', trainee_id: traineeId, from: fromKey, to: toKey }),
+    })
+      .then((r) => r.ok ? r.json() : { logs: [] })
+      .then((data) => {
+        if (cancelled) return
+        const out = {}
+        for (const log of data.logs || []) {
+          const k = log.log_date
+          if (!out[k]) out[k] = { kcal: 0, p: 0, c: 0, f: 0 }
+          out[k].kcal += Number(log.total_kcal || 0)
+          out[k].p += Number(log.total_protein_g || 0)
+          out[k].c += Number(log.total_carb_g || 0)
+          out[k].f += Number(log.total_fat_g || 0)
+        }
+        setPerDay(out)
+      })
+      .catch(() => { if (!cancelled) setPerDay({}) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [traineeId, fromKey, toKey])
+
+  const selectedKey = selected.toISOString().slice(0, 10)
+  const todays = perDay[selectedKey] || { kcal: 0, p: 0, c: 0, f: 0 }
+  const isToday = selectedKey === new Date().toISOString().slice(0, 10)
+
+  // Pct clamps at 1.0 visually so the ring doesn't loop; over-budget shows
+  // up via the value going past target (a future polish: warn color).
+  const pct = (actual, target) => target ? Math.max(0, Math.min(1, actual / target)) : 0
 
   return (
     <section style={{ display: 'grid', gap: 14 }}>
       <DateStrip days={days} selected={selected} onSelect={setSelected} />
-      {/* Tiny activity row under the strip — survives until per-day intake hooks up */}
+      {/* Activity strip — food-logged days for the visible window */}
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px', marginTop: -8 }}>
         {days.map((d) => {
           const k = d.toISOString().slice(0, 10)
-          const logged = loggedKeys.has(k)
+          const logged = perDay[k] && perDay[k].kcal > 0
           return (
             <span key={k} aria-hidden style={{
               flex: 1, height: 4, margin: '0 6px',
@@ -784,25 +827,25 @@ function DateStripWithMacros({ plan, streakDays }) {
 
       {calTarget != null && (
         <RingMetricTile
-          label="Calories"
-          value={calTarget}
-          unit="kcal"
-          pct={0}
+          label={isToday ? 'Calories today' : 'Calories'}
+          value={Math.round(todays.kcal)}
+          unit={`/ ${calTarget} kcal`}
+          pct={pct(todays.kcal, calTarget)}
           color={TK.ink}
-          hint="Logging arrives soon — target only for now"
+          hint={loading ? 'Loading…' : todays.kcal === 0 ? 'Snap a meal photo to start logging' : undefined}
         />
       )}
 
-      {(protein != null || carbs != null || fat != null) && (
+      {(proteinTarget != null || carbsTarget != null || fatTarget != null) && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-          {protein != null && (
-            <RingMetricTile compact label="Protein" value={protein} unit="g" pct={0} color={TK.accentRed} />
+          {proteinTarget != null && (
+            <RingMetricTile compact label="Protein" value={Math.round(todays.p)} unit={`/ ${proteinTarget}g`} pct={pct(todays.p, proteinTarget)} color={TK.accentRed} />
           )}
-          {carbs != null && (
-            <RingMetricTile compact label="Carbs" value={carbs} unit="g" pct={0} color={TK.accent} />
+          {carbsTarget != null && (
+            <RingMetricTile compact label="Carbs" value={Math.round(todays.c)} unit={`/ ${carbsTarget}g`} pct={pct(todays.c, carbsTarget)} color={TK.accent} />
           )}
-          {fat != null && (
-            <RingMetricTile compact label="Fat" value={fat} unit="g" pct={0} color={TK.accentBlue} />
+          {fatTarget != null && (
+            <RingMetricTile compact label="Fat" value={Math.round(todays.f)} unit={`/ ${fatTarget}g`} pct={pct(todays.f, fatTarget)} color={TK.accentBlue} />
           )}
         </div>
       )}
