@@ -132,6 +132,8 @@ export default function TrainerLandingPage() {
 
       <FounderStory />
 
+      <IntegrationsStrip />
+
       <FaqList />
 
       <BottomCta onStart={() => navigate('/start')} />
@@ -1653,6 +1655,62 @@ function FaqList() {
             </details>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+function IntegrationsStrip() {
+  const integrations = [
+    { name: 'Apple Watch', icon: '\u2328' },
+    { name: 'Whoop', icon: '\u26A1' },
+    { name: 'Oura Ring', icon: '\u25CB' },
+    { name: 'Garmin', icon: '\u25B2' },
+    { name: 'Google Fit', icon: '\u2B22' },
+  ]
+  return (
+    <section style={{ padding: `${T.s7}px 24px`, background: T.card }}>
+      <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+        <div style={{
+          fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
+          color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: T.s5,
+        }}>
+          Connects with the tools you already wear
+        </div>
+        <div style={{
+          display: 'flex', justifyContent: 'center', gap: T.s6, flexWrap: 'wrap',
+          alignItems: 'center',
+        }}>
+          {integrations.map((ig) => (
+            <div key={ig.name} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: T.s2,
+            }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: T.rMd,
+                background: T.bg, border: `1px solid ${T.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: T.font, fontSize: 14, fontWeight: T.weight.display, color: T.ink,
+                boxShadow: T.shadowFloater,
+              }}>
+                {ig.name.split(' ').map(w => w[0]).join('')}
+              </div>
+              <span style={{
+                fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.body, color: T.ink2,
+              }}>
+                {ig.name}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p style={{
+          margin: `${T.s5}px auto 0`, maxWidth: 500,
+          fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: T.lh.body,
+          fontWeight: T.weight.body, color: T.ink3,
+        }}>
+          Your sleep, heart rate, recovery score, and activity data flow
+          straight into your AI coach -- so your plan adjusts based on
+          what your body is actually doing, not just what you told it.
+        </p>
       </div>
     </section>
   )
