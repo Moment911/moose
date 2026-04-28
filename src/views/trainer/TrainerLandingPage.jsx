@@ -15,81 +15,82 @@ const SPORTS = [
 const FEATURES = [
   {
     icon: MessageCircle,
-    title: 'AI Coach Chat',
-    desc: "Have a real conversation with your coach. It learns your sport, your goals, and your schedule, then builds a plan that fits your life.",
+    title: 'Your AI Trainer',
+    desc: 'Have a real conversation any time. Tell it what\'s working, what\'s sore, what got in the way this week — your training and your diet pivot in real time. No waiting for the next check-in.',
     color: '#0071e3',
   },
   {
-    icon: Dumbbell,
-    title: 'Custom Workouts',
-    desc: 'Periodized training blocks for your sport. Log every set, every rep. The program adapts to what you actually do.',
-    color: '#7c3aed',
-  },
-  {
     icon: Utensils,
-    title: 'Meal Plans + Food Tracking',
-    desc: "Macros that hit your numbers with food you'll actually eat. Snap a photo and the AI counts calories instantly.",
+    title: 'Your AI Nutritionist',
+    desc: "Macros that hit your numbers with food you'll actually eat. Snap a photo of any meal and the AI logs calories and macros instantly.",
     color: '#059669',
   },
   {
+    icon: Target,
+    title: 'Your AI Sport Expert',
+    desc: 'PhD-level periodization for fifteen sports plus a general-fitness mode. Sport-specific cues, season-aware programming, and the lift numbers that actually matter for what you play.',
+    color: '#0891b2',
+  },
+  {
+    icon: Dumbbell,
+    title: 'Workouts you can log',
+    desc: 'Tap to log every set and rep. The program adapts to what you actually do, not what was prescribed in a vacuum.',
+    color: '#7c3aed',
+  },
+  {
     icon: TrendingUp,
-    title: 'Progress Charts',
-    desc: 'Body weight, lift volume, sprint times, sport-specific measurables. See the trends that matter, when they matter.',
+    title: 'Progress that proves it',
+    desc: 'Body weight, lift volume, sprint times, sport measurables, macro adherence. See the trends, not just the numbers.',
     color: '#dc2626',
   },
   {
     icon: BookOpen,
-    title: 'Learn Section',
-    desc: 'Every training term explained in plain English. No jargon, no confusion. Built for athletes, not coaches.',
+    title: 'Built for every level',
+    desc: 'A sixteen-year-old chasing college recruiting. A forty-year-old getting back in shape. A retired postal worker who just wants to walk five miles again. The AI meets you exactly where you are.',
     color: '#d97706',
-  },
-  {
-    icon: Target,
-    title: 'ProPath Score',
-    desc: 'Targeting college? See which programs fit your measurables and academics. Dream, target, and safety schools, ranked.',
-    color: '#0891b2',
   },
 ]
 
 const TESTIMONIAL_STATS = [
   { value: '6', label: 'Plan sections, generated in minutes' },
   { value: '15+', label: 'Sports, each with its own playbook' },
-  { value: '100%', label: 'Personalized to your sport & goals' },
-  { value: '24/7', label: 'AI coach in your pocket' },
+  { value: '100%', label: 'Personalized to your goals & body' },
+  { value: '24/7', label: 'Your AI is ready when you are' },
 ]
 
-// TODO: replace with real coach + athlete quotes once we have permission.
+// MOCKUP: testimonials span the audience range — youth athlete, mid-career
+// professional, retiree. Replace with real quotes once we have permission.
 // Avatars use i.pravatar.cc seeded so the same fake face renders every load.
 const TESTIMONIALS = [
-  { quote: "I've coached high school baseball for fifteen years. Koto built a 90-day plan for one of my pitchers in three minutes that I would've billed at twelve hours.", name: 'Coach Mike R.', role: 'Pitching Coach, Texas', avatar: 'https://i.pravatar.cc/120?u=koto-coach-mike' },
-  { quote: 'My daughter plays club volleyball year-round. The AI built around her tournament schedule, not against it. She PR’d her vertical in six weeks.', name: 'Jen K.', role: 'Parent of D1-track athlete', avatar: 'https://i.pravatar.cc/120?u=koto-parent-jen' },
-  { quote: 'I run a small training studio. Koto is the first AI tool that doesn’t feel like a generic chatbot wearing a fitness costume.', name: 'Devon T.', role: 'Owner, Apex Performance', avatar: 'https://i.pravatar.cc/120?u=koto-owner-devon' },
+  { quote: "I'm sixteen and I never knew how to actually train. Two months in I added six miles per hour to my fastball and dropped my sixty by half a second. The AI just answers when I ask.", name: 'Marcus T., 16', role: 'High school RHP', avatar: 'https://i.pravatar.cc/120?u=koto-athlete-marcus' },
+  { quote: "Forty-three, three kids, desk job, hadn't trained in fifteen years. I gave it twenty minutes one Sunday and it built a plan I could actually do at lunch. Down twenty-two pounds in five months.", name: 'Renee D., 43', role: 'Operations manager', avatar: 'https://i.pravatar.cc/120?u=koto-user-renee' },
+  { quote: 'After I retired I started feeling old fast. Koto built me strength and walking workouts that match what my body can do today, not twenty years ago. I feel better at sixty-four than I did at fifty-four.', name: 'Hank P., 64', role: 'Retired postal worker', avatar: 'https://i.pravatar.cc/120?u=koto-user-hank' },
 ]
 
 const FAQS = [
   {
+    q: 'Do I need to be an athlete to use this?',
+    a: "No. The AI builds plans for whoever you are, in whatever shape you're in. We have sixteen-year-olds chasing college recruiting and sixty-year-olds getting back to walking five miles a day. Same product, different plans.",
+  },
+  {
     q: 'How does the AI know my sport?',
-    a: 'During the 2-minute intake, you tell us your sport, position, level, and goals. The AI loads a sport-specific playbook (energy systems, common movement patterns, in-season vs off-season periodization) and writes your plan against that, not a generic template.',
+    a: 'During the two-minute intake, you tell us your sport, position, level, and goals. The AI loads a sport-specific playbook (energy systems, common movement patterns, in-season vs off-season periodization) and writes your plan against that, not a generic template. If you don\'t play a sport, general-fitness mode covers strength, cardio, and mobility for everyday life.',
   },
   {
     q: 'Is my health data safe?',
-    a: "Your data lives in your account, encrypted at rest. We don’t sell it, we don’t share it, and we never train public models on it. Coaches you invite see only what you share with them.",
-  },
-  {
-    q: 'Can I use it without a coach?',
-    a: 'Yes. The default mode is athlete-first: you sign up, you get your plan, you train. If you have a coach, you can invite them and they get a read-only view plus a chat thread to leave notes.',
+    a: 'Your data lives in your account, encrypted at rest. We don\'t sell it, we don\'t share it, and we never train public models on it. Anyone you invite to view your plan (a parent helping their kid stay on track, for example) sees only what you share with them.',
   },
   {
     q: 'What sports are supported?',
-    a: 'Today: baseball, football, basketball, soccer, track & field, swimming, wrestling, volleyball, tennis, golf, hockey, lacrosse, CrossFit, MMA, and a general-fitness mode. We add a new sport every couple of weeks based on what athletes ask for.',
+    a: 'Today: baseball, football, basketball, soccer, track & field, swimming, wrestling, volleyball, tennis, golf, hockey, lacrosse, CrossFit, MMA, plus a general-fitness mode. We add a new sport every couple of weeks based on what athletes ask for.',
   },
   {
     q: 'How much does it cost?',
-    a: 'Free to start. You get the full intake, your baseline plan, your first 14 days of workouts, and a 90-day roadmap at no cost. Continued access and unlimited coach chat are part of a paid plan we’ll detail at the end of your trial.',
+    a: 'Free to start. You get the full intake, your baseline plan, your first fourteen days of workouts, and a ninety-day roadmap at no cost. Continued access is part of a paid plan we\'ll detail at the end of your trial.',
   },
   {
     q: 'Do you have a free trial?',
-    a: 'The first 14 days are free with no credit card. Cancel from your profile any time before then. After 14 days you decide whether to stay on.',
+    a: 'The first fourteen days are free with no credit card. Cancel from your profile any time before then. After fourteen days you decide whether to stay on.',
   },
 ]
 
@@ -196,9 +197,9 @@ function TopNav({ onSignIn, onStart }) {
 }
 
 function Hero({ onStart }) {
-  const trust = ['PhD-trained AI', 'Multi-sport', '$0 to start']
+  const trust = ['PhD-trained AI', 'Built for every level', '$0 to start']
   return (
-    <section style={{
+    <section className="koto-hero" style={{
       maxWidth: HERO_MAX, margin: '0 auto',
       padding: '64px 24px 48px',
       display: 'grid',
@@ -212,8 +213,17 @@ function Hero({ onStart }) {
           .koto-hero-h1 { font-size: 72px !important; line-height: 1.02 !important; }
           .koto-hero-sub { font-size: 19px !important; }
         }
+        @keyframes koto-float {
+          0%,100% { transform: translateY(0) rotate(-3.5deg); }
+          50%     { transform: translateY(-10px) rotate(-3.5deg); }
+        }
+        @keyframes koto-glow {
+          0%,100% { opacity: 0.55; transform: scale(1); }
+          50%     { opacity: 0.9;  transform: scale(1.05); }
+        }
+        .koto-hero-phone { animation: koto-float 7s ease-in-out infinite; }
+        .koto-hero-glow { animation: koto-glow 7s ease-in-out infinite; }
       `}</style>
-      <div className="koto-hero" style={{ display: 'contents' }} />
 
       <div>
         <h1
@@ -228,9 +238,11 @@ function Hero({ onStart }) {
             color: T.ink,
           }}
         >
-          Train smarter,
+          Your AI trainer,
           <br />
-          for any sport.
+          nutritionist, and
+          <br />
+          sport expert.
         </h1>
         <p
           className="koto-hero-sub"
@@ -244,8 +256,9 @@ function Hero({ onStart }) {
             color: T.ink3,
           }}
         >
-          Custom workouts, meal plans, and a personal AI coach that knows your sport
-          inside-out. Built for athletes, parents, and the coaches who train them.
+          Tell it what&rsquo;s working, what&rsquo;s sore, what&rsquo;s getting in the way — your plan
+          and your diet pivot in real time. Whether you&rsquo;re a youth athlete chasing college
+          or a retired postal worker getting back to walking five miles, your plan starts in two minutes.
         </p>
 
         <div style={{ marginTop: T.s7, maxWidth: 320 }}>
@@ -282,26 +295,26 @@ function Hero({ onStart }) {
         </div>
       </div>
 
-      {/* MOCKUP: fake-people via pravatar.cc — swap for a real shoot pre-launch.
-          IMAGE PROMPT (Midjourney/DALL-E) for the real version:
-          "Editorial photo of a 19-year-old multi-sport athlete looking down at
-           an iPhone showing a fitness app — soft morning gym light, faint
-           parquet floor reflection, cool gray + warm tan color grade matching
-           Apple Health aesthetic, shallow depth of field, photorealistic, no
-           visible logos, 4:5 vertical aspect ratio." */}
+      {/* Hero phone — tilted, gently floating, with a soft warm glow behind.
+          Reuses PhoneFrame + PhoneScreenHome so the mockup matches the
+          showcase band lower on the page. */}
       <div style={{
         position: 'relative',
-        width: '100%', aspectRatio: '4 / 5',
-        borderRadius: T.rXl,
-        overflow: 'hidden',
-        boxShadow: T.shadowFloater,
-        background: T.card,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: 480,
       }}>
-        <img
-          src="https://i.pravatar.cc/720?u=koto-hero-athlete"
-          alt="Koto athlete using the app"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
+        <div className="koto-hero-glow" aria-hidden style={{
+          position: 'absolute', inset: 0, margin: 'auto',
+          width: '78%', height: '60%',
+          background: 'radial-gradient(closest-side, rgba(216,154,106,0.28), transparent 70%)',
+          filter: 'blur(20px)',
+          pointerEvents: 'none',
+        }} />
+        <div className="koto-hero-phone" style={{ position: 'relative', maxWidth: 280, width: '100%' }}>
+          <PhoneFrame>
+            <PhoneScreenHome />
+          </PhoneFrame>
+        </div>
       </div>
     </section>
   )
@@ -492,6 +505,21 @@ function FeaturesGrid() {
           </p>
         </div>
 
+        <style>{`
+          .koto-feature-card {
+            transition: transform .25s ease, box-shadow .25s ease;
+          }
+          .koto-feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+          }
+          .koto-feature-icon {
+            transition: transform .25s ease;
+          }
+          .koto-feature-card:hover .koto-feature-icon {
+            transform: scale(1.08) rotate(-3deg);
+          }
+        `}</style>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -500,6 +528,7 @@ function FeaturesGrid() {
           {FEATURES.map((f) => (
             <div
               key={f.title}
+              className="koto-feature-card"
               style={{
                 background: T.card,
                 borderRadius: T.rLg,
@@ -507,7 +536,7 @@ function FeaturesGrid() {
                 display: 'flex', flexDirection: 'column', gap: T.s3,
               }}
             >
-              <div style={{
+              <div className="koto-feature-icon" style={{
                 width: 48, height: 48, borderRadius: T.rSm,
                 background: f.color + '18',
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -882,9 +911,9 @@ function SocialProof() {
             letterSpacing: '-0.025em',
             fontWeight: T.weight.display, color: T.ink,
           }}>
-            Coaches and parents,
+            From sixteen
             <br />
-            in their words.
+            to sixty-four.
           </h2>
         </div>
 
@@ -1072,7 +1101,7 @@ function BottomCta({ onStart }) {
           fontSize: T.size.body, lineHeight: T.lh.body,
           fontWeight: T.weight.body, color: 'rgba(255,255,255,0.65)',
         }}>
-          Free to start, no card required. Your AI coach is ready when you are.
+          Free to start, no card required. Your AI is ready when you are.
         </p>
 
         <div style={{ marginTop: T.s7, display: 'flex', justifyContent: 'center' }}>
@@ -1166,7 +1195,7 @@ function FooterStrip() {
         fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.body,
         color: T.ink4, lineHeight: 1.5,
       }}>
-        Koto Trainer is an AI coach, not a doctor or licensed professional.
+        Koto Trainer is AI, not a doctor or licensed medical professional.
         This is not medical advice. Always consult a physician before starting a new training program.
         <div style={{ marginTop: T.s3, color: T.ink3 }}>
           &copy; {new Date().getFullYear()} Koto, Inc.
