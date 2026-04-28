@@ -210,11 +210,13 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
       display: 'flex',
       flexDirection: 'column',
       background: '#fff',
-      border: '1px solid #e5e7eb',
-      borderRadius: 12,
+      border: `1px solid ${TK.border}`,
+      borderRadius: TK.rMd,
       overflow: 'hidden',
       height: '100%',
       minHeight: 500,
+      width: '100%',
+      boxSizing: 'border-box',
     }}>
       {/* Header */}
       <div style={{
@@ -267,35 +269,57 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
         )}
       </div>
 
-      {/* Suggested replies — full-width OptionListCards (Cal-AI blend).
-          Single-tap auto-send for ≤3 simple options (yes/no, low-cardinality);
-          otherwise multi-select + dedicated send button. */}
+      {/* Suggested reply pills — compact, responsive, multi-select */}
       {suggestedReplies.length > 0 && !streaming && (
-        <div style={{ padding: '12px 12px 8px', borderTop: `1px solid ${TK.border}`, display: 'grid', gap: 8 }}>
-          {suggestedReplies.map((reply, i) => {
-            const selected = selectedPills.includes(reply)
-            return (
-              <OptionListCard
-                key={i}
-                variant="quiz"
-                label={reply}
-                selected={selected}
-                onClick={() => {
-                  if (suggestedReplies.length <= 3 && !selectedPills.length) {
-                    handleSend(reply)
-                  } else {
-                    togglePill(reply)
-                  }
-                }}
-              />
-            )
-          })}
+        <div style={{ padding: '10px 14px 6px', borderTop: `1px solid ${TK.border}` }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {suggestedReplies.map((reply, i) => {
+              const selected = selectedPills.includes(reply)
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    if (suggestedReplies.length <= 3 && !selectedPills.length) {
+                      handleSend(reply)
+                    } else {
+                      togglePill(reply)
+                    }
+                  }}
+                  style={{
+                    padding: '8px 14px',
+                    background: selected ? TK.ink : TK.card,
+                    color: selected ? '#fff' : TK.ink,
+                    border: `1.5px solid ${selected ? TK.ink : TK.border}`,
+                    borderRadius: 20,
+                    fontSize: 14,
+                    fontWeight: selected ? 600 : 500,
+                    fontFamily: TK.font,
+                    cursor: 'pointer',
+                    transition: 'all .12s',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {selected ? '\u2713 ' : ''}{reply}
+                </button>
+              )
+            })}
+          </div>
           {selectedPills.length > 0 && (
-            <div style={{ marginTop: 4 }}>
-              <PrimaryCTA pinned={false} onClick={sendSelectedPills}>
-                Send ({selectedPills.length} selected)
-              </PrimaryCTA>
-            </div>
+            <button
+              type="button"
+              onClick={sendSelectedPills}
+              style={{
+                marginTop: 8, width: '100%',
+                padding: '10px 16px',
+                background: TK.ink, color: '#fff',
+                border: 'none', borderRadius: 10,
+                fontSize: 14, fontWeight: 600,
+                fontFamily: TK.font, cursor: 'pointer',
+              }}
+            >
+              Send ({selectedPills.length} selected)
+            </button>
           )}
         </div>
       )}
