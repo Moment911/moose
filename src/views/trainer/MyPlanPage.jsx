@@ -26,6 +26,7 @@ import MealPlanTable from '../../components/trainer/MealPlanTable'
 import GroceryList from '../../components/trainer/GroceryList'
 import TraineeDisclaimerAckModal from './TraineeDisclaimerAckModal'
 import NoneOrText from '../../components/trainer/NoneOrText'
+import { DateStrip, RingMetricTile, lastNDays, T as TK } from '../../components/trainer/aesthetic'
 import {
   PRIMARY_GOALS,
   EQUIPMENT_ACCESS,
@@ -619,23 +620,11 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
         </div>
       )}
 
-      {/* ══ Streak ══ */}
-      <Card style={{ padding: '16px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontSize: 15, fontWeight: 600, color: A.ink }}>This week</span>
-          <span style={{ fontSize: 13, color: A.ink3 }}>{streakDays.filter((d) => d.active).length} of 7</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          {streakDays.map((d) => (
-            <div key={d.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 999, background: d.active ? A.green : 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {d.active && <Check size={16} color="#fff" strokeWidth={2.5} />}
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: d.active ? A.ink2 : A.ink3 }}>{d.label}</span>
-            </div>
-          ))}
-        </div>
-      </Card>
+      {/* ══ DateStrip + daily macros (Cal-AI Home language) ══
+          DateStrip selection is local-only for now — there's no per-day data
+          to swap into yet. When food-log fetching lands here, the rings
+          turn into "actual / target" instead of just showing the target. */}
+      <DateStripWithMacros plan={plan} streakDays={streakDays} />
 
       {/* ══ Plan Sections ══
           Tiles always render. Each flips to ready as its key on `plan` lands;
@@ -745,6 +734,68 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
         </div>
       )}
     </div>
+  )
+}
+
+// DateStripWithMacros — Cal-AI Home top: 7-day date selector + Calories ring
+// + 3-up Macros tile row. The streak data feeds the date strip's selection
+// hint; macro values come from the baseline (target only for now — actuals
+// land when food-log fetching is wired into /my-plan).
+function DateStripWithMacros({ plan, streakDays }) {
+  const days = useMemo(() => lastNDays(7), [])
+  const [selected, setSelected] = useState(() => new Date())
+  const baseline = plan?.baseline || null
+  const calTarget = baseline?.calorie_target_kcal ?? null
+  const macros = baseline?.macro_targets_g || {}
+  const protein = macros.protein_g ?? null
+  const carbs = macros.carb_g ?? null
+  const fat = macros.fat_g ?? null
+  // Mark logged days subtly under the strip until per-day intake lands here.
+  const loggedKeys = useMemo(() => new Set(streakDays.filter((d) => d.active).map((d) => d.key)), [streakDays])
+
+  return (
+    <section style={{ display: 'grid', gap: 14 }}>
+      <DateStrip days={days} selected={selected} onSelect={setSelected} />
+      {/* Tiny activity row under the strip — survives until per-day intake hooks up */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px', marginTop: -8 }}>
+        {days.map((d) => {
+          const k = d.toISOString().slice(0, 10)
+          const logged = loggedKeys.has(k)
+          return (
+            <span key={k} aria-hidden style={{
+              flex: 1, height: 4, margin: '0 6px',
+              background: logged ? TK.accent : 'transparent',
+              borderRadius: 2,
+            }} />
+          )
+        })}
+      </div>
+
+      {calTarget != null && (
+        <RingMetricTile
+          label="Calories"
+          value={calTarget}
+          unit="kcal"
+          pct={0}
+          color={TK.ink}
+          hint="Logging arrives soon — target only for now"
+        />
+      )}
+
+      {(protein != null || carbs != null || fat != null) && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {protein != null && (
+            <RingMetricTile compact label="Protein" value={protein} unit="g" pct={0} color={TK.accentRed} />
+          )}
+          {carbs != null && (
+            <RingMetricTile compact label="Carbs" value={carbs} unit="g" pct={0} color={TK.accent} />
+          )}
+          {fat != null && (
+            <RingMetricTile compact label="Fat" value={fat} unit="g" pct={0} color={TK.accentBlue} />
+          )}
+        </div>
+      )}
+    </section>
   )
 }
 
