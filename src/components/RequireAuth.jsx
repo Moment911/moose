@@ -17,8 +17,8 @@ export default function RequireAuth({ children }) {
   const isPublic = PUBLIC_ROUTES.some(r => location.pathname.startsWith(r))
   if (isPublic) return children
 
-  // Not logged in and not loading — redirect to login
-  if (!loading && !user) return <Navigate to="/login" state={{ from: location.pathname }} replace/>
+  // Not logged in and not loading — redirect to login (preserve full URL including query params)
+  if (!loading && !user) return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace/>
 
   // ALWAYS render children so their hooks are called consistently.
   // Show a loading overlay on top while auth is loading.

@@ -400,16 +400,49 @@ export default function KotoIQPage() {
   const { agencyId } = useAuth()
   const navigate = useNavigate()
   // Tab persisted in URL so refresh keeps position
-  const [tab, setTab] = (() => {
-    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
-    const initial = params?.get('tab') || 'dashboard'
-    const [t, setter] = useState(initial)
-    const wrappedSet = (v) => { setter(v); const url = new URL(window.location.href); url.searchParams.set('tab', v); window.history.replaceState({}, '', url.toString()) }
-    return [t, wrappedSet]
-  })()
+  // Tab state — synced with URL query param, supports browser back/forward
+  const initialTab = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') || 'dashboard' : 'dashboard'
+  const [tab, setTabRaw] = useState(initialTab)
+  const isPopRef = useRef(false)
+  const setTab = useCallback((v) => {
+    setTabRaw(v)
+    if (!isPopRef.current) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('tab', v)
+      window.history.pushState({ tab: v }, '', url.toString())
+    }
+    isPopRef.current = false
+  }, [])
+
+  // Browser back/forward restores the tab without pushing a new history entry
+  useEffect(() => {
+    const handlePop = () => {
+      const p = new URLSearchParams(window.location.search)
+      isPopRef.current = true
+      setTab(p.get('tab') || 'dashboard')
+    }
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  }, [setTab])
   const [collapsedGroups, setCollapsedGroups] = useState({})
   const toggleGroup = (g) => setCollapsedGroups(prev => ({ ...prev, [g]: !prev[g] }))
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const scrollRef = useRef(null)
+  const scrollPositions = useRef({})
+
+  // Save scroll position when switching tabs, restore when coming back
+  const prevTabRef = useRef(tab)
+  useEffect(() => {
+    if (prevTabRef.current !== tab) {
+      // Save previous tab's scroll position
+      if (scrollRef.current) scrollPositions.current[prevTabRef.current] = scrollRef.current.scrollTop
+      // Restore new tab's scroll position (or scroll to top)
+      requestAnimationFrame(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = scrollPositions.current[tab] || 0
+      })
+      prevTabRef.current = tab
+    }
+  }, [tab])
   const [loading, setLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [portfolio, setPortfolio] = useState(null)
@@ -1143,7 +1176,7 @@ export default function KotoIQPage() {
           )}
 
           {/* ── Scrollable Content ────────────────────────────────── */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
+          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
 
           {/* ── MISSION CONTROL — always shows on dashboard tab ── */}
           {clientId && tab === 'dashboard' && (
