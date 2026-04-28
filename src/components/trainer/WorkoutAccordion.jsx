@@ -342,23 +342,49 @@ function ExerciseRow({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggle
     setRows.push(i)
   }
 
+  // Compute best weight (PR) and last-logged weight for this exercise
+  const allLogsForExercise = []
+  logIndex.forEach((log, key) => {
+    if (key.includes(`|${exercise_id}|`)) allLogsForExercise.push(log)
+  })
+  const bestWeightKg = allLogsForExercise.reduce((max, log) => {
+    const w = Number(log.actual_weight_kg) || 0
+    return w > max ? w : max
+  }, 0)
+  const bestWeightLbs = bestWeightKg > 0 ? Math.round(bestWeightKg * 2.20462) : 0
+  const loggedSets = allLogsForExercise.length
+  const totalSets = Number(sets) || 0
+
   return (
     <div
       style={{
         border: `1px solid ${BRD_LT}`,
-        borderRadius: 8,
-        padding: '12px 14px',
+        borderRadius: 10,
+        padding: '14px 16px',
         marginBottom: 10,
-        background: '#fafbfd',
+        background: '#fff',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <div>
-          <div style={{ color: BLK, fontSize: 14, fontWeight: 700 }}>{name}</div>
-          <div style={{ color: GRY7, fontSize: 12, marginTop: 2 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ color: BLK, fontSize: 15, fontWeight: 700 }}>{name}</div>
+          <div style={{ color: GRY7, fontSize: 13, marginTop: 3 }}>
             {sets} × {target_reps || '—'}
             {target_weight_kg_or_cue ? ` @ ${target_weight_kg_or_cue}` : ''}
             {rest_seconds ? ` · rest ${rest_seconds}s` : ''}
+          </div>
+          {/* PR + progress indicators */}
+          <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+            {bestWeightLbs > 0 && (
+              <span style={{ padding: '2px 8px', background: '#fef3c7', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#92400e' }}>
+                PR: {bestWeightLbs} lbs
+              </span>
+            )}
+            {loggedSets > 0 && (
+              <span style={{ padding: '2px 8px', background: loggedSets >= totalSets ? '#dcfce7' : '#f1f5f9', borderRadius: 999, fontSize: 11, fontWeight: 700, color: loggedSets >= totalSets ? '#065f46' : GRY5 }}>
+                {loggedSets}/{totalSets} sets logged
+              </span>
+            )}
           </div>
         </div>
         <button
@@ -445,7 +471,7 @@ function ExerciseRow({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggle
             <thead>
               <tr style={{ borderBottom: `1px solid ${BRD}` }}>
                 <Th w={40}>Set</Th>
-                <Th>Weight (kg)</Th>
+                <Th>Weight (lbs)</Th>
                 <Th>Reps</Th>
                 <Th>RPE</Th>
                 <Th>Notes</Th>
@@ -482,7 +508,11 @@ function ExerciseRow({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggle
 }
 
 function SetRow({ setNumber, dayNum, exerciseId, exerciseName, existing, onLogSet }) {
-  const [weight, setWeight] = useState(existing?.actual_weight_kg ?? '')
+  // Display in lbs, store in kg. 1 kg = 2.20462 lbs
+  const kgToLbs = (kg) => kg != null ? Math.round(kg * 2.20462) : ''
+  const lbsToKg = (lbs) => lbs !== '' && lbs != null ? Number(lbs) / 2.20462 : null
+
+  const [weight, setWeight] = useState(kgToLbs(existing?.actual_weight_kg))
   const [reps, setReps] = useState(existing?.actual_reps ?? '')
   const [rpe, setRpe] = useState(existing?.rpe ?? '')
   const [notes, setNotes] = useState(existing?.notes ?? '')
@@ -490,7 +520,7 @@ function SetRow({ setNumber, dayNum, exerciseId, exerciseName, existing, onLogSe
   const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
-    setWeight(existing?.actual_weight_kg ?? '')
+    setWeight(kgToLbs(existing?.actual_weight_kg))
     setReps(existing?.actual_reps ?? '')
     setRpe(existing?.rpe ?? '')
     setNotes(existing?.notes ?? '')
@@ -512,18 +542,21 @@ function SetRow({ setNumber, dayNum, exerciseId, exerciseName, existing, onLogSe
         exercise_id: exerciseId,
         exercise_name: exerciseName,
         set_number: setNumber,
-        actual_weight_kg: weight === '' ? null : Number(weight),
+        actual_weight_kg: lbsToKg(weight),
         actual_reps: Number(reps),
         rpe: rpe === '' ? null : Number(rpe),
         notes: notes || null,
         existing_log_id: existing?.log_id || null,
       })
       setDirty(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
     } finally {
       setSaving(false)
     }
   }
 
+  const [saved, setSaved] = useState(false)
   const logged = !!existing
   return (
     <tr style={{ borderBottom: `1px solid ${BRD_LT}` }}>
@@ -577,7 +610,9 @@ function SetRow({ setNumber, dayNum, exerciseId, exerciseName, existing, onLogSe
             onBlur={commit}
             style={{ ...cellInput, minWidth: 120 }}
           />
-          {saving && <Loader2 size={12} color={GRY5} />}
+          {saving && <Loader2 size={12} color={GRY5} style={{ animation: 'spin 1s linear infinite' }} />}
+          {saved && <span style={{ fontSize: 11, fontWeight: 700, color: GRN }}>Saved</span>}
+          <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
         </div>
       </td>
     </tr>
