@@ -584,24 +584,32 @@ function LivePlanBuilder() {
             fontSize: 'clamp(32px, 5.5vw, 48px)', lineHeight: 1.08,
             letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
-            Tell it who you are.
+            Every person gets
             <br />
-            It builds your plan.
+            a different plan.
           </h2>
           <p style={{
             margin: `${T.s4}px auto 0`, maxWidth: 580,
             fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            Every plan is different because every person is different.
-            Pick a persona below and click through their full AI-generated program.
+            A busy mom, a high school pitcher, and a retired teacher walk into the
+            same app  --  and get completely different programs. Tap any persona
+            below to see the full plan the AI built for them.
           </p>
         </div>
 
         {/* Persona tabs */}
+        <div style={{
+          fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
+          color: T.ink3, textAlign: 'center', marginBottom: T.s3,
+          letterSpacing: '0.06em', textTransform: 'uppercase',
+        }}>
+          Tap a persona to see their plan
+        </div>
         <div className="koto-persona-tabs" style={{
           display: 'flex', gap: 6, overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-          paddingBottom: T.s3, marginBottom: T.s5,
+          paddingBottom: T.s3, marginBottom: T.s5, justifyContent: 'center',
         }}>
           <style>{'.koto-persona-tabs::-webkit-scrollbar{display:none}'}</style>
           {PERSONAS.map((p, i) => {
@@ -1435,7 +1443,7 @@ function SocialProof() {
           <div style={{
             fontFamily: T.font,
             fontSize: 'clamp(80px, 15vw, 120px)', fontWeight: T.weight.display,
-            letterSpacing: '-0.04em', color: T.accent, lineHeight: 1,
+            letterSpacing: '-0.04em', color: '#fff', lineHeight: 1,
             marginBottom: T.s3,
           }}>
             24/7
@@ -1465,8 +1473,8 @@ function SocialProof() {
           }}>
             <style>{`@media(max-width:640px){.koto-stats-row{grid-template-columns:1fr!important;}}`}</style>
             {[
-              { val: '2 min', title: 'First conversation to full plan', desc: 'Answer a few questions. Get a complete personalized program.' },
-              { val: '15+', title: 'Sports and goals supported', desc: 'From baseball to weight loss to active aging. Each one gets its own AI-built program.' },
+              { val: 'Minutes', title: 'From conversation to complete plan', desc: 'Tell it about you. It builds your entire program while you watch.' },
+              { val: 'Any', title: 'Sport, goal, or lifestyle', desc: 'Athletes, parents, students, executives, retirees. It builds for whoever you are.' },
               { val: '$0', title: 'Free to start, no card required', desc: 'Your first plan, your first 14 days, your first real results. On us.' },
             ].map((s) => (
               <div key={s.val} style={{ textAlign: 'center', padding: `0 ${T.s3}px` }}>
@@ -1873,16 +1881,17 @@ function TryItDemo() {
             fontSize: 'clamp(32px, 5.5vw, 48px)', lineHeight: 1.08,
             letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
-            Try your AI coach.
+            Have a conversation
             <br />
-            Right now.
+            with your AI. Right now.
           </h2>
           <p style={{
-            margin: `${T.s3}px auto 0`, maxWidth: 460,
+            margin: `${T.s3}px auto 0`, maxWidth: 500,
             fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            No sign-up. No email. Just pick your coach and start talking.
+            This is real. Pick a coach, tell them your sport or your goal, and
+            watch the AI respond in real time. No sign-up. No email. Just talk.
           </p>
         </div>
 
