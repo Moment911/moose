@@ -54,6 +54,8 @@ const ALLOWED_ACTIONS = [
   'log_body_measurements',
   'get_insights',
   'generate_weekly_insight',
+  'get_weight_history',
+  'log_weight',
 ] as const
 
 type Action = (typeof ALLOWED_ACTIONS)[number]
@@ -142,6 +144,8 @@ export async function POST(req: NextRequest) {
     if (action === 'log_body_measurements') return handleTrainerMeasurements(sb, agencyId, body, 'log')
     if (action === 'get_insights') return handleTrainerInsights(sb, agencyId, body, 'get')
     if (action === 'generate_weekly_insight') return handleTrainerInsights(sb, agencyId, body, 'generate')
+    if (action === 'get_weight_history') return handleTrainerWeight(sb, agencyId, body, 'get')
+    if (action === 'log_weight') return handleTrainerWeight(sb, agencyId, body, 'log')
     return err(400, 'Unknown action')
   } catch (e) {
     // Don't leak internal details to the client
@@ -422,4 +426,33 @@ async function handleTrainerInsights(sb: SupabaseClient, agencyId: string, body:
     await sb.from('koto_fitness_ai_insights').insert({ agency_id: agencyId, trainee_id: traineeId, week_of: new Date().toISOString().slice(0,10), summary: ins.summary||'', whats_working: ins.whats_working||[], needs_attention: ins.needs_attention||[], plan_changes: ins.plan_changes||[], data_snapshot: snapshot, model: 'haiku' })
     return NextResponse.json({ insight: ins })
   } catch { return err(502, 'AI failed') }
+}
+
+async function handleTrainerWeight(sb: SupabaseClient, agencyId: string, body: Record<string, unknown>, mode: 'get' | 'log') {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+  if (mode === 'get') {
+    const { data } = await sb
+      .from('koto_fitness_progress')
+      .select('id, weight_kg, notes, checked_in_at, created_at')
+      .eq('trainee_id', traineeId)
+      .eq('agency_id', agencyId)
+      .order('checked_in_at', { ascending: true })
+      .limit(100)
+    return NextResponse.json({ weight_history: data ?? [] })
+  }
+  // log
+  const weightKg = Number(body.weight_kg)
+  if (!Number.isFinite(weightKg) || weightKg <= 0) return err(400, 'weight_kg must be a positive number')
+  const notes = typeof body.notes === 'string' ? body.notes : null
+  const { data, error: insErr } = await sb
+    .from('koto_fitness_progress')
+    .insert({ agency_id: agencyId, trainee_id: traineeId, weight_kg: weightKg, notes, checked_in_at: new Date().toISOString() })
+    .select('id')
+    .single()
+  if (insErr) {
+    console.error('[trainer/trainees] log_weight error:', insErr.message)
+    return err(500, 'Save failed')
+  }
+  return NextResponse.json({ id: (data as { id: string }).id }, { status: 201 })
 }

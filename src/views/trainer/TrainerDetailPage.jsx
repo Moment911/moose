@@ -900,7 +900,7 @@ export default function TrainerDetailPage() {
 
   return (
     <TrainerPortalShell>
-      <div style={{ padding: '24px 24px 40px', maxWidth: 800, margin: '0 auto', width: '100%', fontFamily: CAL.font }}>
+      <div style={{ padding: '24px 32px 40px', width: '100%', fontFamily: CAL.font }}>
         <Link
           to="/trainer"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: BLUE, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 12 }}
@@ -1498,11 +1498,113 @@ function OverviewTab({
           <div style={{ marginTop: 24, marginBottom: 12 }}>
             <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: CAL.ink, fontFamily: CAL.font }}>Progress & Tracking</h3>
           </div>
+          <TrainerWeightHistory traineeId={traineeId} agencyId={agencyId} />
           <TrainerAIInsight traineeId={traineeId} agencyId={agencyId} />
           <TrainerProgressPhotos traineeId={traineeId} agencyId={agencyId} />
           <TrainerBodyMeasurements traineeId={traineeId} agencyId={agencyId} />
         </>
       )}
+    </div>
+  )
+}
+
+// ── Weight History (trainer-side) ─────────────────────────────────────────
+
+function TrainerWeightHistory({ traineeId, agencyId }) {
+  const [history, setHistory] = useState([])
+  const [weightInput, setWeightInput] = useState('')
+  const [logging, setLogging] = useState(false)
+
+  useEffect(() => {
+    if (!traineeId) return
+    async function load() {
+      try {
+        const res = await trainerFetch({ action: 'get_weight_history', trainee_id: traineeId }, { agencyId })
+        if (!res.ok) return
+        const d = await res.json()
+        setHistory(d.weight_history || [])
+      } catch {}
+    }
+    load()
+  }, [traineeId, agencyId])
+
+  async function handleLog() {
+    if (!weightInput) return
+    setLogging(true)
+    try {
+      const weightKg = Number(weightInput) / 2.20462
+      const res = await trainerFetch({ action: 'log_weight', trainee_id: traineeId, weight_kg: weightKg }, { agencyId })
+      if (res.ok) {
+        setWeightInput('')
+        const res2 = await trainerFetch({ action: 'get_weight_history', trainee_id: traineeId }, { agencyId })
+        if (res2.ok) { const d = await res2.json(); setHistory(d.weight_history || []) }
+      }
+    } catch {} finally { setLogging(false) }
+  }
+
+  const chartData = history.map((w) => ({
+    date: (w.checked_in_at || w.created_at || '').slice(5, 10),
+    weight: Math.round(Number(w.weight_kg) * 2.20462),
+  }))
+  const latest = chartData.length > 0 ? chartData[chartData.length - 1].weight : null
+  const first = chartData.length > 1 ? chartData[0].weight : null
+  const delta = latest && first ? latest - first : null
+
+  return (
+    <div style={{ ...panelStyle, marginBottom: 12 }}>
+      <div style={panelTitle}>Body Weight</div>
+
+      {/* At-a-glance strip */}
+      {latest && (
+        <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+          <div style={{ padding: '10px 14px', background: CAL.card, borderRadius: CAL.rSm, flex: 1 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: CAL.ink3, textTransform: 'uppercase', letterSpacing: '.04em' }}>Current</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: CAL.ink }}>{latest} lbs</div>
+          </div>
+          {delta !== null && (
+            <div style={{ padding: '10px 14px', background: CAL.card, borderRadius: CAL.rSm, flex: 1 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: CAL.ink3, textTransform: 'uppercase', letterSpacing: '.04em' }}>Change</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: delta > 0 ? '#e9695c' : delta < 0 ? '#16a34a' : CAL.ink3 }}>
+                {delta > 0 ? '+' : ''}{delta} lbs
+              </div>
+            </div>
+          )}
+          <div style={{ padding: '10px 14px', background: CAL.card, borderRadius: CAL.rSm, flex: 1 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: CAL.ink3, textTransform: 'uppercase', letterSpacing: '.04em' }}>Check-ins</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: CAL.ink }}>{history.length}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Mini chart — text-only sparkline */}
+      {chartData.length > 1 && (
+        <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 40, marginBottom: 12, padding: '0 2px' }}>
+          {chartData.slice(-14).map((d, i) => {
+            const min = Math.min(...chartData.slice(-14).map((x) => x.weight))
+            const max = Math.max(...chartData.slice(-14).map((x) => x.weight))
+            const range = max - min || 1
+            const h = Math.max(4, ((d.weight - min) / range) * 36)
+            return (
+              <div key={i} title={`${d.date}: ${d.weight} lbs`} style={{
+                flex: 1, height: h, background: i === chartData.slice(-14).length - 1 ? CAL.ink : CAL.border,
+                borderRadius: 2, transition: 'height .2s',
+              }} />
+            )
+          })}
+        </div>
+      )}
+
+      {/* Log input */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <input type="number" inputMode="decimal" value={weightInput}
+          onChange={(e) => setWeightInput(e.target.value)} placeholder="Weight (lbs)"
+          style={{ flex: 1, padding: '8px 12px', fontSize: 14, border: `1px solid ${CAL.border}`, borderRadius: 8, background: CAL.card, color: CAL.ink, fontFamily: CAL.font, outline: 'none' }} />
+        <button type="button" onClick={handleLog} disabled={logging || !weightInput}
+          style={btnPrimary(logging || !weightInput)}>
+          {logging ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+          Log
+        </button>
+      </div>
     </div>
   )
 }
