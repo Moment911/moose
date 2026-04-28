@@ -53,6 +53,16 @@ import { getPortalData, checkPortalRateLimit, logPortalView } from '@/lib/portal
 import { runBulkOperation, getBulkOperationStatus } from '@/lib/bulkOperationsEngine'
 import { runConversationalBot, getBotConversation, listBotConversations } from '@/lib/conversationalBotEngine'
 import { blendThreeAIs } from '@/lib/multiAiBlender'
+import { ingestGoogleAds } from '@/lib/ads/ingestGoogleAds'
+import { ingestGSC as ingestAdsGSC } from '@/lib/ads/ingestGSC'
+import { ingestGA4 as ingestAdsGA4 } from '@/lib/ads/ingestGA4'
+import { ingestCSV } from '@/lib/ads/ingestCSV'
+import { analyzeWastedSpend, getWastedSpendResults } from '@/lib/ads/wastedSpend'
+import { analyzeAnomalies, getAnomalies } from '@/lib/ads/anomalyDetector'
+import { analyzeIntentGaps, getIntentGapResults } from '@/lib/ads/intentGaps'
+import { comparePeriods } from '@/lib/ads/periodComparison'
+import { generateWeeklySummary } from '@/lib/ads/weeklySummary'
+import { generateAdCopy, getAdCopy, approveRecommendation, bulkApproveRecommendations } from '@/lib/ads/adCopyEngine'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -4816,6 +4826,250 @@ Return ONLY valid JSON:
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
     }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ADS INTELLIGENCE ACTIONS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Ingestion ────────────────────────────────────────────────────────────
+  if (action === 'ads_sync_google') {
+    try {
+      const result = await ingestGoogleAds(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_sync_gsc') {
+    try {
+      const result = await ingestAdsGSC(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_sync_ga4') {
+    try {
+      const result = await ingestAdsGA4(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_sync_all') {
+    try {
+      const results: any = {}
+      try { results.google = await ingestGoogleAds(s, body) } catch (e: any) { results.google_error = e.message }
+      try { results.gsc = await ingestAdsGSC(s, body) } catch (e: any) { results.gsc_error = e.message }
+      try { results.ga4 = await ingestAdsGA4(s, body) } catch (e: any) { results.ga4_error = e.message }
+      return NextResponse.json({ success: true, ...results })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_upload_csv') {
+    try {
+      const result = await ingestCSV(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Overview ─────────────────────────────────────────────────────────────
+  if (action === 'ads_get_overview') {
+    try {
+      const { client_id } = body
+      const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const startDate = sevenDaysAgo.toISOString().split('T')[0]
+
+      const [facts, campaigns, alerts, recs] = await Promise.all([
+        s.from('kotoiq_ads_fact_campaigns').select('cost_micros, clicks, conversions')
+          .eq('client_id', client_id).gte('date', startDate),
+        s.from('kotoiq_ads_campaigns').select('id, name, status, budget_usd')
+          .eq('client_id', client_id),
+        s.from('kotoiq_ads_alerts').select('id', { count: 'exact', head: true })
+          .eq('client_id', client_id).is('acknowledged_at', null),
+        s.from('kotoiq_ads_rec_negatives').select('id', { count: 'exact', head: true })
+          .eq('client_id', client_id).eq('status', 'pending'),
+      ])
+
+      let cost_7d = 0, clicks_7d = 0, conversions_7d = 0
+      for (const r of facts.data || []) {
+        cost_7d += Number(r.cost_micros || 0) / 1e6
+        clicks_7d += Number(r.clicks || 0)
+        conversions_7d += Number(r.conversions || 0)
+      }
+
+      // Get per-campaign metrics for table
+      const campMetrics = new Map<string, { cost_usd: number; clicks: number; conversions: number }>()
+      for (const r of facts.data || []) {
+        // We need campaign_id from fact_campaigns — re-fetch with it
+      }
+
+      // Simpler: just get campaign list + aggregate facts
+      const { data: factsByCampaign } = await s.from('kotoiq_ads_fact_campaigns')
+        .select('campaign_id, cost_micros, clicks, conversions')
+        .eq('client_id', client_id).gte('date', startDate)
+
+      const campAgg = new Map<string, { cost_usd: number; clicks: number; conversions: number }>()
+      for (const r of factsByCampaign || []) {
+        const e = campAgg.get(r.campaign_id) || { cost_usd: 0, clicks: 0, conversions: 0 }
+        e.cost_usd += Number(r.cost_micros || 0) / 1e6
+        e.clicks += Number(r.clicks || 0)
+        e.conversions += Number(r.conversions || 0)
+        campAgg.set(r.campaign_id, e)
+      }
+
+      const campList = (campaigns.data || []).map((c: any) => ({
+        ...c,
+        ...(campAgg.get(c.id) || { cost_usd: 0, clicks: 0, conversions: 0 }),
+      }))
+
+      return NextResponse.json({
+        data: {
+          cost_7d, clicks_7d, conversions_7d,
+          alert_count: alerts.count || 0,
+          rec_count: recs.count || 0,
+          campaigns: campList,
+        }
+      })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Search Terms ─────────────────────────────────────────────────────────
+  if (action === 'ads_get_search_terms') {
+    try {
+      const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const { data } = await s.from('kotoiq_ads_fact_search_terms')
+        .select('search_term, impressions, clicks, cost_micros, conversions, status')
+        .eq('client_id', body.client_id)
+        .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
+        .order('cost_micros', { ascending: false })
+        .limit(500)
+
+      const terms = (data || []).map((r: any) => ({
+        search_term: r.search_term,
+        impressions: Number(r.impressions || 0),
+        clicks: Number(r.clicks || 0),
+        cost_usd: Number(r.cost_micros || 0) / 1e6,
+        conversions: Number(r.conversions || 0),
+        status: r.status,
+      }))
+      return NextResponse.json({ data: terms })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Analysis ─────────────────────────────────────────────────────────────
+  if (action === 'ads_wasted_spend') {
+    try {
+      const result = await analyzeWastedSpend(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_get_wasted_spend') {
+    try {
+      const result = await getWastedSpendResults(s, body)
+      return NextResponse.json({ data: result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_anomaly_detect') {
+    try {
+      const result = await analyzeAnomalies(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_get_anomalies') {
+    try {
+      const data = await getAnomalies(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_acknowledge_alert') {
+    try {
+      await s.from('kotoiq_ads_alerts')
+        .update({ acknowledged_at: new Date().toISOString(), acknowledged_by: body.acknowledged_by || null })
+        .eq('id', body.alert_id)
+      return NextResponse.json({ success: true })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_intent_gaps') {
+    try {
+      const result = await analyzeIntentGaps(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_get_intent_gaps') {
+    try {
+      const result = await getIntentGapResults(s, body)
+      return NextResponse.json({ data: result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_period_compare') {
+    try {
+      const result = await comparePeriods(s, body)
+      return NextResponse.json({ data: result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_weekly_summary') {
+    try {
+      const result = await generateWeeklySummary(s, body)
+      return NextResponse.json({ data: result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Ad Copy ──────────────────────────────────────────────────────────────
+  if (action === 'ads_generate_copy') {
+    try {
+      const result = await generateAdCopy(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_get_copy') {
+    try {
+      const data = await getAdCopy(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Recommendations ──────────────────────────────────────────────────────
+  if (action === 'ads_get_recommendations') {
+    try {
+      const { client_id, rec_type, status } = body
+      const table = `kotoiq_ads_rec_${rec_type || 'negatives'}`
+      let q = s.from(table).select('*').eq('client_id', client_id).order('created_at', { ascending: false }).limit(100)
+      if (status) q = q.eq('status', status)
+      const { data } = await q
+      return NextResponse.json({ data: data || [] })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_approve_rec') {
+    try {
+      const result = await approveRecommendation(s, {
+        rec_type: body.rec_type,
+        rec_id: body.rec_id,
+        action: body.action_type,
+        reviewed_by: body.reviewed_by,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_bulk_approve') {
+    try {
+      const result = await bulkApproveRecommendations(s, {
+        rec_type: body.rec_type,
+        rec_ids: body.rec_ids,
+        action: body.action_type,
+        reviewed_by: body.reviewed_by,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

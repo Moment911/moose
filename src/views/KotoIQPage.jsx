@@ -59,6 +59,14 @@ import ProcessingJobsTab from '../components/kotoiq/ProcessingJobsTab'
 import ConversationalBot from '../components/kotoiq/ConversationalBot'
 import ActivityTab from '../components/kotoiq/ActivityTab'
 import BuilderTab from '../components/kotoiq/BuilderTab'
+import AdsOverviewTab from '../components/kotoiq/AdsOverviewTab'
+import AdsSearchTermsTab from '../components/kotoiq/AdsSearchTermsTab'
+import AdsWastedSpendTab from '../components/kotoiq/AdsWastedSpendTab'
+import AdsAnomaliesTab from '../components/kotoiq/AdsAnomaliesTab'
+import AdsIntentGapsTab from '../components/kotoiq/AdsIntentGapsTab'
+import AdsAdBuilderTab from '../components/kotoiq/AdsAdBuilderTab'
+import AdsRecommendationsTab from '../components/kotoiq/AdsRecommendationsTab'
+import AdsReportsTab from '../components/kotoiq/AdsReportsTab'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -399,6 +407,9 @@ export default function KotoIQPage() {
     const wrappedSet = (v) => { setter(v); const url = new URL(window.location.href); url.searchParams.set('tab', v); window.history.replaceState({}, '', url.toString()) }
     return [t, wrappedSet]
   })()
+  const [collapsedGroups, setCollapsedGroups] = useState({})
+  const toggleGroup = (g) => setCollapsedGroups(prev => ({ ...prev, [g]: !prev[g] }))
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [portfolio, setPortfolio] = useState(null)
@@ -887,8 +898,19 @@ export default function KotoIQPage() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#ffffff', fontFamily: FB }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {!sidebarCollapsed && <Sidebar />}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+        {/* Sidebar collapse toggle */}
+        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+          style={{
+            position: 'absolute', top: 12, left: 8, zIndex: 20,
+            width: 28, height: 28, borderRadius: 6, border: '1px solid #e5e7eb',
+            background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 1px 3px rgba(0,0,0,.08)',
+          }}>
+          {sidebarCollapsed ? <ChevronDown size={14} color="#6b7280" style={{ transform: 'rotate(-90deg)' }} /> : <ChevronDown size={14} color="#6b7280" style={{ transform: 'rotate(90deg)' }} />}
+        </button>
 
         {/* ── Fixed Header ─────────────────────────────────────── */}
         <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
@@ -962,6 +984,16 @@ export default function KotoIQPage() {
                   ['ranks', 'Rankings', TrendingUp],
                   ['topical_authority', 'Authority Score', Award],
                 ]},
+                { group: 'Ads Intelligence', items: [
+                  ['ads_overview', 'Ads Overview', BarChart2],
+                  ['ads_search_terms', 'Search Terms', Search],
+                  ['ads_wasted_spend', 'Wasted Spend', DollarSign],
+                  ['ads_anomalies', 'Anomalies', AlertCircle],
+                  ['ads_intent_gaps', 'Intent Gaps', Target],
+                  ['ads_ad_builder', 'Ad Builder', Zap],
+                  ['ads_recommendations', 'Recommendations', CheckCircle],
+                  ['ads_reports', 'Ads Reports', FileText],
+                ]},
                 { group: 'Intelligence', items: [
                   ['strategy', 'Strategic Plan', Target],
                   ['scorecard', 'Scorecard', Award],
@@ -1022,30 +1054,44 @@ export default function KotoIQPage() {
                   ['integrations', 'Integrations', Link2],
                   ['connect', 'Connect APIs', Settings],
                 ]},
-              ].map(section => (
-                <div key={section.group} style={{ marginBottom: 8 }}>
-                  <div style={{ padding: '6px 20px', fontSize: 11, fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH }}>
-                    {section.group}
-                  </div>
-                  {section.items.map(([key, label, Icon]) => (
+              ].map(section => {
+                const isCollapsed = collapsedGroups[section.group]
+                const hasActiveTab = section.items.some(([key]) => tab === key)
+                return (
+                <div key={section.group} style={{ marginBottom: 4 }}>
+                  <button
+                    onClick={() => toggleGroup(section.group)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
+                      padding: '8px 20px', border: 'none', background: 'transparent', cursor: 'pointer',
+                      borderLeft: hasActiveTab ? `3px solid ${T}` : '3px solid transparent',
+                    }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 800, color: hasActiveTab ? T : '#1f2937', textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: FH }}>
+                      {section.group}
+                    </span>
+                    <ChevronDown size={12} color="#9ca3af" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform .15s' }} />
+                  </button>
+                  {!isCollapsed && section.items.map(([key, label, Icon]) => (
                     <button key={key} onClick={() => setTab(key)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                        padding: '8px 20px', border: 'none', background: tab === key ? '#fff' : 'transparent',
+                        padding: '6px 20px 6px 28px', border: 'none', background: tab === key ? '#fff' : 'transparent',
                         borderRight: tab === key ? `3px solid ${T}` : '3px solid transparent',
-                        cursor: 'pointer', fontSize: 13, fontWeight: tab === key ? 700 : 500,
+                        cursor: 'pointer', fontSize: 12.5, fontWeight: tab === key ? 700 : 500,
                         color: tab === key ? BLK : '#374151', fontFamily: FB,
                         transition: 'all .1s',
                       }}
                       onMouseEnter={e => { if (tab !== key) e.currentTarget.style.background = '#f3f4f6' }}
                       onMouseLeave={e => { if (tab !== key) e.currentTarget.style.background = 'transparent' }}
                     >
-                      <Icon size={14} color={tab === key ? T : '#6b7280'} />
+                      <Icon size={13} color={tab === key ? T : '#9ca3af'} />
                       {label}
                     </button>
                   ))}
                 </div>
-              ))}
+                )
+              })}
 
               {/* Download Desktop App footer */}
               <div style={{ marginTop: 20, padding: '0 20px' }}>
@@ -2778,6 +2824,32 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ BUILDER — Template Ingest + Slot Editor ══ */}
         {tab === 'builder' && (
           <BuilderTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ ADS INTELLIGENCE ══ */}
+        {clientId && tab === 'ads_overview' && (
+          <AdsOverviewTab clientId={clientId} agencyId={agencyId} />
+        )}
+        {clientId && tab === 'ads_search_terms' && (
+          <AdsSearchTermsTab clientId={clientId} agencyId={agencyId} />
+        )}
+        {clientId && tab === 'ads_wasted_spend' && (
+          <AdsWastedSpendTab clientId={clientId} agencyId={agencyId} />
+        )}
+        {clientId && tab === 'ads_anomalies' && (
+          <AdsAnomaliesTab clientId={clientId} agencyId={agencyId} />
+        )}
+        {clientId && tab === 'ads_intent_gaps' && (
+          <AdsIntentGapsTab clientId={clientId} agencyId={agencyId} />
+        )}
+        {clientId && tab === 'ads_ad_builder' && (
+          <AdsAdBuilderTab clientId={clientId} agencyId={agencyId} />
+        )}
+        {clientId && tab === 'ads_recommendations' && (
+          <AdsRecommendationsTab clientId={clientId} agencyId={agencyId} />
+        )}
+        {clientId && tab === 'ads_reports' && (
+          <AdsReportsTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ NEW: HYPERLOCAL CONTENT ══ */}
