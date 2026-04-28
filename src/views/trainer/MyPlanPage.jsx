@@ -2449,11 +2449,69 @@ function ProgressTab({ plan, logs, traineeId, isMobile, onRefresh }) {
     }
   }, [plan, logs])
 
+  // At-a-glance metrics
+  const latestWeight = weightData.length > 0 ? weightData[weightData.length - 1].weight : null
+  const firstWeight = weightData.length > 1 ? weightData[0].weight : null
+  const weightDelta = latestWeight && firstWeight ? latestWeight - firstWeight : null
+  const targetWeight = plan?.baseline?.body_composition_targets?.target_weight_kg
+    ? Math.round(plan.baseline.body_composition_targets.target_weight_kg * 2.20462)
+    : null
+
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
         Progress
       </h2>
+
+      {/* ── At-a-glance dashboard strip ── */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8,
+      }}>
+        {latestWeight && (
+          <div style={{ background: A.cardAlt, borderRadius: A.rSm, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 4 }}>Weight</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: A.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {latestWeight}<span style={{ fontSize: 13, fontWeight: 500, color: A.ink3, marginLeft: 2 }}>lbs</span>
+            </div>
+            {weightDelta !== null && (
+              <div style={{ fontSize: 12, fontWeight: 600, marginTop: 4, color: weightDelta > 0 ? '#e9695c' : weightDelta < 0 ? '#16a34a' : A.ink3 }}>
+                {weightDelta > 0 ? '+' : ''}{weightDelta} lbs
+              </div>
+            )}
+          </div>
+        )}
+        {adherenceData && (
+          <div style={{ background: A.cardAlt, borderRadius: A.rSm, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 4 }}>Adherence</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: adherenceData.pct >= 80 ? '#16a34a' : adherenceData.pct >= 40 ? '#d89a6a' : '#e9695c', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {adherenceData.pct}%
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: A.ink3, marginTop: 4 }}>
+              {adherenceData.logged}/{adherenceData.total} sessions
+            </div>
+          </div>
+        )}
+        {volumeData.length > 0 && (
+          <div style={{ background: A.cardAlt, borderRadius: A.rSm, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 4 }}>Volume</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: A.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {Math.round(volumeData[volumeData.length - 1].volume).toLocaleString()}
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: A.ink3, marginTop: 4 }}>lbs last session</div>
+          </div>
+        )}
+        {targetWeight && latestWeight && (
+          <div style={{ background: A.cardAlt, borderRadius: A.rSm, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 4 }}>Target</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: A.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {targetWeight}<span style={{ fontSize: 13, fontWeight: 500, color: A.ink3, marginLeft: 2 }}>lbs</span>
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginTop: 4, color: Math.abs(latestWeight - targetWeight) <= 3 ? '#16a34a' : A.ink3 }}>
+              {Math.abs(latestWeight - targetWeight)} lbs to go
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Weight check-in */}
       <Card>
@@ -2694,6 +2752,7 @@ function AIInsightCard({ traineeId }) {
 }
 
 // ── Progress Photos Section ───────────────────────────────────────────────
+// v2: side-by-side + overlay modes, all-pose comparison, swipe on mobile
 
 function ProgressPhotosSection({ traineeId }) {
   const [photos, setPhotos] = useState([])
@@ -2701,8 +2760,13 @@ function ProgressPhotosSection({ traineeId }) {
   const [uploading, setUploading] = useState(false)
   const [showCapture, setShowCapture] = useState(false)
   const [selectedPose, setSelectedPose] = useState('front')
-  const [compareIdx, setCompareIdx] = useState(0)
+  // Compare state
+  const [comparePose, setComparePose] = useState('front')
+  const [compareMode, setCompareMode] = useState('side') // 'side' | 'overlay' | 'swipe'
   const [overlayOpacity, setOverlayOpacity] = useState(50)
+  const [swipePos, setSwipePos] = useState(50)
+  const swipeRef = useRef(null)
+  const dragging = useRef(false)
   const fileRef = useRef(null)
 
   useEffect(() => {
@@ -2739,7 +2803,6 @@ function ProgressPhotosSection({ traineeId }) {
       })
       if (res.ok) {
         setShowCapture(false)
-        // Reload photos
         const res2 = await fetch('/api/trainer/my-plan', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'get_progress_photos' }),
@@ -2749,8 +2812,36 @@ function ProgressPhotosSection({ traineeId }) {
     } catch {} finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }
   }
 
-  const frontPhotos = photos.filter((p) => p.pose === 'front')
-  const hasComparison = frontPhotos.length >= 2
+  // Group photos by pose
+  const byPose = { front: [], side: [], back: [] }
+  for (const p of photos) { if (byPose[p.pose]) byPose[p.pose].push(p) }
+  const posePhotos = byPose[comparePose] || []
+  const hasComparison = posePhotos.length >= 2
+  const earliest = posePhotos[0]
+  const latest = posePhotos[posePhotos.length - 1]
+
+  // Poses with enough photos for comparison
+  const comparablePoses = ['front', 'side', 'back'].filter((p) => byPose[p].length >= 2)
+
+  // Swipe handler
+  function handleSwipeMove(e) {
+    if (!dragging.current || !swipeRef.current) return
+    const rect = swipeRef.current.getBoundingClientRect()
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+    const pct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100))
+    setSwipePos(pct)
+  }
+
+  // Auto-select first comparable pose
+  useEffect(() => {
+    if (comparablePoses.length > 0 && !comparablePoses.includes(comparePose)) {
+      setComparePose(comparablePoses[0])
+    }
+  }, [photos])
+
+  const dateLabel = (p) => new Date(p.taken_at).toLocaleDateString([], { month: 'short', day: 'numeric' })
+  const imgStyle = { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }
+  const tagStyle = { padding: '2px 8px', background: 'rgba(0,0,0,0.6)', borderRadius: 6, fontSize: 10, color: '#fff', fontWeight: 600 }
 
   return (
     <Card>
@@ -2768,7 +2859,6 @@ function ProgressPhotosSection({ traineeId }) {
       {/* Photo capture with alignment guide */}
       {showCapture && (
         <div style={{ marginBottom: 16 }}>
-          {/* Pose selector */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
             {['front', 'side', 'back'].map((pose) => (
               <button key={pose} type="button" onClick={() => setSelectedPose(pose)} style={{
@@ -2782,15 +2872,12 @@ function ProgressPhotosSection({ traineeId }) {
               </button>
             ))}
           </div>
-
-          {/* Alignment guide frame */}
           <div style={{
             position: 'relative', width: '100%', maxWidth: 300, margin: '0 auto',
             aspectRatio: '3 / 4', background: A.cardAlt, borderRadius: A.rSm,
             border: `2px dashed ${A.border}`, overflow: 'hidden',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            {/* Body outline guide */}
             <svg viewBox="0 0 200 280" style={{ width: '60%', opacity: 0.15 }}>
               <ellipse cx="100" cy="45" rx="25" ry="30" fill="none" stroke="#0a0a0a" strokeWidth="2" />
               <line x1="100" y1="75" x2="100" y2="170" stroke="#0a0a0a" strokeWidth="2" />
@@ -2803,7 +2890,6 @@ function ProgressPhotosSection({ traineeId }) {
               Align yourself with the outline
             </div>
           </div>
-
           <input ref={fileRef} type="file" accept="image/*" capture="user" style={{ display: 'none' }}
             onChange={(e) => handleUpload(e.target.files?.[0])} />
           <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{
@@ -2818,56 +2904,158 @@ function ProgressPhotosSection({ traineeId }) {
         </div>
       )}
 
-      {/* Photo comparison slider */}
+      {/* ── Comparison viewer — side-by-side / overlay / swipe ── */}
       {hasComparison && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: A.ink3, textTransform: 'uppercase', marginBottom: 8 }}>
-            Compare progress
-          </div>
-          <div style={{
-            position: 'relative', width: '100%', maxWidth: 300, margin: '0 auto',
-            aspectRatio: '3 / 4', borderRadius: A.rSm, overflow: 'hidden', background: '#000',
-          }}>
-            {/* First photo (background) */}
-            <img src={frontPhotos[0].public_url} alt="Start" style={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
-            }} />
-            {/* Latest photo (overlay with opacity) */}
-            <img src={frontPhotos[frontPhotos.length - 1].public_url} alt="Latest" style={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
-              opacity: overlayOpacity / 100,
-            }} />
-            {/* Labels */}
-            <div style={{ position: 'absolute', top: 8, left: 8, padding: '2px 8px', background: 'rgba(0,0,0,0.6)', borderRadius: 6, fontSize: 10, color: '#fff', fontWeight: 600 }}>
-              {new Date(frontPhotos[0].taken_at).toLocaleDateString()}
+          {/* Controls row: pose tabs + mode toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            {/* Pose tabs */}
+            <div style={{ display: 'flex', gap: 4 }}>
+              {comparablePoses.map((p) => (
+                <button key={p} type="button" onClick={() => setComparePose(p)} style={{
+                  padding: '4px 12px', borderRadius: A.rPill, border: 'none',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: A.font,
+                  background: comparePose === p ? A.ink : A.cardAlt,
+                  color: comparePose === p ? '#fff' : A.ink3,
+                  textTransform: 'capitalize',
+                }}>
+                  {p}
+                </button>
+              ))}
             </div>
-            <div style={{ position: 'absolute', top: 8, right: 8, padding: '2px 8px', background: 'rgba(0,0,0,0.6)', borderRadius: 6, fontSize: 10, color: '#fff', fontWeight: 600 }}>
-              {new Date(frontPhotos[frontPhotos.length - 1].taken_at).toLocaleDateString()}
+            {/* Mode toggle */}
+            <div style={{ display: 'flex', gap: 2, background: A.cardAlt, borderRadius: A.rPill, padding: 2 }}>
+              {[
+                { key: 'side', label: 'Side' },
+                { key: 'overlay', label: 'Fade' },
+                { key: 'swipe', label: 'Swipe' },
+              ].map((m) => (
+                <button key={m.key} type="button" onClick={() => setCompareMode(m.key)} style={{
+                  padding: '3px 10px', borderRadius: A.rPill, border: 'none',
+                  fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: A.font,
+                  background: compareMode === m.key ? '#fff' : 'transparent',
+                  color: compareMode === m.key ? A.ink : A.ink3,
+                  boxShadow: compareMode === m.key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                }}>
+                  {m.label}
+                </button>
+              ))}
             </div>
           </div>
-          {/* Opacity slider */}
-          <div style={{ maxWidth: 300, margin: '8px auto 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 11, color: A.ink3 }}>Before</span>
-            <input type="range" min="0" max="100" value={overlayOpacity}
-              onChange={(e) => setOverlayOpacity(Number(e.target.value))}
-              style={{ flex: 1 }}
-            />
-            <span style={{ fontSize: 11, color: A.ink3 }}>After</span>
-          </div>
+
+          {/* ── Side-by-side mode ── */}
+          {compareMode === 'side' && (
+            <div style={{ display: 'flex', gap: 4, maxWidth: 500, margin: '0 auto' }}>
+              {[earliest, latest].map((p, i) => (
+                <div key={i} style={{ flex: 1, aspectRatio: '3 / 4', borderRadius: A.rSm, overflow: 'hidden', position: 'relative', background: '#000' }}>
+                  <img src={p.public_url} alt={i === 0 ? 'Before' : 'After'} style={{ ...imgStyle }} />
+                  <div style={{ position: 'absolute', top: 8, left: 8, ...tagStyle }}>
+                    {dateLabel(p)}
+                  </div>
+                  <div style={{ position: 'absolute', bottom: 8, left: 0, right: 0, textAlign: 'center' }}>
+                    <span style={{ ...tagStyle, background: i === 0 ? 'rgba(233,105,92,0.85)' : 'rgba(90,160,255,0.85)' }}>
+                      {i === 0 ? 'Before' : 'After'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Overlay mode ── */}
+          {compareMode === 'overlay' && (
+            <>
+              <div style={{
+                position: 'relative', width: '100%', maxWidth: 300, margin: '0 auto',
+                aspectRatio: '3 / 4', borderRadius: A.rSm, overflow: 'hidden', background: '#000',
+              }}>
+                <img src={earliest.public_url} alt="Before" style={{ ...imgStyle }} />
+                <img src={latest.public_url} alt="After" style={{ ...imgStyle, opacity: overlayOpacity / 100 }} />
+                <div style={{ position: 'absolute', top: 8, left: 8, ...tagStyle }}>{dateLabel(earliest)}</div>
+                <div style={{ position: 'absolute', top: 8, right: 8, ...tagStyle }}>{dateLabel(latest)}</div>
+              </div>
+              <div style={{ maxWidth: 300, margin: '8px auto 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11, color: A.ink3, fontWeight: 600 }}>Before</span>
+                <input type="range" min="0" max="100" value={overlayOpacity}
+                  onChange={(e) => setOverlayOpacity(Number(e.target.value))} style={{ flex: 1 }} />
+                <span style={{ fontSize: 11, color: A.ink3, fontWeight: 600 }}>After</span>
+              </div>
+            </>
+          )}
+
+          {/* ── Swipe mode — drag/touch divider ── */}
+          {compareMode === 'swipe' && (
+            <div
+              ref={swipeRef}
+              style={{
+                position: 'relative', width: '100%', maxWidth: 400, margin: '0 auto',
+                aspectRatio: '3 / 4', borderRadius: A.rSm, overflow: 'hidden', background: '#000',
+                cursor: 'ew-resize', touchAction: 'none', userSelect: 'none',
+              }}
+              onMouseDown={() => { dragging.current = true }}
+              onMouseUp={() => { dragging.current = false }}
+              onMouseLeave={() => { dragging.current = false }}
+              onMouseMove={handleSwipeMove}
+              onTouchStart={() => { dragging.current = true }}
+              onTouchEnd={() => { dragging.current = false }}
+              onTouchMove={handleSwipeMove}
+            >
+              {/* After (full, behind) */}
+              <img src={latest.public_url} alt="After" style={{ ...imgStyle }} />
+              {/* Before (clipped to left of divider) */}
+              <div style={{ position: 'absolute', inset: 0, width: `${swipePos}%`, overflow: 'hidden' }}>
+                <img src={earliest.public_url} alt="Before"
+                  style={{ position: 'absolute', top: 0, left: 0, width: swipeRef.current ? swipeRef.current.offsetWidth : '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              {/* Divider line + handle */}
+              <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${swipePos}%`, transform: 'translateX(-1px)', width: 2, background: '#fff', boxShadow: '0 0 8px rgba(0,0,0,0.4)' }}>
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                  width: 32, height: 32, borderRadius: 999, background: '#fff',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <ChevronLeft size={12} style={{ color: A.ink, marginRight: -4 }} />
+                  <ChevronRight size={12} style={{ color: A.ink, marginLeft: -4 }} />
+                </div>
+              </div>
+              {/* Labels */}
+              <div style={{ position: 'absolute', top: 8, left: 8, ...tagStyle }}>{dateLabel(earliest)}</div>
+              <div style={{ position: 'absolute', top: 8, right: 8, ...tagStyle }}>{dateLabel(latest)}</div>
+            </div>
+          )}
+
+          {/* Day count */}
+          {earliest && latest && (
+            <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, fontWeight: 600, color: A.ink3 }}>
+              {Math.round((new Date(latest.taken_at) - new Date(earliest.taken_at)) / 86400000)} days apart
+            </div>
+          )}
         </div>
       )}
 
-      {/* Photo gallery */}
+      {/* Photo gallery grouped by pose */}
       {photos.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 6 }}>
-          {photos.map((p) => (
-            <div key={p.id} style={{ aspectRatio: '3 / 4', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
-              <img src={p.public_url} alt={p.pose} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', bottom: 4, left: 4, padding: '1px 6px', background: 'rgba(0,0,0,0.6)', borderRadius: 4, fontSize: 9, color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>
-                {p.pose}
+        <div>
+          {['front', 'side', 'back'].map((pose) => {
+            const pp = byPose[pose]
+            if (pp.length === 0) return null
+            return (
+              <div key={pose} style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>{pose}</div>
+                <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'thin', paddingBottom: 4 }}>
+                  {pp.map((p) => (
+                    <div key={p.id} style={{ width: 72, height: 96, borderRadius: 8, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+                      <img src={p.public_url} alt={p.pose} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'absolute', bottom: 3, left: 3, padding: '1px 5px', background: 'rgba(0,0,0,0.6)', borderRadius: 4, fontSize: 8, color: '#fff', fontWeight: 600 }}>
+                        {dateLabel(p)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

@@ -903,7 +903,7 @@ export default function TrainerDetailPage() {
       <div style={{ padding: '24px 24px 40px', maxWidth: 800, margin: '0 auto', width: '100%', fontFamily: CAL.font }}>
         <Link
           to="/trainer"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: T, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 12 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: BLUE, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 12 }}
         >
           <ArrowLeft size={14} /> Back to athletes
         </Link>
@@ -2443,7 +2443,7 @@ function IntakeBasicsEditor({ trainee, onSave }) {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
         {hasAnyMissing && <AlertTriangle size={16} color="#ea580c" />}
-        <h2 style={{ ...panelTitle, color: hasAnyMissing ? '#9a3412' : T }}>
+        <h2 style={{ ...panelTitle, color: hasAnyMissing ? '#9a3412' : BLUE }}>
           Intake basics
         </h2>
       </div>
@@ -2720,10 +2720,10 @@ function RadioPill({ value, options, labels, onChange }) {
             onClick={() => onChange(opt)}
             style={{
               padding: '6px 12px',
-              border: `1px solid ${active ? R : '#d1d5db'}`,
+              border: `1px solid ${active ? BLUE : '#c8c8cc'}`,
               borderRadius: 999,
-              background: active ? R + '10' : '#fff',
-              color: active ? R : '#374151',
+              background: active ? BLUE + '10' : '#fff',
+              color: active ? BLUE : '#1f1f22',
               fontSize: 12,
               fontWeight: active ? 700 : 500,
               cursor: 'pointer',
@@ -2783,7 +2783,7 @@ function AboutYouCard({ trainee, onUpdateAboutYou }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
             <span style={{ color: GRN, fontSize: 14, fontWeight: 800 }}>✓</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: T, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: BLUE, letterSpacing: '.04em', textTransform: 'uppercase' }}>
               About this athlete
             </span>
             <span style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
@@ -2802,7 +2802,7 @@ function AboutYouCard({ trainee, onUpdateAboutYou }) {
               <button
                 type="button"
                 onClick={() => { setDraft(trainee.about_you || ''); setEditing(true) }}
-                style={{ background: 'none', border: 'none', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                style={{ background: 'none', border: 'none', color: BLUE, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}
               >
                 Edit
               </button>
@@ -2824,7 +2824,7 @@ function AboutYouCard({ trainee, onUpdateAboutYou }) {
       style={{
         ...panelStyle,
         marginBottom: 18,
-        borderLeft: hasContext ? undefined : `4px solid ${R}`,
+        borderLeft: hasContext ? undefined : `4px solid ${RED}`,
         background: hasContext ? '#fff' : '#fffbea',
       }}
     >
