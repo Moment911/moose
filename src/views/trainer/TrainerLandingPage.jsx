@@ -116,13 +116,13 @@ export default function TrainerLandingPage() {
 
       <TryItDemo />
 
+      <LivePlanBuilder />
+
       <FeaturesGrid />
 
       <HowItWorks />
 
       <LifestylePhotoStrip />
-
-      <LivePlanBuilder />
 
       <InsideTheAi />
 
@@ -866,13 +866,13 @@ function PhoneShowcase() {
           alignItems: 'end',
           justifyItems: 'center',
         }}>
-          <PhoneFrame translateY={28}>
+          <PhoneFrame translateY={28} scrollAnim>
             <PhoneScreenHome />
           </PhoneFrame>
-          <PhoneFrame translateY={0}>
+          <PhoneFrame translateY={0} scrollAnim>
             <PhoneScreenWorkout />
           </PhoneFrame>
-          <PhoneFrame translateY={28}>
+          <PhoneFrame translateY={28} scrollAnim>
             <PhoneScreenMeals />
           </PhoneFrame>
         </div>
@@ -881,7 +881,7 @@ function PhoneShowcase() {
   )
 }
 
-function PhoneFrame({ children, translateY = 0 }) {
+function PhoneFrame({ children, translateY = 0, scrollAnim = false }) {
   return (
     <div style={{
       width: '100%', maxWidth: 280,
@@ -893,12 +893,21 @@ function PhoneFrame({ children, translateY = 0 }) {
       boxShadow: '0 30px 60px rgba(0,0,0,0.18), 0 6px 16px rgba(0,0,0,0.08)',
       position: 'relative',
     }}>
+      {scrollAnim && (
+        <style>{`
+          @keyframes koto-phone-scroll {
+            0%, 15% { transform: translateY(0); }
+            35%, 55% { transform: translateY(-15%); }
+            75%, 90% { transform: translateY(-30%); }
+            100% { transform: translateY(0); }
+          }
+        `}</style>
+      )}
       <div style={{
         width: '100%', height: '100%',
         background: T.bg,
         borderRadius: 32,
         overflow: 'hidden',
-        display: 'flex', flexDirection: 'column',
         position: 'relative',
       }}>
         {/* Notch */}
@@ -907,7 +916,12 @@ function PhoneFrame({ children, translateY = 0 }) {
           width: 92, height: 22, borderRadius: T.rPill,
           background: '#0a0a0a', zIndex: 2,
         }} />
-        {children}
+        <div style={{
+          height: '100%',
+          ...(scrollAnim ? { animation: 'koto-phone-scroll 12s ease-in-out infinite' } : {}),
+        }}>
+          {children}
+        </div>
       </div>
     </div>
   )
@@ -918,18 +932,18 @@ function PhoneScreenHome() {
   const today = 2
   return (
     <div style={{
-      padding: '40px 16px 16px',
+      padding: '44px 18px 18px',
       display: 'flex', flexDirection: 'column', gap: T.s3,
-      height: '100%',
+      minHeight: '130%',
     }}>
       <div style={{
-        fontFamily: T.font, fontSize: 11, fontWeight: T.weight.body,
-        color: T.ink3, letterSpacing: '0.1px',
+        fontFamily: T.font, fontSize: 12, fontWeight: T.weight.button,
+        color: T.ink3, letterSpacing: '0.1px', textTransform: 'uppercase',
       }}>
         FRI, OCT 24
       </div>
       <div style={{
-        fontFamily: T.font, fontSize: 22, fontWeight: T.weight.display,
+        fontFamily: T.font, fontSize: 26, fontWeight: T.weight.display,
         letterSpacing: '-0.02em', color: T.ink, lineHeight: 1.1,
       }}>
         Today
@@ -1015,15 +1029,15 @@ function PhoneScreenWorkout() {
   ]
   return (
     <div style={{
-      padding: '40px 16px 16px',
+      padding: '44px 18px 18px',
       display: 'flex', flexDirection: 'column', gap: T.s3,
-      height: '100%',
+      minHeight: '130%',
     }}>
-      <div style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.body, color: T.ink3, letterSpacing: '0.1px' }}>
+      <div style={{ fontFamily: T.font, fontSize: 12, fontWeight: T.weight.button, color: T.ink3, letterSpacing: '0.1px', textTransform: 'uppercase' }}>
         WEEK 2 &middot; DAY 3
       </div>
       <div style={{
-        fontFamily: T.font, fontSize: 20, fontWeight: T.weight.display,
+        fontFamily: T.font, fontSize: 24, fontWeight: T.weight.display,
         letterSpacing: '-0.02em', color: T.ink, lineHeight: 1.1,
       }}>
         Lower Body Power
@@ -1093,15 +1107,15 @@ function PhoneScreenMeals() {
   ]
   return (
     <div style={{
-      padding: '40px 16px 16px',
+      padding: '44px 18px 18px',
       display: 'flex', flexDirection: 'column', gap: T.s3,
-      height: '100%',
+      minHeight: '130%',
     }}>
-      <div style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.body, color: T.ink3, letterSpacing: '0.1px' }}>
+      <div style={{ fontFamily: T.font, fontSize: 12, fontWeight: T.weight.button, color: T.ink3, letterSpacing: '0.1px', textTransform: 'uppercase' }}>
         MEAL PLAN
       </div>
       <div style={{
-        fontFamily: T.font, fontSize: 20, fontWeight: T.weight.display,
+        fontFamily: T.font, fontSize: 24, fontWeight: T.weight.display,
         letterSpacing: '-0.02em', color: T.ink, lineHeight: 1.1,
       }}>
         Today&rsquo;s plate
