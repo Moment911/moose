@@ -16,15 +16,15 @@ import { GRN } from '../../lib/theme'
 // Palette: blacks, whites, greys only. Red + blue accents.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const RED = '#dc2626'
-const BLUE = '#2563eb'
+const RED = '#e9695c'
+const BLUE = '#5aa0ff'
 const AMBER = '#f59e0b'
 const BLK = '#0a0a0a'
 const DARK = '#1a1a1a'
 const CARD = '#ffffff'
-const BODY_BG = '#f3f4f6'
+const BODY_BG = '#f1f1f6'
 const BORDER_DARK = '#2a2a2a'
-const BORDER_LIGHT = '#e5e7eb'
+const BORDER_LIGHT = '#ececef'
 const TEXT_PRIMARY = '#111111'
 const TEXT_SECONDARY = '#6b7280'
 const TEXT_MUTED = '#9ca3af'
@@ -284,7 +284,7 @@ function ProgramCard({ program: p, isExpanded, onToggle, editingCoach, setEditin
           <div style={{
             display: 'flex', alignItems: 'center', gap: 4,
             padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-            background: '#f3f4f6', color: TEXT_SECONDARY,
+            background: '#f1f1f6', color: TEXT_SECONDARY,
           }}>
             <Users size={11} />
             {coaches.length}
@@ -470,7 +470,7 @@ function ProgramCard({ program: p, isExpanded, onToggle, editingCoach, setEditin
           </div>
 
           {/* Private Notes */}
-          <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f1f1f6' }}>
             <h4 style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 800, color: TEXT_PRIMARY, textTransform: 'uppercase', letterSpacing: '.06em' }}>
               Your Notes <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: TEXT_MUTED, fontSize: 11 }}>(private)</span>
             </h4>
@@ -504,7 +504,7 @@ function ProgramCard({ program: p, isExpanded, onToggle, editingCoach, setEditin
 
           {/* Source link */}
           {p.source_url && (
-            <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #f3f4f6' }}>
+            <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #f1f1f6' }}>
               <a href={p.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: TEXT_MUTED, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                 Data source <ExternalLink size={9} />
               </a>
@@ -529,7 +529,7 @@ function CoachRow({ coach: c, onEdit, onDelete }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 14,
-      padding: '10px 0', borderBottom: '1px solid #f3f4f6', fontSize: 13,
+      padding: '10px 0', borderBottom: '1px solid #f1f1f6', fontSize: 13,
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{ fontWeight: 600, color: TEXT_PRIMARY }}>{c.full_name}</span>
@@ -607,7 +607,7 @@ function CoachEditRow({ coach, isNew, onSave, onCancel }) {
   return (
     <div style={{
       display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr auto',
-      gap: 8, padding: '10px 0', borderBottom: '1px solid #f3f4f6', alignItems: 'center',
+      gap: 8, padding: '10px 0', borderBottom: '1px solid #f1f1f6', alignItems: 'center',
     }}>
       <input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} placeholder="Name *" style={miniInput} />
       <select value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} style={{ ...miniInput, cursor: 'pointer' }}>
@@ -654,7 +654,7 @@ function StatBox({ label, value, highlight }) {
       padding: '10px 14px',
       background: highlight ? AMBER + '10' : '#f9fafb',
       borderRadius: 10,
-      border: `1px solid ${highlight ? AMBER + '25' : '#e5e7eb'}`,
+      border: `1px solid ${highlight ? AMBER + '25' : '#ececef'}`,
     }}>
       <div style={{
         fontSize: 10, fontWeight: 800, color: highlight ? '#92400e' : TEXT_MUTED,

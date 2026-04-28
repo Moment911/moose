@@ -416,6 +416,9 @@ async function handleWorkout(
       tool: workoutTool,
       userMessage,
       agencyId,
+      // Workout with how-to metadata on every exercise needs 10-12k tokens.
+      // Default 4k caused truncated output → shape violations.
+      maxTokens: 16000,
       metadata: { trainee_id: traineeId, plan_id: planId, phase, attempt },
     })
     if (!result.ok) {
@@ -609,19 +612,36 @@ async function handleMeals(
     baseline: plan.baseline as BaselineOutput,
     foodPreferences: { questions, answers },
   })
-  const result = await callSonnet<MealsOutput>({
-    featureTag: FEATURE_TAGS.MEALS,
-    systemPrompt,
-    tool: mealsTool,
-    userMessage,
-    agencyId,
-    // Meals prompt is the largest output — give it the 16k budget.
-    maxTokens: 16000,
-    metadata: { trainee_id: traineeId, plan_id: planId },
-  })
-  if (!result.ok) {
-    return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
+  // Retry up to 3 times — meals is the largest output and can truncate
+  let result: Awaited<ReturnType<typeof callSonnet<MealsOutput>>> | null = null
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    result = await callSonnet<MealsOutput>({
+      featureTag: FEATURE_TAGS.MEALS,
+      systemPrompt,
+      tool: mealsTool,
+      userMessage,
+      agencyId,
+      maxTokens: 16000,
+      metadata: { trainee_id: traineeId, plan_id: planId, attempt },
+    })
+    if (!result.ok) {
+      console.warn(`[trainer/generate] meals sonnet error attempt ${attempt}:`, result.error)
+      if (attempt === 3) return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
+      await new Promise((r) => setTimeout(r, 1500))
+      continue
+    }
+    // Validate the output has actual meal data before accepting
+    const mealsData = result.data as MealsOutput
+    const weeks = mealsData?.weeks
+    if (!Array.isArray(weeks) || weeks.length < 2 || !Array.isArray(weeks[0]?.days) || weeks[0].days.length === 0) {
+      console.warn(`[trainer/generate] meals shape violation attempt ${attempt}: empty or truncated weeks`)
+      if (attempt === 3) return err(502, 'sonnet_shape_violation', { detail: 'meals output missing weeks/days' })
+      await new Promise((r) => setTimeout(r, 1500))
+      continue
+    }
+    break
   }
+  if (!result?.ok) return err(502, 'sonnet_error', { detail: 'All attempts failed' })
 
   // MealsOutput schema (from prompts/meals.ts) nests the 2-week menu under
   // `weeks` and keeps `grocery_list` as a sibling.  We persist the full

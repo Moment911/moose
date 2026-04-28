@@ -16,7 +16,7 @@ import { adjustPlanNL } from '../../lib/trainer/myPlanFetch'
 // (with explanation) if the plan hasn't been generated yet.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 
 export default function NaturalAdjustBox({ disabled, onAfterAdjust }) {
   const [message, setMessage] = useState('')

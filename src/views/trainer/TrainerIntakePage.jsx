@@ -16,7 +16,7 @@ import { T, BLK, GRY, R } from '../../lib/theme'
 // themselves via the conversational chat at /intake/:traineeId.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 
 export default function TrainerIntakePage() {
   const navigate = useNavigate()
@@ -126,18 +126,18 @@ function CreatedSuccess({ traineeId, name, onAnother }) {
         <strong>{name}</strong> is ready. Send them the intake link below — they'll chat with the AI coach and fill out their full profile.
       </p>
 
-      <div style={{ background: '#fff', border: `1px solid #e5e7eb`, borderRadius: 12, padding: '20px 22px', marginBottom: 16 }}>
+      <div style={{ background: '#fff', border: `1px solid #ececef`, borderRadius: 12, padding: '20px 22px', marginBottom: 16 }}>
         <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
           Intake link
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input value={intakeUrl} readOnly style={{
             flex: 1, padding: '10px 12px', fontSize: 13, color: '#374151',
-            border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb',
+            border: '1px solid #ececef', borderRadius: 8, background: '#f9fafb',
             fontFamily: 'monospace', outline: 'none',
           }} onClick={(e) => e.target.select()} />
           <button onClick={handleCopy} style={{
-            padding: '10px 14px', borderRadius: 8, border: `1px solid ${copied ? '#059669' : '#e5e7eb'}`,
+            padding: '10px 14px', borderRadius: 8, border: `1px solid ${copied ? '#059669' : '#ececef'}`,
             background: copied ? '#ecfdf5' : '#fff', color: copied ? '#059669' : '#374151',
             fontSize: 13, fontWeight: 600, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
@@ -153,7 +153,7 @@ function CreatedSuccess({ traineeId, name, onAnother }) {
       <div style={{ display: 'flex', gap: 10 }}>
         <button onClick={onAnother} style={{
           padding: '10px 16px', background: '#fff', color: '#374151',
-          border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
         }}>
           Add another athlete
         </button>

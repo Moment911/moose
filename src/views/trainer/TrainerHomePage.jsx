@@ -3,15 +3,21 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Target, BarChart2, Dumbbell, DollarSign, Mail, Clock, ChevronRight, Loader2 } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
-import {
-  T_FONT, T_FONT_NUM, T_BG, T_SURFACE, T_BRD, T_INK, T_INK_DIM,
-  T_RED, T_BLUE, T_SHADOW_SM, T_SHADOW_MD, T_TYPE,
-} from '../../lib/trainer/ui'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TrainerHomePage — landing page for the Koto Trainer portal.
-// Dark hero, quick stats, key facts, news feed, quick links.
+// TrainerHomePage — Cal-AI aesthetic: white canvas, clean typography.
 // ─────────────────────────────────────────────────────────────────────────────
+
+const F    = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const INK  = '#0a0a0a'
+const INK2 = '#1f1f22'
+const INK3 = '#6b6b70'
+const INK4 = '#a1a1a6'
+const CARD = '#f1f1f6'
+const BRD  = '#ececef'
+const BLUE = '#5aa0ff'
+const RED  = '#e9695c'
+const ACCENT = '#d89a6a'
 
 const STATS = [
   { value: '473,503', label: 'HS Baseball Players' },
@@ -38,10 +44,10 @@ const KEY_FACTS = [
 const NEWS_TABS = ['All', 'D1', 'Transfer Portal', 'MLB Draft', 'CWS']
 
 const QUICK_LINKS = [
-  { label: 'Programs', badge: '549', to: '/trainer/recruiting', icon: Target, color: T_RED },
-  { label: 'ProPath Score', to: '/trainer/propath', icon: BarChart2, color: T_BLUE },
-  { label: 'Benchmarks', to: '/trainer/benchmarks', icon: Dumbbell, color: '#059669' },
-  { label: 'Scholarships', to: '/trainer/scholarships', icon: DollarSign, color: '#d97706' },
+  { label: 'Programs', badge: '549', to: '/trainer/recruiting', icon: Target, color: RED },
+  { label: 'ProPath Score', to: '/trainer/propath', icon: BarChart2, color: BLUE },
+  { label: 'Benchmarks', to: '/trainer/benchmarks', icon: Dumbbell, color: '#16a34a' },
+  { label: 'Scholarships', to: '/trainer/scholarships', icon: DollarSign, color: ACCENT },
   { label: 'Email Templates', to: '/trainer/templates', icon: Mail, color: '#7c3aed' },
   { label: 'Recruiting Timeline', to: '/trainer/timeline', icon: Clock, color: '#0891b2' },
 ]
@@ -92,290 +98,180 @@ export default function TrainerHomePage() {
 
   return (
     <TrainerPortalShell>
-      {/* ── Dark hero header ── */}
-      <div style={{
-        background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%)',
-        padding: '56px 40px 48px',
-      }}>
-        <h1 style={{
-          ...T_TYPE.display,
-          fontSize: 40,
-          color: '#fff',
-          margin: 0,
-          fontFamily: T_FONT,
-        }}>
-          Koto Trainer
-        </h1>
-        <p style={{
-          ...T_TYPE.title3,
-          color: '#9ca3af',
-          margin: '8px 0 0',
-          fontWeight: 500,
-          fontFamily: T_FONT,
-        }}>
-          Train. Fuel. Get Recruited.
-        </p>
-      </div>
+      <div style={{ minHeight: '100vh', background: '#fff', fontFamily: F }}>
 
-      {/* ── Quick stat bar ── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 16,
-        padding: '0 40px',
-        marginTop: -24,
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        {STATS.map((s) => (
-          <div key={s.label} style={{
-            background: T_SURFACE,
-            borderRadius: 14,
-            padding: '20px 24px',
-            boxShadow: T_SHADOW_MD,
-            border: `1px solid ${T_BRD}`,
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontFamily: T_FONT_NUM,
-              fontSize: 36,
-              fontWeight: 800,
-              color: T_INK,
-              letterSpacing: '-0.02em',
-              lineHeight: 1,
-            }}>
-              {s.value}
-            </div>
-            <div style={{
-              ...T_TYPE.subhead,
-              color: T_INK_DIM,
-              marginTop: 6,
-            }}>
-              {s.label}
-            </div>
-          </div>
-        ))}
-      </div>
+        {/* ── Header ── */}
+        <div style={{ padding: '40px 40px 0' }}>
+          <h1 style={{ margin: 0, fontSize: 34, fontWeight: 800, color: INK, letterSpacing: '-0.6px', lineHeight: 1.10 }}>
+            Koto Trainer
+          </h1>
+          <p style={{ margin: '6px 0 0', fontSize: 15, fontWeight: 500, color: INK3 }}>
+            Train. Fuel. Get Recruited.
+          </p>
+        </div>
 
-      {/* ── Page body ── */}
-      <div style={{ padding: '40px 40px 60px' }}>
-
-        {/* ── Key facts section ── */}
-        <h2 style={{
-          ...T_TYPE.title2,
-          color: T_INK,
-          margin: '0 0 20px',
-          fontFamily: T_FONT,
-        }}>
-          The Numbers You Need to Know
-        </h2>
+        {/* ── Quick stat bar ── */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 16,
-          marginBottom: 48,
+          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14,
+          padding: '28px 40px 0',
         }}>
-          {KEY_FACTS.map((f) => (
-            <div key={f.title} style={{
-              background: T_SURFACE,
-              borderRadius: 14,
-              padding: '24px 24px 28px',
-              boxShadow: T_SHADOW_SM,
-              border: `1px solid ${T_BRD}`,
+          {STATS.map((s) => (
+            <div key={s.label} style={{
+              background: CARD, borderRadius: 16, padding: '20px 24px', textAlign: 'center',
             }}>
               <div style={{
-                ...T_TYPE.headline,
-                color: T_INK,
-                marginBottom: 8,
+                fontFamily: '"Barlow Condensed", system-ui, sans-serif',
+                fontSize: 36, fontWeight: 800, color: INK, letterSpacing: '-0.02em', lineHeight: 1,
               }}>
-                {f.title}
+                {s.value}
               </div>
-              <p style={{
-                ...T_TYPE.body,
-                color: T_INK_DIM,
-                margin: 0,
+              <div style={{ fontSize: 13, fontWeight: 500, color: INK3, marginTop: 6 }}>
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Page body ── */}
+        <div style={{ padding: '36px 40px 60px' }}>
+
+          {/* ── Key facts ── */}
+          <h2 style={{ margin: '0 0 16px', fontSize: 20, fontWeight: 700, color: INK, letterSpacing: '-0.2px' }}>
+            The Numbers You Need to Know
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 48 }}>
+            {KEY_FACTS.map((f) => (
+              <div key={f.title} style={{
+                background: CARD, borderRadius: 16, padding: '24px 24px 28px',
               }}>
-                {f.body}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Recruiting news feed ── */}
-        <h2 style={{
-          ...T_TYPE.title2,
-          color: T_INK,
-          margin: '0 0 16px',
-          fontFamily: T_FONT,
-        }}>
-          Recruiting News
-        </h2>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
-          {NEWS_TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className="t-press"
-              style={{
-                padding: '6px 16px',
-                borderRadius: 20,
-                border: 'none',
-                fontSize: 13,
-                fontWeight: 600,
-                fontFamily: T_FONT,
-                cursor: 'pointer',
-                background: activeTab === tab ? T_RED : T_SURFACE,
-                color: activeTab === tab ? '#fff' : T_INK_DIM,
-                boxShadow: activeTab === tab ? 'none' : T_SHADOW_SM,
-                letterSpacing: '-0.005em',
-              }}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Articles */}
-        <div style={{
-          background: T_SURFACE,
-          borderRadius: 14,
-          border: `1px solid ${T_BRD}`,
-          boxShadow: T_SHADOW_SM,
-          marginBottom: 48,
-          overflow: 'hidden',
-        }}>
-          {loadingNews ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, gap: 8 }}>
-              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite', color: T_INK_DIM }} />
-              <span style={{ ...T_TYPE.body, color: T_INK_DIM }}>Loading news...</span>
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
-          ) : visibleArticles.length === 0 ? (
-            <div style={{ padding: 48, textAlign: 'center', ...T_TYPE.body, color: T_INK_DIM }}>
-              No articles found.
-            </div>
-          ) : (
-            <>
-              {visibleArticles.map((a, i) => (
-                <div
-                  key={a.url || i}
-                  style={{
-                    padding: '14px 24px',
-                    borderBottom: i < visibleArticles.length - 1 ? `1px solid ${T_BRD}` : 'none',
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    gap: 12,
-                  }}
-                >
-                  <a
-                    href={a.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      ...T_TYPE.body,
-                      fontWeight: 600,
-                      color: T_INK,
-                      textDecoration: 'none',
-                      flex: 1,
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.color = T_BLUE }}
-                    onMouseLeave={e => { e.currentTarget.style.color = T_INK }}
-                  >
-                    {a.title}
-                  </a>
-                  <span style={{ ...T_TYPE.caption, color: T_INK_DIM, whiteSpace: 'nowrap' }}>
-                    {a.source}
-                  </span>
-                  <span style={{ ...T_TYPE.caption, color: T_INK_DIM, whiteSpace: 'nowrap' }}>
-                    {relativeDate(a.published_at)}
-                  </span>
+                <div style={{ fontSize: 17, fontWeight: 600, color: INK, marginBottom: 8, letterSpacing: '-0.2px' }}>
+                  {f.title}
                 </div>
-              ))}
-              {articles.length > visibleCount && (
-                <button
-                  onClick={() => setVisibleCount(c => c + 10)}
-                  className="t-press"
-                  style={{
-                    width: '100%',
-                    padding: '14px 24px',
-                    border: 'none',
-                    borderTop: `1px solid ${T_BRD}`,
-                    background: 'none',
-                    cursor: 'pointer',
-                    ...T_TYPE.callout,
-                    color: T_BLUE,
-                    fontFamily: T_FONT,
-                    textAlign: 'center',
-                  }}
-                >
-                  Load more
-                </button>
-              )}
-            </>
-          )}
-        </div>
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 500, color: INK3, lineHeight: 1.5 }}>
+                  {f.body}
+                </p>
+              </div>
+            ))}
+          </div>
 
-        {/* ── Quick links grid ── */}
-        <h2 style={{
-          ...T_TYPE.title2,
-          color: T_INK,
-          margin: '0 0 20px',
-          fontFamily: T_FONT,
-        }}>
-          Quick Links
-        </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 16,
-        }}>
-          {QUICK_LINKS.map((lnk) => {
-            const Icon = lnk.icon
-            return (
-              <Link
-                key={lnk.to}
-                to={lnk.to}
-                className="t-press t-lift"
+          {/* ── Recruiting news feed ── */}
+          <h2 style={{ margin: '0 0 16px', fontSize: 20, fontWeight: 700, color: INK, letterSpacing: '-0.2px' }}>
+            Recruiting News
+          </h2>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
+            {NEWS_TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="t-press"
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  background: T_SURFACE,
-                  borderRadius: 14,
-                  padding: '20px 24px',
-                  boxShadow: T_SHADOW_SM,
-                  border: `1px solid ${T_BRD}`,
-                  textDecoration: 'none',
-                  color: T_INK,
+                  padding: '6px 16px', borderRadius: 999, border: 'none',
+                  fontSize: 13, fontWeight: 600, fontFamily: F, cursor: 'pointer',
+                  background: activeTab === tab ? INK : CARD,
+                  color: activeTab === tab ? '#fff' : INK3,
                 }}
               >
-                <div style={{
-                  width: 40, height: 40, borderRadius: 10,
-                  background: lnk.color + '14',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <Icon size={20} style={{ color: lnk.color }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ ...T_TYPE.headline, color: T_INK }}>
-                    {lnk.label}
-                    {lnk.badge && (
-                      <span style={{
-                        marginLeft: 8, fontSize: 11, fontWeight: 700,
-                        padding: '2px 8px', borderRadius: 20,
-                        background: T_BLUE, color: '#fff',
-                        verticalAlign: 'middle',
-                      }}>
-                        {lnk.badge}
-                      </span>
-                    )}
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Articles */}
+          <div style={{
+            background: CARD, borderRadius: 16, marginBottom: 48, overflow: 'hidden',
+          }}>
+            {loadingNews ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, gap: 8 }}>
+                <Loader2 size={18} style={{ animation: 'spin 1s linear infinite', color: INK3 }} />
+                <span style={{ fontSize: 15, fontWeight: 500, color: INK3 }}>Loading news...</span>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              </div>
+            ) : visibleArticles.length === 0 ? (
+              <div style={{ padding: 48, textAlign: 'center', fontSize: 15, fontWeight: 500, color: INK3 }}>
+                No articles found.
+              </div>
+            ) : (
+              <>
+                {visibleArticles.map((a, i) => (
+                  <div key={a.url || i} style={{
+                    padding: '14px 24px',
+                    borderBottom: i < visibleArticles.length - 1 ? `1px solid ${BRD}` : 'none',
+                    display: 'flex', alignItems: 'baseline', gap: 12,
+                    background: '#fff',
+                  }}>
+                    <a href={a.url} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 15, fontWeight: 600, color: INK, textDecoration: 'none', flex: 1 }}
+                      onMouseEnter={e => { e.currentTarget.style.color = BLUE }}
+                      onMouseLeave={e => { e.currentTarget.style.color = INK }}>
+                      {a.title}
+                    </a>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: INK4, whiteSpace: 'nowrap' }}>
+                      {a.source}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: INK4, whiteSpace: 'nowrap' }}>
+                      {relativeDate(a.published_at)}
+                    </span>
                   </div>
-                </div>
-                <ChevronRight size={16} style={{ color: T_INK_DIM, flexShrink: 0 }} />
-              </Link>
-            )
-          })}
+                ))}
+                {articles.length > visibleCount && (
+                  <button onClick={() => setVisibleCount(c => c + 10)}
+                    className="t-press"
+                    style={{
+                      width: '100%', padding: '14px 24px', border: 'none',
+                      borderTop: `1px solid ${BRD}`, background: '#fff',
+                      cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: F,
+                      color: BLUE, textAlign: 'center',
+                    }}>
+                    Load more
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* ── Quick links grid ── */}
+          <h2 style={{ margin: '0 0 16px', fontSize: 20, fontWeight: 700, color: INK, letterSpacing: '-0.2px' }}>
+            Quick Links
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+            {QUICK_LINKS.map((lnk) => {
+              const Icon = lnk.icon
+              return (
+                <Link key={lnk.to} to={lnk.to} className="t-press t-lift"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    background: CARD, borderRadius: 16, padding: '20px 24px',
+                    textDecoration: 'none', color: INK,
+                  }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 10,
+                    background: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <Icon size={20} style={{ color: lnk.color }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: INK }}>
+                      {lnk.label}
+                      {lnk.badge && (
+                        <span style={{
+                          marginLeft: 8, fontSize: 11, fontWeight: 600,
+                          padding: '2px 8px', borderRadius: 999,
+                          background: '#fff', color: INK3, border: `1px solid ${BRD}`,
+                          verticalAlign: 'middle',
+                        }}>
+                          {lnk.badge}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight size={16} style={{ color: INK4, flexShrink: 0 }} />
+                </Link>
+              )
+            })}
+          </div>
         </div>
       </div>
     </TrainerPortalShell>

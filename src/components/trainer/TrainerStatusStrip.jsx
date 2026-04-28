@@ -2,19 +2,16 @@
 import { Check } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TrainerStatusStrip — horizontal stepper showing plan-chain progress.
-//
+// TrainerStatusStrip — Cal-AI aesthetic: clean white strip, ink circles.
 // Steps: Baseline → Roadmap → Playbook → Workout → Food → Meals.
-// Visual language: numbered circles, connecting progress line, step label
-// below. Done = slate filled + check, in-progress = blue filled + pulse,
-// pending = outlined neutral. Linear / Stripe / Vercel flavor.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
-const SLATE900 = '#0f172a'
-const SLATE500 = '#64748b'
-const SLATE400 = '#94a3b8'
-const BLUE = '#2563eb'
+const INK   = '#0a0a0a'
+const INK3  = '#6b6b70'
+const INK4  = '#a1a1a6'
+const BRD   = '#ececef'
+const CARD  = '#f1f1f6'
+const BLUE  = '#5aa0ff'
 
 const STEPS = [
   { key: 'baseline', label: 'Baseline' },
@@ -32,7 +29,7 @@ export default function TrainerStatusStrip({ done = {}, pendingKey = null }) {
 
   return (
     <>
-      <style>{`@keyframes kotoPulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.35)}50%{box-shadow:0 0 0 6px rgba(37,99,235,0)}}`}</style>
+      <style>{`@keyframes kotoPulse{0%,100%{box-shadow:0 0 0 0 rgba(90,160,255,.35)}50%{box-shadow:0 0 0 6px rgba(90,160,255,0)}}`}</style>
       <div
         role="status"
         aria-label="Plan progress"
@@ -43,8 +40,8 @@ export default function TrainerStatusStrip({ done = {}, pendingKey = null }) {
           padding: '12px 16px',
           background: '#fff',
           border: `1px solid ${BRD}`,
-          borderRadius: 10,
-          boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+          borderRadius: 12,
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
           overflowX: 'auto',
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
@@ -54,11 +51,10 @@ export default function TrainerStatusStrip({ done = {}, pendingKey = null }) {
           {STEPS.map((s, i) => {
             const isDone = !!done[s.key]
             const isPending = pendingKey === s.key
-            const prevDone = i > 0 && !!done[STEPS[i - 1].key]
-            const circleBg = isDone ? SLATE900 : isPending ? BLUE : '#fff'
-            const circleBorder = isDone ? SLATE900 : isPending ? BLUE : BRD
-            const circleColor = isDone || isPending ? '#fff' : SLATE500
-            const labelColor = isDone ? SLATE900 : isPending ? BLUE : SLATE400
+            const circleBg = isDone ? INK : isPending ? BLUE : '#fff'
+            const circleBorder = isDone ? INK : isPending ? BLUE : BRD
+            const circleColor = isDone || isPending ? '#fff' : INK3
+            const labelColor = isDone ? INK : isPending ? BLUE : INK4
             return (
               <span key={s.key} style={{ display: 'flex', alignItems: 'center', flex: i === STEPS.length - 1 ? '0 0 auto' : '1 1 0' }}>
                 <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -70,7 +66,7 @@ export default function TrainerStatusStrip({ done = {}, pendingKey = null }) {
                       border: `1.5px solid ${circleBorder}`,
                       color: circleColor,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 11, fontWeight: 700, letterSpacing: '-.02em',
+                      fontSize: 11, fontWeight: 700,
                       animation: isPending ? 'kotoPulse 1.6s ease-in-out infinite' : 'none',
                       transition: 'background .15s, border-color .15s',
                     }}
@@ -78,8 +74,8 @@ export default function TrainerStatusStrip({ done = {}, pendingKey = null }) {
                     {isDone ? <Check size={13} strokeWidth={3} /> : i + 1}
                   </span>
                   <span style={{
-                    fontSize: 10.5, fontWeight: 600, color: labelColor,
-                    letterSpacing: '.01em', whiteSpace: 'nowrap',
+                    fontSize: 11, fontWeight: 600, color: labelColor,
+                    whiteSpace: 'nowrap',
                   }}>
                     {s.label}
                   </span>
@@ -89,7 +85,7 @@ export default function TrainerStatusStrip({ done = {}, pendingKey = null }) {
                     aria-hidden
                     style={{
                       flex: 1, height: 1.5, margin: '0 8px',
-                      background: isDone && prevDone ? SLATE900 : isDone ? SLATE900 : BRD,
+                      background: isDone ? INK : BRD,
                       transition: 'background .15s',
                       alignSelf: 'flex-start',
                       marginTop: 13,
@@ -103,13 +99,12 @@ export default function TrainerStatusStrip({ done = {}, pendingKey = null }) {
         <span style={{
           flexShrink: 0,
           padding: '4px 10px',
-          background: '#f8fafc',
+          background: CARD,
           border: `1px solid ${BRD}`,
           borderRadius: 999,
           fontSize: 11,
-          fontWeight: 700,
-          color: SLATE500,
-          letterSpacing: '-.01em',
+          fontWeight: 600,
+          color: INK3,
         }}>
           {doneCount}/{total} · {pct}%
         </span>

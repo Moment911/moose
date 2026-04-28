@@ -1,16 +1,14 @@
 "use client"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TrainerTabs — page-level tab bar.
-//
-// Slate-based active state (no more accent pink), thicker underline
-// indicator, gentle hover state. Matches Linear / Vercel navigation.
+// TrainerTabs — Cal-AI aesthetic: clean underline tabs, #0a0a0a ink active.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
-const SLATE400 = '#94a3b8'
-const SLATE600 = '#475569'
-const SLATE900 = '#0f172a'
+const INK   = '#0a0a0a'
+const INK3  = '#6b6b70'
+const INK4  = '#a1a1a6'
+const BRD   = '#ececef'
+const CARD  = '#f1f1f6'
 
 export default function TrainerTabs({ tabs, activeKey, onChange }) {
   return (
@@ -30,7 +28,7 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
       {tabs.map((t) => {
         const Icon = t.icon
         const active = activeKey === t.key
-        const dotColor = t.done ? '#16a34a' : t.pending ? '#f59e0b' : null
+        const dotColor = t.done ? '#16a34a' : t.pending ? '#f0b400' : null
         return (
           <button
             key={t.key}
@@ -46,22 +44,23 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
               padding: '12px 18px',
               marginBottom: -1,
               fontSize: 15,
-              fontWeight: active ? 700 : 500,
-              color: active ? SLATE900 : SLATE600,
+              fontWeight: active ? 600 : 500,
+              color: active ? INK : INK3,
               background: 'transparent',
               border: 'none',
-              borderBottom: `2px solid ${active ? SLATE900 : 'transparent'}`,
+              borderBottom: `2px solid ${active ? INK : 'transparent'}`,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              letterSpacing: '-.005em',
+              letterSpacing: '0px',
               flexShrink: 0,
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               transition: 'color .12s, border-color .12s',
             }}
             onMouseEnter={(e) => {
-              if (!active) e.currentTarget.style.color = SLATE900
+              if (!active) e.currentTarget.style.color = INK
             }}
             onMouseLeave={(e) => {
-              if (!active) e.currentTarget.style.color = SLATE600
+              if (!active) e.currentTarget.style.color = INK3
             }}
           >
             {Icon && <Icon size={16} strokeWidth={active ? 2.25 : 2} />}
@@ -84,12 +83,12 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
                 style={{
                   marginLeft: 4,
                   padding: '1px 6px',
-                  background: active ? SLATE900 : '#f1f5f9',
-                  color: active ? '#fff' : SLATE400,
+                  background: active ? INK : CARD,
+                  color: active ? '#fff' : INK4,
                   fontSize: 10.5,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   borderRadius: 999,
-                  letterSpacing: '-.01em',
+                  letterSpacing: '0px',
                 }}
               >
                 {t.count}

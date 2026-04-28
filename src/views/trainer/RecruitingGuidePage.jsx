@@ -66,7 +66,7 @@ const calloutBox = {
 }
 
 const tipBox = {
-  background: '#f8fafc', borderRadius: 10, padding: '16px 20px',
+  background: '#f1f1f6', borderRadius: 10, padding: '16px 20px',
   marginBottom: 16, marginTop: 16,
   fontSize: 14, fontWeight: 500, lineHeight: 1.55, color: '#1e3a5f',
   borderLeft: `4px solid ${T_BLUE}`,
@@ -202,7 +202,7 @@ function SectionRulesCalendar() {
           ['Regular Signing Period: April', 'Exact dates vary by year'],
           ['Transfer Portal windows', 'April 15-30 and August 1-15'],
         ].map(([date, desc]) => (
-          <div key={date} style={{ display: 'flex', gap: 16, padding: '12px 16px', borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
+          <div key={date} style={{ display: 'flex', gap: 16, padding: '12px 16px', borderRadius: 10, background: '#f9fafb', border: '1px solid #f1f1f6' }}>
             <span style={{ ...statBadge, fontSize: 14, minWidth: 220, flexShrink: 0 }}>{date}</span>
             <span style={{ ...bodyText, fontSize: 14, color: '#4b5563' }}>{desc}</span>
           </div>
@@ -387,7 +387,7 @@ function SectionCamps() {
           ['Junior', '2-3 national showcases + camps at top 5 targets — THIS IS YOUR YEAR'],
           ['Senior', 'Only attend if still uncommitted'],
         ].map(([year, plan]) => (
-          <div key={year} style={{ display: 'flex', gap: 16, padding: '12px 16px', borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
+          <div key={year} style={{ display: 'flex', gap: 16, padding: '12px 16px', borderRadius: 10, background: '#f9fafb', border: '1px solid #f1f1f6' }}>
             <span style={{ fontFamily: T_FONT_NUM, fontWeight: 700, fontSize: 15, color: T_RED, minWidth: 100 }}>{year}</span>
             <span style={{ fontSize: 14, lineHeight: 1.5, color: '#374151' }}>{plan}</span>
           </div>
@@ -424,7 +424,7 @@ function SectionScholarships() {
           ['NAIA', '12', 'per team'],
           ['JUCO', '24', 'per team'],
         ].map(([div, num, desc]) => (
-          <div key={div} style={{ display: 'flex', alignItems: 'baseline', gap: 16, padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
+          <div key={div} style={{ display: 'flex', alignItems: 'baseline', gap: 16, padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #f1f1f6' }}>
             <span style={{ fontFamily: T_FONT_NUM, fontWeight: 800, fontSize: 18, color: T_RED, minWidth: 44 }}>{div}</span>
             <span style={{ fontFamily: T_FONT_NUM, fontWeight: 800, fontSize: 22, color: '#111827', minWidth: 36 }}>{num}</span>
             <span style={{ fontSize: 14, lineHeight: 1.5, color: '#4b5563' }}>{desc}</span>
@@ -522,7 +522,7 @@ export default function RecruitingGuidePage() {
         style={{
           position: 'sticky', top: 0, zIndex: 20,
           background: '#fff',
-          borderBottom: '1px solid #e5e7eb',
+          borderBottom: '1px solid #ececef',
           padding: '0 40px',
           display: 'flex', gap: 0,
           overflowX: 'auto',

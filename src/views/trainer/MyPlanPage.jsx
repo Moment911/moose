@@ -509,7 +509,7 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
   }, [logs])
 
   // Plan steps
-  const STEP_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
+  const STEP_COLORS = ['#e9695c', '#5aa0ff', '#7c3aed', '#059669', '#d97706', '#0891b2']
   // hasPrefs mirrors TrainerDetailPage — a bare envelope shouldn't pass as ready.
   const prefsAnswers = plan?.food_preferences?.answers
   const hasPrefs = Array.isArray(prefsAnswers) && prefsAnswers.length > 0
@@ -678,7 +678,7 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
       <PlanSectionTile
         title="Baseline"
         icon={<Activity size={16} />}
-        color="#dc2626"
+        color="#e9695c"
         state={hasBaseline ? 'ready' : (generating && firstPendingKey === 'baseline') ? 'building' : 'pending'}
         etaLabel="~15s"
         defaultOpen
@@ -689,7 +689,7 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
       <PlanSectionTile
         title="Roadmap"
         icon={<Target size={16} />}
-        color="#2563eb"
+        color="#5aa0ff"
         state={hasRoadmap ? 'ready' : (generating && firstPendingKey === 'roadmap') ? 'building' : 'pending'}
         etaLabel="~30s"
       >
@@ -2054,8 +2054,8 @@ function MealsTab({ plan, traineeId, isMobile, onMealLogged }) {
 
       {/* Daily macro targets */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {mealPlan.calorie_daily_target_kcal && <MacroPill label="Cal" value={`${mealPlan.calorie_daily_target_kcal}`} color="#0f172a" />}
-        {macros.protein_g && <MacroPill label="P" value={`${macros.protein_g}g`} color="#2563eb" />}
+        {mealPlan.calorie_daily_target_kcal && <MacroPill label="Cal" value={`${mealPlan.calorie_daily_target_kcal}`} color="#0a0a0a" />}
+        {macros.protein_g && <MacroPill label="P" value={`${macros.protein_g}g`} color="#5aa0ff" />}
         {macros.carb_g && <MacroPill label="C" value={`${macros.carb_g}g`} color="#059669" />}
         {macros.fat_g && <MacroPill label="F" value={`${macros.fat_g}g`} color="#d97706" />}
       </div>
@@ -2144,7 +2144,7 @@ function MealsTab({ plan, traineeId, isMobile, onMealLogged }) {
                       {meal.kcal ? ` · ${meal.kcal} kcal` : ''}
                     </div>
                     <div style={{ marginTop: 8, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                      {mealMacros.protein_g && <MacroPill label="P" value={`${mealMacros.protein_g}g`} color="#2563eb" />}
+                      {mealMacros.protein_g && <MacroPill label="P" value={`${mealMacros.protein_g}g`} color="#5aa0ff" />}
                       {mealMacros.carb_g && <MacroPill label="C" value={`${mealMacros.carb_g}g`} color="#059669" />}
                       {mealMacros.fat_g && <MacroPill label="F" value={`${mealMacros.fat_g}g`} color="#d97706" />}
                     </div>
@@ -2212,7 +2212,7 @@ function MealsTab({ plan, traineeId, isMobile, onMealLogged }) {
       <style>{`
         @media print {
           .no-print { display: none !important; }
-          .print-meals > div { break-inside: avoid; box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+          .print-meals > div { break-inside: avoid; box-shadow: none !important; border: 1px solid #ececef !important; }
           .print-grocery { break-before: page; }
         }
       `}</style>
@@ -2302,8 +2302,8 @@ function RecipeModal({ meal, onClose }) {
         </div>
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
-          {meal.kcal && <MacroPill label="Cal" value={meal.kcal} color="#0f172a" />}
-          {macros.protein_g && <MacroPill label="Protein" value={`${macros.protein_g}g`} color="#2563eb" />}
+          {meal.kcal && <MacroPill label="Cal" value={meal.kcal} color="#0a0a0a" />}
+          {macros.protein_g && <MacroPill label="Protein" value={`${macros.protein_g}g`} color="#5aa0ff" />}
           {macros.carb_g && <MacroPill label="Carbs" value={`${macros.carb_g}g`} color="#059669" />}
           {macros.fat_g && <MacroPill label="Fat" value={`${macros.fat_g}g`} color="#d97706" />}
         </div>
@@ -2958,7 +2958,7 @@ function BodyMeasurementsSection({ traineeId }) {
     })
   }, [measurements, chartFields])
 
-  const CHART_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
+  const CHART_COLORS = ['#e9695c', '#5aa0ff', '#7c3aed', '#059669', '#d97706', '#0891b2']
 
   // Latest vs first comparison
   const changes = useMemo(() => {
@@ -3038,7 +3038,7 @@ function BodyMeasurementsSection({ traineeId }) {
                 <div style={{ fontSize: 15, fontWeight: 700, color: A.ink }}>{c.end}"</div>
                 <div style={{
                   fontSize: 11, fontWeight: 600,
-                  color: c.diff > 0 ? '#059669' : c.diff < 0 ? '#dc2626' : A.ink3,
+                  color: c.diff > 0 ? '#059669' : c.diff < 0 ? '#e9695c' : A.ink3,
                 }}>
                   {c.diff > 0 ? '+' : ''}{c.diff.toFixed(1)}"
                 </div>

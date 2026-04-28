@@ -12,7 +12,7 @@ import { R, T, BLK } from '../../lib/theme'
 // scale.  Back / Next nav; Submit on the last question.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 const GRY5 = '#6b7280'
 const GRY7 = '#374151'
 

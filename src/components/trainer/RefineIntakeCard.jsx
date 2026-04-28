@@ -19,7 +19,7 @@ import { T, BLK, GRY, GRN, R } from '../../lib/theme'
 //      new context feeds baseline, roadmap, workout, meals, etc. for free.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 
 export default function RefineIntakeCard({
   traineeId,

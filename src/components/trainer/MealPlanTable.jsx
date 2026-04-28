@@ -14,8 +14,8 @@ import { R, T, BLK } from '../../lib/theme'
 // detail modal.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
-const BRD_LT = '#f3f4f6'
+const BRD = '#ececef'
+const BRD_LT = '#f1f1f6'
 const GRY5 = '#6b7280'
 const GRY7 = '#374151'
 const GRN = '#16a34a'
@@ -520,7 +520,7 @@ function MealDetail({ meal, onClose }) {
             style={{
               flexShrink: 0,
               width: 32, height: 32,
-              background: '#f8fafc', border: `1px solid ${BRD}`, borderRadius: 8,
+              background: '#f1f1f6', border: `1px solid ${BRD}`, borderRadius: 8,
               cursor: 'pointer', color: GRY7,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 16, fontWeight: 700, lineHeight: 1,
@@ -531,8 +531,8 @@ function MealDetail({ meal, onClose }) {
         </div>
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-          {meal.kcal && <MiniBadge label="Calories" value={meal.kcal} color="#0f172a" />}
-          {macros.protein_g && <MiniBadge label="Protein" value={`${macros.protein_g}g`} color="#2563eb" />}
+          {meal.kcal && <MiniBadge label="Calories" value={meal.kcal} color="#0a0a0a" />}
+          {macros.protein_g && <MiniBadge label="Protein" value={`${macros.protein_g}g`} color="#5aa0ff" />}
           {macros.carb_g && <MiniBadge label="Carbs" value={`${macros.carb_g}g`} color="#059669" />}
           {macros.fat_g && <MiniBadge label="Fat" value={`${macros.fat_g}g`} color="#d97706" />}
           {macros.fiber_g && <MiniBadge label="Fiber" value={`${macros.fiber_g}g`} color="#7c3aed" />}
@@ -604,7 +604,7 @@ function Badge({ icon, label, value, unit }) {
 }
 
 function MiniBadge({ label, value, color }) {
-  const c = color || '#0f172a'
+  const c = color || '#0a0a0a'
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,

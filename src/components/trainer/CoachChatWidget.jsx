@@ -11,7 +11,7 @@ import { supabase } from '../../lib/supabase'
 // access to the athlete's profile and plan.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const RED = '#dc2626'
+const RED = '#e9695c'
 
 export default function CoachChatWidget({ traineeId, traineeName }) {
   const [open, setOpen] = useState(false)
@@ -182,7 +182,7 @@ export default function CoachChatWidget({ traineeId, traineeName }) {
           background: '#fff',
           boxShadow: '0 8px 30px rgba(0,0,0,.18)',
           zIndex: 1099,
-          border: '1px solid #e5e7eb',
+          border: '1px solid #ececef',
         }}>
           {/* Header */}
           <div style={{
@@ -241,7 +241,7 @@ export default function CoachChatWidget({ traineeId, traineeName }) {
           {/* Input bar */}
           <div style={{
             padding: '10px 12px',
-            borderTop: '1px solid #f3f4f6',
+            borderTop: '1px solid #f1f1f6',
             display: 'flex',
             alignItems: 'flex-end',
             gap: 8,
@@ -259,7 +259,7 @@ export default function CoachChatWidget({ traineeId, traineeName }) {
                 flex: 1,
                 padding: '10px 12px',
                 fontSize: 14,
-                border: '1px solid #e5e7eb',
+                border: '1px solid #ececef',
                 borderRadius: 10,
                 resize: 'none',
                 fontFamily: 'inherit',
@@ -275,7 +275,7 @@ export default function CoachChatWidget({ traineeId, traineeName }) {
                 width: 38, height: 38,
                 borderRadius: 10,
                 border: 'none',
-                background: input.trim() && !streaming ? RED : '#e5e7eb',
+                background: input.trim() && !streaming ? RED : '#ececef',
                 color: input.trim() && !streaming ? '#fff' : '#9ca3af',
                 cursor: input.trim() && !streaming ? 'pointer' : 'not-allowed',
                 display: 'flex',
@@ -304,7 +304,7 @@ function MessageBubble({ role, content }) {
         maxWidth: '85%',
         padding: '10px 14px',
         borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-        background: isUser ? RED : '#f3f4f6',
+        background: isUser ? RED : '#f1f1f6',
         color: isUser ? '#fff' : BLK,
         fontSize: 14,
         lineHeight: 1.5,

@@ -12,10 +12,10 @@ import { R, T, BLK } from '../../lib/theme'
 // {{placeholder}} tokens.
 // ---------------------------------------------------------------------------
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 
 const CATEGORY_META = {
-  outreach:      { label: 'Initial Outreach',         icon: Mail,         color: '#2563eb', bg: '#dbeafe' },
+  outreach:      { label: 'Initial Outreach',         icon: Mail,         color: '#5aa0ff', bg: '#dbeafe' },
   follow_up:     { label: 'Follow-Ups',               icon: RefreshCw,    color: '#d97706', bg: '#fef3c7' },
   camp_inquiry:  { label: 'Camps & Visits',            icon: CalendarDays, color: '#16a34a', bg: '#dcfce7' },
   thank_you:     { label: 'Thank You & Special',       icon: Heart,        color: R,         bg: '#fce7f3' },
@@ -109,7 +109,7 @@ export default function EmailTemplatesPage() {
         ) : (
           <div>
             {categories.map((cat) => {
-              const meta = CATEGORY_META[cat] || { label: cat, icon: Mail, color: '#6b7280', bg: '#f3f4f6' }
+              const meta = CATEGORY_META[cat] || { label: cat, icon: Mail, color: '#6b7280', bg: '#f1f1f6' }
               const CatIcon = meta.icon
 
               return (
@@ -187,7 +187,7 @@ export default function EmailTemplatesPage() {
                                   </div>
                                   <div style={{
                                     padding: '8px 12px', background: '#f9fafb',
-                                    border: `1px solid #f3f4f6`, borderRadius: 6,
+                                    border: `1px solid #f1f1f6`, borderRadius: 6,
                                     fontSize: 13, fontWeight: 600, color: BLK,
                                   }}>
                                     <HighlightedText text={tpl.subject_template} />
@@ -203,7 +203,7 @@ export default function EmailTemplatesPage() {
                                   </div>
                                   <div style={{
                                     padding: '12px 16px', background: '#f9fafb',
-                                    border: `1px solid #f3f4f6`, borderRadius: 8,
+                                    border: `1px solid #f1f1f6`, borderRadius: 8,
                                     fontSize: 13, color: '#374151', lineHeight: 1.7,
                                     whiteSpace: 'pre-wrap',
                                   }}>

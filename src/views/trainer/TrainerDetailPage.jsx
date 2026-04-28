@@ -39,7 +39,10 @@ import { feetInchesToCm, lbsToKg } from '../../lib/trainer/units'
 import { useAuth } from '../../hooks/useAuth'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { supabase } from '../../lib/supabase'
-import { R, T, BLK, GRY, GRN } from '../../lib/theme'
+// Cal-AI tokens (old theme import removed)
+const BLK = '#0a0a0a'
+const GRY = '#f1f1f6'
+const GRN = '#16a34a'
 
 import PlanBaselineCard from '../../components/trainer/PlanBaselineCard'
 import RoadmapCard from '../../components/trainer/RoadmapCard'
@@ -68,11 +71,11 @@ import IntakeChatWidget from '../../components/trainer/IntakeChatWidget'
 // the prior render — only the composition tree changed.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
-const GRY5 = '#6b7280'
-const GRY7 = '#374151'
-const RED = '#dc2626'
-const BLUE = '#2563eb'
+const BRD = '#ececef'
+const GRY5 = '#6b6b70'
+const GRY7 = '#1f1f22'
+const RED = '#e9695c'
+const BLUE = '#5aa0ff'
 
 // Siblings of trainerFetch — same auth pattern, different URLs.
 async function authHeader() {
@@ -1098,7 +1101,7 @@ function GlobalJobsBanner({ pending }) {
           style={{
             width: 14, height: 14, flexShrink: 0,
             border: '2px solid #bfdbfe',
-            borderTopColor: '#2563eb',
+            borderTopColor: '#5aa0ff',
             borderRadius: '50%',
             animation: 'kotoSpin 0.8s linear infinite',
           }}
@@ -1109,7 +1112,7 @@ function GlobalJobsBanner({ pending }) {
           {extras > 0 && <span style={{ color: '#3b82f6', fontWeight: 500, marginLeft: 6 }}>+{extras} more running</span>}
         </span>
         <span style={{ flex: 1 }} />
-        <span style={{ fontSize: 12, color: '#475569', fontWeight: 500, animation: 'kotoJobPulse 2s ease-in-out infinite' }}>
+        <span style={{ fontSize: 12, color: '#6b6b70', fontWeight: 500, animation: 'kotoJobPulse 2s ease-in-out infinite' }}>
           You can keep working — this runs in the background.
         </span>
       </div>
@@ -1129,7 +1132,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
     bounced: 'Resend (bounced)',
     revoked: 'Send invite',
   })[status] || 'Send invite'
-  const inviteBadgeColor = status === 'active' ? '#059669' : status === 'bounced' ? '#dc2626' : status === 'invited' ? '#0891b2' : '#6b7280'
+  const inviteBadgeColor = status === 'active' ? '#059669' : status === 'bounced' ? '#e9695c' : status === 'invited' ? '#0891b2' : '#6b7280'
   // Initials for the avatar.
   const initials = (trainee.full_name || 'A')
     .split(/\s+/)
@@ -1143,7 +1146,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
         position: 'sticky',
         top: 0,
         zIndex: 20,
-        background: '#f8fafc',
+        background: '#f1f1f6',
         padding: '16px 0 14px',
         marginBottom: 14,
         borderBottom: `1px solid ${BRD}`,
@@ -1165,17 +1168,16 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
             style={{
               width: 48, height: 48, flexShrink: 0,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+              background: '#0a0a0a',
               color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 16, fontWeight: 700, letterSpacing: '-.02em',
-              boxShadow: '0 1px 2px rgba(15, 23, 42, 0.1), inset 0 0 0 1px rgba(255,255,255,.06)',
             }}
           >
             {initials}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <h1 style={{ margin: 0, fontSize: 24, color: '#0f172a', fontWeight: 700, letterSpacing: '-0.018em', lineHeight: 1.12 }}>
+            <h1 style={{ margin: 0, fontSize: 24, color: '#0a0a0a', fontWeight: 700, letterSpacing: '-0.018em', lineHeight: 1.12 }}>
               {trainee.full_name}
             </h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6, alignItems: 'center' }}>
@@ -1189,7 +1191,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
               {trainee.training_days_per_week != null && (
                 <span style={chip}>{trainee.training_days_per_week}×/wk</span>
               )}
-              <span style={{ color: '#94a3b8', fontSize: 11.5, fontWeight: 500, marginLeft: 2 }}>
+              <span style={{ color: '#a1a1a6', fontSize: 11.5, fontWeight: 500, marginLeft: 2 }}>
                 Created {trainee.created_at ? new Date(trainee.created_at).toLocaleDateString() : '—'}
               </span>
             </div>
@@ -1233,7 +1235,7 @@ function StickyHeader({ trainee, actionPending, onArchive, onUnarchive, onDelete
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '7px 13px', fontSize: 13, fontWeight: 600,
               cursor: actionPending ? 'not-allowed' : 'pointer',
-              background: '#fff', color: '#dc2626',
+              background: '#fff', color: '#e9695c',
               border: '1px solid #fecaca', borderRadius: 8,
             }}
             title="Permanently delete this athlete + their plan + workout logs"
@@ -1398,7 +1400,7 @@ function OverviewTab({
           <button type="button" onClick={onGenerateBaseline} disabled={anyGenerating}
             style={{
               width: '100%', padding: '16px', marginBottom: 18,
-              background: anyGenerating ? '#e5e7eb' : '#0a0a0a',
+              background: anyGenerating ? '#ececef' : '#0a0a0a',
               color: anyGenerating ? '#6b7280' : '#fff',
               border: 'none', borderRadius: 12,
               fontSize: 16, fontWeight: 700, cursor: anyGenerating ? 'default' : 'pointer',
@@ -1456,12 +1458,12 @@ function OverviewTab({
 
       {/* ══ 3. Plan Content — completed sections with styled cards ══ */}
       {hasBaseline && (
-        <PlanSection title="Baseline" icon={<Activity size={16} />} color="#dc2626" defaultOpen onRegenerate={onRegenerateBaseline} regenerating={pending.baseline}>
+        <PlanSection title="Baseline" icon={<Activity size={16} />} color="#e9695c" defaultOpen onRegenerate={onRegenerateBaseline} regenerating={pending.baseline}>
           <PlanBaselineCard baseline={plan.baseline} />
         </PlanSection>
       )}
       {plan?.roadmap && (
-        <PlanSection title="Roadmap" icon={<Target size={16} />} color="#2563eb" onRegenerate={onRegenerateRoadmap} regenerating={pending.roadmap}>
+        <PlanSection title="Roadmap" icon={<Target size={16} />} color="#5aa0ff" onRegenerate={onRegenerateRoadmap} regenerating={pending.roadmap}>
           <RoadmapCard roadmap={plan.roadmap} currentPhase={plan.phase_ref || 1} />
         </PlanSection>
       )}
@@ -1760,7 +1762,7 @@ function TrainerBodyMeasurements({ traineeId, agencyId }) {
             <div key={c.label} style={{ padding: '6px 8px', background: CAL.card, borderRadius: 6 }}>
               <div style={{ fontSize: 10, color: CAL.ink3 }}>{c.label}</div>
               <div style={{ fontSize: 14, fontWeight: 700, color: CAL.ink }}>{c.end}"</div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: c.diff > 0 ? '#059669' : c.diff < 0 ? '#dc2626' : CAL.ink3 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: c.diff > 0 ? '#059669' : c.diff < 0 ? '#e9695c' : CAL.ink3 }}>
                 {c.diff > 0 ? '+' : ''}{c.diff.toFixed(1)}"
               </div>
             </div>
@@ -1839,7 +1841,7 @@ function PlanSection({ title, icon, color = '#0a0a0a', defaultOpen = false, onRe
 }
 
 function PlanStepsChecklist({ plan, hasBaseline, hasRoadmap, hasWorkout, hasPlaybook, hasMeals, hasGrocery, pending, extracted, onGenerateBaseline, onGotoTab }) {
-  const STEP_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
+  const STEP_COLORS = ['#e9695c', '#5aa0ff', '#7c3aed', '#059669', '#d97706', '#0891b2']
   const steps = [
     { key: 'baseline', label: 'Baseline', done: hasBaseline, tab: 'overview', generating: pending.baseline, Icon: Activity },
     { key: 'roadmap', label: 'Roadmap', done: hasRoadmap, tab: 'plan', generating: pending.roadmap, Icon: Target },
@@ -2181,8 +2183,8 @@ function FullIntakeProfile({ trainee }) {
         </div>
         <span style={{
           flexShrink: 0,
-          padding: '4px 10px', background: '#f8fafc', border: `1px solid ${BRD}`,
-          borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#475569',
+          padding: '4px 10px', background: '#f1f1f6', border: `1px solid ${BRD}`,
+          borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#6b6b70',
         }}>
           {filled} / {total} · {open ? 'Hide' : 'Show'}
         </span>
@@ -2195,12 +2197,12 @@ function FullIntakeProfile({ trainee }) {
             return (
               <div key={sec.label}>
                 <div style={{
-                  fontSize: 11.5, fontWeight: 700, color: '#0f172a', letterSpacing: '-.005em',
+                  fontSize: 11.5, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-.005em',
                   textTransform: 'uppercase', marginBottom: 8,
                   display: 'flex', alignItems: 'center', gap: 8,
                 }}>
                   <span>{sec.label}</span>
-                  <span style={{ color: '#94a3b8', fontWeight: 600, letterSpacing: 'normal', textTransform: 'none' }}>
+                  <span style={{ color: '#a1a1a6', fontWeight: 600, letterSpacing: 'normal', textTransform: 'none' }}>
                     {secFilled}/{sec.rows.length}
                   </span>
                 </div>
@@ -2215,11 +2217,11 @@ function FullIntakeProfile({ trainee }) {
                         padding: '6px 0',
                         borderBottom: '1px solid #f1f5f9',
                       }}>
-                        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>{label}</span>
+                        <span style={{ fontSize: 13, color: '#6b6b70', fontWeight: 500 }}>{label}</span>
                         <span style={{
                           fontSize: 14,
                           fontWeight: isEmpty ? 500 : 600,
-                          color: isEmpty ? '#cbd5e1' : '#0f172a',
+                          color: isEmpty ? '#c8c8cc' : '#0a0a0a',
                           textAlign: 'right',
                           maxWidth: 180,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -3288,7 +3290,7 @@ function CoachNutritionTracker({ traineeId }) {
             disabled={uploading}
             style={{
               padding: '9px 14px',
-              background: uploading ? '#94a3b8' : '#0f172a', color: '#fff',
+              background: uploading ? '#a1a1a6' : '#0a0a0a', color: '#fff',
               border: 'none', borderRadius: 8,
               fontSize: 13, fontWeight: 600, cursor: uploading ? 'wait' : 'pointer',
               display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -3307,8 +3309,8 @@ function CoachNutritionTracker({ traineeId }) {
       {/* Today's 4 bars */}
       <div style={{ display: 'grid', gap: 10, marginBottom: 18 }}>
         {[
-          { label: 'Calories', total: totals.kcal || 0, target: targets.kcal, unit: 'kcal', color: '#0f172a' },
-          { label: 'Protein', total: totals.protein_g || 0, target: targets.protein_g, unit: 'g', color: '#2563eb' },
+          { label: 'Calories', total: totals.kcal || 0, target: targets.kcal, unit: 'kcal', color: '#0a0a0a' },
+          { label: 'Protein', total: totals.protein_g || 0, target: targets.protein_g, unit: 'g', color: '#5aa0ff' },
           { label: 'Carbs', total: totals.carb_g || 0, target: targets.carb_g, unit: 'g', color: '#059669' },
           { label: 'Fat', total: totals.fat_g || 0, target: targets.fat_g, unit: 'g', color: '#d97706' },
         ].map((m) => {
@@ -3317,12 +3319,12 @@ function CoachNutritionTracker({ traineeId }) {
           return (
             <div key={m.label}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                <span style={{ fontWeight: 700, color: '#0f172a' }}>{m.label}</span>
-                <span style={{ color: '#475569', fontWeight: 600 }}>
-                  <strong style={{ color: '#0f172a' }}>{Math.round(m.total)}</strong>{hasTarget ? ` / ${m.target}` : ''} {m.unit}
+                <span style={{ fontWeight: 700, color: '#0a0a0a' }}>{m.label}</span>
+                <span style={{ color: '#6b6b70', fontWeight: 600 }}>
+                  <strong style={{ color: '#0a0a0a' }}>{Math.round(m.total)}</strong>{hasTarget ? ` / ${m.target}` : ''} {m.unit}
                 </span>
               </div>
-              <div style={{ height: 8, background: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
+              <div style={{ height: 8, background: '#f1f1f6', borderRadius: 999, overflow: 'hidden' }}>
                 <div style={{ width: `${pct}%`, height: '100%', background: m.color, borderRadius: 999, transition: 'width .3s' }} />
               </div>
             </div>
@@ -3331,7 +3333,7 @@ function CoachNutritionTracker({ traineeId }) {
       </div>
 
       {/* 7-day kcal bars */}
-      <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>
         Last 7 days · calories
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, alignItems: 'end', height: 90, marginBottom: 18, position: 'relative' }}>
@@ -3354,21 +3356,21 @@ function CoachNutritionTracker({ traineeId }) {
             <div key={d.date} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%' }}>
               <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', width: '100%' }}>
                 <div title={`${d.date}: ${d.kcal} kcal`}
-                  style={{ width: '100%', height: `${pct}%`, background: d.kcal > 0 ? '#0f172a' : '#e5e7eb', borderRadius: 4, transition: 'height .3s' }}
+                  style={{ width: '100%', height: `${pct}%`, background: d.kcal > 0 ? '#0a0a0a' : '#ececef', borderRadius: 4, transition: 'height .3s' }}
                 />
               </div>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>{dateLabel}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#a1a1a6' }}>{dateLabel}</span>
             </div>
           )
         })}
       </div>
 
       {/* Today's entries list */}
-      <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>
         Today&apos;s entries ({logs.length})
       </div>
       {logs.length === 0 ? (
-        <div style={{ padding: 12, fontSize: 13, color: '#94a3b8', background: '#f8fafc', border: '1px dashed #e5e7eb', borderRadius: 8, textAlign: 'center' }}>
+        <div style={{ padding: 12, fontSize: 13, color: '#a1a1a6', background: '#f1f1f6', border: '1px dashed #ececef', borderRadius: 8, textAlign: 'center' }}>
           Nothing logged yet today.
         </div>
       ) : (
@@ -3377,11 +3379,11 @@ function CoachNutritionTracker({ traineeId }) {
             const items = Array.isArray(log.items) ? log.items : []
             const time = log.logged_at ? new Date(log.logged_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''
             return (
-              <div key={log.id} style={{ padding: '8px 10px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}>
-                <div style={{ color: '#475569', marginBottom: 4 }}>
+              <div key={log.id} style={{ padding: '8px 10px', background: '#f1f1f6', border: '1px solid #ececef', borderRadius: 8, fontSize: 12 }}>
+                <div style={{ color: '#6b6b70', marginBottom: 4 }}>
                   {time} · {log.source === 'photo' ? 'Photo' : 'Manual'} · {log.total_kcal} kcal · {log.total_protein_g}g P
                 </div>
-                <div style={{ color: '#0f172a' }}>
+                <div style={{ color: '#0a0a0a' }}>
                   {items.map((it) => it.name).join(' · ')}
                 </div>
               </div>

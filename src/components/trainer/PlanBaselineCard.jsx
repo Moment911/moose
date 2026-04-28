@@ -18,7 +18,7 @@ import { R, T, BLK, GRN } from '../../lib/theme'
 // specific, outcome-oriented, no friendly-fluff.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 const GRY7 = '#374151'
 const GRY5 = '#6b7280'
 

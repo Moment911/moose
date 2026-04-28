@@ -12,8 +12,8 @@ import { BENCHMARKS } from '../../lib/trainer/positionBenchmarks'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DIV_COLORS = {
-  D1:   T_RED,        // #dc2626
-  D2:   T_BLUE,       // #2563eb
+  D1:   T_RED,        // #e9695c
+  D2:   T_BLUE,       // #5aa0ff
   D3:   '#6b7280',    // gray
   JUCO: '#f59e0b',    // amber
 }

@@ -11,8 +11,8 @@ import { T, BLK, GRN } from '../../lib/theme'
 // clicked.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
-const BRD_LT = '#f3f4f6'
+const BRD = '#ececef'
+const BRD_LT = '#f1f1f6'
 const GRY5 = '#6b7280'
 const GRY7 = '#374151'
 

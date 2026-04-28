@@ -26,7 +26,7 @@ import { R, T, BLK } from '../../lib/theme'
 // the response.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 const GRY400 = '#9ca3af'
 const GRY700 = '#374151'
 
@@ -75,7 +75,7 @@ const inputStyle = {
   background: '#fff',
   color: BLK,
 }
-const errStyle = { color: '#dc2626', fontSize: 12, marginTop: 4 }
+const errStyle = { color: '#e9695c', fontSize: 12, marginTop: 4 }
 const unitBadge = {
   position: 'absolute',
   right: 12,
@@ -185,7 +185,7 @@ export default function IntakeForm({ onSubmit, submitting = false, topError = nu
             {answered} of {totalRequired} answered
           </span>
         </div>
-        <div style={{ height: 6, background: '#f3f4f6', borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{ height: 6, background: '#f1f1f6', borderRadius: 999, overflow: 'hidden' }}>
           <div
             style={{
               width: `${progressPct}%`,

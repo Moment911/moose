@@ -8,8 +8,8 @@ import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 // Click a state to see programs, scholarship counts, roster spots.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const RED = '#dc2626'
-const BLUE = '#2563eb'
+const RED = '#e9695c'
+const BLUE = '#5aa0ff'
 const BLK = '#0a0a0a'
 
 // National totals — updated for 2025-26 NCAA rule changes
@@ -111,7 +111,7 @@ export default function ScholarshipsPage() {
 
   return (
     <TrainerPortalShell>
-      <div style={{ background: '#f3f4f6', minHeight: '100vh' }}>
+      <div style={{ background: '#f1f1f6', minHeight: '100vh' }}>
         {/* Dark header */}
         <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)', padding: '28px 40px 24px' }}>
           <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-.5px' }}>
@@ -133,7 +133,7 @@ export default function ScholarshipsPage() {
           </div>
 
           {/* HS funnel stat */}
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 10, padding: '14px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
             <Users size={18} color={RED} />
             <div>
               <span style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{NATIONAL.hsAthletes.toLocaleString()} high school baseball players</span>
@@ -145,7 +145,7 @@ export default function ScholarshipsPage() {
           {/* Map + state detail */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
             {/* Interactive grid map */}
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '20px' }}>
+            <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '20px' }}>
               <h3 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 800, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em' }}>
                 <MapPin size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Select a State
               </h3>
@@ -163,7 +163,7 @@ export default function ScholarshipsPage() {
                           style={{
                             padding: '6px 2px', borderRadius: 4, border: 'none',
                             fontSize: 10, fontWeight: 700, cursor: 'pointer',
-                            background: isSelected ? RED : hasData ? BLUE + '15' : '#f3f4f6',
+                            background: isSelected ? RED : hasData ? BLUE + '15' : '#f1f1f6',
                             color: isSelected ? '#fff' : hasData ? BLUE : '#9ca3af',
                             transition: 'all .15s',
                           }}
@@ -177,12 +177,12 @@ export default function ScholarshipsPage() {
               </div>
               <div style={{ marginTop: 12, display: 'flex', gap: 12, fontSize: 11, color: '#9ca3af' }}>
                 <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: BLUE + '15', marginRight: 4, verticalAlign: -1 }} />Data available</span>
-                <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#f3f4f6', marginRight: 4, verticalAlign: -1 }} />Coming soon</span>
+                <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#f1f1f6', marginRight: 4, verticalAlign: -1 }} />Coming soon</span>
               </div>
             </div>
 
             {/* State detail panel */}
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '20px' }}>
+            <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '20px' }}>
               {stateInfo && stateInfo.total > 0 ? (
                 <>
                   <h3 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 900, color: BLK }}>{stateInfo.name}</h3>
@@ -207,7 +207,7 @@ export default function ScholarshipsPage() {
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>Top Programs</div>
                       {stateInfo.top.map((s, i) => (
-                        <div key={i} style={{ padding: '4px 0', fontSize: 13, color: BLK, borderBottom: i < stateInfo.top.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                        <div key={i} style={{ padding: '4px 0', fontSize: 13, color: BLK, borderBottom: i < stateInfo.top.length - 1 ? '1px solid #f1f1f6' : 'none' }}>
                           {i + 1}. {s}
                         </div>
                       ))}
@@ -237,7 +237,7 @@ export default function ScholarshipsPage() {
 
 function DivisionCard({ label, programs, perSchool, athletes, color, note }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', borderTop: `3px solid ${color}` }}>
+    <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 10, padding: '14px 16px', borderTop: `3px solid ${color}` }}>
       <div style={{ fontSize: 11, fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>{label}</div>
       <div style={{ fontSize: 26, fontWeight: 800, color: BLK, lineHeight: 1, fontFamily: '"Barlow Condensed", system-ui, sans-serif' }}>{programs}</div>
       <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>programs</div>

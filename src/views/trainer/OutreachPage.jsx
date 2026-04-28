@@ -13,12 +13,12 @@ import { R, T, BLK, GRN } from '../../lib/theme'
 // college coaches, response tracking, and the ability to mark responses.
 // ---------------------------------------------------------------------------
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 
 const STATUS_CONFIG = {
-  sent:        { label: 'Sent',        color: '#2563eb', bg: '#dbeafe', icon: Clock },
+  sent:        { label: 'Sent',        color: '#5aa0ff', bg: '#dbeafe', icon: Clock },
   responded:   { label: 'Responded',   color: GRN,       bg: '#dcfce7', icon: CheckCircle },
-  no_response: { label: 'No Response', color: '#6b7280', bg: '#f3f4f6', icon: MinusCircle },
+  no_response: { label: 'No Response', color: '#6b7280', bg: '#f1f1f6', icon: MinusCircle },
 }
 
 async function recruitingFetch(body) {
@@ -148,7 +148,7 @@ export default function OutreachPage() {
               const template = row.koto_recruiting_email_templates?.name || '--'
 
               return (
-                <div key={row.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                <div key={row.id} style={{ borderBottom: '1px solid #f1f1f6' }}>
                   <div
                     style={{
                       display: 'grid', gridTemplateColumns: '110px 1.5fr 1fr 1fr 100px 120px',

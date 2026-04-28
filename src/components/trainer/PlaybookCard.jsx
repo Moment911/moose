@@ -25,8 +25,8 @@ import { R, T, BLK, GRY, GRN } from '../../lib/theme'
 //   Troubleshooting / Closing
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
-const BRD_LT = '#f3f4f6'
+const BRD = '#ececef'
+const BRD_LT = '#f1f1f6'
 const GRY5 = '#6b7280'
 const AMB = '#d97706'
 const AMB_BG = '#fffbeb'
@@ -286,8 +286,8 @@ function TravelTab({ otr }) {
               <div style={{ fontSize: 13, color: BLK, fontWeight: 600, letterSpacing: '-.005em' }}>{name}</div>
               {(kcal != null || protein != null) && (
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {kcal != null && <MacroChip label="Calories" value={kcal} color="#0f172a" />}
-                  {protein != null && <MacroChip label="Protein" value={`${protein}g`} color="#2563eb" />}
+                  {kcal != null && <MacroChip label="Calories" value={kcal} color="#0a0a0a" />}
+                  {protein != null && <MacroChip label="Protein" value={`${protein}g`} color="#5aa0ff" />}
                 </div>
               )}
             </div>
@@ -308,8 +308,8 @@ function TravelTab({ otr }) {
             </div>
             {(b.kcal_est != null || b.protein_g_est != null) && (
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flexShrink: 0 }}>
-                {b.kcal_est != null && <MacroChip label="Calories" value={b.kcal_est} color="#0f172a" />}
-                {b.protein_g_est != null && <MacroChip label="Protein" value={`${b.protein_g_est}g`} color="#2563eb" />}
+                {b.kcal_est != null && <MacroChip label="Calories" value={b.kcal_est} color="#0a0a0a" />}
+                {b.protein_g_est != null && <MacroChip label="Protein" value={`${b.protein_g_est}g`} color="#5aa0ff" />}
               </div>
             )}
           </div>
@@ -410,7 +410,7 @@ function SupplementsTab({ sp }) {
               fontSize: 13,
             }}
           >
-            <XCircle size={14} color="#dc2626" style={{ flexShrink: 0, marginTop: 2 }} />
+            <XCircle size={14} color="#e9695c" style={{ flexShrink: 0, marginTop: 2 }} />
             <div>
               <strong style={{ color: BLK }}>{s.name}</strong>{' '}
               <span style={{ color: GRY }}>— {s.why_skip}</span>
@@ -685,12 +685,12 @@ function MealOptionGrid({ items }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
             <strong style={{ fontSize: 14, color: BLK, letterSpacing: '-.01em' }}>{m.name}</strong>
             {m.kcal_est != null && (
-              <span style={{ fontSize: 12, color: '#0f172a', fontWeight: 700, whiteSpace: 'nowrap' }}>{m.kcal_est} kcal</span>
+              <span style={{ fontSize: 12, color: '#0a0a0a', fontWeight: 700, whiteSpace: 'nowrap' }}>{m.kcal_est} kcal</span>
             )}
           </div>
           <div style={{ fontSize: 12.5, color: GRY, lineHeight: 1.55, marginBottom: 10 }}>{m.description}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
-            {m.protein_g_est != null && <MacroChip label="Protein" value={`${m.protein_g_est}g`} color="#2563eb" />}
+            {m.protein_g_est != null && <MacroChip label="Protein" value={`${m.protein_g_est}g`} color="#5aa0ff" />}
             {m.carb_g_est != null && <MacroChip label="Carbs" value={`${m.carb_g_est}g`} color="#059669" />}
             {m.fat_g_est != null && <MacroChip label="Fat" value={`${m.fat_g_est}g`} color="#d97706" />}
           </div>
@@ -728,7 +728,7 @@ function Chips({ items }) {
           key={i}
           style={{
             padding: '5px 11px',
-            background: '#f3f4f6',
+            background: '#f1f1f6',
             color: BLK,
             fontSize: 12,
             fontWeight: 500,

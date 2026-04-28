@@ -5,7 +5,7 @@ import { Loader2, Send, Check, Circle, Camera, Pencil, RefreshCw, Bookmark, Map 
 import { T, BLK, GRN } from '../../lib/theme'
 import { PageHeader, PrimaryCTA } from '../../components/trainer/aesthetic'
 // Trainer portal uses red/blue accents, not Koto Pink. Local override.
-const R = '#dc2626'
+const R = '#e9695c'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { supabase } from '../../lib/supabase'
 
@@ -478,7 +478,7 @@ function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, gen
     <div style={{
       position: 'sticky', top: 0, zIndex: 20,
       background: '#fff',
-      borderBottom: '1px solid #e5e7eb',
+      borderBottom: '1px solid #ececef',
       boxShadow: '0 1px 2px rgba(0,0,0,.03)',
     }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -489,7 +489,7 @@ function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, gen
               {filledCount} of {totalCount} · {pct}%
             </span>
           </div>
-          <div style={{ height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: 4, background: '#f1f1f6', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${pct}%`, background: allDone ? GRN : T, borderRadius: 2, transition: 'width 0.4s ease' }} />
           </div>
         </div>
@@ -498,7 +498,7 @@ function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, gen
           disabled={!allDone || generating}
           style={{
             padding: '10px 18px',
-            background: allDone ? R : '#e5e7eb',
+            background: allDone ? R : '#ececef',
             color: allDone ? '#fff' : '#9ca3af',
             border: 'none', borderRadius: 10,
             fontSize: 13, fontWeight: 800,
@@ -719,7 +719,7 @@ function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAbo
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden', height: '100%', minHeight: 500 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: '1px solid #ececef', borderRadius: 12, overflow: 'hidden', height: '100%', minHeight: 500 }}>
       <div style={{ padding: '12px 16px', background: BLK, color: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: '#fff' }}>K</div>
         <div>
@@ -766,7 +766,7 @@ function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAbo
                 background: '#fff', color: '#6b7280', fontSize: 13, fontWeight: 600,
                 cursor: 'pointer', transition: 'all .15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f1f1f6' }}
               onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
             >
               Answer later →
@@ -775,11 +775,11 @@ function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAbo
         )}
       </div>
 
-      <div style={{ padding: '10px 12px', borderTop: '1px solid #f3f4f6', display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+      <div style={{ padding: '10px 12px', borderTop: '1px solid #f1f1f6', display: 'flex', alignItems: 'flex-end', gap: 8 }}>
         <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your answer..." rows={1} disabled={streaming}
-          style={{ flex: 1, padding: '10px 12px', fontSize: 14, border: '1px solid #e5e7eb', borderRadius: 10, resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, color: BLK, outline: 'none' }} />
+          style={{ flex: 1, padding: '10px 12px', fontSize: 14, border: '1px solid #ececef', borderRadius: 10, resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, color: BLK, outline: 'none' }} />
         <button onClick={handleSend} disabled={!input.trim() || streaming}
-          style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: input.trim() && !streaming ? R : '#e5e7eb', color: input.trim() && !streaming ? '#fff' : '#9ca3af', cursor: input.trim() && !streaming ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: input.trim() && !streaming ? R : '#ececef', color: input.trim() && !streaming ? '#fff' : '#9ca3af', cursor: input.trim() && !streaming ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Send size={16} />
         </button>
       </div>
@@ -791,7 +791,7 @@ function Bubble({ role, content }) {
   const isUser = role === 'user'
   return (
     <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
-      <div style={{ maxWidth: '85%', padding: '10px 14px', borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: isUser ? R : '#f3f4f6', color: isUser ? '#fff' : BLK, fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+      <div style={{ maxWidth: '85%', padding: '10px 14px', borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: isUser ? R : '#f1f1f6', color: isUser ? '#fff' : BLK, fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {content}
       </div>
     </div>
@@ -908,13 +908,13 @@ function LiveCard({ extracted, missingFields, onGenerate, generating, generateEr
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f3f4f6' }}>
+    <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f1f1f6' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: BLK, letterSpacing: '.03em', textTransform: 'uppercase' }}>Your Profile</h3>
           <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? GRN : '#6b7280' }}>{filledCount} / {totalCount}</span>
         </div>
-        <div style={{ height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ height: 4, background: '#f1f1f6', borderRadius: 2, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: allDone ? GRN : T, borderRadius: 2, transition: 'width 0.4s ease' }} />
         </div>
       </div>
@@ -944,7 +944,7 @@ function LiveCard({ extracted, missingFields, onGenerate, generating, generateEr
       <div style={{ padding: '10px 16px 16px' }}>
         {generateError && <div style={{ marginBottom: 8, padding: '8px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>{generateError}</div>}
         <button onClick={onGenerate} disabled={!allDone || generating}
-          style={{ width: '100%', padding: '12px 16px', background: allDone ? R : '#e5e7eb', color: allDone ? '#fff' : '#9ca3af', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: allDone ? 'pointer' : 'not-allowed' }}>
+          style={{ width: '100%', padding: '12px 16px', background: allDone ? R : '#ececef', color: allDone ? '#fff' : '#9ca3af', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: allDone ? 'pointer' : 'not-allowed' }}>
           {generating ? 'Generating...' : 'Generate my plan'}
         </button>
         {!allDone && <div style={{ marginTop: 6, fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>{missingFields.length} field{missingFields.length !== 1 ? 's' : ''} remaining</div>}
@@ -1016,13 +1016,13 @@ function WelcomeScreen({ name, onStart }) {
           subtitle="Tell us your goals and we'll build a program to help you get there."
         />
 
-        <div style={{ marginBottom: 20, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#6b7280' }}>
+        <div style={{ marginBottom: 20, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#fff', border: '1px solid #ececef', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#6b7280' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Timer size={12} strokeWidth={1.75} /> About 5 minutes</span>
           <span style={{ color: '#d1d5db' }}>·</span>
           <span>Pause & return anytime</span>
         </div>
 
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: '22px 22px 20px', marginBottom: 14 }}>
+        <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 16, padding: '22px 22px 20px', marginBottom: 14 }}>
 
           {/* Credentials — AI modeled after an expert stack */}
           <div style={{ marginBottom: 18 }}>
@@ -1032,11 +1032,11 @@ function WelcomeScreen({ name, onStart }) {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 width: '100%', padding: '10px 12px',
-                background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8,
+                background: '#f9fafb', border: '1px solid #ececef', borderRadius: 8,
                 cursor: 'pointer', textAlign: 'left',
               }}
             >
-              <GraduationCap size={14} strokeWidth={1.75} color="#0f172a" />
+              <GraduationCap size={14} strokeWidth={1.75} color="#0a0a0a" />
               <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#374151' }}>
                 AI tool modeled after a PhD + ex-MLB + pro-coach expert stack
               </span>
@@ -1045,7 +1045,7 @@ function WelcomeScreen({ name, onStart }) {
               </span>
             </button>
             {credentialsOpen && (
-              <ul style={{ margin: '8px 0 0', padding: '10px 14px 10px 28px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', fontSize: 12, lineHeight: 1.6 }}>
+              <ul style={{ margin: '8px 0 0', padding: '10px 14px 10px 28px', background: '#f9fafb', border: '1px solid #ececef', borderRadius: 8, color: '#374151', fontSize: 12, lineHeight: 1.6 }}>
                 <li><strong>PhD in Biomechanics</strong> — throwing mechanics, swing, movement</li>
                 <li><strong>PhD in Nutrition</strong> — macros + fueling for athletes</li>
                 <li><strong>PhD in Strength & Conditioning</strong> — periodization, power</li>
@@ -1093,7 +1093,7 @@ function WelcomeScreen({ name, onStart }) {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 12,
                       padding: '11px 13px', borderRadius: 10, cursor: isLocked ? 'default' : 'pointer',
-                      border: `2px solid ${isOn ? T : '#e5e7eb'}`,
+                      border: `2px solid ${isOn ? T : '#ececef'}`,
                       background: isOn ? T + '08' : '#fff',
                       textAlign: 'left', transition: 'all .15s',
                     }}
@@ -1101,7 +1101,7 @@ function WelcomeScreen({ name, onStart }) {
                     <div style={{
                       width: 32, height: 32, flexShrink: 0,
                       borderRadius: 8,
-                      background: isOn ? T + '14' : '#f3f4f6',
+                      background: isOn ? T + '14' : '#f1f1f6',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: isOn ? T : '#4b5563',
                     }}>
@@ -1172,7 +1172,7 @@ function WelcomeScreen({ name, onStart }) {
 function NotFoundScreen() {
   return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '40px 32px', textAlign: 'center', maxWidth: 400 }}>
+      <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '40px 32px', textAlign: 'center', maxWidth: 400 }}>
         <h1 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 900, color: BLK }}>Link not found</h1>
         <p style={{ margin: 0, fontSize: 14, color: '#6b7280' }}>This intake link is invalid or has expired. Contact your trainer for a new one.</p>
       </div>
@@ -1252,9 +1252,9 @@ function GeneratingScreen({ progress }) {
 
   return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-      <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '32px 28px', maxWidth: 620, width: '100%' }}>
+      <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 14, padding: '32px 28px', maxWidth: 620, width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22 }}>
-          <div style={{ width: 48, height: 48, flexShrink: 0, border: '4px solid #f3f4f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoSpin 0.9s linear infinite' }} />
+          <div style={{ width: 48, height: 48, flexShrink: 0, border: '4px solid #f1f1f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoSpin 0.9s linear infinite' }} />
           <style>{'@keyframes kotoSpin{to{transform:rotate(360deg)}}@keyframes kotoFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}'}</style>
           <div>
             <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
@@ -1271,7 +1271,7 @@ function GeneratingScreen({ progress }) {
               <div key={p.key} style={{
                 padding: '14px 10px', borderRadius: 10, textAlign: 'center',
                 background: done ? GRN + '12' : active ? T + '10' : '#f9fafb',
-                border: `1px solid ${done ? GRN + '40' : active ? T + '40' : '#e5e7eb'}`,
+                border: `1px solid ${done ? GRN + '40' : active ? T + '40' : '#ececef'}`,
                 transition: 'all 0.3s ease',
               }}>
                 <div style={{ fontSize: 22, marginBottom: 4 }}>
@@ -1287,7 +1287,7 @@ function GeneratingScreen({ progress }) {
 
         {/* Rotating trivia card */}
         <div key={statIdx} style={{
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #1f1f22 100%)',
           color: '#fff', borderRadius: 12, padding: '26px 26px', textAlign: 'left',
           animation: 'kotoFadeUp 0.45s ease',
         }}>
@@ -1350,7 +1350,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
   if (!okToTrain) {
     return (
       <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '36px 28px', maxWidth: 520, width: '100%' }}>
+        <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '36px 28px', maxWidth: 520, width: '100%' }}>
           <div style={{ width: 48, height: 48, margin: '0 auto 14px', background: '#fef3c7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <PauseCircle size={24} strokeWidth={2} color="#b45309" />
           </div>
@@ -1407,7 +1407,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
               <div key={p.key} style={{
                 padding: '8px 6px', borderRadius: 8, textAlign: 'center',
                 background: ready ? GRN + '10' : '#f9fafb',
-                border: `1px solid ${ready ? GRN + '40' : '#e5e7eb'}`,
+                border: `1px solid ${ready ? GRN + '40' : '#ececef'}`,
               }}>
                 <div style={{ fontSize: 16, marginBottom: 2 }}>{ready ? '✓' : '·'}</div>
                 <div style={{ fontSize: 10, fontWeight: 800, color: ready ? GRN : '#9ca3af', textTransform: 'uppercase', letterSpacing: '.04em' }}>{p.label}</div>
@@ -1435,7 +1435,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
         <SleepTracker traineeId={traineeId} />
 
         {/* Actions — edit profile, regenerate */}
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 16px', marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '14px 16px', marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={onEditProfile}
@@ -1463,9 +1463,9 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
         </section>
 
         {/* Footer — bookmark + support */}
-        <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px 18px', marginTop: 12 }}>
+        <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '16px 18px', marginTop: 12 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <Bookmark size={20} strokeWidth={1.75} style={{ flexShrink: 0, color: '#0f172a' }} />
+            <Bookmark size={20} strokeWidth={1.75} style={{ flexShrink: 0, color: '#0a0a0a' }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 3 }}>Bookmark this page</div>
               <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
@@ -1502,7 +1502,7 @@ function BaselineCard({ baseline }) {
   const level = baseline?.starting_fitness_level
   const note = baseline?.coach_summary
   return (
-    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
+    <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
       <SectionHeader eyebrow="01 · Baseline" title="Your starting point" />
       {note && (
         <p style={{ margin: '0 0 14px', fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{note}</p>
@@ -1530,7 +1530,7 @@ function BaselineCard({ baseline }) {
 
 function Stat({ label, value }) {
   return (
-    <div style={{ padding: '8px 10px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+    <div style={{ padding: '8px 10px', background: '#f9fafb', border: '1px solid #ececef', borderRadius: 8 }}>
       <div style={{ fontSize: 10, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
       <div style={{ fontSize: 14, fontWeight: 800, color: BLK, marginTop: 2 }}>{value}</div>
     </div>
@@ -1542,13 +1542,13 @@ function RoadmapCard({ roadmap }) {
   const intro = roadmap?.client_context_summary
   const strategy = roadmap?.overall_strategy_note
   return (
-    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
+    <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
       <SectionHeader eyebrow="02 · Roadmap" title="Your 90-day plan" />
       {intro && <p style={{ margin: '0 0 10px', fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{intro}</p>}
       {strategy && <p style={{ margin: '0 0 14px', fontSize: 13, color: '#4b5563', lineHeight: 1.6, fontStyle: 'italic' }}>{strategy}</p>}
       <div style={{ display: 'grid', gap: 10 }}>
         {phases.map((p, i) => (
-          <div key={i} style={{ border: '1px solid #e5e7eb', borderLeft: `4px solid ${T}`, borderRadius: 8, padding: '10px 12px', background: '#f9fafb' }}>
+          <div key={i} style={{ border: '1px solid #ececef', borderLeft: `4px solid ${T}`, borderRadius: 8, padding: '10px 12px', background: '#f9fafb' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: BLK }}>{p.phase_name || `Phase ${p.phase_number}`}</div>
               {p.days_range && <div style={{ fontSize: 11, color: '#6b7280' }}>Days {p.days_range.start}–{p.days_range.end}</div>}
@@ -1573,7 +1573,7 @@ function RoadmapCard({ roadmap }) {
 function WorkoutBlockCard({ workout }) {
   const weeks = Array.isArray(workout?.weeks) ? workout.weeks : []
   return (
-    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
+    <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
       <SectionHeader eyebrow="03 · Training" title={workout?.program_name || 'Your first 2 weeks'} />
       {weeks.map((w) => (
         <div key={w.week_number} style={{ marginTop: 12 }}>
@@ -1582,7 +1582,7 @@ function WorkoutBlockCard({ workout }) {
           </div>
           <div style={{ display: 'grid', gap: 6 }}>
             {(Array.isArray(w.sessions) ? w.sessions : []).map((s, i) => (
-              <details key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb' }}>
+              <details key={i} style={{ border: '1px solid #ececef', borderRadius: 8, background: '#f9fafb' }}>
                 <summary style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', cursor: 'pointer', fontSize: 13, color: BLK, fontWeight: 700 }}>
                   <span>{s.day_label} · {s.session_name}</span>
                   <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>{s.estimated_duration_min} min</span>
@@ -1738,14 +1738,14 @@ function NutritionToday({ traineeId }) {
   const logs = data?.logs || []
 
   const macros = [
-    { label: 'Calories', total: totals.kcal, target: targets.kcal, unit: 'kcal', color: '#0f172a' },
-    { label: 'Protein', total: totals.protein_g, target: targets.protein_g, unit: 'g', color: '#2563eb' },
+    { label: 'Calories', total: totals.kcal, target: targets.kcal, unit: 'kcal', color: '#0a0a0a' },
+    { label: 'Protein', total: totals.protein_g, target: targets.protein_g, unit: 'g', color: '#5aa0ff' },
     { label: 'Carbs', total: totals.carb_g, target: targets.carb_g, unit: 'g', color: '#059669' },
     { label: 'Fat', total: totals.fat_g, target: targets.fat_g, unit: 'g', color: '#d97706' },
   ]
 
   return (
-    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginTop: 18 }}>
+    <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '18px 20px', marginTop: 18 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase' }}>Today</div>
@@ -1784,7 +1784,7 @@ function NutritionToday({ traineeId }) {
               style={{
                 width: '100%',
                 padding: '14px 18px',
-                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                background: 'linear-gradient(135deg, #0a0a0a 0%, #1f1f22 100%)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 14,
@@ -1824,7 +1824,7 @@ function NutritionToday({ traineeId }) {
 
           {/* Today's log list */}
           {logs.length === 0 ? (
-            <div style={{ padding: '14px 12px', fontSize: 13, color: '#9ca3af', textAlign: 'center', background: '#f9fafb', border: '1px dashed #e5e7eb', borderRadius: 8 }}>
+            <div style={{ padding: '14px 12px', fontSize: 13, color: '#9ca3af', textAlign: 'center', background: '#f9fafb', border: '1px dashed #ececef', borderRadius: 8 }}>
               Nothing logged yet today. Snap a photo to start tracking.
             </div>
           ) : (
@@ -1851,7 +1851,7 @@ function MacroBar({ label, total, target, unit, color }) {
           {hasTarget && <span style={{ marginLeft: 8, color: remaining === 0 ? '#059669' : color, fontWeight: 700 }}>{remaining}{unit} left</span>}
         </span>
       </div>
-      <div style={{ height: 8, background: '#f3f4f6', borderRadius: 999, overflow: 'hidden' }}>
+      <div style={{ height: 8, background: '#f1f1f6', borderRadius: 999, overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 999, transition: 'width 0.3s ease' }} />
       </div>
     </div>
@@ -1862,7 +1862,7 @@ function FoodLogRow({ log, onDelete }) {
   const items = Array.isArray(log.items) ? log.items : []
   const time = log.logged_at ? new Date(log.logged_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''
   return (
-    <div style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb' }}>
+    <div style={{ padding: '10px 12px', border: '1px solid #ececef', borderRadius: 8, background: '#f9fafb' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 8 }}>
         <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>
           {time} · {log.source === 'photo' ? 'Photo' : 'Manual'} · {log.total_kcal} kcal · {log.total_protein_g}g P
@@ -1870,7 +1870,7 @@ function FoodLogRow({ log, onDelete }) {
         <button
           type="button"
           onClick={onDelete}
-          style={{ padding: '2px 8px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11, fontWeight: 600, color: '#6b7280', cursor: 'pointer' }}
+          style={{ padding: '2px 8px', background: 'transparent', border: '1px solid #ececef', borderRadius: 6, fontSize: 11, fontWeight: 600, color: '#6b7280', cursor: 'pointer' }}
         >
           Delete
         </button>
@@ -1878,7 +1878,7 @@ function FoodLogRow({ log, onDelete }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {items.map((it, i) => (
           <span key={i} style={{
-            padding: '4px 10px', background: '#fff', border: '1px solid #e5e7eb',
+            padding: '4px 10px', background: '#fff', border: '1px solid #ececef',
             borderRadius: 6, fontSize: 12, color: BLK, fontWeight: 600,
           }}>
             {it.name}{it.portion ? ` · ${it.portion}` : ''}{' · '}
@@ -1908,7 +1908,7 @@ function fileToBase64(file) {
 // once done.
 function ScanQueueRow({ item }) {
   const s = item.status
-  const color = s === 'done' ? '#16a34a' : s === 'error' ? '#dc2626' : s === 'scanning' ? '#2563eb' : '#94a3b8'
+  const color = s === 'done' ? '#16a34a' : s === 'error' ? '#e9695c' : s === 'scanning' ? '#5aa0ff' : '#a1a1a6'
   const label = s === 'done' ? 'Added to today' : s === 'error' ? (item.errorMsg || 'Failed') : s === 'scanning' ? 'Scanning…' : 'Queued'
   return (
     <div style={{
@@ -1925,7 +1925,7 @@ function ScanQueueRow({ item }) {
         animation: s === 'scanning' ? 'kotoScanPulse 1.2s ease-in-out infinite' : 'none',
       }} />
       <style>{'@keyframes kotoScanPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}'}</style>
-      <span style={{ flex: 1, color: '#0f172a', fontWeight: 500, letterSpacing: '-.005em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ flex: 1, color: '#0a0a0a', fontWeight: 500, letterSpacing: '-.005em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {item.name}
       </span>
       <span style={{ color, fontWeight: 600, fontSize: 12, letterSpacing: '-.01em', flexShrink: 0 }}>{label}</span>
@@ -2011,7 +2011,7 @@ function SleepTracker({ traineeId }) {
   const debtNights = days.filter((d) => d.hours > 0 && d.hours < 7).length
 
   return (
-    <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '18px 20px', marginTop: 14 }}>
+    <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '18px 20px', marginTop: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase' }}>Sleep</div>
@@ -2052,7 +2052,7 @@ function SleepTracker({ traineeId }) {
           onClick={handleSave}
           disabled={saving || !hours}
           style={{
-            padding: '9px 16px', background: saving || !hours ? '#e5e7eb' : '#0f172a',
+            padding: '9px 16px', background: saving || !hours ? '#ececef' : '#0a0a0a',
             color: saving || !hours ? '#9ca3af' : '#fff',
             border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
             cursor: saving || !hours ? 'not-allowed' : 'pointer',
@@ -2071,11 +2071,11 @@ function SleepTracker({ traineeId }) {
       {/* 14-day bars */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(14, 1fr)', gap: 3, alignItems: 'end', height: 90, position: 'relative', marginBottom: 8 }}>
         {/* 7-hour target reference line */}
-        <div aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: `${(7 / 12) * 100}%`, borderTop: '1px dashed #94a3b8', pointerEvents: 'none' }} />
+        <div aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: `${(7 / 12) * 100}%`, borderTop: '1px dashed #a1a1a6', pointerEvents: 'none' }} />
         {days.map((d) => {
           const h = d.hours
           const pct = Math.min(100, (h / 12) * 100)
-          const color = h === 0 ? '#e5e7eb' : h < 6 ? '#dc2626' : h < 7 ? '#d97706' : h >= 9 ? '#2563eb' : '#059669'
+          const color = h === 0 ? '#ececef' : h < 6 ? '#e9695c' : h < 7 ? '#d97706' : h >= 9 ? '#5aa0ff' : '#059669'
           return (
             <div key={d.date} title={`${d.date}: ${h ? h + ' hrs' : 'no entry'}`} style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
               <div style={{ width: '100%', height: `${pct}%`, background: color, borderRadius: 2, transition: 'height .3s' }} />
@@ -2083,16 +2083,16 @@ function SleepTracker({ traineeId }) {
           )
         })}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#94a3b8', fontWeight: 600, marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#a1a1a6', fontWeight: 600, marginBottom: 14 }}>
         <span>14 days ago</span>
-        <span style={{ color: '#94a3b8' }}>--- 7 hr target</span>
+        <span style={{ color: '#a1a1a6' }}>--- 7 hr target</span>
         <span>Today</span>
       </div>
 
       {/* Performance note — honest, not preachy */}
       {recorded.length >= 3 && (
-        <div style={{ padding: '10px 12px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, color: '#475569', lineHeight: 1.55 }}>
-          <strong style={{ color: '#0f172a' }}>Performance note:</strong>{' '}
+        <div style={{ padding: '10px 12px', background: '#f1f1f6', border: '1px solid #ececef', borderRadius: 8, fontSize: 12, color: '#6b6b70', lineHeight: 1.55 }}>
+          <strong style={{ color: '#0a0a0a' }}>Performance note:</strong>{' '}
           {debtNights >= 3
             ? `${debtNights} nights under 7 hrs in the last 14. Expect a measurable drop in reaction time + velo during training this week.`
             : avg >= 8

@@ -13,7 +13,7 @@ import { R, T, BLK, GRN } from '../../lib/theme'
 // Dream / Target / Safety / Long Shot.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 
 const CATEGORY_META = {
   dream:     { label: 'Dream Schools',  color: '#7c3aed', bg: '#7c3aed10', order: 0 },

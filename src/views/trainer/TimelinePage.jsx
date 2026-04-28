@@ -11,10 +11,10 @@ import { R, T, BLK } from '../../lib/theme'
 // (Freshman, Sophomore, Junior, Senior).  Data comes from the recruiting API.
 // ---------------------------------------------------------------------------
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 
 const GRADE_COLORS = {
-  Freshman:  { bg: '#dbeafe', accent: '#2563eb', muted: '#93c5fd' },
+  Freshman:  { bg: '#dbeafe', accent: '#5aa0ff', muted: '#93c5fd' },
   Sophomore: { bg: '#fef3c7', accent: '#d97706', muted: '#fcd34d' },
   Junior:    { bg: '#dcfce7', accent: '#16a34a', muted: '#86efac' },
   Senior:    { bg: '#fce7f3', accent: R,          muted: '#f9a8d4' },
@@ -77,7 +77,7 @@ export default function TimelinePage() {
             {/* Vertical connecting line */}
             <div style={{
               position: 'absolute', left: 27, top: 40, bottom: 40,
-              width: 2, background: '#e5e7eb', zIndex: 0,
+              width: 2, background: '#ececef', zIndex: 0,
             }} />
 
             {timeline.map((grade, gi) => {
@@ -91,7 +91,7 @@ export default function TimelinePage() {
                   <div style={{
                     position: 'absolute', left: 16, top: 20,
                     width: 24, height: 24, borderRadius: '50%', zIndex: 1,
-                    background: isFuture ? '#e5e7eb' : colors.accent,
+                    background: isFuture ? '#ececef' : colors.accent,
                     border: `3px solid ${isFuture ? '#d1d5db' : colors.accent}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: isActive ? `0 0 0 4px ${colors.accent}25` : 'none',
@@ -122,7 +122,7 @@ export default function TimelinePage() {
                         letterSpacing: '.08em',
                         color: isFuture ? '#9ca3af' : colors.accent,
                         padding: '3px 10px', borderRadius: 6,
-                        background: isFuture ? '#f3f4f6' : colors.accent + '12',
+                        background: isFuture ? '#f1f1f6' : colors.accent + '12',
                       }}>
                         {grade.grade}
                       </span>

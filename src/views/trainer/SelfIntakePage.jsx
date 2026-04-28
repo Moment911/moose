@@ -212,8 +212,8 @@ function CenteredSpinner({ label }) {
 function GeneratingScreen() {
   return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-      <section style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '32px 28px', textAlign: 'center', maxWidth: 480 }}>
-        <div style={{ width: 48, height: 48, margin: '0 auto 20px', border: '4px solid #f3f4f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoGenerateSpin 0.9s linear infinite' }} />
+      <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '32px 28px', textAlign: 'center', maxWidth: 480 }}>
+        <div style={{ width: 48, height: 48, margin: '0 auto 20px', border: '4px solid #f1f1f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoGenerateSpin 0.9s linear infinite' }} />
         <style>{'@keyframes kotoGenerateSpin{to{transform:rotate(360deg)}}'}</style>
         <h1 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
         <p style={{ margin: '0 0 16px', fontSize: 14, color: '#6b7280', lineHeight: 1.55 }}>

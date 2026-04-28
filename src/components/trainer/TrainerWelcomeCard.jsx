@@ -13,7 +13,7 @@ import { T, BLK, GRY } from '../../lib/theme'
 // Mount on TrainerIntakePage + optionally on MyPlanPage first-visit.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 
 export default function TrainerWelcomeCard({ compact = false }) {
   return (

@@ -10,7 +10,7 @@ import { R, T, BLK, GRN } from '../../lib/theme'
 // that phase.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 const GRY5 = '#6b7280'
 const GRY7 = '#374151'
 

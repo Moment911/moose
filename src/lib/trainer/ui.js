@@ -1,65 +1,64 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Trainer design tokens — Apple 2026 pass.
-// Shared SF Pro stack, warm-white surfaces, layered shadows, glass, press-scale.
+// Trainer design tokens — Cal-AI aesthetic pass.
+// White bg, #0a0a0a ink, #f1f1f6 card, #ececef borders, SF Pro, 500 body.
+// Matches /train and /my-plan design language.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const T_FONT =
-  '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, "Segoe UI", Roboto, sans-serif'
+  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 
-// Sporty condensed font for numbers — bold, tight, athletic feel
+// Sporty condensed font for numbers
 export const T_FONT_NUM =
-  '"Barlow Condensed", "SF Pro Display", "Inter", system-ui, sans-serif'
+  '"Barlow Condensed", "SF Pro Display", system-ui, sans-serif'
 
 // Surfaces
-export const T_BG = '#faf9f6'       // warm-white page canvas
-export const T_BG_DIM = '#f4f2ec'   // slightly deeper warm
-export const T_SURFACE = '#ffffff'
-export const T_BRD = '#e7e4dc'      // warmer hairline than neutral grey
-export const T_INK = '#0f1115'
-export const T_INK_DIM = '#5f6470'
+export const T_BG = '#ffffff'          // clean white canvas
+export const T_BG_DIM = '#f9f9fb'     // slightly off-white for depth
+export const T_SURFACE = '#f1f1f6'    // card / inset surface — cool-gray, slight lavender
+export const T_SURFACE_ELEV = '#ffffff' // elevated tile on top of card
+export const T_BRD = '#ececef'        // cool neutral hairline
+export const T_DIVIDER = '#e5e5ea'    // section dividers
+export const T_INK = '#0a0a0a'        // headlines, primary text
+export const T_INK2 = '#1f1f22'       // body text
+export const T_INK_DIM = '#6b6b70'    // secondary / subtitle
+export const T_INK_FADED = '#a1a1a6'  // disabled / placeholder
 
-// Accents (unchanged from existing app)
-export const T_RED = '#dc2626'
-export const T_BLUE = '#2563eb'
+// Accents — used sparingly
+export const T_ACCENT = '#d89a6a'     // warm tan — highlight, "ready" pill
+export const T_RED = '#e9695c'
+export const T_BLUE = '#5aa0ff'
+export const T_GREEN = '#16a34a'
+export const T_STAR = '#f0b400'
 
-// Layered shadows — cast on warm-white, so use slightly warm ink shadows.
+// Layered shadows
 export const T_SHADOW_SM =
-  '0 1px 2px rgba(17, 17, 17, 0.04), 0 1px 1px rgba(17, 17, 17, 0.04)'
+  '0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.03)'
 export const T_SHADOW_MD =
-  '0 1px 2px rgba(17, 17, 17, 0.04), 0 4px 16px rgba(17, 17, 17, 0.06)'
+  '0 6px 16px rgba(0,0,0,0.06)'
 export const T_SHADOW_LG =
-  '0 2px 4px rgba(17, 17, 17, 0.04), 0 12px 32px rgba(17, 17, 17, 0.08), 0 24px 48px rgba(17, 17, 17, 0.06)'
+  '0 20px 60px rgba(0,0,0,0.18)'
 
-// Glass (used for the dark sidebar + any translucent overlays).
-export const T_GLASS_DARK = {
-  background: 'rgba(10, 10, 10, 0.78)',
-  backdropFilter: 'saturate(1.8) blur(20px)',
-  WebkitBackdropFilter: 'saturate(1.8) blur(20px)',
-}
-
-export const T_GLASS_LIGHT = {
-  background: 'rgba(255, 255, 255, 0.72)',
-  backdropFilter: 'saturate(1.6) blur(18px)',
-  WebkitBackdropFilter: 'saturate(1.6) blur(18px)',
-}
-
-// Apple-ish type scale
+// Type scale — SF Pro, heavier body weight (500)
 export const T_TYPE = {
-  display: { fontSize: 34, fontWeight: 700, letterSpacing: '-0.022em', lineHeight: 1.08 },
-  title1:  { fontSize: 28, fontWeight: 700, letterSpacing: '-0.018em', lineHeight: 1.12 },
-  title2:  { fontSize: 22, fontWeight: 700, letterSpacing: '-0.014em', lineHeight: 1.18 },
-  title3:  { fontSize: 20, fontWeight: 600, letterSpacing: '-0.012em', lineHeight: 1.22 },
-  headline:{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.008em', lineHeight: 1.3 },
-  body:    { fontSize: 15, fontWeight: 400, letterSpacing: '-0.003em', lineHeight: 1.47 },
-  callout: { fontSize: 14, fontWeight: 500, lineHeight: 1.42 },
-  subhead: { fontSize: 13, fontWeight: 500, lineHeight: 1.38 },
-  footnote:{ fontSize: 12, fontWeight: 500, lineHeight: 1.33 },
-  caption: { fontSize: 11, fontWeight: 500, lineHeight: 1.28 },
+  display: { fontSize: 34, fontWeight: 800, letterSpacing: '-0.6px', lineHeight: 1.10 },
+  title1:  { fontSize: 28, fontWeight: 700, letterSpacing: '-0.4px', lineHeight: 1.15 },
+  title2:  { fontSize: 20, fontWeight: 700, letterSpacing: '-0.2px', lineHeight: 1.20 },
+  title3:  { fontSize: 17, fontWeight: 600, letterSpacing: '0px',    lineHeight: 1.30 },
+  headline:{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.2px', lineHeight: 1.30 },
+  body:    { fontSize: 17, fontWeight: 500, letterSpacing: '0px',    lineHeight: 1.40 },
+  callout: { fontSize: 15, fontWeight: 500, letterSpacing: '0px',    lineHeight: 1.40 },
+  subhead: { fontSize: 15, fontWeight: 500, letterSpacing: '0px',    lineHeight: 1.40 },
+  footnote:{ fontSize: 13, fontWeight: 500, letterSpacing: '0px',    lineHeight: 1.30 },
+  caption: { fontSize: 13, fontWeight: 400, letterSpacing: '0.1px',  lineHeight: 1.30 },
 }
+
+// Radii
+export const T_R_SM = 12
+export const T_R_MD = 16
+export const T_R_LG = 22
+export const T_R_PILL = 999
 
 // ── Press-scale motion primitive ─────────────────────────────────────────────
-// Adds .t-press class globally. Components only need className="t-press".
-// Injected once per app load; safe to call repeatedly.
 let _cssInjected = false
 export function injectTrainerUICSS() {
   if (_cssInjected) return

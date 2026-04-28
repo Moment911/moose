@@ -14,7 +14,7 @@ import { ackDisclaimer } from '../../lib/trainer/myPlanFetch'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const INK = '#0a0a0a'
-const BRD = '#e5e7eb'
+const BRD = '#ececef'
 const RED = '#ea2729'
 const GRY5 = '#6b7280'
 const GRY7 = '#374151'
@@ -119,7 +119,7 @@ export default function TraineeDisclaimerAckModal({ onAcked }) {
             padding: '14px 18px',
             borderRadius: 12,
             border: 'none',
-            background: checked && !submitting ? INK : '#cbd5e1',
+            background: checked && !submitting ? INK : '#c8c8cc',
             color: '#fff',
             fontSize: 15,
             fontWeight: 800,

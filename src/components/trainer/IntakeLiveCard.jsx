@@ -109,12 +109,12 @@ export default function IntakeLiveCard({ extracted, missingFields, onGenerate, g
   return (
     <div style={{
       background: '#fff',
-      border: '1px solid #e5e7eb',
+      border: '1px solid #ececef',
       borderRadius: 12,
       overflow: 'hidden',
     }}>
       {/* Header + progress */}
-      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f3f4f6' }}>
+      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f1f1f6' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: BLK, letterSpacing: '.03em', textTransform: 'uppercase' }}>
             Your Profile
@@ -123,7 +123,7 @@ export default function IntakeLiveCard({ extracted, missingFields, onGenerate, g
             {filledCount} / {FIELD_DEFS.length}
           </span>
         </div>
-        <div style={{ height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ height: 4, background: '#f1f1f6', borderRadius: 2, overflow: 'hidden' }}>
           <div style={{
             height: '100%',
             width: `${pct}%`,
@@ -159,7 +159,7 @@ export default function IntakeLiveCard({ extracted, missingFields, onGenerate, g
           style={{
             width: '100%',
             padding: '12px 16px',
-            background: allComplete ? R : '#e5e7eb',
+            background: allComplete ? R : '#ececef',
             color: allComplete ? '#fff' : '#9ca3af',
             border: 'none',
             borderRadius: 10,
