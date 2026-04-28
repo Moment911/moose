@@ -897,7 +897,7 @@ export default function TrainerDetailPage() {
 
   return (
     <TrainerPortalShell>
-      <div style={{ padding: '24px 40px 40px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+      <div style={{ padding: '24px 24px 40px', maxWidth: 800, margin: '0 auto', width: '100%', fontFamily: CAL.font }}>
         <Link
           to="/trainer"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: T, textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 12 }}
@@ -1488,31 +1488,32 @@ function OverviewTab({
 function PlanSection({ title, icon, color = '#0a0a0a', defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div style={{ marginBottom: 12 }}>
+    <div style={{ marginBottom: 10 }}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
         style={{
           display: 'flex', alignItems: 'center', gap: 10, width: '100%',
           padding: '14px 18px',
-          background: open ? '#fff' : '#fafbfc',
-          border: `1px solid ${open ? color + '30' : BRD}`,
+          background: open ? CAL.bg : CAL.card,
+          border: `1px solid ${open ? color + '25' : CAL.border}`,
           borderLeft: `3px solid ${color}`,
-          borderRadius: open ? '12px 12px 0 0' : 12,
+          borderRadius: open ? `${CAL.rMd}px ${CAL.rMd}px 0 0` : CAL.rMd,
           cursor: 'pointer', textAlign: 'left',
+          fontFamily: CAL.font,
           transition: 'all .15s',
         }}
       >
         <span style={{ color, display: 'flex', alignItems: 'center' }}>{icon}</span>
-        <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: BLK, letterSpacing: '-0.01em' }}>{title}</span>
-        <span style={{ color: '#9ca3af', fontSize: 13, fontWeight: 600 }}>{open ? '▲' : '▼'}</span>
+        <span style={{ flex: 1, fontSize: 16, fontWeight: 700, color: CAL.ink, letterSpacing: '-0.01em', fontFamily: CAL.font }}>{title}</span>
+        <span style={{ color: CAL.ink4, fontSize: 13, fontWeight: 600 }}>{open ? '\u25B2' : '\u25BC'}</span>
       </button>
       {open && (
         <div style={{
-          border: `1px solid ${color}20`, borderTop: 'none',
+          border: `1px solid ${color}18`, borderTop: 'none',
           borderLeft: `3px solid ${color}`,
-          borderRadius: '0 0 12px 12px', padding: 18,
-          background: '#fff',
+          borderRadius: `0 0 ${CAL.rMd}px ${CAL.rMd}px`, padding: 20,
+          background: CAL.bg,
         }}>
           {children}
         </div>
@@ -3255,31 +3256,38 @@ function EmptyHint({ title, desc, onGoto, ctaLabel }) {
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 // ── Panels / cards — subtle layered shadow on clean white ────────────────
-const panelStyle = {
-  background: '#fff',
-  border: `1px solid ${BRD}`,
-  borderRadius: 10,
-  padding: '20px 22px',
-  marginBottom: 14,
-  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03)',
+// Cal-AI aligned style tokens — import from aesthetic/tokens for consistency
+const CAL = {
+  ink: '#0a0a0a', ink2: '#1f1f22', ink3: '#6b6b70', ink4: '#a1a1a6',
+  bg: '#ffffff', card: '#f1f1f6', border: '#ececef', divider: '#e5e5ea',
+  font: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  rSm: 12, rMd: 16, rLg: 22, rPill: 999,
 }
 
-// Neutral titlecase — no more uppercase accent color, no exotic letterspacing.
-// Reads like a section heading in Linear / Stripe / Vercel.
+const panelStyle = {
+  background: CAL.bg,
+  border: `1px solid ${CAL.border}`,
+  borderRadius: CAL.rMd,
+  padding: '20px 22px',
+  marginBottom: 14,
+}
+
 const panelTitle = {
   margin: '0 0 6px',
-  fontSize: 18,
+  fontSize: 20,
   fontWeight: 700,
-  color: '#0f172a',
-  letterSpacing: '-.015em',
-  lineHeight: 1.2,
+  color: CAL.ink,
+  letterSpacing: '-0.02em',
+  lineHeight: 1.15,
+  fontFamily: CAL.font,
 }
 
 const paraStyle = {
-  color: '#475569',
+  color: CAL.ink3,
   fontSize: 15,
   margin: '0 0 18px',
   lineHeight: 1.55,
+  fontFamily: CAL.font,
 }
 
 const chip = {
@@ -3287,13 +3295,13 @@ const chip = {
   alignItems: 'center',
   gap: 5,
   padding: '3px 9px',
-  background: '#f8fafc',
-  border: `1px solid ${BRD}`,
-  color: '#475569',
+  background: CAL.card,
+  border: `1px solid ${CAL.border}`,
+  color: CAL.ink2,
   borderRadius: 6,
   fontSize: 11.5,
   fontWeight: 600,
-  letterSpacing: '-.005em',
+  fontFamily: CAL.font,
 }
 
 const chipAccent = {
@@ -3308,18 +3316,17 @@ function btnPrimary(disabled) {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 7,
-    padding: '11px 20px',
-    background: disabled ? '#e2e8f0' : '#0f172a',
-    color: disabled ? '#94a3b8' : '#fff',
+    padding: '12px 22px',
+    background: disabled ? CAL.card : CAL.ink,
+    color: disabled ? CAL.ink4 : '#fff',
     border: 'none',
-    borderRadius: 8,
+    borderRadius: CAL.rSm,
     fontSize: 15,
     fontWeight: 600,
+    fontFamily: CAL.font,
     cursor: disabled ? 'not-allowed' : 'pointer',
     whiteSpace: 'nowrap',
-    boxShadow: disabled ? 'none' : '0 1px 2px rgba(15, 23, 42, 0.08)',
-    transition: 'background .12s, box-shadow .12s, transform .08s',
-    letterSpacing: '-.005em',
+    transition: 'background .15s ease',
   }
 }
 
@@ -3328,13 +3335,14 @@ function btnSecondary(disabled) {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 6,
-    padding: '9px 15px',
-    background: '#fff',
-    color: disabled ? '#94a3b8' : '#334155',
-    border: `1px solid ${BRD}`,
-    borderRadius: 8,
+    padding: '10px 16px',
+    background: CAL.bg,
+    color: disabled ? CAL.ink4 : CAL.ink2,
+    border: `1px solid ${CAL.border}`,
+    borderRadius: CAL.rSm,
     fontSize: 14,
     fontWeight: 600,
+    fontFamily: CAL.font,
     cursor: disabled ? 'not-allowed' : 'pointer',
     boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
     transition: 'background .12s, border-color .12s',
