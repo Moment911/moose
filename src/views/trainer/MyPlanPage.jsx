@@ -2566,11 +2566,242 @@ function ProgressTab({ plan, logs, traineeId, isMobile, onRefresh }) {
         </Card>
       )}
 
+      {/* Body measurements */}
+      <BodyMeasurementsSection traineeId={traineeId} />
+
       {/* Empty state */}
       {volumeData.length <= 1 && weightData.length <= 1 && !adherenceData && (
         <EmptyCard label="Start logging workouts and weigh-ins to see your progress here." />
       )}
     </div>
+  )
+}
+
+// ── Body Measurements Section ──────────────────────────────────────────────
+
+const BODY_FIELDS = [
+  { key: 'chest', label: 'Chest' },
+  { key: 'waist', label: 'Waist' },
+  { key: 'hips', label: 'Hips' },
+  { key: 'shoulders', label: 'Shoulders' },
+  { key: 'neck', label: 'Neck' },
+  { key: 'bicep_left', label: 'Bicep (L)' },
+  { key: 'bicep_right', label: 'Bicep (R)' },
+  { key: 'thigh_left', label: 'Thigh (L)' },
+  { key: 'thigh_right', label: 'Thigh (R)' },
+  { key: 'calf_left', label: 'Calf (L)' },
+  { key: 'calf_right', label: 'Calf (R)' },
+  { key: 'forearm_left', label: 'Forearm (L)' },
+  { key: 'forearm_right', label: 'Forearm (R)' },
+]
+
+function BodyMeasurementsSection({ traineeId }) {
+  const [measurements, setMeasurements] = useState([])
+  const [draft, setDraft] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // Load history
+  useEffect(() => {
+    if (!traineeId) return
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await fetch('/api/trainer/my-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_body_measurements' }),
+        })
+        if (cancelled || !res.ok) return
+        const data = await res.json()
+        setMeasurements(data.measurements || [])
+      } catch { /* */ }
+      finally { if (!cancelled) setLoading(false) }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [traineeId])
+
+  async function handleSave() {
+    const hasAny = BODY_FIELDS.some((f) => draft[f.key] && String(draft[f.key]).trim() !== '')
+    if (!hasAny) return
+    setSaving(true)
+    try {
+      const body = { action: 'log_body_measurements' }
+      for (const f of BODY_FIELDS) {
+        if (draft[f.key] && String(draft[f.key]).trim() !== '') body[f.key] = Number(draft[f.key])
+      }
+      const res = await fetch('/api/trainer/my-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (res.ok) {
+        setDraft({}); setSaved(true); setShowForm(false)
+        setTimeout(() => setSaved(false), 3000)
+        // Reload
+        const res2 = await fetch('/api/trainer/my-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_body_measurements' }),
+        })
+        if (res2.ok) { const d = await res2.json(); setMeasurements(d.measurements || []) }
+      }
+    } catch { /* */ }
+    finally { setSaving(false) }
+  }
+
+  // Build chart data — pick the most commonly logged fields
+  const chartFields = useMemo(() => {
+    if (measurements.length < 2) return []
+    const counts = {}
+    for (const m of measurements) {
+      for (const f of BODY_FIELDS) {
+        if (m[f.key] != null) counts[f.key] = (counts[f.key] || 0) + 1
+      }
+    }
+    return BODY_FIELDS.filter((f) => (counts[f.key] || 0) >= 2).slice(0, 6)
+  }, [measurements])
+
+  const chartData = useMemo(() => {
+    return measurements.map((m) => {
+      const d = { date: (m.measured_at || '').slice(5, 10) }
+      for (const f of chartFields) d[f.key] = m[f.key] ?? null
+      return d
+    })
+  }, [measurements, chartFields])
+
+  const CHART_COLORS = ['#dc2626', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2']
+
+  // Latest vs first comparison
+  const changes = useMemo(() => {
+    if (measurements.length < 2) return []
+    const first = measurements[0]
+    const last = measurements[measurements.length - 1]
+    return BODY_FIELDS.map((f) => {
+      const start = first[f.key]
+      const end = last[f.key]
+      if (start == null || end == null) return null
+      const diff = Number(end) - Number(start)
+      return { label: f.label, start: Number(start), end: Number(end), diff }
+    }).filter(Boolean)
+  }, [measurements])
+
+  return (
+    <Card>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <SectionLabel>Body measurements</SectionLabel>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {saved && <span style={{ fontSize: 12, fontWeight: 600, color: A.green }}>Saved</span>}
+          <button type="button" onClick={() => setShowForm(!showForm)} style={{
+            padding: '6px 14px', background: showForm ? A.ink : A.card,
+            color: showForm ? '#fff' : A.ink2, border: `1px solid ${A.border}`,
+            borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: A.font,
+          }}>
+            {showForm ? 'Cancel' : '+ Log measurements'}
+          </button>
+        </div>
+      </div>
+
+      {/* Input form */}
+      {showForm && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: A.ink3, marginBottom: 10 }}>Enter measurements in inches. Leave blank any you did not measure.</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
+            {BODY_FIELDS.map((f) => (
+              <div key={f.key}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: A.ink3, marginBottom: 3 }}>{f.label}</div>
+                <input type="number" inputMode="decimal" step="0.25" value={draft[f.key] || ''}
+                  onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                  placeholder="in"
+                  style={{
+                    width: '100%', padding: '8px 10px', fontSize: 15, fontWeight: 600,
+                    border: `1px solid ${A.border}`, borderRadius: 8,
+                    background: A.cardAlt, color: A.ink, fontFamily: A.font,
+                    outline: 'none', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={handleSave} disabled={saving} style={{
+            width: '100%', marginTop: 12, padding: '12px',
+            background: saving ? A.ink3 : A.ink, color: '#fff', border: 'none',
+            borderRadius: A.rSm, fontSize: 15, fontWeight: 600, cursor: saving ? 'default' : 'pointer',
+            fontFamily: A.font, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          }}>
+            {saving && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+            Save measurements
+          </button>
+        </div>
+      )}
+
+      {/* Changes summary */}
+      {changes.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: A.ink3, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            Changes since first measurement
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 6 }}>
+            {changes.map((c) => (
+              <div key={c.label} style={{
+                padding: '8px 10px', background: A.cardAlt, borderRadius: 8,
+              }}>
+                <div style={{ fontSize: 11, color: A.ink3, marginBottom: 2 }}>{c.label}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: A.ink }}>{c.end}"</div>
+                <div style={{
+                  fontSize: 11, fontWeight: 600,
+                  color: c.diff > 0 ? '#059669' : c.diff < 0 ? '#dc2626' : A.ink3,
+                }}>
+                  {c.diff > 0 ? '+' : ''}{c.diff.toFixed(1)}"
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Measurement charts */}
+      {chartFields.length > 0 && chartData.length > 1 && (
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: A.ink3, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            Measurement trends
+          </div>
+          <div style={{ width: '100%', height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                <CartesianGrid stroke="rgba(0,0,0,0.04)" strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: A.ink3 }} tickLine={false} axisLine={{ stroke: A.border }} />
+                <YAxis tick={{ fontSize: 11, fill: A.ink3 }} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ background: A.card, border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.font }} />
+                {chartFields.map((f, i) => (
+                  <Line key={f.key} type="monotone" dataKey={f.key} name={f.label}
+                    stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2}
+                    dot={{ r: 3, fill: CHART_COLORS[i % CHART_COLORS.length] }}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, justifyContent: 'center' }}>
+            {chartFields.map((f, i) => (
+              <span key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: A.ink3 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                {f.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {measurements.length === 0 && !loading && !showForm && (
+        <div style={{ textAlign: 'center', padding: 16, color: A.ink3, fontSize: 14 }}>
+          No measurements logged yet. Tap the button above to start tracking.
+        </div>
+      )}
+    </Card>
   )
 }
 

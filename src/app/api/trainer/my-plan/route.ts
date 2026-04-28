@@ -34,7 +34,7 @@ function getDb(): SupabaseClient {
   )
 }
 
-const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account', 'get_progress_history', 'log_progress', 'log_measurable', 'get_measurable_history', 'generate_full_plan'] as const
+const ALLOWED_ACTIONS = ['get_my_plan', 'log_set', 'update_log', 'update_intake', 'delete_my_account', 'get_progress_history', 'log_progress', 'log_measurable', 'get_measurable_history', 'generate_full_plan', 'log_body_measurements', 'get_body_measurements'] as const
 type Action = (typeof ALLOWED_ACTIONS)[number]
 
 function err(status: number, error: string, extra?: Record<string, unknown>) {
@@ -186,6 +186,8 @@ export async function POST(req: NextRequest) {
     if (action === 'log_progress') return await handleLogProgress(sb, ctx, body)
     if (action === 'log_measurable') return await handleLogMeasurable(sb, ctx, body)
     if (action === 'get_measurable_history') return await handleGetMeasurableHistory(sb, ctx, body)
+    if (action === 'log_body_measurements') return await handleLogBodyMeasurements(sb, ctx, body)
+    if (action === 'get_body_measurements') return await handleGetBodyMeasurements(sb, ctx)
     if (action === 'generate_full_plan') return await handleGenerateFullPlanProxy(sb, ctx)
     return err(400, 'Unknown action')
   } catch (e) {
@@ -681,4 +683,59 @@ async function handleGenerateFullPlanProxy(sb: SupabaseClient, ctx: TraineeCtx) 
     console.error('[my-plan] generate_full_plan proxy error:', e)
     return err(500, 'Failed to start plan generation')
   }
+}
+
+// ── log_body_measurements — save a set of body measurements ─────────────
+async function handleLogBodyMeasurements(
+  sb: SupabaseClient,
+  ctx: TraineeCtx,
+  body: Record<string, unknown>,
+) {
+  const FIELDS = [
+    'chest', 'waist', 'hips', 'shoulders', 'neck',
+    'bicep_left', 'bicep_right', 'thigh_left', 'thigh_right',
+    'calf_left', 'calf_right', 'forearm_left', 'forearm_right',
+  ]
+  const row: Record<string, unknown> = {
+    agency_id: ctx.agencyId,
+    trainee_id: ctx.traineeId,
+    measured_at: new Date().toISOString(),
+  }
+  let hasAny = false
+  for (const f of FIELDS) {
+    const v = body[f]
+    if (v !== undefined && v !== null && v !== '') {
+      const n = typeof v === 'number' ? v : Number(v)
+      if (Number.isFinite(n) && n > 0) { row[f] = n; hasAny = true }
+    }
+  }
+  if (typeof body.notes === 'string') row.notes = body.notes
+  if (!hasAny) return err(400, 'At least one measurement required')
+
+  const { data, error } = await sb
+    .from('koto_fitness_body_measurements')
+    .insert(row)
+    .select('id')
+    .single()
+  if (error) {
+    console.error('[my-plan] log_body_measurements error:', error.message)
+    return err(500, 'Insert failed')
+  }
+  return NextResponse.json({ id: (data as { id: string }).id }, { status: 201 })
+}
+
+// ── get_body_measurements — all measurement history for this trainee ─────
+async function handleGetBodyMeasurements(sb: SupabaseClient, ctx: TraineeCtx) {
+  const { data, error } = await sb
+    .from('koto_fitness_body_measurements')
+    .select('*')
+    .eq('trainee_id', ctx.traineeId)
+    .eq('agency_id', ctx.agencyId)
+    .order('measured_at', { ascending: true })
+    .limit(200)
+  if (error) {
+    console.error('[my-plan] get_body_measurements error:', error.message)
+    return err(500, 'Load failed')
+  }
+  return NextResponse.json({ measurements: data ?? [] })
 }
