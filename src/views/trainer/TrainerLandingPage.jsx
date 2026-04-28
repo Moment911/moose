@@ -61,9 +61,9 @@ const TESTIMONIAL_STATS = [
 ]
 
 const TESTIMONIALS = [
-  { quote: "I play three sports and no one coach could program for all of them. This AI knows my soccer season, my track schedule, and my gym days  —  and adjusts the plan week by week so I'm not overtrained.", name: 'Jaylen M., 16', role: 'High school multi-sport athlete', avatar: '/images/trainer/man-running.jpg' },
-  { quote: "Three kids, a full-time job, and twenty minutes for lunch. I told the AI my reality and it built workouts I could actually finish. Down twenty-two pounds in five months  —  no trainer required.", name: 'Renee D., 43', role: 'Working parent', avatar: '/images/trainer/woman-running.jpg' },
-  { quote: 'After I retired I started feeling old fast. This built me strength and walking workouts that match what my body can do today, not twenty years ago. I feel better at sixty-four than I did at fifty-four.', name: 'Hank P., 64', role: 'Retiree', avatar: '/images/trainer/senior-couple.jpg' },
+  { quote: "I play three sports and no one coach could program for all of them. This AI knows my soccer season, my track schedule, and my gym days and adjusts the plan week by week so I'm not overtrained.", name: 'Jaylen M., 16', role: 'High school multi-sport athlete', avatar: '/images/trainer/youth-baseball.jpg' },
+  { quote: "Three kids, a full-time job, and twenty minutes for lunch. I told the AI my reality and it built workouts I could actually finish. Down twenty-two pounds in five months -- no trainer required.", name: 'Renee D., 43', role: 'Working parent', avatar: '/images/trainer/woman-running.jpg' },
+  { quote: 'After I retired I started feeling old fast. This built me strength and walking workouts that match what my body can do today, not twenty years ago. I feel better at sixty-four than I did at fifty-four.', name: 'Hank P., 64', role: 'Retiree', avatar: '/images/trainer/senior-stretching.jpg' },
 ]
 
 const FAQS = [
@@ -1911,15 +1911,19 @@ function FounderStory() {
 
 function LifestylePhotoStrip() {
   const photos = [
-    { src: '/images/trainer/couple-running.jpg', alt: 'Couple running on coastal trail' },
+    { src: '/images/trainer/youth-baseball.jpg', alt: 'Youth baseball player throwing' },
     { src: '/images/trainer/woman-sitting.jpg', alt: 'Athlete stretching outdoors' },
+    { src: '/images/trainer/man-phone.jpg', alt: 'Man exercising with phone' },
+    { src: '/images/trainer/senior-stretching.jpg', alt: 'Senior couple stretching together' },
+    { src: '/images/trainer/golfer.jpg', alt: 'Golfer on the course' },
+    { src: '/images/trainer/man-home-workout.jpg', alt: 'Man working out at home' },
+    { src: '/images/trainer/couple-running.jpg', alt: 'Couple running on coastal trail' },
     { src: '/images/trainer/woman-yoga-laptop.jpg', alt: 'Woman training at home with laptop' },
-    { src: '/images/trainer/woman-running.jpg', alt: 'Woman running with earbuds' },
   ]
   return (
     <section className="koto-photos" style={{ padding: `${T.s6}px 0`, overflow: 'hidden' }}>
       <style>{`
-        .koto-photos .koto-photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .koto-photos .koto-photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         @media (max-width: 640px) { .koto-photos .koto-photo-grid { grid-template-columns: repeat(2, 1fr); } }
       `}</style>
       <div className="koto-photo-grid" style={{ maxWidth: PAGE_MAX + 100, margin: '0 auto' }}>
