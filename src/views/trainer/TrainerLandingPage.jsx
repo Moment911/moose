@@ -17,38 +17,38 @@ const SPORTS = [
 const FEATURES = [
   {
     icon: MessageCircle,
-    title: 'Your AI Trainer',
-    desc: 'Have a real conversation any time. Tell it what\'s working, what\'s sore, what got in the way this week  —  your training and your diet pivot in real time. No waiting for the next check-in.',
+    title: 'Your AI trainer. 24/7/365.',
+    desc: "Talk to it any time -- 6am before the gym, 11pm when you can't sleep, halftime of your kid's game. It never clocks out. Tell it what's working, what hurts, what got in the way. Your plan adjusts in real time. No appointments. No waiting. It never sleeps.",
     color: '#0071e3',
   },
   {
     icon: Utensils,
-    title: 'Your AI Nutritionist',
-    desc: "Macros that hit your numbers with food you'll actually eat. Snap a photo of any meal and the AI logs calories and macros instantly.",
+    title: 'Your AI nutritionist.',
+    desc: "Macros that hit your numbers with food you'll actually eat. Snap a photo of any meal and the AI logs calories and macros instantly. It learns what you like and builds around that -- not a generic template.",
     color: '#059669',
   },
   {
     icon: Target,
-    title: 'Your AI Sport Expert',
-    desc: 'PhD-level periodization for fifteen sports plus a general-fitness mode. Sport-specific cues, season-aware programming, and the lift numbers that actually matter for what you play.',
+    title: 'Your AI sport expert.',
+    desc: "PhD-level periodization for fifteen sports plus a general-fitness mode. It knows the difference between training for a baseball showcase and training for a 5K. Sport-specific, season-aware, position-aware.",
     color: '#0891b2',
   },
   {
     icon: Dumbbell,
-    title: 'Workouts you can log',
-    desc: 'Tap to log every set and rep. The program adapts to what you actually do, not what was prescribed in a vacuum.',
+    title: 'Workouts you actually log.',
+    desc: "Tap to log every set, every rep, every session. The program watches what you did and adjusts next week. Missed a day? It adapts. Crushed it? It pushes harder. Your plan is alive.",
     color: '#7c3aed',
   },
   {
     icon: TrendingUp,
-    title: 'Progress that proves it',
-    desc: 'Body weight, lift volume, sprint times, sport measurables, macro adherence. See the trends, not just the numbers.',
+    title: 'Progress you can prove.',
+    desc: "Body weight, lift volume, sprint times, velocity, exit velo, macro adherence -- all charted over time. Not just numbers. Trends. The kind of data that shows you exactly what's happening.",
     color: '#dc2626',
   },
   {
     icon: BookOpen,
-    title: 'Built for every life stage',
-    desc: 'Youth athletes chasing a roster spot. College students balancing classes and the gym. New parents with fifteen minutes to train. Executives who travel every week. Retirees who want to feel thirty again. The AI meets you exactly where you are.',
+    title: 'Built for every life stage.',
+    desc: "Youth athletes chasing a roster spot. College students with no time. New parents with fifteen minutes. Single parents doing it alone. Executives who travel. Early retirees reclaiming their health. It meets you where you are.",
     color: '#d97706',
   },
 ]
@@ -114,19 +114,19 @@ export default function TrainerLandingPage() {
 
       <SportsStrip />
 
-      <HowItWorks />
-
-      <LivePlanBuilder />
+      <TryItDemo />
 
       <FeaturesGrid />
 
+      <HowItWorks />
+
       <LifestylePhotoStrip />
+
+      <LivePlanBuilder />
 
       <InsideTheAi />
 
       <PhoneShowcase />
-
-      <TryItDemo />
 
       <SocialProof />
 
@@ -655,17 +655,17 @@ function FeaturesGrid() {
             letterSpacing: '-0.025em',
             fontWeight: T.weight.display, color: T.ink,
           }}>
-            Everything you need,
+            A trainer that never sleeps.
             <br />
-            nothing you don&rsquo;t.
+            A nutritionist that never judges.
           </h2>
           <p style={{
-            margin: `${T.s4}px auto 0`, maxWidth: 560,
+            margin: `${T.s4}px auto 0`, maxWidth: 620,
             fontFamily: T.font,
             fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            Six pillars, one calm interface. Each one earns its place.
+            Talk to your AI coach whenever you want -- morning, midnight, mid-workout. It's always ready, always current on your data, and always in your corner.
           </p>
         </div>
 
@@ -684,11 +684,12 @@ function FeaturesGrid() {
             transform: scale(1.08) rotate(-3deg);
           }
         `}</style>
-        <div style={{
+        <div className="koto-features-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: T.s4,
         }}>
+          <style>{`@media(min-width:900px){.koto-features-grid{grid-template-columns:repeat(3,1fr)!important;}}`}</style>
           {FEATURES.map((f) => (
             <div
               key={f.title}
