@@ -54,10 +54,10 @@ const FEATURES = [
 ]
 
 const TESTIMONIAL_STATS = [
-  { value: '24/7', label: 'Always on. Your AI coach never sleeps, never takes a day off, never cancels on you.', highlight: true },
-  { value: '2 min', label: 'From first conversation to a complete personalized plan.' },
-  { value: '15+', label: 'Sports with dedicated playbooks, periodization, and position-specific training.' },
-  { value: '$0', label: 'To start. No credit card. No commitment. Just results.' },
+  { value: '24/7', title: 'Always on.', label: 'Your AI coach never sleeps, never takes a day off, never cancels on you.', highlight: true },
+  { value: '2 min', title: 'Instant plan.', label: 'From first conversation to a complete personalized program.' },
+  { value: '15+', title: 'Every sport.', label: 'Dedicated playbooks, periodization, and position-specific training.' },
+  { value: '$0', title: 'Free to start.', label: 'No credit card. No commitment. Just results.' },
 ]
 
 const TESTIMONIALS = [
@@ -112,6 +112,8 @@ export default function TrainerLandingPage() {
 
       <Hero onStart={() => navigate('/start')} />
 
+      <PhoneShowcase />
+
       <SportsStrip />
 
       <TryItDemo />
@@ -125,8 +127,6 @@ export default function TrainerLandingPage() {
       <LifestylePhotoStrip />
 
       <InsideTheAi />
-
-      <PhoneShowcase />
 
       <SocialProof />
 
@@ -833,22 +833,22 @@ function InsideTheAi() {
 
 function PhoneShowcase() {
   return (
-    <section style={{ padding: `${T.s8}px 24px`, background: T.card }}>
+    <section style={{ padding: `${T.s7}px 24px ${T.s8}px`, background: T.bg }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: T.s7 }}>
+        <div style={{ textAlign: 'center', marginBottom: T.s6 }}>
           <h2 style={{
             margin: 0, fontFamily: T.font,
             fontSize: 'clamp(32px, 5.5vw, 48px)', lineHeight: 1.08,
             letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
-            See it in action.
+            Your entire training life in your pocket.
           </h2>
           <p style={{
-            margin: `${T.s4}px auto 0`, maxWidth: 500,
+            margin: `${T.s4}px auto 0`, maxWidth: 520,
             fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            One app. Four screens. Your entire training life in your pocket.
+            Workouts, meals, progress, and your AI coach  --  all in one place. Swipe through to see what a day looks like.
           </p>
         </div>
 
@@ -1292,16 +1292,23 @@ function SocialProof() {
               }}>
                 <div style={{
                   fontFamily: T.font,
-                  fontSize: s.highlight ? 52 : 40, fontWeight: T.weight.display,
+                  fontSize: s.highlight ? 56 : 44, fontWeight: T.weight.display,
                   letterSpacing: '-0.03em', color: s.highlight ? T.accent : '#fff', lineHeight: 1,
-                  marginBottom: T.s2,
+                  marginBottom: T.s3,
                 }}>
                   <CountUpStat value={s.value} />
                 </div>
                 <div style={{
                   fontFamily: T.font,
+                  fontSize: T.size.body, fontWeight: T.weight.h1,
+                  color: '#fff', lineHeight: 1.2, marginBottom: T.s1,
+                }}>
+                  {s.title}
+                </div>
+                <div style={{
+                  fontFamily: T.font,
                   fontSize: T.size.subtitle, fontWeight: T.weight.body,
-                  color: 'rgba(255,255,255,0.55)', lineHeight: 1.45,
+                  color: 'rgba(255,255,255,0.5)', lineHeight: 1.45,
                 }}>
                   {s.label}
                 </div>
