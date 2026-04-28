@@ -103,6 +103,9 @@ export default function MyPlanPage() {
   const [sessionState, setSessionState] = useState({ loading: true, user: null })
   const [planState, setPlanState] = useState({ loading: true, error: null, data: null })
   const [tab, setTab] = useState('home')
+  // Bumped each time a meal logs anywhere — DateStripWithMacros listens to
+  // this so the Home rings refetch live without needing a tab swap.
+  const [mealsRefreshKey, setMealsRefreshKey] = useState(0)
   const [showDisclaimer, setShowDisclaimer] = useState(false)
   const isMobile = useIsMobile()
 
@@ -278,6 +281,7 @@ export default function MyPlanPage() {
             onAfterAdjust={loadPlan}
             onGotoTab={setTab}
             onRefresh={loadPlan}
+            mealsRefreshKey={mealsRefreshKey}
           />
         )}
         {tab === 'coach' && (
@@ -306,6 +310,7 @@ export default function MyPlanPage() {
             plan={plan}
             traineeId={trainee?.id}
             isMobile={isMobile}
+            onMealLogged={() => setMealsRefreshKey((k) => k + 1)}
           />
         )}
         {tab === 'progress' && (
@@ -479,7 +484,7 @@ function MacroPill({ label, value, color }) {
 //  OVERVIEW TAB
 // ═════════════════════════════════════════════════════════════════════════════
 
-function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, onRefresh }) {
+function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, onRefresh, mealsRefreshKey }) {
   const hasBaseline = !!plan?.baseline
   const hasWorkout = !!plan?.workout_plan
   const hasMeals = !!plan?.meal_plan
@@ -664,7 +669,7 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
           DateStrip selection is local-only for now — there's no per-day data
           to swap into yet. When food-log fetching lands here, the rings
           turn into "actual / target" instead of just showing the target. */}
-      <DateStripWithMacros plan={plan} traineeId={trainee?.id} streakDays={streakDays} />
+      <DateStripWithMacros plan={plan} traineeId={trainee?.id} refreshKey={mealsRefreshKey} />
 
       {/* ══ Plan Sections ══
           Tiles always render. Each flips to ready as its key on `plan` lands;
@@ -782,7 +787,7 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
 // and computes per-day totals; selecting a day swaps which day's totals
 // drive the rings. Activity strip under the date row reflects food-logged
 // days, not workout days (workouts live in their own tab).
-function DateStripWithMacros({ plan, traineeId }) {
+function DateStripWithMacros({ plan, traineeId, refreshKey = 0 }) {
   const days = useMemo(() => lastNDays(7), [])
   const [selected, setSelected] = useState(() => new Date())
   const [perDay, setPerDay] = useState({})  // { 'YYYY-MM-DD': { kcal, p, c, f } }
@@ -826,7 +831,7 @@ function DateStripWithMacros({ plan, traineeId }) {
       .catch(() => { if (!cancelled) setPerDay({}) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [traineeId, fromKey, toKey])
+  }, [traineeId, fromKey, toKey, refreshKey])
 
   const selectedKey = selected.toISOString().slice(0, 10)
   const todays = perDay[selectedKey] || { kcal: 0, p: 0, c: 0, f: 0 }
@@ -1848,7 +1853,7 @@ function SetStrip({ setNumber, dayNum, exerciseId, exerciseName, existing, onLog
 //  MEALS TAB
 // ═════════════════════════════════════════════════════════════════════════════
 
-function MealsTab({ plan, traineeId, isMobile }) {
+function MealsTab({ plan, traineeId, isMobile, onMealLogged }) {
   const mealPlan = plan?.meal_plan
   const groceryList = plan?.grocery_list
   const [weekIdx, setWeekIdx] = useState(0)
@@ -1921,7 +1926,10 @@ function MealsTab({ plan, traineeId, isMobile }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'unlog_planned', trainee_id: traineeId, plan_key: key }),
         })
-        if (res.ok) setLoggedKeys((prev) => { const n = new Set(prev); n.delete(key); return n })
+        if (res.ok) {
+          setLoggedKeys((prev) => { const n = new Set(prev); n.delete(key); return n })
+          onMealLogged?.()
+        }
       } else {
         const macrosData = meal.macros_per_serving || meal.macros || {}
         const items = [{
@@ -1943,7 +1951,10 @@ function MealsTab({ plan, traineeId, isMobile }) {
             meal_name: meal.recipe_name || meal.name,
           }),
         })
-        if (res.ok) setLoggedKeys((prev) => new Set(prev).add(key))
+        if (res.ok) {
+          setLoggedKeys((prev) => new Set(prev).add(key))
+          onMealLogged?.()
+        }
       }
     } finally {
       setLogState((s) => ({ ...s, [key]: { logging: false } }))
@@ -1979,6 +1990,7 @@ function MealsTab({ plan, traineeId, isMobile }) {
       const totalKcal = items.reduce((a, it) => a + (Number(it.kcal) || 0), 0)
       setScanSuccess(`Logged ${items.length} item${items.length === 1 ? '' : 's'} · ${totalKcal} kcal`)
       await loadToday()
+      onMealLogged?.()
     } catch (e) {
       setScanError(e.message || 'Scan failed')
     } finally {
