@@ -1631,12 +1631,12 @@ function TryItDemo() {
           </span>
           <h2 style={{
             margin: 0, fontFamily: T.font,
-            fontSize: 'clamp(28px, 5vw, 44px)', lineHeight: 1.08,
+            fontSize: 'clamp(32px, 5.5vw, 48px)', lineHeight: 1.08,
             letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
             Try your AI coach.
             <br />
-            <span style={{ color: T.accent }}>Right now.</span>
+            Right now.
           </h2>
           <p style={{
             margin: `${T.s3}px auto 0`, maxWidth: 460,
@@ -1841,7 +1841,7 @@ function FounderStory() {
           </span>
           <h2 style={{
             margin: 0, fontFamily: T.font,
-            fontSize: 'clamp(28px, 5vw, 44px)', lineHeight: 1.08,
+            fontSize: 'clamp(32px, 5.5vw, 48px)', lineHeight: 1.08,
             letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
             Built by a family.
@@ -1875,8 +1875,8 @@ function FounderStory() {
           <p style={{ margin: `0 0 ${T.s5}px` }}>
             <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>The expert</strong> is a
             world-renowned bariatric surgeon and weight loss specialist  --  a close family friend
-            who has spent her career helping people transform their health. She knew exactly what
-            kind of guidance works and what doesn't. She brought the clinical rigor, the nutrition
+            who has spent his career helping people transform their health. He knew exactly what
+            kind of guidance works and what doesn't. He brought the clinical rigor, the nutrition
             science, and the deep understanding of how real people actually change their bodies
             and their lives.
           </p>
