@@ -2625,7 +2625,7 @@ function ProgressTab({ plan, logs, traineeId, isMobile, onRefresh }) {
       )}
 
       {/* AI Weekly Insight */}
-      <AIInsightCard traineeId={traineeId} />
+      <AIInsightCard traineeId={traineeId} onPlanAdjusted={onRefresh} />
 
       {/* Progress photos */}
       <ProgressPhotosSection traineeId={traineeId} />
@@ -2661,10 +2661,12 @@ const BODY_FIELDS = [
 
 // ── AI Weekly Insight Card ─────────────────────────────────────────────────
 
-function AIInsightCard({ traineeId }) {
+function AIInsightCard({ traineeId, onPlanAdjusted }) {
   const [insight, setInsight] = useState(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [applied, setApplied] = useState(false)
 
   useEffect(() => {
     if (!traineeId) return
@@ -2735,7 +2737,33 @@ function AIInsightCard({ traineeId }) {
           </div>
           {Array.isArray(insight.plan_changes) && insight.plan_changes.length > 0 && (
             <div style={{ marginTop: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 4 }}>Plan adjustments</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>Plan adjustments</div>
+                {!applied && (
+                  <button type="button" disabled={applying} onClick={async () => {
+                    setApplying(true)
+                    try {
+                      const instruction = insight.plan_changes.join('. ')
+                      await adjustPlanNL({ instruction })
+                      setApplied(true)
+                      if (onPlanAdjusted) onPlanAdjusted()
+                    } catch {} finally { setApplying(false) }
+                  }} style={{
+                    padding: '4px 12px', background: applying ? 'rgba(255,255,255,0.08)' : 'rgba(90,160,255,0.25)',
+                    color: applying ? 'rgba(255,255,255,0.5)' : '#5aa0ff',
+                    border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: applying ? 'default' : 'pointer',
+                    fontFamily: A.font, display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                    {applying ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
+                    {applying ? 'Applying...' : 'Apply changes'}
+                  </button>
+                )}
+                {applied && (
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#34c759', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Check size={12} /> Applied
+                  </span>
+                )}
+              </div>
               {insight.plan_changes.map((c, i) => (
                 <div key={i} style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 2 }}>{c}</div>
               ))}

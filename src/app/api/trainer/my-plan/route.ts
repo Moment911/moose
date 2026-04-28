@@ -843,6 +843,18 @@ async function handleGenerateWeeklyInsight(sb: SupabaseClient, ctx: TraineeCtx) 
     avg_daily_protein_g: foodLogs.length > 0 ? Math.round(foodLogs.reduce((a, f) => a + (Number(f.total_protein_g) || 0), 0) / foodLogs.length) : null,
     avg_sleep_hours: sleepLogs.length > 0 ? Math.round(sleepLogs.reduce((a, s) => a + (Number(s.hours_slept) || 0), 0) / sleepLogs.length * 10) / 10 : null,
     latest_measurements: bodyMeasurements[0] || null,
+    measurement_changes: bodyMeasurements.length >= 2 ? (() => {
+      const latest = bodyMeasurements[0] as Record<string, unknown>
+      const earliest = bodyMeasurements[bodyMeasurements.length - 1] as Record<string, unknown>
+      const fields = ['chest', 'waist', 'hips', 'shoulders', 'bicep_left', 'bicep_right', 'thigh_left', 'thigh_right']
+      const changes: Record<string, string> = {}
+      for (const f of fields) {
+        const a = Number(latest[f]), b = Number(earliest[f])
+        if (a && b && a !== b) changes[f] = `${b.toFixed(1)} → ${a.toFixed(1)} in (${a > b ? '+' : ''}${(a - b).toFixed(1)})`
+      }
+      return Object.keys(changes).length > 0 ? changes : null
+    })() : null,
+    num_progress_photos: await sb.from('koto_fitness_progress_photos').select('id', { count: 'exact', head: true }).eq('trainee_id', ctx.traineeId).then(r => r.count ?? 0),
     baseline_calorie_target: plan?.baseline ? (plan.baseline as Record<string, unknown>).calorie_target_kcal : null,
     baseline_protein_target: plan?.baseline ? ((plan.baseline as Record<string, unknown>).macro_targets_g as Record<string, unknown>)?.protein_g : null,
   }
@@ -856,10 +868,19 @@ ATHLETE DATA:
 ${JSON.stringify(dataSnapshot, null, 2)}
 
 Produce a JSON response with these fields:
-- summary: 3-4 sentences. What happened this week, how they're tracking vs goals, one specific callout.
+- summary: 3-4 sentences. What happened this week, how they're tracking vs goals, one specific callout. If body measurements changed, reference them (e.g. "your waist dropped 0.5 inches — that's real progress").
 - whats_working: array of 2-3 short strings (things going well)
-- needs_attention: array of 2-3 short strings (things to fix)
-- plan_changes: array of 1-2 short strings (specific modifications you'd make to their plan)
+- needs_attention: array of 2-3 short strings (things to fix — be specific: "protein averaging 120g vs 160g target" not "eat more protein")
+- plan_changes: array of 1-2 ACTIONABLE modifications. These get applied to the plan automatically, so be precise: "increase daily protein target to 180g" or "add a 4th training day focused on arms" or "reduce calorie target by 200 kcal to accelerate fat loss". Reference the data that justifies each change.
+
+Context for plan_changes:
+- Their goal is: ${dataSnapshot.primary_goal || 'not specified'}
+- If they're gaining muscle: biceps/chest/thighs growing = good, waist growing = bad
+- If they're losing fat: waist/hips shrinking = good, muscle measurements holding = good
+- If calories are consistently under/over target by >15%, adjust the target
+- If protein is consistently under target, call it out AND suggest a specific new target
+- If adherence < 60%, consider reducing training days rather than pushing harder
+- If they have 0 progress photos, encourage them to take one
 
 Be honest, not cheerful. If they're not hitting protein, say it. If they're not sleeping enough, say it. If they're crushing it, celebrate it.
 
