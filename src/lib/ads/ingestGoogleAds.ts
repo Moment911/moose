@@ -5,7 +5,7 @@
 
 import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getAdsConnection, fetchGoogleAdsCampaigns, fetchGoogleAdsKeywords, fetchSearchTerms } from '@/lib/perfMarketing'
+import { fetchGoogleAdsCampaigns, fetchGoogleAdsKeywords, fetchSearchTerms } from '@/lib/perfMarketing'
 
 export interface IngestResult {
   campaigns: number
@@ -24,12 +24,13 @@ export async function ingestGoogleAds(
 
   const result: IngestResult = { campaigns: 0, ad_groups: 0, keywords: 0, search_terms: 0, errors: [] }
 
-  // Get ads connection
-  const conn = await getAdsConnection(client_id)
-  if (!conn) throw new Error('No Google Ads connection found for this client. Connect via KotoIQ Settings.')
+  // Get ads connection using the service-role client (bypasses RLS)
+  const { data: conn } = await s.from('seo_connections')
+    .select('*').eq('client_id', client_id).eq('provider', 'ads').single()
+  if (!conn) throw new Error('No Google Ads connection found for this client. Connect via KotoIQ Connect APIs tab.')
 
-  const customerId = conn.customer_id || conn.external_id
-  if (!customerId) throw new Error('No Google Ads customer ID configured')
+  const customerId = (conn.account_id || conn.customer_id || conn.external_id || '').replace(/-/g, '')
+  if (!customerId) throw new Error('No Google Ads customer ID configured. Set the Account ID in the Connect APIs tab.')
 
   // ── Campaigns ──────────────────────────────────────────────
   try {
