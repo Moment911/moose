@@ -1,12 +1,14 @@
 "use client"
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { ChevronDown, ChevronUp, Info, Loader2, Check } from 'lucide-react'
+import { useExerciseDB } from '../../lib/trainer/useExerciseDB'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WorkoutAccordion — Cal-AI styled workout logging component.
 //
 // Renders a 2-week workout plan with per-exercise set logging (lbs/reps),
-// rest timer, coaching cues, how-to toggles, and PR tracking.
+// rest timer, coaching cues, how-to toggles, PR tracking, and ExerciseDB
+// GIF demos with muscle targeting data.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const C = {
@@ -21,6 +23,24 @@ export default function WorkoutAccordion({ workoutPlan, logs = [], onLogSet, onR
   const [weekIdx, setWeekIdx] = useState(0)
   const [openSessions, setOpenSessions] = useState({})
   const [showHowTo, setShowHowTo] = useState({})
+
+  // Collect all exercise names for ExerciseDB lookup
+  const exerciseNames = useMemo(() => {
+    if (!workoutPlan?.weeks) return []
+    const names = new Set()
+    for (const week of workoutPlan.weeks) {
+      for (const session of week.sessions || []) {
+        for (const block of session.blocks || []) {
+          for (const ex of block.exercises || []) {
+            if (ex.name) names.add(ex.name)
+          }
+        }
+      }
+    }
+    return Array.from(names)
+  }, [workoutPlan])
+
+  const { data: exerciseDB } = useExerciseDB(exerciseNames)
 
   const logIndex = useMemo(() => {
     const m = new Map()
@@ -164,6 +184,7 @@ export default function WorkoutAccordion({ workoutPlan, logs = [], onLogSet, onR
                         onLogSet={onLogSet}
                         showHowTo={!!showHowTo[ex.exercise_id]}
                         onToggleHowTo={() => setShowHowTo((prev) => ({ ...prev, [ex.exercise_id]: !prev[ex.exercise_id] }))}
+                        dbMatch={exerciseDB.get((ex.name || '').toLowerCase().replace(/[_-]/g, ' ').trim())}
                       />
                     ))}
                   </div>
@@ -191,8 +212,9 @@ export default function WorkoutAccordion({ workoutPlan, logs = [], onLogSet, onR
 
 // ── Exercise Card ──────────────────────────────────────────────────────────
 
-function ExerciseCard({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggleHowTo }) {
+function ExerciseCard({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggleHowTo, dbMatch }) {
   const { exercise_id, name, sets = 0, target_reps, target_weight_kg_or_cue, rest_seconds, progression_rule, coaching_cue, performance_cues, common_mistakes } = exercise
+  const [showGif, setShowGif] = useState(false)
 
   const setRows = []
   for (let i = 1; i <= (Number(sets) || 0); i++) setRows.push(i)
@@ -209,15 +231,36 @@ function ExerciseCard({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggl
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: C.ink }}>{name}</div>
-          <div style={{ fontSize: 14, color: C.ink3, marginTop: 3 }}>
-            {sets} x {target_reps || '--'}
-            {target_weight_kg_or_cue ? ` @ ${target_weight_kg_or_cue}` : ''}
-            {rest_seconds ? ` · ${rest_seconds}s rest` : ''}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* GIF thumbnail — tap to expand */}
+            {dbMatch?.gifUrl && (
+              <button type="button" onClick={() => setShowGif(!showGif)} style={{
+                width: 44, height: 44, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
+                border: `2px solid ${showGif ? C.ink + '30' : C.border}`, cursor: 'pointer',
+                padding: 0, background: '#000',
+              }}>
+                <img src={dbMatch.gifUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </button>
+            )}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: C.ink }}>{name}</div>
+              <div style={{ fontSize: 14, color: C.ink3, marginTop: 2 }}>
+                {sets} x {target_reps || '--'}
+                {target_weight_kg_or_cue ? ` @ ${target_weight_kg_or_cue}` : ''}
+                {rest_seconds ? ` · ${rest_seconds}s rest` : ''}
+              </div>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-            {bestLbs > 0 && <span style={{ padding: '2px 8px', background: C.amberBg, borderRadius: C.rPill, fontSize: 11, fontWeight: 700, color: '#92400e' }}>PR: {bestLbs} lbs</span>}
-            {loggedCount > 0 && <span style={{ padding: '2px 8px', background: loggedCount >= sets ? C.greenBg : C.card, borderRadius: C.rPill, fontSize: 11, fontWeight: 700, color: loggedCount >= sets ? '#065f46' : C.ink3 }}>{loggedCount}/{sets} sets</span>}
+          {/* Tags row: muscle targets + PR + logged */}
+          <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
+            {dbMatch?.targetMuscles?.map((m) => (
+              <span key={m} style={{ padding: '2px 8px', background: '#5aa0ff15', borderRadius: C.rPill, fontSize: 10, fontWeight: 600, color: '#5aa0ff' }}>{m}</span>
+            ))}
+            {dbMatch?.equipments?.map((e) => (
+              <span key={e} style={{ padding: '2px 8px', background: C.bg, borderRadius: C.rPill, fontSize: 10, fontWeight: 600, color: C.ink3, border: `1px solid ${C.border}` }}>{e}</span>
+            ))}
+            {bestLbs > 0 && <span style={{ padding: '2px 8px', background: C.amberBg, borderRadius: C.rPill, fontSize: 10, fontWeight: 700, color: '#92400e' }}>PR: {bestLbs} lbs</span>}
+            {loggedCount > 0 && <span style={{ padding: '2px 8px', background: loggedCount >= sets ? C.greenBg : C.bg, borderRadius: C.rPill, fontSize: 10, fontWeight: 700, color: loggedCount >= sets ? '#065f46' : C.ink3 }}>{loggedCount}/{sets} sets</span>}
           </div>
         </div>
         <button type="button" onClick={onToggleHowTo} style={{
@@ -229,6 +272,18 @@ function ExerciseCard({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggl
           <Info size={13} /> How to
         </button>
       </div>
+
+      {/* Expanded GIF demo */}
+      {showGif && dbMatch?.gifUrl && (
+        <div style={{ marginTop: 10, borderRadius: C.rSm, overflow: 'hidden', background: '#000', maxWidth: 320 }}>
+          <img src={dbMatch.gifUrl} alt={`${name} demonstration`} style={{ width: '100%', display: 'block' }} />
+          {dbMatch.secondaryMuscles?.length > 0 && (
+            <div style={{ padding: '8px 12px', background: C.bg, fontSize: 12, color: C.ink3 }}>
+              <strong style={{ color: C.ink2, fontWeight: 600 }}>Also works:</strong> {dbMatch.secondaryMuscles.join(', ')}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Coaching cue */}
       {coaching_cue && (
