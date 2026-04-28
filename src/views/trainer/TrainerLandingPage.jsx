@@ -833,51 +833,131 @@ function InsideTheAi() {
 
 function PhoneShowcase() {
   return (
-    <section style={{
-      padding: `${T.s8}px 24px`,
-      background: T.card,
-    }}>
-      <div style={{ maxWidth: PAGE_MAX, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: T.s8 }}>
+    <section style={{ padding: `${T.s8}px 24px`, background: T.card }}>
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: T.s7 }}>
           <h2 style={{
-            margin: 0,
-            fontFamily: T.font,
-            fontSize: 'clamp(32px, 5.5vw, 48px)',
-            lineHeight: 1.08,
-            letterSpacing: '-0.025em',
-            fontWeight: T.weight.display, color: T.ink,
+            margin: 0, fontFamily: T.font,
+            fontSize: 'clamp(32px, 5.5vw, 48px)', lineHeight: 1.08,
+            letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
-            See your plan come together.
+            See it in action.
           </h2>
           <p style={{
-            margin: `${T.s4}px auto 0`, maxWidth: 560,
-            fontFamily: T.font,
-            fontSize: T.size.body, lineHeight: T.lh.body,
+            margin: `${T.s4}px auto 0`, maxWidth: 500,
+            fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            Home, workouts, meals  —  same calm language across every screen.
+            One app. Four screens. Your entire training life in your pocket.
           </p>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: T.s6,
-          alignItems: 'end',
-          justifyItems: 'center',
-        }}>
-          <PhoneFrame translateY={28} scrollAnim>
-            <PhoneScreenHome />
-          </PhoneFrame>
-          <PhoneFrame translateY={0} scrollAnim>
-            <PhoneScreenWorkout />
-          </PhoneFrame>
-          <PhoneFrame translateY={28} scrollAnim>
-            <PhoneScreenMeals />
-          </PhoneFrame>
-        </div>
+        <PhoneCarousel />
       </div>
     </section>
+  )
+}
+
+function PhoneCarousel() {
+  const SCREENS = [
+    { key: 'home', label: 'Home', Component: PhoneScreenHome },
+    { key: 'workout', label: 'Workout', Component: PhoneScreenWorkout },
+    { key: 'meals', label: 'Meals', Component: PhoneScreenMeals },
+  ]
+  const [active, setActive] = useState(0)
+  const [fading, setFading] = useState(false)
+
+  // Auto-cycle every 4 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFading(true)
+      setTimeout(() => {
+        setActive((prev) => (prev + 1) % SCREENS.length)
+        setFading(false)
+      }, 300)
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const ActiveScreen = SCREENS[active].Component
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: T.s5 }}>
+      {/* Phone */}
+      <div style={{
+        width: '100%', maxWidth: 320,
+        aspectRatio: '9 / 19.5',
+        borderRadius: 44,
+        padding: 10,
+        background: '#0a0a0a',
+        boxShadow: '0 30px 60px rgba(0,0,0,0.18), 0 6px 16px rgba(0,0,0,0.08)',
+        position: 'relative',
+        margin: '0 auto',
+      }}>
+        <style>{`
+          @keyframes koto-screen-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        `}</style>
+        <div style={{
+          width: '100%', height: '100%',
+          background: T.bg,
+          borderRadius: 34,
+          overflow: 'hidden',
+          position: 'relative',
+        }}>
+          {/* Notch */}
+          <div style={{
+            position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
+            width: 100, height: 24, borderRadius: T.rPill,
+            background: '#0a0a0a', zIndex: 2,
+          }} />
+          {/* Screen content */}
+          <div
+            key={active}
+            style={{
+              height: '100%', overflow: 'hidden',
+              opacity: fading ? 0 : 1,
+              transform: fading ? 'translateX(-20px)' : 'translateX(0)',
+              transition: 'opacity .3s ease, transform .3s ease',
+              animation: fading ? 'none' : 'koto-screen-in .4s ease',
+            }}
+          >
+            <ActiveScreen />
+          </div>
+        </div>
+      </div>
+
+      {/* Screen selector dots + labels */}
+      <div style={{ display: 'flex', gap: T.s4, justifyContent: 'center' }}>
+        {SCREENS.map((s, i) => {
+          const isActive = i === active
+          return (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => { setFading(true); setTimeout(() => { setActive(i); setFading(false) }, 300) }}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                padding: '8px 16px',
+              }}
+            >
+              <div style={{
+                width: isActive ? 28 : 8, height: 8, borderRadius: T.rPill,
+                background: isActive ? T.ink : T.divider,
+                transition: 'all .3s ease',
+              }} />
+              <span style={{
+                fontFamily: T.font, fontSize: 12, fontWeight: T.weight.button,
+                color: isActive ? T.ink : T.ink3,
+                transition: 'color .3s ease',
+              }}>
+                {s.label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
