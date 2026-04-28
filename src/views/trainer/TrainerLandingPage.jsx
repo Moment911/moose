@@ -488,154 +488,171 @@ function HowItWorks() {
 // ~120s and food→meals ~140s). For the demo we compress to ~6s total
 // so the user gets the dopamine without waiting. Replays on click.
 function LivePlanBuilder() {
-  const PHASES = [
-    { key: 'baseline',  label: 'Baseline',         color: '#dc2626', delay: 250 },
-    { key: 'roadmap',   label: '90-day roadmap',   color: '#2563eb', delay: 700 },
-    { key: 'workout',   label: 'Workout block',    color: '#7c3aed', delay: 1700 },
-    { key: 'playbook',  label: 'Coaching playbook',color: '#059669', delay: 2400 },
-    { key: 'foodprefs', label: 'Food preferences', color: '#d97706', delay: 3400 },
-    { key: 'meals',     label: '2-week meal plan + grocery', color: '#0891b2', delay: 4500 },
+  const SECTIONS = [
+    { key: 'baseline', label: 'Baseline Assessment', color: '#dc2626', delay: 300,
+      content: 'Jaylen, 29, 5\'6", 158 lbs. Goal: lose 15 lbs while keeping energy up for two kids. Training readiness: beginner (0-1 years). Daily target: 1,680 kcal, 126g protein. Top focus: consistency over intensity, meal prep for busy weeks, 20-min workout cap.' },
+    { key: 'roadmap', label: '90-Day Roadmap', color: '#2563eb', delay: 800,
+      content: 'Phase 1 (Days 1-30): Build the habit. 3x/week, 20 min. Bodyweight + bands at home. Nail breakfast and lunch first. Phase 2 (Days 31-60): Add intensity. 4x/week, 25 min. Light dumbbells. Full meal plan adherence. Phase 3 (Days 61-90): Push. 4x/week, 30 min. Progressive overload. Body comp reassessment.' },
+    { key: 'workout', label: 'Workout Block', color: '#7c3aed', delay: 1600,
+      content: 'Day 1: Goblet Squat 3x10, Push-ups 3x8, Band Pull-apart 3x15, Plank 3x20s. Day 2: RDL 3x10, DB Shoulder Press 3x8, Bent Row 3x10, Dead Bug 3x8. Day 3: Walking Lunges 3x8/leg, DB Bench 3x8, Bicep Curl 2x12, Farmer Carry 3x30s. All sessions under 25 min.' },
+    { key: 'playbook', label: 'Coaching Playbook', color: '#059669', delay: 2500,
+      content: 'Only 15 min before carpool? Do the Express 3: squats, push-ups, planks. Too tired to train? Walk 20 min instead -- movement beats nothing. Sunday meal prep: cook 2 proteins, 2 carbs, cut veggies. That handles 80% of the week. Keep protein bars in your car for emergencies.' },
+    { key: 'meals', label: 'Meal Plan', color: '#d97706', delay: 3500,
+      content: 'Breakfast: Greek yogurt + granola + berries (380 kcal, 28g P). Lunch: Turkey wrap + apple + string cheese (520 kcal, 35g P). Snack: Protein bar or almonds (200 kcal, 15g P). Dinner: Chicken stir-fry, rice, veggies (580 kcal, 42g P). Total: 1,680 kcal, 120g protein.' },
+    { key: 'grocery', label: 'Grocery List', color: '#0891b2', delay: 4500,
+      content: 'Produce: broccoli, bell peppers, spinach, apples, berries, bananas. Protein: chicken breast 3lb, ground turkey 2lb, Greek yogurt x2, eggs 18ct. Carbs: jasmine rice, wheat wraps, granola, oats. Snacks: protein bars, almonds. Est. total: $85/week for the whole family.' },
   ]
   const [done, setDone] = useState([])
   const [running, setRunning] = useState(false)
+  const [expanded, setExpanded] = useState(null)
   const timersRef = useRef([])
 
   const start = () => {
     timersRef.current.forEach(clearTimeout)
-    setDone([])
-    setRunning(true)
-    timersRef.current = PHASES.map((p) => setTimeout(() => {
+    setDone([]); setExpanded(null); setRunning(true)
+    timersRef.current = SECTIONS.map((p) => setTimeout(() => {
       setDone((prev) => prev.includes(p.key) ? prev : [...prev, p.key])
     }, p.delay))
-    timersRef.current.push(setTimeout(() => setRunning(false), PHASES[PHASES.length - 1].delay + 400))
+    timersRef.current.push(setTimeout(() => { setRunning(false); setExpanded('baseline') }, SECTIONS[SECTIONS.length - 1].delay + 500))
   }
 
   useEffect(() => () => { timersRef.current.forEach(clearTimeout) }, [])
+  useEffect(() => { start() }, [])
 
-  const allDone = done.length === PHASES.length
+  const allDone = done.length === SECTIONS.length
 
   return (
     <section style={{ padding: `${T.s8}px 24px`, background: T.bg }}>
       <div style={{ maxWidth: 880, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: T.s7 }}>
           <span style={{
-            display: 'inline-block',
-            padding: '4px 10px', borderRadius: T.rPill,
-            background: T.card,
-            fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
-            color: T.ink2, letterSpacing: '0.1px', marginBottom: T.s4,
+            display: 'inline-block', padding: '4px 10px', borderRadius: T.rPill,
+            background: T.card, fontFamily: T.font, fontSize: T.size.caption,
+            fontWeight: T.weight.button, color: T.ink2, letterSpacing: '0.1px', marginBottom: T.s4,
           }}>
-            Live demo
+            Real example
           </span>
           <h2 style={{
-            margin: 0,
-            fontFamily: T.font,
-            fontSize: 'clamp(32px, 5.5vw, 48px)',
-            lineHeight: 1.08, letterSpacing: '-0.025em',
-            fontWeight: T.weight.display, color: T.ink,
+            margin: 0, fontFamily: T.font,
+            fontSize: 'clamp(32px, 5.5vw, 48px)', lineHeight: 1.08,
+            letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
-            Watch your plan
-            <br />
-            build itself.
+            A real plan for a real life.
           </h2>
           <p style={{
-            margin: `${T.s4}px auto 0`, maxWidth: 540,
-            fontFamily: T.font,
-            fontSize: T.size.body, lineHeight: T.lh.body,
+            margin: `${T.s4}px auto 0`, maxWidth: 580,
+            fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            Six sections, generated in parallel by a stack of AI specialists.
-            In the real product this takes about two minutes  —  here we&rsquo;ve
-            sped it up so you can see the shape.
+            Jaylen is 29, a mom of two, and works full time. She runs kids to
+            soccer and cheer, eats whatever is fast, and has not had a consistent
+            workout routine in years. She told the AI her reality and this is
+            what it built in two minutes.
           </p>
         </div>
 
         <div style={{
-          background: '#0a0a0a',
-          borderRadius: T.rXl,
-          padding: T.s7,
+          background: '#0a0a0a', borderRadius: T.rXl, padding: T.s6,
           boxShadow: '0 30px 80px rgba(0,0,0,0.18)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: T.s5 }}>
-            <span style={{ fontFamily: T.font, fontSize: T.size.body, fontWeight: T.weight.display, color: '#fff' }}>
-              Your plan
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: T.s5 }}>
+            <div>
+              <div style={{ fontFamily: T.font, fontSize: T.size.body, fontWeight: T.weight.display, color: '#fff' }}>
+                Jaylen's Plan
+              </div>
+              <div style={{ fontFamily: T.font, fontSize: T.size.caption, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                29 &middot; Mom of 2 &middot; Lose 15 lbs
+              </div>
+            </div>
             <span style={{
               padding: '5px 14px', borderRadius: T.rPill,
               background: allDone ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.08)',
               color: allDone ? '#10b981' : 'rgba(255,255,255,0.6)',
               fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
-              letterSpacing: '0.06em', textTransform: 'uppercase',
             }}>
-              {done.length}/{PHASES.length} {allDone ? 'ready' : 'building'}
+              {done.length}/{SECTIONS.length}
             </span>
           </div>
 
-          <div style={{ display: 'grid', gap: T.s2 }}>
-            {PHASES.map((p) => {
+          <div style={{ display: 'grid', gap: 6 }}>
+            {SECTIONS.map((p) => {
               const isDone = done.includes(p.key)
-              const isNext = !isDone && running && done.length === PHASES.indexOf(p)
+              const isNext = !isDone && running && done.length === SECTIONS.indexOf(p)
+              const isExp = expanded === p.key && isDone
               return (
-                <div key={p.key} style={{
-                  display: 'flex', alignItems: 'center', gap: T.s3,
-                  padding: '12px 14px',
-                  background: isDone ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${isDone ? p.color + '40' : 'rgba(255,255,255,0.06)'}`,
-                  borderLeft: `3px solid ${isDone ? p.color : 'rgba(255,255,255,0.08)'}`,
-                  borderRadius: T.rMd,
-                  transition: 'background .35s ease, border-color .35s ease',
-                }}>
-                  <div style={{
-                    width: 22, height: 22, borderRadius: T.rPill, flexShrink: 0,
-                    background: isDone ? p.color : 'rgba(255,255,255,0.08)',
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background .35s ease',
-                  }}>
-                    {isDone ? (
-                      <Check size={14} color="#fff" strokeWidth={3} />
-                    ) : isNext ? (
-                      <Loader2 size={12} color="#fff" style={{ animation: 'koto-spin 0.9s linear infinite' }} />
-                    ) : null}
-                  </div>
-                  <span style={{
-                    fontFamily: T.font,
-                    fontSize: T.size.body, lineHeight: 1.3,
-                    fontWeight: T.weight.body,
-                    color: isDone ? '#fff' : 'rgba(255,255,255,0.55)',
-                    transition: 'color .35s ease',
-                  }}>
-                    {p.label}
-                  </span>
+                <div key={p.key}>
+                  <button type="button"
+                    onClick={() => isDone && setExpanded(isExp ? null : p.key)}
+                    style={{
+                      width: '100%', textAlign: 'left',
+                      display: 'flex', alignItems: 'center', gap: T.s3,
+                      padding: '12px 14px',
+                      background: isDone ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+                      border: `1px solid ${isDone ? p.color + '40' : 'rgba(255,255,255,0.06)'}`,
+                      borderLeft: `3px solid ${isDone ? p.color : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: isExp ? `${T.rMd}px ${T.rMd}px 0 0` : T.rMd,
+                      cursor: isDone ? 'pointer' : 'default',
+                      transition: 'all .35s ease',
+                    }}>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: T.rPill, flexShrink: 0,
+                      background: isDone ? p.color : 'rgba(255,255,255,0.08)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'background .35s ease',
+                    }}>
+                      {isDone ? <Check size={14} color="#fff" strokeWidth={3} />
+                        : isNext ? <Loader2 size={12} color="#fff" style={{ animation: 'koto-spin 0.9s linear infinite' }} />
+                        : null}
+                    </div>
+                    <span style={{
+                      flex: 1, fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.3,
+                      fontWeight: T.weight.body,
+                      color: isDone ? '#fff' : 'rgba(255,255,255,0.4)',
+                    }}>
+                      {p.label}
+                    </span>
+                    {isDone && <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>{isExp ? '\u25B2' : '\u25BC'}</span>}
+                  </button>
+                  {isExp && (
+                    <div style={{
+                      padding: '14px 16px', background: 'rgba(255,255,255,0.03)',
+                      borderLeft: `3px solid ${p.color}`,
+                      border: `1px solid ${p.color}30`, borderTop: 'none',
+                      borderRadius: `0 0 ${T.rMd}px ${T.rMd}px`,
+                      fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.6,
+                      color: 'rgba(255,255,255,0.65)', fontWeight: T.weight.body,
+                    }}>
+                      {p.content}
+                    </div>
+                  )}
                 </div>
               )
             })}
           </div>
 
-          <div style={{ marginTop: T.s5, display: 'flex', justifyContent: 'center' }}>
-            <button
-              type="button"
-              onClick={start}
-              disabled={running}
-              style={{
-                padding: '12px 22px',
-                borderRadius: T.rPill,
-                border: 'none',
-                background: running ? 'rgba(255,255,255,0.1)' : '#fff',
-                color: running ? 'rgba(255,255,255,0.55)' : T.ink,
-                fontFamily: T.font,
-                fontSize: T.size.subtitle,
-                fontWeight: T.weight.button,
-                cursor: running ? 'default' : 'pointer',
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                letterSpacing: '0.1px',
-                transition: 'transform .12s ease, background .15s ease',
-              }}
-            >
-              {running ? <Loader2 size={14} style={{ animation: 'koto-spin 0.9s linear infinite' }} /> : <Sparkles size={14} />}
-              {running ? 'Building…' : allDone ? 'Replay' : 'Build my plan'}
-            </button>
-          </div>
+          {allDone && (
+            <div style={{ marginTop: T.s5, textAlign: 'center' }}>
+              <button type="button" onClick={start} style={{
+                padding: '10px 20px', borderRadius: T.rPill, border: 'none',
+                background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)',
+                fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
+              }}>
+                <Sparkles size={12} /> Replay
+              </button>
+            </div>
+          )}
         </div>
+
+        <p style={{
+          margin: `${T.s5}px auto 0`, textAlign: 'center', maxWidth: 500,
+          fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.5,
+          fontWeight: T.weight.body, color: T.ink3,
+        }}>
+          Click any section to see what the AI built for Jaylen. Your plan
+          would be completely different -- built around your sport, your
+          schedule, and your goals.
+        </p>
       </div>
       <style>{`@keyframes koto-spin { to { transform: rotate(360deg) } }`}</style>
     </section>
