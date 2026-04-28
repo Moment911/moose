@@ -228,38 +228,46 @@ export default function MyPlanPage() {
     <MyPlanShell agency={agency} hasMobileTabBar={isMobile}>
       {showDisclaimer && <TraineeDisclaimerAckModal onAcked={handleDisclaimerAcked} />}
 
-      {/* Desktop top tabs */}
+      {/* Desktop top tabs — Cal-AI pill navigation */}
       {!isMobile && (
         <nav className="no-print" style={{
-          display: 'flex', gap: 4, padding: '16px 0 0',
-          borderBottom: `1px solid ${A.border}`, marginBottom: 24,
+          display: 'flex', gap: 4, padding: '16px 0 20px',
+          overflowX: 'auto', scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
         }}>
-          {TABS.map(({ key, label, Icon }) => {
-            const active = tab === key
-            const hasContent = key in tabReadiness
-            const ready = tabReadiness[key]
-            return (
-              <button key={key} type="button" onClick={() => setTab(key)} style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '10px 16px', background: 'transparent', border: 'none',
-                borderBottom: `2px solid ${active ? A.ink : 'transparent'}`,
-                color: active ? A.ink : A.ink3,
-                fontSize: 14, fontWeight: active ? 600 : 500,
-                cursor: 'pointer', fontFamily: A.font,
-                transition: 'color .15s, border-color .15s',
-              }}>
-                <Icon size={16} strokeWidth={active ? 2.25 : 1.75} />
-                {label}
-                {hasContent && (
-                  <span aria-hidden style={{
-                    width: 6, height: 6, borderRadius: 999,
-                    background: ready ? '#10b981' : 'rgba(0,0,0,0.18)',
-                    marginLeft: 2,
-                  }} />
-                )}
-              </button>
-            )
-          })}
+          <div style={{
+            display: 'inline-flex', padding: 3, gap: 2,
+            background: A.cardAlt, borderRadius: 14,
+          }}>
+            {TABS.map(({ key, label, Icon }) => {
+              const active = tab === key
+              const hasContent = key in tabReadiness
+              const ready = tabReadiness[key]
+              return (
+                <button key={key} type="button" onClick={() => setTab(key)} style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '9px 18px',
+                  background: active ? '#fff' : 'transparent',
+                  border: 'none', borderRadius: 11,
+                  color: active ? A.ink : A.ink3,
+                  fontSize: 14, fontWeight: active ? 600 : 500,
+                  cursor: 'pointer', fontFamily: A.font,
+                  boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'background .15s, box-shadow .15s',
+                  whiteSpace: 'nowrap',
+                }}>
+                  <Icon size={16} strokeWidth={active ? 2.25 : 1.75} />
+                  {label}
+                  {hasContent && (
+                    <span aria-hidden style={{
+                      width: 6, height: 6, borderRadius: 999,
+                      background: ready ? '#10b981' : 'rgba(0,0,0,0.12)',
+                    }} />
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </nav>
       )}
 

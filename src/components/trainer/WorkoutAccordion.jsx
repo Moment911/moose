@@ -1,6 +1,6 @@
 "use client"
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { ChevronDown, ChevronUp, Info, Loader2, Play, Pause, Check } from 'lucide-react'
+import { ChevronDown, ChevronUp, Info, Loader2, Check } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WorkoutAccordion — Cal-AI styled workout logging component.
@@ -372,7 +372,7 @@ function SetStrip({ setNumber, dayNum, exerciseId, exerciseName, existing, onLog
   )
 }
 
-// ── Rest Timer ─────────────────────────────────────────────────────────────
+// ── Rest Timer — inline countdown, not media player ──────────────────────
 
 function RestTimer({ seconds = 90 }) {
   const [running, setRunning] = useState(false)
@@ -396,36 +396,45 @@ function RestTimer({ seconds = 90 }) {
   const mins = Math.floor(remaining / 60)
   const secs = remaining % 60
   const pct = seconds > 0 ? ((seconds - remaining) / seconds) * 100 : 0
+  const done = remaining === 0
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
-      background: running ? C.ink : C.bg, border: `1px solid ${running ? C.ink : C.border}`,
-      borderRadius: 10, transition: 'all .2s',
+      display: 'flex', alignItems: 'center', gap: 8,
     }}>
+      {/* Countdown display — tap to start/pause */}
       <button type="button" onClick={toggle} style={{
-        width: 32, height: 32, borderRadius: C.rPill,
-        background: running ? '#fff' : C.ink, color: running ? C.ink : '#fff',
-        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: 'flex', alignItems: 'center', gap: 6,
+        padding: '4px 12px', background: done ? C.greenBg : running ? C.card : C.bg,
+        border: `1px solid ${done ? C.green + '30' : running ? C.ink + '15' : C.border}`,
+        borderRadius: C.rPill, cursor: 'pointer', fontFamily: C.font,
       }}>
-        {running ? <Pause size={14} /> : <Play size={14} style={{ marginLeft: 2 }} />}
-      </button>
-      <div style={{ flex: 1 }}>
-        <div style={{
-          fontSize: 20, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
-          color: running ? '#fff' : C.ink, fontFamily: "'SF Mono', 'Menlo', monospace",
+        <span style={{
+          fontSize: 15, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+          color: done ? C.green : running ? C.ink : C.ink3,
+          fontFamily: "'SF Mono', 'Menlo', monospace",
         }}>
-          {mins}:{secs.toString().padStart(2, '0')}
+          {done ? 'GO!' : `${mins}:${secs.toString().padStart(2, '0')}`}
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: running ? C.ink3 : C.ink4 }}>
+          {done ? '' : running ? 'tap to pause' : 'rest'}
+        </span>
+      </button>
+
+      {/* Progress bar — only while running */}
+      {running && (
+        <div style={{ flex: 1, height: 3, background: C.divider, borderRadius: C.rPill, overflow: 'hidden', maxWidth: 80 }}>
+          <div style={{ height: '100%', background: C.ink, borderRadius: C.rPill, width: `${pct}%`, transition: 'width 1s linear' }} />
         </div>
-        <div style={{ height: 3, background: running ? 'rgba(255,255,255,0.15)' : C.divider, borderRadius: C.rPill, marginTop: 4, overflow: 'hidden' }}>
-          <div style={{ height: '100%', background: running ? '#fff' : C.ink, borderRadius: C.rPill, width: `${pct}%`, transition: 'width 1s linear' }} />
-        </div>
-      </div>
-      {remaining === 0 && <span style={{ fontSize: 14, fontWeight: 800, color: running ? '#fff' : C.green }}>GO!</span>}
-      <button type="button" onClick={() => { setRunning(false); setRemaining(seconds) }} style={{
-        background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-        color: running ? 'rgba(255,255,255,0.5)' : C.ink4, padding: '2px 6px',
-      }}>Reset</button>
+      )}
+
+      {/* Reset — only if modified */}
+      {(running || remaining !== seconds) && !done && (
+        <button type="button" onClick={() => { setRunning(false); setRemaining(seconds) }} style={{
+          background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600,
+          color: C.ink4, padding: '2px 4px',
+        }}>Reset</button>
+      )}
     </div>
   )
 }
