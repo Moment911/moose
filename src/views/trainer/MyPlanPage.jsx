@@ -2566,6 +2566,12 @@ function ProgressTab({ plan, logs, traineeId, isMobile, onRefresh }) {
         </Card>
       )}
 
+      {/* AI Weekly Insight */}
+      <AIInsightCard traineeId={traineeId} />
+
+      {/* Progress photos */}
+      <ProgressPhotosSection traineeId={traineeId} />
+
       {/* Body measurements */}
       <BodyMeasurementsSection traineeId={traineeId} />
 
@@ -2594,6 +2600,285 @@ const BODY_FIELDS = [
   { key: 'forearm_left', label: 'Forearm (L)' },
   { key: 'forearm_right', label: 'Forearm (R)' },
 ]
+
+// ── AI Weekly Insight Card ─────────────────────────────────────────────────
+
+function AIInsightCard({ traineeId }) {
+  const [insight, setInsight] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+
+  useEffect(() => {
+    if (!traineeId) return
+    let c = false
+    async function load() {
+      try {
+        const res = await fetch('/api/trainer/my-plan', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_insights' }),
+        })
+        if (c || !res.ok) return
+        const d = await res.json()
+        if (d.insights?.length > 0) setInsight(d.insights[0])
+      } catch {} finally { if (!c) setLoading(false) }
+    }
+    load()
+    return () => { c = true }
+  }, [traineeId])
+
+  async function handleGenerate() {
+    setGenerating(true)
+    try {
+      const res = await fetch('/api/trainer/my-plan', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate_weekly_insight' }),
+      })
+      if (res.ok) {
+        const d = await res.json()
+        setInsight({ ...d.insight, generated_at: new Date().toISOString() })
+      }
+    } catch {} finally { setGenerating(false) }
+  }
+
+  return (
+    <Card style={{ background: '#0a0a0a', color: '#fff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          AI Weekly Analysis
+        </div>
+        <button type="button" onClick={handleGenerate} disabled={generating} style={{
+          padding: '6px 12px', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)',
+          border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: generating ? 'default' : 'pointer',
+          fontFamily: A.font, display: 'flex', alignItems: 'center', gap: 4,
+        }}>
+          {generating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
+          {generating ? 'Analyzing...' : insight ? 'Refresh' : 'Generate'}
+        </button>
+      </div>
+
+      {insight ? (
+        <div>
+          <div style={{ fontSize: 15, lineHeight: 1.6, color: 'rgba(255,255,255,0.85)', marginBottom: 16 }}>
+            {insight.summary}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#34c759', textTransform: 'uppercase', marginBottom: 6 }}>Working</div>
+              {(Array.isArray(insight.whats_working) ? insight.whats_working : []).map((w, i) => (
+                <div key={i} style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 4, paddingLeft: 10, borderLeft: '2px solid #34c759' }}>{w}</div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#ff9f0a', textTransform: 'uppercase', marginBottom: 6 }}>Needs attention</div>
+              {(Array.isArray(insight.needs_attention) ? insight.needs_attention : []).map((w, i) => (
+                <div key={i} style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 4, paddingLeft: 10, borderLeft: '2px solid #ff9f0a' }}>{w}</div>
+              ))}
+            </div>
+          </div>
+          {Array.isArray(insight.plan_changes) && insight.plan_changes.length > 0 && (
+            <div style={{ marginTop: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 4 }}>Plan adjustments</div>
+              {insight.plan_changes.map((c, i) => (
+                <div key={i} style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 2 }}>{c}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : !loading ? (
+        <div style={{ textAlign: 'center', padding: 16, color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>
+          Log some workouts, meals, and measurements first. Then generate your weekly analysis.
+        </div>
+      ) : null}
+    </Card>
+  )
+}
+
+// ── Progress Photos Section ───────────────────────────────────────────────
+
+function ProgressPhotosSection({ traineeId }) {
+  const [photos, setPhotos] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [showCapture, setShowCapture] = useState(false)
+  const [selectedPose, setSelectedPose] = useState('front')
+  const [compareIdx, setCompareIdx] = useState(0)
+  const [overlayOpacity, setOverlayOpacity] = useState(50)
+  const fileRef = useRef(null)
+
+  useEffect(() => {
+    if (!traineeId) return
+    let c = false
+    async function load() {
+      try {
+        const res = await fetch('/api/trainer/my-plan', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_progress_photos' }),
+        })
+        if (c || !res.ok) return
+        const d = await res.json()
+        setPhotos(d.photos || [])
+      } catch {} finally { if (!c) setLoading(false) }
+    }
+    load()
+    return () => { c = true }
+  }, [traineeId])
+
+  async function handleUpload(file) {
+    if (!file || !traineeId) return
+    setUploading(true)
+    try {
+      const reader = new FileReader()
+      const base64 = await new Promise((resolve, reject) => {
+        reader.onload = () => { const s = String(reader.result || ''); const i = s.indexOf(','); resolve(i >= 0 ? s.slice(i + 1) : s) }
+        reader.onerror = () => reject(new Error('Read failed'))
+        reader.readAsDataURL(file)
+      })
+      const res = await fetch('/api/trainer/my-plan', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'upload_progress_photo', photo_base64: base64, pose: selectedPose }),
+      })
+      if (res.ok) {
+        setShowCapture(false)
+        // Reload photos
+        const res2 = await fetch('/api/trainer/my-plan', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_progress_photos' }),
+        })
+        if (res2.ok) { const d = await res2.json(); setPhotos(d.photos || []) }
+      }
+    } catch {} finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }
+  }
+
+  const frontPhotos = photos.filter((p) => p.pose === 'front')
+  const hasComparison = frontPhotos.length >= 2
+
+  return (
+    <Card>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <SectionLabel>Progress photos</SectionLabel>
+        <button type="button" onClick={() => setShowCapture(!showCapture)} style={{
+          padding: '6px 14px', background: showCapture ? A.ink : A.card,
+          color: showCapture ? '#fff' : A.ink2, border: `1px solid ${A.border}`,
+          borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: A.font,
+        }}>
+          {showCapture ? 'Cancel' : '+ Take photo'}
+        </button>
+      </div>
+
+      {/* Photo capture with alignment guide */}
+      {showCapture && (
+        <div style={{ marginBottom: 16 }}>
+          {/* Pose selector */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+            {['front', 'side', 'back'].map((pose) => (
+              <button key={pose} type="button" onClick={() => setSelectedPose(pose)} style={{
+                padding: '8px 16px', background: selectedPose === pose ? A.ink : A.card,
+                color: selectedPose === pose ? '#fff' : A.ink2,
+                border: `1px solid ${selectedPose === pose ? A.ink : A.border}`,
+                borderRadius: A.rPill, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                fontFamily: A.font, textTransform: 'capitalize',
+              }}>
+                {pose}
+              </button>
+            ))}
+          </div>
+
+          {/* Alignment guide frame */}
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: 300, margin: '0 auto',
+            aspectRatio: '3 / 4', background: A.cardAlt, borderRadius: A.rSm,
+            border: `2px dashed ${A.border}`, overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {/* Body outline guide */}
+            <svg viewBox="0 0 200 280" style={{ width: '60%', opacity: 0.15 }}>
+              <ellipse cx="100" cy="45" rx="25" ry="30" fill="none" stroke="#0a0a0a" strokeWidth="2" />
+              <line x1="100" y1="75" x2="100" y2="170" stroke="#0a0a0a" strokeWidth="2" />
+              <line x1="100" y1="100" x2="55" y2="140" stroke="#0a0a0a" strokeWidth="2" />
+              <line x1="100" y1="100" x2="145" y2="140" stroke="#0a0a0a" strokeWidth="2" />
+              <line x1="100" y1="170" x2="70" y2="260" stroke="#0a0a0a" strokeWidth="2" />
+              <line x1="100" y1="170" x2="130" y2="260" stroke="#0a0a0a" strokeWidth="2" />
+            </svg>
+            <div style={{ position: 'absolute', bottom: 12, left: 0, right: 0, textAlign: 'center', fontSize: 12, color: A.ink3 }}>
+              Align yourself with the outline
+            </div>
+          </div>
+
+          <input ref={fileRef} type="file" accept="image/*" capture="user" style={{ display: 'none' }}
+            onChange={(e) => handleUpload(e.target.files?.[0])} />
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{
+            width: '100%', maxWidth: 300, margin: '12px auto 0', display: 'flex',
+            padding: '12px', background: A.ink, color: '#fff', border: 'none',
+            borderRadius: A.rSm, fontSize: 14, fontWeight: 600, cursor: uploading ? 'default' : 'pointer',
+            fontFamily: A.font, alignItems: 'center', justifyContent: 'center', gap: 6,
+          }}>
+            {uploading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Camera size={16} />}
+            {uploading ? 'Uploading...' : `Capture ${selectedPose} photo`}
+          </button>
+        </div>
+      )}
+
+      {/* Photo comparison slider */}
+      {hasComparison && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: A.ink3, textTransform: 'uppercase', marginBottom: 8 }}>
+            Compare progress
+          </div>
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: 300, margin: '0 auto',
+            aspectRatio: '3 / 4', borderRadius: A.rSm, overflow: 'hidden', background: '#000',
+          }}>
+            {/* First photo (background) */}
+            <img src={frontPhotos[0].public_url} alt="Start" style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            }} />
+            {/* Latest photo (overlay with opacity) */}
+            <img src={frontPhotos[frontPhotos.length - 1].public_url} alt="Latest" style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+              opacity: overlayOpacity / 100,
+            }} />
+            {/* Labels */}
+            <div style={{ position: 'absolute', top: 8, left: 8, padding: '2px 8px', background: 'rgba(0,0,0,0.6)', borderRadius: 6, fontSize: 10, color: '#fff', fontWeight: 600 }}>
+              {new Date(frontPhotos[0].taken_at).toLocaleDateString()}
+            </div>
+            <div style={{ position: 'absolute', top: 8, right: 8, padding: '2px 8px', background: 'rgba(0,0,0,0.6)', borderRadius: 6, fontSize: 10, color: '#fff', fontWeight: 600 }}>
+              {new Date(frontPhotos[frontPhotos.length - 1].taken_at).toLocaleDateString()}
+            </div>
+          </div>
+          {/* Opacity slider */}
+          <div style={{ maxWidth: 300, margin: '8px auto 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 11, color: A.ink3 }}>Before</span>
+            <input type="range" min="0" max="100" value={overlayOpacity}
+              onChange={(e) => setOverlayOpacity(Number(e.target.value))}
+              style={{ flex: 1 }}
+            />
+            <span style={{ fontSize: 11, color: A.ink3 }}>After</span>
+          </div>
+        </div>
+      )}
+
+      {/* Photo gallery */}
+      {photos.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 6 }}>
+          {photos.map((p) => (
+            <div key={p.id} style={{ aspectRatio: '3 / 4', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
+              <img src={p.public_url} alt={p.pose} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', bottom: 4, left: 4, padding: '1px 6px', background: 'rgba(0,0,0,0.6)', borderRadius: 4, fontSize: 9, color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>
+                {p.pose}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {photos.length === 0 && !loading && !showCapture && (
+        <div style={{ textAlign: 'center', padding: 16, color: A.ink3, fontSize: 14 }}>
+          Take your first progress photo to start tracking visual changes.
+        </div>
+      )}
+    </Card>
+  )
+}
 
 function BodyMeasurementsSection({ traineeId }) {
   const [measurements, setMeasurements] = useState([])
