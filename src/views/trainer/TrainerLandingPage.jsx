@@ -60,13 +60,10 @@ const TESTIMONIAL_STATS = [
   { value: '24/7', label: 'Your AI is ready when you are' },
 ]
 
-// MOCKUP: testimonials span the audience range — youth athlete, mid-career
-// professional, retiree. Replace with real quotes once we have permission.
-// Avatars use i.pravatar.cc seeded so the same fake face renders every load.
 const TESTIMONIALS = [
-  { quote: "I'm sixteen and I never knew how to actually train. Two months in I added six miles per hour to my fastball and dropped my sixty by half a second. The AI just answers when I ask.", name: 'Marcus T., 16', role: 'High school RHP', avatar: 'https://i.pravatar.cc/120?u=koto-athlete-marcus' },
-  { quote: "Forty-three, three kids, desk job, hadn't trained in fifteen years. I gave it twenty minutes one Sunday and it built a plan I could actually do at lunch. Down twenty-two pounds in five months.", name: 'Renee D., 43', role: 'Operations manager', avatar: 'https://i.pravatar.cc/120?u=koto-user-renee' },
-  { quote: 'After I retired I started feeling old fast. Koto built me strength and walking workouts that match what my body can do today, not twenty years ago. I feel better at sixty-four than I did at fifty-four.', name: 'Hank P., 64', role: 'Retired postal worker', avatar: 'https://i.pravatar.cc/120?u=koto-user-hank' },
+  { quote: "I'm sixteen and I never knew how to actually train. Two months in I added six miles per hour to my fastball and dropped my sixty by half a second. The AI just answers when I ask.", name: 'Marcus T., 16', role: 'High school RHP', avatar: '/images/trainer/man-running.jpg' },
+  { quote: "Forty-three, three kids, desk job, hadn't trained in fifteen years. I gave it twenty minutes one Sunday and it built a plan I could actually do at lunch. Down twenty-two pounds in five months.", name: 'Renee D., 43', role: 'Operations manager', avatar: '/images/trainer/woman-running.jpg' },
+  { quote: 'After I retired I started feeling old fast. Koto built me strength and walking workouts that match what my body can do today, not twenty years ago. I feel better at sixty-four than I did at fifty-four.', name: 'Hank P., 64', role: 'Retired postal worker', avatar: '/images/trainer/senior-couple.jpg' },
 ]
 
 const FAQS = [
@@ -122,6 +119,8 @@ export default function TrainerLandingPage() {
       <LivePlanBuilder />
 
       <FeaturesGrid />
+
+      <LifestylePhotoStrip />
 
       <InsideTheAi />
 
@@ -1444,6 +1443,46 @@ function BottomCta({ onStart }) {
             <ArrowRight size={16} strokeWidth={2.5} />
           </button>
         </div>
+      </div>
+    </section>
+  )
+}
+
+function LifestylePhotoStrip() {
+  const photos = [
+    { src: '/images/trainer/couple-running.jpg', alt: 'Couple running on coastal trail' },
+    { src: '/images/trainer/woman-sitting.jpg', alt: 'Athlete stretching outdoors' },
+    { src: '/images/trainer/woman-yoga-laptop.jpg', alt: 'Woman training at home with laptop' },
+    { src: '/images/trainer/woman-running.jpg', alt: 'Woman running with earbuds' },
+  ]
+  return (
+    <section style={{ padding: `${T.s6}px 0`, overflow: 'hidden' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 4,
+        maxWidth: PAGE_MAX + 100,
+        margin: '0 auto',
+      }}>
+        {photos.map((p) => (
+          <div key={p.src} style={{
+            aspectRatio: '4 / 3',
+            overflow: 'hidden',
+            borderRadius: T.rMd,
+          }}>
+            <img
+              src={p.src}
+              alt={p.alt}
+              loading="lazy"
+              style={{
+                width: '100%', height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                filter: 'brightness(0.95) contrast(1.05)',
+              }}
+            />
+          </div>
+        ))}
       </div>
     </section>
   )
