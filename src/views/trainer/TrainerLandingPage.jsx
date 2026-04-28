@@ -861,6 +861,7 @@ function PhoneShowcase() {
 function PhoneCarousel() {
   const SCREENS = [
     { key: 'home', label: 'Home', Component: PhoneScreenHome },
+    { key: 'coach', label: 'Coach', Component: PhoneScreenCoach },
     { key: 'workout', label: 'Workout', Component: PhoneScreenWorkout },
     { key: 'meals', label: 'Meals', Component: PhoneScreenMeals },
   ]
@@ -1009,90 +1010,147 @@ function PhoneFrame({ children, translateY = 0, scrollAnim = false }) {
 
 function PhoneScreenHome() {
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-  const today = 2
+  const today = 4
+  const streak = [true, true, false, true, true, false, false]
   return (
-    <div style={{
-      padding: '44px 18px 18px',
-      display: 'flex', flexDirection: 'column', gap: T.s3,
-      minHeight: '130%',
-    }}>
-      <div style={{
-        fontFamily: T.font, fontSize: 12, fontWeight: T.weight.button,
-        color: T.ink3, letterSpacing: '0.1px', textTransform: 'uppercase',
-      }}>
+    <div style={{ padding: '44px 16px 16px', display: 'flex', flexDirection: 'column', gap: 10, minHeight: '160%' }}>
+      <div style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.button, color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         FRI, OCT 24
       </div>
-      <div style={{
-        fontFamily: T.font, fontSize: 26, fontWeight: T.weight.display,
-        letterSpacing: '-0.02em', color: T.ink, lineHeight: 1.1,
-      }}>
-        Today
+      <div style={{ fontFamily: T.font, fontSize: 24, fontWeight: T.weight.display, letterSpacing: '-0.02em', color: T.ink, lineHeight: 1.1 }}>
+        Good morning, Jaylen
       </div>
 
-      {/* DateStrip */}
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      {/* Week streak */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
         {days.map((d, i) => (
-          <div
-            key={i}
-            style={{
-              width: 28, height: 36, borderRadius: T.rPill,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 2,
-              background: i === today ? T.ink : 'transparent',
-              color: i === today ? '#fff' : T.ink3,
-              fontFamily: T.font, fontSize: 10, fontWeight: T.weight.button,
-            }}
-          >
-            <span style={{ opacity: 0.7 }}>{d}</span>
-            <span style={{ fontSize: 12, fontWeight: T.weight.display }}>{20 + i}</span>
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <div style={{
+              width: 26, height: 26, borderRadius: 999,
+              background: streak[i] ? T.ink : T.card,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 10, fontWeight: 700, color: streak[i] ? '#fff' : T.ink3,
+              border: i === today ? `2px solid ${T.accent}` : 'none',
+            }}>
+              {streak[i] ? '\u2713' : d}
+            </div>
+            <span style={{ fontSize: 9, color: T.ink3, fontFamily: T.font }}>{20 + i}</span>
           </div>
         ))}
       </div>
 
-      {/* Calorie ring tile (real component, scaled) */}
-      <div style={{ transform: 'scale(0.78)', transformOrigin: 'top left', width: '128%', marginTop: -6, marginBottom: -16 }}>
-        <RingMetricTile label="Calories" value={1820} unit="kcal" pct={0.78} />
+      {/* Calorie + macros */}
+      <div style={{ background: T.card, borderRadius: T.rSm, padding: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontFamily: T.font, fontSize: 10, fontWeight: T.weight.button, color: T.ink3, textTransform: 'uppercase' }}>Today</span>
+          <span style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.button, color: T.accent }}>1,820 / 2,160 kcal</span>
+        </div>
+        <div style={{ height: 5, background: T.divider, borderRadius: 999, overflow: 'hidden' }}>
+          <div style={{ width: '84%', height: '100%', background: T.accent, borderRadius: 999 }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+          {[{ l: 'P', v: '142g', c: T.accent }, { l: 'C', v: '210g', c: T.accentBlue }, { l: 'F', v: '52g', c: T.accentRed }].map((m) => (
+            <span key={m.l} style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.button, color: m.c }}>{m.l} {m.v}</span>
+          ))}
+        </div>
       </div>
 
-      {/* Macro chips */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-        {[
-          { label: 'Protein', v: '142g', pct: 0.65, c: T.accent },
-          { label: 'Carbs', v: '210g', pct: 0.55, c: T.accentBlue },
-          { label: 'Fat', v: '52g', pct: 0.42, c: T.accentRed },
-        ].map((m) => (
-          <div key={m.label} style={{
-            background: T.cardElev,
-            borderRadius: T.rSm,
-            padding: '8px 8px',
-            boxShadow: T.shadowFloater,
-          }}>
-            <div style={{ fontFamily: T.font, fontSize: 8, fontWeight: T.weight.body, color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.1px' }}>
-              {m.label}
-            </div>
-            <div style={{ fontFamily: T.font, fontSize: 13, fontWeight: T.weight.display, color: T.ink, marginTop: 2 }}>
-              {m.v}
-            </div>
-            <div style={{ height: 3, background: T.divider, borderRadius: T.rPill, marginTop: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${m.pct * 100}%`, height: '100%', background: m.c, borderRadius: T.rPill }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Today's workout card */}
-      <div style={{
-        marginTop: 'auto',
-        background: T.card, borderRadius: T.rMd, padding: 10,
-      }}>
-        <div style={{ fontFamily: T.font, fontSize: 9, fontWeight: T.weight.body, color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.1px' }}>
+      {/* Today's workout */}
+      <div style={{ background: T.ink, borderRadius: T.rSm, padding: 12, color: '#fff' }}>
+        <div style={{ fontFamily: T.font, fontSize: 9, fontWeight: T.weight.button, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           TODAY&rsquo;S WORKOUT
         </div>
-        <div style={{ fontFamily: T.font, fontSize: 13, fontWeight: T.weight.display, color: T.ink, marginTop: 2 }}>
-          Lower Body Power, Block 2
+        <div style={{ fontFamily: T.font, fontSize: 14, fontWeight: T.weight.display, marginTop: 3 }}>
+          Lower Body Power
         </div>
-        <div style={{ fontFamily: T.font, fontSize: 10, fontWeight: T.weight.body, color: T.ink3, marginTop: 2 }}>
-          5 exercises &middot; 45 min
+        <div style={{ fontFamily: T.font, fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+          5 exercises &middot; 45 min &middot; Block 2
+        </div>
+        <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div key={n} style={{ flex: 1, height: 3, borderRadius: 999, background: n <= 2 ? T.accent : 'rgba(255,255,255,0.15)' }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Chat with coach CTA */}
+      <div style={{ background: T.card, borderRadius: T.rSm, padding: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 999, background: T.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff', flexShrink: 0 }}>K</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: T.font, fontSize: 12, fontWeight: T.weight.h1, color: T.ink }}>Chat with your coach</div>
+          <div style={{ fontFamily: T.font, fontSize: 10, color: T.ink3, marginTop: 1 }}>Ask anything &middot; Available 24/7</div>
+        </div>
+        <div style={{ width: 8, height: 8, borderRadius: 999, background: '#34c759', flexShrink: 0 }} />
+      </div>
+
+      {/* Progress snapshot */}
+      <div style={{ background: T.card, borderRadius: T.rSm, padding: 12 }}>
+        <div style={{ fontFamily: T.font, fontSize: 9, fontWeight: T.weight.button, color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+          THIS WEEK
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div>
+            <div style={{ fontFamily: T.font, fontSize: 18, fontWeight: T.weight.display, color: T.ink }}>4/5</div>
+            <div style={{ fontFamily: T.font, fontSize: 9, color: T.ink3 }}>Workouts logged</div>
+          </div>
+          <div>
+            <div style={{ fontFamily: T.font, fontSize: 18, fontWeight: T.weight.display, color: T.ink }}>92%</div>
+            <div style={{ fontFamily: T.font, fontSize: 9, color: T.ink3 }}>Calorie adherence</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PhoneScreenCoach() {
+  return (
+    <div style={{ padding: '44px 0 0', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '130%' }}>
+      {/* Header */}
+      <div style={{ padding: '0 16px 10px', borderBottom: `1px solid ${T.border}`, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 28, height: 28, borderRadius: 999, background: T.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff' }}>K</div>
+        <div>
+          <div style={{ fontFamily: T.font, fontSize: 13, fontWeight: T.weight.h1, color: T.ink }}>AI Coach</div>
+          <div style={{ fontFamily: T.font, fontSize: 9, color: T.ink3 }}>Online now</div>
+        </div>
+        <div style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: 999, background: '#34c759' }} />
+      </div>
+
+      {/* Messages */}
+      <div style={{ flex: 1, padding: '12px 12px', display: 'flex', flexDirection: 'column', gap: 8, background: T.card }}>
+        {/* Coach message */}
+        <div style={{ maxWidth: '85%', padding: '8px 12px', borderRadius: '12px 12px 12px 4px', background: T.bg, border: `1px solid ${T.border}`, fontFamily: T.font, fontSize: 11, lineHeight: 1.5, color: T.ink }}>
+          Good morning Jaylen! Yesterday&rsquo;s lower body session looked solid  --  you hit all 5 sets on the deadlift. How&rsquo;s your body feeling today?
+        </div>
+
+        {/* User message */}
+        <div style={{ maxWidth: '80%', padding: '8px 12px', borderRadius: '12px 12px 4px 12px', background: T.ink, fontFamily: T.font, fontSize: 11, lineHeight: 1.5, color: '#fff', alignSelf: 'flex-end' }}>
+          Legs are a little sore but good. What should I eat before practice?
+        </div>
+
+        {/* Coach response */}
+        <div style={{ maxWidth: '85%', padding: '8px 12px', borderRadius: '12px 12px 12px 4px', background: T.bg, border: `1px solid ${T.border}`, fontFamily: T.font, fontSize: 11, lineHeight: 1.5, color: T.ink }}>
+          For a 4pm practice, eat 2-3 hours before: chicken + rice + veggies. Then a banana 30 min before. Post-practice: protein shake within 30 min. Your body needs fuel, not fasting.
+        </div>
+
+        {/* Quick prompts */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+          {['Log my weight', 'Adjust workout', 'What should I eat?'].map((q) => (
+            <span key={q} style={{
+              padding: '5px 10px', background: T.bg, border: `1px solid ${T.border}`,
+              borderRadius: 16, fontFamily: T.font, fontSize: 9, color: T.ink2,
+            }}>{q}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Input */}
+      <div style={{ padding: '8px 12px', borderTop: `1px solid ${T.border}`, display: 'flex', gap: 6, alignItems: 'center', background: T.bg }}>
+        <div style={{ flex: 1, padding: '7px 10px', background: T.card, borderRadius: 8, fontFamily: T.font, fontSize: 10, color: T.ink3 }}>
+          Ask your coach...
+        </div>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: T.ink, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ArrowRight size={12} color="#fff" />
         </div>
       </div>
     </div>
@@ -1101,23 +1159,23 @@ function PhoneScreenHome() {
 
 function PhoneScreenWorkout() {
   const sets = [
-    { name: 'Trap Bar Deadlift', s: '4x5 @ 225' },
-    { name: 'Box Jump', s: '4x3' },
-    { name: 'RDL', s: '3x8 @ 155' },
-    { name: 'Bulgarian Split Squat', s: '3x10' },
-    { name: 'Cossack Squat', s: '3x8' },
+    { name: 'Trap Bar Deadlift', s: '4x5 @ 225 lbs', cue: 'Drive through heels, chest up', done: true },
+    { name: 'Box Jump', s: '4x3 @ 24"', cue: 'Land soft, reset each rep', done: true },
+    { name: 'RDL', s: '3x8 @ 155 lbs', cue: 'Hinge at hips, bar stays close', done: false, current: true },
+    { name: 'Bulgarian Split Squat', s: '3x10 each leg', cue: 'Front knee tracks over toe', done: false },
+    { name: 'Cossack Squat', s: '3x8 each side', cue: 'Stay controlled, full depth', done: false },
   ]
   return (
     <div style={{
-      padding: '44px 18px 18px',
-      display: 'flex', flexDirection: 'column', gap: T.s3,
-      minHeight: '130%',
+      padding: '44px 16px 16px',
+      display: 'flex', flexDirection: 'column', gap: 10,
+      minHeight: '160%',
     }}>
-      <div style={{ fontFamily: T.font, fontSize: 12, fontWeight: T.weight.button, color: T.ink3, letterSpacing: '0.1px', textTransform: 'uppercase' }}>
+      <div style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.button, color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         WEEK 2 &middot; DAY 3
       </div>
       <div style={{
-        fontFamily: T.font, fontSize: 24, fontWeight: T.weight.display,
+        fontFamily: T.font, fontSize: 22, fontWeight: T.weight.display,
         letterSpacing: '-0.02em', color: T.ink, lineHeight: 1.1,
       }}>
         Lower Body Power
@@ -1137,33 +1195,50 @@ function PhoneScreenWorkout() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
         {sets.map((set, i) => (
           <div key={set.name} style={{
-            background: T.card, borderRadius: T.rSm,
+            background: set.current ? T.bg : T.card, borderRadius: T.rSm,
             padding: '10px 12px',
-            display: 'flex', alignItems: 'center', gap: 10,
+            display: 'flex', alignItems: 'flex-start', gap: 10,
+            border: set.current ? `1.5px solid ${T.accent}` : 'none',
           }}>
             <div style={{
-              width: 24, height: 24, borderRadius: T.rPill,
-              background: i < 2 ? T.ink : T.cardElev,
-              color: i < 2 ? '#fff' : T.ink3,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: T.font, fontSize: 10, fontWeight: T.weight.display,
-              border: i < 2 ? 'none' : `1px solid ${T.border}`,
+              width: 22, height: 22, borderRadius: 999, flexShrink: 0, marginTop: 1,
+              background: set.done ? T.ink : T.cardElev,
+              color: set.done ? '#fff' : T.ink3,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: T.font, fontSize: 9, fontWeight: T.weight.display,
+              border: set.done ? 'none' : `1px solid ${T.border}`,
             }}>
-              {i < 2 ? '✓' : i + 1}
+              {set.done ? '\u2713' : i + 1}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: T.font, fontSize: 12, fontWeight: T.weight.h1, color: T.ink, lineHeight: 1.2 }}>
                 {set.name}
               </div>
-              <div style={{ fontFamily: T.font, fontSize: 10, fontWeight: T.weight.body, color: T.ink3, marginTop: 1 }}>
+              <div style={{ fontFamily: T.font, fontSize: 10, fontWeight: T.weight.button, color: T.ink3, marginTop: 2 }}>
                 {set.s}
               </div>
+              <div style={{ fontFamily: T.font, fontSize: 9, fontStyle: 'italic', color: T.ink4, marginTop: 2 }}>
+                {set.cue}
+              </div>
+              {set.current && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                  <div style={{ padding: '4px 8px', background: T.card, borderRadius: 6, fontFamily: T.font, fontSize: 10, color: T.ink3, textAlign: 'center' }}>
+                    <div style={{ fontSize: 14, fontWeight: T.weight.display, color: T.ink }}>155</div>
+                    lbs
+                  </div>
+                  <div style={{ fontSize: 12, color: T.ink3, alignSelf: 'center' }}>&times;</div>
+                  <div style={{ padding: '4px 8px', background: T.card, borderRadius: 6, fontFamily: T.font, fontSize: 10, color: T.ink3, textAlign: 'center' }}>
+                    <div style={{ fontSize: 14, fontWeight: T.weight.display, color: T.ink }}>8</div>
+                    reps
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: 'auto' }}>
+      <div style={{ marginTop: 8 }}>
         <div style={{
           background: T.ink, color: '#fff',
           borderRadius: T.rPill,
@@ -1171,7 +1246,7 @@ function PhoneScreenWorkout() {
           fontFamily: T.font, fontSize: 12, fontWeight: T.weight.button,
           textAlign: 'center', letterSpacing: '0.1px',
         }}>
-          Log next set
+          Log set 1 of 3
         </div>
       </div>
     </div>
@@ -1180,22 +1255,22 @@ function PhoneScreenWorkout() {
 
 function PhoneScreenMeals() {
   const meals = [
-    { tag: 'Breakfast', name: 'Oats, banana, peanut butter', kcal: 520 },
-    { tag: 'Lunch', name: 'Chicken, rice, broccoli', kcal: 680 },
-    { tag: 'Snack', name: 'Greek yogurt + berries', kcal: 240 },
-    { tag: 'Dinner', name: 'Salmon, sweet potato, salad', kcal: 720 },
+    { tag: 'Breakfast', name: 'Oats, banana, peanut butter', kcal: 520, p: '24g', logged: true },
+    { tag: 'Lunch', name: 'Chicken breast, jasmine rice, broccoli', kcal: 680, p: '48g', logged: true },
+    { tag: 'Snack', name: 'Greek yogurt + mixed berries + honey', kcal: 240, p: '18g', logged: false },
+    { tag: 'Dinner', name: 'Grilled salmon, sweet potato, side salad', kcal: 720, p: '52g', logged: false },
   ]
   return (
     <div style={{
-      padding: '44px 18px 18px',
-      display: 'flex', flexDirection: 'column', gap: T.s3,
-      minHeight: '130%',
+      padding: '44px 16px 16px',
+      display: 'flex', flexDirection: 'column', gap: 10,
+      minHeight: '160%',
     }}>
-      <div style={{ fontFamily: T.font, fontSize: 12, fontWeight: T.weight.button, color: T.ink3, letterSpacing: '0.1px', textTransform: 'uppercase' }}>
+      <div style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.button, color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         MEAL PLAN
       </div>
       <div style={{
-        fontFamily: T.font, fontSize: 24, fontWeight: T.weight.display,
+        fontFamily: T.font, fontSize: 22, fontWeight: T.weight.display,
         letterSpacing: '-0.02em', color: T.ink, lineHeight: 1.1,
       }}>
         Today&rsquo;s plate
@@ -1227,30 +1302,44 @@ function PhoneScreenMeals() {
           <div key={m.name} style={{
             background: T.cardElev, borderRadius: T.rSm,
             padding: '10px 12px',
-            display: 'flex', alignItems: 'center', gap: 10,
-            boxShadow: T.shadowFloater,
+            borderLeft: m.logged ? `3px solid ${T.accent}` : '3px solid transparent',
           }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: T.rSm,
-              background: T.card,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14,
-            }}>
-              <Utensils size={14} color={T.ink} strokeWidth={2} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: T.font, fontSize: 9, fontWeight: T.weight.body, color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.1px' }}>
-                {m.tag}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: 999, flexShrink: 0,
+                background: m.logged ? T.ink : T.card,
+                border: m.logged ? 'none' : `1px solid ${T.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 10, color: m.logged ? '#fff' : T.ink3,
+              }}>
+                {m.logged ? '\u2713' : ''}
               </div>
-              <div style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.h1, color: T.ink, lineHeight: 1.2, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {m.name}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: T.font, fontSize: 9, fontWeight: T.weight.button, color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  {m.tag}
+                </div>
+                <div style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.h1, color: T.ink, lineHeight: 1.3, marginTop: 1 }}>
+                  {m.name}
+                </div>
               </div>
-            </div>
-            <div style={{ fontFamily: T.font, fontSize: 11, fontWeight: T.weight.display, color: T.ink }}>
-              {m.kcal}
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontFamily: T.font, fontSize: 13, fontWeight: T.weight.display, color: T.ink }}>{m.kcal}</div>
+                <div style={{ fontFamily: T.font, fontSize: 9, color: T.accent }}>{m.p} protein</div>
+              </div>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Snap photo CTA */}
+      <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+        <div style={{
+          flex: 1, background: T.ink, color: '#fff', borderRadius: T.rPill,
+          padding: '9px 14px', fontFamily: T.font, fontSize: 11, fontWeight: T.weight.button,
+          textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+        }}>
+          Snap a photo to log
+        </div>
       </div>
     </div>
   )
