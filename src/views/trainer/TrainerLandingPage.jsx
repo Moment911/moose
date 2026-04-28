@@ -130,6 +130,8 @@ export default function TrainerLandingPage() {
 
       <SocialProof />
 
+      <FounderStory />
+
       <FaqList />
 
       <BottomCta onStart={() => navigate('/start')} />
@@ -1405,15 +1407,16 @@ function BottomCta({ onStart }) {
           letterSpacing: '-0.03em',
           fontWeight: T.weight.display, color: '#fff',
         }}>
-          Train smarter starting today.
+          The most transformative AI trainer ever built.
         </h2>
         <p style={{
-          margin: `${T.s5}px auto 0`, maxWidth: 520,
+          margin: `${T.s5}px auto 0`, maxWidth: 560,
           fontFamily: T.font,
           fontSize: T.size.body, lineHeight: T.lh.body,
           fontWeight: T.weight.body, color: 'rgba(255,255,255,0.65)',
         }}>
-          Free to start, no card required. Your AI is ready when you are.
+          Five PhDs. A pro athlete. Twenty years of coaching. All in your pocket, 24/7.
+          Free to start, no credit card. Two minutes to your first plan.
         </p>
 
         <div style={{ marginTop: T.s7, display: 'flex', justifyContent: 'center' }}>
@@ -1518,7 +1521,7 @@ function TryItDemo() {
   const QUICK = ['I play basketball', 'I want to lose 20 lbs', 'I need to get faster', 'I have a bad knee']
 
   const coachName = coach === 'female' ? 'Coach Maya' : 'Coach Alex'
-  const coachEmoji = coach === 'female' ? '👩‍🏫' : '👨‍🏫'
+  const coachInitial = coach === 'female' ? 'M' : 'A'
 
   return (
     <section style={{ padding: `${T.s8}px 24px`, background: T.ink }}>
@@ -1559,8 +1562,8 @@ function TryItDemo() {
             maxWidth: 400, margin: '0 auto',
           }}>
             {[
-              { gender: 'male', label: 'Coach Alex', emoji: '👨‍🏫', desc: 'Calm, direct, data-driven' },
-              { gender: 'female', label: 'Coach Maya', emoji: '👩‍🏫', desc: 'Warm, motivating, detail-oriented' },
+              { gender: 'male', label: 'Coach Alex', initial: 'A', color: '#5aa0ff', desc: 'Calm, direct, data-driven' },
+              { gender: 'female', label: 'Coach Maya', initial: 'M', color: T.accent, desc: 'Warm, motivating, detail-oriented' },
             ].map((c) => (
               <button key={c.gender} type="button" onClick={() => handlePickCoach(c.gender)} style={{
                 padding: T.s5, background: 'rgba(255,255,255,0.05)',
@@ -1568,10 +1571,15 @@ function TryItDemo() {
                 borderRadius: T.rLg, cursor: 'pointer', textAlign: 'center',
                 transition: 'all .15s',
               }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = c.color; e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
               >
-                <div style={{ fontSize: 40, marginBottom: 8 }}>{c.emoji}</div>
+                <div style={{
+                  width: 56, height: 56, borderRadius: 999, margin: '0 auto 10px',
+                  background: `linear-gradient(135deg, ${c.color}, ${c.color}99)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 22, fontWeight: 800, color: '#fff', fontFamily: T.font,
+                }}>{c.initial}</div>
                 <div style={{ fontFamily: T.font, fontSize: 16, fontWeight: T.weight.button, color: '#fff' }}>{c.label}</div>
                 <div style={{ fontFamily: T.font, fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{c.desc}</div>
               </button>
@@ -1591,7 +1599,12 @@ function TryItDemo() {
               padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
-              <span style={{ fontSize: 24 }}>{coachEmoji}</span>
+              <div style={{
+                width: 36, height: 36, borderRadius: 999, flexShrink: 0,
+                background: coach === 'female' ? `linear-gradient(135deg, ${T.accent}, ${T.accent}99)` : 'linear-gradient(135deg, #5aa0ff, #5aa0ff99)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 15, fontWeight: 800, color: '#fff', fontFamily: T.font,
+              }}>{coachInitial}</div>
               <div>
                 <div style={{ fontFamily: T.font, fontSize: 15, fontWeight: T.weight.button, color: '#fff' }}>{coachName}</div>
                 <div style={{ fontFamily: T.font, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>AI Coach  ·  Online now</div>
@@ -1708,6 +1721,82 @@ function TryItDemo() {
         }}>
           This is a live AI demo. Not medical advice. Always consult a professional.
         </div>
+      </div>
+    </section>
+  )
+}
+
+function FounderStory() {
+  return (
+    <section style={{ padding: `${T.s8}px 24px`, background: T.bg }}>
+      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: T.s7 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '4px 12px', borderRadius: T.rPill,
+            background: T.card,
+            fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
+            color: T.ink2, letterSpacing: '0.1px', marginBottom: T.s4,
+          }}>
+            Our story
+          </span>
+          <h2 style={{
+            margin: 0, fontFamily: T.font,
+            fontSize: 'clamp(28px, 5vw, 44px)', lineHeight: 1.08,
+            letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
+          }}>
+            Built by a family.
+            <br />
+            For every family.
+          </h2>
+        </div>
+
+        <div style={{
+          background: T.card, borderRadius: T.rXl, padding: T.s7,
+          fontFamily: T.font, fontSize: T.size.body, lineHeight: 1.7,
+          fontWeight: T.weight.body, color: T.ink2,
+        }}>
+          <p style={{ margin: `0 0 ${T.s5}px` }}>
+            Koto Trainer started with two kids and a problem.
+          </p>
+          <p style={{ margin: `0 0 ${T.s5}px` }}>
+            <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>She</strong> wanted
+            to get healthier but didn't want to work out with a trainer. Didn't want to listen to
+            mom and dad either. She wanted someone who would just <em>meet her where she was</em> and
+            guide her without judgment  --  on her schedule, in her language, without the awkwardness of
+            a stranger watching her sweat.
+          </p>
+          <p style={{ margin: `0 0 ${T.s5}px` }}>
+            <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>He</strong> is a high
+            school varsity baseball player who wanted a coach in his pocket 24/7  --  someone who could
+            help him throw harder, hit farther, eat right, sleep right, and train smart enough to play
+            in college and beyond. Not just a workout app. A real training partner who knows his
+            velocity, his schedule, and his goals.
+          </p>
+          <p style={{ margin: `0 0 ${T.s5}px` }}>
+            <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>Mom</strong> is a
+            world-renowned bariatric surgeon and weight loss expert who has spent her career helping
+            people transform their health. She knew exactly what kind of guidance works  --  and what
+            doesn't. She brought the clinical rigor, the nutrition science, and the deep understanding
+            of how real people actually change their bodies and their lives.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>Dad</strong> is the one
+            who said yes. A builder at heart who supports his kids' wildest ideas and turns them into
+            reality. He brought the team, the technology, and the belief that if his kids needed this,
+            millions of other people do too.
+          </p>
+        </div>
+
+        <p style={{
+          margin: `${T.s6}px auto 0`, textAlign: 'center', maxWidth: 600,
+          fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.5,
+          fontWeight: T.weight.body, color: T.ink3,
+        }}>
+          That's why Koto works for a sixteen-year-old athlete, a busy parent, a college
+          student, an executive on the road, and a retiree getting back in shape. It was
+          built by all of them.
+        </p>
       </div>
     </section>
   )
