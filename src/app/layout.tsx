@@ -10,9 +10,21 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Koto — Marketing Platform",
-  description: "The AI-powered agency platform. White-label AI marketing tools for agencies.",
+  title: "Koto Trainer — Your AI Trainer, Nutritionist, and Coach. 24/7.",
+  description: "Tell it who you are. It builds your workouts, plans your meals, tracks your progress, and checks in with you daily. 15+ sports. Any goal. Always on.",
   icons: { icon: "/koto_icon.svg" },
+  openGraph: {
+    title: "Koto Trainer — Your AI Trainer. Always On.",
+    description: "Custom workouts, meal plans, progress tracking, and an AI that knows your sport, your goals, and your life. Free to start.",
+    type: "website",
+    url: "https://hellokoto.com/train",
+    siteName: "Koto Trainer",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Koto Trainer — Your AI Trainer. Always On.",
+    description: "Custom workouts, meal plans, and a 24/7 AI coach. Free to start.",
+  },
 }
 
 export default function RootLayout({

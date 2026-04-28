@@ -101,6 +101,10 @@ const HERO_MAX = 1100
 export default function TrainerLandingPage() {
   const navigate = useNavigate()
 
+  useEffect(() => {
+    document.title = 'Koto Trainer — Your AI Trainer, Nutritionist, and Coach. 24/7.'
+  }, [])
+
   return (
     <div style={{
       fontFamily: T.font,
