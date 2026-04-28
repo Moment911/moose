@@ -131,9 +131,9 @@ CREATE TABLE IF NOT EXISTS kotoiq_ads_fact_gsc (
   impressions bigint NOT NULL DEFAULT 0,
   clicks bigint NOT NULL DEFAULT 0,
   position numeric(6,2),
-  UNIQUE (client_id, date, query, COALESCE(page,''), COALESCE(country,''), COALESCE(device,''))
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ads_fgsc_unique ON kotoiq_ads_fact_gsc(client_id, date, query, COALESCE(page,''), COALESCE(country,''), COALESCE(device,''));
 CREATE INDEX IF NOT EXISTS idx_ads_fgsc_client_date ON kotoiq_ads_fact_gsc(client_id, date);
 
 CREATE TABLE IF NOT EXISTS kotoiq_ads_fact_ga4 (
@@ -148,9 +148,9 @@ CREATE TABLE IF NOT EXISTS kotoiq_ads_fact_ga4 (
   engaged_sessions bigint NOT NULL DEFAULT 0,
   conversions numeric(12,2) NOT NULL DEFAULT 0,
   revenue numeric(14,2) NOT NULL DEFAULT 0,
-  UNIQUE (client_id, date, COALESCE(source,''), COALESCE(medium,''), COALESCE(campaign,''), COALESCE(landing_page,''))
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ads_fga4_unique ON kotoiq_ads_fact_ga4(client_id, date, COALESCE(source,''), COALESCE(medium,''), COALESCE(campaign,''), COALESCE(landing_page,''));
 CREATE INDEX IF NOT EXISTS idx_ads_fga4_client_date ON kotoiq_ads_fact_ga4(client_id, date);
 
 -- ============================================================
