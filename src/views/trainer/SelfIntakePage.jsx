@@ -7,7 +7,11 @@ import { validateIntake } from '../../lib/trainer/intakeSchema'
 import { REQUIRED_INTAKE_FIELDS, missingIntakeFields } from '../../lib/trainer/intakeCompleteness'
 import IntakeChatWidget from '../../components/trainer/IntakeChatWidget'
 import IntakeLiveCard from '../../components/trainer/IntakeLiveCard'
-import { T, BLK, GRY, R } from '../../lib/theme'
+// Cal-AI tokens
+const R = '#e9695c'
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
+const GRY = '#f1f1f6'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /my-intake — conversational chat intake.

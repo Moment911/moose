@@ -2,7 +2,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Loader2, Send, Check, Circle, Camera, Pencil, RefreshCw, Bookmark, Map as MapIcon, Dumbbell, BookOpen, Timer, GraduationCap, ExternalLink, Salad, ClipboardCheck, PauseCircle } from 'lucide-react'
-import { T, BLK, GRN } from '../../lib/theme'
+// Cal-AI tokens
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
+const GRN = '#16a34a'
 import { PageHeader, PrimaryCTA } from '../../components/trainer/aesthetic'
 // Trainer portal uses red/blue accents, not Koto Pink. Local override.
 const R = '#e9695c'

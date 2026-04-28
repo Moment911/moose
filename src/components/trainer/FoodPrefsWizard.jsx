@@ -1,7 +1,10 @@
 "use client"
 import { useState } from 'react'
 import { X, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
-import { R, T, BLK } from '../../lib/theme'
+// Cal-AI tokens
+const R = '#e9695c'
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — FoodPrefsWizard.

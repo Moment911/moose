@@ -1,7 +1,10 @@
 "use client"
 import { useMemo } from 'react'
 import { CheckCircle, Circle } from 'lucide-react'
-import { T, BLK, GRN } from '../../lib/theme'
+// Cal-AI tokens
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
+const GRN = '#16a34a'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — WorkoutLogGrid.

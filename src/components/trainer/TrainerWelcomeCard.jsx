@@ -1,6 +1,9 @@
 "use client"
 import { GraduationCap, Sparkles, Dumbbell } from 'lucide-react'
-import { T, BLK, GRY } from '../../lib/theme'
+// Cal-AI tokens
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
+const GRY = '#f1f1f6'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TrainerWelcomeCard

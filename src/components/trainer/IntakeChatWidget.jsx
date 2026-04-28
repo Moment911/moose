@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2 } from 'lucide-react'
-import { T, BLK, R } from '../../lib/theme'
+// Cal-AI tokens
+const R = '#e9695c'
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
 import { supabase } from '../../lib/supabase'
 import { OptionListCard, PrimaryCTA, T as TK } from './aesthetic'
 

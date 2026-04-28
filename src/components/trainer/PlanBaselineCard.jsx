@@ -1,6 +1,10 @@
 "use client"
 import { AlertTriangle, Target, Dumbbell, Utensils, Flame, Loader2 } from 'lucide-react'
-import { R, T, BLK, GRN } from '../../lib/theme'
+// Cal-AI tokens
+const R = '#e9695c'
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
+const GRN = '#16a34a'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — PlanBaselineCard.

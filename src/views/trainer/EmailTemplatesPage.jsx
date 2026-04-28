@@ -2,7 +2,10 @@
 import { useEffect, useState } from 'react'
 import { Loader2, ChevronDown, ChevronRight, Mail, RefreshCw, MessageSquare, CalendarDays, Heart } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
-import { R, T, BLK } from '../../lib/theme'
+// Cal-AI tokens
+const R = '#e9695c'
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
 
 // ---------------------------------------------------------------------------
 // /trainer/templates -- Email Templates

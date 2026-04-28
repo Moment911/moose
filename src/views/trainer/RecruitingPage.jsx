@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 import { Search, Star, ChevronDown, Plus, Edit2, Trash2, Check, X, Loader2, ExternalLink, Mail, Phone, Globe, Save, Users, MapPin, Trophy, Building, Newspaper } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { useAuth } from '../../hooks/useAuth'
-import { GRN } from '../../lib/theme'
+// Cal-AI tokens
+const GRN = '#16a34a'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /trainer/recruiting — College recruiting database.

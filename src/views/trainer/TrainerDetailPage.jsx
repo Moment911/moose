@@ -1439,8 +1439,8 @@ function OverviewTab({
         </button>
       )}
 
-      {/* ══ 2. Plan Progress — shows after generation starts ══ */}
-      {(hasBaseline || anyGenerating) && (
+      {/* ══ 2. Plan Progress — hide when all 6 done ══ */}
+      {(hasBaseline || anyGenerating) && !(hasBaseline && !!plan?.roadmap && !!plan?.workout_plan && !!plan?.playbook && !!plan?.meal_plan && !anyGenerating) && (
         <PlanStepsChecklist
           plan={plan}
           hasBaseline={hasBaseline}

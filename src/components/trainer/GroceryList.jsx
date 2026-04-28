@@ -1,7 +1,9 @@
 "use client"
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, ShoppingBag } from 'lucide-react'
-import { T, BLK } from '../../lib/theme'
+// Cal-AI tokens
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — GroceryList.

@@ -1,7 +1,12 @@
 "use client"
 import { useState } from 'react'
 import { MessageSquare, Loader2 } from 'lucide-react'
-import { T, BLK, GRY, GRN, R } from '../../lib/theme'
+// Cal-AI tokens
+const R = '#e9695c'
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
+const GRY = '#f1f1f6'
+const GRN = '#16a34a'
 import { adjustPlanNL } from '../../lib/trainer/myPlanFetch'
 
 // ─────────────────────────────────────────────────────────────────────────────

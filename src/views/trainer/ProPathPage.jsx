@@ -4,7 +4,11 @@ import { Loader2, ChevronDown, Award, MapPin, Users } from 'lucide-react'
 import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { useAuth } from '../../hooks/useAuth'
-import { R, T, BLK, GRN } from '../../lib/theme'
+// Cal-AI tokens
+const R = '#e9695c'
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
+const GRN = '#16a34a'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /trainer/propath — ProPath Score results page.

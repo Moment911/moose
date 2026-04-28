@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react'
-import { BLK } from '../../lib/theme'
+// Cal-AI tokens
+const BLK = '#0a0a0a'
 import { supabase } from '../../lib/supabase'
 
 // ─────────────────────────────────────────────────────────────────────────────

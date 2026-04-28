@@ -6,7 +6,11 @@ import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 import { FeatureDisabledPanel } from './TrainerListPage'
 import { trainerFetch } from '../../lib/trainer/trainerFetch'
 import { useAuth } from '../../hooks/useAuth'
-import { T, BLK, GRY, R } from '../../lib/theme'
+// Cal-AI tokens
+const R = '#e9695c'
+const T = '#5aa0ff'
+const BLK = '#0a0a0a'
+const GRY = '#f1f1f6'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /trainer/new — simplified "Add Trainee" form.
