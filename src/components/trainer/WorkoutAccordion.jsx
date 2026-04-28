@@ -1,6 +1,6 @@
 "use client"
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { ChevronDown, ChevronRight, Info, ExternalLink, Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, Info, ExternalLink, Loader2, Timer, Play, Pause } from 'lucide-react'
 import { R, T, BLK, GRN } from '../../lib/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -383,8 +383,15 @@ function ExerciseRow({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggle
       </div>
 
       {coaching_cue && (
-        <div style={{ marginTop: 6, color: GRY5, fontSize: 12, fontStyle: 'italic' }}>
-          {coaching_cue}
+        <div style={{ marginTop: 8, padding: '8px 10px', background: '#f8f9fa', borderRadius: 6, color: GRY7, fontSize: 13, lineHeight: 1.5 }}>
+          <strong style={{ color: BLK, fontWeight: 700 }}>Cue:</strong> {coaching_cue}
+        </div>
+      )}
+
+      {/* Rest timer */}
+      {rest_seconds && (
+        <div style={{ marginTop: 8 }}>
+          <RestTimer seconds={Number(rest_seconds) || 90} />
         </div>
       )}
 
@@ -574,6 +581,77 @@ function SetRow({ setNumber, dayNum, exerciseId, exerciseName, existing, onLogSe
         </div>
       </td>
     </tr>
+  )
+}
+
+function RestTimer({ seconds = 90 }) {
+  const [running, setRunning] = useState(false)
+  const [remaining, setRemaining] = useState(seconds)
+  const intervalRef = useRef(null)
+
+  useEffect(() => {
+    if (running && remaining > 0) {
+      intervalRef.current = setInterval(() => {
+        setRemaining((r) => {
+          if (r <= 1) { setRunning(false); return 0 }
+          return r - 1
+        })
+      }, 1000)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [running, remaining])
+
+  function toggle() {
+    if (remaining === 0) { setRemaining(seconds); setRunning(true) }
+    else setRunning(!running)
+  }
+
+  function reset() { setRunning(false); setRemaining(seconds) }
+
+  const mins = Math.floor(remaining / 60)
+  const secs = remaining % 60
+  const pct = seconds > 0 ? ((seconds - remaining) / seconds) * 100 : 0
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      padding: '6px 10px', background: running ? '#0a0a0a' : '#f1f1f6',
+      borderRadius: 8, transition: 'background .2s',
+    }}>
+      <button type="button" onClick={toggle} style={{
+        width: 28, height: 28, borderRadius: 999,
+        background: running ? '#fff' : '#0a0a0a',
+        color: running ? '#0a0a0a' : '#fff',
+        border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {running ? <Pause size={12} /> : <Play size={12} style={{ marginLeft: 1 }} />}
+      </button>
+      <div style={{ flex: 1 }}>
+        <div style={{
+          fontSize: 16, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
+          color: running ? '#fff' : '#0a0a0a',
+          fontFamily: "'SF Mono', monospace",
+        }}>
+          {mins}:{secs.toString().padStart(2, '0')}
+        </div>
+        <div style={{ height: 3, background: running ? 'rgba(255,255,255,0.15)' : '#e5e5ea', borderRadius: 999, marginTop: 3, overflow: 'hidden' }}>
+          <div style={{ height: '100%', background: running ? '#fff' : '#0a0a0a', borderRadius: 999, width: `${pct}%`, transition: 'width 1s linear' }} />
+        </div>
+      </div>
+      {remaining === 0 && (
+        <span style={{ fontSize: 11, fontWeight: 700, color: running ? '#fff' : GRN }}>
+          GO!
+        </span>
+      )}
+      <button type="button" onClick={reset} style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        fontSize: 10, fontWeight: 600, color: running ? 'rgba(255,255,255,0.5)' : '#6b6b70',
+        padding: '2px 4px',
+      }}>
+        Reset
+      </button>
+    </div>
   )
 }
 

@@ -406,39 +406,31 @@ async function handleWorkout(
     roadmap: plan.roadmap as RoadmapOutput,
     phase: phase as 1 | 2 | 3,
   })
-  let result = await callSonnet<WorkoutOutput>({
-    featureTag: FEATURE_TAGS.WORKOUT,
-    systemPrompt,
-    tool: workoutTool,
-    userMessage,
-    agencyId,
-    metadata: { trainee_id: traineeId, plan_id: planId, phase },
-  })
-  if (!result.ok) {
-    return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
-  }
-
-  let shapeErr = assertWorkoutShape(result.data)
-  if (shapeErr) {
-    // Retry once — Sonnet shape drift is transient
-    console.warn('[trainer/generate] workout shape violation, retrying:', shapeErr)
+  // Retry up to 3 times — Sonnet sometimes returns malformed workout structures
+  let result: Awaited<ReturnType<typeof callSonnet<WorkoutOutput>>> | null = null
+  let shapeErr: string | null = null
+  for (let attempt = 1; attempt <= 3; attempt++) {
     result = await callSonnet<WorkoutOutput>({
       featureTag: FEATURE_TAGS.WORKOUT,
       systemPrompt,
       tool: workoutTool,
       userMessage,
       agencyId,
-      metadata: { trainee_id: traineeId, plan_id: planId, phase, retry: true },
+      metadata: { trainee_id: traineeId, plan_id: planId, phase, attempt },
     })
     if (!result.ok) {
-      return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
+      console.warn(`[trainer/generate] workout sonnet error attempt ${attempt}:`, result.error)
+      if (attempt === 3) return err(result.status ?? 502, 'sonnet_error', { detail: result.error })
+      await new Promise((r) => setTimeout(r, 1000))
+      continue
     }
     shapeErr = assertWorkoutShape(result.data)
-    if (shapeErr) {
-      console.error('[trainer/generate] workout shape violation after retry:', shapeErr)
-      return err(502, 'sonnet_shape_violation', { detail: shapeErr })
-    }
+    if (!shapeErr) break
+    console.warn(`[trainer/generate] workout shape violation attempt ${attempt}:`, shapeErr)
+    if (attempt === 3) return err(502, 'sonnet_shape_violation', { detail: shapeErr })
+    await new Promise((r) => setTimeout(r, 1000))
   }
+  if (!result?.ok) return err(502, 'sonnet_error', { detail: 'All attempts failed' })
 
   const { error: updErr } = await sb
     .from('koto_fitness_plans')
@@ -948,11 +940,11 @@ function assertWorkoutShape(wp: unknown): string | null {
   const o = wp as { weeks?: unknown; sessions?: unknown }
   let weeks = Array.isArray(o.weeks) ? (o.weeks as unknown[]) : []
   // If Sonnet returned sessions at root instead of nested in weeks, wrap it
-  if (weeks.length === 0 && Array.isArray(o.sessions) && o.sessions.length > 0) {
-    weeks = [{ week_number: 1, sessions: o.sessions }]
+  if (weeks.length === 0 && Array.isArray(o.sessions) && (o.sessions as unknown[]).length > 0) {
+    weeks = [{ week_number: 1, sessions: o.sessions }, { week_number: 2, sessions: o.sessions }]
     ;(wp as Record<string, unknown>).weeks = weeks
   }
-  if (weeks.length === 0) return null // Accept empty — better than crashing. UI shows "no sessions" banner.
+  if (weeks.length === 0) return 'weeks array is empty — no sessions generated'
   for (const w of weeks) {
     const sessions = (w as { sessions?: unknown } | null)?.sessions
     if (!Array.isArray(sessions) || sessions.length === 0) {
@@ -1197,23 +1189,27 @@ async function handleGenerateFullPlan(
       intake: trainee, baseline: bResult.data,
       roadmap: plan.roadmap as RoadmapOutput, phase: 1,
     })
-    let wResult = await callSonnet<WorkoutOutput>({
-      featureTag: FEATURE_TAGS.WORKOUT, systemPrompt: wSys, tool: workoutTool,
-      userMessage: wMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId, phase: 1 },
-    })
-    if (!wResult.ok) { errors.push(`workout: ${wResult.error}`); return }
-    let shapeErr = assertWorkoutShape(wResult.data)
-    if (shapeErr) {
-      wResult = await callSonnet<WorkoutOutput>({
+    // Retry up to 3 times for shape compliance
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const wResult = await callSonnet<WorkoutOutput>({
         featureTag: FEATURE_TAGS.WORKOUT, systemPrompt: wSys, tool: workoutTool,
-        userMessage: wMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId, phase: 1, retry: true },
+        userMessage: wMsg, agencyId, metadata: { trainee_id: traineeId, plan_id: planId, phase: 1, attempt },
       })
-      if (!wResult.ok) { errors.push(`workout_retry: ${wResult.error}`); return }
-      shapeErr = assertWorkoutShape(wResult.data)
-      if (shapeErr) { errors.push(`workout_shape: ${shapeErr}`); return }
+      if (!wResult.ok) {
+        log('workout', `attempt ${attempt} sonnet error: ${wResult.error}`)
+        if (attempt === 3) { errors.push(`workout: ${wResult.error}`); return }
+        await new Promise((r) => setTimeout(r, 1000)); continue
+      }
+      const shapeErr = assertWorkoutShape(wResult.data)
+      if (shapeErr) {
+        log('workout', `attempt ${attempt} shape error: ${shapeErr}`)
+        if (attempt === 3) { errors.push(`workout_shape: ${shapeErr}`); return }
+        await new Promise((r) => setTimeout(r, 1000)); continue
+      }
+      await sb.from('koto_fitness_plans').update({ workout_plan: wResult.data, phase_ref: 1 }).eq('id', planId).eq('agency_id', agencyId)
+      log('workout', `done (attempt ${attempt})`)
+      return
     }
-    await sb.from('koto_fitness_plans').update({ workout_plan: wResult.data, phase_ref: 1 }).eq('id', planId).eq('agency_id', agencyId)
-    log('workout', 'done')
   })()
 
   const playbookPromise = (async () => {
