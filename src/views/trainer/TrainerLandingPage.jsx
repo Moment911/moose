@@ -793,12 +793,12 @@ function FeaturesGrid() {
 // hand-wavy into specific.
 function InsideTheAi() {
   const SPECIALISTS = [
-    { Icon: Brain,          title: 'Biomechanics PhD',         body: 'Movement analysis, form correction, injury-risk detection. Knows why something hurts before you do.' },
-    { Icon: ChefHat,        title: 'Nutrition PhD',            body: 'Macros, fueling windows, real-food portions. Builds meals around your numbers and your life, not a template.' },
-    { Icon: Dumbbell,       title: 'Strength & Conditioning PhD', body: 'Periodization, peaking, in-season vs off-season. Plans the block, then writes the sessions.' },
-    { Icon: Activity,       title: 'Exercise Physiology PhD',  body: 'Recovery, sleep debt, soreness curves. Knows when to push and when to back off.' },
-    { Icon: GraduationCap,  title: 'Sports Psychology PhD',    body: 'Focus under pressure, motivation when you stall, the mental side most programs skip entirely.' },
-    { Icon: Target,         title: 'Retired pro athlete + 20-year coaching staff', body: 'Real competition experience across multiple sports. Not theory  —  the kind of knowledge you only get from decades on the field, in the gym, and in the locker room.' },
+    { Icon: Brain,          title: 'AI Biomechanics Expert',    body: 'Trained on movement science, form analysis, and injury-risk patterns. Spots mechanical issues and corrects them before they become problems.' },
+    { Icon: ChefHat,        title: 'AI Nutrition Expert',       body: 'Trained on sport-science nutrition research. Calculates your macros, builds meals around food you actually like, and adjusts as your body changes.' },
+    { Icon: Dumbbell,       title: 'AI Strength & Conditioning Expert', body: 'Trained on periodization science and programming methodology. Designs your training blocks, manages volume, and peaks you for your season.' },
+    { Icon: Activity,       title: 'AI Exercise Physiology Expert', body: 'Trained on recovery science, sleep research, and fatigue management. Knows when to push harder and when to back off based on your data.' },
+    { Icon: GraduationCap,  title: 'AI Sports Psychology Expert', body: 'Trained on performance psychology and motivation research. Handles the mental side that most programs completely ignore.' },
+    { Icon: Target,         title: 'AI Pro Athlete Model',      body: 'For every sport, a dedicated AI model trained on elite-level competition knowledge. Baseball? It thinks like a pro pitcher. Soccer? It thinks like a pro midfielder. It adapts to YOUR sport.' },
   ]
   return (
     <section style={{ padding: `${T.s8}px 24px`, background: T.card }}>
@@ -821,21 +821,21 @@ function InsideTheAi() {
             lineHeight: 1.08, letterSpacing: '-0.025em',
             fontWeight: T.weight.display, color: T.ink,
           }}>
-            Modeled after a stack
+            Six AI experts.
             <br />
-            of real specialists.
+            One conversation.
           </h2>
           <p style={{
-            margin: `${T.s4}px auto 0`, maxWidth: 600,
+            margin: `${T.s4}px auto 0`, maxWidth: 640,
             fontFamily: T.font,
             fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            Most fitness AI is a generic chatbot wearing a tank top. Koto&rsquo;s
-            AI was modeled after a real team  —  five PhDs, a retired pro
-            athlete, and a twenty-year coaching staff across multiple
-            sports  —  so the answers sound like the people who&rsquo;d
-            actually know.
+            Most fitness AI is one generic model pretending to know everything.
+            Koto runs six specialized AI expert models  --  each trained on
+            PhD-level research in its domain  --  plus a sport-specific pro
+            athlete model that adapts to whatever you play. When you ask a
+            question, the right expert answers.
           </p>
         </div>
 
@@ -1419,42 +1419,67 @@ function SocialProof() {
           </h2>
         </div>
 
+        {/* Hero stat: 24/7 */}
         <div style={{
-          background: T.ink, borderRadius: T.rXl, padding: `${T.s7}px ${T.s6}px`,
-          marginBottom: T.s8,
+          background: T.ink, borderRadius: T.rXl,
+          padding: `${T.s8}px ${T.s6}px`,
+          marginBottom: T.s8, textAlign: 'center',
         }}>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: T.s5,
+            fontFamily: T.font,
+            fontSize: 'clamp(80px, 15vw, 120px)', fontWeight: T.weight.display,
+            letterSpacing: '-0.04em', color: T.accent, lineHeight: 1,
+            marginBottom: T.s3,
           }}>
-            {TESTIMONIAL_STATS.map((s) => (
-              <div key={s.label} style={{
-                padding: T.s4,
-                borderLeft: s.highlight ? `3px solid ${T.accent}` : '3px solid rgba(255,255,255,0.08)',
-                paddingLeft: T.s5,
-              }}>
+            24/7
+          </div>
+          <div style={{
+            fontFamily: T.font,
+            fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: T.weight.display,
+            color: '#fff', lineHeight: 1.2, marginBottom: T.s4,
+          }}>
+            Your AI coach never sleeps.
+          </div>
+          <p style={{
+            margin: `0 auto ${T.s7}px`, maxWidth: 480,
+            fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
+            fontWeight: T.weight.body, color: 'rgba(255,255,255,0.5)',
+          }}>
+            6am before the gym. 11pm after the kids are in bed. Halftime of a
+            game. It is always on, always current on your data, and always
+            ready to help. No appointments. No waitlists. No cancellations.
+          </p>
+
+          {/* Secondary stats */}
+          <div className="koto-stats-row" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: T.s4, borderTop: '1px solid rgba(255,255,255,0.08)',
+            paddingTop: T.s6,
+          }}>
+            <style>{`@media(max-width:640px){.koto-stats-row{grid-template-columns:1fr!important;}}`}</style>
+            {[
+              { val: '2 min', title: 'First conversation to full plan', desc: 'Answer a few questions. Get a complete personalized program.' },
+              { val: '15+', title: 'Sports with dedicated AI models', desc: 'Each sport gets its own playbook, periodization, and position-specific training.' },
+              { val: '$0', title: 'Free to start, no card required', desc: 'Your first plan, your first 14 days, your first real results. On us.' },
+            ].map((s) => (
+              <div key={s.val} style={{ textAlign: 'center', padding: `0 ${T.s3}px` }}>
                 <div style={{
-                  fontFamily: T.font,
-                  fontSize: s.highlight ? 56 : 44, fontWeight: T.weight.display,
-                  letterSpacing: '-0.03em', color: s.highlight ? T.accent : '#fff', lineHeight: 1,
-                  marginBottom: T.s3,
+                  fontFamily: T.font, fontSize: 36, fontWeight: T.weight.display,
+                  letterSpacing: '-0.03em', color: '#fff', lineHeight: 1, marginBottom: T.s2,
                 }}>
-                  <CountUpStat value={s.value} />
+                  {s.val}
                 </div>
                 <div style={{
-                  fontFamily: T.font,
-                  fontSize: T.size.body, fontWeight: T.weight.h1,
-                  color: '#fff', lineHeight: 1.2, marginBottom: T.s1,
+                  fontFamily: T.font, fontSize: T.size.subtitle, fontWeight: T.weight.h1,
+                  color: 'rgba(255,255,255,0.85)', lineHeight: 1.3, marginBottom: T.s1,
                 }}>
                   {s.title}
                 </div>
                 <div style={{
-                  fontFamily: T.font,
-                  fontSize: T.size.subtitle, fontWeight: T.weight.body,
-                  color: 'rgba(255,255,255,0.5)', lineHeight: 1.45,
+                  fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.body,
+                  color: 'rgba(255,255,255,0.4)', lineHeight: 1.4,
                 }}>
-                  {s.label}
+                  {s.desc}
                 </div>
               </div>
             ))}
