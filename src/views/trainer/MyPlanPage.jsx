@@ -371,6 +371,35 @@ export default function MyPlanPage() {
           })}
         </nav>
       )}
+
+      {/* Floating action button — Cal-AI signature outside the tab bar.
+          Only on Home for now: jumps to Meals tab where the camera lives.
+          Other tabs hide it (Workouts logs inline; Coach/Learn/Profile
+          have no clear primary action). */}
+      {isMobile && tab === 'home' && plan?.meal_plan && (
+        <button
+          type="button"
+          onClick={() => setTab('meals')}
+          aria-label="Log a meal"
+          className="no-print"
+          style={{
+            position: 'fixed',
+            right: 24,
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 88px)',
+            width: 56, height: 56, borderRadius: 999,
+            background: '#0a0a0a', color: '#ffffff', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08)',
+            cursor: 'pointer', zIndex: 51,
+            transition: 'transform .12s ease',
+          }}
+          onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.94)' }}
+          onMouseUp={(e) => { e.currentTarget.style.transform = '' }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = '' }}
+        >
+          <Camera size={22} strokeWidth={2} />
+        </button>
+      )}
     </MyPlanShell>
   )
 }
