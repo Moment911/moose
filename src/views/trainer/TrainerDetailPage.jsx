@@ -1353,81 +1353,91 @@ function OverviewTab({
     } catch { /* silent */ }
   }
 
-  const [chatOpen, setChatOpen] = useState(!hasBaseline) // Auto-open for new users
   const hasPlan = hasBaseline || plan?.roadmap || plan?.workout_plan
+  const anyGenerating = Object.values(pending).some(Boolean)
+  const canGenerate = Object.keys(extracted).length >= 5 || hasBaseline
 
   return (
     <div>
-      {/* ══ 1. Plan Progress — always first, always visible ══ */}
-      <PlanStepsChecklist
-        plan={plan}
-        hasBaseline={hasBaseline}
-        hasRoadmap={!!plan?.roadmap}
-        hasWorkout={!!plan?.workout_plan}
-        hasPlaybook={!!plan?.playbook}
-        hasMeals={!!plan?.meal_plan}
-        hasGrocery={!!plan?.grocery_list}
-        pending={pending}
-        extracted={extracted}
-        onGenerateBaseline={onGenerateBaseline}
-        onGotoTab={onGotoTab}
-      />
+      {/* ══ 1. AI Coach Chat — always first ══ */}
+      {!hasBaseline ? (
+        // New user: chat is always open and prominent
+        <><section data-chat-widget style={{ ...panelStyle, marginBottom: 18, padding: 0, overflow: 'hidden' }}>
+          <IntakeChatWidget
+            extracted={extracted}
+            onFieldsUpdate={handleChatFieldsUpdate}
+            onAboutYouAppend={handleChatAboutYouAppend}
+            onMessagesChange={(msgs) => {
+              trainerFetch(
+                { action: 'update', trainee_id: traineeId, patch: { chat_history: msgs } },
+                { agencyId },
+              ).catch(() => {})
+            }}
+            initialMessages={Array.isArray(trainee?.chat_history) ? trainee.chat_history : []}
+            userName={trainee?.full_name?.split(' ')[0] || ''}
+            mode={hasBaseline ? 'coaching' : 'onboarding'}
+          />
+        </section>
 
-      {/* ══ 2. AI Coach — compact CTA when closed, full chat when open ══ */}
-      {!chatOpen ? (
+        {/* Generate plan button — appears below chat when enough fields collected */}
+        {!hasBaseline && canGenerate && (
+          <button type="button" onClick={onGenerateBaseline} disabled={anyGenerating}
+            style={{
+              width: '100%', padding: '16px', marginBottom: 18,
+              background: anyGenerating ? '#e5e7eb' : '#0a0a0a',
+              color: anyGenerating ? '#6b7280' : '#fff',
+              border: 'none', borderRadius: 12,
+              fontSize: 16, fontWeight: 700, cursor: anyGenerating ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              fontFamily: 'inherit',
+            }}>
+            {anyGenerating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={16} />}
+            {anyGenerating ? 'Building your plan...' : 'Generate my full plan'}
+            <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
+          </button>
+        )}
+        </>
+      ) : (
+        // Returning user: compact chat CTA + plan content
         <button
           type="button"
           data-chat-widget
-          onClick={() => setChatOpen(true)}
+          onClick={() => onGotoTab('overview')}
           style={{
-            width: '100%', padding: '16px 20px', marginBottom: 18,
+            width: '100%', padding: '14px 18px', marginBottom: 18,
             background: '#fff', border: `1px solid ${BRD}`, borderRadius: 12,
             display: 'flex', alignItems: 'center', gap: 12,
             cursor: 'pointer', textAlign: 'left',
           }}
         >
           <div style={{
-            width: 40, height: 40, borderRadius: '50%', background: '#0a0a0a',
+            width: 36, height: 36, borderRadius: '50%', background: '#0a0a0a',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, fontWeight: 800, color: '#fff', flexShrink: 0,
+            fontSize: 14, fontWeight: 800, color: '#fff', flexShrink: 0,
           }}>K</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: BLK }}>
-              {hasBaseline ? 'Ask your AI coach anything' : 'Complete your profile to get started'}
-            </div>
-            <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>
-              {hasBaseline ? 'Training, nutrition, recruiting, or plan adjustments' : 'Answer a few questions — takes about 2 minutes'}
-            </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#0a0a0a' }}>Ask your AI anything</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>Training, nutrition, or plan adjustments</div>
           </div>
-          <ArrowRight size={18} color="#9ca3af" />
+          <div style={{ width: 8, height: 8, borderRadius: 999, background: '#34c759', flexShrink: 0 }} />
         </button>
-      ) : (
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
-            {hasPlan && (
-              <button type="button" onClick={() => setChatOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}>
-                Minimize chat ▲
-              </button>
-            )}
-          </div>
-          <section data-chat-widget style={{ ...panelStyle, padding: 0, overflow: 'hidden' }}>
-            <IntakeChatWidget
-              extracted={extracted}
-              onFieldsUpdate={handleChatFieldsUpdate}
-              onAboutYouAppend={handleChatAboutYouAppend}
-              onMessagesChange={(msgs) => {
-                trainerFetch(
-                  { action: 'update', trainee_id: traineeId, patch: { chat_history: msgs } },
-                  { agencyId },
-                ).catch(() => {})
-              }}
-              initialMessages={Array.isArray(trainee?.chat_history) ? trainee.chat_history : []}
-              userName={trainee?.full_name?.split(' ')[0] || ''}
-              mode={hasBaseline ? 'coaching' : 'onboarding'}
-            />
-          </section>
-        </div>
+      )}
+
+      {/* ══ 2. Plan Progress — shows after generation starts ══ */}
+      {(hasBaseline || anyGenerating) && (
+        <PlanStepsChecklist
+          plan={plan}
+          hasBaseline={hasBaseline}
+          hasRoadmap={!!plan?.roadmap}
+          hasWorkout={!!plan?.workout_plan}
+          hasPlaybook={!!plan?.playbook}
+          hasMeals={!!plan?.meal_plan}
+          hasGrocery={!!plan?.grocery_list}
+          pending={pending}
+          extracted={extracted}
+          onGenerateBaseline={onGenerateBaseline}
+          onGotoTab={onGotoTab}
+        />
       )}
 
       {/* ══ 3. Plan Content — completed sections with styled cards ══ */}
