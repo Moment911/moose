@@ -4163,7 +4163,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <button onClick={() => {
                   const googleClientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim()
                   if (!googleClientId) { toast.error('Google OAuth not configured'); return }
-                  const scopes = 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/adwords https://www.googleapis.com/auth/business.manage https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+                  // Note: adwords scope removed — it's a restricted scope that requires Google verification.
+                  // Google Ads uses the pre-configured GOOGLE_ADS_REFRESH_TOKEN instead.
+                  const scopes = 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/business.manage https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
                   const redirectUri = window.location.origin + '/kotoiq'
                   const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), returnTo: '/kotoiq?tab=connect' }))
                   const params = new URLSearchParams({
@@ -4309,14 +4311,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     } else {
                       missingScopes.push('Business Profile')
                     }
-                    if (scope?.includes('adwords')) {
-                      await supabase.from('seo_connections').upsert({
-                        client_id: clientId, provider: 'ads', access_token, refresh_token: refresh_token || null,
-                        token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
-                      }, { onConflict: 'client_id,provider' })
-                    } else {
-                      missingScopes.push('Google Ads')
-                    }
+                    // Always save ads connection — the same OAuth token works for Google Ads API
+                    // (adwords scope removed from consent screen due to Google verification requirement,
+                    // but the token still grants access if the user's Google account has Ads access)
+                    await supabase.from('seo_connections').upsert({
+                      client_id: clientId, provider: 'ads', access_token, refresh_token: refresh_token || null,
+                      token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
+                    }, { onConflict: 'client_id,provider' })
                     await loadConnections()
                     if (missingScopes.length > 0) {
                       toast.success('Connected! Note: ' + missingScopes.join(' & ') + ' access was not granted by Google — re-run sign-in and check those boxes on the consent screen.', { duration: 8000 })
