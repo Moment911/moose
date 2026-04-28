@@ -69,16 +69,36 @@ function err(status: number, error: string, extra?: Record<string, unknown>) {
   return NextResponse.json({ error, ...(extra || {}) }, { status })
 }
 
+// Bumping this means any user whose stored waiver_text_version is below
+// the current value gets routed back through /start/consent.
+const WAIVER_TEXT_VERSION = 1
+
+interface ComplianceState {
+  waiver_accepted_at?: string
+  waiver_text_version?: number
+  educational_mode?: boolean
+  screening_result?: string
+}
+
 async function resolveUser(
   req: NextRequest,
   sb: SupabaseClient,
-): Promise<{ ok: true; userId: string; email: string } | { ok: false; status: number; error: string }> {
+): Promise<
+  | { ok: true; userId: string; email: string; compliance: ComplianceState | null }
+  | { ok: false; status: number; error: string }
+> {
   const authHeader = req.headers.get('authorization')
   const token = authHeader?.replace(/^Bearer\s+/i, '')
   if (!token) return { ok: false, status: 401, error: 'Unauthorized' }
   const { data, error } = await sb.auth.getUser(token)
   if (error || !data?.user) return { ok: false, status: 401, error: 'Unauthorized' }
-  return { ok: true, userId: data.user.id, email: (data.user.email || '').toLowerCase() }
+  const compliance = (data.user.user_metadata?.compliance as ComplianceState | undefined) || null
+  return {
+    ok: true,
+    userId: data.user.id,
+    email: (data.user.email || '').toLowerCase(),
+    compliance,
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -96,7 +116,18 @@ export async function POST(req: NextRequest) {
 
   const auth = await resolveUser(req, sb)
   if (!auth.ok) return err(auth.status, auth.error)
-  const { userId, email } = auth
+  const { userId, email, compliance } = auth
+
+  // Server-side compliance gate. The /start/consent flow writes consent state
+  // into auth.user.user_metadata.compliance; refuse plan generation if the
+  // user hasn't been through the current-version waiver. Mirrors the client
+  // redirects on /start and /my-intake so a direct API call cannot bypass.
+  if (
+    !compliance?.waiver_accepted_at
+    || (compliance.waiver_text_version ?? 0) < WAIVER_TEXT_VERSION
+  ) {
+    return err(403, 'consent_required', { redirect: '/start/consent' })
+  }
 
   // Parse + validate intake.
   let body: Record<string, unknown>

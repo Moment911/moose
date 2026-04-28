@@ -8,6 +8,23 @@ import { supabase } from '../../lib/supabase'
 // /start — Koto Trainer signup/login. Standalone auth, separate from agency.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Bumping this on the gate page invalidates older signatures — reflected here.
+const WAIVER_TEXT_VERSION = 1
+
+// Single source of truth for "where does this user belong next?". Anyone who
+// hasn't accepted the current-version compliance waiver is sent to the gate.
+async function nextRouteForUser(user) {
+  const c = user?.user_metadata?.compliance
+  const waiverOk = c?.waiver_accepted_at && (c.waiver_text_version ?? 0) >= WAIVER_TEXT_VERSION
+  if (!waiverOk) return '/start/consent'
+  const { data: mapping } = await supabase
+    .from('koto_fitness_trainee_users')
+    .select('trainee_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  return mapping ? '/my-plan' : '/my-intake'
+}
+
 const F = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 const INK = '#0a0a0a'
 const INK3 = '#6b6b70'
@@ -35,13 +52,7 @@ export default function SelfSignupPage() {
       if (cancelled) return
       const user = data?.session?.user
       if (!user) return
-      const { data: mapping } = await supabase
-        .from('koto_fitness_trainee_users')
-        .select('trainee_id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-      if (cancelled) return
-      navigate(mapping ? '/my-plan' : '/my-intake')
+      navigate(await nextRouteForUser(user))
     })
     return () => { cancelled = true }
   }, [navigate])
@@ -70,7 +81,7 @@ export default function SelfSignupPage() {
         }
         return
       }
-      if (data?.session?.user) { navigate('/my-intake'); return }
+      if (data?.session?.user) { navigate(await nextRouteForUser(data.session.user)); return }
       setInfo('Check your inbox for a confirmation link.')
     } catch (err) {
       setError(err?.message || 'Signup failed.')
@@ -88,12 +99,7 @@ export default function SelfSignupPage() {
       const { data } = await supabase.auth.getSession()
       const user = data?.session?.user
       if (!user) { setError('No session — try again.'); return }
-      const { data: mapping } = await supabase
-        .from('koto_fitness_trainee_users')
-        .select('trainee_id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-      navigate(mapping ? '/my-plan' : '/my-intake')
+      navigate(await nextRouteForUser(user))
     } catch (err) {
       setError(err?.message || 'Sign-in failed.')
     } finally { setSubmitting(false) }
@@ -113,7 +119,7 @@ export default function SelfSignupPage() {
             Koto
           </div>
           <div style={{ fontSize: 14, fontWeight: 500, color: INK3, marginTop: 4 }}>
-            Your AI trainer, nutritionist, and coach.
+            Smarter fitness and nutrition, guided by AI.
           </div>
         </div>
 
@@ -192,8 +198,8 @@ export default function SelfSignupPage() {
 
         {/* Disclaimer */}
         <div style={{ marginTop: 20, textAlign: 'center', fontSize: 11, color: INK3, lineHeight: 1.5, fontFamily: F }}>
-          By continuing you agree this is AI coaching, not medical advice.
-          <br />Always consult a physician before starting any program.
+          By continuing you agree to our Terms of Service and Privacy Policy.
+          <br />Koto provides general wellness guidance and is not a medical service.
         </div>
 
         {/* Back to landing */}

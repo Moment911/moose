@@ -12,6 +12,15 @@ import IntakeLiveCard from '../../components/trainer/IntakeLiveCard'
 // /my-intake — conversational chat intake (Cal-AI restyle).
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Same constant as ComplianceGatePage. Bumping there means anyone with a
+// stale signature gets routed back through the gate.
+const WAIVER_TEXT_VERSION = 1
+
+function hasCurrentWaiver(user) {
+  const c = user?.user_metadata?.compliance
+  return !!(c?.waiver_accepted_at && (c.waiver_text_version ?? 0) >= WAIVER_TEXT_VERSION)
+}
+
 // Cal-AI tokens
 const INK = '#0a0a0a'
 const INK3 = '#6b6b70'
@@ -32,13 +41,16 @@ export default function SelfIntakePage() {
 
   const [generateError, setGenerateError] = useState(null)
 
-  // Auth gate — bounce to /start if not logged in, /my-plan if already signed up.
+  // Auth gate — bounce to /start if not logged in, the consent gate if the
+  // user hasn't accepted the current-version waiver, or /my-plan if they
+  // already have a trainee record.
   useEffect(() => {
     let cancelled = false
     supabase.auth.getSession().then(async ({ data }) => {
       if (cancelled) return
       const user = data?.session?.user
       if (!user) { navigate('/start'); return }
+      if (!hasCurrentWaiver(user)) { navigate('/start/consent'); return }
       const { data: mapping } = await supabase
         .from('koto_fitness_trainee_users')
         .select('trainee_id')

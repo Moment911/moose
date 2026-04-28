@@ -174,6 +174,7 @@ import MyPlanPage from '../views/trainer/MyPlanPage'
 import SelfSignupPage from '../views/trainer/SelfSignupPage'
 import TrainerLoginPage from '../views/trainer/TrainerLoginPage'
 import SelfIntakePage from '../views/trainer/SelfIntakePage'
+import ComplianceGatePage from '../views/trainer/ComplianceGatePage'
 import TraineeIntakePage from '../views/trainer/TraineeIntakePage'
 import RecruitingPage from '../views/trainer/RecruitingPage'
 import TimelinePage from '../views/trainer/TimelinePage'
@@ -338,6 +339,7 @@ export default function App() {
           <Route path="/my-plan" element={<MyPlanPage />} />
           <Route path="/train" element={<TrainerLandingPage />} />
           <Route path="/start" element={<SelfSignupPage />} />
+          <Route path="/start/consent" element={<ComplianceGatePage />} />
           <Route path="/trainer/login" element={<TrainerLoginPage />} />
           <Route path="/my-intake" element={<SelfIntakePage />} />
           <Route path="/intake/:traineeId" element={<TraineeIntakePage />} />
