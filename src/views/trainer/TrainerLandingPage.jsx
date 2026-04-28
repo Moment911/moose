@@ -126,6 +126,8 @@ export default function TrainerLandingPage() {
 
       <PhoneShowcase />
 
+      <TryItDemo />
+
       <SocialProof />
 
       <FaqList />
@@ -1437,6 +1439,274 @@ function BottomCta({ onStart }) {
             Get started, it&rsquo;s free
             <ArrowRight size={16} strokeWidth={2.5} />
           </button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ── Try It Demo — live AI chat on the landing page ──────────────────────────
+
+function TryItDemo() {
+  const [coach, setCoach] = useState(null) // null = picker, 'male' | 'female'
+  const [messages, setMessages] = useState([])
+  const [input, setInput] = useState('')
+  const [streaming, setStreaming] = useState(false)
+  const [streamingText, setStreamingText] = useState('')
+  const scrollRef = useRef(null)
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+  }, [messages, streamingText])
+
+  async function streamTurn(turnMessages) {
+    setStreaming(true)
+    setStreamingText('')
+    try {
+      const res = await fetch('/api/trainer/demo-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: turnMessages }),
+      })
+      if (!res.ok) { setStreaming(false); return }
+      const reader = res.body?.getReader()
+      if (!reader) { setStreaming(false); return }
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let fullText = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const event = JSON.parse(line)
+            if (event.type === 'text_delta' && event.text) {
+              fullText += event.text
+              setStreamingText(fullText)
+            }
+          } catch { /* skip */ }
+        }
+      }
+      if (fullText) setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
+    } catch { /* network error */ }
+    setStreamingText('')
+    setStreaming(false)
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  function handlePickCoach(gender) {
+    setCoach(gender)
+    // Fire greeting
+    streamTurn([])
+  }
+
+  function handleSend() {
+    const text = input.trim()
+    if (!text || streaming) return
+    setInput('')
+    const userMsg = { role: 'user', content: text }
+    const next = [...messages, userMsg]
+    setMessages(next)
+    streamTurn(next)
+  }
+
+  const QUICK = ['I play basketball', 'I want to lose 20 lbs', 'I need to get faster', 'I have a bad knee']
+
+  const coachName = coach === 'female' ? 'Coach Maya' : 'Coach Alex'
+  const coachEmoji = coach === 'female' ? '👩‍🏫' : '👨‍🏫'
+
+  return (
+    <section style={{ padding: `${T.s8}px 24px`, background: T.ink }}>
+      <div style={{ maxWidth: 680, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: T.s6 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '4px 12px', borderRadius: T.rPill,
+            background: 'rgba(255,255,255,0.08)',
+            fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
+            color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1px', marginBottom: T.s4,
+          }}>
+            <MessageCircle size={12} strokeWidth={2.25} />
+            Live demo
+          </span>
+          <h2 style={{
+            margin: 0, fontFamily: T.font,
+            fontSize: 'clamp(28px, 5vw, 44px)', lineHeight: 1.08,
+            letterSpacing: '-0.025em', fontWeight: T.weight.display, color: '#fff',
+          }}>
+            Try your AI coach.
+            <br />
+            <span style={{ color: T.accent }}>Right now.</span>
+          </h2>
+          <p style={{
+            margin: `${T.s3}px auto 0`, maxWidth: 460,
+            fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
+            fontWeight: T.weight.body, color: 'rgba(255,255,255,0.5)',
+          }}>
+            No sign-up. No email. Just pick your coach and start talking.
+          </p>
+        </div>
+
+        {/* Coach picker */}
+        {!coach && (
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: T.s4,
+            maxWidth: 400, margin: '0 auto',
+          }}>
+            {[
+              { gender: 'male', label: 'Coach Alex', emoji: '👨‍🏫', desc: 'Calm, direct, data-driven' },
+              { gender: 'female', label: 'Coach Maya', emoji: '👩‍🏫', desc: 'Warm, motivating, detail-oriented' },
+            ].map((c) => (
+              <button key={c.gender} type="button" onClick={() => handlePickCoach(c.gender)} style={{
+                padding: T.s5, background: 'rgba(255,255,255,0.05)',
+                border: '1.5px solid rgba(255,255,255,0.1)',
+                borderRadius: T.rLg, cursor: 'pointer', textAlign: 'center',
+                transition: 'all .15s',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+              >
+                <div style={{ fontSize: 40, marginBottom: 8 }}>{c.emoji}</div>
+                <div style={{ fontFamily: T.font, fontSize: 16, fontWeight: T.weight.button, color: '#fff' }}>{c.label}</div>
+                <div style={{ fontFamily: T.font, fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{c.desc}</div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Chat window */}
+        {coach && (
+          <div style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: T.rXl, overflow: 'hidden',
+          }}>
+            {/* Chat header */}
+            <div style={{
+              padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <span style={{ fontSize: 24 }}>{coachEmoji}</span>
+              <div>
+                <div style={{ fontFamily: T.font, fontSize: 15, fontWeight: T.weight.button, color: '#fff' }}>{coachName}</div>
+                <div style={{ fontFamily: T.font, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>AI Coach  ·  Online now</div>
+              </div>
+              <div style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: 999, background: '#34c759' }} />
+            </div>
+
+            {/* Messages */}
+            <div ref={scrollRef} style={{
+              minHeight: 280, maxHeight: 400, overflowY: 'auto',
+              padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10,
+            }}>
+              {messages.map((m, i) => {
+                const isUser = m.role === 'user'
+                return (
+                  <div key={i} style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
+                    <div style={{
+                      maxWidth: '80%', padding: '10px 14px',
+                      borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                      background: isUser ? T.accent : 'rgba(255,255,255,0.08)',
+                      color: isUser ? '#fff' : 'rgba(255,255,255,0.85)',
+                      fontFamily: T.font, fontSize: 14, lineHeight: 1.55,
+                      whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    }}>
+                      {m.content}
+                    </div>
+                  </div>
+                )
+              })}
+              {streaming && streamingText && (
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <div style={{
+                    maxWidth: '80%', padding: '10px 14px',
+                    borderRadius: '14px 14px 14px 4px',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'rgba(255,255,255,0.85)',
+                    fontFamily: T.font, fontSize: 14, lineHeight: 1.55,
+                    whiteSpace: 'pre-wrap',
+                  }}>
+                    {streamingText}
+                  </div>
+                </div>
+              )}
+              {streaming && !streamingText && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                  <Loader2 size={14} style={{ animation: 'koto-marquee-spin 1s linear infinite' }} />
+                  {coachName} is typing...
+                  <style>{'@keyframes koto-marquee-spin{to{transform:rotate(360deg)}}'}</style>
+                </div>
+              )}
+
+              {/* Quick prompts — show when no user messages yet */}
+              {messages.length <= 1 && !streaming && messages.some((m) => m.role === 'assistant') && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                  {QUICK.map((q) => (
+                    <button key={q} type="button" onClick={() => {
+                      setInput('')
+                      const next = [...messages, { role: 'user', content: q }]
+                      setMessages(next)
+                      streamTurn(next)
+                    }} style={{
+                      padding: '8px 14px', background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 20, color: 'rgba(255,255,255,0.7)',
+                      fontFamily: T.font, fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', transition: 'all .12s',
+                    }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = '#fff' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Input */}
+            <div style={{
+              padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSend() }}
+                placeholder="Ask your coach anything..."
+                disabled={streaming}
+                style={{
+                  flex: 1, padding: '10px 14px', fontSize: 14,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 10, color: '#fff',
+                  fontFamily: T.font, outline: 'none',
+                }}
+              />
+              <button type="button" onClick={handleSend} disabled={!input.trim() || streaming} style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: input.trim() && !streaming ? T.accent : 'rgba(255,255,255,0.06)',
+                border: 'none', color: '#fff', cursor: input.trim() && !streaming ? 'pointer' : 'default',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <ArrowRight size={16} strokeWidth={2.25} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Disclaimer */}
+        <div style={{
+          marginTop: T.s4, textAlign: 'center',
+          fontFamily: T.font, fontSize: 11, color: 'rgba(255,255,255,0.25)',
+        }}>
+          This is a live AI demo. Not medical advice. Always consult a professional.
         </div>
       </div>
     </section>
