@@ -18,14 +18,14 @@ const SPORTS = [
 const FEATURES = [
   {
     icon: MessageCircle,
-    title: 'Your AI trainer. 24/7/365.',
+    title: 'Personalized fitness guidance, 24/7/365.',
     desc: "Talk to it any time -- 6am before the gym, 11pm when you can't sleep, halftime of your kid's game. It never clocks out. Tell it what's working, what hurts, what got in the way. Your plan adjusts in real time. No appointments. No waiting. It never sleeps.",
     color: '#0071e3',
   },
   {
     icon: Utensils,
-    title: 'Your AI nutritionist.',
-    desc: "Macros that hit your numbers with food you'll actually eat. Snap a photo of any meal and the AI logs calories and macros instantly. It learns what you like and builds around that -- not a generic template.",
+    title: 'Smart nutrition guidance.',
+    desc: "Macro ranges that line up with your goal and food you'll actually eat. Snap a photo of any meal and the AI estimates calories and macros instantly. It learns what you like and builds around that -- not a generic template.",
     color: '#059669',
   },
   {
@@ -102,7 +102,7 @@ export default function TrainerLandingPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    document.title = 'Koto Trainer — Your AI Trainer, Nutritionist, and Coach. 24/7.'
+    document.title = 'Koto — Smarter fitness and nutrition, guided by AI.'
   }, [])
 
   return (
@@ -213,7 +213,7 @@ function TopNav({ onSignIn, onStart }) {
 }
 
 function Hero({ onStart }) {
-  const trust = ['PhD-trained AI', 'Built for every level', '$0 to start']
+  const trust = ['Built on proven principles', 'Built for every level', '$0 to start']
   return (
     <section className="koto-hero" style={{
       maxWidth: HERO_MAX, margin: '0 auto',
@@ -254,9 +254,9 @@ function Hero({ onStart }) {
             color: T.ink,
           }}
         >
-          Your AI trainer.
+          Smarter fitness
           <br />
-          Your AI nutritionist.
+          and nutrition.
           <br />
           Always on.
         </h1>
@@ -309,6 +309,16 @@ function Hero({ onStart }) {
             </span>
           ))}
         </div>
+
+        <p style={{
+          margin: `${T.s4}px 0 0`,
+          fontFamily: T.font,
+          fontSize: T.size.caption, lineHeight: 1.5,
+          fontWeight: T.weight.body, color: T.ink4,
+          maxWidth: 480,
+        }}>
+          Koto provides general wellness guidance and is not a medical service.
+        </p>
       </div>
 
       {/* Hero phone  —  tilted, gently floating, with a soft warm glow behind.
@@ -808,12 +818,12 @@ function FeaturesGrid() {
 // hand-wavy into specific.
 function InsideTheAi() {
   const SPECIALISTS = [
-    { Icon: Brain,          title: 'AI Biomechanics Expert',    body: 'Trained on movement science, form analysis, and injury-risk patterns. Spots mechanical issues and corrects them before they become problems.' },
-    { Icon: ChefHat,        title: 'AI Nutrition Expert',       body: 'Trained on sport-science nutrition research. Calculates your macros, builds meals around food you actually like, and adjusts as your body changes.' },
-    { Icon: Dumbbell,       title: 'AI Strength & Conditioning Expert', body: 'Trained on periodization science and programming methodology. Designs your training blocks, manages volume, and peaks you for your season.' },
-    { Icon: Activity,       title: 'AI Exercise Physiology Expert', body: 'Trained on recovery science, sleep research, and fatigue management. Knows when to push harder and when to back off based on your data.' },
-    { Icon: GraduationCap,  title: 'AI Sports Psychology Expert', body: 'Trained on performance psychology and motivation research. Handles the mental side that most programs completely ignore.' },
-    { Icon: Target,         title: 'AI Real-World Experience Model', body: 'Not just textbook knowledge. This model is trained on decades of real-world coaching, competition, and results across every sport and goal. It knows what actually works because it has seen what works.' },
+    { Icon: Brain,          title: 'Biomechanics principles',         body: 'Informed by movement science, form analysis, and injury-risk research. Surfaces mechanical cues an experienced movement coach would notice.' },
+    { Icon: ChefHat,        title: 'Nutrition principles',            body: 'Informed by sport-science nutrition research. Suggests macro ranges, builds meals around food you actually like, and adjusts as your body changes.' },
+    { Icon: Dumbbell,       title: 'Strength & conditioning',         body: 'Informed by periodization research and programming methodology. Designs your training blocks, manages volume, and peaks you for your season.' },
+    { Icon: Activity,       title: 'Recovery & physiology',           body: 'Informed by recovery science, sleep research, and fatigue management. Knows when to push harder and when to back off based on your data.' },
+    { Icon: GraduationCap,  title: 'Sport psychology',                body: 'Informed by performance psychology and motivation research. Speaks to the mental side that most programs completely ignore.' },
+    { Icon: Target,         title: 'Pro-coaching playbooks',          body: 'Not just textbook knowledge. Distilled from decades of real-world coaching, competition, and results across every sport and goal -- so the guidance reflects what actually works in the gym, not just on paper.' },
   ]
   return (
     <section style={{ padding: `${T.s8}px 24px`, background: T.card }}>
@@ -836,7 +846,7 @@ function InsideTheAi() {
             lineHeight: 1.08, letterSpacing: '-0.025em',
             fontWeight: T.weight.display, color: T.ink,
           }}>
-            Six AI experts.
+            Six knowledge layers.
             <br />
             One conversation.
           </h2>
@@ -847,10 +857,10 @@ function InsideTheAi() {
             fontWeight: T.weight.body, color: T.ink3,
           }}>
             Most fitness AI is one generic model pretending to know everything.
-            Koto runs six specialized AI expert models  --  each trained on
-            PhD-level research in its domain  --  plus a real-world experience
-            model that adapts to your sport, your goal, or your lifestyle.
-            When you ask a question, the right expert answers.
+            Koto is informed by six specialized knowledge layers  --  each
+            grounded in accepted research in its domain  --  plus a real-world
+            experience model that adapts to your sport, your goal, or your
+            lifestyle. When you ask a question, the right layer answers.
           </p>
         </div>
 
@@ -2121,12 +2131,11 @@ function FounderStory() {
             velocity, his schedule, and his goals.
           </p>
           <p style={{ margin: `0 0 ${T.s5}px` }}>
-            <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>The expert</strong> is a
-            world-renowned bariatric surgeon and weight loss specialist  --  a close family friend
-            who has spent his career helping people transform their health. He knew exactly what
-            kind of guidance works and what doesn't. He brought the clinical rigor, the nutrition
-            science, and the deep understanding of how real people actually change their bodies
-            and their lives.
+            <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>The advisor</strong> is a
+            longtime family friend with decades of experience helping people pursue healthier
+            lives. They knew exactly what kind of guidance works and what doesn't  --  what
+            keeps people consistent, where most programs lose them, and how real people
+            actually change their habits over time.
           </p>
           <p style={{ margin: 0 }}>
             <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>Dad</strong> is the one
@@ -2254,8 +2263,11 @@ function FooterStrip() {
         fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.body,
         color: T.ink4, lineHeight: 1.5,
       }}>
-        Koto Trainer is AI, not a doctor or licensed medical professional.
-        This is not medical advice. Always consult a physician before starting a new training program.
+        Koto provides general wellness guidance only. It is not medical advice,
+        not a diagnosis, and not a substitute for care from a licensed
+        professional. Always consult a healthcare provider before starting
+        a new training or nutrition program. Stop and seek medical attention
+        if you experience pain, dizziness, or discomfort.
         <div style={{ marginTop: T.s3, color: T.ink3 }}>
           &copy; {new Date().getFullYear()} Koto, Inc.
         </div>
