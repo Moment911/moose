@@ -16,6 +16,7 @@
 import type { IntakeInput } from '../intakeSchema'
 import type { SonnetTool } from '../sonnetRunner'
 import { COACH_VOICE } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type RefineQuestion = {
   /** Stable snake_case slug so answers can be keyed by question. */
@@ -46,7 +47,9 @@ export function buildRefinePrompt(input: { intake: IntakeInput }): {
   systemPrompt: string
   userMessage: string
 } {
-  const systemPrompt = `${COACH_VOICE}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${COACH_VOICE}
 
 You have an intake form for a trainee.  Your job: identify the 4-6 most valuable follow-up questions — ones whose answers would meaningfully shift how you program training or nutrition for THIS specific person.  Not trivia.  Not "interesting to know."  Questions whose answers change the program.
 

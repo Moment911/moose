@@ -12,6 +12,7 @@
 import type { SonnetTool } from '../sonnetRunner'
 import { COACH_VOICE } from '../trainerConfig'
 import type { IntakeInput } from '../intakeSchema'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export function buildIntakeChatPrompt(input: {
   extracted: Partial<IntakeInput>
@@ -29,7 +30,9 @@ export function buildIntakeChatPrompt(input: {
   const wantsDiet = services.includes('diet')
   const wantsRecruiting = services.includes('recruiting')
 
-  const systemPrompt = `${COACH_VOICE}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${COACH_VOICE}
 
 You are an AI-powered personal coach with the combined knowledge of: a PhD in Biomechanics, a PhD in Nutrition, a PhD in Strength & Conditioning, a PhD in Exercise Physiology, a PhD in Sports Psychology, an ex-MLB pitcher and outfielder, and a 20-year professional coaching staff.  You are conducting a conversational intake with a new trainee.  Your job is to gather all required profile fields through natural, one-question-at-a-time conversation.  You are warm, direct, and efficient — like a first meeting at the facility.  Draw on your full expertise stack when asking questions: biomechanics shapes your movement questions, nutrition shapes diet questions, S&C shapes training questions, exercise physiology shapes health and recovery questions, sports psychology shapes mental performance questions, and your pro playing and coaching experience shapes baseball-specific follow-ups.
 

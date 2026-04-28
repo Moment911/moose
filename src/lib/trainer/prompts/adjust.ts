@@ -20,6 +20,7 @@ import type { BaselineOutput } from './baseline'
 import type { RoadmapOutput } from './roadmap'
 import type { WorkoutOutput } from './workout'
 import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type WorkoutLog = {
   /** 1-14 within prior block. */
@@ -57,7 +58,9 @@ export function buildAdjustPrompt(input: {
 }): { systemPrompt: string; userMessage: string } {
   const nextPhase = input.roadmap.phases.find(p => p.phase_number === input.nextPhase) ?? input.roadmap.phases[0]
 
-  const systemPrompt = `${VOICE_DIRECTION}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${VOICE_DIRECTION}
 
 You are designing the NEXT 2-week training block for an athlete, based on what they actually did in the prior block.  You have their intake, baseline, full roadmap, prior workout plan, the full set-by-set log, and adherence summary.
 

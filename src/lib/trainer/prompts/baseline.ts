@@ -25,6 +25,7 @@
 import type { IntakeInput } from '../intakeSchema'
 import type { SonnetTool } from '../sonnetRunner'
 import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type BaselineOutput = {
   body_composition: {
@@ -55,7 +56,9 @@ export function buildBaselinePrompt(input: { intake: IntakeInput }): {
   systemPrompt: string
   userMessage: string
 } {
-  const systemPrompt = `${VOICE_DIRECTION}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${VOICE_DIRECTION}
 
 You are producing a baseline assessment for an athlete.  You have their intake data.  Your job is to compute calorie + macro targets, estimate their starting fitness level, flag any medical red lines, name the top 3 focus areas that will move the needle most for THIS person, and give an honest timeline for the stated goal.
 

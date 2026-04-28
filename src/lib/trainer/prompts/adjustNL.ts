@@ -19,6 +19,7 @@ import type { BaselineOutput } from './baseline'
 import type { RoadmapOutput } from './roadmap'
 import type { WorkoutOutput } from './workout'
 import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type AdjustNLScope = 'this_session' | 'rest_of_block' | 'swap_exercise'
 
@@ -46,7 +47,9 @@ export function buildAdjustNLPrompt(input: {
     }
   })()
 
-  const systemPrompt = `${COACH_VOICE}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${COACH_VOICE}
 
 You are adjusting a trainee's current 2-week workout block in response to a specific natural-language message from them.  The message could be about anything: a new injury, travel, schedule change, mood, equipment change, perceived difficulty.  Your job: take the message seriously, decide what changes (if any) are warranted, and rewrite the block accordingly.
 

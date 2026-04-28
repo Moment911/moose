@@ -20,6 +20,7 @@ import type { IntakeInput } from '../intakeSchema'
 import type { SonnetTool } from '../sonnetRunner'
 import type { BaselineOutput } from './baseline'
 import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type FoodPrefsQuestion = {
   /** Stable snake_case slug prompt 4 will read. */
@@ -54,7 +55,9 @@ export function buildFoodPrefsPrompt(input: {
   intake: IntakeInput
   baseline: BaselineOutput
 }): { systemPrompt: string; userMessage: string } {
-  const systemPrompt = `${VOICE_DIRECTION}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${VOICE_DIRECTION}
 
 You are running a quick food-preferences check-in with a trainee before designing their 2-week meal plan.  You have their intake + baseline.  Your job: produce a small, thoughtful set of 5-10 questions tailored to THIS trainee.
 

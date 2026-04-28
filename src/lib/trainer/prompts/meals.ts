@@ -21,6 +21,7 @@ import type { SonnetTool } from '../sonnetRunner'
 import type { BaselineOutput } from './baseline'
 import type { FoodPrefsQuestion, FoodPrefsAnswer } from './foodPrefs'
 import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type MealIngredient = { item: string; amount: number; unit: string }
 
@@ -86,7 +87,9 @@ export function buildMealsPrompt(input: {
   const phase = input.phase ?? 1
   const phaseText = describePhaseNutritionLens(phase, input.intake.primary_goal ?? null)
 
-  const systemPrompt = `${VOICE_DIRECTION}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${VOICE_DIRECTION}
 
 You are designing a 2-week meal plan for an athlete.  You have their intake, baseline, and food preferences.  Your job: a menu they will actually eat, that hits their macro targets, and ships with a consolidated grocery list.
 

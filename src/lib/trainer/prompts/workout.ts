@@ -27,6 +27,7 @@ import type { SonnetTool } from '../sonnetRunner'
 import type { BaselineOutput } from './baseline'
 import type { RoadmapOutput } from './roadmap'
 import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type WorkoutExercise = {
   /** Stable lowercase snake_case slug; must match across weeks 1 & 2. */
@@ -101,7 +102,9 @@ export function buildWorkoutPrompt(input: {
   const blockNum = input.block_number ?? 1
   const phase = input.roadmap.phases.find(p => p.phase_number === input.phase) ?? input.roadmap.phases[0]
 
-  const systemPrompt = `${VOICE_DIRECTION}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${VOICE_DIRECTION}
 
 You are designing a 2-week training block for an athlete.  You have their intake, baseline, roadmap, and the current roadmap phase that this block belongs to.  Your job: produce a fully tracked program where every prescription is loggable and every next-block decision can be made from logged numbers.
 

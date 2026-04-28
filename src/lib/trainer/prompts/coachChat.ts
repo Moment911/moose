@@ -1,5 +1,6 @@
 import { COACH_VOICE } from '../trainerConfig'
 import type { SonnetTool } from '../sonnetRunner'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export function buildCoachChatPrompt(input: {
   trainee: Record<string, unknown>
@@ -10,7 +11,9 @@ export function buildCoachChatPrompt(input: {
 } {
   const { trainee, plan } = input
 
-  const systemPrompt = `${COACH_VOICE}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${COACH_VOICE}
 
 You are this athlete's personal AI coach. You have access to their complete profile and plan. You can answer ANY question they or their trainer asks — training, nutrition, recruiting, recipes, performance analysis, mental game, injury prevention, or anything related to their development.
 

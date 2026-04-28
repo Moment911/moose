@@ -3,6 +3,7 @@ import type { BaselineOutput } from './baseline'
 import type { RoadmapOutput } from './roadmap'
 import type { SonnetTool } from '../sonnetRunner'
 import { COACH_VOICE } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — Coaching Playbook prompt
@@ -351,7 +352,9 @@ export function buildPlaybookPrompt(input: {
   baseline: BaselineOutput
   roadmap: RoadmapOutput
 }): { systemPrompt: string; userMessage: string } {
-  const systemPrompt = `${VOICE_DIRECTION}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${VOICE_DIRECTION}
 
 You are producing a COMPLETE COACHING PLAYBOOK for a real athlete.  This is the one-time comprehensive guide they'll reference for the next 90 days.  It must read like something a personal AI coach hand-wrote for THEIR actual life — NOT a generic wellness article.
 

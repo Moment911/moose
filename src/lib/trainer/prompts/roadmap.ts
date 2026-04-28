@@ -16,6 +16,7 @@ import type { IntakeInput } from '../intakeSchema'
 import type { SonnetTool } from '../sonnetRunner'
 import type { BaselineOutput } from './baseline'
 import { COACH_VOICE, DISCLAIMER } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type RoadmapPhase = {
   phase_number: 1 | 2 | 3
@@ -49,7 +50,9 @@ export function buildRoadmapPrompt(input: {
   intake: IntakeInput
   baseline: BaselineOutput
 }): { systemPrompt: string; userMessage: string } {
-  const systemPrompt = `${VOICE_DIRECTION}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${VOICE_DIRECTION}
 
 You are designing a 90-day roadmap for an athlete.  You have their intake + baseline.  Your job is to produce THREE distinct 30-day phases — not three rebrands of the same month.  Each phase has its own training theme, nutrition theme, progression logic, and MEASURABLE end-of-phase milestones.
 

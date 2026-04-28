@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { MODELS } from '../../../../lib/trainer/trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from '../../../../lib/trainer/prompts/legalCompliance'
 import { logTokenUsage } from '../../../../lib/tokenTracker'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -469,14 +470,16 @@ async function callClaudeVision(args: {
   { ok: true; items: FoodItem[]; cached: false }
   | { ok: false; error: string }
 > {
-  const systemPrompt = `You identify foods in a single photograph and estimate calories and macronutrients per visible item.
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+You identify foods in a single photograph and estimate calories and macronutrients per visible item. Estimates are approximate, not clinical measurements.
 
 Rules:
 - Respond with the food_log_from_photo tool, nothing else.
 - Identify each distinct food item you can see. Infer portion size from visual cues (plate size, utensils, packaging).
 - Always include kcal + protein_g + fat_g + carb_g for every item. Values should satisfy 4*protein + 4*carb + 9*fat ≈ kcal within ~15%.
 - Use short, normalized names like "grilled chicken breast", "white rice", "broccoli steamed", "banana". No branding unless a logo is visible.
-- If unsure about a detail, pick the most common typical value for an athlete-sized portion.
+- If unsure about a detail, pick the most common typical value for a reasonably-sized portion.
 - If the photo contains no food, return an empty items array.`
 
   const tools = [

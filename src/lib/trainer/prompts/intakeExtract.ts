@@ -14,6 +14,7 @@
 
 import type { SonnetTool } from '../sonnetRunner'
 import { COACH_VOICE } from '../trainerConfig'
+import { LEGAL_COMPLIANCE_PREAMBLE } from './legalCompliance'
 
 export type IntakeFollowUpQuestion = {
   /** MUST equal one of the IntakeInput field names (age / sex / etc). */
@@ -67,7 +68,9 @@ export function buildIntakeExtractPrompt(input: {
   systemPrompt: string
   userMessage: string
 } {
-  const systemPrompt = `${COACH_VOICE}
+  const systemPrompt = `${LEGAL_COMPLIANCE_PREAMBLE}
+
+${COACH_VOICE}
 
 You are reading a new trainee's free-text introduction.  Your job: extract every IntakeInput field you can infer with HIGH confidence from what they wrote, and identify the required fields that still need to be asked.
 
