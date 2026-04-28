@@ -18,7 +18,7 @@ const FEATURES = [
   {
     icon: MessageCircle,
     title: 'Your AI Trainer',
-    desc: 'Have a real conversation any time. Tell it what\'s working, what\'s sore, what got in the way this week — your training and your diet pivot in real time. No waiting for the next check-in.',
+    desc: 'Have a real conversation any time. Tell it what\'s working, what\'s sore, what got in the way this week  —  your training and your diet pivot in real time. No waiting for the next check-in.',
     color: '#0071e3',
   },
   {
@@ -47,8 +47,8 @@ const FEATURES = [
   },
   {
     icon: BookOpen,
-    title: 'Built for every level',
-    desc: 'A sixteen-year-old chasing college recruiting. A forty-year-old getting back in shape. A retired postal worker who just wants to walk five miles again. The AI meets you exactly where you are.',
+    title: 'Built for every life stage',
+    desc: 'Youth athletes chasing a roster spot. College students balancing classes and the gym. New parents with fifteen minutes to train. Executives who travel every week. Retirees who want to feel thirty again. The AI meets you exactly where you are.',
     color: '#d97706',
   },
 ]
@@ -61,15 +61,15 @@ const TESTIMONIAL_STATS = [
 ]
 
 const TESTIMONIALS = [
-  { quote: "I'm sixteen and I never knew how to actually train. Two months in I added six miles per hour to my fastball and dropped my sixty by half a second. The AI just answers when I ask.", name: 'Marcus T., 16', role: 'High school RHP', avatar: '/images/trainer/man-running.jpg' },
-  { quote: "Forty-three, three kids, desk job, hadn't trained in fifteen years. I gave it twenty minutes one Sunday and it built a plan I could actually do at lunch. Down twenty-two pounds in five months.", name: 'Renee D., 43', role: 'Operations manager', avatar: '/images/trainer/woman-running.jpg' },
-  { quote: 'After I retired I started feeling old fast. Koto built me strength and walking workouts that match what my body can do today, not twenty years ago. I feel better at sixty-four than I did at fifty-four.', name: 'Hank P., 64', role: 'Retired postal worker', avatar: '/images/trainer/senior-couple.jpg' },
+  { quote: "I play three sports and no one coach could program for all of them. This AI knows my soccer season, my track schedule, and my gym days  —  and adjusts the plan week by week so I'm not overtrained.", name: 'Jaylen M., 16', role: 'High school multi-sport athlete', avatar: '/images/trainer/man-running.jpg' },
+  { quote: "Three kids, a full-time job, and twenty minutes for lunch. I told the AI my reality and it built workouts I could actually finish. Down twenty-two pounds in five months  —  no trainer required.", name: 'Renee D., 43', role: 'Working parent', avatar: '/images/trainer/woman-running.jpg' },
+  { quote: 'After I retired I started feeling old fast. This built me strength and walking workouts that match what my body can do today, not twenty years ago. I feel better at sixty-four than I did at fifty-four.', name: 'Hank P., 64', role: 'Retiree', avatar: '/images/trainer/senior-couple.jpg' },
 ]
 
 const FAQS = [
   {
     q: 'Do I need to be an athlete to use this?',
-    a: "No. The AI builds plans for whoever you are, in whatever shape you're in. We have sixteen-year-olds chasing college recruiting and sixty-year-olds getting back to walking five miles a day. Same product, different plans.",
+    a: "No. The AI builds plans for whoever you are, in whatever shape you're in. Youth athletes, college students, busy parents, traveling executives, retirees  —  same product, completely different plans. Tell it your reality and it programs for that.",
   },
   {
     q: 'How does the AI know my sport?',
@@ -81,7 +81,7 @@ const FAQS = [
   },
   {
     q: 'What sports are supported?',
-    a: 'Today: baseball, football, basketball, soccer, track & field, swimming, wrestling, volleyball, tennis, golf, hockey, lacrosse, CrossFit, MMA, plus a general-fitness mode. We add a new sport every couple of weeks based on what athletes ask for.',
+    a: 'Today: baseball, football, basketball, soccer, track & field, swimming, wrestling, volleyball, tennis, golf, hockey, lacrosse, CrossFit, MMA, plus a general-fitness mode for anyone who just wants to get stronger, lose weight, or stay healthy. We add new sports based on what users ask for.',
   },
   {
     q: 'How much does it cost?',
@@ -261,9 +261,9 @@ function Hero({ onStart }) {
             color: T.ink3,
           }}
         >
-          Tell it what&rsquo;s working, what&rsquo;s sore, what&rsquo;s getting in the way — your plan
-          and your diet pivot in real time. Whether you&rsquo;re a youth athlete chasing college
-          or a retired postal worker getting back to walking five miles, your plan starts in two minutes.
+          Talk to it daily. Tell it what&rsquo;s working, what&rsquo;s sore, what you ate, how you slept.
+          It refines your workouts, adjusts your diet, and keeps you focused  —  like having a
+          world-class trainer, nutritionist, and accountability partner in your pocket 24/7.
         </p>
 
         <div style={{ marginTop: T.s7, maxWidth: 320 }}>
@@ -300,7 +300,7 @@ function Hero({ onStart }) {
         </div>
       </div>
 
-      {/* Hero phone — tilted, gently floating, with a soft warm glow behind.
+      {/* Hero phone  —  tilted, gently floating, with a soft warm glow behind.
           Reuses PhoneFrame + PhoneScreenHome so the mockup matches the
           showcase band lower on the page. */}
       <div style={{
@@ -375,27 +375,21 @@ function SportsStrip() {
 }
 
 function HowItWorks() {
-  // MOCKUP: fake-people via pravatar.cc — swap each `img` for a real shoot
-  // pre-launch. The image prompts to send through Midjourney/DALL-E live in
-  // each step's `_prompt` field.
   const steps = [
     {
-      n: '1', title: 'Tell us about you',
-      body: 'Two minutes of pill-tap intake — sport, level, goals, schedule, dietary edges. No essays.',
-      img: 'https://i.pravatar.cc/600?u=koto-step-intake',
-      _prompt: "Top-down editorial photo of a young athlete's hands holding an iPhone, with a softly blurred fitness app intake screen on display. Warm-tan gradient backdrop, single soft light from upper-left, photorealistic, no logos, 1:1 square.",
+      n: '1', title: 'Talk to your AI coach',
+      body: 'Have a real conversation. Tell it your sport, your goals, your schedule, your injuries. It asks smart follow-ups and builds your profile in about two minutes  —  just tap pill buttons or type freely.',
+      img: '/images/trainer/woman-yoga-laptop.jpg',
     },
     {
-      n: '2', title: 'AI builds your plan',
-      body: 'Six sections in under a minute: baseline, 90-day roadmap, 2-week block, playbook, meal plan, grocery list.',
-      img: 'https://i.pravatar.cc/600?u=koto-step-plan',
-      _prompt: "Abstract editorial render of softly glowing geometric cards stacked diagonally on a cool-gray surface, suggesting an AI assembling a personalized plan. One card has a faint warm-tan accent. Minimalist, photorealistic 3D, no text, 1:1 square.",
+      n: '2', title: 'Get your complete program',
+      body: 'Six custom sections built for you: baseline assessment, 90-day roadmap, periodized workout block, coaching playbook, meal plan with grocery list. All in under a minute.',
+      img: '/images/trainer/woman-sitting.jpg',
     },
     {
-      n: '3', title: 'Train, log, adjust',
-      body: 'Tap to log sets and meals. The AI watches your trend lines and refines next week’s plan automatically.',
-      img: 'https://i.pravatar.cc/600?u=koto-step-train',
-      _prompt: "Editorial photo of an athlete mid-rep on a back-squat in a clean natural-light gym, side angle, slight motion blur on the bar, cool-gray walls + warm-tan floor color grade, photorealistic, no logos, 1:1 square.",
+      n: '3', title: 'Train daily with your AI',
+      body: 'This is the part that matters. Log your workouts. Snap photos of meals. Check in daily. Your AI coach watches your trends, adjusts your plan, answers your questions 24/7, and keeps you accountable  —  like having a trainer in your pocket.',
+      img: '/images/trainer/couple-running.jpg',
     },
   ]
   return (
@@ -483,7 +477,7 @@ function HowItWorks() {
   )
 }
 
-// LivePlanBuilder — interactive demo of the actual product moment.
+// LivePlanBuilder  —  interactive demo of the actual product moment.
 // Click "Build my plan" → six section pills tick on in sequence with
 // approximate per-phase delays that mirror the real cascade
 // (baseline ~15s → roadmap ~20s → workout ~90s parallel with playbook
@@ -547,7 +541,7 @@ function LivePlanBuilder() {
             fontWeight: T.weight.body, color: T.ink3,
           }}>
             Six sections, generated in parallel by a stack of AI specialists.
-            In the real product this takes about two minutes — here we&rsquo;ve
+            In the real product this takes about two minutes  —  here we&rsquo;ve
             sped it up so you can see the shape.
           </p>
         </div>
@@ -733,18 +727,18 @@ function FeaturesGrid() {
   )
 }
 
-// InsideTheAi — credentials block. The actual differentiator: Koto's AI
+// InsideTheAi  —  credentials block. The actual differentiator: Koto's AI
 // is modeled after a specific stack of expert personas, not a generic LLM
 // "fitness assistant." Calling it out by name turns "trust the AI" from
 // hand-wavy into specific.
 function InsideTheAi() {
   const SPECIALISTS = [
-    { Icon: Brain,          title: 'Biomechanics PhD',         body: 'Throwing mechanics, swing path, movement screen. Knows why your shoulder hurts before you do.' },
-    { Icon: ChefHat,        title: 'Nutrition PhD',            body: 'Macros, fueling windows, athlete-sized portions. Builds meals around your numbers, not a template.' },
+    { Icon: Brain,          title: 'Biomechanics PhD',         body: 'Movement analysis, form correction, injury-risk detection. Knows why something hurts before you do.' },
+    { Icon: ChefHat,        title: 'Nutrition PhD',            body: 'Macros, fueling windows, real-food portions. Builds meals around your numbers and your life, not a template.' },
     { Icon: Dumbbell,       title: 'Strength & Conditioning PhD', body: 'Periodization, peaking, in-season vs off-season. Plans the block, then writes the sessions.' },
     { Icon: Activity,       title: 'Exercise Physiology PhD',  body: 'Recovery, sleep debt, soreness curves. Knows when to push and when to back off.' },
-    { Icon: GraduationCap,  title: 'Sports Psychology PhD',    body: 'Focus under pressure, motivation when you stall, the mental side coaches forget.' },
-    { Icon: Target,         title: 'Ex-MLB player + 20-year pro coach', body: 'Two decades of staff coaching across hitting, pitching, throwing. Real reps in the dugout.' },
+    { Icon: GraduationCap,  title: 'Sports Psychology PhD',    body: 'Focus under pressure, motivation when you stall, the mental side most programs skip entirely.' },
+    { Icon: Target,         title: 'Retired pro athlete + 20-year coaching staff', body: 'Real competition experience across multiple sports. Not theory  —  the kind of knowledge you only get from decades on the field, in the gym, and in the locker room.' },
   ]
   return (
     <section style={{ padding: `${T.s8}px 24px`, background: T.card }}>
@@ -778,9 +772,10 @@ function InsideTheAi() {
             fontWeight: T.weight.body, color: T.ink3,
           }}>
             Most fitness AI is a generic chatbot wearing a tank top. Koto&rsquo;s
-            AI was modeled after a specific team — five PhDs, an ex-MLB
-            player, and a twenty-year pro-coaching staff — so the answers
-            sound like the people who&rsquo;d actually know.
+            AI was modeled after a real team  —  five PhDs, a retired pro
+            athlete, and a twenty-year coaching staff across multiple
+            sports  —  so the answers sound like the people who&rsquo;d
+            actually know.
           </p>
         </div>
 
@@ -855,7 +850,7 @@ function PhoneShowcase() {
             fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            Home, workouts, meals — same calm language across every screen.
+            Home, workouts, meals  —  same calm language across every screen.
           </p>
         </div>
 
@@ -1175,9 +1170,9 @@ function SocialProof() {
             letterSpacing: '-0.025em',
             fontWeight: T.weight.display, color: T.ink,
           }}>
-            From sixteen
+            Real people.
             <br />
-            to sixty-four.
+            Real results.
           </h2>
         </div>
 
@@ -1280,10 +1275,10 @@ function SocialProof() {
   )
 }
 
-// CountUpStat — animates a numeric stat from 0 → target when scrolled
+// CountUpStat  —  animates a numeric stat from 0 → target when scrolled
 // into view via IntersectionObserver. Preserves any non-numeric trailing
 // (e.g. "+", "%", "/7") so values like "15+" or "100%" display correctly.
-// Skips animation when prefers-reduced-motion is set — accessibility +
+// Skips animation when prefers-reduced-motion is set  —  accessibility +
 // signals you respect users who don't want bouncy chrome.
 function CountUpStat({ value, duration = 1200 }) {
   const ref = useRef(null)
@@ -1456,14 +1451,12 @@ function LifestylePhotoStrip() {
     { src: '/images/trainer/woman-running.jpg', alt: 'Woman running with earbuds' },
   ]
   return (
-    <section style={{ padding: `${T.s6}px 0`, overflow: 'hidden' }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 4,
-        maxWidth: PAGE_MAX + 100,
-        margin: '0 auto',
-      }}>
+    <section className="koto-photos" style={{ padding: `${T.s6}px 0`, overflow: 'hidden' }}>
+      <style>{`
+        .koto-photos .koto-photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        @media (max-width: 640px) { .koto-photos .koto-photo-grid { grid-template-columns: repeat(2, 1fr); } }
+      `}</style>
+      <div className="koto-photo-grid" style={{ maxWidth: PAGE_MAX + 100, margin: '0 auto' }}>
         {photos.map((p) => (
           <div key={p.src} style={{
             aspectRatio: '4 / 3',
