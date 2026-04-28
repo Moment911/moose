@@ -1,8 +1,10 @@
 "use client"
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Dumbbell, Utensils, TrendingUp, MessageCircle, BookOpen, Target,
-  ArrowRight, Star,
+  ArrowRight, Star, Check, Loader2, Sparkles, GraduationCap, Activity,
+  Brain, ShieldCheck, ChefHat,
 } from 'lucide-react'
 import { PrimaryCTA, RingMetricTile, T } from '../../components/trainer/aesthetic'
 
@@ -117,7 +119,11 @@ export default function TrainerLandingPage() {
 
       <HowItWorks />
 
+      <LivePlanBuilder />
+
       <FeaturesGrid />
+
+      <InsideTheAi />
 
       <PhoneShowcase />
 
@@ -478,6 +484,167 @@ function HowItWorks() {
   )
 }
 
+// LivePlanBuilder — interactive demo of the actual product moment.
+// Click "Build my plan" → six section pills tick on in sequence with
+// approximate per-phase delays that mirror the real cascade
+// (baseline ~15s → roadmap ~20s → workout ~90s parallel with playbook
+// ~120s and food→meals ~140s). For the demo we compress to ~6s total
+// so the user gets the dopamine without waiting. Replays on click.
+function LivePlanBuilder() {
+  const PHASES = [
+    { key: 'baseline',  label: 'Baseline',         color: '#dc2626', delay: 250 },
+    { key: 'roadmap',   label: '90-day roadmap',   color: '#2563eb', delay: 700 },
+    { key: 'workout',   label: 'Workout block',    color: '#7c3aed', delay: 1700 },
+    { key: 'playbook',  label: 'Coaching playbook',color: '#059669', delay: 2400 },
+    { key: 'foodprefs', label: 'Food preferences', color: '#d97706', delay: 3400 },
+    { key: 'meals',     label: '2-week meal plan + grocery', color: '#0891b2', delay: 4500 },
+  ]
+  const [done, setDone] = useState([])
+  const [running, setRunning] = useState(false)
+  const timersRef = useRef([])
+
+  const start = () => {
+    timersRef.current.forEach(clearTimeout)
+    setDone([])
+    setRunning(true)
+    timersRef.current = PHASES.map((p) => setTimeout(() => {
+      setDone((prev) => prev.includes(p.key) ? prev : [...prev, p.key])
+    }, p.delay))
+    timersRef.current.push(setTimeout(() => setRunning(false), PHASES[PHASES.length - 1].delay + 400))
+  }
+
+  useEffect(() => () => { timersRef.current.forEach(clearTimeout) }, [])
+
+  const allDone = done.length === PHASES.length
+
+  return (
+    <section style={{ padding: `${T.s8}px 24px`, background: T.bg }}>
+      <div style={{ maxWidth: 880, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: T.s7 }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '4px 10px', borderRadius: T.rPill,
+            background: T.card,
+            fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
+            color: T.ink2, letterSpacing: '0.1px', marginBottom: T.s4,
+          }}>
+            Live demo
+          </span>
+          <h2 style={{
+            margin: 0,
+            fontFamily: T.font,
+            fontSize: 'clamp(32px, 5.5vw, 48px)',
+            lineHeight: 1.08, letterSpacing: '-0.025em',
+            fontWeight: T.weight.display, color: T.ink,
+          }}>
+            Watch your plan
+            <br />
+            build itself.
+          </h2>
+          <p style={{
+            margin: `${T.s4}px auto 0`, maxWidth: 540,
+            fontFamily: T.font,
+            fontSize: T.size.body, lineHeight: T.lh.body,
+            fontWeight: T.weight.body, color: T.ink3,
+          }}>
+            Six sections, generated in parallel by a stack of AI specialists.
+            In the real product this takes about two minutes — here we&rsquo;ve
+            sped it up so you can see the shape.
+          </p>
+        </div>
+
+        <div style={{
+          background: '#0a0a0a',
+          borderRadius: T.rXl,
+          padding: T.s7,
+          boxShadow: '0 30px 80px rgba(0,0,0,0.18)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: T.s5 }}>
+            <span style={{ fontFamily: T.font, fontSize: T.size.body, fontWeight: T.weight.display, color: '#fff' }}>
+              Your plan
+            </span>
+            <span style={{
+              padding: '5px 14px', borderRadius: T.rPill,
+              background: allDone ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.08)',
+              color: allDone ? '#10b981' : 'rgba(255,255,255,0.6)',
+              fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+            }}>
+              {done.length}/{PHASES.length} {allDone ? 'ready' : 'building'}
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gap: T.s2 }}>
+            {PHASES.map((p) => {
+              const isDone = done.includes(p.key)
+              const isNext = !isDone && running && done.length === PHASES.indexOf(p)
+              return (
+                <div key={p.key} style={{
+                  display: 'flex', alignItems: 'center', gap: T.s3,
+                  padding: '12px 14px',
+                  background: isDone ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${isDone ? p.color + '40' : 'rgba(255,255,255,0.06)'}`,
+                  borderLeft: `3px solid ${isDone ? p.color : 'rgba(255,255,255,0.08)'}`,
+                  borderRadius: T.rMd,
+                  transition: 'background .35s ease, border-color .35s ease',
+                }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: T.rPill, flexShrink: 0,
+                    background: isDone ? p.color : 'rgba(255,255,255,0.08)',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'background .35s ease',
+                  }}>
+                    {isDone ? (
+                      <Check size={14} color="#fff" strokeWidth={3} />
+                    ) : isNext ? (
+                      <Loader2 size={12} color="#fff" style={{ animation: 'koto-spin 0.9s linear infinite' }} />
+                    ) : null}
+                  </div>
+                  <span style={{
+                    fontFamily: T.font,
+                    fontSize: T.size.body, lineHeight: 1.3,
+                    fontWeight: T.weight.body,
+                    color: isDone ? '#fff' : 'rgba(255,255,255,0.55)',
+                    transition: 'color .35s ease',
+                  }}>
+                    {p.label}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+
+          <div style={{ marginTop: T.s5, display: 'flex', justifyContent: 'center' }}>
+            <button
+              type="button"
+              onClick={start}
+              disabled={running}
+              style={{
+                padding: '12px 22px',
+                borderRadius: T.rPill,
+                border: 'none',
+                background: running ? 'rgba(255,255,255,0.1)' : '#fff',
+                color: running ? 'rgba(255,255,255,0.55)' : T.ink,
+                fontFamily: T.font,
+                fontSize: T.size.subtitle,
+                fontWeight: T.weight.button,
+                cursor: running ? 'default' : 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                letterSpacing: '0.1px',
+                transition: 'transform .12s ease, background .15s ease',
+              }}
+            >
+              {running ? <Loader2 size={14} style={{ animation: 'koto-spin 0.9s linear infinite' }} /> : <Sparkles size={14} />}
+              {running ? 'Building…' : allDone ? 'Replay' : 'Build my plan'}
+            </button>
+          </div>
+        </div>
+      </div>
+      <style>{`@keyframes koto-spin { to { transform: rotate(360deg) } }`}</style>
+    </section>
+  )
+}
+
 function FeaturesGrid() {
   return (
     <section id="features" style={{ padding: `${T.s8}px 24px`, background: T.bg }}>
@@ -558,6 +725,104 @@ function FeaturesGrid() {
                 fontWeight: T.weight.body, color: T.ink2,
               }}>
                 {f.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// InsideTheAi — credentials block. The actual differentiator: Koto's AI
+// is modeled after a specific stack of expert personas, not a generic LLM
+// "fitness assistant." Calling it out by name turns "trust the AI" from
+// hand-wavy into specific.
+function InsideTheAi() {
+  const SPECIALISTS = [
+    { Icon: Brain,          title: 'Biomechanics PhD',         body: 'Throwing mechanics, swing path, movement screen. Knows why your shoulder hurts before you do.' },
+    { Icon: ChefHat,        title: 'Nutrition PhD',            body: 'Macros, fueling windows, athlete-sized portions. Builds meals around your numbers, not a template.' },
+    { Icon: Dumbbell,       title: 'Strength & Conditioning PhD', body: 'Periodization, peaking, in-season vs off-season. Plans the block, then writes the sessions.' },
+    { Icon: Activity,       title: 'Exercise Physiology PhD',  body: 'Recovery, sleep debt, soreness curves. Knows when to push and when to back off.' },
+    { Icon: GraduationCap,  title: 'Sports Psychology PhD',    body: 'Focus under pressure, motivation when you stall, the mental side coaches forget.' },
+    { Icon: Target,         title: 'Ex-MLB player + 20-year pro coach', body: 'Two decades of staff coaching across hitting, pitching, throwing. Real reps in the dugout.' },
+  ]
+  return (
+    <section style={{ padding: `${T.s8}px 24px`, background: T.card }}>
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: T.s8 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '4px 10px', borderRadius: T.rPill,
+            background: T.bg,
+            fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
+            color: T.ink2, letterSpacing: '0.1px', marginBottom: T.s4,
+          }}>
+            <ShieldCheck size={12} strokeWidth={2.25} />
+            Inside the AI
+          </span>
+          <h2 style={{
+            margin: 0,
+            fontFamily: T.font,
+            fontSize: 'clamp(32px, 5.5vw, 48px)',
+            lineHeight: 1.08, letterSpacing: '-0.025em',
+            fontWeight: T.weight.display, color: T.ink,
+          }}>
+            Modeled after a stack
+            <br />
+            of real specialists.
+          </h2>
+          <p style={{
+            margin: `${T.s4}px auto 0`, maxWidth: 600,
+            fontFamily: T.font,
+            fontSize: T.size.body, lineHeight: T.lh.body,
+            fontWeight: T.weight.body, color: T.ink3,
+          }}>
+            Most fitness AI is a generic chatbot wearing a tank top. Koto&rsquo;s
+            AI was modeled after a specific team — five PhDs, an ex-MLB
+            player, and a twenty-year pro-coaching staff — so the answers
+            sound like the people who&rsquo;d actually know.
+          </p>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: T.s4,
+        }}>
+          {SPECIALISTS.map(({ Icon, title, body }) => (
+            <div
+              key={title}
+              className="koto-feature-card"
+              style={{
+                background: T.bg,
+                borderRadius: T.rLg,
+                padding: T.s6,
+                display: 'flex', flexDirection: 'column', gap: T.s3,
+              }}
+            >
+              <div className="koto-feature-icon" style={{
+                width: 44, height: 44, borderRadius: T.rSm,
+                background: T.ink,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon size={20} color="#fff" strokeWidth={2} />
+              </div>
+              <h3 style={{
+                margin: 0,
+                fontFamily: T.font,
+                fontSize: T.size.h2, lineHeight: T.lh.h2, letterSpacing: T.track.h2,
+                fontWeight: T.weight.display, color: T.ink,
+              }}>
+                {title}
+              </h3>
+              <p style={{
+                margin: 0,
+                fontFamily: T.font,
+                fontSize: T.size.subtitle, lineHeight: T.lh.body,
+                fontWeight: T.weight.body, color: T.ink3,
+              }}>
+                {body}
               </p>
             </div>
           ))}
@@ -942,7 +1207,7 @@ function SocialProof() {
                 fontSize: 44, fontWeight: T.weight.display,
                 letterSpacing: '-0.025em', color: T.ink, lineHeight: 1,
               }}>
-                {s.value}
+                <CountUpStat value={s.value} />
               </div>
               <div style={{
                 fontFamily: T.font,
@@ -1014,6 +1279,57 @@ function SocialProof() {
       </div>
     </section>
   )
+}
+
+// CountUpStat — animates a numeric stat from 0 → target when scrolled
+// into view via IntersectionObserver. Preserves any non-numeric trailing
+// (e.g. "+", "%", "/7") so values like "15+" or "100%" display correctly.
+// Skips animation when prefers-reduced-motion is set — accessibility +
+// signals you respect users who don't want bouncy chrome.
+function CountUpStat({ value, duration = 1200 }) {
+  const ref = useRef(null)
+  const [display, setDisplay] = useState(value)
+  const startedRef = useRef(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || startedRef.current) return
+
+    const reduceMotion = typeof window !== 'undefined'
+      && window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) { setDisplay(value); return }
+
+    const m = String(value).match(/^(\d+(?:\.\d+)?)(.*)$/)
+    if (!m) { setDisplay(value); return }
+    const target = parseFloat(m[1])
+    const suffix = m[2]
+    const isInt = !m[1].includes('.')
+
+    setDisplay(`0${suffix}`)
+
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting || startedRef.current) continue
+        startedRef.current = true
+        const startTs = performance.now()
+        const tick = (now) => {
+          const t = Math.min(1, (now - startTs) / duration)
+          // ease-out cubic
+          const eased = 1 - Math.pow(1 - t, 3)
+          const v = target * eased
+          setDisplay((isInt ? Math.round(v) : v.toFixed(1)) + suffix)
+          if (t < 1) requestAnimationFrame(tick)
+        }
+        requestAnimationFrame(tick)
+        io.disconnect()
+      }
+    }, { threshold: 0.4 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [value, duration])
+
+  return <span ref={ref}>{display}</span>
 }
 
 function FaqList() {
