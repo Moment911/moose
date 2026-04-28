@@ -19,11 +19,17 @@
 //   - pregnancy_or_nursing — sex/age-specific; surfaced only when relevant
 //   - grocery_budget_usd_per_week — soft preference
 //   - trainer_notes        — agency-internal
+//   - meals_per_day, sleep_hours_avg, stress_level, occupation_activity
+//     — soft fields with safe Sonnet defaults (per "Trainer intake scope"
+//     memory rule: intake asks hard constraints only, Sonnet infers
+//     meals/day, frequencies, etc. from goal). Blocking plan generation
+//     on these creates needless friction; the model handles their absence.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { IntakeInput } from './intakeSchema'
 
 export const REQUIRED_INTAKE_FIELDS = [
+  // Plan-shaping inputs — without these the plan would be wrong, not just generic
   'about_you',
   'age',
   'sex',
@@ -33,14 +39,11 @@ export const REQUIRED_INTAKE_FIELDS = [
   'training_experience_years',
   'training_days_per_week',
   'equipment_access',
+  // Safety — never silently default these
   'medical_flags',
   'injuries',
   'dietary_preference',
   'allergies',
-  'sleep_hours_avg',
-  'stress_level',
-  'occupation_activity',
-  'meals_per_day',
 ] as const satisfies ReadonlyArray<keyof IntakeInput>
 
 export type RequiredIntakeField = (typeof REQUIRED_INTAKE_FIELDS)[number]
