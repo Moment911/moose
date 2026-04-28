@@ -1341,16 +1341,18 @@ function OverviewTab({
     } catch { /* silent */ }
   }
 
-  async function handleChatAboutYouAppend(text) {
+  // Accumulate about_you appends and save in batch
+  const aboutYouBufferRef = useRef(trainee?.about_you || '')
+  function handleChatAboutYouAppend(text) {
     if (!text) return
-    const updated = ((trainee?.about_you || '') + ' ' + text).trim()
-    // Save silently — do NOT reload
-    try {
-      await trainerFetch(
-        { action: 'update', trainee_id: traineeId, patch: { about_you: updated } },
+    aboutYouBufferRef.current = (aboutYouBufferRef.current + ' ' + text).trim()
+    if (window._aboutYouTimer) clearTimeout(window._aboutYouTimer)
+    window._aboutYouTimer = setTimeout(() => {
+      trainerFetch(
+        { action: 'update', trainee_id: traineeId, patch: { about_you: aboutYouBufferRef.current } },
         { agencyId },
-      )
-    } catch { /* silent */ }
+      ).catch(() => {})
+    }, 3000)
   }
 
   const hasPlan = hasBaseline || plan?.roadmap || plan?.workout_plan
@@ -1368,10 +1370,14 @@ function OverviewTab({
             onFieldsUpdate={handleChatFieldsUpdate}
             onAboutYouAppend={handleChatAboutYouAppend}
             onMessagesChange={(msgs) => {
-              trainerFetch(
-                { action: 'update', trainee_id: traineeId, patch: { chat_history: msgs } },
-                { agencyId },
-              ).catch(() => {})
+              // Debounce — only save after 2s of no new messages
+              if (window._chatSaveTimer) clearTimeout(window._chatSaveTimer)
+              window._chatSaveTimer = setTimeout(() => {
+                trainerFetch(
+                  { action: 'update', trainee_id: traineeId, patch: { chat_history: msgs } },
+                  { agencyId },
+                ).catch(() => {})
+              }, 2000)
             }}
             initialMessages={Array.isArray(trainee?.chat_history) ? trainee.chat_history : []}
             userName={trainee?.full_name?.split(' ')[0] || ''}
