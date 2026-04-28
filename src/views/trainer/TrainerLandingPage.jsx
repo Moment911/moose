@@ -113,9 +113,9 @@ export default function TrainerLandingPage() {
       color: T.ink,
       minHeight: '100vh',
     }}>
-      <TopNav onSignIn={() => {}} onStart={() => {}} />
+      <TopNav onSignIn={() => navigate('/start')} onStart={() => navigate('/start')} />
 
-      <Hero onStart={() => {}} />
+      <Hero onStart={() => navigate('/start')} />
 
       <PhoneShowcase />
 
@@ -141,7 +141,7 @@ export default function TrainerLandingPage() {
 
       <FaqList />
 
-      <BottomCta onStart={() => {}} />
+      <BottomCta onStart={() => navigate('/start')} />
 
       <FooterStrip />
 
