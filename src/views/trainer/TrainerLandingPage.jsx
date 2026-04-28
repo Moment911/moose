@@ -11,7 +11,8 @@ import { PrimaryCTA, RingMetricTile, T } from '../../components/trainer/aestheti
 const SPORTS = [
   'Baseball', 'Football', 'Basketball', 'Soccer', 'Track & Field',
   'Swimming', 'Wrestling', 'Volleyball', 'Tennis', 'Golf',
-  'Hockey', 'Lacrosse', 'CrossFit', 'MMA', 'General Fitness',
+  'Hockey', 'Lacrosse', 'CrossFit', 'MMA',
+  'Weight Loss', 'Muscle Gain', 'General Fitness', 'Active Aging',
 ]
 
 const FEATURES = [
@@ -29,8 +30,8 @@ const FEATURES = [
   },
   {
     icon: Target,
-    title: 'Your AI sport expert.',
-    desc: "PhD-level periodization for fifteen sports plus a general-fitness mode. It knows the difference between training for a baseball showcase and training for a 5K. Sport-specific, season-aware, position-aware.",
+    title: 'Knows your sport. Or your goal.',
+    desc: "Play a sport? It knows how to train for it -- different programs for baseball, soccer, basketball, and 12 more. Not an athlete? It builds around weight loss, muscle gain, or just feeling better. It meets you where you are.",
     color: '#0891b2',
   },
   {
@@ -61,7 +62,7 @@ const TESTIMONIAL_STATS = [
 ]
 
 const TESTIMONIALS = [
-  { quote: "I play three sports and no one coach could program for all of them. This AI knows my soccer season, my track schedule, and my gym days and adjusts the plan week by week so I'm not overtrained.", name: 'Jaylen M., 16', role: 'High school multi-sport athlete', avatar: '/images/trainer/youth-baseball.jpg' },
+  { quote: "I play three sports and no one coach could program for all of them. This AI knows my soccer season, my track schedule, and my gym days and adjusts the plan week by week so I'm not overtrained.", name: 'Darius K., 16', role: 'High school multi-sport athlete', avatar: '/images/trainer/youth-baseball.jpg' },
   { quote: "Three kids, a full-time job, and twenty minutes for lunch. I told the AI my reality and it built workouts I could actually finish. Down twenty-two pounds in five months -- no trainer required.", name: 'Renee D., 43', role: 'Working parent', avatar: '/images/trainer/woman-running.jpg' },
   { quote: 'After I retired I started feeling old fast. This built me strength and walking workouts that match what my body can do today, not twenty years ago. I feel better at sixty-four than I did at fifty-four.', name: 'Hank P., 64', role: 'Retiree', avatar: '/images/trainer/senior-stretching.jpg' },
 ]
@@ -73,7 +74,7 @@ const FAQS = [
   },
   {
     q: 'How does the AI know my sport?',
-    a: 'During the two-minute intake, you tell us your sport, position, level, and goals. The AI loads a sport-specific playbook (energy systems, common movement patterns, in-season vs off-season periodization) and writes your plan against that, not a generic template. If you don\'t play a sport, general-fitness mode covers strength, cardio, and mobility for everyday life.',
+    a: 'During the two-minute intake, you tell us what you do and what you want. If you play a sport, the AI loads a playbook for that sport -- it knows how to train a baseball pitcher differently from a soccer midfielder. If you do not play a sport, it builds around your goal -- weight loss, muscle gain, staying active, whatever matters to you.',
   },
   {
     q: 'Is my health data safe?',
@@ -249,11 +250,11 @@ function Hero({ onStart }) {
             color: T.ink,
           }}
         >
-          Your AI trainer,
+          Your AI trainer.
           <br />
-          nutritionist, and
+          Your AI nutritionist.
           <br />
-          sport expert.
+          Always on.
         </h1>
         <p
           className="koto-hero-sub"
@@ -267,9 +268,9 @@ function Hero({ onStart }) {
             color: T.ink3,
           }}
         >
-          Talk to it daily. Tell it what&rsquo;s working, what&rsquo;s sore, what you ate, how you slept.
-          It refines your workouts, adjusts your diet, and keeps you focused  —  like having a
-          world-class trainer, nutritionist, and accountability partner in your pocket 24/7.
+          Tell it who you are, what you want, and what your life actually looks like.
+          It builds your workouts, plans your meals, tracks your progress, and
+          checks in with you daily  —  24 hours a day, 7 days a week, 365 days a year.
         </p>
 
         <div style={{ marginTop: T.s7, maxWidth: 320 }}>
@@ -345,7 +346,7 @@ function SportsStrip() {
         textTransform: 'uppercase', letterSpacing: '0.12em', color: T.ink3,
         marginBottom: T.s5,
       }}>
-        Built for every sport
+        Built for every body
       </div>
       <div style={{
         display: 'flex', width: '100%',
@@ -383,8 +384,8 @@ function SportsStrip() {
 function HowItWorks() {
   const steps = [
     {
-      n: '1', title: 'Talk to your AI coach',
-      body: 'Have a real conversation. Tell it your sport, your goals, your schedule, your injuries. It asks smart follow-ups and builds your profile in about two minutes  —  just tap pill buttons or type freely.',
+      n: '1', title: 'Tell it about you',
+      body: 'Have a real conversation. Tell it what you do, what you want, and what your life looks like. It asks smart follow-ups and builds your profile in about two minutes  —  tap answers or type freely.',
       img: '/images/trainer/woman-yoga-laptop.jpg',
     },
     {
@@ -394,7 +395,7 @@ function HowItWorks() {
     },
     {
       n: '3', title: 'Train daily with your AI',
-      body: 'This is the part that matters. Log your workouts. Snap photos of meals. Check in daily. Your AI coach watches your trends, adjusts your plan, answers your questions 24/7, and keeps you accountable  —  like having a trainer in your pocket.',
+      body: 'This is where it gets real. Log your workouts. Snap photos of meals. Check in daily. Your AI watches your trends, adjusts your plan, answers your questions anytime, and keeps you honest  —  365 days a year.',
       img: '/images/trainer/couple-running.jpg',
     },
   ]
@@ -712,9 +713,9 @@ function FeaturesGrid() {
             letterSpacing: '-0.025em',
             fontWeight: T.weight.display, color: T.ink,
           }}>
-            A trainer that never sleeps.
+            It never sleeps.
             <br />
-            A nutritionist that never judges.
+            It never judges.
           </h2>
           <p style={{
             margin: `${T.s4}px auto 0`, maxWidth: 620,
@@ -722,7 +723,7 @@ function FeaturesGrid() {
             fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            Talk to your AI coach whenever you want -- morning, midnight, mid-workout. It's always ready, always current on your data, and always in your corner.
+            Talk to it whenever you want -- morning, midnight, between meetings, after the kids go to bed. It is always ready, always current on your data, and always in your corner.
           </p>
         </div>
 
@@ -1461,7 +1462,7 @@ function SocialProof() {
             <style>{`@media(max-width:640px){.koto-stats-row{grid-template-columns:1fr!important;}}`}</style>
             {[
               { val: '2 min', title: 'First conversation to full plan', desc: 'Answer a few questions. Get a complete personalized program.' },
-              { val: '15+', title: 'Sports with dedicated AI models', desc: 'Each sport gets its own playbook, periodization, and position-specific training.' },
+              { val: '15+', title: 'Sports and goals supported', desc: 'From baseball to weight loss to active aging. Each one gets its own AI-built program.' },
               { val: '$0', title: 'Free to start, no card required', desc: 'Your first plan, your first 14 days, your first real results. On us.' },
             ].map((s) => (
               <div key={s.val} style={{ textAlign: 'center', padding: `0 ${T.s3}px` }}>
