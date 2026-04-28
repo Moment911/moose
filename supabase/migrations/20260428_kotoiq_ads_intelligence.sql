@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS kotoiq_ads_rec_negatives (
   model_used text,
   prompt_version integer,
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','applied')),
-  reviewed_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_by uuid ,
   reviewed_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS kotoiq_ads_rec_new_keywords (
   model_used text,
   prompt_version integer,
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','applied')),
-  reviewed_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_by uuid ,
   reviewed_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS kotoiq_ads_rec_ad_copy (
   model_used text,
   prompt_version integer,
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','applied')),
-  reviewed_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_by uuid ,
   reviewed_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS kotoiq_ads_rec_bid_changes (
   proposed_value numeric(10,4),
   rationale_md text,
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','applied')),
-  reviewed_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_by uuid ,
   reviewed_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
@@ -259,7 +259,7 @@ CREATE TABLE IF NOT EXISTS kotoiq_ads_alerts (
   explanation_md text,
   contributors jsonb,
   acknowledged_at timestamptz,
-  acknowledged_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  acknowledged_by uuid ,
   created_at timestamptz DEFAULT now()
 );
 
