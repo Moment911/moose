@@ -24,6 +24,7 @@ import WorkoutAccordion from '../../components/trainer/WorkoutAccordion'
 import PlaybookCard from '../../components/trainer/PlaybookCard'
 import MealPlanTable from '../../components/trainer/MealPlanTable'
 import GroceryList from '../../components/trainer/GroceryList'
+import FoodSearchBar from '../../components/trainer/FoodSearchBar'
 import TraineeDisclaimerAckModal from './TraineeDisclaimerAckModal'
 import NoneOrText from '../../components/trainer/NoneOrText'
 import { DateStrip, RingMetricTile, lastNDays, T as TK } from '../../components/trainer/aesthetic'
@@ -2011,10 +2012,13 @@ function MealsTab({ plan, traineeId, isMobile, onMealLogged }) {
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
+      {/* Quick-add food search — FatSecret powered */}
+      <FoodSearchBar traineeId={traineeId} onLogged={() => { loadToday(); onMealLogged?.() }} />
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
-          Meals
+          Meal Plan
         </h2>
         <div style={{ display: 'flex', gap: 8 }}>
           {/* Photo scan */}
