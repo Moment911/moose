@@ -290,13 +290,15 @@ export default function MealPlanTable({ mealPlan, traineeId }) {
                               <button type="button" onClick={() => toggleLogged(key, meal)}
                                 disabled={busy} aria-pressed={isLogged}
                                 style={{
-                                  width: 28, height: 28, borderRadius: 8, cursor: busy ? 'wait' : 'pointer',
-                                  background: isLogged ? C.green : '#fff', border: `1.5px solid ${isLogged ? C.green : C.border}`,
+                                  width: 36, height: 36, borderRadius: 10, cursor: busy ? 'wait' : 'pointer',
+                                  background: isLogged ? C.green : '#fff', border: `2px solid ${isLogged ? C.green : C.border}`,
                                   display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                                  boxShadow: isLogged ? '0 2px 8px rgba(22,163,74,0.25)' : 'none',
+                                  transition: 'all .15s',
                                 }}>
                                 {busy
-                                  ? <Loader2 size={12} color={isLogged ? '#fff' : C.ink4} style={{ animation: 'kotoSpin 0.8s linear infinite' }} />
-                                  : isLogged ? <Check size={14} color="#fff" strokeWidth={3} /> : null}
+                                  ? <Loader2 size={16} color={isLogged ? '#fff' : C.ink4} style={{ animation: 'kotoSpin 0.8s linear infinite' }} />
+                                  : isLogged ? <Check size={18} color="#fff" strokeWidth={3} /> : <span style={{ width: 18, height: 18 }} />}
                               </button>
                             </div>
                           )}

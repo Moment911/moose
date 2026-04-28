@@ -2012,45 +2012,47 @@ function MealsTab({ plan, traineeId, isMobile, onMealLogged }) {
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
+      {/* Header */}
+      <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
+        Meals
+      </h2>
+
+      {/* ── Log food: two primary actions ── */}
+      <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {/* Snap photo — AI identifies food → logs with real macros */}
+        <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+          onChange={(e) => handlePhotoScan(e.target.files?.[0])} />
+        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 6, padding: '20px 14px', background: A.ink, color: '#fff',
+            border: 'none', borderRadius: A.r,
+            fontSize: 15, fontWeight: 600, cursor: uploading ? 'wait' : 'pointer',
+            fontFamily: A.font,
+          }}>
+          {uploading
+            ? <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
+            : <Camera size={24} strokeWidth={1.75} />}
+          {uploading ? 'Scanning...' : 'Snap food'}
+          <span style={{ fontSize: 11, fontWeight: 500, opacity: 0.6 }}>Take a photo, AI logs it</span>
+        </button>
+
+        {/* Search food database */}
+        <button type="button" onClick={() => inputRef.current?.focus?.() || document.querySelector('[data-food-search-input]')?.focus()}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 6, padding: '20px 14px', background: A.cardAlt, color: A.ink,
+            border: `1px solid ${A.border}`, borderRadius: A.r,
+            fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: A.font,
+          }}>
+          <Search size={24} strokeWidth={1.75} color={A.ink3} />
+          Search food
+          <span style={{ fontSize: 11, fontWeight: 500, color: A.ink3 }}>1M+ foods with real macros</span>
+        </button>
+      </div>
+
       {/* Quick-add food search — FatSecret powered */}
       <FoodSearchBar traineeId={traineeId} onLogged={() => { loadToday(); onMealLogged?.() }} />
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
-          Meal Plan
-        </h2>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {/* Photo scan */}
-          <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
-            onChange={(e) => handlePhotoScan(e.target.files?.[0])} />
-          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
-            className="no-print"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '10px 14px', background: A.ink, color: '#fff',
-              border: 'none', borderRadius: A.rSm,
-              fontSize: 14, fontWeight: 600, cursor: uploading ? 'wait' : 'pointer',
-              fontFamily: A.font,
-            }}>
-            {uploading
-              ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-              : <Camera size={16} strokeWidth={1.75} />}
-            {uploading ? 'Scanning' : 'Snap food'}
-          </button>
-          {/* Print */}
-          <button type="button" onClick={() => window.print()}
-            className="no-print"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '10px 14px', background: A.card, color: A.ink2,
-              border: `1px solid ${A.border}`, borderRadius: A.rSm,
-              fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: A.font,
-            }}>
-            <Printer size={16} strokeWidth={1.75} /> Print
-          </button>
-        </div>
-      </div>
 
       {/* Scan feedback */}
       {scanError && (

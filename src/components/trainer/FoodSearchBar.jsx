@@ -145,6 +145,7 @@ export default function FoodSearchBar({ traineeId, onLogged }) {
         <Search size={18} color={T.ink4} style={{ flexShrink: 0 }} />
         <input
           ref={inputRef}
+          data-food-search-input
           type="text"
           value={query}
           onChange={(e) => handleChange(e.target.value)}
