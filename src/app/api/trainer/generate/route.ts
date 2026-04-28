@@ -1264,11 +1264,33 @@ async function handleGenerateFullPlan(
       })
       if (mResult.ok) {
         const mealsData = mResult.data as Record<string, unknown>
-        await sb.from('koto_fitness_plans').update({
-          meal_plan: mealsData,
-          grocery_list: mealsData.grocery_list ?? null,
-        }).eq('id', planId).eq('agency_id', agencyId)
-        log('meals', 'done')
+        // Validate the meals output has actual content
+        const hasWeeks = Array.isArray(mealsData.weeks) && (mealsData.weeks as unknown[]).length > 0
+        if (!hasWeeks) {
+          log('meals', 'WARNING: meals output missing weeks array, retrying...')
+          // Retry once
+          const mRetry = await callSonnet<MealsOutput>({
+            featureTag: FEATURE_TAGS.MEALS, systemPrompt: mSys, tool: mealsTool,
+            userMessage: mMsg, agencyId, maxTokens: 16000,
+            metadata: { trainee_id: traineeId, plan_id: planId, retry: true },
+          })
+          if (mRetry.ok) {
+            const retryData = mRetry.data as Record<string, unknown>
+            await sb.from('koto_fitness_plans').update({
+              meal_plan: retryData,
+              grocery_list: retryData.grocery_list ?? null,
+            }).eq('id', planId).eq('agency_id', agencyId)
+            log('meals', 'done (retry)')
+          } else {
+            errors.push(`meals_retry: ${mRetry.error}`)
+          }
+        } else {
+          await sb.from('koto_fitness_plans').update({
+            meal_plan: mealsData,
+            grocery_list: mealsData.grocery_list ?? null,
+          }).eq('id', planId).eq('agency_id', agencyId)
+          log('meals', 'done')
+        }
       } else {
         errors.push(`meals: ${mResult.error}`)
       }
