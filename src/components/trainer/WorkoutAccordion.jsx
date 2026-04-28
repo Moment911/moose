@@ -1,48 +1,27 @@
 "use client"
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { ChevronDown, ChevronRight, Info, ExternalLink, Loader2, Timer, Play, Pause } from 'lucide-react'
-import { R, T, BLK, GRN } from '../../lib/theme'
+import { ChevronDown, ChevronUp, Info, Loader2, Play, Pause, Check } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Trainer Phase 2 — WorkoutAccordion.
+// WorkoutAccordion — Cal-AI styled workout logging component.
 //
-// Renders a WorkoutOutput (2 weeks, each with sessions, each with blocks of
-// exercises).  Per-exercise set grid captures actual_weight / reps / rpe /
-// notes and fires onLogSet(payload) on blur.  Existing logs hydrate the grid.
-//
-// The "Show how-to" global toggle exposes performance_cues + common_mistakes +
-// a "Search how to" link built from video_query.  Each exercise also has its
-// own info button — so operators can expand one without enabling the whole
-// plan.
+// Renders a 2-week workout plan with per-exercise set logging (lbs/reps),
+// rest timer, coaching cues, how-to toggles, and PR tracking.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#e5e7eb'
-const BRD_LT = '#f3f4f6'
-const GRY5 = '#6b7280'
-const GRY7 = '#374151'
-
-const BLOCK_LABELS = {
-  main_lift: 'Main Lift',
-  accessory: 'Accessory',
-  conditioning: 'Conditioning',
-  mobility: 'Mobility',
+const C = {
+  ink: '#0a0a0a', ink2: '#1f1f22', ink3: '#6b6b70', ink4: '#a1a1a6',
+  bg: '#ffffff', card: '#f1f1f6', border: '#ececef', divider: '#e5e5ea',
+  green: '#16a34a', greenBg: '#f0fdf4', amber: '#f59e0b', amberBg: '#fffbeb',
+  font: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  r: 16, rSm: 12, rPill: 999,
 }
 
-export default function WorkoutAccordion({
-  workoutPlan,
-  logs = [],
-  onLogSet,
-  expandSessionDay = null,
-  onRegenerate = null,
-  regenerating = false,
-}) {
+export default function WorkoutAccordion({ workoutPlan, logs = [], onLogSet, onRegenerate, regenerating }) {
   const [weekIdx, setWeekIdx] = useState(0)
   const [openSessions, setOpenSessions] = useState({})
-  const [showHowToGlobal, setShowHowToGlobal] = useState(false)
-  const [howToForExercise, setHowToForExercise] = useState({})
-  const sessionRefs = useRef({})
+  const [showHowTo, setShowHowTo] = useState({})
 
-  // Index logs by composite key for O(1) lookup in the set grid.
   const logIndex = useMemo(() => {
     const m = new Map()
     for (const log of logs) {
@@ -52,89 +31,43 @@ export default function WorkoutAccordion({
     return m
   }, [logs])
 
-  // When parent asks us to expand a specific session day, scroll to it.
-  // The open-state merge is handled via the derived `effectiveOpen` below so
-  // we don't setState inside an effect.
-  useEffect(() => {
-    if (expandSessionDay == null) return
-    const node = sessionRefs.current[expandSessionDay]
-    if (node) {
-      try {
-        node.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      } catch {
-        /* ignore */
-      }
-    }
-  }, [expandSessionDay])
-
-  // Derived: merge local openSessions with the parent's forced-open directive.
-  const effectiveOpen = useMemo(() => {
-    if (expandSessionDay == null) return openSessions
-    return { ...openSessions, [expandSessionDay]: true }
-  }, [openSessions, expandSessionDay])
-
   if (!workoutPlan) return null
   const weeks = Array.isArray(workoutPlan.weeks) ? workoutPlan.weeks : []
   const activeWeek = weeks[weekIdx] || weeks[0] || { sessions: [] }
 
-  return (
-    <section style={cardStyle}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-        <div>
-          <h2 style={titleStyle}>
-            {workoutPlan.program_name || 'Workout Block'}
-          </h2>
-          <div style={{ color: GRY5, fontSize: 12, marginTop: 4 }}>
-            Block {workoutPlan.block_number ?? '—'}
-            {workoutPlan.phase_ref ? ` · ${workoutPlan.phase_ref}` : ''}
-          </div>
-        </div>
-        <label
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '6px 12px',
-            border: `1px solid ${showHowToGlobal ? T : BRD}`,
-            borderRadius: 8,
-            background: showHowToGlobal ? T + '10' : '#fff',
-            color: showHowToGlobal ? T : GRY7,
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={showHowToGlobal}
-            onChange={(e) => setShowHowToGlobal(e.target.checked)}
-            style={{ margin: 0 }}
-          />
-          Show how-to for all exercises
-        </label>
-      </header>
+  // Count logged sets per session
+  const sessionLogCounts = useMemo(() => {
+    const counts = new Map()
+    for (const log of logs) counts.set(log.session_day_number, (counts.get(log.session_day_number) || 0) + 1)
+    return counts
+  }, [logs])
 
-      {/* Week tabs */}
+  return (
+    <div style={{ fontFamily: C.font }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.ink, letterSpacing: '-0.02em' }}>
+            {workoutPlan.program_name || 'Your Workouts'}
+          </h3>
+          {workoutPlan.phase_ref && (
+            <div style={{ fontSize: 13, color: C.ink3, marginTop: 2 }}>Block {workoutPlan.block_number ?? 1} · Phase {workoutPlan.phase_ref}</div>
+          )}
+        </div>
+      </div>
+
+      {/* Week selector */}
       {weeks.length > 1 && (
-        <div style={{ display: 'flex', gap: 6, borderBottom: `1px solid ${BRD}`, marginBottom: 14 }}>
+        <div style={{ display: 'inline-flex', padding: 3, background: C.card, borderRadius: C.rSm, marginBottom: 16 }}>
           {weeks.map((_, i) => {
             const active = i === weekIdx
             return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setWeekIdx(i)}
-                style={{
-                  padding: '8px 16px',
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: `2px solid ${active ? R : 'transparent'}`,
-                  color: active ? R : GRY7,
-                  fontSize: 13,
-                  fontWeight: active ? 800 : 600,
-                  cursor: 'pointer',
-                }}
-              >
+              <button key={i} type="button" onClick={() => setWeekIdx(i)} style={{
+                padding: '8px 20px', background: active ? C.bg : 'transparent',
+                border: 'none', borderRadius: 9, color: active ? C.ink : C.ink3,
+                fontSize: 14, fontWeight: active ? 600 : 500, cursor: 'pointer',
+                fontFamily: C.font, boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              }}>
                 Week {i + 1}
               </button>
             )
@@ -142,47 +75,20 @@ export default function WorkoutAccordion({
         </div>
       )}
 
-      {/* Sessions — defensive empty state (Sonnet response shape drift guard) */}
+      {/* Empty state */}
       {(!activeWeek.sessions || activeWeek.sessions.length === 0) && (
-        <div
-          style={{
-            padding: '24px 18px',
-            textAlign: 'center',
-            background: '#fffbeb',
-            border: `1px dashed #fcd34d`,
-            borderRadius: 8,
-            color: '#92400e',
-            fontSize: 13,
-            lineHeight: 1.5,
-          }}
-        >
-          <div>No sessions in this block. The AI response came back malformed.</div>
-          {onRegenerate ? (
-            <button
-              type="button"
-              onClick={onRegenerate}
-              disabled={regenerating}
-              style={{
-                marginTop: 12,
-                padding: '8px 16px',
-                background: regenerating ? '#fde68a' : T,
-                color: regenerating ? '#92400e' : '#fff',
-                border: 'none',
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 800,
-                letterSpacing: '.02em',
-                cursor: regenerating ? 'default' : 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              {regenerating ? <Loader2 size={12} /> : null}
-              {regenerating ? 'Regenerating…' : 'Regenerate workout'}
+        <div style={{ padding: 24, textAlign: 'center', background: C.amberBg, border: '1px dashed #fcd34d', borderRadius: C.rSm, color: '#92400e', fontSize: 14 }}>
+          <div>No sessions in this block yet.</div>
+          {onRegenerate && (
+            <button type="button" onClick={onRegenerate} disabled={regenerating} style={{
+              marginTop: 12, padding: '10px 20px', background: regenerating ? '#fde68a' : C.ink,
+              color: regenerating ? '#92400e' : '#fff', border: 'none', borderRadius: C.rSm,
+              fontSize: 14, fontWeight: 600, cursor: regenerating ? 'default' : 'pointer',
+              fontFamily: C.font, display: 'inline-flex', alignItems: 'center', gap: 6,
+            }}>
+              {regenerating && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+              {regenerating ? 'Generating...' : 'Generate workout'}
             </button>
-          ) : (
-            <div style={{ marginTop: 8, fontSize: 12 }}>Ask your coach to regenerate the block.</div>
           )}
         </div>
       )}
@@ -190,97 +96,85 @@ export default function WorkoutAccordion({
       {/* Sessions */}
       {(activeWeek.sessions || []).map((session, si) => {
         const dayNum = session.day_number ?? si + 1
-        const open = !!effectiveOpen[dayNum]
+        const isOpen = !!openSessions[dayNum]
+        const totalSets = (session.blocks || []).reduce((a, b) => a + (b.exercises || []).reduce((x, ex) => x + (Number(ex.sets) || 0), 0), 0)
+        const loggedSets = sessionLogCounts.get(dayNum) || 0
+        const pct = totalSets > 0 ? Math.min(100, Math.round((loggedSets / totalSets) * 100)) : 0
+        const complete = pct >= 100
+
         return (
-          <div
-            key={`${weekIdx}-${dayNum}`}
-            ref={(el) => { sessionRefs.current[dayNum] = el }}
-            style={{
-              border: `1px solid ${BRD}`,
-              borderRadius: 10,
-              marginBottom: 10,
-              overflow: 'hidden',
-              background: '#fff',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setOpenSessions((prev) => ({ ...prev, [dayNum]: !prev[dayNum] }))}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                padding: '10px 14px',
-                background: open ? '#f9fafb' : '#fff',
-                border: 'none',
-                borderBottom: open ? `1px solid ${BRD}` : 'none',
-                cursor: 'pointer',
-                textAlign: 'left',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {open ? <ChevronDown size={16} color={GRY7} /> : <ChevronRight size={16} color={GRY7} />}
-                <span style={{ fontSize: 11, fontWeight: 800, color: GRY5, textTransform: 'uppercase', letterSpacing: '.06em', minWidth: 70 }}>
-                  {session.day_label || `Day ${dayNum}`}
-                </span>
-                <span style={{ color: BLK, fontSize: 14, fontWeight: 700 }}>
-                  {session.session_name || 'Session'}
-                </span>
+          <div key={`${weekIdx}-${dayNum}`} style={{ marginBottom: 10 }}>
+            {/* Session header */}
+            <button type="button" onClick={() => setOpenSessions((prev) => ({ ...prev, [dayNum]: !prev[dayNum] }))} style={{
+              display: 'flex', alignItems: 'center', width: '100%', padding: '14px 16px',
+              background: isOpen ? C.bg : C.card, border: `1px solid ${isOpen ? C.border : 'transparent'}`,
+              borderRadius: isOpen ? `${C.rSm}px ${C.rSm}px 0 0` : C.rSm,
+              cursor: 'pointer', textAlign: 'left', fontFamily: C.font, gap: 12,
+            }}>
+              {/* Completion ring */}
+              <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
+                <svg width={40} height={40} style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx={20} cy={20} r={16} fill="none" stroke={C.divider} strokeWidth={3} />
+                  <circle cx={20} cy={20} r={16} fill="none" stroke={complete ? C.green : C.ink} strokeWidth={3}
+                    strokeLinecap="round" strokeDasharray={`${(pct / 100) * 100.5} 100.5`} />
+                </svg>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: complete ? C.green : C.ink2 }}>
+                  {complete ? <Check size={16} color={C.green} strokeWidth={2.5} /> : `${pct}%`}
+                </div>
               </div>
-              <span style={{ color: GRY5, fontSize: 12 }}>
-                {session.estimated_duration_min ? `${session.estimated_duration_min} min` : ''}
-              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.ink3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {session.day_label || `Day ${dayNum}`}
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginTop: 2 }}>
+                  {session.session_name || 'Session'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                {session.estimated_duration_min && <span style={{ fontSize: 13, color: C.ink3 }}>{session.estimated_duration_min} min</span>}
+                {isOpen ? <ChevronUp size={18} color={C.ink3} /> : <ChevronDown size={18} color={C.ink3} />}
+              </div>
             </button>
 
-            {open && (
-              <div style={{ padding: 16 }}>
+            {/* Expanded session */}
+            {isOpen && (
+              <div style={{ border: `1px solid ${C.border}`, borderTop: 'none', borderRadius: `0 0 ${C.rSm}px ${C.rSm}px`, padding: 16, background: C.bg }}>
                 {/* Warmup */}
                 {Array.isArray(session.warmup) && session.warmup.length > 0 && (
-                  <div style={{ marginBottom: 14 }}>
-                    <div style={subLabel}>Warm-up</div>
-                    <ul style={{ margin: 0, paddingLeft: 20, color: GRY7, fontSize: 13 }}>
-                      {session.warmup.map((w, i) => (
-                        <li key={i} style={{ padding: '2px 0' }}>{w}</li>
-                      ))}
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: C.ink3, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Warm-up</div>
+                    <ul style={{ margin: 0, paddingLeft: 18, color: C.ink2, fontSize: 14, lineHeight: 1.6 }}>
+                      {session.warmup.map((w, i) => <li key={i}>{w}</li>)}
                     </ul>
                   </div>
                 )}
 
-                {/* Blocks */}
-                {Array.isArray(session.blocks) &&
-                  session.blocks.map((block, bi) => (
-                    <div key={bi} style={{ marginBottom: 18 }}>
-                      <div style={subLabel}>
-                        {BLOCK_LABELS[block.block_type] || block.block_type}
-                      </div>
-                      {(block.exercises || []).map((ex, ei) => (
-                        <ExerciseRow
-                          key={ex.exercise_id || ei}
-                          exercise={ex}
-                          dayNum={dayNum}
-                          logIndex={logIndex}
-                          onLogSet={onLogSet}
-                          showHowTo={showHowToGlobal || !!howToForExercise[ex.exercise_id]}
-                          onToggleHowTo={() =>
-                            setHowToForExercise((prev) => ({
-                              ...prev,
-                              [ex.exercise_id]: !prev[ex.exercise_id],
-                            }))
-                          }
-                        />
-                      ))}
+                {/* Exercise blocks */}
+                {Array.isArray(session.blocks) && session.blocks.map((block, bi) => (
+                  <div key={bi} style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: C.ink3, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
+                      {{ main_lift: 'Main Lift', accessory: 'Accessory', conditioning: 'Conditioning', mobility: 'Mobility' }[block.block_type] || block.block_type}
                     </div>
-                  ))}
+                    {(block.exercises || []).map((ex, ei) => (
+                      <ExerciseCard
+                        key={ex.exercise_id || ei}
+                        exercise={ex}
+                        dayNum={dayNum}
+                        logIndex={logIndex}
+                        onLogSet={onLogSet}
+                        showHowTo={!!showHowTo[ex.exercise_id]}
+                        onToggleHowTo={() => setShowHowTo((prev) => ({ ...prev, [ex.exercise_id]: !prev[ex.exercise_id] }))}
+                      />
+                    ))}
+                  </div>
+                ))}
 
                 {/* Cooldown */}
                 {Array.isArray(session.cooldown) && session.cooldown.length > 0 && (
-                  <div style={{ marginTop: 14 }}>
-                    <div style={subLabel}>Cool-down</div>
-                    <ul style={{ margin: 0, paddingLeft: 20, color: GRY7, fontSize: 13 }}>
-                      {session.cooldown.map((c, i) => (
-                        <li key={i} style={{ padding: '2px 0' }}>{c}</li>
-                      ))}
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: C.ink3, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Cool-down</div>
+                    <ul style={{ margin: 0, paddingLeft: 18, color: C.ink2, fontSize: 14, lineHeight: 1.6 }}>
+                      {session.cooldown.map((c, i) => <li key={i}>{c}</li>)}
                     </ul>
                   </div>
                 )}
@@ -290,334 +184,195 @@ export default function WorkoutAccordion({
         )
       })}
 
-      {/* Adjustments note — shown when this was an adjust_block response. */}
-      {workoutPlan.adherence_note && (
-        <div
-          style={{
-            marginTop: 16,
-            padding: '10px 14px',
-            background: '#f0fbfc',
-            border: `1px solid ${T}40`,
-            borderRadius: 8,
-            color: GRY7,
-            fontSize: 12,
-          }}
-        >
-          <strong style={{ color: T }}>Adjustment note:</strong> {workoutPlan.adherence_note}
-        </div>
-      )}
-      {Array.isArray(workoutPlan.adjustments_made) && workoutPlan.adjustments_made.length > 0 && (
-        <div style={{ marginTop: 10, fontSize: 12, color: GRY7 }}>
-          <div style={subLabel}>Adjustments from last block</div>
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
-            {workoutPlan.adjustments_made.map((a, i) => (
-              <li key={i} style={{ padding: '2px 0' }}>
-                {typeof a === 'string' ? a : (a.description || JSON.stringify(a))}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </section>
+      <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
+    </div>
   )
 }
 
-function ExerciseRow({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggleHowTo }) {
-  const {
-    exercise_id,
-    name,
-    sets = 0,
-    target_reps,
-    target_weight_kg_or_cue,
-    rest_seconds,
-    progression_rule,
-    coaching_cue,
-    performance_cues,
-    common_mistakes,
-    video_query,
-  } = exercise
+// ── Exercise Card ──────────────────────────────────────────────────────────
+
+function ExerciseCard({ exercise, dayNum, logIndex, onLogSet, showHowTo, onToggleHowTo }) {
+  const { exercise_id, name, sets = 0, target_reps, target_weight_kg_or_cue, rest_seconds, progression_rule, coaching_cue, performance_cues, common_mistakes } = exercise
 
   const setRows = []
-  for (let i = 1; i <= (Number(sets) || 0); i++) {
-    setRows.push(i)
-  }
+  for (let i = 1; i <= (Number(sets) || 0); i++) setRows.push(i)
 
-  // Compute best weight (PR) and last-logged weight for this exercise
-  const allLogsForExercise = []
-  logIndex.forEach((log, key) => {
-    if (key.includes(`|${exercise_id}|`)) allLogsForExercise.push(log)
-  })
-  const bestWeightKg = allLogsForExercise.reduce((max, log) => {
-    const w = Number(log.actual_weight_kg) || 0
-    return w > max ? w : max
-  }, 0)
-  const bestWeightLbs = bestWeightKg > 0 ? Math.round(bestWeightKg * 2.20462) : 0
-  const loggedSets = allLogsForExercise.length
-  const totalSets = Number(sets) || 0
+  // PR + logged count
+  const allLogs = []
+  logIndex.forEach((log, key) => { if (key.includes(`|${exercise_id}|`)) allLogs.push(log) })
+  const bestKg = allLogs.reduce((max, l) => Math.max(max, Number(l.actual_weight_kg) || 0), 0)
+  const bestLbs = bestKg > 0 ? Math.round(bestKg * 2.20462) : 0
+  const loggedCount = allLogs.length
 
   return (
-    <div
-      style={{
-        border: `1px solid ${BRD_LT}`,
-        borderRadius: 10,
-        padding: '14px 16px',
-        marginBottom: 10,
-        background: '#fff',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+    <div style={{ background: C.card, borderRadius: C.rSm, padding: 16, marginBottom: 8 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: BLK, fontSize: 15, fontWeight: 700 }}>{name}</div>
-          <div style={{ color: GRY7, fontSize: 13, marginTop: 3 }}>
-            {sets} × {target_reps || '—'}
+          <div style={{ fontSize: 17, fontWeight: 700, color: C.ink }}>{name}</div>
+          <div style={{ fontSize: 14, color: C.ink3, marginTop: 3 }}>
+            {sets} x {target_reps || '--'}
             {target_weight_kg_or_cue ? ` @ ${target_weight_kg_or_cue}` : ''}
-            {rest_seconds ? ` · rest ${rest_seconds}s` : ''}
+            {rest_seconds ? ` · ${rest_seconds}s rest` : ''}
           </div>
-          {/* PR + progress indicators */}
-          <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-            {bestWeightLbs > 0 && (
-              <span style={{ padding: '2px 8px', background: '#fef3c7', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#92400e' }}>
-                PR: {bestWeightLbs} lbs
-              </span>
-            )}
-            {loggedSets > 0 && (
-              <span style={{ padding: '2px 8px', background: loggedSets >= totalSets ? '#dcfce7' : '#f1f5f9', borderRadius: 999, fontSize: 11, fontWeight: 700, color: loggedSets >= totalSets ? '#065f46' : GRY5 }}>
-                {loggedSets}/{totalSets} sets logged
-              </span>
-            )}
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+            {bestLbs > 0 && <span style={{ padding: '2px 8px', background: C.amberBg, borderRadius: C.rPill, fontSize: 11, fontWeight: 700, color: '#92400e' }}>PR: {bestLbs} lbs</span>}
+            {loggedCount > 0 && <span style={{ padding: '2px 8px', background: loggedCount >= sets ? C.greenBg : C.card, borderRadius: C.rPill, fontSize: 11, fontWeight: 700, color: loggedCount >= sets ? '#065f46' : C.ink3 }}>{loggedCount}/{sets} sets</span>}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onToggleHowTo}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            padding: '5px 10px',
-            background: showHowTo ? T + '15' : '#fff',
-            color: showHowTo ? T : GRY7,
-            border: `1px solid ${showHowTo ? T : BRD}`,
-            borderRadius: 6,
-            fontSize: 11,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          <Info size={12} /> How to perform
+        <button type="button" onClick={onToggleHowTo} style={{
+          padding: '6px 10px', background: showHowTo ? C.ink + '08' : C.bg,
+          border: `1px solid ${showHowTo ? C.ink + '20' : C.border}`, borderRadius: 8,
+          fontSize: 12, fontWeight: 600, color: showHowTo ? C.ink : C.ink3,
+          cursor: 'pointer', fontFamily: C.font, display: 'flex', alignItems: 'center', gap: 4,
+        }}>
+          <Info size={13} /> How to
         </button>
       </div>
 
+      {/* Coaching cue */}
       {coaching_cue && (
-        <div style={{ marginTop: 8, padding: '8px 10px', background: '#f8f9fa', borderRadius: 6, color: GRY7, fontSize: 13, lineHeight: 1.5 }}>
-          <strong style={{ color: BLK, fontWeight: 700 }}>Cue:</strong> {coaching_cue}
+        <div style={{ marginTop: 10, padding: '8px 12px', background: C.bg, borderRadius: 8, fontSize: 13, color: C.ink2, lineHeight: 1.5, border: `1px solid ${C.border}` }}>
+          <strong style={{ fontWeight: 700 }}>Cue:</strong> {coaching_cue}
         </div>
       )}
 
-      {/* Rest timer */}
-      {rest_seconds && (
-        <div style={{ marginTop: 8 }}>
-          <RestTimer seconds={Number(rest_seconds) || 90} />
-        </div>
-      )}
-
+      {/* How-to panel */}
       {showHowTo && (
-        <div style={{ marginTop: 10, padding: 10, background: '#fff', border: `1px solid ${BRD}`, borderRadius: 6 }}>
+        <div style={{ marginTop: 10, padding: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8 }}>
           {Array.isArray(performance_cues) && performance_cues.length > 0 && (
             <>
-              <div style={subLabelSm}>Performance cues</div>
-              <ol style={{ margin: '0 0 8px', paddingLeft: 20, color: GRY7, fontSize: 12 }}>
-                {performance_cues.map((c, i) => (
-                  <li key={i} style={{ padding: '2px 0' }}>{c}</li>
-                ))}
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.ink3, textTransform: 'uppercase', marginBottom: 4 }}>How to perform</div>
+              <ol style={{ margin: '0 0 10px', paddingLeft: 18, color: C.ink2, fontSize: 13, lineHeight: 1.6 }}>
+                {performance_cues.map((c, i) => <li key={i}>{c}</li>)}
               </ol>
             </>
           )}
           {Array.isArray(common_mistakes) && common_mistakes.length > 0 && (
             <>
-              <div style={{ ...subLabelSm, color: '#b45309' }}>Common mistakes</div>
-              <ul style={{ margin: '0 0 8px', paddingLeft: 20, color: '#92400e', fontSize: 12 }}>
-                {common_mistakes.map((c, i) => (
-                  <li key={i} style={{ padding: '2px 0' }}>{c}</li>
-                ))}
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.amber, textTransform: 'uppercase', marginBottom: 4 }}>Common mistakes</div>
+              <ul style={{ margin: 0, paddingLeft: 18, color: '#92400e', fontSize: 13, lineHeight: 1.6 }}>
+                {common_mistakes.map((c, i) => <li key={i}>{c}</li>)}
               </ul>
             </>
           )}
-          {video_query && (
-            <a
-              href={`https://www.youtube.com/results?search_query=${encodeURIComponent(video_query)}`}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                fontSize: 12,
-                color: T,
-                fontWeight: 700,
-                textDecoration: 'none',
-              }}
-            >
-              <ExternalLink size={12} /> Search how to: “{video_query}”
-            </a>
-          )}
         </div>
       )}
 
-      {/* Sets grid */}
+      {/* Rest timer */}
+      {rest_seconds && (
+        <div style={{ marginTop: 10 }}>
+          <RestTimer seconds={Number(rest_seconds) || 90} />
+        </div>
+      )}
+
+      {/* Set logging */}
       {setRows.length > 0 && (
-        <div style={{ marginTop: 12, overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${BRD}` }}>
-                <Th w={40}>Set</Th>
-                <Th>Weight (lbs)</Th>
-                <Th>Reps</Th>
-                <Th>RPE</Th>
-                <Th>Notes</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {setRows.map((sn) => {
-                const k = `${dayNum}|${exercise_id}|${sn}`
-                const existing = logIndex.get(k)
-                return (
-                  <SetRow
-                    key={sn}
-                    setNumber={sn}
-                    dayNum={dayNum}
-                    exerciseId={exercise_id}
-                    exerciseName={name}
-                    existing={existing}
-                    onLogSet={onLogSet}
-                  />
-                )
-              })}
-            </tbody>
-          </table>
+        <div style={{ marginTop: 12, display: 'grid', gap: 6 }}>
+          {setRows.map((sn) => (
+            <SetStrip
+              key={sn}
+              setNumber={sn}
+              dayNum={dayNum}
+              exerciseId={exercise_id}
+              exerciseName={name}
+              existing={logIndex.get(`${dayNum}|${exercise_id}|${sn}`)}
+              onLogSet={onLogSet}
+            />
+          ))}
         </div>
       )}
 
+      {/* Progression rule */}
       {progression_rule && (
-        <div style={{ marginTop: 8, color: GRY5, fontSize: 11 }}>
-          <strong style={{ color: GRY7 }}>Progression:</strong> {progression_rule}
+        <div style={{ marginTop: 10, fontSize: 12, color: C.ink3, lineHeight: 1.5 }}>
+          <strong style={{ color: C.ink2, fontWeight: 600 }}>Next week:</strong> {progression_rule}
         </div>
       )}
     </div>
   )
 }
 
-function SetRow({ setNumber, dayNum, exerciseId, exerciseName, existing, onLogSet }) {
-  // Display in lbs, store in kg. 1 kg = 2.20462 lbs
-  const kgToLbs = (kg) => kg != null ? Math.round(kg * 2.20462) : ''
+// ── Set Strip — weight x reps input ────────────────────────────────────────
+
+function SetStrip({ setNumber, dayNum, exerciseId, exerciseName, existing, onLogSet }) {
+  const kgToLbs = (kg) => kg != null && kg !== '' ? Math.round(Number(kg) * 2.20462) : ''
   const lbsToKg = (lbs) => lbs !== '' && lbs != null ? Number(lbs) / 2.20462 : null
 
   const [weight, setWeight] = useState(kgToLbs(existing?.actual_weight_kg))
   const [reps, setReps] = useState(existing?.actual_reps ?? '')
-  const [rpe, setRpe] = useState(existing?.rpe ?? '')
-  const [notes, setNotes] = useState(existing?.notes ?? '')
   const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
     setWeight(kgToLbs(existing?.actual_weight_kg))
     setReps(existing?.actual_reps ?? '')
-    setRpe(existing?.rpe ?? '')
-    setNotes(existing?.notes ?? '')
     setDirty(false)
-  }, [existing?.log_id, existing?.actual_weight_kg, existing?.actual_reps, existing?.rpe, existing?.notes])
-
-  function markDirty() {
-    setDirty(true)
-  }
+  }, [existing?.log_id, existing?.actual_weight_kg, existing?.actual_reps])
 
   async function commit() {
-    if (!dirty) return
-    if (reps === '' || reps === null) return // Reps required by contract.
-    if (!onLogSet) return
+    if (!dirty || reps === '' || !onLogSet) return
     setSaving(true)
     try {
       await onLogSet({
-        session_day_number: dayNum,
-        exercise_id: exerciseId,
-        exercise_name: exerciseName,
-        set_number: setNumber,
-        actual_weight_kg: lbsToKg(weight),
-        actual_reps: Number(reps),
-        rpe: rpe === '' ? null : Number(rpe),
-        notes: notes || null,
-        existing_log_id: existing?.log_id || null,
+        session_day_number: dayNum, exercise_id: exerciseId, exercise_name: exerciseName,
+        set_number: setNumber, actual_weight_kg: lbsToKg(weight), actual_reps: Number(reps),
+        rpe: null, notes: null, existing_log_id: existing?.log_id || null,
       })
-      setDirty(false)
-      setSaved(true)
+      setDirty(false); setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } finally {
-      setSaving(false)
-    }
+    } finally { setSaving(false) }
   }
 
-  const [saved, setSaved] = useState(false)
   const logged = !!existing
+
   return (
-    <tr style={{ borderBottom: `1px solid ${BRD_LT}` }}>
-      <td style={tdCell}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 4,
-          color: logged ? GRN : GRY5, fontWeight: 700,
-        }}>
-          {logged ? '●' : '○'} {setNumber}
-        </span>
-      </td>
-      <td style={tdCell}>
-        <input
-          type="number"
-          step="0.5"
-          value={weight}
-          onChange={(e) => { setWeight(e.target.value); markDirty() }}
-          onBlur={commit}
-          style={cellInput}
-        />
-      </td>
-      <td style={tdCell}>
-        <input
-          type="number"
-          min="0"
-          value={reps}
-          onChange={(e) => { setReps(e.target.value); markDirty() }}
-          onBlur={commit}
-          style={cellInput}
-        />
-      </td>
-      <td style={tdCell}>
-        <select
-          value={rpe}
-          onChange={(e) => { setRpe(e.target.value); markDirty() }}
-          onBlur={commit}
-          style={cellInput}
-        >
-          <option value="">—</option>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-            <option key={n} value={n}>{n}</option>
-          ))}
-        </select>
-      </td>
-      <td style={tdCell}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <input
-            type="text"
-            value={notes}
-            onChange={(e) => { setNotes(e.target.value); markDirty() }}
-            onBlur={commit}
-            style={{ ...cellInput, minWidth: 120 }}
-          />
-          {saving && <Loader2 size={12} color={GRY5} style={{ animation: 'spin 1s linear infinite' }} />}
-          {saved && <span style={{ fontSize: 11, fontWeight: 700, color: GRN }}>Saved</span>}
-          <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
-        </div>
-      </td>
-    </tr>
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+      background: C.bg, border: `1px solid ${logged ? C.green + '30' : C.border}`,
+      borderRadius: 10,
+    }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: C.rPill, flexShrink: 0,
+        background: logged ? C.green : C.card, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 12, fontWeight: 700, color: logged ? '#fff' : C.ink3,
+        border: logged ? 'none' : `1px solid ${C.border}`,
+      }}>
+        {logged ? <Check size={14} strokeWidth={2.5} /> : setNumber}
+      </div>
+
+      <input type="number" inputMode="decimal" step="5" value={weight}
+        onChange={(e) => { setWeight(e.target.value); setDirty(true) }} onBlur={commit}
+        placeholder="lbs"
+        style={{
+          width: 64, padding: '6px 4px', fontSize: 18, fontWeight: 600, textAlign: 'center',
+          border: `1px solid ${C.border}`, borderRadius: 8, background: C.bg, color: C.ink,
+          fontFamily: C.font, outline: 'none',
+        }}
+      />
+
+      <span style={{ fontSize: 14, color: C.ink3, fontWeight: 500 }}>x</span>
+
+      <input type="number" inputMode="numeric" min="0" value={reps}
+        onChange={(e) => { setReps(e.target.value); setDirty(true) }} onBlur={commit}
+        placeholder="reps"
+        style={{
+          width: 52, padding: '6px 4px', fontSize: 18, fontWeight: 600, textAlign: 'center',
+          border: `1px solid ${C.border}`, borderRadius: 8, background: C.bg, color: C.ink,
+          fontFamily: C.font, outline: 'none',
+        }}
+      />
+
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 4 }}>
+        {saving && <Loader2 size={14} color={C.ink3} style={{ animation: 'spin 1s linear infinite' }} />}
+        {saved && <span style={{ fontSize: 11, fontWeight: 700, color: C.green }}>Saved</span>}
+      </div>
+    </div>
   )
 }
+
+// ── Rest Timer ─────────────────────────────────────────────────────────────
 
 function RestTimer({ seconds = 90 }) {
   const [running, setRunning] = useState(false)
@@ -627,10 +382,7 @@ function RestTimer({ seconds = 90 }) {
   useEffect(() => {
     if (running && remaining > 0) {
       intervalRef.current = setInterval(() => {
-        setRemaining((r) => {
-          if (r <= 1) { setRunning(false); return 0 }
-          return r - 1
-        })
+        setRemaining((r) => { if (r <= 1) { setRunning(false); return 0 } return r - 1 })
       }, 1000)
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
@@ -641,98 +393,39 @@ function RestTimer({ seconds = 90 }) {
     else setRunning(!running)
   }
 
-  function reset() { setRunning(false); setRemaining(seconds) }
-
   const mins = Math.floor(remaining / 60)
   const secs = remaining % 60
   const pct = seconds > 0 ? ((seconds - remaining) / seconds) * 100 : 0
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      padding: '6px 10px', background: running ? '#0a0a0a' : '#f1f1f6',
-      borderRadius: 8, transition: 'background .2s',
+      display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
+      background: running ? C.ink : C.bg, border: `1px solid ${running ? C.ink : C.border}`,
+      borderRadius: 10, transition: 'all .2s',
     }}>
       <button type="button" onClick={toggle} style={{
-        width: 28, height: 28, borderRadius: 999,
-        background: running ? '#fff' : '#0a0a0a',
-        color: running ? '#0a0a0a' : '#fff',
-        border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: 32, height: 32, borderRadius: C.rPill,
+        background: running ? '#fff' : C.ink, color: running ? C.ink : '#fff',
+        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        {running ? <Pause size={12} /> : <Play size={12} style={{ marginLeft: 1 }} />}
+        {running ? <Pause size={14} /> : <Play size={14} style={{ marginLeft: 2 }} />}
       </button>
       <div style={{ flex: 1 }}>
         <div style={{
-          fontSize: 16, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
-          color: running ? '#fff' : '#0a0a0a',
-          fontFamily: "'SF Mono', monospace",
+          fontSize: 20, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
+          color: running ? '#fff' : C.ink, fontFamily: "'SF Mono', 'Menlo', monospace",
         }}>
           {mins}:{secs.toString().padStart(2, '0')}
         </div>
-        <div style={{ height: 3, background: running ? 'rgba(255,255,255,0.15)' : '#e5e5ea', borderRadius: 999, marginTop: 3, overflow: 'hidden' }}>
-          <div style={{ height: '100%', background: running ? '#fff' : '#0a0a0a', borderRadius: 999, width: `${pct}%`, transition: 'width 1s linear' }} />
+        <div style={{ height: 3, background: running ? 'rgba(255,255,255,0.15)' : C.divider, borderRadius: C.rPill, marginTop: 4, overflow: 'hidden' }}>
+          <div style={{ height: '100%', background: running ? '#fff' : C.ink, borderRadius: C.rPill, width: `${pct}%`, transition: 'width 1s linear' }} />
         </div>
       </div>
-      {remaining === 0 && (
-        <span style={{ fontSize: 11, fontWeight: 700, color: running ? '#fff' : GRN }}>
-          GO!
-        </span>
-      )}
-      <button type="button" onClick={reset} style={{
-        background: 'none', border: 'none', cursor: 'pointer',
-        fontSize: 10, fontWeight: 600, color: running ? 'rgba(255,255,255,0.5)' : '#6b6b70',
-        padding: '2px 4px',
-      }}>
-        Reset
-      </button>
+      {remaining === 0 && <span style={{ fontSize: 14, fontWeight: 800, color: running ? '#fff' : C.green }}>GO!</span>}
+      <button type="button" onClick={() => { setRunning(false); setRemaining(seconds) }} style={{
+        background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600,
+        color: running ? 'rgba(255,255,255,0.5)' : C.ink4, padding: '2px 6px',
+      }}>Reset</button>
     </div>
   )
 }
-
-function Th({ children, w }) {
-  return (
-    <th style={{ textAlign: 'left', padding: '6px 8px', color: GRY5, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', width: w }}>
-      {children}
-    </th>
-  )
-}
-
-const tdCell = { padding: '6px 8px', verticalAlign: 'middle' }
-const cellInput = {
-  width: '100%',
-  padding: '5px 8px',
-  fontSize: 12,
-  border: `1px solid ${BRD}`,
-  borderRadius: 6,
-  background: '#fff',
-  color: BLK,
-}
-
-const subLabel = {
-  color: GRY5,
-  fontSize: 10,
-  fontWeight: 800,
-  textTransform: 'uppercase',
-  letterSpacing: '.06em',
-  marginBottom: 6,
-}
-
-const subLabelSm = {
-  color: GRY5,
-  fontSize: 10,
-  fontWeight: 800,
-  textTransform: 'uppercase',
-  letterSpacing: '.06em',
-  marginBottom: 4,
-}
-
-const cardStyle = {
-  background: '#fff',
-  border: `1px solid ${BRD}`,
-  borderRadius: 12,
-  padding: 20,
-  marginBottom: 16,
-}
-
-const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }
