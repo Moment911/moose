@@ -73,6 +73,12 @@
   .h-screen { height: auto !important; min-height: 100% !important; }
   * { -webkit-overflow-scrolling: touch; touch-action: manipulation; }
   input, textarea, select { font-size: 16px !important; font-family: inherit; }
+
+  /* Trainer PWA — standalone webapp feel */
+  .myplan-header {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    height: calc(52px + env(safe-area-inset-top, 0px)) !important;
+  }
 }
 @media (min-width: 768px) {
   #main-content { padding-top: 0 !important; padding-bottom: 0 !important; }

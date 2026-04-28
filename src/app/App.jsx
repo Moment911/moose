@@ -172,6 +172,7 @@ import TrainerIntakePage from '../views/trainer/TrainerIntakePage'
 import TrainerDetailPage from '../views/trainer/TrainerDetailPage'
 import MyPlanPage from '../views/trainer/MyPlanPage'
 import SelfSignupPage from '../views/trainer/SelfSignupPage'
+import TrainerLoginPage from '../views/trainer/TrainerLoginPage'
 import SelfIntakePage from '../views/trainer/SelfIntakePage'
 import TraineeIntakePage from '../views/trainer/TraineeIntakePage'
 import RecruitingPage from '../views/trainer/RecruitingPage'
@@ -266,7 +267,7 @@ function HomeSplitter() {
 function RouteTracker() {
   const location = useLocation()
   useEffect(() => {
-    const skip = ['/', '/login', '/signup', '/onboard', '/onboarding', '/review', '/r/', '/p/']
+    const skip = ['/', '/login', '/signup', '/onboard', '/onboarding', '/review', '/r/', '/p/', '/trainer/login']
     const shouldSkip = skip.some((s) => location.pathname === s || location.pathname.startsWith(s + '/'))
     if (!shouldSkip) {
       try { localStorage.setItem('koto_last_route', location.pathname + location.search) } catch {}
@@ -337,6 +338,7 @@ export default function App() {
           <Route path="/my-plan" element={<MyPlanPage />} />
           <Route path="/train" element={<TrainerLandingPage />} />
           <Route path="/start" element={<SelfSignupPage />} />
+          <Route path="/trainer/login" element={<TrainerLoginPage />} />
           <Route path="/my-intake" element={<SelfIntakePage />} />
           <Route path="/intake/:traineeId" element={<TraineeIntakePage />} />
           <Route path="/4r/start" element={<FourrIntakePage />} />

@@ -35,6 +35,8 @@ export default function MyPlanShell({ agency, children, hasMobileTabBar = false 
       fontFamily: A.font,
       WebkitFontSmoothing: 'antialiased',
       MozOsxFontSmoothing: 'grayscale',
+      // Smooth momentum scrolling for native webapp feel
+      overscrollBehavior: 'none',
     }}>
       {/* Header */}
       <header

@@ -12,7 +12,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Koto Trainer — Your AI Trainer, Nutritionist, and Coach. 24/7.",
   description: "Tell it who you are. It builds your workouts, plans your meals, tracks your progress, and checks in with you daily. 15+ sports. Any goal. Always on.",
-  icons: { icon: "/koto_icon.svg" },
+  icons: { icon: "/koto_icon.svg", apple: "/koto_icon.svg" },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Koto Trainer",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   openGraph: {
     title: "Koto Trainer — Your AI Trainer. Always On.",
     description: "Custom workouts, meal plans, progress tracking, and an AI that knows your sport, your goals, and your life. Free to start.",
@@ -35,6 +44,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistMono.variable} h-full antialiased`}>
       <head>
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;400;500;600&display=swap" rel="stylesheet" />
