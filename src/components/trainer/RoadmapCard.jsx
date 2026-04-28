@@ -1,168 +1,211 @@
 "use client"
-import { CheckCircle, TrendingUp } from 'lucide-react'
-import { R, T, BLK, GRN } from '../../lib/theme'
+import { useState } from 'react'
+import { Check, ChevronDown, ChevronUp, Dumbbell, Utensils, Target, Heart, TrendingUp } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Trainer Phase 2 — RoadmapCard.
-//
-// Three 30-day phase columns.  Current phase elevates.  Clicking a non-current
-// phase fires onSelectPhase(N) so the operator can regenerate workouts for
-// that phase.
+// RoadmapCard — Cal-AI 90-day roadmap. Vertical phase cards, not cramped
+// 3-column grid. Each phase expands to show Training, Nutrition, Milestones,
+// Recovery as distinct visual sections.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BRD = '#ececef'
-const GRY5 = '#6b7280'
-const GRY7 = '#374151'
+const C = {
+  ink: '#0a0a0a', ink2: '#1f1f22', ink3: '#6b6b70', ink4: '#a1a1a6',
+  bg: '#ffffff', card: '#f1f1f6', border: '#ececef', divider: '#e5e5ea',
+  green: '#16a34a', greenBg: '#ecfdf5', blue: '#5aa0ff', amber: '#d89a6a',
+  font: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  r: 16, rSm: 12, rPill: 999,
+}
+
+const PHASE_COLORS = ['#e9695c', '#5aa0ff', '#16a34a']
 
 export default function RoadmapCard({ roadmap, currentPhase = 1, onSelectPhase }) {
+  const [expandedPhase, setExpandedPhase] = useState(currentPhase)
+
   if (!roadmap) return null
   const phases = Array.isArray(roadmap.phases) ? roadmap.phases : []
 
   return (
-    <section style={cardStyle}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <h2 style={titleStyle}>90-Day Roadmap</h2>
-        <span style={{ color: GRY5, fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <TrendingUp size={13} /> Three 30-day blocks
-        </span>
-      </header>
+    <div style={{ fontFamily: C.font }}>
+      {/* Header */}
+      <div style={{ marginBottom: 16 }}>
+        <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.ink, letterSpacing: '-0.02em' }}>
+          90-Day Roadmap
+        </h3>
+        {roadmap.client_context_summary && (
+          <p style={{ margin: '6px 0 0', fontSize: 14, color: C.ink3, lineHeight: 1.5 }}>
+            {roadmap.client_context_summary}
+          </p>
+        )}
+      </div>
 
-      {roadmap.client_context_summary && (
-        <p style={{ margin: '0 0 18px', color: GRY7, fontSize: 13, fontStyle: 'italic', lineHeight: 1.5 }}>
-          {roadmap.client_context_summary}
-        </p>
-      )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+      {/* Phase timeline indicator */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
         {phases.map((p) => {
           const n = p.phase_number ?? 1
           const isCurrent = n === currentPhase
+          const color = PHASE_COLORS[(n - 1) % 3]
           return (
-            <button
-              key={n}
-              type="button"
-              onClick={() => !isCurrent && onSelectPhase?.(n)}
-              disabled={isCurrent}
+            <button key={n} type="button"
+              onClick={() => setExpandedPhase(expandedPhase === n ? null : n)}
               style={{
-                textAlign: 'left',
-                background: isCurrent ? '#f0fbfc' : '#fafbfd',
-                border: `${isCurrent ? 2 : 1}px solid ${isCurrent ? T : BRD}`,
-                borderRadius: 12,
-                padding: 16,
-                cursor: isCurrent ? 'default' : 'pointer',
-                boxShadow: isCurrent ? '0 1px 3px rgba(0,194,203,.15)' : 'none',
-                transition: 'all .15s',
-              }}
-              onMouseEnter={(e) => {
-                if (!isCurrent) e.currentTarget.style.borderColor = T
-              }}
-              onMouseLeave={(e) => {
-                if (!isCurrent) e.currentTarget.style.borderColor = BRD
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span
-                  style={{
-                    padding: '3px 9px',
-                    borderRadius: 20,
-                    background: isCurrent ? T : BRD,
-                    color: isCurrent ? '#fff' : GRY7,
-                    fontSize: 10,
-                    fontWeight: 800,
-                    letterSpacing: '.06em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Phase {n}
-                </span>
-                {isCurrent && (
-                  <span style={{ color: T, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                    Current
-                  </span>
-                )}
+                flex: 1, padding: '10px 14px',
+                background: isCurrent ? color + '12' : C.card,
+                border: `1.5px solid ${isCurrent ? color : 'transparent'}`,
+                borderRadius: C.rSm, cursor: 'pointer', fontFamily: C.font,
+                textAlign: 'center', transition: 'all .15s',
+              }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: isCurrent ? color : C.ink4, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                Phase {n}
+                {isCurrent && ' · Current'}
               </div>
-
-              <h3 style={{ margin: '0 0 4px', fontSize: 16, color: BLK, fontWeight: 800 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginTop: 4 }}>
                 {p.phase_name || `Phase ${n}`}
-              </h3>
-              <div style={{ color: GRY5, fontSize: 11, fontWeight: 700, marginBottom: 12, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-                {p.days_range?.start && p.days_range?.end
-                  ? `Days ${p.days_range.start}–${p.days_range.end}`
-                  : `Days ${(n - 1) * 30 + 1}–${n * 30}`}
               </div>
-
-              <LineLabel label="Training" value={p.training_theme} />
-              <LineLabel label="Nutrition" value={p.nutrition_theme} />
-
-              {p.progression_description && (
-                <p style={{ margin: '10px 0 0', fontSize: 13, color: GRY7, lineHeight: 1.45 }}>
-                  {p.progression_description}
-                </p>
-              )}
-
-              {Array.isArray(p.end_of_phase_milestones) && p.end_of_phase_milestones.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <div style={subLabel}>Milestones</div>
-                  <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
-                    {p.end_of_phase_milestones.map((m, i) => (
-                      <li key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', padding: '3px 0', fontSize: 12, color: GRY7 }}>
-                        <CheckCircle size={13} color={GRN} style={{ flex: '0 0 auto', marginTop: 2 }} />
-                        <span>{m}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {Array.isArray(p.recovery_focus) && p.recovery_focus.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <div style={subLabel}>Recovery</div>
-                  <ul style={{ margin: 0, paddingLeft: 16, color: GRY5, fontSize: 12 }}>
-                    {p.recovery_focus.map((r, i) => (
-                      <li key={i} style={{ padding: '2px 0' }}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {!isCurrent && (
-                <div style={{ marginTop: 12, fontSize: 11, color: R, fontWeight: 700 }}>
-                  Click to generate workout for this phase →
-                </div>
-              )}
             </button>
           )
         })}
       </div>
-    </section>
-  )
-}
 
-function LineLabel({ label, value }) {
-  if (!value) return null
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', gap: 8, padding: '2px 0', fontSize: 12 }}>
-      <span style={{ color: GRY5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</span>
-      <span style={{ color: BLK }}>{value}</span>
+      {/* Phase detail cards */}
+      <div style={{ display: 'grid', gap: 10 }}>
+        {phases.map((p) => {
+          const n = p.phase_number ?? 1
+          const isCurrent = n === currentPhase
+          const isOpen = expandedPhase === n
+          const color = PHASE_COLORS[(n - 1) % 3]
+          const daysLabel = p.days_range?.start && p.days_range?.end
+            ? `Days ${p.days_range.start}–${p.days_range.end}`
+            : `Days ${(n - 1) * 30 + 1}–${n * 30}`
+
+          return (
+            <div key={n}>
+              {/* Phase header — tap to expand */}
+              <button type="button" onClick={() => setExpandedPhase(isOpen ? null : n)} style={{
+                display: 'flex', alignItems: 'center', width: '100%', padding: '16px 18px',
+                background: '#fff',
+                border: `1px solid ${isOpen ? color + '30' : C.border}`,
+                borderLeft: `4px solid ${color}`,
+                borderRadius: isOpen ? `${C.r}px ${C.r}px 0 0` : C.r,
+                cursor: 'pointer', textAlign: 'left', fontFamily: C.font, gap: 14,
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: 17, fontWeight: 700, color: C.ink }}>
+                      {p.phase_name || `Phase ${n}`}
+                    </span>
+                    {isCurrent && (
+                      <span style={{ padding: '2px 8px', background: color + '15', color, borderRadius: C.rPill, fontSize: 10, fontWeight: 700 }}>
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 13, color: C.ink3 }}>
+                    {daysLabel}
+                  </div>
+                </div>
+                <div style={{
+                  width: 32, height: 32, borderRadius: C.rPill, background: C.card,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  {isOpen ? <ChevronUp size={18} color={C.ink3} /> : <ChevronDown size={18} color={C.ink3} />}
+                </div>
+              </button>
+
+              {/* Expanded phase content */}
+              {isOpen && (
+                <div style={{
+                  border: `1px solid ${color}30`, borderTop: 'none',
+                  borderLeft: `4px solid ${color}`,
+                  borderRadius: `0 0 ${C.r}px ${C.r}px`,
+                  padding: '4px 4px 4px',
+                  background: C.card,
+                }}>
+                  {/* Progression overview */}
+                  {p.progression_description && (
+                    <div style={{ margin: '8px 12px', padding: '14px 16px', background: '#fff', borderRadius: C.rSm, fontSize: 15, fontWeight: 500, color: C.ink2, lineHeight: 1.6 }}>
+                      {p.progression_description}
+                    </div>
+                  )}
+
+                  {/* Training section */}
+                  {p.training_theme && (
+                    <Section icon={<Dumbbell size={16} />} label="Training" color={color}>
+                      <p style={{ margin: 0, fontSize: 14, color: C.ink2, lineHeight: 1.65 }}>{p.training_theme}</p>
+                    </Section>
+                  )}
+
+                  {/* Nutrition section */}
+                  {p.nutrition_theme && (
+                    <Section icon={<Utensils size={16} />} label="Nutrition" color="#d89a6a">
+                      <p style={{ margin: 0, fontSize: 14, color: C.ink2, lineHeight: 1.65 }}>{p.nutrition_theme}</p>
+                    </Section>
+                  )}
+
+                  {/* Milestones */}
+                  {Array.isArray(p.end_of_phase_milestones) && p.end_of_phase_milestones.length > 0 && (
+                    <Section icon={<Target size={16} />} label="Milestones" color="#5aa0ff">
+                      <div style={{ display: 'grid', gap: 6 }}>
+                        {p.end_of_phase_milestones.map((m, i) => (
+                          <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 14, color: C.ink2, lineHeight: 1.5 }}>
+                            <div style={{
+                              width: 20, height: 20, borderRadius: C.rPill, flexShrink: 0, marginTop: 1,
+                              background: C.card, border: `1.5px solid ${C.border}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: C.ink3 }}>{i + 1}</span>
+                            </div>
+                            <span>{m}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </Section>
+                  )}
+
+                  {/* Recovery */}
+                  {Array.isArray(p.recovery_focus) && p.recovery_focus.length > 0 && (
+                    <Section icon={<Heart size={16} />} label="Recovery" color="#16a34a">
+                      <div style={{ display: 'grid', gap: 4 }}>
+                        {p.recovery_focus.map((r, i) => (
+                          <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', fontSize: 14, color: C.ink2, lineHeight: 1.5 }}>
+                            <Check size={14} color="#16a34a" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 3 }} />
+                            <span>{r}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </Section>
+                  )}
+
+                  {/* Generate workout CTA for non-current phases */}
+                  {!isCurrent && onSelectPhase && (
+                    <div style={{ margin: '4px 12px 12px' }}>
+                      <button type="button" onClick={() => onSelectPhase(n)} style={{
+                        width: '100%', padding: '12px 16px', background: color, color: '#fff',
+                        border: 'none', borderRadius: C.rSm, fontSize: 14, fontWeight: 600,
+                        cursor: 'pointer', fontFamily: C.font,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      }}>
+                        <TrendingUp size={16} /> Generate workout for Phase {n}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
-const subLabel = {
-  color: GRY5,
-  fontSize: 10,
-  fontWeight: 800,
-  textTransform: 'uppercase',
-  letterSpacing: '.06em',
-  marginBottom: 4,
+function Section({ icon, label, color, children }) {
+  return (
+    <div style={{ margin: '4px 12px', padding: '14px 16px', background: '#fff', borderRadius: C.rSm }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+        <span style={{ color }}>{icon}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</span>
+      </div>
+      {children}
+    </div>
+  )
 }
-
-const cardStyle = {
-  background: '#fff',
-  border: `1px solid ${BRD}`,
-  borderRadius: 12,
-  padding: 20,
-  marginBottom: 16,
-}
-
-const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }
