@@ -48,6 +48,12 @@ const ALLOWED_ACTIONS = [
   'archive',
   'unarchive',
   'delete',
+  'get_progress_photos',
+  'upload_progress_photo',
+  'get_body_measurements',
+  'log_body_measurements',
+  'get_insights',
+  'generate_weekly_insight',
 ] as const
 
 type Action = (typeof ALLOWED_ACTIONS)[number]
@@ -129,7 +135,13 @@ export async function POST(req: NextRequest) {
     if (action === 'archive') return await handleArchive(sb, agencyId, body)
     if (action === 'unarchive') return await handleUnarchive(sb, agencyId, body)
     if (action === 'delete') return await handleDelete(sb, agencyId, body)
-    // Exhaustiveness — TS narrows action; this is unreachable
+    // Progress tracking actions
+    if (action === 'get_progress_photos') return handleTrainerPhotos(sb, agencyId, body, 'get')
+    if (action === 'upload_progress_photo') return handleTrainerPhotos(sb, agencyId, body, 'upload')
+    if (action === 'get_body_measurements') return handleTrainerMeasurements(sb, agencyId, body, 'get')
+    if (action === 'log_body_measurements') return handleTrainerMeasurements(sb, agencyId, body, 'log')
+    if (action === 'get_insights') return handleTrainerInsights(sb, agencyId, body, 'get')
+    if (action === 'generate_weekly_insight') return handleTrainerInsights(sb, agencyId, body, 'generate')
     return err(400, 'Unknown action')
   } catch (e) {
     // Don't leak internal details to the client
@@ -347,4 +359,67 @@ async function handleDelete(
     return err(500, 'Delete failed')
   }
   return NextResponse.json({ ok: true })
+}
+
+// ── Progress tracking handlers (photos, measurements, insights) ──────────
+
+async function handleTrainerPhotos(sb: SupabaseClient, agencyId: string, body: Record<string, unknown>, mode: 'get' | 'upload') {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+  if (mode === 'get') {
+    const { data } = await sb.from('koto_fitness_progress_photos').select('id, taken_at, pose, public_url, notes').eq('trainee_id', traineeId).eq('agency_id', agencyId).order('taken_at', { ascending: true }).limit(100)
+    return NextResponse.json({ photos: data ?? [] })
+  }
+  const photoBase64 = typeof body.photo_base64 === 'string' ? body.photo_base64 : ''
+  const pose = typeof body.pose === 'string' && ['front','side','back'].includes(body.pose) ? body.pose : 'front'
+  if (!photoBase64) return err(400, 'photo_base64 required')
+  const buffer = Buffer.from(photoBase64, 'base64')
+  const filename = `${traineeId}/${Date.now()}_${pose}.jpg`
+  const { error: upErr } = await sb.storage.from('progress-photos').upload(filename, buffer, { contentType: 'image/jpeg' })
+  if (upErr) return err(500, 'Upload failed')
+  const { data: urlData } = sb.storage.from('progress-photos').getPublicUrl(filename)
+  const { data } = await sb.from('koto_fitness_progress_photos').insert({ agency_id: agencyId, trainee_id: traineeId, pose, storage_path: filename, public_url: urlData?.publicUrl, taken_at: new Date().toISOString() }).select('id, public_url').single()
+  return NextResponse.json(data, { status: 201 })
+}
+
+async function handleTrainerMeasurements(sb: SupabaseClient, agencyId: string, body: Record<string, unknown>, mode: 'get' | 'log') {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+  if (mode === 'get') {
+    const { data } = await sb.from('koto_fitness_body_measurements').select('*').eq('trainee_id', traineeId).eq('agency_id', agencyId).order('measured_at', { ascending: true }).limit(200)
+    return NextResponse.json({ measurements: data ?? [] })
+  }
+  const FIELDS = ['chest','waist','hips','shoulders','neck','bicep_left','bicep_right','thigh_left','thigh_right','calf_left','calf_right','forearm_left','forearm_right']
+  const row: Record<string, unknown> = { agency_id: agencyId, trainee_id: traineeId, measured_at: new Date().toISOString() }
+  let hasAny = false
+  for (const f of FIELDS) { const v = body[f]; if (v != null && v !== '') { const n = Number(v); if (Number.isFinite(n) && n > 0) { row[f] = n; hasAny = true } } }
+  if (!hasAny) return err(400, 'At least one measurement required')
+  const { data } = await sb.from('koto_fitness_body_measurements').insert(row).select('id').single()
+  return NextResponse.json(data, { status: 201 })
+}
+
+async function handleTrainerInsights(sb: SupabaseClient, agencyId: string, body: Record<string, unknown>, mode: 'get' | 'generate') {
+  const traineeId = typeof body.trainee_id === 'string' ? body.trainee_id : ''
+  if (!traineeId) return err(400, 'trainee_id required')
+  if (mode === 'get') {
+    const { data } = await sb.from('koto_fitness_ai_insights').select('id, week_of, summary, whats_working, needs_attention, plan_changes, generated_at').eq('trainee_id', traineeId).eq('agency_id', agencyId).order('week_of', { ascending: false }).limit(12)
+    return NextResponse.json({ insights: data ?? [] })
+  }
+  const [tRes, wRes, fRes, sRes] = await Promise.all([
+    sb.from('koto_fitness_trainees').select('full_name, age, primary_goal').eq('id', traineeId).maybeSingle(),
+    sb.from('koto_fitness_workout_logs').select('id').eq('trainee_id', traineeId).limit(50),
+    sb.from('koto_fitness_food_logs').select('total_kcal, total_protein_g').eq('trainee_id', traineeId).order('log_date', { ascending: false }).limit(14),
+    sb.from('koto_fitness_progress').select('weight_kg').eq('trainee_id', traineeId).order('checked_in_at', { ascending: false }).limit(1),
+  ])
+  const t = tRes.data as Record<string, unknown> | null
+  const snapshot = { name: t?.full_name, age: t?.age, goal: t?.primary_goal, workouts: (wRes.data??[]).length, weight_lbs: (sRes.data as Array<{weight_kg:number}>)?.[0]?.weight_kg ? Math.round(Number((sRes.data as Array<{weight_kg:number}>)[0].weight_kg)*2.20462) : null }
+  const Anthropic = (await import('@anthropic-ai/sdk')).default
+  const client = new Anthropic()
+  try {
+    const r = await client.messages.create({ model: 'claude-haiku-4-5-20251001', max_tokens: 600, messages: [{ role: 'user', content: `AI coach weekly review. Plain English, lbs. DATA: ${JSON.stringify(snapshot)}. Return JSON: {summary,whats_working:[],needs_attention:[],plan_changes:[]}. No markdown.` }] })
+    const txt = r.content?.[0]?.type === 'text' ? r.content[0].text : '{}'
+    let ins: Record<string,unknown> = {}; try { ins = JSON.parse(txt.replace(/```json?\n?/g,'').replace(/```/g,'').trim()) } catch { return err(502,'Parse failed') }
+    await sb.from('koto_fitness_ai_insights').insert({ agency_id: agencyId, trainee_id: traineeId, week_of: new Date().toISOString().slice(0,10), summary: ins.summary||'', whats_working: ins.whats_working||[], needs_attention: ins.needs_attention||[], plan_changes: ins.plan_changes||[], data_snapshot: snapshot, model: 'haiku' })
+    return NextResponse.json({ insight: ins })
+  } catch { return err(502, 'AI failed') }
 }

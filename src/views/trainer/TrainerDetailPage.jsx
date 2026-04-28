@@ -1489,6 +1489,288 @@ function OverviewTab({
           <GroceryList groceryList={plan.grocery_list} />
         </PlanSection>
       )}
+
+      {/* ══ 4. Progress & Tracking ══ */}
+      {hasBaseline && (
+        <>
+          <div style={{ marginTop: 24, marginBottom: 12 }}>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: CAL.ink, fontFamily: CAL.font }}>Progress & Tracking</h3>
+          </div>
+          <TrainerAIInsight traineeId={traineeId} agencyId={agencyId} />
+          <TrainerProgressPhotos traineeId={traineeId} agencyId={agencyId} />
+          <TrainerBodyMeasurements traineeId={traineeId} agencyId={agencyId} />
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── AI Insight (trainer-side) ─────────────────────────────────────────────
+
+function TrainerAIInsight({ traineeId, agencyId }) {
+  const [insight, setInsight] = useState(null)
+  const [generating, setGenerating] = useState(false)
+
+  useEffect(() => {
+    if (!traineeId) return
+    async function load() {
+      try {
+        const res = await trainerFetch({ action: 'get_insights', trainee_id: traineeId }, { agencyId })
+        if (!res.ok) return
+        const d = await res.json()
+        if (d.insights?.length > 0) setInsight(d.insights[0])
+      } catch {}
+    }
+    load()
+  }, [traineeId, agencyId])
+
+  async function handleGenerate() {
+    setGenerating(true)
+    try {
+      const res = await trainerFetch({ action: 'generate_weekly_insight', trainee_id: traineeId }, { agencyId })
+      if (res.ok) { const d = await res.json(); setInsight({ ...d.insight, generated_at: new Date().toISOString() }) }
+    } catch {} finally { setGenerating(false) }
+  }
+
+  return (
+    <div style={{ ...panelStyle, background: '#0a0a0a', color: '#fff', border: 'none', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: CAL.font }}>AI Weekly Analysis</div>
+        <button type="button" onClick={handleGenerate} disabled={generating} style={{
+          padding: '6px 12px', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)',
+          border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: generating ? 'default' : 'pointer', fontFamily: CAL.font,
+          display: 'flex', alignItems: 'center', gap: 4,
+        }}>
+          {generating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
+          {generating ? 'Analyzing...' : insight ? 'Refresh' : 'Generate'}
+        </button>
+      </div>
+      {insight ? (
+        <div>
+          <div style={{ fontSize: 15, lineHeight: 1.6, color: 'rgba(255,255,255,0.85)', marginBottom: 16, fontFamily: CAL.font }}>{insight.summary}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#34c759', textTransform: 'uppercase', marginBottom: 6 }}>Working</div>
+              {(Array.isArray(insight.whats_working) ? insight.whats_working : []).map((w, i) => (
+                <div key={i} style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 4, paddingLeft: 10, borderLeft: '2px solid #34c759', fontFamily: CAL.font }}>{w}</div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#ff9f0a', textTransform: 'uppercase', marginBottom: 6 }}>Needs attention</div>
+              {(Array.isArray(insight.needs_attention) ? insight.needs_attention : []).map((w, i) => (
+                <div key={i} style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 4, paddingLeft: 10, borderLeft: '2px solid #ff9f0a', fontFamily: CAL.font }}>{w}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: 12, color: 'rgba(255,255,255,0.4)', fontSize: 14, fontFamily: CAL.font }}>
+          Log workouts and meals, then generate your weekly analysis.
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Progress Photos (trainer-side) ────────────────────────────────────────
+
+function TrainerProgressPhotos({ traineeId, agencyId }) {
+  const [photos, setPhotos] = useState([])
+  const [showUpload, setShowUpload] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [pose, setPose] = useState('front')
+  const [overlayOpacity, setOverlayOpacity] = useState(50)
+  const fileRef = useRef(null)
+
+  useEffect(() => {
+    if (!traineeId) return
+    async function load() {
+      try {
+        const res = await trainerFetch({ action: 'get_progress_photos', trainee_id: traineeId }, { agencyId })
+        if (!res.ok) return
+        const d = await res.json()
+        setPhotos(d.photos || [])
+      } catch {}
+    }
+    load()
+  }, [traineeId, agencyId])
+
+  async function handleUpload(file) {
+    if (!file) return
+    setUploading(true)
+    try {
+      const reader = new FileReader()
+      const base64 = await new Promise((resolve, reject) => {
+        reader.onload = () => { const s = String(reader.result || ''); const i = s.indexOf(','); resolve(i >= 0 ? s.slice(i + 1) : s) }
+        reader.onerror = () => reject(new Error('Read failed'))
+        reader.readAsDataURL(file)
+      })
+      const res = await trainerFetch({ action: 'upload_progress_photo', trainee_id: traineeId, photo_base64: base64, pose }, { agencyId })
+      if (res.ok) {
+        setShowUpload(false)
+        const res2 = await trainerFetch({ action: 'get_progress_photos', trainee_id: traineeId }, { agencyId })
+        if (res2.ok) { const d = await res2.json(); setPhotos(d.photos || []) }
+      }
+    } catch {} finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }
+  }
+
+  const frontPhotos = photos.filter((p) => p.pose === 'front')
+  const hasComparison = frontPhotos.length >= 2
+
+  return (
+    <div style={{ ...panelStyle, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={panelTitle}>Progress Photos</div>
+        <button type="button" onClick={() => setShowUpload(!showUpload)} style={btnSecondary(false)}>
+          {showUpload ? 'Cancel' : '+ Photo'}
+        </button>
+      </div>
+
+      {showUpload && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {['front', 'side', 'back'].map((p) => (
+              <button key={p} type="button" onClick={() => setPose(p)} style={{
+                padding: '6px 14px', background: pose === p ? CAL.ink : CAL.card,
+                color: pose === p ? '#fff' : CAL.ink2, border: `1px solid ${CAL.border}`,
+                borderRadius: CAL.rPill, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                fontFamily: CAL.font, textTransform: 'capitalize',
+              }}>{p}</button>
+            ))}
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" capture="user" style={{ display: 'none' }}
+            onChange={(e) => handleUpload(e.target.files?.[0])} />
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={btnPrimary(uploading)}>
+            {uploading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Camera size={14} />}
+            {uploading ? 'Uploading...' : `Capture ${pose}`}
+          </button>
+        </div>
+      )}
+
+      {hasComparison && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: 280, margin: '0 auto', aspectRatio: '3 / 4', borderRadius: CAL.rSm, overflow: 'hidden', background: '#000' }}>
+            <img src={frontPhotos[0].public_url} alt="Start" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={frontPhotos[frontPhotos.length - 1].public_url} alt="Latest" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: overlayOpacity / 100 }} />
+          </div>
+          <div style={{ maxWidth: 280, margin: '6px auto 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: CAL.ink3 }}>Before</span>
+            <input type="range" min="0" max="100" value={overlayOpacity} onChange={(e) => setOverlayOpacity(Number(e.target.value))} style={{ flex: 1 }} />
+            <span style={{ fontSize: 11, color: CAL.ink3 }}>After</span>
+          </div>
+        </div>
+      )}
+
+      {photos.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', gap: 6 }}>
+          {photos.map((p) => (
+            <div key={p.id} style={{ aspectRatio: '3 / 4', borderRadius: 6, overflow: 'hidden', position: 'relative' }}>
+              <img src={p.public_url} alt={p.pose} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', bottom: 3, left: 3, padding: '1px 5px', background: 'rgba(0,0,0,0.6)', borderRadius: 3, fontSize: 8, color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{p.pose}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {photos.length === 0 && !showUpload && (
+        <div style={{ textAlign: 'center', padding: 12, color: CAL.ink3, fontSize: 13, fontFamily: CAL.font }}>No progress photos yet.</div>
+      )}
+    </div>
+  )
+}
+
+// ── Body Measurements (trainer-side) ──────────────────────────────────────
+
+function TrainerBodyMeasurements({ traineeId, agencyId }) {
+  const BF = [
+    { key: 'chest', label: 'Chest' }, { key: 'waist', label: 'Waist' }, { key: 'hips', label: 'Hips' },
+    { key: 'shoulders', label: 'Shoulders' }, { key: 'neck', label: 'Neck' },
+    { key: 'bicep_left', label: 'Bicep L' }, { key: 'bicep_right', label: 'Bicep R' },
+    { key: 'thigh_left', label: 'Thigh L' }, { key: 'thigh_right', label: 'Thigh R' },
+  ]
+  const [measurements, setMeasurements] = useState([])
+  const [draft, setDraft] = useState({})
+  const [showForm, setShowForm] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!traineeId) return
+    async function load() {
+      try {
+        const res = await trainerFetch({ action: 'get_body_measurements', trainee_id: traineeId }, { agencyId })
+        if (!res.ok) return
+        const d = await res.json()
+        setMeasurements(d.measurements || [])
+      } catch {}
+    }
+    load()
+  }, [traineeId, agencyId])
+
+  async function handleSave() {
+    const hasAny = BF.some((f) => draft[f.key] && String(draft[f.key]).trim() !== '')
+    if (!hasAny) return
+    setSaving(true)
+    try {
+      const body = { action: 'log_body_measurements', trainee_id: traineeId }
+      for (const f of BF) { if (draft[f.key]) body[f.key] = Number(draft[f.key]) }
+      const res = await trainerFetch(body, { agencyId })
+      if (res.ok) {
+        setDraft({}); setShowForm(false)
+        const res2 = await trainerFetch({ action: 'get_body_measurements', trainee_id: traineeId }, { agencyId })
+        if (res2.ok) { const d = await res2.json(); setMeasurements(d.measurements || []) }
+      }
+    } catch {} finally { setSaving(false) }
+  }
+
+  // Changes
+  const changes = measurements.length >= 2 ? BF.map((f) => {
+    const s = measurements[0]?.[f.key], e = measurements[measurements.length - 1]?.[f.key]
+    return s != null && e != null ? { label: f.label, end: Number(e), diff: Number(e) - Number(s) } : null
+  }).filter(Boolean) : []
+
+  return (
+    <div style={{ ...panelStyle, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={panelTitle}>Body Measurements</div>
+        <button type="button" onClick={() => setShowForm(!showForm)} style={btnSecondary(false)}>
+          {showForm ? 'Cancel' : '+ Log'}
+        </button>
+      </div>
+
+      {showForm && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 6 }}>
+            {BF.map((f) => (
+              <div key={f.key}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: CAL.ink3, marginBottom: 2 }}>{f.label}</div>
+                <input type="number" step="0.25" value={draft[f.key] || ''} onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                  placeholder="in" style={{ width: '100%', padding: '6px 8px', fontSize: 14, fontWeight: 600, border: `1px solid ${CAL.border}`, borderRadius: 6, background: CAL.card, color: CAL.ink, fontFamily: CAL.font, outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={handleSave} disabled={saving} style={{ ...btnPrimary(saving), width: '100%', marginTop: 10, justifyContent: 'center' }}>
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      )}
+
+      {changes.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 6 }}>
+          {changes.map((c) => (
+            <div key={c.label} style={{ padding: '6px 8px', background: CAL.card, borderRadius: 6 }}>
+              <div style={{ fontSize: 10, color: CAL.ink3 }}>{c.label}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: CAL.ink }}>{c.end}"</div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: c.diff > 0 ? '#059669' : c.diff < 0 ? '#dc2626' : CAL.ink3 }}>
+                {c.diff > 0 ? '+' : ''}{c.diff.toFixed(1)}"
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {measurements.length === 0 && !showForm && (
+        <div style={{ textAlign: 'center', padding: 10, color: CAL.ink3, fontSize: 13, fontFamily: CAL.font }}>No measurements logged yet.</div>
+      )}
     </div>
   )
 }
