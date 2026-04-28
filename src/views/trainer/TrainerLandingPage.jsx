@@ -59,10 +59,11 @@ const TESTIMONIAL_STATS = [
 ]
 
 // TODO: replace with real coach + athlete quotes once we have permission.
+// Avatars use i.pravatar.cc seeded so the same fake face renders every load.
 const TESTIMONIALS = [
-  { quote: "I've coached high school baseball for fifteen years. Koto built a 90-day plan for one of my pitchers in three minutes that I would've billed at twelve hours.", name: 'Coach Mike R.', role: 'Pitching Coach, Texas' },
-  { quote: 'My daughter plays club volleyball year-round. The AI built around her tournament schedule, not against it. She PR’d her vertical in six weeks.', name: 'Jen K.', role: 'Parent of D1-track athlete' },
-  { quote: 'I run a small training studio. Koto is the first AI tool that doesn’t feel like a generic chatbot wearing a fitness costume.', name: 'Devon T.', role: 'Owner, Apex Performance' },
+  { quote: "I've coached high school baseball for fifteen years. Koto built a 90-day plan for one of my pitchers in three minutes that I would've billed at twelve hours.", name: 'Coach Mike R.', role: 'Pitching Coach, Texas', avatar: 'https://i.pravatar.cc/120?u=koto-coach-mike' },
+  { quote: 'My daughter plays club volleyball year-round. The AI built around her tournament schedule, not against it. She PR’d her vertical in six weeks.', name: 'Jen K.', role: 'Parent of D1-track athlete', avatar: 'https://i.pravatar.cc/120?u=koto-parent-jen' },
+  { quote: 'I run a small training studio. Koto is the first AI tool that doesn’t feel like a generic chatbot wearing a fitness costume.', name: 'Devon T.', role: 'Owner, Apex Performance', avatar: 'https://i.pravatar.cc/120?u=koto-owner-devon' },
 ]
 
 const FAQS = [
@@ -281,31 +282,26 @@ function Hero({ onStart }) {
         </div>
       </div>
 
-      {/* IMAGE PROMPT (Midjourney/DALL-E):
+      {/* MOCKUP: fake-people via pravatar.cc — swap for a real shoot pre-launch.
+          IMAGE PROMPT (Midjourney/DALL-E) for the real version:
           "Editorial photo of a 19-year-old multi-sport athlete looking down at
            an iPhone showing a fitness app — soft morning gym light, faint
            parquet floor reflection, cool gray + warm tan color grade matching
            Apple Health aesthetic, shallow depth of field, photorealistic, no
-           visible logos, 4:5 vertical aspect ratio. Phone screen will be
-           composited later — leave it slightly blurred or as a glow."
-          Replace this placeholder div with an <img> when generated. */}
+           visible logos, 4:5 vertical aspect ratio." */}
       <div style={{
         position: 'relative',
         width: '100%', aspectRatio: '4 / 5',
         borderRadius: T.rXl,
-        background: `linear-gradient(135deg, ${T.card} 0%, #e5e5ea 60%, #d8d8de 100%)`,
         overflow: 'hidden',
         boxShadow: T.shadowFloater,
+        background: T.card,
       }}>
-        <div style={{
-          position: 'absolute', left: '50%', top: '50%',
-          transform: 'translate(-50%, -50%)',
-          textAlign: 'center', color: T.ink3,
-          fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.body,
-          letterSpacing: '0.1px',
-        }}>
-          [hero portrait]
-        </div>
+        <img
+          src="https://i.pravatar.cc/720?u=koto-hero-athlete"
+          alt="Koto athlete using the app"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
       </div>
     </section>
   )
@@ -361,36 +357,27 @@ function SportsStrip() {
 }
 
 function HowItWorks() {
+  // MOCKUP: fake-people via pravatar.cc — swap each `img` for a real shoot
+  // pre-launch. The image prompts to send through Midjourney/DALL-E live in
+  // each step's `_prompt` field.
   const steps = [
     {
       n: '1', title: 'Tell us about you',
       body: 'Two minutes of pill-tap intake — sport, level, goals, schedule, dietary edges. No essays.',
-      // IMAGE PROMPT (Midjourney/DALL-E):
-      //   "Top-down editorial photo of a young athlete’s hands holding an iPhone,
-      //    with a softly blurred fitness app intake screen on display. Warm-tan
-      //    gradient backdrop, single soft light from upper-left, photorealistic,
-      //    no logos, 1:1 square aspect ratio."
-      tint: '#f1f1f6',
+      img: 'https://i.pravatar.cc/600?u=koto-step-intake',
+      _prompt: "Top-down editorial photo of a young athlete's hands holding an iPhone, with a softly blurred fitness app intake screen on display. Warm-tan gradient backdrop, single soft light from upper-left, photorealistic, no logos, 1:1 square.",
     },
     {
       n: '2', title: 'AI builds your plan',
       body: 'Six sections in under a minute: baseline, 90-day roadmap, 2-week block, playbook, meal plan, grocery list.',
-      // IMAGE PROMPT (Midjourney/DALL-E):
-      //   "Abstract editorial render of softly glowing geometric ‘cards’ stacked
-      //    diagonally on a cool-gray surface, suggesting an AI assembling a
-      //    personalized plan. One card has a faint warm-tan accent. Minimalist,
-      //    photorealistic 3D, no text, 1:1 square aspect ratio."
-      tint: '#f1f1f6',
+      img: 'https://i.pravatar.cc/600?u=koto-step-plan',
+      _prompt: "Abstract editorial render of softly glowing geometric cards stacked diagonally on a cool-gray surface, suggesting an AI assembling a personalized plan. One card has a faint warm-tan accent. Minimalist, photorealistic 3D, no text, 1:1 square.",
     },
     {
       n: '3', title: 'Train, log, adjust',
       body: 'Tap to log sets and meals. The AI watches your trend lines and refines next week’s plan automatically.',
-      // IMAGE PROMPT (Midjourney/DALL-E):
-      //   "Editorial photo of an athlete mid-rep on a back-squat in a clean
-      //    natural-light gym, side angle, slight motion blur on the bar,
-      //    cool-gray walls + warm-tan floor color grade, photorealistic,
-      //    no logos visible, 1:1 square aspect ratio."
-      tint: '#f1f1f6',
+      img: 'https://i.pravatar.cc/600?u=koto-step-train',
+      _prompt: "Editorial photo of an athlete mid-rep on a back-squat in a clean natural-light gym, side angle, slight motion blur on the bar, cool-gray walls + warm-tan floor color grade, photorealistic, no logos, 1:1 square.",
     },
   ]
   return (
@@ -436,17 +423,14 @@ function HowItWorks() {
               <div style={{
                 width: '100%', aspectRatio: '1 / 1',
                 borderRadius: T.rLg,
-                background: `linear-gradient(135deg, #fafafb 0%, ${step.tint} 100%)`,
-                position: 'relative',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'hidden',
+                background: '#fafafb',
               }}>
-                <div style={{
-                  color: T.ink4, fontFamily: T.font,
-                  fontSize: T.size.caption, fontWeight: T.weight.body,
-                  letterSpacing: '0.1px',
-                }}>
-                  [step {step.n} image]
-                </div>
+                <img
+                  src={step.img}
+                  alt={step.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
               </div>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -970,13 +954,29 @@ function SocialProof() {
                 &ldquo;{t.quote}&rdquo;
               </blockquote>
               <figcaption style={{
+                display: 'flex', alignItems: 'center', gap: T.s3,
                 fontFamily: T.font,
-                fontSize: T.size.subtitle, fontWeight: T.weight.h1,
-                color: T.ink,
               }}>
-                {t.name}
-                <span style={{ display: 'block', fontWeight: T.weight.body, color: T.ink3, fontSize: T.size.caption, marginTop: 2 }}>
-                  {t.role}
+                <img
+                  src={t.avatar}
+                  alt={t.name}
+                  width={44} height={44}
+                  style={{ borderRadius: T.rPill, flexShrink: 0, objectFit: 'cover' }}
+                />
+                <span style={{ minWidth: 0 }}>
+                  <span style={{
+                    display: 'block',
+                    fontSize: T.size.subtitle, fontWeight: T.weight.h1,
+                    color: T.ink,
+                  }}>
+                    {t.name}
+                  </span>
+                  <span style={{
+                    display: 'block', fontWeight: T.weight.body, color: T.ink3,
+                    fontSize: T.size.caption, marginTop: 2,
+                  }}>
+                    {t.role}
+                  </span>
                 </span>
               </figcaption>
             </figure>
