@@ -291,21 +291,45 @@ async function handleBaseline(
   }
   const baseline = result.data
 
-  // Insert new plan row with block_number=1
-  const { data: inserted, error: insErr } = await sb
+  // Upsert: update existing plan if one exists, otherwise insert new
+  const { data: existingPlan } = await sb
     .from('koto_fitness_plans')
-    .insert({
-      agency_id: agencyId,
-      trainee_id: traineeId,
-      block_number: 1,
-      baseline,
-      generated_at: new Date().toISOString(),
-    })
     .select('id')
-    .single()
-  if (insErr || !inserted) {
-    console.error('[trainer/generate] baseline insert error:', insErr?.message)
-    return err(500, 'Persist failed')
+    .eq('agency_id', agencyId)
+    .eq('trainee_id', traineeId)
+    .order('block_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  let inserted: { id: string }
+  if (existingPlan) {
+    const { error: updErr } = await sb
+      .from('koto_fitness_plans')
+      .update({ baseline, generated_at: new Date().toISOString() })
+      .eq('id', (existingPlan as { id: string }).id)
+      .eq('agency_id', agencyId)
+    if (updErr) {
+      console.error('[trainer/generate] baseline update error:', updErr.message)
+      return err(500, 'Persist failed')
+    }
+    inserted = existingPlan as { id: string }
+  } else {
+    const { data: newPlan, error: insErr } = await sb
+      .from('koto_fitness_plans')
+      .insert({
+        agency_id: agencyId,
+        trainee_id: traineeId,
+        block_number: 1,
+        baseline,
+        generated_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single()
+    if (insErr || !newPlan) {
+      console.error('[trainer/generate] baseline insert error:', insErr?.message)
+      return err(500, 'Persist failed')
+    }
+    inserted = newPlan as { id: string }
   }
 
   // Short-circuit if ok_to_train=false — don't run the rest of the chain.
