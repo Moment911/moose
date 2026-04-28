@@ -54,10 +54,10 @@ const FEATURES = [
 ]
 
 const TESTIMONIAL_STATS = [
-  { value: '6', label: 'Plan sections, generated in minutes' },
-  { value: '15+', label: 'Sports, each with its own playbook' },
-  { value: '100%', label: 'Personalized to your goals & body' },
-  { value: '24/7', label: 'Your AI is ready when you are' },
+  { value: '24/7', label: 'Always on. Your AI coach never sleeps, never takes a day off, never cancels on you.', highlight: true },
+  { value: '2 min', label: 'From first conversation to a complete personalized plan.' },
+  { value: '15+', label: 'Sports with dedicated playbooks, periodization, and position-specific training.' },
+  { value: '$0', label: 'To start. No credit card. No commitment. Just results.' },
 ]
 
 const TESTIMONIALS = [
@@ -1182,41 +1182,38 @@ function SocialProof() {
         </div>
 
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: T.s4,
+          background: T.ink, borderRadius: T.rXl, padding: `${T.s7}px ${T.s6}px`,
           marginBottom: T.s8,
         }}>
-          {TESTIMONIAL_STATS.map((s) => (
-            <div key={s.label} style={{
-              background: T.card,
-              borderRadius: T.rLg,
-              padding: T.s5,
-              display: 'flex', flexDirection: 'column', gap: T.s2,
-            }}>
-              <div style={{
-                fontFamily: T.font,
-                fontSize: T.size.caption, fontWeight: T.weight.body,
-                color: T.ink3, textTransform: 'uppercase', letterSpacing: '0.12em',
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: T.s5,
+          }}>
+            {TESTIMONIAL_STATS.map((s) => (
+              <div key={s.label} style={{
+                padding: T.s4,
+                borderLeft: s.highlight ? `3px solid ${T.accent}` : '3px solid rgba(255,255,255,0.08)',
+                paddingLeft: T.s5,
               }}>
-                {s.label.split(',')[0]}
+                <div style={{
+                  fontFamily: T.font,
+                  fontSize: s.highlight ? 52 : 40, fontWeight: T.weight.display,
+                  letterSpacing: '-0.03em', color: s.highlight ? T.accent : '#fff', lineHeight: 1,
+                  marginBottom: T.s2,
+                }}>
+                  <CountUpStat value={s.value} />
+                </div>
+                <div style={{
+                  fontFamily: T.font,
+                  fontSize: T.size.subtitle, fontWeight: T.weight.body,
+                  color: 'rgba(255,255,255,0.55)', lineHeight: 1.45,
+                }}>
+                  {s.label}
+                </div>
               </div>
-              <div style={{
-                fontFamily: T.font,
-                fontSize: 44, fontWeight: T.weight.display,
-                letterSpacing: '-0.025em', color: T.ink, lineHeight: 1,
-              }}>
-                <CountUpStat value={s.value} />
-              </div>
-              <div style={{
-                fontFamily: T.font,
-                fontSize: T.size.caption, fontWeight: T.weight.body,
-                color: T.ink3, lineHeight: 1.4,
-              }}>
-                {s.label}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* TODO: replace with real testimonials once we have permission. */}
@@ -1775,11 +1772,12 @@ function FounderStory() {
             velocity, his schedule, and his goals.
           </p>
           <p style={{ margin: `0 0 ${T.s5}px` }}>
-            <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>Mom</strong> is a
-            world-renowned bariatric surgeon and weight loss expert who has spent her career helping
-            people transform their health. She knew exactly what kind of guidance works  --  and what
-            doesn't. She brought the clinical rigor, the nutrition science, and the deep understanding
-            of how real people actually change their bodies and their lives.
+            <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>The expert</strong> is a
+            world-renowned bariatric surgeon and weight loss specialist  --  a close family friend
+            who has spent her career helping people transform their health. She knew exactly what
+            kind of guidance works and what doesn't. She brought the clinical rigor, the nutrition
+            science, and the deep understanding of how real people actually change their bodies
+            and their lives.
           </p>
           <p style={{ margin: 0 }}>
             <strong style={{ color: T.ink, fontWeight: T.weight.h1 }}>Dad</strong> is the one
