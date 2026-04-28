@@ -30,8 +30,8 @@ const FEATURES = [
   },
   {
     icon: Target,
-    title: 'Knows your sport. Or your goal.',
-    desc: "Play a sport? It knows how to train for it -- different programs for baseball, soccer, basketball, and 12 more. Not an athlete? It builds around weight loss, muscle gain, or just feeling better. It meets you where you are.",
+    title: 'Knows what you need.',
+    desc: "Losing weight? Building muscle? Training for a sport? Recovering from an injury? Staying active at 65? It builds a program around YOUR reality -- not a one-size-fits-all template.",
     color: '#0891b2',
   },
   {
@@ -73,16 +73,16 @@ const FAQS = [
     a: "No. The AI builds plans for whoever you are, in whatever shape you're in. Youth athletes, college students, busy parents, traveling executives, retirees  —  same product, completely different plans. Tell it your reality and it programs for that.",
   },
   {
-    q: 'How does the AI know my sport?',
-    a: 'During the two-minute intake, you tell us what you do and what you want. If you play a sport, the AI loads a playbook for that sport -- it knows how to train a baseball pitcher differently from a soccer midfielder. If you do not play a sport, it builds around your goal -- weight loss, muscle gain, staying active, whatever matters to you.',
+    q: 'How does it know what I need?',
+    a: 'You have a short conversation and tell it about yourself -- your goals, your schedule, your body, your life. If you play a sport, it loads a sport-specific program. If you want to lose weight, it builds around that. If you just want to feel better and have more energy, it programs for that too. It adapts to you.',
   },
   {
     q: 'Is my health data safe?',
     a: 'Your data lives in your account, encrypted at rest. We don\'t sell it, we don\'t share it, and we never train public models on it. Anyone you invite to view your plan (a parent helping their kid stay on track, for example) sees only what you share with them.',
   },
   {
-    q: 'What sports are supported?',
-    a: 'Today: baseball, football, basketball, soccer, track & field, swimming, wrestling, volleyball, tennis, golf, hockey, lacrosse, CrossFit, MMA, plus a general-fitness mode for anyone who just wants to get stronger, lose weight, or stay healthy. We add new sports based on what users ask for.',
+    q: 'What sports and goals are supported?',
+    a: 'Any sport and any goal. Baseball, football, basketball, soccer, track, swimming, wrestling, volleyball, tennis, golf, hockey, lacrosse, CrossFit, MMA -- plus weight loss, muscle gain, general fitness, active aging, and anything else you tell it. It builds around what YOU need, not a fixed list.',
   },
   {
     q: 'How much does it cost?',
@@ -813,7 +813,7 @@ function InsideTheAi() {
     { Icon: Dumbbell,       title: 'AI Strength & Conditioning Expert', body: 'Trained on periodization science and programming methodology. Designs your training blocks, manages volume, and peaks you for your season.' },
     { Icon: Activity,       title: 'AI Exercise Physiology Expert', body: 'Trained on recovery science, sleep research, and fatigue management. Knows when to push harder and when to back off based on your data.' },
     { Icon: GraduationCap,  title: 'AI Sports Psychology Expert', body: 'Trained on performance psychology and motivation research. Handles the mental side that most programs completely ignore.' },
-    { Icon: Target,         title: 'AI Pro Athlete Model',      body: 'For every sport, a dedicated AI model trained on elite-level competition knowledge. Baseball? It thinks like a pro pitcher. Soccer? It thinks like a pro midfielder. It adapts to YOUR sport.' },
+    { Icon: Target,         title: 'AI Real-World Experience Model', body: 'Not just textbook knowledge. This model is trained on decades of real-world coaching, competition, and results across every sport and goal. It knows what actually works because it has seen what works.' },
   ]
   return (
     <section style={{ padding: `${T.s8}px 24px`, background: T.card }}>
@@ -848,9 +848,9 @@ function InsideTheAi() {
           }}>
             Most fitness AI is one generic model pretending to know everything.
             Koto runs six specialized AI expert models  --  each trained on
-            PhD-level research in its domain  --  plus a sport-specific pro
-            athlete model that adapts to whatever you play. When you ask a
-            question, the right expert answers.
+            PhD-level research in its domain  --  plus a real-world experience
+            model that adapts to your sport, your goal, or your lifestyle.
+            When you ask a question, the right expert answers.
           </p>
         </div>
 
@@ -1754,7 +1754,7 @@ function BottomCta({ onStart }) {
           fontSize: T.size.body, lineHeight: T.lh.body,
           fontWeight: T.weight.body, color: 'rgba(255,255,255,0.65)',
         }}>
-          Five PhDs. A pro athlete. Twenty years of coaching. All in your pocket, 24/7.
+          Six AI experts. Your sport, your goal, your life. All in your pocket, 24/7.
           Free to start, no credit card. Two minutes to your first plan.
         </p>
 
@@ -1890,7 +1890,7 @@ function TryItDemo() {
             fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            This is real. Pick a coach, tell them your sport or your goal, and
+            This is real. Pick a coach, tell them what you want to accomplish, and
             watch the AI respond in real time. No sign-up. No email. Just talk.
           </p>
         </div>
@@ -2141,7 +2141,7 @@ function FounderStory() {
           fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.5,
           fontWeight: T.weight.body, color: T.ink3,
         }}>
-          That's why Koto works for a sixteen-year-old athlete, a busy parent, a college
+          That is why Koto works for a sixteen-year-old athlete, a busy parent, a college
           student, an executive on the road, and a retiree getting back in shape. It was
           built by all of them.
         </p>
