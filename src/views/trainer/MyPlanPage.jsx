@@ -323,17 +323,20 @@ export default function MyPlanPage() {
         )}
       </div>
 
-      {/* Mobile bottom tab bar */}
+      {/* Mobile bottom tab bar — Cal-AI floating white surface, active pill,
+          shadow lift. The bar floats above content with side margin so it
+          reads as an "object" rather than a chrome strip. */}
       {isMobile && (
         <nav className="no-print" style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
-          height: 56,
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          background: 'rgba(255,255,255,0.88)',
-          backdropFilter: 'saturate(180%) blur(20px)',
-          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-          borderTop: `0.5px solid ${A.border}`,
+          position: 'fixed',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
+          left: 12, right: 12,
+          height: 64,
+          background: '#ffffff',
+          borderRadius: 22,
+          boxShadow: '0 8px 28px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.04)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+          padding: '0 8px',
           zIndex: 50,
         }}>
           {TABS.map(({ key, label, Icon }) => {
@@ -343,16 +346,20 @@ export default function MyPlanPage() {
             return (
               <button key={key} type="button" onClick={() => setTab(key)} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 2, padding: '6px 0', background: 'transparent', border: 'none',
-                color: active ? A.accent : A.ink3,
-                fontSize: 10, fontWeight: active ? 600 : 500,
+                gap: 2,
+                padding: active ? '6px 12px' : '6px 8px',
+                background: active ? A.cardAlt : 'transparent',
+                border: 'none', borderRadius: 14,
+                color: active ? A.ink : A.ink3,
+                fontSize: 10, fontWeight: active ? 700 : 500,
                 cursor: 'pointer', fontFamily: A.font,
-                minWidth: 56, position: 'relative',
+                minWidth: 52, position: 'relative',
+                transition: 'background .15s ease',
               }}>
-                <Icon size={22} strokeWidth={active ? 2 : 1.5} />
+                <Icon size={20} strokeWidth={active ? 2.25 : 1.75} />
                 {hasContent && ready && (
                   <span aria-hidden style={{
-                    position: 'absolute', top: 4, right: 14,
+                    position: 'absolute', top: 4, right: 10,
                     width: 6, height: 6, borderRadius: 999,
                     background: '#10b981',
                     boxShadow: '0 0 0 1.5px #fff',
