@@ -954,7 +954,11 @@ export default function TrainerDetailPage() {
                 pending={pending}
                 nextStep={nextStep}
                 onGenerateBaseline={handleGenerateAll}
+                onRegenerateBaseline={handleGenerateBaseline}
+                onRegenerateRoadmap={handleGenerateRoadmap}
                 onRegenerateWorkout={() => handleGenerateWorkout(currentPhase)}
+                onRegeneratePlaybook={handleGeneratePlaybook}
+                onRegenerateMeals={handleGenerateMeals}
                 onUpdateAboutYou={handleUpdateAboutYou}
                 onUpdateFields={handleUpdateTraineeFields}
                 onRefineElicit={handleRefineElicit}
@@ -1256,7 +1260,11 @@ function OverviewTab({
   pending,
   nextStep,
   onGenerateBaseline,
+  onRegenerateBaseline,
+  onRegenerateRoadmap,
   onRegenerateWorkout,
+  onRegeneratePlaybook,
+  onRegenerateMeals,
   onUpdateAboutYou,
   onUpdateFields,
   onRefineElicit,
@@ -1448,33 +1456,31 @@ function OverviewTab({
 
       {/* ══ 3. Plan Content — completed sections with styled cards ══ */}
       {hasBaseline && (
-        <PlanSection title="Baseline" icon={<Activity size={16} />} color="#dc2626" defaultOpen>
-          <PlanBaselineCard baseline={plan.baseline} onRegenerate={onGenerateBaseline} regenerating={pending.baseline} />
+        <PlanSection title="Baseline" icon={<Activity size={16} />} color="#dc2626" defaultOpen onRegenerate={onRegenerateBaseline} regenerating={pending.baseline}>
+          <PlanBaselineCard baseline={plan.baseline} />
         </PlanSection>
       )}
       {plan?.roadmap && (
-        <PlanSection title="Roadmap" icon={<Target size={16} />} color="#2563eb">
+        <PlanSection title="Roadmap" icon={<Target size={16} />} color="#2563eb" onRegenerate={onRegenerateRoadmap} regenerating={pending.roadmap}>
           <RoadmapCard roadmap={plan.roadmap} currentPhase={plan.phase_ref || 1} />
         </PlanSection>
       )}
       {plan?.workout_plan && (
-        <PlanSection title="Workout" icon={<Dumbbell size={16} />} color="#7c3aed">
+        <PlanSection title="Workout" icon={<Dumbbell size={16} />} color="#7c3aed" onRegenerate={onRegenerateWorkout} regenerating={pending.workout}>
           <WorkoutAccordion
             workoutPlan={plan.workout_plan}
             logs={[]}
             onLogSet={() => {}}
-            onRegenerate={onRegenerateWorkout}
-            regenerating={pending.workout}
           />
         </PlanSection>
       )}
       {plan?.playbook && (
-        <PlanSection title="Playbook" icon={<BookOpen size={16} />} color="#059669">
+        <PlanSection title="Playbook" icon={<BookOpen size={16} />} color="#059669" onRegenerate={onRegeneratePlaybook} regenerating={pending.playbook}>
           <PlaybookCard playbook={plan.playbook} />
         </PlanSection>
       )}
       {plan?.meal_plan && (
-        <PlanSection title="Meal Plan" icon={<Utensils size={16} />} color="#d97706">
+        <PlanSection title="Meal Plan" icon={<Utensils size={16} />} color="#d97706" onRegenerate={onRegenerateMeals} regenerating={pending.meals}>
           <MealPlanTable mealPlan={plan.meal_plan} />
         </PlanSection>
       )}
@@ -1491,29 +1497,51 @@ function OverviewTab({
 // Shows all 6 plan steps as a clickable progress strip. Each step shows
 // done/pending status. Click to navigate to the relevant tab.
 
-function PlanSection({ title, icon, color = '#0a0a0a', defaultOpen = false, children }) {
+function PlanSection({ title, icon, color = '#0a0a0a', defaultOpen = false, onRegenerate, regenerating, children }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
     <div style={{ marginBottom: 10 }}>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-          padding: '14px 18px',
-          background: open ? CAL.bg : CAL.card,
-          border: `1px solid ${open ? color + '25' : CAL.border}`,
-          borderLeft: `3px solid ${color}`,
-          borderRadius: open ? `${CAL.rMd}px ${CAL.rMd}px 0 0` : CAL.rMd,
-          cursor: 'pointer', textAlign: 'left',
-          fontFamily: CAL.font,
-          transition: 'all .15s',
-        }}
-      >
-        <span style={{ color, display: 'flex', alignItems: 'center' }}>{icon}</span>
-        <span style={{ flex: 1, fontSize: 16, fontWeight: 700, color: CAL.ink, letterSpacing: '-0.01em', fontFamily: CAL.font }}>{title}</span>
-        <span style={{ color: CAL.ink4, fontSize: 13, fontWeight: 600 }}>{open ? '\u25B2' : '\u25BC'}</span>
-      </button>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 0,
+        borderRadius: open ? `${CAL.rMd}px ${CAL.rMd}px 0 0` : CAL.rMd,
+        overflow: 'hidden',
+      }}>
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, flex: 1,
+            padding: '14px 18px',
+            background: open ? CAL.bg : CAL.card,
+            border: `1px solid ${open ? color + '25' : CAL.border}`,
+            borderLeft: `3px solid ${color}`,
+            borderRight: onRegenerate ? 'none' : undefined,
+            borderRadius: 0,
+            cursor: 'pointer', textAlign: 'left',
+            fontFamily: CAL.font, transition: 'all .15s',
+          }}
+        >
+          <span style={{ color, display: 'flex', alignItems: 'center' }}>{icon}</span>
+          <span style={{ flex: 1, fontSize: 16, fontWeight: 700, color: CAL.ink, letterSpacing: '-0.01em', fontFamily: CAL.font }}>{title}</span>
+          <span style={{ color: CAL.ink4, fontSize: 13, fontWeight: 600 }}>{open ? '\u25B2' : '\u25BC'}</span>
+        </button>
+        {onRegenerate && (
+          <button type="button" onClick={(e) => { e.stopPropagation(); onRegenerate() }} disabled={regenerating}
+            style={{
+              padding: '14px 14px',
+              background: open ? CAL.bg : CAL.card,
+              border: `1px solid ${open ? color + '25' : CAL.border}`,
+              borderLeft: 'none',
+              cursor: regenerating ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: 11, fontWeight: 600, color: CAL.ink3, fontFamily: CAL.font,
+              whiteSpace: 'nowrap',
+            }}>
+            {regenerating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
+            Redo
+          </button>
+        )}
+      </div>
       {open && (
         <div style={{
           border: `1px solid ${color}18`, borderTop: 'none',

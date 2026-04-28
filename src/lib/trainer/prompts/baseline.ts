@@ -92,9 +92,10 @@ top_3_focus_areas rules:
 coach_summary rules:
 - 2-3 sentences speaking DIRECTLY to the athlete in second person ("You're...", "Your goal...", "You've got...").
 - Cites at least one specific: age, sport/context from about_you, goal, or current vs target weight.
+- If about_you mentions a SPORT (baseball, golf, soccer, etc.), the coach_summary MUST mention it and factor it into the assessment. Do NOT say "no sport specified" if about_you mentions a sport.
 - If about_you is non-empty, echo something concrete from it — a phrase, a goal, a constraint — so they know you read it.
 - One strength, one concern, one headline target — in that order.
-- Plain English.  No jargon.  No hype.  Talk like a cool coach, not a doctor.
+- USE PLAIN ENGLISH ONLY. Use lbs not kg. Use calories not kcal. Say "about 140 grams of protein — that's roughly a chicken breast at every meal" not "140g protein." Explain macros: "You'll eat about 2,650 calories a day — 140 grams of protein (builds muscle), 330 grams of carbs (energy for training), and 60 grams of fat (keeps your hormones and joints healthy)." Talk like a friend, not a textbook.
 
 Constraints:
 - Never diagnose.  Phrase flags as "this pattern typically warrants physician sign-off before starting a program" — never "you have X condition."
@@ -104,9 +105,11 @@ Constraints:
 - Category "unknown" is allowed when height_cm is null (can't compute BMI without it).
 - Every output carries disclaimer: "${DISCLAIMER}"`
 
-  // Compact intake payload — dropping undefined values keeps token count low.
+  // Compact intake payload — include about_you + sport fields so the AI
+  // knows the full context (sport, position, velocity, etc.)
   const intakePayload = stripUndefined({
     full_name: input.intake.full_name,
+    about_you: (input.intake as Record<string, unknown>).about_you ?? null,
     age: input.intake.age ?? null,
     sex: input.intake.sex ?? null,
     height_cm: input.intake.height_cm ?? null,
@@ -125,6 +128,17 @@ Constraints:
     stress_level: input.intake.stress_level ?? null,
     occupation_activity: input.intake.occupation_activity ?? null,
     trainer_notes: input.intake.trainer_notes ?? null,
+    // Sport-specific fields
+    position_primary: (input.intake as Record<string, unknown>).position_primary ?? null,
+    throwing_hand: (input.intake as Record<string, unknown>).throwing_hand ?? null,
+    batting_hand: (input.intake as Record<string, unknown>).batting_hand ?? null,
+    fastball_velo_peak: (input.intake as Record<string, unknown>).fastball_velo_peak ?? null,
+    fastball_velo_sit: (input.intake as Record<string, unknown>).fastball_velo_sit ?? null,
+    exit_velo: (input.intake as Record<string, unknown>).exit_velo ?? null,
+    sixty_time: (input.intake as Record<string, unknown>).sixty_time ?? null,
+    club_team: (input.intake as Record<string, unknown>).club_team ?? null,
+    practices_per_week: (input.intake as Record<string, unknown>).practices_per_week ?? null,
+    games_per_week: (input.intake as Record<string, unknown>).games_per_week ?? null,
   })
 
   const userMessage = `Intake:

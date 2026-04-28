@@ -91,6 +91,7 @@ Constraints:
 
   const intakePayload = stripUndefined({
     full_name: input.intake.full_name,
+    about_you: (input.intake as Record<string, unknown>).about_you ?? null,
     age: input.intake.age ?? null,
     sex: input.intake.sex ?? null,
     current_weight_kg: input.intake.current_weight_kg ?? null,
@@ -100,6 +101,10 @@ Constraints:
     training_days_per_week: input.intake.training_days_per_week ?? null,
     equipment_access: input.intake.equipment_access ?? null,
     trainer_notes: input.intake.trainer_notes ?? null,
+    position_primary: (input.intake as Record<string, unknown>).position_primary ?? null,
+    club_team: (input.intake as Record<string, unknown>).club_team ?? null,
+    practices_per_week: (input.intake as Record<string, unknown>).practices_per_week ?? null,
+    games_per_week: (input.intake as Record<string, unknown>).games_per_week ?? null,
   })
 
   const baselinePayload = {
