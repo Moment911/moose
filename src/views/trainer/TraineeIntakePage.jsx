@@ -2,15 +2,20 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Loader2, Send, Check, Circle, Camera, Pencil, RefreshCw, Bookmark, Map as MapIcon, Dumbbell, BookOpen, Timer, GraduationCap, ExternalLink, Salad, ClipboardCheck, PauseCircle } from 'lucide-react'
-// Cal-AI tokens
-const T = '#5aa0ff'
-const BLK = '#0a0a0a'
-const GRN = '#16a34a'
 import { PageHeader, PrimaryCTA } from '../../components/trainer/aesthetic'
-// Trainer portal uses red/blue accents, not Koto Pink. Local override.
-const R = '#e9695c'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { supabase } from '../../lib/supabase'
+
+// Cal-AI tokens — warm neutral palette
+const INK = '#0a0a0a'
+const INK2 = '#1f1f22'
+const INK3 = '#6b6b70'
+const ACCENT = '#d89a6a'
+const ACCENT_BG = 'rgba(216,154,106,0.10)'
+const GRN = '#10b981'
+const RED = '#e9695c'
+const BRD = '#ececef'
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /intake/:traineeId — unique intake link for trainer-added clients.
@@ -21,7 +26,7 @@ import { supabase } from '../../lib/supabase'
 // On completion → plan generation → "Done" screen.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BG = '#f9fafb'
+const BG = '#ffffff'
 
 // Hard minimum required for a SAFE, TARGETED plan. Everything else is
 // optional — the coach still asks about lifestyle, diet, recruiting,
@@ -487,13 +492,13 @@ function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, gen
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 260px', minWidth: 220 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, gap: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: BLK, letterSpacing: '-.1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: INK, letterSpacing: '-.1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: allDone ? GRN : '#6b7280', flexShrink: 0 }}>
               {filledCount} of {totalCount} · {pct}%
             </span>
           </div>
           <div style={{ height: 4, background: '#f1f1f6', borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${pct}%`, background: allDone ? GRN : T, borderRadius: 2, transition: 'width 0.4s ease' }} />
+            <div style={{ height: '100%', width: `${pct}%`, background: allDone ? GRN : ACCENT, borderRadius: 2, transition: 'width 0.4s ease' }} />
           </div>
         </div>
         <button
@@ -501,7 +506,7 @@ function ProgressRibbon({ filledCount, totalCount, pct, allDone, onGenerate, gen
           disabled={!allDone || generating}
           style={{
             padding: '10px 18px',
-            background: allDone ? R : '#ececef',
+            background: allDone ? INK : '#ececef',
             color: allDone ? '#fff' : '#9ca3af',
             border: 'none', borderRadius: 10,
             fontSize: 13, fontWeight: 800,
@@ -723,10 +728,10 @@ function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAbo
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: '1px solid #ececef', borderRadius: 12, overflow: 'hidden', height: '100%', minHeight: 500 }}>
-      <div style={{ padding: '12px 16px', background: BLK, color: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: '#fff' }}>K</div>
+      <div style={{ padding: '12px 16px', background: INK, color: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: '#fff' }}>K</div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 800 }}>Koto Coach</div>
+          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FONT }}>Your Coach</div>
           <div style={{ fontSize: 11, color: '#9ca3af' }}>Building your profile</div>
         </div>
       </div>
@@ -753,12 +758,12 @@ function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAbo
             {quickReplies.map((reply, i) => (
               <button key={i} onClick={() => handleQuickReply(reply)}
                 style={{
-                  padding: '8px 14px', border: `1px solid ${T}`, borderRadius: 20,
-                  background: '#fff', color: T, fontSize: 13, fontWeight: 600,
+                  padding: '8px 14px', border: `1px solid ${INK}`, borderRadius: 20,
+                  background: '#fff', color: ACCENT, fontSize: 13, fontWeight: 600,
                   cursor: 'pointer', transition: 'all .15s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = T; e.currentTarget.style.color = '#fff' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = T }}
+                onMouseEnter={e => { e.currentTarget.style.background = INK; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = INK }}
               >
                 {reply}
               </button>
@@ -780,9 +785,9 @@ function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAbo
 
       <div style={{ padding: '10px 12px', borderTop: '1px solid #f1f1f6', display: 'flex', alignItems: 'flex-end', gap: 8 }}>
         <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your answer..." rows={1} disabled={streaming}
-          style={{ flex: 1, padding: '10px 12px', fontSize: 14, border: '1px solid #ececef', borderRadius: 10, resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, color: BLK, outline: 'none' }} />
+          style={{ flex: 1, padding: '10px 12px', fontSize: 14, border: '1px solid #ececef', borderRadius: 10, resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, color: INK, outline: 'none' }} />
         <button onClick={handleSend} disabled={!input.trim() || streaming}
-          style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: input.trim() && !streaming ? R : '#ececef', color: input.trim() && !streaming ? '#fff' : '#9ca3af', cursor: input.trim() && !streaming ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: input.trim() && !streaming ? INK : '#ececef', color: input.trim() && !streaming ? '#fff' : '#9ca3af', cursor: input.trim() && !streaming ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Send size={16} />
         </button>
       </div>
@@ -794,7 +799,7 @@ function Bubble({ role, content }) {
   const isUser = role === 'user'
   return (
     <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
-      <div style={{ maxWidth: '85%', padding: '10px 14px', borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: isUser ? R : '#f1f1f6', color: isUser ? '#fff' : BLK, fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+      <div style={{ maxWidth: '85%', padding: '10px 14px', borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: isUser ? INK : '#f1f1f6', color: isUser ? '#fff' : INK, fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {content}
       </div>
     </div>
@@ -914,11 +919,11 @@ function LiveCard({ extracted, missingFields, onGenerate, generating, generateEr
     <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, overflow: 'hidden' }}>
       <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f1f1f6' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: BLK, letterSpacing: '.03em', textTransform: 'uppercase' }}>Your Profile</h3>
+          <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: INK, letterSpacing: '.03em', textTransform: 'uppercase' }}>Your Profile</h3>
           <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? GRN : '#6b7280' }}>{filledCount} / {totalCount}</span>
         </div>
         <div style={{ height: 4, background: '#f1f1f6', borderRadius: 2, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: allDone ? GRN : T, borderRadius: 2, transition: 'width 0.4s ease' }} />
+          <div style={{ height: '100%', width: `${pct}%`, background: allDone ? GRN : ACCENT, borderRadius: 2, transition: 'width 0.4s ease' }} />
         </div>
       </div>
       <div style={{ padding: '4px 6px 10px', maxHeight: 500, overflowY: 'auto' }}>
@@ -935,8 +940,8 @@ function LiveCard({ extracted, missingFields, onGenerate, generating, generateEr
                 <div key={def.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 6 }}>
                   {isFilled ? <Check size={12} color={GRN} strokeWidth={3} /> : <Circle size={12} color="#d1d5db" strokeWidth={1.5} />}
                   <span style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', minWidth: 75 }}>{def.label}</span>
-                  <span style={{ fontSize: 12, fontWeight: isFilled ? 700 : 400, color: isFilled ? BLK : '#d1d5db', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {def.format === 'link' && display ? <a href={display} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'none' }}>View →</a> : (display ?? '---')}
+                  <span style={{ fontSize: 12, fontWeight: isFilled ? 700 : 400, color: isFilled ? INK : '#d1d5db', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {def.format === 'link' && display ? <a href={display} target="_blank" rel="noopener noreferrer" style={{ color: ACCENT, textDecoration: 'none' }}>View →</a> : (display ?? '---')}
                   </span>
                 </div>
               )
@@ -947,7 +952,7 @@ function LiveCard({ extracted, missingFields, onGenerate, generating, generateEr
       <div style={{ padding: '10px 16px 16px' }}>
         {generateError && <div style={{ marginBottom: 8, padding: '8px 10px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>{generateError}</div>}
         <button onClick={onGenerate} disabled={!allDone || generating}
-          style={{ width: '100%', padding: '12px 16px', background: allDone ? R : '#ececef', color: allDone ? '#fff' : '#9ca3af', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: allDone ? 'pointer' : 'not-allowed' }}>
+          style={{ width: '100%', padding: '14px 16px', background: allDone ? INK : '#ececef', color: allDone ? '#fff' : '#c8c8cc', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, fontFamily: FONT, cursor: allDone ? 'pointer' : 'not-allowed' }}>
           {generating ? 'Generating...' : 'Generate my plan'}
         </button>
         {!allDone && <div style={{ marginTop: 6, fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>{missingFields.length} field{missingFields.length !== 1 ? 's' : ''} remaining</div>}
@@ -1015,8 +1020,8 @@ function WelcomeScreen({ name, onStart }) {
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
         <PageHeader
-          title={firstName ? `Hi, ${firstName}` : 'Welcome'}
-          subtitle="Tell us your goals and we'll build a program to help you get there."
+          title={firstName ? `${firstName}, let's build your plan.` : "Let's build your plan."}
+          subtitle="A 5-minute conversation. Then a complete personalized program — training, nutrition, everything."
         />
 
         <div style={{ marginBottom: 20, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#fff', border: '1px solid #ececef', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#6b7280' }}>
@@ -1062,7 +1067,7 @@ function WelcomeScreen({ name, onStart }) {
 
           {/* Outcome chips — "here's what you get" */}
           <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: INK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
               What you&apos;ll walk away with
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -1070,8 +1075,8 @@ function WelcomeScreen({ name, onStart }) {
                 <span key={c.label} style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '6px 12px',
-                  background: '#f0fdfa', border: `1px solid ${T}30`,
-                  borderRadius: 999, fontSize: 12, fontWeight: 600, color: '#0f766e',
+                  background: ACCENT_BG, border: `1px solid ${ACCENT}30`,
+                  borderRadius: 999, fontSize: 12, fontWeight: 600, color: INK2,
                 }}>
                   <c.Icon size={13} strokeWidth={2.2} />{c.label}
                 </span>
@@ -1081,7 +1086,7 @@ function WelcomeScreen({ name, onStart }) {
 
           {/* Service picker — above the paragraph because it changes scope */}
           <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: INK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>
               1. What do you want help with?
             </div>
             <div style={{ display: 'grid', gap: 8 }}>
@@ -1095,29 +1100,29 @@ function WelcomeScreen({ name, onStart }) {
                     onClick={() => toggleService(svc.id)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '11px 13px', borderRadius: 10, cursor: isLocked ? 'default' : 'pointer',
-                      border: `2px solid ${isOn ? T : '#ececef'}`,
-                      background: isOn ? T + '08' : '#fff',
+                      padding: '12px 14px', borderRadius: 12, cursor: isLocked ? 'default' : 'pointer',
+                      border: `2px solid ${isOn ? INK : BRD}`,
+                      background: isOn ? INK + '06' : '#fff',
                       textAlign: 'left', transition: 'all .15s',
                     }}
                   >
                     <div style={{
                       width: 32, height: 32, flexShrink: 0,
                       borderRadius: 8,
-                      background: isOn ? T + '14' : '#f1f1f6',
+                      background: isOn ? INK + '10' : '#f1f1f6',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: isOn ? T : '#4b5563',
+                      color: isOn ? INK : '#4b5563',
                     }}>
                       <svc.Icon size={17} strokeWidth={2} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{svc.label}{isLocked ? ' · included' : ''}</div>
-                      <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.4 }}>{svc.desc}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>{svc.label}{isLocked ? ' · included' : ''}</div>
+                      <div style={{ fontSize: 11, color: INK3, lineHeight: 1.4 }}>{svc.desc}</div>
                     </div>
                     <div style={{
                       width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                      border: `2px solid ${isOn ? T : '#d1d5db'}`,
-                      background: isOn ? T : '#fff',
+                      border: `2px solid ${isOn ? INK : '#d1d5db'}`,
+                      background: isOn ? INK : '#fff',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {isOn && <Check size={12} color="#fff" strokeWidth={3} />}
@@ -1130,7 +1135,7 @@ function WelcomeScreen({ name, onStart }) {
 
           {/* Free-text intro */}
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: BLK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: INK, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 6 }}>
               2. Tell us about you
             </div>
             <p style={{ margin: '0 0 8px', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
@@ -1176,7 +1181,7 @@ function NotFoundScreen() {
   return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '40px 32px', textAlign: 'center', maxWidth: 400 }}>
-        <h1 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 900, color: BLK }}>Link not found</h1>
+        <h1 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 900, color: INK }}>Link not found</h1>
         <p style={{ margin: 0, fontSize: 14, color: '#6b7280' }}>This intake link is invalid or has expired. Contact your trainer for a new one.</p>
       </div>
     </div>
@@ -1257,10 +1262,10 @@ function GeneratingScreen({ progress }) {
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
       <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 14, padding: '32px 28px', maxWidth: 620, width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22 }}>
-          <div style={{ width: 48, height: 48, flexShrink: 0, border: '4px solid #f1f1f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoSpin 0.9s linear infinite' }} />
+          <div style={{ width: 48, height: 48, flexShrink: 0, border: '4px solid #f1f1f6', borderTopColor: ACCENT, borderRadius: '50%', animation: 'kotoSpin 0.9s linear infinite' }} />
           <style>{'@keyframes kotoSpin{to{transform:rotate(360deg)}}@keyframes kotoFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}'}</style>
           <div>
-            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
+            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: INK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
             <p style={{ margin: '4px 0 0', fontSize: 15, color: '#6b7280' }}>4 AI passes · about a minute</p>
           </div>
         </div>
@@ -1273,14 +1278,14 @@ function GeneratingScreen({ progress }) {
             return (
               <div key={p.key} style={{
                 padding: '14px 10px', borderRadius: 10, textAlign: 'center',
-                background: done ? GRN + '12' : active ? T + '10' : '#f9fafb',
-                border: `1px solid ${done ? GRN + '40' : active ? T + '40' : '#ececef'}`,
+                background: done ? GRN + '12' : active ? ACCENT + '10' : '#f9fafb',
+                border: `1px solid ${done ? GRN + '40' : active ? ACCENT + '40' : '#ececef'}`,
                 transition: 'all 0.3s ease',
               }}>
                 <div style={{ fontSize: 22, marginBottom: 4 }}>
                   {done ? '✓' : active ? '⏳' : '·'}
                 </div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: done ? GRN : active ? T : '#9ca3af', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: done ? GRN : active ? ACCENT : '#9ca3af', letterSpacing: '.04em', textTransform: 'uppercase' }}>
                   {p.label}
                 </div>
               </div>
@@ -1294,7 +1299,7 @@ function GeneratingScreen({ progress }) {
           color: '#fff', borderRadius: 12, padding: '26px 26px', textAlign: 'left',
           animation: 'kotoFadeUp 0.45s ease',
         }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: ACCENT, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 14 }}>
             Did you know?
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18 }}>
@@ -1357,7 +1362,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
           <div style={{ width: 48, height: 48, margin: '0 auto 14px', background: '#fef3c7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <PauseCircle size={24} strokeWidth={2} color="#b45309" />
           </div>
-          <h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 900, color: BLK, textAlign: 'center' }}>
+          <h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 900, color: INK, textAlign: 'center' }}>
             A quick review first{firstName ? `, ${firstName}` : ''}
           </h1>
           <p style={{ margin: '0 0 18px', fontSize: 14, color: '#4b5563', lineHeight: 1.6, textAlign: 'center' }}>
@@ -1374,7 +1379,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
             </div>
           )}
           <p style={{ margin: 0, fontSize: 13, color: '#6b7280', lineHeight: 1.6, textAlign: 'center' }}>
-            We&apos;ll be in touch shortly{supportEmail ? <> or you can email <a href={`mailto:${supportEmail}`} style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a></> : null}.
+            We&apos;ll be in touch shortly{supportEmail ? <> or you can email <a href={`mailto:${supportEmail}`} style={{ color: ACCENT, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a></> : null}.
           </p>
         </section>
       </div>
@@ -1394,7 +1399,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
           <div style={{ width: 56, height: 56, margin: '0 auto 14px', background: GRN + '18', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Check size={28} color={GRN} strokeWidth={3} />
           </div>
-          <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.4px' }}>
+          <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 900, color: INK, letterSpacing: '-.4px' }}>
             Your plan is built{firstName ? `, ${firstName}` : ''}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: '#4b5563', lineHeight: 1.55 }}>
@@ -1444,7 +1449,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
             onClick={onEditProfile}
             style={{
               flex: '1 1 200px', padding: '10px 16px',
-              background: '#fff', color: BLK,
+              background: '#fff', color: INK,
               border: '1px solid #d1d5db', borderRadius: 10,
               fontSize: 13, fontWeight: 800, cursor: 'pointer',
             }}
@@ -1456,7 +1461,7 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
             onClick={onRegenerate}
             style={{
               flex: '1 1 200px', padding: '10px 16px',
-              background: R, color: '#fff',
+              background: INK, color: '#fff',
               border: 'none', borderRadius: 10,
               fontSize: 13, fontWeight: 800, cursor: 'pointer',
             }}
@@ -1470,13 +1475,13 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <Bookmark size={20} strokeWidth={1.75} style={{ flexShrink: 0, color: '#0a0a0a' }} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 3 }}>Bookmark this page</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 3 }}>Bookmark this page</div>
               <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
                 This link is your plan — keep it handy. You can come back anytime to update your profile or regenerate.
               </div>
               {supportEmail && (
                 <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
-                  Questions? Email <a href={`mailto:${supportEmail}`} style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a>.
+                  Questions? Email <a href={`mailto:${supportEmail}`} style={{ color: ACCENT, textDecoration: 'none', fontWeight: 700 }}>{supportEmail}</a>.
                 </div>
               )}
             </div>
@@ -1492,8 +1497,8 @@ function DoneScreen({ name, agency, planResult, traineeId, onEditProfile, onRege
 function SectionHeader({ eyebrow, title }) {
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ fontSize: 10, fontWeight: 800, color: T, letterSpacing: '.08em', textTransform: 'uppercase' }}>{eyebrow}</div>
-      <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: BLK, letterSpacing: '-.2px' }}>{title}</h2>
+      <div style={{ fontSize: 10, fontWeight: 800, color: ACCENT, letterSpacing: '.08em', textTransform: 'uppercase' }}>{eyebrow}</div>
+      <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: INK, letterSpacing: '-.2px' }}>{title}</h2>
     </div>
   )
 }
@@ -1535,7 +1540,7 @@ function Stat({ label, value }) {
   return (
     <div style={{ padding: '8px 10px', background: '#f9fafb', border: '1px solid #ececef', borderRadius: 8 }}>
       <div style={{ fontSize: 10, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 800, color: BLK, marginTop: 2 }}>{value}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: INK, marginTop: 2 }}>{value}</div>
     </div>
   )
 }
@@ -1551,16 +1556,16 @@ function RoadmapCard({ roadmap }) {
       {strategy && <p style={{ margin: '0 0 14px', fontSize: 13, color: '#4b5563', lineHeight: 1.6, fontStyle: 'italic' }}>{strategy}</p>}
       <div style={{ display: 'grid', gap: 10 }}>
         {phases.map((p, i) => (
-          <div key={i} style={{ border: '1px solid #ececef', borderLeft: `4px solid ${T}`, borderRadius: 8, padding: '10px 12px', background: '#f9fafb' }}>
+          <div key={i} style={{ border: '1px solid #ececef', borderLeft: `4px solid ${ACCENT}`, borderRadius: 8, padding: '10px 12px', background: '#f9fafb' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: BLK }}>{p.phase_name || `Phase ${p.phase_number}`}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: INK }}>{p.phase_name || `Phase ${p.phase_number}`}</div>
               {p.days_range && <div style={{ fontSize: 11, color: '#6b7280' }}>Days {p.days_range.start}–{p.days_range.end}</div>}
             </div>
             {p.training_theme && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><strong>Training:</strong> {p.training_theme}</div>}
             {p.nutrition_theme && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><strong>Nutrition:</strong> {p.nutrition_theme}</div>}
             {Array.isArray(p.end_of_phase_milestones) && p.end_of_phase_milestones.length > 0 && (
               <details style={{ marginTop: 6 }}>
-                <summary style={{ fontSize: 11, color: T, fontWeight: 700, cursor: 'pointer' }}>Milestones by end of phase</summary>
+                <summary style={{ fontSize: 11, color: ACCENT, fontWeight: 700, cursor: 'pointer' }}>Milestones by end of phase</summary>
                 <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 12, color: '#4b5563', lineHeight: 1.5 }}>
                   {p.end_of_phase_milestones.map((m, j) => <li key={j}>{m}</li>)}
                 </ul>
@@ -1586,7 +1591,7 @@ function WorkoutBlockCard({ workout }) {
           <div style={{ display: 'grid', gap: 6 }}>
             {(Array.isArray(w.sessions) ? w.sessions : []).map((s, i) => (
               <details key={i} style={{ border: '1px solid #ececef', borderRadius: 8, background: '#f9fafb' }}>
-                <summary style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', cursor: 'pointer', fontSize: 13, color: BLK, fontWeight: 700 }}>
+                <summary style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', cursor: 'pointer', fontSize: 13, color: INK, fontWeight: 700 }}>
                   <span>{s.day_label} · {s.session_name}</span>
                   <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>{s.estimated_duration_min} min</span>
                 </summary>
@@ -1596,7 +1601,7 @@ function WorkoutBlockCard({ workout }) {
                   )}
                   {Array.isArray(s.blocks) && s.blocks.map((b, bi) => (
                     <div key={bi} style={{ marginTop: 8 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.05em' }}>{b.block_type.replace('_', ' ')}</div>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.05em' }}>{b.block_type.replace('_', ' ')}</div>
                       <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
                         {(Array.isArray(b.exercises) ? b.exercises : []).map((ex, ei) => (
                           <li key={ei}>
@@ -1751,8 +1756,8 @@ function NutritionToday({ traineeId }) {
     <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '18px 20px', marginTop: 18 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase' }}>Today</div>
-          <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: BLK, letterSpacing: '-.2px' }}>Nutrition tracker</h2>
+          <div style={{ fontSize: 11, fontWeight: 800, color: ACCENT, letterSpacing: '.06em', textTransform: 'uppercase' }}>Today</div>
+          <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: INK, letterSpacing: '-.2px' }}>Nutrition tracker</h2>
         </div>
         <div style={{ fontSize: 12, color: '#6b7280' }}>
           {logs.length} {logs.length === 1 ? 'entry' : 'entries'} · {new Date().toLocaleDateString()}
@@ -1848,9 +1853,9 @@ function MacroBar({ label, total, target, unit, color }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, fontSize: 12 }}>
-        <span style={{ fontWeight: 700, color: BLK }}>{label}</span>
+        <span style={{ fontWeight: 700, color: INK }}>{label}</span>
         <span style={{ color: '#6b7280', fontWeight: 600 }}>
-          <strong style={{ color: BLK }}>{Math.round(total)}</strong>{hasTarget ? ` / ${target}` : ''} {unit}
+          <strong style={{ color: INK }}>{Math.round(total)}</strong>{hasTarget ? ` / ${target}` : ''} {unit}
           {hasTarget && <span style={{ marginLeft: 8, color: remaining === 0 ? '#059669' : color, fontWeight: 700 }}>{remaining}{unit} left</span>}
         </span>
       </div>
@@ -1882,7 +1887,7 @@ function FoodLogRow({ log, onDelete }) {
         {items.map((it, i) => (
           <span key={i} style={{
             padding: '4px 10px', background: '#fff', border: '1px solid #ececef',
-            borderRadius: 6, fontSize: 12, color: BLK, fontWeight: 600,
+            borderRadius: 6, fontSize: 12, color: INK, fontWeight: 600,
           }}>
             {it.name}{it.portion ? ` · ${it.portion}` : ''}{' · '}
             <span style={{ color: '#6b7280', fontWeight: 500 }}>{Math.round(it.kcal || 0)} kcal</span>
@@ -2017,8 +2022,8 @@ function SleepTracker({ traineeId }) {
     <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '18px 20px', marginTop: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: T, letterSpacing: '.06em', textTransform: 'uppercase' }}>Sleep</div>
-          <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: BLK, letterSpacing: '-.2px' }}>Last night + 14-day trend</h2>
+          <div style={{ fontSize: 11, fontWeight: 800, color: ACCENT, letterSpacing: '.06em', textTransform: 'uppercase' }}>Sleep</div>
+          <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: INK, letterSpacing: '-.2px' }}>Last night + 14-day trend</h2>
         </div>
         {recorded.length > 0 && (
           <div style={{ fontSize: 12, color: '#6b7280' }}>

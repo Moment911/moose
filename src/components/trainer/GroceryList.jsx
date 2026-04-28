@@ -1,23 +1,19 @@
 "use client"
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, ShoppingBag } from 'lucide-react'
-// Cal-AI tokens
-const T = '#5aa0ff'
-const BLK = '#0a0a0a'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Trainer Phase 2 — GroceryList.
-//
-// Renders a grocery_list object (organized_by_aisle + estimated_total_usd +
-// bulk_prep_notes).  Each aisle is a collapsible section; each item is
-// checkable (local-only state — not persisted).  Hovering an item shows
-// which recipes use it.
+// Trainer Phase 2 — GroceryList (Cal-AI restyle).
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Cal-AI tokens — warm neutral palette
+const INK = '#0a0a0a'
+const INK2 = '#1f1f22'
+const INK3 = '#6b6b70'
+const ACCENT = '#d89a6a'
 const BRD = '#ececef'
 const BRD_LT = '#f1f1f6'
-const GRY5 = '#6b7280'
-const GRY7 = '#374151'
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 
 export default function GroceryList({ groceryList }) {
   const [openAisles, setOpenAisles] = useState({})
@@ -46,7 +42,7 @@ export default function GroceryList({ groceryList }) {
             <ShoppingBag size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
             Grocery list
           </h2>
-          <div style={{ color: GRY5, fontSize: 12, marginTop: 4 }}>
+          <div style={{ color: INK3, fontSize: 12, marginTop: 4 }}>
             {totalItems} items{groceryList.estimated_total_usd ? ` · est. $${Number(groceryList.estimated_total_usd).toFixed(2)}` : ''}
             {totalItems > 0 ? ` · ${checkedCount}/${totalItems} packed` : ''}
           </div>
@@ -66,7 +62,7 @@ export default function GroceryList({ groceryList }) {
               background: '#f9fafb',
               border: `1px solid ${BRD}`,
               borderRadius: 8,
-              color: GRY7,
+              color: INK2,
               fontSize: 12,
               fontWeight: 700,
               cursor: 'pointer',
@@ -76,7 +72,7 @@ export default function GroceryList({ groceryList }) {
             Bulk prep notes
           </button>
           {notesOpen && (
-            <p style={{ margin: '10px 0 0', padding: '10px 14px', background: '#f0fbfc', borderRadius: 8, color: GRY7, fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+            <p style={{ margin: '10px 0 0', padding: '10px 14px', background: '#f9fafb', borderRadius: 10, color: INK2, fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
               {groceryList.bulk_prep_notes}
             </p>
           )}
@@ -117,9 +113,9 @@ export default function GroceryList({ groceryList }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {open ? <ChevronDown size={14} color={GRY7} /> : <ChevronRight size={14} color={GRY7} />}
-                  <span style={{ color: BLK, fontSize: 13, fontWeight: 800 }}>{aisleName}</span>
+                  <span style={{ color: INK, fontSize: 13, fontWeight: 800 }}>{aisleName}</span>
                 </div>
-                <span style={{ color: GRY5, fontSize: 11 }}>{items.length} items</span>
+                <span style={{ color: INK3, fontSize: 11 }}>{items.length} items</span>
               </button>
 
               {open && (
@@ -154,7 +150,7 @@ export default function GroceryList({ groceryList }) {
                           />
                           <span
                             style={{
-                              color: BLK,
+                              color: INK,
                               fontSize: 13,
                               fontWeight: 600,
                               textDecoration: isChecked ? 'line-through' : 'none',
@@ -163,7 +159,7 @@ export default function GroceryList({ groceryList }) {
                           >
                             {it.item}
                           </span>
-                          <span style={{ color: GRY7, fontSize: 12 }}>
+                          <span style={{ color: INK2, fontSize: 12 }}>
                             {it.total_amount ?? ''}
                             {it.unit ? ` ${it.unit}` : ''}
                           </span>
@@ -184,9 +180,11 @@ export default function GroceryList({ groceryList }) {
 const cardStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
-  borderRadius: 12,
-  padding: 20,
+  borderRadius: 16,
+  padding: 22,
   marginBottom: 16,
+  boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
+  fontFamily: FONT,
 }
 
-const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }
+const titleStyle = { margin: 0, fontSize: 13, fontWeight: 700, color: INK, letterSpacing: '.03em', textTransform: 'uppercase', fontFamily: FONT }

@@ -1,9 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2 } from 'lucide-react'
-// Cal-AI tokens
-const R = '#e9695c'
-const T = '#5aa0ff'
-const BLK = '#0a0a0a'
 import { supabase } from '../../lib/supabase'
 import { OptionListCard, PrimaryCTA, T as TK } from './aesthetic'
 
@@ -224,7 +220,7 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
       {/* Header */}
       <div style={{
         padding: '12px 16px',
-        background: BLK,
+        background: TK.ink,
         color: '#fff',
         display: 'flex',
         alignItems: 'center',
@@ -232,13 +228,13 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
       }}>
         <div style={{
           width: 32, height: 32, borderRadius: '50%',
-          background: T, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: TK.accent, display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 14, fontWeight: 800, color: '#fff',
         }}>
           K
         </div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 800 }}>Koto Coach</div>
+          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: TK.font }}>Your Coach</div>
           <div style={{ fontSize: 11, color: '#9ca3af' }}>Building your profile</div>
         </div>
       </div>

@@ -1,19 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import { Check, Circle } from 'lucide-react'
-// Cal-AI tokens
-const R = '#e9695c'
-const T = '#5aa0ff'
-const BLK = '#0a0a0a'
-const GRY = '#f1f1f6'
-const GRN = '#16a34a'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// IntakeLiveCard — real-time field display for conversational intake.
-//
-// Shows all 17 required fields with progress bar.  Fields light up green as
-// the chat conversation populates them.  Imperial display throughout.
+// IntakeLiveCard — real-time field display (Cal-AI restyle).
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Cal-AI tokens
+const INK = '#0a0a0a'
+const INK3 = '#6b6b70'
+const ACCENT = '#d89a6a'
+const GRN = '#10b981'
+const BRD = '#ececef'
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 
 const GOAL_LABELS = { lose_fat: 'Lose fat', gain_muscle: 'Gain muscle', maintain: 'Maintain', performance: 'Performance', recomp: 'Recomp' }
 const EQUIPMENT_LABELS = { none: 'None', bands: 'Bands', home_gym: 'Home gym', full_gym: 'Full gym' }
@@ -69,14 +68,15 @@ function FieldRow({ def, value, flash }) {
         ? <Check size={13} color={GRN} strokeWidth={3} />
         : <Circle size={13} color="#d1d5db" strokeWidth={1.5} />
       }
-      <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', minWidth: 80 }}>
+      <span style={{ fontSize: 12, fontWeight: 600, color: INK3, minWidth: 80, fontFamily: FONT }}>
         {def.label}
       </span>
       <span style={{
         fontSize: 13,
         fontWeight: filled ? 700 : 400,
-        color: filled ? BLK : '#d1d5db',
+        color: filled ? INK : '#d1d5db',
         flex: 1,
+        fontFamily: FONT,
       }}>
         {display ?? '---'}
       </span>
@@ -114,17 +114,19 @@ export default function IntakeLiveCard({ extracted, missingFields, onGenerate, g
   return (
     <div style={{
       background: '#fff',
-      border: '1px solid #ececef',
-      borderRadius: 12,
+      border: `1px solid ${BRD}`,
+      borderRadius: 16,
       overflow: 'hidden',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
+      fontFamily: FONT,
     }}>
       {/* Header + progress */}
-      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f1f1f6' }}>
+      <div style={{ padding: '14px 16px 10px', borderBottom: `1px solid ${BRD}` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: BLK, letterSpacing: '.03em', textTransform: 'uppercase' }}>
+          <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: INK, letterSpacing: '.03em', textTransform: 'uppercase' }}>
             Your Profile
           </h3>
-          <span style={{ fontSize: 12, fontWeight: 700, color: allComplete ? GRN : '#6b7280' }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: allComplete ? GRN : INK3 }}>
             {filledCount} / {FIELD_DEFS.length}
           </span>
         </div>
@@ -132,7 +134,7 @@ export default function IntakeLiveCard({ extracted, missingFields, onGenerate, g
           <div style={{
             height: '100%',
             width: `${pct}%`,
-            background: allComplete ? GRN : T,
+            background: allComplete ? GRN : ACCENT,
             borderRadius: 2,
             transition: 'width 0.4s ease, background-color 0.4s ease',
           }} />
@@ -163,13 +165,14 @@ export default function IntakeLiveCard({ extracted, missingFields, onGenerate, g
           disabled={!allComplete || generating}
           style={{
             width: '100%',
-            padding: '12px 16px',
-            background: allComplete ? R : '#ececef',
-            color: allComplete ? '#fff' : '#9ca3af',
+            padding: '14px 16px',
+            background: allComplete ? INK : '#ececef',
+            color: allComplete ? '#fff' : '#c8c8cc',
             border: 'none',
-            borderRadius: 10,
-            fontSize: 14,
-            fontWeight: 800,
+            borderRadius: 12,
+            fontSize: 15,
+            fontWeight: 600,
+            fontFamily: FONT,
             cursor: allComplete ? 'pointer' : 'not-allowed',
             transition: 'background-color 0.2s ease',
           }}

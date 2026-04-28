@@ -7,24 +7,18 @@ import { validateIntake } from '../../lib/trainer/intakeSchema'
 import { REQUIRED_INTAKE_FIELDS, missingIntakeFields } from '../../lib/trainer/intakeCompleteness'
 import IntakeChatWidget from '../../components/trainer/IntakeChatWidget'
 import IntakeLiveCard from '../../components/trainer/IntakeLiveCard'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// /my-intake — conversational chat intake (Cal-AI restyle).
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Cal-AI tokens
-const R = '#e9695c'
-const T = '#5aa0ff'
-const BLK = '#0a0a0a'
-const GRY = '#f1f1f6'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// /my-intake — conversational chat intake.
-//
-//   Left panel:  IntakeChatWidget — AI asks questions one at a time, streams
-//                responses, extracts fields on every turn.
-//   Right panel: IntakeLiveCard — real-time field display with progress bar.
-//                "Generate my plan" button enables when all 17 fields filled.
-//
-//   On generate → POST /api/trainer/self-signup → /my-plan.
-// ─────────────────────────────────────────────────────────────────────────────
-
-const BG = '#f9fafb'
+const INK = '#0a0a0a'
+const INK3 = '#6b6b70'
+const ACCENT = '#d89a6a'
+const BRD = '#ececef'
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const BG = '#ffffff'
 
 export default function SelfIntakePage() {
   const navigate = useNavigate()
@@ -143,15 +137,15 @@ export default function SelfIntakePage() {
   if (phase === 'generating') return <GeneratingScreen />
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, padding: '24px 16px' }}>
+    <div style={{ minHeight: '100vh', background: BG, padding: '24px 16px', fontFamily: FONT }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <header style={{ marginBottom: 16 }}>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>
-            Tell us about you
+          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: INK, letterSpacing: '-.4px', fontFamily: FONT }}>
+            Let's build your plan.
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>
-            Chat with your coach — your profile builds itself as you go.
+          <p style={{ margin: '4px 0 0', fontSize: 15, color: INK3, fontFamily: FONT }}>
+            A quick conversation with your AI coach. Your profile builds itself as you talk.
           </p>
         </header>
 
@@ -182,8 +176,8 @@ export default function SelfIntakePage() {
           </div>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: '#6b7280' }}>
-          <Link to="/start" style={{ color: T, textDecoration: 'none', fontWeight: 700 }}>
+        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: INK3 }}>
+          <Link to="/start" style={{ color: INK, textDecoration: 'none', fontWeight: 600, fontFamily: FONT }}>
             ← Back
           </Link>
         </div>
@@ -205,8 +199,8 @@ export default function SelfIntakePage() {
 
 function CenteredSpinner({ label }) {
   return (
-    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6b7280', fontSize: 14 }}>
+    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: INK3, fontSize: 14 }}>
         <Loader2 size={16} /> {label}
       </div>
     </div>
@@ -215,16 +209,16 @@ function CenteredSpinner({ label }) {
 
 function GeneratingScreen() {
   return (
-    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-      <section style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 12, padding: '32px 28px', textAlign: 'center', maxWidth: 480 }}>
-        <div style={{ width: 48, height: 48, margin: '0 auto 20px', border: '4px solid #f1f1f6', borderTopColor: R, borderRadius: '50%', animation: 'kotoGenerateSpin 0.9s linear infinite' }} />
+    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', fontFamily: FONT }}>
+      <section style={{ background: '#fff', border: `1px solid ${BRD}`, borderRadius: 16, padding: '36px 32px', textAlign: 'center', maxWidth: 480, boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)' }}>
+        <div style={{ width: 48, height: 48, margin: '0 auto 20px', border: '4px solid #f1f1f6', borderTopColor: ACCENT, borderRadius: '50%', animation: 'kotoGenerateSpin 0.9s linear infinite' }} />
         <style>{'@keyframes kotoGenerateSpin{to{transform:rotate(360deg)}}'}</style>
-        <h1 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
-        <p style={{ margin: '0 0 16px', fontSize: 14, color: '#6b7280', lineHeight: 1.55 }}>
+        <h1 style={{ margin: '0 0 10px', fontSize: 22, fontWeight: 700, color: INK, letterSpacing: '-.3px' }}>Crafting your plan</h1>
+        <p style={{ margin: '0 0 16px', fontSize: 14, color: INK3, lineHeight: 1.55 }}>
           Your baseline, 90-day roadmap, 2-week workout block, and coaching playbook are
           generating now. This takes about a minute — don't close this tab.
         </p>
-        <ul style={{ textAlign: 'left', margin: '0 auto', paddingLeft: 20, fontSize: 12, color: '#6b7280', lineHeight: 1.9, maxWidth: 360 }}>
+        <ul style={{ textAlign: 'left', margin: '0 auto', paddingLeft: 20, fontSize: 12, color: INK3, lineHeight: 1.9, maxWidth: 360 }}>
           <li>Calorie + macro targets + training readiness</li>
           <li>3 x 30-day phases with measurable milestones</li>
           <li>2-week trackable workout block</li>

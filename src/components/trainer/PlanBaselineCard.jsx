@@ -1,10 +1,14 @@
 "use client"
 import { AlertTriangle, Target, Dumbbell, Utensils, Flame, Loader2 } from 'lucide-react'
-// Cal-AI tokens
-const R = '#e9695c'
-const T = '#5aa0ff'
-const BLK = '#0a0a0a'
-const GRN = '#16a34a'
+// Cal-AI tokens — warm neutral palette
+const INK = '#0a0a0a'
+const INK2 = '#1f1f22'
+const INK3 = '#6b6b70'
+const ACCENT = '#d89a6a'
+const ACCENT_BG = 'rgba(216,154,106,0.10)'
+const GRN = '#10b981'
+const RED = '#e9695c'
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — PlanBaselineCard.
@@ -23,8 +27,6 @@ const GRN = '#16a34a'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BRD = '#ececef'
-const GRY7 = '#374151'
-const GRY5 = '#6b7280'
 
 const FITNESS_LABELS = {
   deconditioned: 'Deconditioned',
@@ -34,10 +36,10 @@ const FITNESS_LABELS = {
 }
 
 const FITNESS_COLORS = {
-  deconditioned: '#f59e0b',
-  beginner: T,
+  deconditioned: '#f0b400',
+  beginner: ACCENT,
   intermediate: GRN,
-  advanced: R,
+  advanced: RED,
 }
 
 const CATEGORY_LABELS = {
@@ -63,14 +65,15 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
         <h2 style={titleStyle}>Baseline</h2>
         <span
           style={{
-            padding: '3px 10px',
-            borderRadius: 20,
-            background: (FITNESS_COLORS[baseline.starting_fitness_level] || T) + '15',
-            color: FITNESS_COLORS[baseline.starting_fitness_level] || T,
+            padding: '4px 12px',
+            borderRadius: 999,
+            background: (FITNESS_COLORS[baseline.starting_fitness_level] || ACCENT) + '15',
+            color: FITNESS_COLORS[baseline.starting_fitness_level] || ACCENT,
             fontSize: 11,
-            fontWeight: 800,
-            letterSpacing: '.05em',
+            fontWeight: 700,
+            letterSpacing: '.03em',
             textTransform: 'uppercase',
+            fontFamily: FONT,
           }}
         >
           {FITNESS_LABELS[baseline.starting_fitness_level] || baseline.starting_fitness_level || '—'}
@@ -78,20 +81,20 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
       </header>
 
       {/* Body composition line */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 14, color: GRY7, fontSize: 13 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 14, color: INK2, fontSize: 13, fontFamily: FONT }}>
         <span>
-          <strong style={{ color: BLK }}>BMI:</strong>{' '}
+          <strong style={{ color: INK }}>BMI:</strong>{' '}
           {bc.bmi_or_null ?? '—'}
         </span>
-        <span style={{ color: GRY5 }}>·</span>
+        <span style={{ color: INK3 }}>·</span>
         <span>
-          <strong style={{ color: BLK }}>Category:</strong>{' '}
+          <strong style={{ color: INK }}>Category:</strong>{' '}
           {CATEGORY_LABELS[bc.category] || bc.category || '—'}
         </span>
         {bc.notes && (
           <>
-            <span style={{ color: GRY5 }}>·</span>
-            <span style={{ color: GRY5, fontStyle: 'italic' }}>{bc.notes}</span>
+            <span style={{ color: INK3 }}>·</span>
+            <span style={{ color: INK3, fontStyle: 'italic' }}>{bc.notes}</span>
           </>
         )}
       </div>
@@ -147,7 +150,7 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
 
       {/* Calorie + macro tiles */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
-        <Tile icon={<Flame size={14} />} label="kcal / day" value={fmtInt(baseline.calorie_target_kcal)} />
+        <Tile icon={<Flame size={14} />} label="kcal / day" value={fmtInt(baseline.calorie_target_kcal)} highlight={true} />
         <Tile icon={<Dumbbell size={14} />} label="Protein" value={`${fmtInt(macros.protein_g)} g`} />
         <Tile icon={<Utensils size={14} />} label="Fat" value={`${fmtInt(macros.fat_g)} g`} />
         <Tile icon={<Utensils size={14} />} label="Carbs" value={`${fmtInt(macros.carb_g)} g`} />
@@ -157,15 +160,15 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
       {focus.length > 0 && (
         <div
           style={{
-            background: '#fafbfd',
+            background: '#fff',
             border: `1px solid ${BRD}`,
-            borderLeft: `4px solid ${R}`,
-            borderRadius: 10,
+            borderLeft: `4px solid ${INK}`,
+            borderRadius: 12,
             padding: '16px 18px',
             marginBottom: 18,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, color: R, fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, color: INK, fontSize: 12, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', fontFamily: FONT }}>
             <Target size={14} /> Top 3 focus areas
           </div>
           <ol style={{ margin: 0, paddingLeft: 0, listStyle: 'none', counterReset: 'focus' }}>
@@ -186,7 +189,7 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
                     minWidth: 24,
                     height: 24,
                     borderRadius: 12,
-                    background: R,
+                    background: INK,
                     color: '#fff',
                     fontSize: 12,
                     fontWeight: 800,
@@ -198,7 +201,7 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
                 >
                   {i + 1}
                 </span>
-                <span style={{ color: BLK, fontSize: 14, lineHeight: 1.45 }}>{f}</span>
+                <span style={{ color: INK, fontSize: 14, lineHeight: 1.45, fontFamily: FONT }}>{f}</span>
               </li>
             ))}
           </ol>
@@ -210,25 +213,26 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
         <blockquote
           style={{
             margin: '0 0 16px',
-            padding: '12px 16px',
-            borderLeft: `3px solid ${T}`,
-            background: '#f0fbfc',
-            borderRadius: '0 10px 10px 0',
+            padding: '14px 18px',
+            borderLeft: `3px solid ${ACCENT}`,
+            background: ACCENT_BG,
+            borderRadius: '0 12px 12px 0',
             fontSize: 14,
-            color: GRY7,
+            color: INK2,
             fontStyle: 'italic',
-            lineHeight: 1.5,
+            lineHeight: 1.55,
+            fontFamily: FONT,
           }}
         >
-          “{baseline.coach_summary}”
-          <footer style={{ marginTop: 6, fontSize: 12, color: GRY5, fontStyle: 'normal' }}>
-            — Alex, Koto Trainer
+          "{baseline.coach_summary}"
+          <footer style={{ marginTop: 6, fontSize: 12, color: INK3, fontStyle: 'normal' }}>
+            — Your Coach
           </footer>
         </blockquote>
       )}
 
       <footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <span style={{ color: GRY5, fontSize: 11, maxWidth: 520 }}>
+        <span style={{ color: INK3, fontSize: 11, maxWidth: 520 }}>
           {baseline.disclaimer || 'Not medical advice. Consult your physician before starting any new program.'}
         </span>
         {onRegenerate && (
@@ -246,20 +250,20 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
   )
 }
 
-function Tile({ icon, label, value }) {
+function Tile({ icon, label, value, highlight }) {
   return (
     <div
       style={{
-        background: '#fff',
-        border: `1px solid ${BRD}`,
-        borderRadius: 10,
+        background: highlight ? ACCENT_BG : '#f9fafb',
+        border: `1px solid ${highlight ? ACCENT + '30' : BRD}`,
+        borderRadius: 12,
         padding: '12px 14px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: GRY5, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: INK3, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, fontFamily: FONT }}>
         {icon} {label}
       </div>
-      <div style={{ color: BLK, fontSize: 20, fontWeight: 800 }}>{value}</div>
+      <div style={{ color: INK, fontSize: 20, fontWeight: 700, fontFamily: FONT }}>{value}</div>
     </div>
   )
 }
@@ -272,12 +276,14 @@ function fmtInt(n) {
 const cardStyle = {
   background: '#fff',
   border: `1px solid ${BRD}`,
-  borderRadius: 12,
-  padding: 20,
+  borderRadius: 16,
+  padding: 22,
   marginBottom: 16,
+  boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
+  fontFamily: FONT,
 }
 
-const titleStyle = { margin: 0, fontSize: 13, fontWeight: 800, color: T, letterSpacing: '.05em', textTransform: 'uppercase' }
+const titleStyle = { margin: 0, fontSize: 13, fontWeight: 700, color: INK3, letterSpacing: '.04em', textTransform: 'uppercase', fontFamily: FONT }
 
 function btnSecondary(disabled) {
   return {
@@ -286,11 +292,12 @@ function btnSecondary(disabled) {
     gap: 6,
     padding: '8px 14px',
     background: '#fff',
-    color: disabled ? '#9ca3af' : GRY7,
+    color: disabled ? '#c8c8cc' : INK2,
     border: `1px solid ${BRD}`,
-    borderRadius: 8,
+    borderRadius: 10,
     fontSize: 13,
     fontWeight: 600,
+    fontFamily: FONT,
     cursor: disabled ? 'not-allowed' : 'pointer',
   }
 }

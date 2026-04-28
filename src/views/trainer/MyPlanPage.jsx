@@ -27,6 +27,7 @@ import GroceryList from '../../components/trainer/GroceryList'
 import FoodSearchBar from '../../components/trainer/FoodSearchBar'
 import TraineeDisclaimerAckModal from './TraineeDisclaimerAckModal'
 import NoneOrText from '../../components/trainer/NoneOrText'
+import ShareMenu from '../../components/trainer/ShareMenu'
 import { DateStrip, RingMetricTile, lastNDays, T as TK } from '../../components/trainer/aesthetic'
 import {
   PRIMARY_GOALS,
@@ -1519,6 +1520,19 @@ function WorkoutsTab({ plan, logs, onLogSet, isMobile }) {
             </div>
           )}
         </div>
+        <ShareMenu label="Workouts" onCopy={() => {
+          const lines = []
+          for (const w of weeks) {
+            lines.push(`Week ${w.week_number}`)
+            for (const s of (w.sessions || [])) {
+              lines.push(`  Day ${s.day_number}: ${s.session_name}`)
+              for (const ex of (s.exercises || [])) {
+                lines.push(`    ${ex.exercise_name} — ${ex.sets}x${ex.reps} @ ${ex.load_prescription || 'bodyweight'}`)
+              }
+            }
+          }
+          return lines.join('\n')
+        }} />
       </div>
 
       {/* Week segmented control */}
@@ -2013,9 +2027,12 @@ function MealsTab({ plan, traineeId, isMobile, onMealLogged }) {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Header */}
-      <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
-        Meals
-      </h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
+          Meals
+        </h2>
+        <ShareMenu label="Meal Plan" />
+      </div>
 
       {/* ── Log food: two primary actions ── */}
       <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

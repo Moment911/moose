@@ -14,27 +14,24 @@ import {
   Loader2,
   RefreshCw,
 } from 'lucide-react'
-// Cal-AI tokens
-const R = '#e9695c'
-const T = '#5aa0ff'
-const BLK = '#0a0a0a'
-const GRY = '#f1f1f6'
-const GRN = '#16a34a'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Trainer Phase 2 — Coaching Playbook renderer.
-//
-// Tabbed view over CoachingPlaybookOutput.  Big visual: this is the
-// reference-depth one-time guide ($150/hr private-coach playbook).  Tabs:
-//   Overview / Nutrition / Travel / Meal Prep / Supplements / Recovery /
-//   Troubleshooting / Closing
+// Trainer Phase 2 — Coaching Playbook renderer (Cal-AI restyle).
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Cal-AI tokens — warm neutral palette
+const INK = '#0a0a0a'
+const INK2 = '#1f1f22'
+const INK3 = '#6b6b70'
+const ACCENT = '#d89a6a'
+const ACCENT_BG = 'rgba(216,154,106,0.10)'
+const GRN = '#10b981'
+const RED = '#e9695c'
 const BRD = '#ececef'
 const BRD_LT = '#f1f1f6'
-const GRY5 = '#6b7280'
-const AMB = '#d97706'
+const AMB = '#f0b400'
 const AMB_BG = '#fffbeb'
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: BookOpen },
@@ -57,9 +54,11 @@ export default function PlaybookCard({ playbook, onRegenerate, regenerating = fa
       style={{
         background: '#fff',
         border: `1px solid ${BRD}`,
-        borderRadius: 12,
+        borderRadius: 16,
         marginBottom: 20,
         overflow: 'hidden',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
+        fontFamily: FONT,
       }}
     >
       <header
@@ -67,19 +66,18 @@ export default function PlaybookCard({ playbook, onRegenerate, regenerating = fa
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px 22px',
+          padding: '18px 22px',
           borderBottom: `1px solid ${BRD}`,
-          background: '#fafafa',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <BookOpen size={18} color={T} />
+          <BookOpen size={18} color={ACCENT} />
           <div>
-            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: BLK, letterSpacing: '.02em', textTransform: 'uppercase' }}>
+            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: INK, letterSpacing: '-.1px' }}>
               Coaching Playbook
             </h2>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: GRY5 }}>
-              Your $150/hour private-coach reference guide
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: INK3 }}>
+              Your personal reference guide
             </p>
           </div>
         </div>
@@ -91,13 +89,14 @@ export default function PlaybookCard({ playbook, onRegenerate, regenerating = fa
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              padding: '6px 12px',
+              padding: '7px 14px',
               fontSize: 12,
               fontWeight: 600,
-              color: T,
+              color: INK2,
               background: '#fff',
               border: `1px solid ${BRD}`,
-              borderRadius: 6,
+              borderRadius: 10,
+              fontFamily: FONT,
               cursor: regenerating ? 'not-allowed' : 'pointer',
             }}
           >
@@ -107,15 +106,14 @@ export default function PlaybookCard({ playbook, onRegenerate, regenerating = fa
         )}
       </header>
 
-      {/* Tab bar */}
+      {/* Pill tab bar */}
       <div
         style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: 4,
-          padding: '10px 14px 0',
-          borderBottom: `1px solid ${BRD_LT}`,
-          background: '#fcfcfc',
+          gap: 6,
+          padding: '14px 18px',
+          borderBottom: `1px solid ${BRD}`,
         }}
       >
         {TABS.map((t) => {
@@ -129,16 +127,16 @@ export default function PlaybookCard({ playbook, onRegenerate, regenerating = fa
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
-                padding: '7px 12px',
+                padding: '7px 14px',
                 fontSize: 12,
-                fontWeight: active ? 700 : 500,
-                color: active ? R : GRY5,
-                background: active ? '#fff' : 'transparent',
-                border: `1px solid ${active ? BRD : 'transparent'}`,
-                borderBottom: active ? '2px solid #fff' : 'none',
-                borderRadius: '6px 6px 0 0',
-                marginBottom: -1,
+                fontWeight: active ? 600 : 500,
+                color: active ? '#fff' : INK3,
+                background: active ? INK : 'transparent',
+                border: `1px solid ${active ? INK : BRD}`,
+                borderRadius: 999,
                 cursor: 'pointer',
+                fontFamily: FONT,
+                transition: 'all .15s ease',
               }}
             >
               <Icon size={12} />
@@ -161,11 +159,10 @@ export default function PlaybookCard({ playbook, onRegenerate, regenerating = fa
 
       <footer
         style={{
-          padding: '10px 22px',
-          borderTop: `1px solid ${BRD_LT}`,
-          background: '#fafafa',
+          padding: '12px 22px',
+          borderTop: `1px solid ${BRD}`,
           fontSize: 11,
-          color: GRY5,
+          color: INK3,
           fontStyle: 'italic',
         }}
       >
@@ -183,19 +180,19 @@ function OverviewTab({ playbook }) {
       <div
         style={{
           padding: '14px 18px',
-          borderLeft: `3px solid ${T}`,
-          background: '#f0fbfc',
-          borderRadius: 6,
+          borderLeft: `3px solid ${ACCENT}`,
+          background: ACCENT_BG,
+          borderRadius: '0 12px 12px 0',
           marginBottom: 18,
           fontSize: 14,
           lineHeight: 1.55,
-          color: BLK,
+          color: INK,
         }}
       >
         {playbook.opening_note}
       </div>
-      <div style={{ fontSize: 13, color: GRY, marginBottom: 8 }}>What&apos;s in this playbook</div>
-      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.8, color: GRY }}>
+      <div style={{ fontSize: 13, color: INK3, marginBottom: 8 }}>What&apos;s in this playbook</div>
+      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.8, color: INK2 }}>
         <li>Daily calorie + macro targets with rationale</li>
         <li>{playbook.nutrition_protocol?.non_negotiables?.length || 0} non-negotiable nutrition rules</li>
         <li>On-the-road eating strategy (breakfast, lunch, snacks, drive-thru backups)</li>
@@ -231,7 +228,7 @@ function NutritionTab({ np }) {
       )}
 
       <SectionTitle>Non-Negotiables</SectionTitle>
-      <ol style={{ margin: '0 0 18px', paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: BLK }}>
+      <ol style={{ margin: '0 0 18px', paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: INK }}>
         {(np.non_negotiables || []).map((n, i) => (
           <li key={i} style={{ marginBottom: 4 }}>{n}</li>
         ))}
@@ -243,18 +240,18 @@ function NutritionTab({ np }) {
           padding: '12px 16px',
           background: '#f9fafb',
           border: `1px solid ${BRD_LT}`,
-          borderRadius: 6,
+          borderRadius: 10,
           marginBottom: 10,
           fontSize: 14,
           lineHeight: 1.6,
-          color: BLK,
+          color: INK,
           fontWeight: 600,
         }}
       >
         {np.home_cooking_framework?.dinner_template}
       </div>
-      <div style={{ fontSize: 13, color: GRY, marginBottom: 6 }}>Dinner ideas:</div>
-      <ul style={{ margin: '0 0 14px', paddingLeft: 18, fontSize: 13, lineHeight: 1.7, color: BLK }}>
+      <div style={{ fontSize: 13, color: INK3, marginBottom: 6 }}>Dinner ideas:</div>
+      <ul style={{ margin: '0 0 14px', paddingLeft: 18, fontSize: 13, lineHeight: 1.7, color: INK }}>
         {(np.home_cooking_framework?.dinner_ideas || []).map((d, i) => (
           <li key={i} style={{ marginBottom: 3 }}>{d}</li>
         ))}
@@ -288,11 +285,11 @@ function TravelTab({ otr }) {
               padding: '10px 12px', border: `1px solid ${BRD_LT}`, borderRadius: 8,
               background: '#fff', display: 'flex', flexDirection: 'column', gap: 6,
             }}>
-              <div style={{ fontSize: 13, color: BLK, fontWeight: 600, letterSpacing: '-.005em' }}>{name}</div>
+              <div style={{ fontSize: 13, color: INK, fontWeight: 600, letterSpacing: '-.005em' }}>{name}</div>
               {(kcal != null || protein != null) && (
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {kcal != null && <MacroChip label="Calories" value={kcal} color="#0a0a0a" />}
-                  {protein != null && <MacroChip label="Protein" value={`${protein}g`} color="#5aa0ff" />}
+                  {protein != null && <MacroChip label="Protein" value={`${protein}g`} color="#d89a6a" />}
                 </div>
               )}
             </div>
@@ -308,13 +305,13 @@ function TravelTab({ otr }) {
             background: '#fff', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap',
           }}>
             <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 13 }}>
-              <strong style={{ color: BLK, letterSpacing: '-.005em' }}>{b.chain}:</strong>{' '}
-              <span style={{ color: GRY, lineHeight: 1.55 }}>{b.order}</span>
+              <strong style={{ color: INK, letterSpacing: '-.005em' }}>{b.chain}:</strong>{' '}
+              <span style={{ color: INK3, lineHeight: 1.55 }}>{b.order}</span>
             </div>
             {(b.kcal_est != null || b.protein_g_est != null) && (
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flexShrink: 0 }}>
                 {b.kcal_est != null && <MacroChip label="Calories" value={b.kcal_est} color="#0a0a0a" />}
-                {b.protein_g_est != null && <MacroChip label="Protein" value={`${b.protein_g_est}g`} color="#5aa0ff" />}
+                {b.protein_g_est != null && <MacroChip label="Protein" value={`${b.protein_g_est}g`} color="#d89a6a" />}
               </div>
             )}
           </div>
@@ -329,8 +326,8 @@ function MealPrepTab({ mp }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <h3 style={{ margin: 0, fontSize: 18, color: BLK }}>{mp.routine_name}</h3>
-        <span style={{ padding: '3px 10px', background: T + '15', color: T, fontSize: 11, fontWeight: 700, borderRadius: 20 }}>
+        <h3 style={{ margin: 0, fontSize: 18, color: INK }}>{mp.routine_name}</h3>
+        <span style={{ padding: '3px 10px', background: ACCENT + '15', color: ACCENT, fontSize: 11, fontWeight: 700, borderRadius: 20 }}>
           {mp.total_time_min} min
         </span>
       </div>
@@ -351,10 +348,10 @@ function MealPrepTab({ mp }) {
               marginBottom: 6,
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, color: T }}>{s.minutes_range} min</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT }}>{s.minutes_range} min</div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: BLK, marginBottom: 2 }}>{s.step_name}</div>
-              <div style={{ fontSize: 13, color: GRY, lineHeight: 1.5 }}>{s.instructions}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: INK, marginBottom: 2 }}>{s.step_name}</div>
+              <div style={{ fontSize: 13, color: INK3, lineHeight: 1.5 }}>{s.instructions}</div>
             </div>
           </li>
         ))}
@@ -372,7 +369,7 @@ function MealPrepTab({ mp }) {
           borderRadius: 6,
           fontSize: 14,
           lineHeight: 1.55,
-          color: BLK,
+          color: INK,
           fontWeight: 500,
         }}
       >
@@ -415,9 +412,9 @@ function SupplementsTab({ sp }) {
               fontSize: 13,
             }}
           >
-            <XCircle size={14} color="#e9695c" style={{ flexShrink: 0, marginTop: 2 }} />
+            <XCircle size={14} color={RED} style={{ flexShrink: 0, marginTop: 2 }} />
             <div>
-              <strong style={{ color: BLK }}>{s.name}</strong>{' '}
+              <strong style={{ color: INK }}>{s.name}</strong>{' '}
               <span style={{ color: GRY }}>— {s.why_skip}</span>
             </div>
           </div>
@@ -436,12 +433,12 @@ function SupplementsTab({ sp }) {
         <div style={{ fontSize: 11, fontWeight: 700, color: GRN, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>
           The Real Stack
         </div>
-        <div style={{ fontSize: 14, color: BLK, lineHeight: 1.55 }}>{sp.the_real_stack_summary}</div>
+        <div style={{ fontSize: 14, color: INK, lineHeight: 1.55 }}>{sp.the_real_stack_summary}</div>
       </div>
 
       {typeof sp.monthly_cost_estimate_usd === 'number' && (
         <div style={{ fontSize: 12, color: GRY }}>
-          Estimated monthly cost: <strong style={{ color: BLK }}>${sp.monthly_cost_estimate_usd}</strong>
+          Estimated monthly cost: <strong style={{ color: INK }}>${sp.monthly_cost_estimate_usd}</strong>
         </div>
       )}
     </div>
@@ -453,18 +450,18 @@ function SupplementRow({ entry, accent }) {
     <div
       style={{
         padding: '12px 14px',
-        border: `1px solid ${accent ? T + '40' : BRD_LT}`,
+        border: `1px solid ${accent ? ACCENT + '40' : BRD_LT}`,
         borderRadius: 6,
         marginBottom: 8,
-        background: accent ? T + '05' : '#fff',
+        background: accent ? ACCENT_BG : '#fff',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-        <strong style={{ fontSize: 14, color: BLK }}>{entry.name}</strong>
-        <span style={{ fontSize: 12, color: T, fontWeight: 700 }}>{entry.dose}</span>
+        <strong style={{ fontSize: 14, color: INK }}>{entry.name}</strong>
+        <span style={{ fontSize: 12, color: ACCENT, fontWeight: 700 }}>{entry.dose}</span>
       </div>
-      <div style={{ fontSize: 13, color: GRY, lineHeight: 1.5, marginBottom: 4 }}>{entry.rationale}</div>
-      <div style={{ fontSize: 11, color: GRY5 }}>
+      <div style={{ fontSize: 13, color: INK3, lineHeight: 1.5, marginBottom: 4 }}>{entry.rationale}</div>
+      <div style={{ fontSize: 11, color: INK3 }}>
         <strong>When:</strong> {entry.when_to_take} · <strong>Brands:</strong> {entry.brand_recs?.join(', ')}
       </div>
     </div>
@@ -476,8 +473,8 @@ function RecoveryTab({ rp }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <Moon size={18} color={T} />
-        <h3 style={{ margin: 0, fontSize: 18, color: BLK }}>Sleep target: {rp.sleep_target_hours} hours</h3>
+        <Moon size={18} color={ACCENT} />
+        <h3 style={{ margin: 0, fontSize: 18, color: INK }}>Sleep target: {rp.sleep_target_hours} hours</h3>
       </div>
 
       <SectionTitle>Wind-Down Routine</SectionTitle>
@@ -491,7 +488,7 @@ function RecoveryTab({ rp }) {
 
       <SectionTitle>Daily walking</SectionTitle>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-        <div style={{ fontSize: 20, fontWeight: 700, color: BLK }}>{rp.daily_walking_target_steps?.toLocaleString()}</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: INK }}>{rp.daily_walking_target_steps?.toLocaleString()}</div>
         <div style={{ fontSize: 12, color: GRY }}>steps / day</div>
       </div>
       <Paragraph>{rp.daily_walking_rationale}</Paragraph>
@@ -501,7 +498,7 @@ function RecoveryTab({ rp }) {
       <Paragraph>{rp.true_rest_day_note}</Paragraph>
 
       <SectionTitle>Stress Management</SectionTitle>
-      <div style={{ fontSize: 13, color: GRY, marginBottom: 6 }}>Daily 5-minute options:</div>
+      <div style={{ fontSize: 13, color: INK3, marginBottom: 6 }}>Daily 5-minute options:</div>
       <Chips items={rp.stress_management?.daily_5min_options} />
       <div
         style={{
@@ -546,7 +543,7 @@ function TroubleshootingTab({ scenarios }) {
             style={{
               fontSize: 14,
               fontWeight: 700,
-              color: BLK,
+              color: INK,
               cursor: 'pointer',
               listStyle: 'none',
               display: 'flex',
@@ -586,8 +583,8 @@ function TroubleshootingTab({ scenarios }) {
 function AdjustRow({ label, text }) {
   return (
     <div style={{ padding: '6px 0', borderBottom: `1px solid ${BRD_LT}`, fontSize: 13 }}>
-      <strong style={{ color: T, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</strong>
-      <div style={{ color: BLK, marginTop: 2, lineHeight: 1.55 }}>{text}</div>
+      <strong style={{ color: ACCENT, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</strong>
+      <div style={{ color: INK, marginTop: 2, lineHeight: 1.55 }}>{text}</div>
     </div>
   )
 }
@@ -603,7 +600,7 @@ function ClosingTab({ playbook }) {
           borderLeft: `3px solid ${AMB}`,
           borderRadius: 6,
           fontSize: 14,
-          color: BLK,
+          color: INK,
           lineHeight: 1.7,
           marginBottom: 22,
         }}
@@ -619,14 +616,14 @@ function ClosingTab({ playbook }) {
           border: `1px solid ${BRD}`,
           borderRadius: 8,
           fontSize: 14,
-          color: BLK,
+          color: INK,
           lineHeight: 1.7,
           fontStyle: 'italic',
         }}
       >
         {playbook.personal_closing_note}
       </div>
-      <div style={{ textAlign: 'right', marginTop: 10, fontSize: 12, color: GRY5, fontStyle: 'italic' }}>
+      <div style={{ textAlign: 'right', marginTop: 10, fontSize: 12, color: INK3, fontStyle: 'italic' }}>
         — Your Koto Trainer
       </div>
     </div>
@@ -637,18 +634,18 @@ function ClosingTab({ playbook }) {
 
 function SectionTitle({ children }) {
   return (
-    <h4 style={{ margin: '16px 0 8px', fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+    <h4 style={{ margin: '16px 0 8px', fontSize: 11, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FONT }}>
       {children}
     </h4>
   )
 }
 
 function Paragraph({ children }) {
-  return <p style={{ margin: '0 0 12px', fontSize: 14, color: BLK, lineHeight: 1.65 }}>{children}</p>
+  return <p style={{ margin: '0 0 12px', fontSize: 14, color: INK, lineHeight: 1.65 }}>{children}</p>
 }
 
 function EmptyTab({ msg }) {
-  return <div style={{ padding: 20, textAlign: 'center', color: GRY5, fontSize: 13 }}>{msg}</div>
+  return <div style={{ padding: 20, textAlign: 'center', color: INK3, fontSize: 13 }}>{msg}</div>
 }
 
 function MacroTile({ label, value, unit, accent }) {
@@ -665,9 +662,9 @@ function MacroTile({ label, value, unit, accent }) {
       <div style={{ fontSize: 10, fontWeight: 700, color: accent ? R : GRY5, textTransform: 'uppercase', letterSpacing: '.06em' }}>
         {label}
       </div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: BLK, marginTop: 2 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: INK, marginTop: 2 }}>
         {value}
-        <span style={{ fontSize: 11, fontWeight: 500, color: GRY5, marginLeft: 2 }}>{unit}</span>
+        <span style={{ fontSize: 11, fontWeight: 500, color: INK3, marginLeft: 2 }}>{unit}</span>
       </div>
     </div>
   )
@@ -688,18 +685,18 @@ function MealOptionGrid({ items }) {
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-            <strong style={{ fontSize: 14, color: BLK, letterSpacing: '-.01em' }}>{m.name}</strong>
+            <strong style={{ fontSize: 14, color: INK, letterSpacing: '-.01em' }}>{m.name}</strong>
             {m.kcal_est != null && (
               <span style={{ fontSize: 12, color: '#0a0a0a', fontWeight: 700, whiteSpace: 'nowrap' }}>{m.kcal_est} kcal</span>
             )}
           </div>
-          <div style={{ fontSize: 12.5, color: GRY, lineHeight: 1.55, marginBottom: 10 }}>{m.description}</div>
+          <div style={{ fontSize: 12.5, color: INK3, lineHeight: 1.55, marginBottom: 10 }}>{m.description}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
-            {m.protein_g_est != null && <MacroChip label="Protein" value={`${m.protein_g_est}g`} color="#5aa0ff" />}
+            {m.protein_g_est != null && <MacroChip label="Protein" value={`${m.protein_g_est}g`} color="#d89a6a" />}
             {m.carb_g_est != null && <MacroChip label="Carbs" value={`${m.carb_g_est}g`} color="#059669" />}
             {m.fat_g_est != null && <MacroChip label="Fat" value={`${m.fat_g_est}g`} color="#d97706" />}
           </div>
-          <div style={{ fontSize: 11, color: GRY5 }}>{m.prep_time_min} min prep</div>
+          <div style={{ fontSize: 11, color: INK3 }}>{m.prep_time_min} min prep</div>
         </div>
       ))}
     </div>
@@ -734,7 +731,7 @@ function Chips({ items }) {
           style={{
             padding: '5px 11px',
             background: '#f1f1f6',
-            color: BLK,
+            color: INK,
             fontSize: 12,
             fontWeight: 500,
             borderRadius: 20,
@@ -760,14 +757,14 @@ function BulletList({ items, icon: Icon, iconColor }) {
             gap: 8,
             padding: '5px 0',
             fontSize: 13,
-            color: BLK,
+            color: INK,
             lineHeight: 1.55,
           }}
         >
           {Icon ? (
-            <Icon size={13} color={iconColor || T} style={{ flexShrink: 0, marginTop: 3 }} />
+            <Icon size={13} color={iconColor || ACCENT} style={{ flexShrink: 0, marginTop: 3 }} />
           ) : (
-            <span style={{ color: T, marginTop: 2, flexShrink: 0 }}>•</span>
+            <span style={{ color: ACCENT, marginTop: 2, flexShrink: 0 }}>•</span>
           )}
           <span>{item}</span>
         </li>
