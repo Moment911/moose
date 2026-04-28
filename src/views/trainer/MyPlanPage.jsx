@@ -533,7 +533,11 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
     <div style={{ display: 'grid', gap: 16 }}>
       {!isMobile && <GreetingHeader trainee={trainee} />}
 
-      {/* ══ Plan Steps Checklist ══ */}
+      {/* ══ Plan Steps Checklist — only while there's work to do.
+          When everything is ready, this dark hero disappears so the
+          daily-driver content (date strip, calories, today's stuff)
+          owns the top of the screen. ══ */}
+      {doneCount < 6 && (
       <div style={{
         background: '#0a0a0a', borderRadius: A.r, padding: '24px 16px',
         boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
@@ -580,21 +584,21 @@ function OverviewTab({ trainee, plan, logs, isMobile, onAfterAdjust, onGotoTab, 
           <div style={{ height: '100%', borderRadius: 999, background: `linear-gradient(90deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]}, ${STEP_COLORS[3]})`, width: `${Math.round((doneCount/6)*100)}%`, transition: 'width .6s ease' }} />
         </div>
 
-        {/* Generate CTA */}
-        {doneCount < 6 && (
-          <button type="button" onClick={handleGenerate} disabled={generating} style={{
-            width: '100%', padding: '14px 16px',
-            background: generating ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]})`,
-            color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
-            cursor: generating ? 'default' : 'pointer', fontFamily: A.font,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            boxShadow: generating ? 'none' : `0 4px 16px ${STEP_COLORS[0]}40`,
-          }}>
-            {generating ? <Loader2 size={16} style={{ animation: 'mpSpin 1s linear infinite' }} /> : <Sparkles size={16} />}
-            {generating ? 'Building your plan...' : doneCount > 0 ? `Continue building (${doneCount}/6)` : 'Generate my full plan'}
-          </button>
-        )}
+        {/* Generate CTA — always shown inside this block since it only
+            renders when doneCount < 6 anyway. */}
+        <button type="button" onClick={handleGenerate} disabled={generating} style={{
+          width: '100%', padding: '14px 16px',
+          background: generating ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${STEP_COLORS[0]}, ${STEP_COLORS[2]})`,
+          color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
+          cursor: generating ? 'default' : 'pointer', fontFamily: A.font,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          boxShadow: generating ? 'none' : `0 4px 16px ${STEP_COLORS[0]}40`,
+        }}>
+          {generating ? <Loader2 size={16} style={{ animation: 'mpSpin 1s linear infinite' }} /> : <Sparkles size={16} />}
+          {generating ? 'Building your plan...' : doneCount > 0 ? `Continue building (${doneCount}/6)` : 'Generate my full plan'}
+        </button>
       </div>
+      )}
 
       {/* ══ Quick Actions ══ */}
       {(hasWorkout || hasMeals) && (
