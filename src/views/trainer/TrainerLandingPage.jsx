@@ -1522,15 +1522,15 @@ function TryItDemo() {
   const coachInitial = coach === 'female' ? 'M' : 'A'
 
   return (
-    <section style={{ padding: `${T.s8}px 24px`, background: T.ink }}>
+    <section style={{ padding: `${T.s8}px 24px`, background: T.card }}>
       <div style={{ maxWidth: 680, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: T.s6 }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '4px 12px', borderRadius: T.rPill,
-            background: 'rgba(255,255,255,0.08)',
+            background: T.bg,
             fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
-            color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1px', marginBottom: T.s4,
+            color: T.ink2, letterSpacing: '0.1px', marginBottom: T.s4,
           }}>
             <MessageCircle size={12} strokeWidth={2.25} />
             Live demo
@@ -1538,7 +1538,7 @@ function TryItDemo() {
           <h2 style={{
             margin: 0, fontFamily: T.font,
             fontSize: 'clamp(28px, 5vw, 44px)', lineHeight: 1.08,
-            letterSpacing: '-0.025em', fontWeight: T.weight.display, color: '#fff',
+            letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
             Try your AI coach.
             <br />
@@ -1547,7 +1547,7 @@ function TryItDemo() {
           <p style={{
             margin: `${T.s3}px auto 0`, maxWidth: 460,
             fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
-            fontWeight: T.weight.body, color: 'rgba(255,255,255,0.5)',
+            fontWeight: T.weight.body, color: T.ink3,
           }}>
             No sign-up. No email. Just pick your coach and start talking.
           </p>
@@ -1564,13 +1564,14 @@ function TryItDemo() {
               { gender: 'female', label: 'Coach Maya', initial: 'M', color: T.accent, desc: 'Warm, motivating, detail-oriented' },
             ].map((c) => (
               <button key={c.gender} type="button" onClick={() => handlePickCoach(c.gender)} style={{
-                padding: T.s5, background: 'rgba(255,255,255,0.05)',
-                border: '1.5px solid rgba(255,255,255,0.1)',
+                padding: T.s5, background: T.bg,
+                border: `1.5px solid ${T.border}`,
                 borderRadius: T.rLg, cursor: 'pointer', textAlign: 'center',
                 transition: 'all .15s',
+                boxShadow: T.shadowFloater,
               }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = c.color; e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = c.color; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = 'translateY(0)' }}
               >
                 <div style={{
                   width: 56, height: 56, borderRadius: 999, margin: '0 auto 10px',
@@ -1578,8 +1579,8 @@ function TryItDemo() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 22, fontWeight: 800, color: '#fff', fontFamily: T.font,
                 }}>{c.initial}</div>
-                <div style={{ fontFamily: T.font, fontSize: 16, fontWeight: T.weight.button, color: '#fff' }}>{c.label}</div>
-                <div style={{ fontFamily: T.font, fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{c.desc}</div>
+                <div style={{ fontFamily: T.font, fontSize: 16, fontWeight: T.weight.button, color: T.ink }}>{c.label}</div>
+                <div style={{ fontFamily: T.font, fontSize: 13, color: T.ink3, marginTop: 4 }}>{c.desc}</div>
               </button>
             ))}
           </div>
@@ -1588,14 +1589,16 @@ function TryItDemo() {
         {/* Chat window */}
         {coach && (
           <div style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: T.bg,
+            border: `1px solid ${T.border}`,
             borderRadius: T.rXl, overflow: 'hidden',
+            boxShadow: T.shadowModal,
           }}>
             {/* Chat header */}
             <div style={{
-              padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+              padding: '14px 20px', borderBottom: `1px solid ${T.border}`,
               display: 'flex', alignItems: 'center', gap: 10,
+              background: T.bg,
             }}>
               <div style={{
                 width: 36, height: 36, borderRadius: 999, flexShrink: 0,
@@ -1604,8 +1607,8 @@ function TryItDemo() {
                 fontSize: 15, fontWeight: 800, color: '#fff', fontFamily: T.font,
               }}>{coachInitial}</div>
               <div>
-                <div style={{ fontFamily: T.font, fontSize: 15, fontWeight: T.weight.button, color: '#fff' }}>{coachName}</div>
-                <div style={{ fontFamily: T.font, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>AI Coach  ·  Online now</div>
+                <div style={{ fontFamily: T.font, fontSize: 15, fontWeight: T.weight.button, color: T.ink }}>{coachName}</div>
+                <div style={{ fontFamily: T.font, fontSize: 12, color: T.ink3 }}>AI Coach  ·  Online now</div>
               </div>
               <div style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: 999, background: '#34c759' }} />
             </div>
@@ -1614,6 +1617,7 @@ function TryItDemo() {
             <div ref={scrollRef} style={{
               minHeight: 280, maxHeight: 400, overflowY: 'auto',
               padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10,
+              background: T.card,
             }}>
               {messages.map((m, i) => {
                 const isUser = m.role === 'user'
@@ -1622,8 +1626,9 @@ function TryItDemo() {
                     <div style={{
                       maxWidth: '80%', padding: '10px 14px',
                       borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-                      background: isUser ? T.accent : 'rgba(255,255,255,0.08)',
-                      color: isUser ? '#fff' : 'rgba(255,255,255,0.85)',
+                      background: isUser ? T.ink : T.bg,
+                      color: isUser ? '#fff' : T.ink,
+                      border: isUser ? 'none' : `1px solid ${T.border}`,
                       fontFamily: T.font, fontSize: 14, lineHeight: 1.55,
                       whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                     }}>
@@ -1637,8 +1642,8 @@ function TryItDemo() {
                   <div style={{
                     maxWidth: '80%', padding: '10px 14px',
                     borderRadius: '14px 14px 14px 4px',
-                    background: 'rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.85)',
+                    background: T.bg, border: `1px solid ${T.border}`,
+                    color: T.ink,
                     fontFamily: T.font, fontSize: 14, lineHeight: 1.55,
                     whiteSpace: 'pre-wrap',
                   }}>
@@ -1647,14 +1652,14 @@ function TryItDemo() {
                 </div>
               )}
               {streaming && !streamingText && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: T.ink3, fontSize: 13, fontFamily: T.font }}>
                   <Loader2 size={14} style={{ animation: 'koto-marquee-spin 1s linear infinite' }} />
                   {coachName} is typing...
                   <style>{'@keyframes koto-marquee-spin{to{transform:rotate(360deg)}}'}</style>
                 </div>
               )}
 
-              {/* Quick prompts — show when no user messages yet */}
+              {/* Quick prompts */}
               {messages.length <= 1 && !streaming && messages.some((m) => m.role === 'assistant') && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
                   {QUICK.map((q) => (
@@ -1664,14 +1669,14 @@ function TryItDemo() {
                       setMessages(next)
                       streamTurn(next)
                     }} style={{
-                      padding: '8px 14px', background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: 20, color: 'rgba(255,255,255,0.7)',
+                      padding: '8px 14px', background: T.bg,
+                      border: `1px solid ${T.border}`,
+                      borderRadius: 20, color: T.ink2,
                       fontFamily: T.font, fontSize: 13, fontWeight: 500,
                       cursor: 'pointer', transition: 'all .12s',
                     }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = '#fff' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = T.ink }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.ink2 }}
                     >
                       {q}
                     </button>
@@ -1682,8 +1687,9 @@ function TryItDemo() {
 
             {/* Input */}
             <div style={{
-              padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.06)',
+              padding: '12px 16px', borderTop: `1px solid ${T.border}`,
               display: 'flex', alignItems: 'center', gap: 8,
+              background: T.bg,
             }}>
               <input
                 ref={inputRef}
@@ -1694,16 +1700,17 @@ function TryItDemo() {
                 disabled={streaming}
                 style={{
                   flex: 1, padding: '10px 14px', fontSize: 14,
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 10, color: '#fff',
+                  background: T.card,
+                  border: `1px solid ${T.border}`,
+                  borderRadius: 10, color: T.ink,
                   fontFamily: T.font, outline: 'none',
                 }}
               />
               <button type="button" onClick={handleSend} disabled={!input.trim() || streaming} style={{
                 width: 38, height: 38, borderRadius: 10,
-                background: input.trim() && !streaming ? T.accent : 'rgba(255,255,255,0.06)',
-                border: 'none', color: '#fff', cursor: input.trim() && !streaming ? 'pointer' : 'default',
+                background: input.trim() && !streaming ? T.ink : T.card,
+                border: 'none', color: input.trim() && !streaming ? '#fff' : T.ink4,
+                cursor: input.trim() && !streaming ? 'pointer' : 'default',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <ArrowRight size={16} strokeWidth={2.25} />
@@ -1715,7 +1722,7 @@ function TryItDemo() {
         {/* Disclaimer */}
         <div style={{
           marginTop: T.s4, textAlign: 'center',
-          fontFamily: T.font, fontSize: 11, color: 'rgba(255,255,255,0.25)',
+          fontFamily: T.font, fontSize: 11, color: T.ink4,
         }}>
           This is a live AI demo. Not medical advice. Always consult a professional.
         </div>
