@@ -488,177 +488,215 @@ function HowItWorks() {
 // ~120s and food→meals ~140s). For the demo we compress to ~6s total
 // so the user gets the dopamine without waiting. Replays on click.
 function LivePlanBuilder() {
-  const SECTIONS = [
-    { key: 'baseline', label: 'Baseline Assessment', color: '#dc2626', delay: 300,
-      content: 'Jaylen, 29, 5\'6", 158 lbs. Goal: lose 15 lbs while keeping energy up for two kids. Training readiness: beginner (0-1 years). Daily target: 1,680 kcal, 126g protein. Top focus: consistency over intensity, meal prep for busy weeks, 20-min workout cap.' },
-    { key: 'roadmap', label: '90-Day Roadmap', color: '#2563eb', delay: 800,
-      content: 'Phase 1 (Days 1-30): Build the habit. 3x/week, 20 min. Bodyweight + bands at home. Nail breakfast and lunch first. Phase 2 (Days 31-60): Add intensity. 4x/week, 25 min. Light dumbbells. Full meal plan adherence. Phase 3 (Days 61-90): Push. 4x/week, 30 min. Progressive overload. Body comp reassessment.' },
-    { key: 'workout', label: 'Workout Block', color: '#7c3aed', delay: 1600,
-      content: 'Day 1: Goblet Squat 3x10, Push-ups 3x8, Band Pull-apart 3x15, Plank 3x20s. Day 2: RDL 3x10, DB Shoulder Press 3x8, Bent Row 3x10, Dead Bug 3x8. Day 3: Walking Lunges 3x8/leg, DB Bench 3x8, Bicep Curl 2x12, Farmer Carry 3x30s. All sessions under 25 min.' },
-    { key: 'playbook', label: 'Coaching Playbook', color: '#059669', delay: 2500,
-      content: 'Only 15 min before carpool? Do the Express 3: squats, push-ups, planks. Too tired to train? Walk 20 min instead -- movement beats nothing. Sunday meal prep: cook 2 proteins, 2 carbs, cut veggies. That handles 80% of the week. Keep protein bars in your car for emergencies.' },
-    { key: 'meals', label: 'Meal Plan', color: '#d97706', delay: 3500,
-      content: 'Breakfast: Greek yogurt + granola + berries (380 kcal, 28g P). Lunch: Turkey wrap + apple + string cheese (520 kcal, 35g P). Snack: Protein bar or almonds (200 kcal, 15g P). Dinner: Chicken stir-fry, rice, veggies (580 kcal, 42g P). Total: 1,680 kcal, 120g protein.' },
-    { key: 'grocery', label: 'Grocery List', color: '#0891b2', delay: 4500,
-      content: 'Produce: broccoli, bell peppers, spinach, apples, berries, bananas. Protein: chicken breast 3lb, ground turkey 2lb, Greek yogurt x2, eggs 18ct. Carbs: jasmine rice, wheat wraps, granola, oats. Snacks: protein bars, almonds. Est. total: $85/week for the whole family.' },
+  const PERSONAS = [
+    {
+      id: 'mom', tab: 'Busy Mom', name: 'Jaylen', age: 29, desc: 'Mom of 2, works full time. Runs kids to soccer and cheer. Wants to lose 15 lbs and feel like herself again.',
+      sections: [
+        { label: 'Baseline', color: '#dc2626', content: '5\'6", 158 lbs. Goal: lose 15 lbs. Beginner (0-1 yrs training). 1,680 kcal/day, 126g protein. Focus: consistency over intensity, meal prep for busy weeks, sessions under 25 min.' },
+        { label: '90-Day Roadmap', color: '#2563eb', content: 'Phase 1: Build habit. 3x/wk, 20 min, bodyweight at home. Phase 2: Add intensity. 4x/wk, 25 min, light dumbbells. Phase 3: Push. 4x/wk, 30 min, progressive overload + body comp reassessment.' },
+        { label: 'Workout Block', color: '#7c3aed', content: 'Day 1: Goblet Squat 3x10, Push-ups 3x8, Band Pull-apart 3x15, Plank 3x20s. Day 2: RDL 3x10, DB Press 3x8, Rows 3x10, Dead Bug 3x8. Day 3: Lunges 3x8/leg, DB Bench 3x8, Curls 2x12, Farmer Carry 3x30s.' },
+        { label: 'Playbook', color: '#059669', content: 'Only 15 min before carpool? Express 3: squats, push-ups, planks. Too tired? Walk 20 min -- movement beats nothing. Sunday prep: cook 2 proteins, 2 carbs, cut veggies. That covers 80% of the week.' },
+        { label: 'Meal Plan', color: '#d97706', content: 'Breakfast: Greek yogurt + granola + berries (380 kcal, 28g P). Lunch: Turkey wrap + apple (520 kcal, 35g P). Snack: Protein bar (200 kcal, 15g P). Dinner: Chicken stir-fry + rice (580 kcal, 42g P). Total: 1,680 kcal.' },
+        { label: 'Grocery List', color: '#0891b2', content: 'Chicken breast 3lb, ground turkey 2lb, Greek yogurt x2, eggs 18ct, jasmine rice, wheat wraps, broccoli, peppers, spinach, apples, berries, bananas, protein bars, almonds. Est: $85/week.' },
+      ],
+    },
+    {
+      id: 'baseball', tab: 'HS Baseball', name: 'Marcus', age: 16, desc: 'Varsity pitcher, junior year. Throws 78 mph, wants to hit 85+ and get recruited to play college ball.',
+      sections: [
+        { label: 'Baseline', color: '#dc2626', content: '5\'10", 162 lbs. Goal: gain 10 lbs muscle, add 5-7 mph velocity. Intermediate (2 yrs). 2,800 kcal/day, 162g protein. Focus: rotational power, arm health, posterior chain strength.' },
+        { label: '90-Day Roadmap', color: '#2563eb', content: 'Phase 1: Foundation. Movement quality, scap stability, hip mobility. 4x/wk. Phase 2: Build. Hypertrophy focus, rotational power, long toss ramp. Phase 3: Express. Strength peaking, velo testing, showcase prep.' },
+        { label: 'Workout Block', color: '#7c3aed', content: 'Day 1: Trap Bar DL 4x5, Box Jump 4x3, RDL 3x8, Band Pull-apart 3x15. Day 2: Bench 4x5, DB Row 4x8, Landmine Rotation 3x8, Face Pull 3x12. Day 3: Front Squat 3x6, Split Squat 3x8, Med Ball Slam 3x5, Plank 3x30s.' },
+        { label: 'Playbook', color: '#059669', content: 'In-season: drop to 3x/wk, no heavy legs day before start. Arm care daily: band external rotations, sleeper stretch, scap push-ups. Long toss 2x/wk, max 150 ft. If arm is sore, shut it down -- see a doctor.' },
+        { label: 'Meal Plan', color: '#d97706', content: 'Breakfast: 3 eggs + toast + banana (520 kcal, 32g P). Lunch: Chicken + rice + broccoli (680 kcal, 48g P). Pre-practice: PB sandwich (350 kcal). Dinner: Steak + sweet potato + salad (750 kcal, 52g P). Shake: whey + milk (500 kcal, 40g P).' },
+        { label: 'Grocery List', color: '#0891b2', content: 'Chicken breast 4lb, steak 2lb, eggs 2 dozen, whole milk, whey protein, jasmine rice 5lb, sweet potatoes, broccoli, bananas, bread, peanut butter, oats. Est: $110/week.' },
+      ],
+    },
+    {
+      id: 'exec', tab: 'Exec on the Go', name: 'David', age: 44, desc: 'VP of sales. Travels 3 days/week, hotel gyms only. Wants to lose the gut and have energy for 12-hour days.',
+      sections: [
+        { label: 'Baseline', color: '#dc2626', content: '5\'11", 215 lbs. Goal: lose 25 lbs, maintain muscle. Intermediate (3 yrs, inconsistent). 1,900 kcal/day, 170g protein. Focus: hotel-friendly workouts, travel meal strategy, sleep optimization.' },
+        { label: '90-Day Roadmap', color: '#2563eb', content: 'Phase 1: Rebuild consistency. 3x/wk, hotel-proof sessions. Fix sleep schedule. Phase 2: Fat loss push. 4x/wk, calorie tracking, walking 8K steps/day. Phase 3: Lean out. Maintain training, reassess body comp, build sustainable habits.' },
+        { label: 'Workout Block', color: '#7c3aed', content: 'Hotel Day: DB Goblet Squat 4x10, Push-up 4x12, DB Row 4x10, Plank 3x30s, DB Curl+Press 3x10. Home Day: Barbell Squat 4x6, Bench 4x6, Deadlift 3x5, Pull-ups 3x8. 35-40 min max.' },
+        { label: 'Playbook', color: '#059669', content: 'Travel rules: pack resistance bands, request a room near the gym, schedule workout before first meeting. Airport food: grilled chicken salad, skip the bread. Client dinner: protein + veggies, one drink max. Red-eye night: skip the workout, walk 30 min instead.' },
+        { label: 'Meal Plan', color: '#d97706', content: 'Breakfast: Egg white omelette + avocado toast (420 kcal, 35g P). Lunch: Grilled chicken salad + vinaigrette (480 kcal, 42g P). Snack: Protein shake (200 kcal, 30g P). Dinner: Salmon + asparagus + rice (600 kcal, 45g P). Evening: Greek yogurt (200 kcal, 18g P).' },
+        { label: 'Grocery List', color: '#0891b2', content: 'Salmon 2lb, chicken breast 3lb, egg whites, avocados, mixed greens, asparagus, rice, Greek yogurt, whey protein, almonds. Hotel snack pack: jerky, protein bars, mixed nuts. Est: $95/week.' },
+      ],
+    },
+    {
+      id: 'soccer', tab: 'Club Soccer', name: 'Sofia', age: 14, desc: 'Travel soccer midfielder. Fast but gets gassed in the second half. Wants to build endurance and not get outmuscled.',
+      sections: [
+        { label: 'Baseline', color: '#dc2626', content: '5\'3", 108 lbs. Goal: build endurance + 5 lbs lean muscle. Beginner in gym (1 yr). 2,100 kcal/day, 108g protein. Focus: aerobic base, lower body power, anti-fatigue conditioning.' },
+        { label: '90-Day Roadmap', color: '#2563eb', content: 'Phase 1: Base building. Bodyweight circuits + tempo runs 2x/wk. Phase 2: Power + endurance. Add plyometrics, interval training, light weights. Phase 3: Game ready. Sport-specific agility, match-simulation conditioning.' },
+        { label: 'Workout Block', color: '#7c3aed', content: 'Day 1: Squat 3x8, Lateral Lunge 3x8, Single-leg RDL 3x8, Plank 3x30s. Day 2: Tempo Run 20 min + core circuit. Day 3: Box Jump 3x5, Push-up 3x10, Band Walk 3x12, Copenhagen Plank 3x15s. Day 4: Interval sprints 8x30s.' },
+        { label: 'Playbook', color: '#059669', content: 'Game day: eat 3 hours before, carb-heavy. Halftime: banana + water, not sports drink. Second-half fatigue: it is your aerobic base, not willpower. Train the engine, the legs follow. Two practices + game day = no gym that week, just mobility.' },
+        { label: 'Meal Plan', color: '#d97706', content: 'Breakfast: Oatmeal + banana + PB (450 kcal, 18g P). Lunch: Turkey sandwich + fruit + yogurt (560 kcal, 32g P). Pre-practice: Granola bar + apple (250 kcal). Dinner: Pasta + chicken + marinara + side salad (640 kcal, 40g P). Snack: String cheese + crackers (200 kcal, 14g P).' },
+        { label: 'Grocery List', color: '#0891b2', content: 'Chicken breast 2lb, turkey deli meat, whole wheat bread, pasta, marinara, oats, bananas, apples, PB, Greek yogurt, string cheese, granola bars, mixed fruit. Est: $70/week.' },
+      ],
+    },
+    {
+      id: 'retiree', tab: 'Active Retiree', name: 'Frank', age: 62, desc: 'Retired teacher. Knees bother him, wants to stay active and independent. Goal: walk 5 miles pain-free and feel 50 again.',
+      sections: [
+        { label: 'Baseline', color: '#dc2626', content: '5\'9", 195 lbs. Goal: lose 20 lbs, improve mobility, protect joints. Deconditioned. 1,750 kcal/day, 130g protein. Focus: joint-friendly movement, balance, walking endurance, fall prevention.' },
+        { label: '90-Day Roadmap', color: '#2563eb', content: 'Phase 1: Move daily. Walking 15 min + chair exercises + stretching. Phase 2: Build. Walking 30 min + resistance bands + light dumbbells. Phase 3: Thrive. Walking 45-60 min + full body 3x/wk + flexibility routine.' },
+        { label: 'Workout Block', color: '#7c3aed', content: 'Day 1: Wall Sit 3x15s, Chair Squat 3x8, Band Row 3x10, Calf Raise 3x12. Day 2: Walk 25 min + stretch 10 min. Day 3: Step-up 3x6, Band Press 3x10, Bird Dog 3x8, Side Plank 3x10s. All low-impact, joint-safe.' },
+        { label: 'Playbook', color: '#059669', content: 'Knees hurt? Switch to swimming or bike for cardio. Never push through joint pain -- that is a signal, not weakness. Morning stiffness: 5 min of gentle stretching before anything else. Track steps daily, add 500/week until you hit 8,000.' },
+        { label: 'Meal Plan', color: '#d97706', content: 'Breakfast: 2 eggs + whole wheat toast + fruit (380 kcal, 22g P). Lunch: Tuna salad + crackers + apple (480 kcal, 35g P). Snack: Cottage cheese + berries (200 kcal, 20g P). Dinner: Baked chicken + roasted veggies + quinoa (690 kcal, 45g P).' },
+        { label: 'Grocery List', color: '#0891b2', content: 'Chicken thighs 2lb, canned tuna, eggs 1 dozen, cottage cheese, whole wheat bread, quinoa, mixed frozen veggies, broccoli, sweet potatoes, berries, apples, olive oil. Est: $65/week.' },
+      ],
+    },
+    {
+      id: 'college', tab: 'College Student', name: 'Tyler', age: 20, desc: 'Engineering major, tight budget, dorm room + campus gym. Wants to put on 15 lbs of muscle and look good.',
+      sections: [
+        { label: 'Baseline', color: '#dc2626', content: '5\'8", 145 lbs. Goal: gain 15 lbs muscle. Beginner (6 months). 2,600 kcal/day, 145g protein. Focus: compound lifts, calorie surplus on a budget, progressive overload fundamentals.' },
+        { label: '90-Day Roadmap', color: '#2563eb', content: 'Phase 1: Learn the lifts. 3x/wk, full body, focus on form. Phase 2: Volume. 4x/wk, upper/lower split, add weight weekly. Phase 3: Strength push. 4x/wk, heavy compounds, test maxes, measure progress.' },
+        { label: 'Workout Block', color: '#7c3aed', content: 'Day 1 (Upper): Bench 4x6, OHP 3x8, Barbell Row 4x8, Tricep Dip 3x10, Face Pull 3x15. Day 2 (Lower): Squat 4x6, RDL 3x8, Leg Press 3x10, Calf Raise 4x12, Ab Wheel 3x8. Repeat with heavier weight.' },
+        { label: 'Playbook', color: '#059669', content: 'Dining hall strategy: double protein at every meal, always grab a glass of milk. Dorm snacks: PB, oats, bananas, protein powder. Skip the alcohol -- empty calories that kill recovery. Sleep 8 hours -- your muscles grow in bed, not in the gym.' },
+        { label: 'Meal Plan', color: '#d97706', content: 'Breakfast: Dining hall oatmeal + eggs + milk (650 kcal, 38g P). Lunch: Chicken + rice + veggies + milk (720 kcal, 50g P). Snack: PB banana shake (450 kcal, 28g P). Dinner: Beef + pasta + bread + salad (780 kcal, 42g P). Total: 2,600 kcal.' },
+        { label: 'Grocery List', color: '#0891b2', content: 'Whey protein 2lb, peanut butter, oats, bananas, whole milk 1 gal, bread, eggs 1 dozen, mixed nuts, Greek yogurt. Most meals from dining hall. Supplement budget: $35/week.' },
+      ],
+    },
   ]
-  const [done, setDone] = useState([])
-  const [running, setRunning] = useState(false)
-  const [expanded, setExpanded] = useState(null)
-  const timersRef = useRef([])
 
-  const start = () => {
-    timersRef.current.forEach(clearTimeout)
-    setDone([]); setExpanded(null); setRunning(true)
-    timersRef.current = SECTIONS.map((p) => setTimeout(() => {
-      setDone((prev) => prev.includes(p.key) ? prev : [...prev, p.key])
-    }, p.delay))
-    timersRef.current.push(setTimeout(() => { setRunning(false); setExpanded('baseline') }, SECTIONS[SECTIONS.length - 1].delay + 500))
-  }
-
-  useEffect(() => () => { timersRef.current.forEach(clearTimeout) }, [])
-  useEffect(() => { start() }, [])
-
-  const allDone = done.length === SECTIONS.length
+  const [activePersona, setActivePersona] = useState(0)
+  const [expanded, setExpanded] = useState('baseline')
+  const persona = PERSONAS[activePersona]
 
   return (
     <section style={{ padding: `${T.s8}px 24px`, background: T.bg }}>
-      <div style={{ maxWidth: 880, margin: '0 auto' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: T.s7 }}>
           <span style={{
             display: 'inline-block', padding: '4px 10px', borderRadius: T.rPill,
             background: T.card, fontFamily: T.font, fontSize: T.size.caption,
             fontWeight: T.weight.button, color: T.ink2, letterSpacing: '0.1px', marginBottom: T.s4,
           }}>
-            Real example
+            Real examples
           </span>
           <h2 style={{
             margin: 0, fontFamily: T.font,
             fontSize: 'clamp(32px, 5.5vw, 48px)', lineHeight: 1.08,
             letterSpacing: '-0.025em', fontWeight: T.weight.display, color: T.ink,
           }}>
-            A real plan for a real life.
+            Tell it who you are.
+            <br />
+            It builds your plan.
           </h2>
           <p style={{
             margin: `${T.s4}px auto 0`, maxWidth: 580,
             fontFamily: T.font, fontSize: T.size.body, lineHeight: T.lh.body,
             fontWeight: T.weight.body, color: T.ink3,
           }}>
-            Jaylen is 29, a mom of two, and works full time. She runs kids to
-            soccer and cheer, eats whatever is fast, and has not had a consistent
-            workout routine in years. She told the AI her reality and this is
-            what it built in two minutes.
+            Every plan is different because every person is different.
+            Pick a persona below and click through their full AI-generated program.
           </p>
         </div>
 
+        {/* Persona tabs */}
+        <div className="koto-persona-tabs" style={{
+          display: 'flex', gap: 6, overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+          paddingBottom: T.s3, marginBottom: T.s5,
+        }}>
+          <style>{'.koto-persona-tabs::-webkit-scrollbar{display:none}'}</style>
+          {PERSONAS.map((p, i) => {
+            const active = i === activePersona
+            return (
+              <button key={p.id} type="button"
+                onClick={() => { setActivePersona(i); setExpanded(null) }}
+                style={{
+                  flexShrink: 0, padding: '10px 18px',
+                  background: active ? T.ink : T.card,
+                  color: active ? '#fff' : T.ink2,
+                  border: 'none', borderRadius: T.rPill,
+                  fontFamily: T.font, fontSize: T.size.subtitle, fontWeight: T.weight.button,
+                  cursor: 'pointer', transition: 'all .15s',
+                  whiteSpace: 'nowrap',
+                }}>
+                {p.tab}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Persona card */}
         <div style={{
           background: '#0a0a0a', borderRadius: T.rXl, padding: T.s6,
           boxShadow: '0 30px 80px rgba(0,0,0,0.18)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: T.s5 }}>
-            <div>
-              <div style={{ fontFamily: T.font, fontSize: T.size.body, fontWeight: T.weight.display, color: '#fff' }}>
-                Jaylen's Plan
-              </div>
-              <div style={{ fontFamily: T.font, fontSize: T.size.caption, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
-                29 &middot; Mom of 2 &middot; Lose 15 lbs
-              </div>
+          {/* Header */}
+          <div style={{ marginBottom: T.s5 }}>
+            <div style={{ fontFamily: T.font, fontSize: T.size.h1, fontWeight: T.weight.display, color: '#fff', lineHeight: 1.15 }}>
+              {persona.name}'s Plan
             </div>
-            <span style={{
-              padding: '5px 14px', borderRadius: T.rPill,
-              background: allDone ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.08)',
-              color: allDone ? '#10b981' : 'rgba(255,255,255,0.6)',
-              fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
-            }}>
-              {done.length}/{SECTIONS.length}
-            </span>
+            <div style={{ fontFamily: T.font, fontSize: T.size.subtitle, color: 'rgba(255,255,255,0.5)', marginTop: T.s1, lineHeight: 1.4 }}>
+              {persona.age} &middot; {persona.desc}
+            </div>
           </div>
 
+          {/* Sections */}
           <div style={{ display: 'grid', gap: 6 }}>
-            {SECTIONS.map((p) => {
-              const isDone = done.includes(p.key)
-              const isNext = !isDone && running && done.length === SECTIONS.indexOf(p)
-              const isExp = expanded === p.key && isDone
+            {persona.sections.map((s, i) => {
+              const isExp = expanded === s.label
               return (
-                <div key={p.key}>
+                <div key={s.label}>
                   <button type="button"
-                    onClick={() => isDone && setExpanded(isExp ? null : p.key)}
+                    onClick={() => setExpanded(isExp ? null : s.label)}
                     style={{
                       width: '100%', textAlign: 'left',
                       display: 'flex', alignItems: 'center', gap: T.s3,
                       padding: '12px 14px',
-                      background: isDone ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
-                      border: `1px solid ${isDone ? p.color + '40' : 'rgba(255,255,255,0.06)'}`,
-                      borderLeft: `3px solid ${isDone ? p.color : 'rgba(255,255,255,0.08)'}`,
+                      background: 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${isExp ? s.color + '40' : 'rgba(255,255,255,0.06)'}`,
+                      borderLeft: `3px solid ${s.color}`,
                       borderRadius: isExp ? `${T.rMd}px ${T.rMd}px 0 0` : T.rMd,
-                      cursor: isDone ? 'pointer' : 'default',
-                      transition: 'all .35s ease',
+                      cursor: 'pointer',
                     }}>
                     <div style={{
                       width: 22, height: 22, borderRadius: T.rPill, flexShrink: 0,
-                      background: isDone ? p.color : 'rgba(255,255,255,0.08)',
+                      background: s.color,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'background .35s ease',
                     }}>
-                      {isDone ? <Check size={14} color="#fff" strokeWidth={3} />
-                        : isNext ? <Loader2 size={12} color="#fff" style={{ animation: 'koto-spin 0.9s linear infinite' }} />
-                        : null}
+                      <Check size={14} color="#fff" strokeWidth={3} />
                     </div>
                     <span style={{
                       flex: 1, fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.3,
-                      fontWeight: T.weight.body,
-                      color: isDone ? '#fff' : 'rgba(255,255,255,0.4)',
+                      fontWeight: T.weight.body, color: '#fff',
                     }}>
-                      {p.label}
+                      {s.label}
                     </span>
-                    {isDone && <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>{isExp ? '\u25B2' : '\u25BC'}</span>}
+                    <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>
+                      {isExp ? '\u25B2' : '\u25BC'}
+                    </span>
                   </button>
                   {isExp && (
                     <div style={{
                       padding: '14px 16px', background: 'rgba(255,255,255,0.03)',
-                      borderLeft: `3px solid ${p.color}`,
-                      border: `1px solid ${p.color}30`, borderTop: 'none',
+                      borderLeft: `3px solid ${s.color}`,
+                      border: `1px solid ${s.color}30`, borderTop: 'none',
                       borderRadius: `0 0 ${T.rMd}px ${T.rMd}px`,
-                      fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.6,
-                      color: 'rgba(255,255,255,0.65)', fontWeight: T.weight.body,
+                      fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.65,
+                      color: 'rgba(255,255,255,0.7)', fontWeight: T.weight.body,
                     }}>
-                      {p.content}
+                      {s.content}
                     </div>
                   )}
                 </div>
               )
             })}
           </div>
-
-          {allDone && (
-            <div style={{ marginTop: T.s5, textAlign: 'center' }}>
-              <button type="button" onClick={start} style={{
-                padding: '10px 20px', borderRadius: T.rPill, border: 'none',
-                background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)',
-                fontFamily: T.font, fontSize: T.size.caption, fontWeight: T.weight.button,
-                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
-              }}>
-                <Sparkles size={12} /> Replay
-              </button>
-            </div>
-          )}
         </div>
 
         <p style={{
-          margin: `${T.s5}px auto 0`, textAlign: 'center', maxWidth: 500,
+          margin: `${T.s5}px auto 0`, textAlign: 'center', maxWidth: 520,
           fontFamily: T.font, fontSize: T.size.subtitle, lineHeight: 1.5,
           fontWeight: T.weight.body, color: T.ink3,
         }}>
-          Click any section to see what the AI built for Jaylen. Your plan
-          would be completely different -- built around your sport, your
-          schedule, and your goals.
+          Your plan would be completely different  --  built around who you are,
+          what you do, and where you want to go.
         </p>
       </div>
-      <style>{`@keyframes koto-spin { to { transform: rotate(360deg) } }`}</style>
     </section>
   )
 }
-
 function FeaturesGrid() {
   return (
     <section id="features" style={{ padding: `${T.s8}px 24px`, background: T.bg }}>
