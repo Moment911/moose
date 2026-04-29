@@ -46,8 +46,10 @@ export default function SelfSignupPage() {
     document.title = 'Koto Trainer — Sign Up'
   }, [])
 
-  // If already signed in, route forward
+  // If already signed in, route forward — unless ?fresh=1 (manual return to start)
+  const isFresh = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('fresh') === '1'
   useEffect(() => {
+    if (isFresh) return // User explicitly came back — don't auto-redirect
     let cancelled = false
     supabase.auth.getSession().then(async ({ data }) => {
       if (cancelled) return
@@ -56,7 +58,7 @@ export default function SelfSignupPage() {
       navigate(await nextRouteForUser(user))
     })
     return () => { cancelled = true }
-  }, [navigate])
+  }, [navigate, isFresh])
 
   async function handleSignup(e) {
     e.preventDefault()

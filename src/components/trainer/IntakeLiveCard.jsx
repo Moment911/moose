@@ -134,7 +134,7 @@ export default function IntakeLiveCard({ extracted, missingFields, onGenerate, g
           <div style={{
             height: '100%',
             width: `${pct}%`,
-            background: allComplete ? GRN : ACCENT,
+            background: allComplete ? GRN : INK,
             borderRadius: 2,
             transition: 'width 0.4s ease, background-color 0.4s ease',
           }} />

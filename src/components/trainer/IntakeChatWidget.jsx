@@ -233,7 +233,7 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
       }}>
         <div style={{
           width: 32, height: 32, borderRadius: '50%',
-          background: TK.accent, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: TK.ink3, display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 14, fontWeight: 800, color: '#fff',
         }}>
           K

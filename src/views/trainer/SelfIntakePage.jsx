@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useCallback } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Loader2, Sparkles } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { validateIntake } from '../../lib/trainer/intakeSchema'
@@ -186,12 +186,43 @@ export default function SelfIntakePage() {
 
   if (phase === 'generating') return <GeneratingScreen />
 
+  async function handleSignOut() {
+    clearIntakeLS()
+    await supabase.auth.signOut()
+    navigate('/start?fresh=1')
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: BG, padding: '24px 16px', fontFamily: FONT }}>
+    <div style={{ minHeight: '100vh', background: BG, fontFamily: FONT }}>
+      {/* Top nav bar */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 20,
+        background: 'rgba(255,255,255,0.85)',
+        backdropFilter: 'saturate(180%) blur(20px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+        borderBottom: `1px solid ${BRD}`,
+        padding: '0 16px', height: 52,
+        display: 'flex', alignItems: 'center',
+      }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <img src="/koto_logo_black.svg" alt="Koto" style={{ height: 20 }} />
+          <button
+            type="button"
+            onClick={handleSignOut}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, color: INK3, fontFamily: FONT,
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      </nav>
+
+      <div style={{ padding: '24px 16px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <header style={{ marginBottom: 16 }}>
-          <img src="/koto_logo_black.svg" alt="Koto" style={{ height: 22, marginBottom: 12, opacity: 0.85 }} />
           <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: INK, letterSpacing: '-.4px', fontFamily: FONT }}>
             Let's build your plan.
           </h1>
@@ -228,7 +259,7 @@ export default function SelfIntakePage() {
           />
 
           {/* Right: Live card */}
-          <div style={{ position: 'sticky', top: 24 }}>
+          <div style={{ position: 'sticky', top: 76 }}>
             <IntakeLiveCard
               extracted={extracted}
               missingFields={missing}
@@ -239,11 +270,7 @@ export default function SelfIntakePage() {
           </div>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: INK3 }}>
-          <Link to="/start" style={{ color: INK, textDecoration: 'none', fontWeight: 600, fontFamily: FONT }}>
-            ← Back
-          </Link>
-        </div>
+      </div>
       </div>
 
       {/* Mobile responsive */}
