@@ -409,7 +409,7 @@ export async function POST(req: NextRequest) {
       const anyToken = scToken || ga4Token || adsToken
 
       const customerId = adsConn?.account_id || googleConn?.account_id
-      const scSiteUrl = scConn?.site_url || (website.startsWith('http') ? website : `https://${website}`)
+      const scSiteUrl = scConn?.account_id || scConn?.site_url || (website.startsWith('http') ? website : `https://${website}`)
       const ga4PropertyId = ga4Conn?.property_id || googleConn?.property_id
 
       const [adsKeywords, adsCampaigns, scData, ga4Data] = await Promise.all([

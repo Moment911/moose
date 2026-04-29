@@ -41,7 +41,7 @@ const CSS = `
   .card { background: ${W}; border: 1px solid ${HAIR}; border-radius: 14px; padding: 26px; transition: border-color .2s, transform .2s, box-shadow .2s; }
   .card:hover { border-color: ${INK}; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(17,17,17,.06); }
   @media (max-width: 900px) {
-    .m-hero-h1 { font-size: 48px !important; }
+    .m-hero-h1 { font-size: 52px !important; }
     .m-sec-h2 { font-size: 36px !important; }
     .m-grid-3 { grid-template-columns: 1fr !important; }
     .m-grid-2 { grid-template-columns: 1fr !important; }

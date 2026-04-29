@@ -856,12 +856,13 @@ export default function KotoIQPage() {
           const gscRes = await fetch('https://searchconsole.googleapis.com/webmasters/v3/sites', {
             headers: { Authorization: `Bearer ${tokens.access_token}` }
           })
+          const gscData = await gscRes.json()
+          console.log('[KotoIQ] GSC sites response:', gscRes.status, gscData)
           if (gscRes.ok) {
-            const gscData = await gscRes.json()
             const sites = (gscData.siteEntry || []).filter(s => s.permissionLevel !== 'siteUnverifiedUser')
             setGscSites(sites)
           }
-        } catch {}
+        } catch (e) { console.error('[KotoIQ] GSC fetch error:', e) }
 
         // Fetch GA4 properties — paginate through ALL pages
         try {
@@ -4286,7 +4287,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
                           <div style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {isConnected
-                              ? (c.site_url?.replace('sc-domain:', '').replace('https://', '') || (c.property_id ? `Property ${c.property_id}` : svc.desc))
+                              ? (c.account_id?.replace('sc-domain:', '').replace('https://', '') || (c.property_id ? `Property ${c.property_id}` : svc.desc))
                               : svc.desc}
                           </div>
                         </div>
@@ -4504,7 +4505,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <Search size={14} color="#4285F4" /> Search Console Site
                   </div>
                   {gscSites.length === 0 ? (
-                    <div style={{ fontSize: 12, color: '#1f2937', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No verified GSC sites found for this account</div>
+                    <div>
+                      <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>No verified GSC sites found — enter the URL manually:</div>
+                      <input placeholder="https://rdcrestoration.com/ or sc-domain:rdcrestoration.com"
+                        onChange={e => setSelectedGsc(e.target.value.trim())}
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
                   ) : (
                     <>
                       <input value={gscSearch} onChange={e => setGscSearch(e.target.value)} placeholder={`Search ${gscSites.length} sites...`}
@@ -4557,7 +4563,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     if (selectedGsc) {
                       await supabase.from('seo_connections').upsert({
                         client_id: clientId, provider: 'search_console', access_token, refresh_token: refresh_token || null,
-                        token_expires_at: expiresAt, scope, site_url: selectedGsc, connected: true, updated_at: new Date().toISOString(),
+                        token_expires_at: expiresAt, scope, account_id: selectedGsc, connected: true, updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
                     }
                     if (selectedGa4) {
@@ -4576,13 +4582,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     } else {
                       missingScopes.push('Business Profile')
                     }
-                    // Always save ads connection — the same OAuth token works for Google Ads API
-                    // (adwords scope removed from consent screen due to Google verification requirement,
-                    // but the token still grants access if the user's Google account has Ads access)
-                    await supabase.from('seo_connections').upsert({
-                      client_id: clientId, provider: 'ads', access_token, refresh_token: refresh_token || null,
-                      token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
-                    }, { onConflict: 'client_id,provider' })
+                    // Only save ads connection if adwords scope was granted
+                    if (scope?.includes('adwords')) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'ads', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
                     await loadConnections()
                     if (missingScopes.length > 0) {
                       toast.success('Connected! Note: ' + missingScopes.join(' & ') + ' access was not granted by Google — re-run sign-in and check those boxes on the consent screen.', { duration: 8000 })

@@ -35,7 +35,7 @@ const CSS = `
   .btn-primary { background: ${INK}; color: ${W}; }
   .btn-primary:hover { background: #000; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(17,17,17,.18); }
   @media (max-width: 900px) {
-    .c-hero-h1 { font-size: 48px !important; }
+    .c-hero-h1 { font-size: 52px !important; }
     .c-phone { font-size: 44px !important; }
     .c-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
     .c-pad { padding: 72px 24px !important; }

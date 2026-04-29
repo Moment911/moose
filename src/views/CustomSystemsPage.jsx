@@ -39,7 +39,7 @@ const CSS = `
   .btn-secondary { background: ${W}; color: ${INK}; border-color: ${HAIR}; }
   .btn-secondary:hover { border-color: ${INK}; transform: translateY(-1px); }
   @media (max-width: 900px) {
-    .m-hero-h1 { font-size: 48px !important; }
+    .m-hero-h1 { font-size: 52px !important; }
     .m-sec-h2 { font-size: 36px !important; }
     .m-grid-3 { grid-template-columns: 1fr !important; }
     .m-grid-2 { grid-template-columns: 1fr !important; }

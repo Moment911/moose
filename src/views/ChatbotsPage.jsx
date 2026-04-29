@@ -38,7 +38,7 @@ const CSS = `
   .btn-secondary { background: ${W}; color: ${INK}; border-color: ${HAIR}; }
   .btn-secondary:hover { border-color: ${INK}; }
   @media (max-width: 900px) {
-    .cb-hero-h1 { font-size: 48px !important; }
+    .cb-hero-h1 { font-size: 52px !important; }
     .cb-sec-h2 { font-size: 36px !important; }
     .cb-pad { padding: 72px 24px !important; }
     .cb-tabs { overflow-x: auto; }

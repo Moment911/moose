@@ -34,7 +34,7 @@ const CSS = `
   .pill:hover { border-color: ${INK}; color: ${INK}; }
   .pill.active { background: ${INK}; color: ${W}; border-color: ${INK}; }
   @media (max-width: 900px) {
-    .s-hero-h1 { font-size: 48px !important; }
+    .s-hero-h1 { font-size: 52px !important; }
     .s-sec-h2 { font-size: 36px !important; }
     .s-grid { grid-template-columns: 1fr !important; }
     .s-pad { padding: 72px 24px !important; }

@@ -38,7 +38,7 @@ const CSS = `
     box-shadow: 0 14px 36px rgba(17,17,17,.08);
   }
   @media (max-width: 900px) {
-    .dh-hero-h1 { font-size: 48px !important; }
+    .dh-hero-h1 { font-size: 52px !important; }
     .dh-sec-h2  { font-size: 34px !important; }
     .dh-pad     { padding: 72px 20px !important; }
     .dh-grid    { grid-template-columns: 1fr !important; }
