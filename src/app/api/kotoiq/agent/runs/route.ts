@@ -17,14 +17,15 @@ function sb() {
 
 // POST — start a run for a goal
 export async function POST(req: NextRequest) {
-  const session = await verifySession(req)
-  if (!session.agencyId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   let body: any
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const session = await verifySession(req, body)
+  const agencyId = session.agencyId || body.agency_id
+  if (!agencyId) {
+    return NextResponse.json({ error: 'Unauthorized — agency_id required' }, { status: 401 })
   }
 
   const { goal_id, trigger } = body
@@ -36,9 +37,8 @@ export async function POST(req: NextRequest) {
     const s = sb()
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
-    // Verify goal ownership
     const goal = await ledger.getGoal(s, goal_id)
-    if (!goal || goal.agency_id !== session.agencyId) {
+    if (!goal || goal.agency_id !== agencyId) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 })
     }
     if (goal.status !== 'active') {
@@ -59,11 +59,12 @@ export async function POST(req: NextRequest) {
 // GET — list runs or get single run
 export async function GET(req: NextRequest) {
   const session = await verifySession(req)
-  if (!session.agencyId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { searchParams } = new URL(req.url)
+  const agencyId = session.agencyId || searchParams.get('agency_id')
+  if (!agencyId) {
+    return NextResponse.json({ error: 'Unauthorized — agency_id required' }, { status: 401 })
   }
 
-  const { searchParams } = new URL(req.url)
   const run_id = searchParams.get('run_id')
   const goal_id = searchParams.get('goal_id')
   const client_id = searchParams.get('client_id')
@@ -71,25 +72,23 @@ export async function GET(req: NextRequest) {
   try {
     const s = sb()
 
-    // Single run
     if (run_id) {
       const run = await ledger.getRun(s, run_id)
-      if (!run || run.agency_id !== session.agencyId) {
+      if (!run || run.agency_id !== agencyId) {
         return NextResponse.json({ error: 'Run not found' }, { status: 404 })
       }
       const actions = await ledger.listRunActions(s, run_id)
       return NextResponse.json({ run, actions })
     }
 
-    // List runs
     if (!goal_id && !client_id) {
       return NextResponse.json({ error: 'goal_id or client_id required' }, { status: 400 })
     }
 
     let q = s
       .from('kotoiq_agent_runs')
-      .select('id, goal_id, client_id, trigger, status, cost_usd, tokens_used, actions_taken, started_at, completed_at')
-      .eq('agency_id', session.agencyId)
+      .select('id, goal_id, client_id, trigger, status, cost_usd, tokens_used, actions_taken, started_at, completed_at, outcome')
+      .eq('agency_id', agencyId)
       .order('started_at', { ascending: false })
       .limit(50)
 

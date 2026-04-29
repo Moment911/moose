@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifySession } from '@/lib/apiAuth'
 import * as ledger from '@/lib/agent/ledger'
-import type { CreateGoalInput, GoalStatus } from '@/lib/agent/types'
+import type { CreateGoalInput } from '@/lib/agent/types'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -16,14 +16,15 @@ function sb() {
 
 // POST — create a goal
 export async function POST(req: NextRequest) {
-  const session = await verifySession(req)
-  if (!session.agencyId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   let body: any
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const session = await verifySession(req, body)
+  const agencyId = session.agencyId || body.agency_id
+  if (!agencyId) {
+    return NextResponse.json({ error: 'Unauthorized — agency_id required' }, { status: 401 })
   }
 
   const { client_id, goal_type, scope, budget_usd, budget_tokens, budget_actions,
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const s = sb()
-    const goal = await ledger.createGoal(s, session.agencyId, client_id, {
+    const goal = await ledger.createGoal(s, agencyId, client_id, {
       goal_type,
       trigger: trigger || 'manual',
       scope: scope || {},
@@ -62,11 +63,12 @@ export async function POST(req: NextRequest) {
 // GET — list goals
 export async function GET(req: NextRequest) {
   const session = await verifySession(req)
-  if (!session.agencyId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { searchParams } = new URL(req.url)
+  const agencyId = session.agencyId || searchParams.get('agency_id')
+  if (!agencyId) {
+    return NextResponse.json({ error: 'Unauthorized — agency_id required' }, { status: 401 })
   }
 
-  const { searchParams } = new URL(req.url)
   const client_id = searchParams.get('client_id') ?? undefined
   const status = searchParams.get('status') ?? undefined
 
@@ -75,7 +77,7 @@ export async function GET(req: NextRequest) {
     let q = s
       .from('kotoiq_agent_goals')
       .select('*')
-      .eq('agency_id', session.agencyId)
+      .eq('agency_id', agencyId)
       .order('created_at', { ascending: false })
 
     if (client_id) q = q.eq('client_id', client_id)
@@ -92,14 +94,15 @@ export async function GET(req: NextRequest) {
 
 // PATCH — update goal status or budget
 export async function PATCH(req: NextRequest) {
-  const session = await verifySession(req)
-  if (!session.agencyId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   let body: any
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const session = await verifySession(req, body)
+  const agencyId = session.agencyId || body.agency_id
+  if (!agencyId) {
+    return NextResponse.json({ error: 'Unauthorized — agency_id required' }, { status: 401 })
   }
 
   const { goal_id, status, budget_usd, budget_tokens, budget_actions, requires_approval } = body
@@ -109,10 +112,8 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const s = sb()
-
-    // Verify ownership
     const goal = await ledger.getGoal(s, goal_id)
-    if (!goal || goal.agency_id !== session.agencyId) {
+    if (!goal || goal.agency_id !== agencyId) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 })
     }
 
@@ -127,7 +128,7 @@ export async function PATCH(req: NextRequest) {
       .from('kotoiq_agent_goals')
       .update(update)
       .eq('id', goal_id)
-      .eq('agency_id', session.agencyId)
+      .eq('agency_id', agencyId)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

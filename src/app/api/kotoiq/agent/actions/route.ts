@@ -18,21 +18,21 @@ function sb() {
 // GET — list pending approvals
 export async function GET(req: NextRequest) {
   const session = await verifySession(req)
-  if (!session.agencyId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { searchParams } = new URL(req.url)
+  const agencyId = session.agencyId || searchParams.get('agency_id')
+  if (!agencyId) {
+    return NextResponse.json({ error: 'Unauthorized — agency_id required' }, { status: 401 })
   }
 
-  const { searchParams } = new URL(req.url)
   const client_id = searchParams.get('client_id') ?? undefined
 
   try {
     const s = sb()
     const actions = await ledger.listPendingApprovals(s, {
-      agency_id: session.agencyId,
+      agency_id: agencyId,
       client_id,
     })
 
-    // Join with run + goal context
     const enriched = []
     for (const a of actions) {
       const run = await ledger.getRun(s, a.run_id)
@@ -54,14 +54,15 @@ export async function GET(req: NextRequest) {
 
 // POST — approve or reject an action
 export async function POST(req: NextRequest) {
-  const session = await verifySession(req)
-  if (!session.agencyId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   let body: any
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const session = await verifySession(req, body)
+  const agencyId = session.agencyId || body.agency_id
+  if (!agencyId) {
+    return NextResponse.json({ error: 'Unauthorized — agency_id required' }, { status: 401 })
   }
 
   const { action_id, decision, edited_input, reason } = body
@@ -75,8 +76,7 @@ export async function POST(req: NextRequest) {
   try {
     const s = sb()
 
-    // Load the action and verify ownership
-    const actions = await ledger.listPendingApprovals(s, { agency_id: session.agencyId })
+    const actions = await ledger.listPendingApprovals(s, { agency_id: agencyId })
     const action = actions.find(a => a.id === action_id)
     if (!action) {
       return NextResponse.json({ error: 'Action not found or not pending approval' }, { status: 404 })
@@ -89,17 +89,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, action_id, status: 'rejected' })
     }
 
-    // Approve
     await ledger.updateActionStatus(s, action_id, 'approved', {
       approved_by: session.userId ?? undefined,
     })
 
-    // If edited_input was provided, update the action's input
     if (edited_input) {
       await s.from('kotoiq_agent_actions').update({ input: edited_input }).eq('id', action_id)
     }
 
-    // Resume the run
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
     const outcome = await resumeRun({ s, ai, run_id: action.run_id })
 

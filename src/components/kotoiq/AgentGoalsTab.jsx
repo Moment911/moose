@@ -53,9 +53,10 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
   const loadGoals = useCallback(async () => {
     setLoading(true)
     try {
-      const url = clientId
-        ? `/api/kotoiq/agent/goals?client_id=${clientId}`
-        : '/api/kotoiq/agent/goals'
+      const params = new URLSearchParams()
+      if (clientId) params.set('client_id', clientId)
+      if (agencyId) params.set('agency_id', agencyId)
+      const url = `/api/kotoiq/agent/goals?${params}`
       const res = await fetch(url)
       const j = await res.json()
       setGoals(j.goals || [])
@@ -72,7 +73,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
     setSelectedGoal(goalId)
     setRunsLoading(true)
     try {
-      const res = await fetch(`/api/kotoiq/agent/runs?goal_id=${goalId}`)
+      const res = await fetch(`/api/kotoiq/agent/runs?goal_id=${goalId}&agency_id=${agencyId}`)
       const j = await res.json()
       setRuns(j.runs || [])
     } catch (e) {
@@ -94,6 +95,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           client_id: clientId,
+          agency_id: agencyId,
           goal_type: newGoalType,
           scope,
           budget_actions: newBudgetActions,
@@ -121,7 +123,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
       const res = await fetch('/api/kotoiq/agent/runs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ goal_id: goalId, trigger: 'manual' }),
+        body: JSON.stringify({ goal_id: goalId, trigger: 'manual', agency_id: agencyId }),
       })
       const j = await res.json()
       if (j.error) throw new Error(j.error)

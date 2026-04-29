@@ -25,9 +25,10 @@ export default function AgentQueueTab({ clientId, agencyId }) {
   const loadActions = useCallback(async () => {
     setLoading(true)
     try {
-      const url = clientId
-        ? `/api/kotoiq/agent/actions?client_id=${clientId}`
-        : '/api/kotoiq/agent/actions'
+      const params = new URLSearchParams()
+      if (clientId) params.set('client_id', clientId)
+      if (agencyId) params.set('agency_id', agencyId)
+      const url = `/api/kotoiq/agent/actions?${params}`
       const res = await fetch(url)
       const j = await res.json()
       setActions(j.actions || [])
@@ -46,7 +47,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
       const res = await fetch('/api/kotoiq/agent/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action_id: actionId, decision: 'approve' }),
+        body: JSON.stringify({ action_id: actionId, decision: 'approve', agency_id: agencyId }),
       })
       const j = await res.json()
       if (j.error) throw new Error(j.error)
@@ -66,7 +67,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
       const res = await fetch('/api/kotoiq/agent/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action_id: rejectModal, decision: 'reject', reason: rejectReason || 'Rejected by user' }),
+        body: JSON.stringify({ action_id: rejectModal, decision: 'reject', reason: rejectReason || 'Rejected by user', agency_id: agencyId }),
       })
       const j = await res.json()
       if (j.error) throw new Error(j.error)
