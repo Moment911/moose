@@ -121,7 +121,7 @@ export default function AboutPage() {
           </div>
 
           <h1 className="about-hero-h1 fade fade-1" style={{
-            fontSize: 76, fontWeight: 900, fontFamily: FH,
+            fontSize: 84, fontWeight: 900, fontFamily: FH,
             letterSpacing: '-.035em', lineHeight: 1.05,
             color: INK, maxWidth: 880, margin: '0 auto',
           }}>

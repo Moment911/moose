@@ -115,7 +115,7 @@ export default function KotoAIPage() {
             Koto AI · The agency operating system
           </div>
           <h1 className="k-hero-h1" style={{
-            fontSize: 76, fontWeight: 900, fontFamily: FH,
+            fontSize: 84, fontWeight: 900, fontFamily: FH,
             letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 920, margin: '0 auto',
           }}>
             The operating system<br />for marketing agencies.

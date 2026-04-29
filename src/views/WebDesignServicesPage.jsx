@@ -109,7 +109,7 @@ export default function WebDesignServicesPage() {
             Websites & platforms — integrated by design
           </div>
           <h1 className="m-hero-h1" style={{
-            fontSize: 76, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em',
+            fontSize: 84, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em',
             lineHeight: 1.05, color: INK, maxWidth: 960, margin: '0 auto',
           }}>
             Sites that sell.<br />

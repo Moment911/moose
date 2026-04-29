@@ -141,7 +141,7 @@ export default function AIAgentsMarketingPage() {
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: GRN }} />
             AI Voice & Chat Agents
           </div>
-          <h1 className="m-hero-h1" style={{ fontSize: 76, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 940, margin: '0 auto' }}>
+          <h1 className="m-hero-h1" style={{ fontSize: 84, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 940, margin: '0 auto' }}>
             One agent replaces<br />a 40-person phone team.
           </h1>
           <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 700, margin: '24px auto 0' }}>
