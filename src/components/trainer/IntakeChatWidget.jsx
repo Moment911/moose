@@ -11,6 +11,37 @@ import { OptionListCard, PrimaryCTA, T as TK } from './aesthetic'
 // fields events push extracted data to the parent via onFieldsUpdate.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Text-pattern → field mapping for pill detection when the AI forgets asking_field.
+// If the AI's response text matches a pattern, show the canonical pills for that field.
+const PILL_DETECT_PATTERNS = [
+  { field: 'sex', pattern: /\b(male|female|gender|identify)\b/i },
+  { field: 'primary_goal', pattern: /\b(goal|looking to|want to|improve|trying to)\b/i },
+  { field: 'training_experience_years', pattern: /\b(how long|experience|training for|been (training|lifting|working out))\b/i },
+  { field: 'training_days_per_week', pattern: /\b(how many days|days.*(week|per week)|train.*week)\b/i },
+  { field: 'equipment_access', pattern: /\b(equipment|full gym|home gym|bands|no equipment)\b/i },
+  { field: 'dietary_preference', pattern: /\b(diet(ary)?|vegetarian|vegan|keto|paleo|food preference)\b/i },
+  { field: 'medical_flags', pattern: /\b(medical condition|health (issue|condition)|anything.*(medical|health))\b/i },
+  { field: 'injuries', pattern: /\b(injur|pain|hurt|limitation)\b/i },
+  { field: 'allergies', pattern: /\b(allerg|food.*(allerg|sensitivit))\b/i },
+  { field: 'sleep_hours_avg', pattern: /\b(sleep|hours.*(night|sleep)|how much sleep)\b/i },
+  { field: 'stress_level', pattern: /\b(stress|scale.*(1|one).*(10|ten)|stressed)\b/i },
+  { field: 'occupation_activity', pattern: /\b(occupation|activity level|desk|physical labor|on your feet|active.*day)\b/i },
+  { field: 'meals_per_day', pattern: /\b(meals.*(day|per day)|how many meals|eat.*(day|daily))\b/i },
+  { field: 'throwing_hand', pattern: /\b(throw.*(right|left)|throwing hand)\b/i },
+  { field: 'batting_hand', pattern: /\b(bat.*(right|left|switch)|batting hand)\b/i },
+  { field: 'position_primary', pattern: /\b(position|what.*play|pitcher|catcher|infield|outfield)\b/i },
+  { field: 'grad_year', pattern: /\b(graduat|grad year|class of)\b/i },
+]
+
+function detectPillsFromText(text) {
+  for (const { field, pattern } of PILL_DETECT_PATTERNS) {
+    if (pattern.test(text) && CANONICAL_PILLS[field]) {
+      return CANONICAL_PILLS[field]
+    }
+  }
+  return []
+}
+
 // Canonical pill sets — fallback when Haiku doesn't produce suggested_replies
 const CANONICAL_PILLS = {
   sex: ['Male', 'Female', 'Other'],
@@ -160,6 +191,11 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
           onMessagesChange?.(next)
           return next
         })
+        // If no pills were set by the AI, try text-based detection
+        if (suggestedReplies.length === 0) {
+          const detected = detectPillsFromText(fullText)
+          if (detected.length > 0) setSuggestedReplies(detected)
+        }
       }
     } catch (e) {
       setError(e?.message || 'Network error')
