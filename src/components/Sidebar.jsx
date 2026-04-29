@@ -448,6 +448,7 @@ export default function Sidebar() {
               <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" hidden={!match('Predictive Intel') || !feat('predictive_intel')}/>
               <NavLink to="/intel" startsWith icon={Zap} label="KotoIntel" badge="NEW" badgeColor={T} hidden={!match('KotoIntel')}/>
               <NavLink to="/kotoiq" icon={Search} label="KotoIQ" badge="SEO" badgeColor={GRN}/>
+              <NavLink to="/agents" icon={Brain} label="AI Agents" badge="48" badgeColor={T}/>
               <NavLink to="/scout" startsWith icon={Target} label="Scout" hidden={!match('Scout') || !feat('scout')}/>
               <NavLink to="/scout/dashboard" icon={Target} label="Scout Dashboard" sub hidden={!match('Scout Dashboard') || !feat('scout')}/>
               <NavLink to="/scout/voice" startsWith icon={Phone} label="Scout Voice Agent" sub hidden={!match('Scout Voice Agent') || !feat('scout')}/>
