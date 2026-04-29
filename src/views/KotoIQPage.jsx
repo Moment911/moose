@@ -425,6 +425,8 @@ export default function KotoIQPage() {
       const p = new URLSearchParams(window.location.search)
       isPopRef.current = true
       setTab(p.get('tab') || 'dashboard')
+      const popClient = p.get('client') || ''
+      if (popClient) setClientIdRaw(popClient)
     }
     window.addEventListener('popstate', handlePop)
     return () => window.removeEventListener('popstate', handlePop)
@@ -435,18 +437,32 @@ export default function KotoIQPage() {
   const scrollRef = useRef(null)
   const scrollPositions = useRef({})
 
-  // Save scroll position when switching tabs, restore when coming back
+  // Save scroll position when switching tabs, restore when coming back (persists across refresh)
   const prevTabRef = useRef(tab)
+  useEffect(() => {
+    // Restore scroll on initial mount from sessionStorage
+    const saved = sessionStorage.getItem('kotoiq_scroll_' + tab)
+    if (saved && scrollRef.current) requestAnimationFrame(() => { if (scrollRef.current) scrollRef.current.scrollTop = parseInt(saved) || 0 })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (prevTabRef.current !== tab) {
       // Save previous tab's scroll position
-      if (scrollRef.current) scrollPositions.current[prevTabRef.current] = scrollRef.current.scrollTop
+      if (scrollRef.current) {
+        scrollPositions.current[prevTabRef.current] = scrollRef.current.scrollTop
+        sessionStorage.setItem('kotoiq_scroll_' + prevTabRef.current, String(scrollRef.current.scrollTop))
+      }
       // Restore new tab's scroll position (or scroll to top)
       requestAnimationFrame(() => {
-        if (scrollRef.current) scrollRef.current.scrollTop = scrollPositions.current[tab] || 0
+        if (scrollRef.current) scrollRef.current.scrollTop = scrollPositions.current[tab] || parseInt(sessionStorage.getItem('kotoiq_scroll_' + tab) || '0') || 0
       })
       prevTabRef.current = tab
     }
+  }, [tab])
+  // Persist scroll on beforeunload so refresh restores position
+  useEffect(() => {
+    const save = () => { if (scrollRef.current) sessionStorage.setItem('kotoiq_scroll_' + tab, String(scrollRef.current.scrollTop)) }
+    window.addEventListener('beforeunload', save)
+    return () => window.removeEventListener('beforeunload', save)
   }, [tab])
   const [loading, setLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
@@ -470,7 +486,15 @@ export default function KotoIQPage() {
   }, [prefilledForm])
   const [keywords, setKeywords] = useState([])
   const [kwTotal, setKwTotal] = useState(0)
-  const [clientId, setClientId] = useState('')
+  const initialClientId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('client') || '' : ''
+  const [clientId, setClientIdRaw] = useState(initialClientId)
+  const setClientId = useCallback((v) => {
+    setClientIdRaw(v)
+    const url = new URL(window.location.href)
+    if (v) url.searchParams.set('client', v)
+    else url.searchParams.delete('client')
+    window.history.replaceState(null, '', url.toString())
+  }, [])
   const [clients, setClients] = useState([])
   const [showClientModal, setShowClientModal] = useState(false)
   const [editingClient, setEditingClient] = useState(null) // null = add, object = edit
@@ -809,14 +833,8 @@ export default function KotoIQPage() {
     }
   }, [clientId, tab, loadAiVisibility, loadQuickWins])
 
-  // Restore client + tab from URL (e.g. after returning from /seo/connect)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const urlClient = params.get('client')
-    const urlTab = params.get('tab')
-    if (urlClient) setClientId(urlClient)
-    if (urlTab) setTab(urlTab)
-  }, [])
+  // Client + tab are now initialized from URL params on mount (initialTab, initialClientId)
+  // and synced back to URL on every change — no need for a separate restore effect.
 
   // Handle Google OAuth callback — exchange code for tokens, fetch properties
   useEffect(() => {
