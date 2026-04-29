@@ -31,6 +31,10 @@
     {
       "path": "/api/cron/scout-persona",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/agent-evaluator",
+      "schedule": "0 6 * * *"
     }
   ],
   "functions": {
@@ -86,6 +90,18 @@
       "maxDuration": 120
     },
     "src/app/api/kotoiq/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/kotoiq/agent/goals/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/kotoiq/agent/runs/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/kotoiq/agent/actions/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/agent-evaluator/route.ts": {
       "maxDuration": 300
     }
   }

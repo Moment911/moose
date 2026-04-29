@@ -69,6 +69,8 @@ import AdsRecommendationsTab from '../components/kotoiq/AdsRecommendationsTab'
 import AdsReportsTab from '../components/kotoiq/AdsReportsTab'
 import BudgetForecastTab from '../components/kotoiq/BudgetForecastTab'
 import BehaviorAnalyticsTab from '../components/kotoiq/BehaviorAnalyticsTab'
+import AgentQueueTab from '../components/kotoiq/AgentQueueTab'
+import AgentGoalsTab from '../components/kotoiq/AgentGoalsTab'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -1082,6 +1084,10 @@ export default function KotoIQPage() {
                 ]},
                 { group: 'Builder', items: [
                   ['builder', 'Template Builder', Layers],
+                ]},
+                { group: 'Agent', items: [
+                  ['agent_queue', 'Agent Queue', Zap],
+                  ['agent_goals', 'Agent Goals', Target],
                 ]},
                 { group: 'Reports & Tools', items: [
                   ['reports', 'Reports', BarChart2],
@@ -2912,6 +2918,14 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ NEW: PROCESSING JOBS ══ */}
         {clientId && tab === 'jobs' && (
           <ProcessingJobsTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ AGENT ══ */}
+        {clientId && tab === 'agent_queue' && (
+          <AgentQueueTab clientId={clientId} agencyId={agencyId} />
+        )}
+        {clientId && tab === 'agent_goals' && (
+          <AgentGoalsTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ COMPETITORS TAB ══ */}
