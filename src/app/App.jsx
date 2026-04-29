@@ -175,6 +175,7 @@ import SelfSignupPage from '../views/trainer/SelfSignupPage'
 import TrainerLoginPage from '../views/trainer/TrainerLoginPage'
 import SelfIntakePage from '../views/trainer/SelfIntakePage'
 import ComplianceGatePage from '../views/trainer/ComplianceGatePage'
+import LLMRulesPage from '../views/trainer/LLMRulesPage'
 import TraineeIntakePage from '../views/trainer/TraineeIntakePage'
 import RecruitingPage from '../views/trainer/RecruitingPage'
 import TimelinePage from '../views/trainer/TimelinePage'
@@ -472,6 +473,7 @@ function AppRoutes() {
           <Route path="/trainer/recruiting" element={<RecruitingPage />} />
           <Route path="/trainer/timeline" element={<TimelinePage />} />
           <Route path="/trainer/outreach" element={<OutreachPage />} />
+          <Route path="/trainer/llm-rules" element={<LLMRulesPage />} />
           <Route path="/trainer/templates" element={<EmailTemplatesPage />} />
           <Route path="/trainer/propath" element={<ProPathPage />} />
           <Route path="/trainer/benchmarks" element={<BenchmarksPage />} />
