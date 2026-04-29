@@ -63,6 +63,13 @@ import { analyzeIntentGaps, getIntentGapResults } from '@/lib/ads/intentGaps'
 import { comparePeriods } from '@/lib/ads/periodComparison'
 import { generateWeeklySummary } from '@/lib/ads/weeklySummary'
 import { generateAdCopy, getAdCopy, approveRecommendation, bulkApproveRecommendations } from '@/lib/ads/adCopyEngine'
+import { ingestMetaAds } from '@/lib/ads/ingestMetaAds'
+import { ingestLinkedInAds } from '@/lib/ads/ingestLinkedInAds'
+import { generateForecast, getForecast, getDailySpendTrend } from '@/lib/ads/budgetForecasting'
+import { ingestHotjar } from '@/lib/ads/ingestHotjar'
+import { ingestClarity } from '@/lib/ads/ingestClarity'
+import { detectRelevantConnections } from '@/lib/ads/autoDetectRelevantConnections'
+import { autoTriggerSync } from '@/lib/ads/autoTriggerSync'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -4858,6 +4865,8 @@ Return ONLY valid JSON:
     try {
       const results: any = {}
       try { results.google = await ingestGoogleAds(s, body) } catch (e: any) { results.google_error = e.message }
+      try { results.meta = await ingestMetaAds(s, body) } catch (e: any) { results.meta_error = e.message }
+      try { results.linkedin = await ingestLinkedInAds(s, body) } catch (e: any) { results.linkedin_error = e.message }
       try { results.gsc = await ingestAdsGSC(s, body) } catch (e: any) { results.gsc_error = e.message }
       try { results.ga4 = await ingestAdsGA4(s, body) } catch (e: any) { results.ga4_error = e.message }
       return NextResponse.json({ success: true, ...results })
@@ -5068,6 +5077,114 @@ Return ONLY valid JSON:
         action: body.action_type,
         reviewed_by: body.reviewed_by,
       })
+      return NextResponse.json(result)
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // META + LINKEDIN ADS SYNC
+  // ══════════════════════════════════════════════════════════════════════════
+
+  if (action === 'ads_sync_meta') {
+    try {
+      const result = await ingestMetaAds(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_sync_linkedin') {
+    try {
+      const result = await ingestLinkedInAds(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // BUDGET FORECASTING
+  // ══════════════════════════════════════════════════════════════════════════
+
+  if (action === 'budget_forecast') {
+    try {
+      const result = await generateForecast(s, body)
+      return NextResponse.json(result)
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'budget_get_forecast') {
+    try {
+      const data = await getForecast(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'budget_daily_trend') {
+    try {
+      const data = await getDailySpendTrend(s, body)
+      return NextResponse.json({ data })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // BEHAVIOR ANALYTICS (HOTJAR + CLARITY)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  if (action === 'behavior_sync_hotjar') {
+    try {
+      const result = await ingestHotjar(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'behavior_sync_clarity') {
+    try {
+      const result = await ingestClarity(s, body)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'behavior_sync_all') {
+    try {
+      const results: any = {}
+      try { results.hotjar = await ingestHotjar(s, body) } catch (e: any) { results.hotjar_error = e.message }
+      try { results.clarity = await ingestClarity(s, body) } catch (e: any) { results.clarity_error = e.message }
+      return NextResponse.json({ success: true, ...results })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'behavior_get_overview') {
+    try {
+      const { client_id } = body
+      const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const startDate = sevenDaysAgo.toISOString().split('T')[0]
+      const [sessions, heatmaps] = await Promise.all([
+        s.from('kotoiq_behavior_sessions').select('*').eq('client_id', client_id).gte('date', startDate).order('date', { ascending: false }),
+        s.from('kotoiq_behavior_heatmaps').select('*').eq('client_id', client_id).order('synced_at', { ascending: false }).limit(50),
+      ])
+      return NextResponse.json({ data: { sessions: sessions.data || [], heatmaps: heatmaps.data || [] } })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ONBOARDING WIZARD — CONNECTION DETECTION + AUTO-SYNC
+  // ══════════════════════════════════════════════════════════════════════════
+
+  if (action === 'get_connections') {
+    try {
+      const { data } = await s.from('seo_connections').select('provider, connected, account_id').eq('client_id', body.client_id).eq('connected', true)
+      return NextResponse.json({ data: data || [] })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'detect_relevant_connections') {
+    try {
+      const recs = detectRelevantConnections(body.profile_text || '', body.existing_providers || [])
+      return NextResponse.json({ data: recs })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'auto_trigger_sync') {
+    try {
+      const result = await autoTriggerSync(s, body)
       return NextResponse.json(result)
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }

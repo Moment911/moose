@@ -67,6 +67,8 @@ import AdsIntentGapsTab from '../components/kotoiq/AdsIntentGapsTab'
 import AdsAdBuilderTab from '../components/kotoiq/AdsAdBuilderTab'
 import AdsRecommendationsTab from '../components/kotoiq/AdsRecommendationsTab'
 import AdsReportsTab from '../components/kotoiq/AdsReportsTab'
+import BudgetForecastTab from '../components/kotoiq/BudgetForecastTab'
+import BehaviorAnalyticsTab from '../components/kotoiq/BehaviorAnalyticsTab'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -1026,6 +1028,10 @@ export default function KotoIQPage() {
                   ['ads_ad_builder', 'Ad Builder', Zap],
                   ['ads_recommendations', 'Recommendations', CheckCircle],
                   ['ads_reports', 'Ads Reports', FileText],
+                  ['budget_forecast', 'Budget & Forecast', DollarSign],
+                ]},
+                { group: 'Behavior Analytics', items: [
+                  ['behavior', 'Behavior Analytics', Activity],
                 ]},
                 { group: 'Intelligence', items: [
                   ['strategy', 'Strategic Plan', Target],
@@ -2884,6 +2890,14 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {clientId && tab === 'ads_reports' && (
           <AdsReportsTab clientId={clientId} agencyId={agencyId} />
         )}
+        {clientId && tab === 'budget_forecast' && (
+          <BudgetForecastTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ BEHAVIOR ANALYTICS ══ */}
+        {clientId && tab === 'behavior' && (
+          <BehaviorAnalyticsTab clientId={clientId} agencyId={agencyId} />
+        )}
 
         {/* ══ NEW: HYPERLOCAL CONTENT ══ */}
         {clientId && tab === 'hyperlocal' && (
@@ -4225,6 +4239,112 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     </div>
                   )
                 })}
+              </div>
+            </div>
+
+            {/* ── Meta Ads ─────────────────────────────────────────── */}
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 20 }}>📱</span> Meta Ads
+                </div>
+                {connections.find(c => c.provider === 'meta' && c.connected) ? (
+                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '15', color: GRN }}>Connected</span>
+                ) : (
+                  <button onClick={() => {
+                    const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID || process.env.META_APP_ID || ''
+                    if (!metaAppId) { toast.error('Meta App ID not configured (NEXT_PUBLIC_META_APP_ID)'); return }
+                    const redirectUri = window.location.origin + '/kotoiq'
+                    const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'meta', returnTo: '/kotoiq?tab=connect' }))
+                    window.location.href = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${metaAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=ads_read,ads_management,business_management&response_type=code&state=${state}`
+                  }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#1877F2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                    Connect Meta
+                  </button>
+                )}
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280' }}>Facebook + Instagram ad campaigns, spend, conversions, and audience data.</div>
+            </div>
+
+            {/* ── LinkedIn Ads ─────────────────────────────────────── */}
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 20 }}>💼</span> LinkedIn Ads
+                </div>
+                {connections.find(c => c.provider === 'linkedin' && c.connected) ? (
+                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '15', color: GRN }}>Connected</span>
+                ) : (
+                  <button onClick={() => {
+                    const liClientId = process.env.NEXT_PUBLIC_LINKEDIN_CLIENT_ID || process.env.LINKEDIN_CLIENT_ID || ''
+                    if (!liClientId) { toast.error('LinkedIn Client ID not configured (NEXT_PUBLIC_LINKEDIN_CLIENT_ID)'); return }
+                    const redirectUri = window.location.origin + '/kotoiq'
+                    const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'linkedin', returnTo: '/kotoiq?tab=connect' }))
+                    window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${liClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=r_ads,r_ads_reporting,r_organization_social&state=${state}`
+                  }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#0A66C2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                    Connect LinkedIn
+                  </button>
+                )}
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280' }}>B2B campaign groups, campaigns, creatives, and performance metrics.</div>
+            </div>
+
+            {/* ── Hotjar ───────────────────────────────────────────── */}
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 20 }}>🔥</span> Hotjar
+                </div>
+                {connections.find(c => c.provider === 'hotjar' && c.connected) ? (
+                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '15', color: GRN }}>Connected</span>
+                ) : null}
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>Session recordings, heatmaps, rage clicks, and scroll depth data.</div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input placeholder="Hotjar API Token" id="hotjar-token" defaultValue={connections.find(c => c.provider === 'hotjar')?.access_token || ''}
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <input placeholder="Site ID" id="hotjar-site-id" defaultValue={connections.find(c => c.provider === 'hotjar')?.account_id || ''}
+                  style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <button onClick={async () => {
+                  const token = document.getElementById('hotjar-token')?.value
+                  const siteId = document.getElementById('hotjar-site-id')?.value
+                  if (!token || !siteId) { toast.error('Enter both API token and Site ID'); return }
+                  await supabase.from('seo_connections').upsert({
+                    client_id: clientId, provider: 'hotjar', access_token: token, account_id: siteId, connected: true, updated_at: new Date().toISOString(),
+                  }, { onConflict: 'client_id,provider' })
+                  toast.success('Hotjar connected'); loadConnections()
+                }} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#FF3C00', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  Save
+                </button>
+              </div>
+            </div>
+
+            {/* ── Microsoft Clarity ─────────────────────────────────── */}
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 20 }}>🔬</span> Microsoft Clarity
+                </div>
+                {connections.find(c => c.provider === 'clarity' && c.connected) ? (
+                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '15', color: GRN }}>Connected</span>
+                ) : null}
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>Free behavior analytics — rage clicks, dead clicks, scroll depth, and quick backs.</div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input placeholder="Clarity API Key" id="clarity-key" defaultValue={connections.find(c => c.provider === 'clarity')?.access_token || ''}
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <input placeholder="Project ID" id="clarity-project-id" defaultValue={connections.find(c => c.provider === 'clarity')?.account_id || ''}
+                  style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <button onClick={async () => {
+                  const key = document.getElementById('clarity-key')?.value
+                  const projectId = document.getElementById('clarity-project-id')?.value
+                  if (!key || !projectId) { toast.error('Enter both API key and Project ID'); return }
+                  await supabase.from('seo_connections').upsert({
+                    client_id: clientId, provider: 'clarity', access_token: key, account_id: projectId, connected: true, updated_at: new Date().toISOString(),
+                  }, { onConflict: 'client_id,provider' })
+                  toast.success('Clarity connected'); loadConnections()
+                }} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#5B2D8E', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  Save
+                </button>
               </div>
             </div>
 
