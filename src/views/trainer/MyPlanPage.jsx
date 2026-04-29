@@ -1532,6 +1532,32 @@ function WorkoutsTab({ plan, logs, onLogSet, isMobile }) {
             }
           }
           return lines.join('\n')
+        }} onEmail={async (email) => {
+          const { data } = await supabase.auth.getSession()
+          const token = data?.session?.access_token
+          const lines = []
+          for (const w of weeks) {
+            lines.push(`Week ${w.week_number}`)
+            for (const s of (w.sessions || [])) {
+              lines.push(`  Day ${s.day_number}: ${s.session_name}`)
+              for (const ex of (s.exercises || [])) lines.push(`    ${ex.exercise_name} — ${ex.sets}x${ex.reps} @ ${ex.load_prescription || 'bodyweight'}`)
+            }
+          }
+          const res = await fetch('/api/trainer/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ type: 'email', to: email, content: 'workouts', summary: lines.join('\n') }),
+          })
+          if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Send failed')
+        }} onSMS={async (phone) => {
+          const { data } = await supabase.auth.getSession()
+          const token = data?.session?.access_token
+          const res = await fetch('/api/trainer/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ type: 'sms', to: phone, content: 'workouts' }),
+          })
+          if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Send failed')
         }} />
       </div>
 
@@ -2031,7 +2057,25 @@ function MealsTab({ plan, traineeId, isMobile, onMealLogged }) {
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: A.ink, letterSpacing: '-0.02em' }}>
           Meals
         </h2>
-        <ShareMenu label="Meal Plan" />
+        <ShareMenu label="Meal Plan" onEmail={async (email) => {
+          const { data } = await supabase.auth.getSession()
+          const token = data?.session?.access_token
+          const res = await fetch('/api/trainer/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ type: 'email', to: email, content: 'meals' }),
+          })
+          if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Send failed')
+        }} onSMS={async (phone) => {
+          const { data } = await supabase.auth.getSession()
+          const token = data?.session?.access_token
+          const res = await fetch('/api/trainer/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ type: 'sms', to: phone, content: 'meals' }),
+          })
+          if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Send failed')
+        }} />
       </div>
 
       {/* ── Log food: two primary actions ── */}
