@@ -7,6 +7,7 @@ import { validateIntake } from '../../lib/trainer/intakeSchema'
 import { REQUIRED_INTAKE_FIELDS, missingIntakeFields } from '../../lib/trainer/intakeCompleteness'
 import IntakeChatWidget from '../../components/trainer/IntakeChatWidget'
 import IntakeLiveCard from '../../components/trainer/IntakeLiveCard'
+import IntakeFormFields from '../../components/trainer/IntakeFormFields'
 import TrainerFooter from '../../components/trainer/TrainerFooter'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -49,12 +50,15 @@ export default function SelfIntakePage() {
   const navigate = useNavigate()
 
   const [sessionState, setSessionState] = useState({ loading: true, user: null })
-  const [phase, setPhase] = useState('chat') // 'chat' | 'generating'
+  const hasRestoredInit = (loadLS(LS_KEY_MESSAGES) || []).length > 0
+  const [phase, setPhase] = useState(hasRestoredInit ? 'chat' : 'form') // 'form' | 'chat' | 'generating'
 
-  // Accumulated intake fields from conversation — restored from localStorage.
+  // Accumulated intake fields — restored from localStorage.
   const [extracted, setExtracted] = useState(() => loadLS(LS_KEY_EXTRACTED) || {})
   const [aboutYou, setAboutYou] = useState(() => loadLS(LS_KEY_ABOUT) || '')
   const [savedMessages, setSavedMessages] = useState(() => loadLS(LS_KEY_MESSAGES) || [])
+
+  const hasRestoredChat = savedMessages.length > 0
 
   const [generateError, setGenerateError] = useState(null)
 
@@ -105,6 +109,12 @@ export default function SelfIntakePage() {
     setSavedMessages(msgs)
     saveLS(LS_KEY_MESSAGES, msgs)
   }, [])
+
+  // Form phase complete — merge fields and move to chat
+  function handleFormComplete(formFields) {
+    setExtracted((prev) => ({ ...prev, ...formFields }))
+    setPhase('chat')
+  }
 
   // Append to the running about_you narrative.
   const handleAboutYouAppend = useCallback((text) => {
@@ -220,16 +230,18 @@ export default function SelfIntakePage() {
       </nav>
 
       <div style={{ padding: '24px 16px' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ maxWidth: phase === 'form' ? 560 : 1100, margin: '0 auto', transition: 'max-width .3s ease' }}>
         {/* Header */}
         <header style={{ marginBottom: 16 }}>
           <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: INK, letterSpacing: '-.4px', fontFamily: FONT }}>
-            Let's build your plan.
+            {phase === 'form' ? "Let's get to know you." : "Let's build your plan."}
           </h1>
           <p style={{ margin: '4px 0 0', fontSize: 15, color: INK3, fontFamily: FONT }}>
-            A quick conversation with your AI coach. Your profile builds itself as you talk.
+            {phase === 'form'
+              ? 'Quick profile — tap to answer, then chat with your coach for the details.'
+              : 'Chat with your AI coach — tell it about your goals, your sport, your life.'}
           </p>
-          {savedMessages.length > 0 && (
+          {hasRestoredChat && phase === 'chat' && (
             <div style={{
               marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '5px 12px', background: '#f0fdf4', borderRadius: 999,
@@ -241,34 +253,48 @@ export default function SelfIntakePage() {
           )}
         </header>
 
-        {/* Two-column layout */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) 320px',
-          gap: 16,
-          alignItems: 'start',
-        }}>
-          {/* Left: Chat */}
-          <IntakeChatWidget
-            extracted={extracted}
-            onFieldsUpdate={handleFieldsUpdate}
-            onAboutYouAppend={handleAboutYouAppend}
-            onMessagesChange={handleMessagesChange}
-            initialMessages={savedMessages}
-            userName={extracted.full_name || sessionState.user?.user_metadata?.full_name || ''}
-          />
-
-          {/* Right: Live card */}
-          <div style={{ position: 'sticky', top: 76 }}>
-            <IntakeLiveCard
+        {/* Phase 1: Form */}
+        {phase === 'form' && (
+          <div style={{
+            background: '#fff', border: `1px solid ${BRD}`, borderRadius: 16,
+            padding: '24px 24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
+          }}>
+            <IntakeFormFields
               extracted={extracted}
-              missingFields={missing}
-              onGenerate={handleGenerate}
-              generating={phase === 'generating'}
-              generateError={generateError}
+              userName={extracted.full_name || sessionState.user?.user_metadata?.full_name || ''}
+              onComplete={handleFormComplete}
             />
           </div>
-        </div>
+        )}
+
+        {/* Phase 2: Chat */}
+        {phase === 'chat' && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) 320px',
+            gap: 16,
+            alignItems: 'start',
+          }}>
+            <IntakeChatWidget
+              extracted={extracted}
+              onFieldsUpdate={handleFieldsUpdate}
+              onAboutYouAppend={handleAboutYouAppend}
+              onMessagesChange={handleMessagesChange}
+              initialMessages={savedMessages}
+              userName={extracted.full_name || sessionState.user?.user_metadata?.full_name || ''}
+            />
+
+            <div style={{ position: 'sticky', top: 76 }}>
+              <IntakeLiveCard
+                extracted={extracted}
+                missingFields={missing}
+                onGenerate={handleGenerate}
+                generating={phase === 'generating'}
+                generateError={generateError}
+              />
+            </div>
+          </div>
+        )}
 
       </div>
       </div>
