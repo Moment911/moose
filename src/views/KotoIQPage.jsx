@@ -1023,14 +1023,17 @@ export default function KotoIQPage() {
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                 <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add website first'); return }; runQuickScan() }}
                   disabled={syncing || enriching}
+                  title="Discover keywords from website content using AI — no Google account needed"
                   style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${R}30`, background: '#fff', fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4, opacity: syncing ? 0.5 : 1 }}>
                   {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Scan
                 </button>
                 <button onClick={runDeepEnrich} disabled={enriching || syncing}
+                  title="Run deep technical SEO audit — E-E-A-T, schema, internal links, on-page analysis"
                   style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${AMB}30`, background: '#fff', fontSize: 12, fontWeight: 700, cursor: enriching ? 'wait' : 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4, opacity: enriching ? 0.5 : 1 }}>
                   {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />} Audit
                 </button>
                 <button onClick={runSync} disabled={syncing}
+                  title="Pull real data from connected Google accounts — Search Console rankings, GA4 traffic, Ads spend"
                   style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: syncing ? '#e5e7eb' : BLK, fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
                   {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Sync
                 </button>
@@ -1064,13 +1067,13 @@ export default function KotoIQPage() {
             <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #e5e7eb', background: '#fafafa', overflowY: 'auto', padding: '16px 0' }}>
               {[
                 { group: 'AI', items: [
-                  ['ask', 'Ask KotoIQ', Brain],
+                  ['ask', 'Ask KotoIQ', Brain, 'Ask AI questions about this client\'s SEO'],
                 ]},
                 { group: 'Overview', items: [
-                  ['dashboard', 'Dashboard', BarChart2],
-                  ['keywords', 'Keywords', Search],
-                  ['ranks', 'Rankings', TrendingUp],
-                  ['topical_authority', 'Authority Score', Award],
+                  ['dashboard', 'Dashboard', BarChart2, 'Keyword overview, quick wins, and AI visibility score'],
+                  ['keywords', 'Keywords', Search, 'All discovered and tracked keywords'],
+                  ['ranks', 'Rankings', TrendingUp, 'Google ranking positions from Search Console'],
+                  ['topical_authority', 'Authority Score', Award, 'Domain authority and topical relevance analysis'],
                 ]},
                 { group: 'Ads Intelligence', items: [
                   ['ads_overview', 'Ads Overview', BarChart2],
@@ -1141,14 +1144,14 @@ export default function KotoIQPage() {
                   ['agent_goals', 'Agent Goals', Target],
                 ]},
                 { group: 'Reports & Tools', items: [
-                  ['reports', 'Reports', BarChart2],
-                  ['roi', 'ROI Projections', DollarSign],
-                  ['visitors', 'Visitors', Eye],
-                  ['utm', 'UTM Builder', Link2],
-                  ['upwork', 'Upwork Tool', Briefcase],
-                  ['bulk_ops', 'Bulk Operations', Layers],
-                  ['integrations', 'Integrations', Link2],
-                  ['connect', 'Connect APIs', Settings],
+                  ['reports', 'Reports', BarChart2, 'Generate and view SEO reports'],
+                  ['roi', 'ROI Projections', DollarSign, 'Revenue and ROI forecasting'],
+                  ['visitors', 'Visitors', Eye, 'Website visitor intelligence'],
+                  ['utm', 'UTM Builder', Link2, 'Create tracked campaign URLs'],
+                  ['upwork', 'Upwork Tool', Briefcase, 'Upwork proposal helper'],
+                  ['bulk_ops', 'Bulk Operations', Layers, 'Batch operations across keywords'],
+                  ['integrations', 'Integrations', Link2, 'Typeform, Jotform, Google Forms'],
+                  ['connect', 'Connect APIs', Settings, 'Connect Google, Meta, LinkedIn, Hotjar, Clarity'],
                 ]},
               ].map(section => {
                 const isCollapsed = collapsedGroups[section.group]
@@ -1170,6 +1173,7 @@ export default function KotoIQPage() {
                   </button>
                   {!isCollapsed && section.items.map(([key, label, Icon]) => (
                     <button key={key} onClick={() => setTab(key)}
+                      title={item[3] || ''}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                         padding: '6px 20px 6px 28px', border: 'none', background: tab === key ? '#fff' : 'transparent',
@@ -1607,7 +1611,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div style={{ padding: '24px', borderRadius: 14, border: `2px solid ${T}20`, background: T + '04', maxWidth: 280, textAlign: 'center' }}>
                     <RefreshCw size={32} color={T} style={{ margin: '0 auto 12px' }} />
                     <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Full Sync</div>
-                    <div style={{ fontSize: 12, color: '#374151', marginBottom: 16, lineHeight: 1.5 }}>Requires Google OAuth. Pulls real data from Search Console, Google Ads, GA4. Connect at /seo/connect first.</div>
+                    <div style={{ fontSize: 12, color: '#374151', marginBottom: 16, lineHeight: 1.5 }}>Pulls real ranking and traffic data from Google Search Console and Analytics. Connect your Google account first.</div>
                     <button onClick={() => { setTab('connect') }} disabled={syncing}
                       style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                       <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Connect Google →
@@ -2241,14 +2245,27 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <TrendingUp size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
                 <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No ranking data yet</div>
-                <div style={{ fontSize: 14, color: '#374151', marginBottom: 20 }}>Run a Quick Scan first to discover keywords, then check rankings here.</div>
+                <div style={{ fontSize: 14, color: '#374151', marginBottom: 12 }}>
+                  Rankings require real position data from Google Search Console.
+                </div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 24, maxWidth: 500, margin: '0 auto 24px' }}>
+                  <strong>Step 1:</strong> Connect Search Console in the <span style={{ color: T, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setTab('connect')}>Connect</span> tab.{' '}
+                  <strong>Step 2:</strong> Click <strong>Sync</strong> to pull ranking data.{' '}
+                  <strong>Step 3:</strong> Rankings will appear here automatically.
+                </div>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                  <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add a website URL first'); return }; runQuickScan() }}
-                    disabled={syncing} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                    <Zap size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Quick Scan Keywords
+                  <button onClick={() => setTab('connect')}
+                    style={{ padding: '10px 24px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: BLK, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    <Shield size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Connect Google
                   </button>
-                  <button onClick={runSync} disabled={syncing} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                    <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Full Sync (GSC + Ads)
+                  <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add a website URL first'); return }; runQuickScan() }}
+                    disabled={syncing} title="Discover keywords from website content using AI"
+                    style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    <Zap size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Scan Keywords
+                  </button>
+                  <button onClick={runSync} disabled={syncing} title="Pull real ranking data from connected Google accounts"
+                    style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Sync Rankings
                   </button>
                 </div>
               </div>
@@ -4272,29 +4289,31 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div style={{ fontSize: 13, color: '#374151', marginBottom: 16 }}>
                 Connect Search Console and Analytics for <strong>{clients.find(c => c.id === clientId)?.name}</strong>. Read-only access — Koto cannot modify your accounts.
               </div>
-              <div style={{ padding: '10px 14px', borderRadius: 8, background: '#fef3c7', border: '1px solid #f59e0b30', fontSize: 12, color: '#92400e', lineHeight: 1.6, marginBottom: 16 }}>
-                <strong>Google Ads:</strong> Ads API connection requires separate Google review and is pending approval. Search Console and Analytics work immediately.
+              <div style={{ padding: '10px 14px', borderRadius: 8, background: '#eff6ff', border: '1px solid #3b82f620', fontSize: 12, color: '#1e40af', lineHeight: 1.6, marginBottom: 16 }}>
+                One click connects <strong>Search Console</strong> (keyword rankings) and <strong>Analytics</strong> (traffic data). After connecting, click <strong>Sync</strong> on the dashboard to pull data.
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 {[
                   { key: 'search_console', label: 'Search Console', desc: 'Keyword rankings, clicks, impressions, CTR', color: '#4285F4', icon: Search },
                   { key: 'analytics', label: 'Google Analytics 4', desc: 'Sessions, conversions, revenue, bounce rate', color: '#F4B400', icon: BarChart2 },
-                  { key: 'ads', label: 'Google Ads', desc: 'Spend, CPC, conversions, quality score', color: '#34A853', icon: DollarSign },
-                  { key: 'gmb', label: 'Business Profile', desc: 'Reviews, local visibility, performance', color: '#EA4335', icon: MapPin },
+                  { key: 'ads', label: 'Google Ads', desc: 'Coming soon — requires Google API review', color: '#34A853', icon: DollarSign, comingSoon: true },
+                  { key: 'gmb', label: 'Business Profile', desc: 'Coming soon — requires additional scope', color: '#EA4335', icon: MapPin, comingSoon: true },
                 ].map(svc => {
                   const c = connections.find(x => x.provider === svc.key && x.connected)
                   const isConnected = !!c
                   const vr = validationResults[svc.key]
                   const isValidating = validatingAll || validatingProvider === svc.key
-                  const badge = isValidating
-                    ? { label: 'Validating...', bg: '#FEF3C7', color: '#D97706' }
-                    : vr
-                      ? vr.valid
-                        ? { label: 'Verified', bg: GRN + '15', color: GRN }
-                        : { label: 'Error', bg: '#FEE2E2', color: '#DC2626' }
-                      : isConnected
-                        ? { label: 'Connected', bg: GRN + '15', color: GRN }
-                        : { label: 'Not connected', bg: '#f3f4f6', color: '#9ca3af' }
+                  const badge = svc.comingSoon && !isConnected
+                    ? { label: 'Coming soon', bg: '#f3f4f6', color: '#9ca3af' }
+                    : isValidating
+                      ? { label: 'Validating...', bg: '#FEF3C7', color: '#D97706' }
+                      : vr
+                        ? vr.valid
+                          ? { label: 'Verified', bg: GRN + '15', color: GRN }
+                          : { label: 'Error', bg: '#FEE2E2', color: '#DC2626' }
+                        : isConnected
+                          ? { label: 'Connected', bg: GRN + '15', color: GRN }
+                          : { label: 'Not connected', bg: '#f3f4f6', color: '#9ca3af' }
                   const borderColor = isValidating ? '#D97706' + '40' : vr && !vr.valid ? '#DC2626' + '40' : isConnected ? GRN + '40' : '#e5e7eb'
                   return (
                     <div key={svc.key} style={{ padding: '16px 18px', borderRadius: 12, border: '1px solid ' + borderColor, background: '#fff' }}>
@@ -4312,13 +4331,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         </div>
                         {isValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />}
                         <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: badge.bg, color: badge.color, whiteSpace: 'nowrap' }}>{badge.label}</span>
-                        {isConnected && !isValidating && (
+                        {isConnected && !isValidating && !svc.comingSoon && (
                           <button onClick={() => runValidation(svc.key)} disabled={validatingAll}
                             style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
                             Test
                           </button>
                         )}
-                        {isConnected && (
+                        {isConnected && !svc.comingSoon && (
                           <button onClick={async () => {
                             await supabase.from('seo_connections').delete().eq('client_id', clientId).eq('provider', svc.key)
                             toast.success(`${svc.label} disconnected`)
