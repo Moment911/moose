@@ -36,6 +36,10 @@ import {
   OCCUPATION_ACTIVITIES,
 } from '../../lib/trainer/intakeSchema'
 import { feetInchesToCm, lbsToKg } from '../../lib/trainer/units'
+import {
+  LineChart as RLineChart, Line, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, ReferenceLine,
+} from 'recharts'
 import { useAuth } from '../../hooks/useAuth'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { supabase } from '../../lib/supabase'
@@ -1498,7 +1502,7 @@ function OverviewTab({
           <div style={{ marginTop: 24, marginBottom: 12 }}>
             <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: CAL.ink, fontFamily: CAL.font }}>Progress & Tracking</h3>
           </div>
-          <TrainerWeightHistory traineeId={traineeId} agencyId={agencyId} />
+          <TrainerWeightHistory traineeId={traineeId} agencyId={agencyId} trainee={trainee} />
           <TrainerAIInsight traineeId={traineeId} agencyId={agencyId} />
           <TrainerProgressPhotos traineeId={traineeId} agencyId={agencyId} />
           <TrainerBodyMeasurements traineeId={traineeId} agencyId={agencyId} />
@@ -1510,7 +1514,7 @@ function OverviewTab({
 
 // ── Weight History (trainer-side) ─────────────────────────────────────────
 
-function TrainerWeightHistory({ traineeId, agencyId }) {
+function TrainerWeightHistory({ traineeId, agencyId, trainee }) {
   const [history, setHistory] = useState([])
   const [weightInput, setWeightInput] = useState('')
   const [logging, setLogging] = useState(false)
@@ -1576,21 +1580,28 @@ function TrainerWeightHistory({ traineeId, agencyId }) {
         </div>
       )}
 
-      {/* Mini chart — text-only sparkline */}
+      {/* Weight chart — full Recharts line chart */}
       {chartData.length > 1 && (
-        <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 40, marginBottom: 12, padding: '0 2px' }}>
-          {chartData.slice(-14).map((d, i) => {
-            const min = Math.min(...chartData.slice(-14).map((x) => x.weight))
-            const max = Math.max(...chartData.slice(-14).map((x) => x.weight))
-            const range = max - min || 1
-            const h = Math.max(4, ((d.weight - min) / range) * 36)
-            return (
-              <div key={i} title={`${d.date}: ${d.weight} lbs`} style={{
-                flex: 1, height: h, background: i === chartData.slice(-14).length - 1 ? CAL.ink : CAL.border,
-                borderRadius: 2, transition: 'height .2s',
-              }} />
-            )
-          })}
+        <div style={{ width: '100%', height: 200, marginBottom: 12 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <RLineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: CAL.ink3 }} tickLine={false} axisLine={false} />
+              <YAxis domain={['dataMin - 2', 'dataMax + 2']} tick={{ fontSize: 11, fill: CAL.ink3 }} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{ background: '#fff', border: `1px solid ${CAL.border}`, borderRadius: 8, fontSize: 13, fontFamily: CAL.font }}
+                formatter={(v) => [`${v} lbs`, 'Weight']}
+              />
+              {trainee?.target_weight_kg && (
+                <ReferenceLine
+                  y={Math.round(trainee.target_weight_kg * 2.20462)}
+                  stroke={CAL.ink4}
+                  strokeDasharray="4 4"
+                  label={{ value: 'Target', position: 'right', fontSize: 10, fill: CAL.ink4 }}
+                />
+              )}
+              <Line type="monotone" dataKey="weight" stroke={CAL.ink} strokeWidth={2} dot={{ r: 3, fill: CAL.ink }} activeDot={{ r: 5 }} />
+            </RLineChart>
+          </ResponsiveContainer>
         </div>
       )}
 
