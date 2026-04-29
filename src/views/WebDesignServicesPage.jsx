@@ -113,7 +113,7 @@ export default function WebDesignServicesPage() {
             lineHeight: 1.05, color: INK, maxWidth: 960, margin: '0 auto',
           }}>
             Sites that sell.<br />
-            <span style={{ color: R }}>Platforms that scale.</span>
+            <span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>Platforms that scale.</span>
           </h1>
           <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 700, margin: '24px auto 0' }}>
             We design and engineer websites, portals, and custom platforms that ship wired directly into your

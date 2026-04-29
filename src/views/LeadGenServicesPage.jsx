@@ -114,7 +114,7 @@ export default function LeadGenServicesPage() {
             lineHeight: 1.05, color: INK, maxWidth: 960, margin: '0 auto',
           }}>
             We don't sell leads.<br />
-            <span style={{ color: R }}>We book appointments.</span>
+            <span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>We book appointments.</span>
           </h1>
           <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 700, margin: '24px auto 0' }}>
             A performance engine that runs outbound, inbound, paid, and organic in lockstep — tuned per
