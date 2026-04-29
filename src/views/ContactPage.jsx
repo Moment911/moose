@@ -80,10 +80,10 @@ export default function ContactPage() {
             We reply within one business hour
           </div>
           <h1 className="c-hero-h1" style={{
-            fontSize: 72, fontWeight: 900, fontFamily: FH,
+            fontSize: 84, fontWeight: 900, fontFamily: FH,
             letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 900, margin: '0 auto',
           }}>
-            Let's build something<br />together.
+            Let's build something<br /><span style={{ color: R }}>together.</span>
           </h1>
           <p style={{
             fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6,
