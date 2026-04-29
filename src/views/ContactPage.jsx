@@ -83,7 +83,7 @@ export default function ContactPage() {
             fontSize: 84, fontWeight: 900, fontFamily: FH,
             letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 900, margin: '0 auto',
           }}>
-            Let's build something<br /><span style={{ color: R }}>together.</span>
+            Let's build something<br /><span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>together.</span>
           </h1>
           <p style={{
             fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6,

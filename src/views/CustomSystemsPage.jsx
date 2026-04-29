@@ -351,7 +351,7 @@ export default function CustomSystemsPage() {
             Custom Systems
           </div>
           <h1 className="m-hero-h1" style={{ fontSize: 84, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 940, margin: '0 auto' }}>
-            If you run it,<br />we can <span style={{ color: R }}>automate</span> it.
+            If you run it,<br />we can <span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>automate</span> it.
           </h1>
           <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 680, margin: '24px auto 0' }}>
             Custom AI systems wired into the tools you already use — your CRM, calendar, inventory, phones,

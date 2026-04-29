@@ -114,7 +114,7 @@ export default function CrmServicesPage() {
             fontSize: 84, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em',
             lineHeight: 1.05, color: INK, maxWidth: 940, margin: '0 auto',
           }}>
-            A CRM built around<br />how you <span style={{ color: R }}>actually</span> work.
+            A CRM built around<br />how you <span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>actually</span> work.
           </h1>
           <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 700, margin: '24px auto 0' }}>
             Stop bending your business to fit a generic CRM. We architect a custom system around your

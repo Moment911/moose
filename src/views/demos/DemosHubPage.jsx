@@ -178,7 +178,7 @@ export default function DemosHubPage() {
             fontSize: 84, fontWeight: 900, fontFamily: FH,
             letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 900, margin: '0 auto',
           }}>
-            Watch Koto systems<br />fill <span style={{ color: R }}>themselves</span> in.
+            Watch Koto systems<br />fill <span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>themselves</span> in.
           </h1>
           <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 720, margin: '22px auto 0' }}>
             Five live demos across catering, auto body, law, HVAC, and mortgage — each fills out end-to-end

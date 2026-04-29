@@ -769,7 +769,7 @@ export default function ChatbotsPage() {
             fontSize: 84, fontWeight: 900, fontFamily: FH,
             letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 920, margin: '0 auto',
           }}>
-            Try a chatbot that actually<br /><span style={{ color: R }}>knows</span> the business.
+            Try a chatbot that actually<br /><span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>knows</span> the business.
           </h1>
           <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 720, margin: '22px auto 0' }}>
             Six industry bots, each with real menus, real pricing, real policies — made up for this demo,
