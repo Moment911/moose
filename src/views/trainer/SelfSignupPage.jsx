@@ -35,6 +35,7 @@ export default function SelfSignupPage() {
   const navigate = useNavigate()
   const [mode, setMode] = useState('signup')
   const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -68,7 +69,7 @@ export default function SelfSignupPage() {
         email: email.trim().toLowerCase(),
         password,
         options: {
-          data: { full_name: fullName.trim() || null, role: 'trainer_trainee_self' },
+          data: { full_name: fullName.trim() || null, phone: phone.trim() || null, role: 'trainer_trainee_self' },
           emailRedirectTo: `${window.location.origin}/my-intake`,
         },
       })
@@ -115,11 +116,9 @@ export default function SelfSignupPage() {
       <div style={{ width: '100%', maxWidth: 420 }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: INK, letterSpacing: '-0.02em' }}>
-            Koto
-          </div>
+          <img src="/koto_logo_black.svg" alt="Koto" style={{ height: 28, marginBottom: 6 }} />
           <div style={{ fontSize: 14, fontWeight: 500, color: INK3, marginTop: 4 }}>
-            Smarter fitness and nutrition, guided by AI.
+            Build smarter fitness and nutrition habits.
           </div>
         </div>
 
@@ -138,12 +137,21 @@ export default function SelfSignupPage() {
 
           <form onSubmit={mode === 'signup' ? handleSignup : handleSignin} style={{ display: 'grid', gap: 14 }}>
             {mode === 'signup' && (
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: INK, marginBottom: 4, fontFamily: F }}>Name</label>
-                <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your name"
-                  autoComplete="name"
-                  style={{ ...inputStyle }} />
-              </div>
+              <>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: INK, marginBottom: 4, fontFamily: F }}>Name</label>
+                  <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your name"
+                    autoComplete="name"
+                    style={{ ...inputStyle }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: INK, marginBottom: 4, fontFamily: F }}>Phone</label>
+                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567"
+                    autoComplete="tel"
+                    style={{ ...inputStyle }} />
+                  <div style={{ fontSize: 11, color: INK3, marginTop: 4 }}>So you can log in and access your plan from any device</div>
+                </div>
+              </>
             )}
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: INK, marginBottom: 4, fontFamily: F }}>Email</label>

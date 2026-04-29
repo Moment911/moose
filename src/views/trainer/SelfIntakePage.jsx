@@ -30,17 +30,37 @@ const BRD = '#ececef'
 const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 const BG = '#ffffff'
 
+// ── localStorage helpers for intake progress persistence ───────────────────
+const LS_KEY_EXTRACTED = 'koto_intake_extracted'
+const LS_KEY_ABOUT = 'koto_intake_about'
+const LS_KEY_MESSAGES = 'koto_intake_messages'
+
+function loadLS(key) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null } catch { return null }
+}
+function saveLS(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* quota */ }
+}
+function clearIntakeLS() {
+  try { localStorage.removeItem(LS_KEY_EXTRACTED); localStorage.removeItem(LS_KEY_ABOUT); localStorage.removeItem(LS_KEY_MESSAGES) } catch {}
+}
+
 export default function SelfIntakePage() {
   const navigate = useNavigate()
 
   const [sessionState, setSessionState] = useState({ loading: true, user: null })
   const [phase, setPhase] = useState('chat') // 'chat' | 'generating'
 
-  // Accumulated intake fields from conversation.
-  const [extracted, setExtracted] = useState({})
-  const [aboutYou, setAboutYou] = useState('')
+  // Accumulated intake fields from conversation — restored from localStorage.
+  const [extracted, setExtracted] = useState(() => loadLS(LS_KEY_EXTRACTED) || {})
+  const [aboutYou, setAboutYou] = useState(() => loadLS(LS_KEY_ABOUT) || '')
+  const [savedMessages, setSavedMessages] = useState(() => loadLS(LS_KEY_MESSAGES) || [])
 
   const [generateError, setGenerateError] = useState(null)
+
+  // Persist extracted fields to localStorage on every change
+  useEffect(() => { saveLS(LS_KEY_EXTRACTED, extracted) }, [extracted])
+  useEffect(() => { saveLS(LS_KEY_ABOUT, aboutYou) }, [aboutYou])
 
   // Auth gate — bounce to /start if not logged in, the consent gate if the
   // user hasn't accepted the current-version waiver, or /my-plan if they
@@ -58,11 +78,11 @@ export default function SelfIntakePage() {
         .eq('user_id', user.id)
         .maybeSingle()
       if (cancelled) return
-      if (mapping) { navigate('/my-plan'); return }
+      if (mapping) { clearIntakeLS(); navigate('/my-plan'); return }
       setSessionState({ loading: false, user })
-      // Pre-fill name from auth metadata.
+      // Pre-fill name from auth metadata (only if not already restored from LS)
       const name = user.user_metadata?.full_name
-      if (name) setExtracted((prev) => ({ ...prev, full_name: name }))
+      if (name && !extracted.full_name) setExtracted((prev) => ({ ...prev, full_name: name }))
     })
     return () => { cancelled = true }
   }, [navigate])
@@ -78,6 +98,12 @@ export default function SelfIntakePage() {
       }
       return next
     })
+  }, [])
+
+  // Persist chat messages to localStorage so the conversation survives navigation
+  const handleMessagesChange = useCallback((msgs) => {
+    setSavedMessages(msgs)
+    saveLS(LS_KEY_MESSAGES, msgs)
   }, [])
 
   // Append to the running about_you narrative.
@@ -146,6 +172,7 @@ export default function SelfIntakePage() {
         setPhase('chat')
         return
       }
+      clearIntakeLS()
       navigate('/my-plan')
     } catch (err) {
       setGenerateError(err?.message || 'Network error during setup.')
@@ -171,6 +198,16 @@ export default function SelfIntakePage() {
           <p style={{ margin: '4px 0 0', fontSize: 15, color: INK3, fontFamily: FONT }}>
             A quick conversation with your AI coach. Your profile builds itself as you talk.
           </p>
+          {savedMessages.length > 0 && (
+            <div style={{
+              marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 12px', background: '#f0fdf4', borderRadius: 999,
+              fontSize: 12, fontWeight: 600, color: '#065f46',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: 3, background: '#10b981' }} />
+              Progress restored — pick up where you left off
+            </div>
+          )}
         </header>
 
         {/* Two-column layout */}
@@ -185,6 +222,8 @@ export default function SelfIntakePage() {
             extracted={extracted}
             onFieldsUpdate={handleFieldsUpdate}
             onAboutYouAppend={handleAboutYouAppend}
+            onMessagesChange={handleMessagesChange}
+            initialMessages={savedMessages}
             userName={extracted.full_name || sessionState.user?.user_metadata?.full_name || ''}
           />
 
