@@ -802,12 +802,26 @@ function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAbo
   )
 }
 
+function renderSimpleMd(text) {
+  const parts = []
+  const regex = /\*\*(.+?)\*\*|\*(.+?)\*/g
+  let lastIdx = 0, match, k = 0
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIdx) parts.push(text.slice(lastIdx, match.index))
+    if (match[1]) parts.push(<strong key={k++}>{match[1]}</strong>)
+    else if (match[2]) parts.push(<em key={k++}>{match[2]}</em>)
+    lastIdx = regex.lastIndex
+  }
+  if (lastIdx < text.length) parts.push(text.slice(lastIdx))
+  return parts.length > 0 ? parts : text
+}
+
 function Bubble({ role, content }) {
   const isUser = role === 'user'
   return (
     <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
       <div style={{ maxWidth: '85%', padding: '10px 14px', borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: isUser ? INK : '#f1f1f6', color: isUser ? '#fff' : INK, fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-        {content}
+        {isUser ? content : renderSimpleMd(content)}
       </div>
     </div>
   )

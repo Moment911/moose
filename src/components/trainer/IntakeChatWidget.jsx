@@ -386,6 +386,32 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
   )
 }
 
+// Render simple markdown: **bold** → <strong>, *italic* → <em>, strip the rest.
+function renderSimpleMarkdown(text) {
+  const parts = []
+  let remaining = text
+  let key = 0
+  // Process **bold** and *italic* patterns
+  const regex = /\*\*(.+?)\*\*|\*(.+?)\*/g
+  let lastIndex = 0
+  let match
+  while ((match = regex.exec(remaining)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(remaining.slice(lastIndex, match.index))
+    }
+    if (match[1]) {
+      parts.push(<strong key={key++}>{match[1]}</strong>)
+    } else if (match[2]) {
+      parts.push(<em key={key++}>{match[2]}</em>)
+    }
+    lastIndex = regex.lastIndex
+  }
+  if (lastIndex < remaining.length) {
+    parts.push(remaining.slice(lastIndex))
+  }
+  return parts.length > 0 ? parts : text
+}
+
 function MessageBubble({ role, content }) {
   const isUser = role === 'user'
   return (
@@ -406,7 +432,7 @@ function MessageBubble({ role, content }) {
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
       }}>
-        {content}
+        {isUser ? content : renderSimpleMarkdown(content)}
       </div>
     </div>
   )
