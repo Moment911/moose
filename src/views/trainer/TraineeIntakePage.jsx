@@ -666,7 +666,12 @@ function TokenChatWidget({ traineeId, extracted, aboutYou, onFieldsUpdate, onAbo
       // never persist into this one.
       let pillsToShow = []
       if (fullText) {
-        setMessages((prev) => [...prev, { role: 'assistant', content: fullText }])
+        // Split on double-newline so multi-topic answers render as separate bubbles
+        const paragraphs = fullText.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+        const bubbles = paragraphs.length > 1
+          ? paragraphs.map((p) => ({ role: 'assistant', content: p }))
+          : [{ role: 'assistant', content: fullText }]
+        setMessages((prev) => [...prev, ...bubbles])
         if (replies.length > 0) {
           pillsToShow = replies
         } else if (askingField && FIELD_QUESTIONS[askingField]?.pills?.length > 0) {

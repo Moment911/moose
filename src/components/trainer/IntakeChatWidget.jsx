@@ -148,10 +148,15 @@ export default function IntakeChatWidget({ extracted, onFieldsUpdate, onAboutYou
         }
       }
 
-      // Commit the assistant message and persist.
+      // Commit the assistant message(s) and persist.
+      // Split on double-newline so multi-topic answers render as separate bubbles.
       if (fullText) {
+        const paragraphs = fullText.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
         setMessages((prev) => {
-          const next = [...prev, { role: 'assistant', content: fullText }]
+          const bubbles = paragraphs.length > 1
+            ? paragraphs.map((p) => ({ role: 'assistant', content: p }))
+            : [{ role: 'assistant', content: fullText }]
+          const next = [...prev, ...bubbles]
           onMessagesChange?.(next)
           return next
         })
