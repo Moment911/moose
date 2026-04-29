@@ -143,7 +143,7 @@ export default function SEOAgentsPage() {
             color: INK, maxWidth: 900, margin: '0 auto',
           }}>
             {TOTAL} AI agents.<br />
-            One <span style={{ color: R }}>intelligence</span> layer.
+            Zero <span style={{ color: R }}>guesswork.</span>
           </h1>
           <p className="fade fade-2" style={{
             fontSize: 20, color: MUTED, fontFamily: FB,
