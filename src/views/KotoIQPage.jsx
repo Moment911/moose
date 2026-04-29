@@ -116,6 +116,7 @@ const INTENT_COLORS = { transactional: R, commercial: AMB, informational: T, nav
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function fmt$(n) { return n >= 1000 ? `$${(n/1000).toFixed(1)}K` : `$${n}` }
 function fmtN(n) { return n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n || 0) }
+function timeAgo(d) { if (!d) return ''; const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m}m ago`; const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`; return `${Math.floor(h / 24)}d ago` }
 
 function StatCard({ label, value, sub, icon: Icon, color, trend }) {
   return (
@@ -557,13 +558,43 @@ export default function KotoIQPage() {
   const [gscSearch, setGscSearch] = useState('')
   const [ga4Search, setGa4Search] = useState('')
   const [connections, setConnections] = useState([])
+  const [validationResults, setValidationResults] = useState({})
+  const [validatingAll, setValidatingAll] = useState(false)
+  const [validatingProvider, setValidatingProvider] = useState(null)
   const loadConnections = useCallback(async () => {
     if (!clientId) { setConnections([]); return }
     const { data } = await supabase.from('seo_connections').select('*').eq('client_id', clientId)
     setConnections(data || [])
   }, [clientId])
+  const runValidation = useCallback(async (provider = null) => {
+    if (!clientId) return
+    if (provider) setValidatingProvider(provider)
+    else setValidatingAll(true)
+    try {
+      const res = await fetch('/api/kotoiq', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'validate_connections', client_id: clientId, ...(provider ? { provider } : {}) }),
+      })
+      const { results } = await res.json()
+      if (results) {
+        const map = {}
+        for (const r of results) map[r.provider] = r
+        setValidationResults(prev => ({ ...prev, ...map }))
+      }
+    } catch {} finally {
+      setValidatingAll(false)
+      setValidatingProvider(null)
+    }
+  }, [clientId])
   useEffect(() => { loadConnections() }, [loadConnections])
-  useEffect(() => { if (tab === 'connect') loadConnections() }, [tab, loadConnections])
+  useEffect(() => {
+    if (tab === 'connect') {
+      loadConnections()
+      // Auto-validate after loading connections
+      const timer = setTimeout(() => runValidation(), 500)
+      return () => clearTimeout(timer)
+    }
+  }, [tab, loadConnections, runValidation])
 
   // Load clients
   const loadClients = useCallback(() => {
@@ -4151,7 +4182,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ CONNECT TAB ══ */}
         {clientId && tab === 'connect' && (
           <div>
-            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Connect Data Sources</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Connect Data Sources</div>
+              {connections.some(c => c.connected) && (
+                <button onClick={() => runValidation()} disabled={validatingAll}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: BLK, fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: validatingAll ? 'default' : 'pointer', opacity: validatingAll ? 0.6 : 1 }}>
+                  {validatingAll ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={14} />}
+                  {validatingAll ? 'Validating...' : 'Validate All'}
+                </button>
+              )}
+            </div>
             <div style={{ fontSize: 14, color: '#374151', marginBottom: 24, lineHeight: 1.6 }}>
               Connect your Google accounts to pull real keyword data, analytics, and business profile information. All connections are read-only and encrypted.
             </div>
@@ -4224,31 +4264,56 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 ].map(svc => {
                   const c = connections.find(x => x.provider === svc.key && x.connected)
                   const isConnected = !!c
-                  const badge = isConnected
-                    ? { label: 'Connected', bg: GRN + '15', color: GRN }
-                    : { label: 'Not connected', bg: '#f3f4f6', color: '#9ca3af' }
+                  const vr = validationResults[svc.key]
+                  const isValidating = validatingAll || validatingProvider === svc.key
+                  const badge = isValidating
+                    ? { label: 'Validating...', bg: '#FEF3C7', color: '#D97706' }
+                    : vr
+                      ? vr.valid
+                        ? { label: 'Verified', bg: GRN + '15', color: GRN }
+                        : { label: 'Error', bg: '#FEE2E2', color: '#DC2626' }
+                      : isConnected
+                        ? { label: 'Connected', bg: GRN + '15', color: GRN }
+                        : { label: 'Not connected', bg: '#f3f4f6', color: '#9ca3af' }
+                  const borderColor = isValidating ? '#D97706' + '40' : vr && !vr.valid ? '#DC2626' + '40' : isConnected ? GRN + '40' : '#e5e7eb'
                   return (
-                    <div key={svc.key} style={{ padding: '16px 18px', borderRadius: 12, border: '1px solid ' + (isConnected ? GRN + '40' : '#e5e7eb'), background: '#fff', display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: svc.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svc.icon size={18} color={svc.color} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
-                        <div style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {isConnected
-                            ? (c.site_url?.replace('sc-domain:', '').replace('https://', '') || (c.property_id ? `Property ${c.property_id}` : svc.desc))
-                            : svc.desc}
+                    <div key={svc.key} style={{ padding: '16px 18px', borderRadius: 12, border: '1px solid ' + borderColor, background: '#fff' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: svc.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <svc.icon size={18} color={svc.color} />
                         </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
+                          <div style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {isConnected
+                              ? (c.site_url?.replace('sc-domain:', '').replace('https://', '') || (c.property_id ? `Property ${c.property_id}` : svc.desc))
+                              : svc.desc}
+                          </div>
+                        </div>
+                        {isValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />}
+                        <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: badge.bg, color: badge.color, whiteSpace: 'nowrap' }}>{badge.label}</span>
+                        {isConnected && !isValidating && (
+                          <button onClick={() => runValidation(svc.key)} disabled={validatingAll}
+                            style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
+                            Test
+                          </button>
+                        )}
+                        {isConnected && (
+                          <button onClick={async () => {
+                            await supabase.from('seo_connections').delete().eq('client_id', clientId).eq('provider', svc.key)
+                            toast.success(`${svc.label} disconnected`)
+                            setValidationResults(prev => { const n = { ...prev }; delete n[svc.key]; return n })
+                            loadConnections()
+                          }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#9ca3af', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
+                            Disconnect
+                          </button>
+                        )}
                       </div>
-                      <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: badge.bg, color: badge.color, whiteSpace: 'nowrap' }}>{badge.label}</span>
-                      {isConnected && (
-                        <button onClick={async () => {
-                          await supabase.from('seo_connections').delete().eq('client_id', clientId).eq('provider', svc.key)
-                          toast.success(`${svc.label} disconnected`)
-                          loadConnections()
-                        }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#9ca3af', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
-                          Disconnect
-                        </button>
+                      {vr && !vr.valid && !isValidating && (
+                        <div style={{ marginTop: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{vr.error}</div>
+                      )}
+                      {vr?.last_synced && (
+                        <div style={{ marginTop: 4, fontSize: 10, color: '#9ca3af' }}>Last synced: {timeAgo(vr.last_synced)}</div>
                       )}
                     </div>
                   )
@@ -4257,110 +4322,174 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             </div>
 
             {/* ── Meta Ads ─────────────────────────────────────────── */}
-            <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 20 }}>📱</span> Meta Ads
+            {(() => {
+              const metaConn = connections.find(c => c.provider === 'meta' && c.connected)
+              const metaVr = validationResults.meta
+              const metaValidating = validatingAll || validatingProvider === 'meta'
+              const metaBadge = metaValidating
+                ? { label: 'Validating...', bg: '#FEF3C7', color: '#D97706' }
+                : metaVr ? metaVr.valid ? { label: 'Verified', bg: GRN + '15', color: GRN } : { label: 'Error', bg: '#FEE2E2', color: '#DC2626' }
+                : metaConn ? { label: 'Connected', bg: GRN + '15', color: GRN } : null
+              return (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>📱</span> Meta Ads
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {metaValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
+                      {metaBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: metaBadge.bg, color: metaBadge.color }}>{metaBadge.label}</span>}
+                      {metaConn && !metaValidating && <button onClick={() => runValidation('meta')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                      {!metaConn && (
+                        <button onClick={() => {
+                          const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID || process.env.META_APP_ID || ''
+                          if (!metaAppId) { toast.error('Meta App ID not configured (NEXT_PUBLIC_META_APP_ID)'); return }
+                          const redirectUri = window.location.origin + '/kotoiq'
+                          const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'meta', returnTo: '/kotoiq?tab=connect' }))
+                          window.location.href = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${metaAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=ads_read,ads_management,business_management&response_type=code&state=${state}`
+                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#1877F2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                          Connect Meta
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#6b7280' }}>Facebook + Instagram ad campaigns, spend, conversions, and audience data.</div>
+                  {metaVr && !metaVr.valid && !metaValidating && <div style={{ marginTop: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{metaVr.error}</div>}
+                  {metaVr?.last_synced && <div style={{ marginTop: 4, fontSize: 10, color: '#9ca3af' }}>Last synced: {timeAgo(metaVr.last_synced)}</div>}
                 </div>
-                {connections.find(c => c.provider === 'meta' && c.connected) ? (
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '15', color: GRN }}>Connected</span>
-                ) : (
-                  <button onClick={() => {
-                    const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID || process.env.META_APP_ID || ''
-                    if (!metaAppId) { toast.error('Meta App ID not configured (NEXT_PUBLIC_META_APP_ID)'); return }
-                    const redirectUri = window.location.origin + '/kotoiq'
-                    const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'meta', returnTo: '/kotoiq?tab=connect' }))
-                    window.location.href = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${metaAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=ads_read,ads_management,business_management&response_type=code&state=${state}`
-                  }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#1877F2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
-                    Connect Meta
-                  </button>
-                )}
-              </div>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>Facebook + Instagram ad campaigns, spend, conversions, and audience data.</div>
-            </div>
+              )
+            })()}
 
             {/* ── LinkedIn Ads ─────────────────────────────────────── */}
-            <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 20 }}>💼</span> LinkedIn Ads
+            {(() => {
+              const liConn = connections.find(c => c.provider === 'linkedin' && c.connected)
+              const liVr = validationResults.linkedin
+              const liValidating = validatingAll || validatingProvider === 'linkedin'
+              const liBadge = liValidating
+                ? { label: 'Validating...', bg: '#FEF3C7', color: '#D97706' }
+                : liVr ? liVr.valid ? { label: 'Verified', bg: GRN + '15', color: GRN } : { label: 'Error', bg: '#FEE2E2', color: '#DC2626' }
+                : liConn ? { label: 'Connected', bg: GRN + '15', color: GRN } : null
+              return (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>💼</span> LinkedIn Ads
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {liValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
+                      {liBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: liBadge.bg, color: liBadge.color }}>{liBadge.label}</span>}
+                      {liConn && !liValidating && <button onClick={() => runValidation('linkedin')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                      {!liConn && (
+                        <button onClick={() => {
+                          const liClientId = process.env.NEXT_PUBLIC_LINKEDIN_CLIENT_ID || process.env.LINKEDIN_CLIENT_ID || ''
+                          if (!liClientId) { toast.error('LinkedIn Client ID not configured (NEXT_PUBLIC_LINKEDIN_CLIENT_ID)'); return }
+                          const redirectUri = window.location.origin + '/kotoiq'
+                          const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'linkedin', returnTo: '/kotoiq?tab=connect' }))
+                          window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${liClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=r_ads,r_ads_reporting,r_organization_social&state=${state}`
+                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#0A66C2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                          Connect LinkedIn
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#6b7280' }}>B2B campaign groups, campaigns, creatives, and performance metrics.</div>
+                  {liVr && !liVr.valid && !liValidating && <div style={{ marginTop: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{liVr.error}</div>}
+                  {liVr?.last_synced && <div style={{ marginTop: 4, fontSize: 10, color: '#9ca3af' }}>Last synced: {timeAgo(liVr.last_synced)}</div>}
                 </div>
-                {connections.find(c => c.provider === 'linkedin' && c.connected) ? (
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '15', color: GRN }}>Connected</span>
-                ) : (
-                  <button onClick={() => {
-                    const liClientId = process.env.NEXT_PUBLIC_LINKEDIN_CLIENT_ID || process.env.LINKEDIN_CLIENT_ID || ''
-                    if (!liClientId) { toast.error('LinkedIn Client ID not configured (NEXT_PUBLIC_LINKEDIN_CLIENT_ID)'); return }
-                    const redirectUri = window.location.origin + '/kotoiq'
-                    const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'linkedin', returnTo: '/kotoiq?tab=connect' }))
-                    window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${liClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=r_ads,r_ads_reporting,r_organization_social&state=${state}`
-                  }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#0A66C2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
-                    Connect LinkedIn
-                  </button>
-                )}
-              </div>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>B2B campaign groups, campaigns, creatives, and performance metrics.</div>
-            </div>
+              )
+            })()}
 
             {/* ── Hotjar ───────────────────────────────────────────── */}
-            <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 20 }}>🔥</span> Hotjar
+            {(() => {
+              const hjConn = connections.find(c => c.provider === 'hotjar' && c.connected)
+              const hjVr = validationResults.hotjar
+              const hjValidating = validatingAll || validatingProvider === 'hotjar'
+              const hjBadge = hjValidating
+                ? { label: 'Validating...', bg: '#FEF3C7', color: '#D97706' }
+                : hjVr ? hjVr.valid ? { label: 'Verified', bg: GRN + '15', color: GRN } : { label: 'Error', bg: '#FEE2E2', color: '#DC2626' }
+                : hjConn ? { label: 'Connected', bg: GRN + '15', color: GRN } : null
+              return (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>🔥</span> Hotjar
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {hjValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
+                      {hjBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: hjBadge.bg, color: hjBadge.color }}>{hjBadge.label}</span>}
+                      {hjConn && !hjValidating && <button onClick={() => runValidation('hotjar')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>Session recordings, heatmaps, rage clicks, and scroll depth data.</div>
+                  {hjVr && !hjVr.valid && !hjValidating && <div style={{ marginBottom: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{hjVr.error}</div>}
+                  {hjVr?.last_synced && <div style={{ marginBottom: 8, fontSize: 10, color: '#9ca3af' }}>Last synced: {timeAgo(hjVr.last_synced)}</div>}
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <input placeholder="Hotjar API Token" id="hotjar-token" defaultValue={connections.find(c => c.provider === 'hotjar')?.access_token || ''}
+                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                    <input placeholder="Site ID" id="hotjar-site-id" defaultValue={connections.find(c => c.provider === 'hotjar')?.account_id || ''}
+                      style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                    <button onClick={async () => {
+                      const token = document.getElementById('hotjar-token')?.value
+                      const siteId = document.getElementById('hotjar-site-id')?.value
+                      if (!token || !siteId) { toast.error('Enter both API token and Site ID'); return }
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'hotjar', access_token: token, account_id: siteId, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                      toast.success('Hotjar connected'); loadConnections()
+                      setTimeout(() => runValidation('hotjar'), 500)
+                    }} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#FF3C00', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      Save
+                    </button>
+                  </div>
                 </div>
-                {connections.find(c => c.provider === 'hotjar' && c.connected) ? (
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '15', color: GRN }}>Connected</span>
-                ) : null}
-              </div>
-              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>Session recordings, heatmaps, rage clicks, and scroll depth data.</div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <input placeholder="Hotjar API Token" id="hotjar-token" defaultValue={connections.find(c => c.provider === 'hotjar')?.access_token || ''}
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
-                <input placeholder="Site ID" id="hotjar-site-id" defaultValue={connections.find(c => c.provider === 'hotjar')?.account_id || ''}
-                  style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
-                <button onClick={async () => {
-                  const token = document.getElementById('hotjar-token')?.value
-                  const siteId = document.getElementById('hotjar-site-id')?.value
-                  if (!token || !siteId) { toast.error('Enter both API token and Site ID'); return }
-                  await supabase.from('seo_connections').upsert({
-                    client_id: clientId, provider: 'hotjar', access_token: token, account_id: siteId, connected: true, updated_at: new Date().toISOString(),
-                  }, { onConflict: 'client_id,provider' })
-                  toast.success('Hotjar connected'); loadConnections()
-                }} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#FF3C00', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  Save
-                </button>
-              </div>
-            </div>
+              )
+            })()}
 
             {/* ── Microsoft Clarity ─────────────────────────────────── */}
-            <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 20 }}>🔬</span> Microsoft Clarity
+            {(() => {
+              const clConn = connections.find(c => c.provider === 'clarity' && c.connected)
+              const clVr = validationResults.clarity
+              const clValidating = validatingAll || validatingProvider === 'clarity'
+              const clBadge = clValidating
+                ? { label: 'Validating...', bg: '#FEF3C7', color: '#D97706' }
+                : clVr ? clVr.valid ? { label: 'Verified', bg: GRN + '15', color: GRN } : { label: 'Error', bg: '#FEE2E2', color: '#DC2626' }
+                : clConn ? { label: 'Connected', bg: GRN + '15', color: GRN } : null
+              return (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>🔬</span> Microsoft Clarity
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {clValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
+                      {clBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: clBadge.bg, color: clBadge.color }}>{clBadge.label}</span>}
+                      {clConn && !clValidating && <button onClick={() => runValidation('clarity')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>Free behavior analytics — rage clicks, dead clicks, scroll depth, and quick backs.</div>
+                  {clVr && !clVr.valid && !clValidating && <div style={{ marginBottom: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{clVr.error}</div>}
+                  {clVr?.last_synced && <div style={{ marginBottom: 8, fontSize: 10, color: '#9ca3af' }}>Last synced: {timeAgo(clVr.last_synced)}</div>}
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <input placeholder="Clarity API Key" id="clarity-key" defaultValue={connections.find(c => c.provider === 'clarity')?.access_token || ''}
+                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                    <input placeholder="Project ID" id="clarity-project-id" defaultValue={connections.find(c => c.provider === 'clarity')?.account_id || ''}
+                      style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                    <button onClick={async () => {
+                      const key = document.getElementById('clarity-key')?.value
+                      const projectId = document.getElementById('clarity-project-id')?.value
+                      if (!key || !projectId) { toast.error('Enter both API key and Project ID'); return }
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'clarity', access_token: key, account_id: projectId, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                      toast.success('Clarity connected'); loadConnections()
+                      setTimeout(() => runValidation('clarity'), 500)
+                    }} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#5B2D8E', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      Save
+                    </button>
+                  </div>
                 </div>
-                {connections.find(c => c.provider === 'clarity' && c.connected) ? (
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '15', color: GRN }}>Connected</span>
-                ) : null}
-              </div>
-              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>Free behavior analytics — rage clicks, dead clicks, scroll depth, and quick backs.</div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <input placeholder="Clarity API Key" id="clarity-key" defaultValue={connections.find(c => c.provider === 'clarity')?.access_token || ''}
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
-                <input placeholder="Project ID" id="clarity-project-id" defaultValue={connections.find(c => c.provider === 'clarity')?.account_id || ''}
-                  style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
-                <button onClick={async () => {
-                  const key = document.getElementById('clarity-key')?.value
-                  const projectId = document.getElementById('clarity-project-id')?.value
-                  if (!key || !projectId) { toast.error('Enter both API key and Project ID'); return }
-                  await supabase.from('seo_connections').upsert({
-                    client_id: clientId, provider: 'clarity', access_token: key, account_id: projectId, connected: true, updated_at: new Date().toISOString(),
-                  }, { onConflict: 'client_id,provider' })
-                  toast.success('Clarity connected'); loadConnections()
-                }} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#5B2D8E', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  Save
-                </button>
-              </div>
-            </div>
+              )
+            })()}
 
             {/* Property picker — shown after OAuth */}
             {oauthStep === 'pick_properties' && oauthTokens && (

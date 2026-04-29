@@ -13,6 +13,7 @@ const W     = '#ffffff'
 const LINKS = [
   { href: '/demos',                     label: 'Live demos' },
   { href: '/ai-agents',                 label: 'AI Agents' },
+  { href: '/seo-intelligence',           label: 'SEO Intelligence' },
   { href: '/chatbots',                  label: 'Chatbots' },
   { href: '/custom-systems',            label: 'Custom Systems' },
   { href: '/services/crm',              label: 'Custom CRM' },

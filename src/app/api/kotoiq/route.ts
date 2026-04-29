@@ -935,6 +935,15 @@ Return ONLY valid JSON array:
     return NextResponse.json({ syncs: data || [] })
   }
 
+  // ── VALIDATE CONNECTIONS — live probe each provider's API ───────────
+  if (action === 'validate_connections') {
+    const { client_id, provider } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { validateConnections } = await import('@/lib/kotoiq/validateConnections')
+    const results = await validateConnections(s, client_id, provider)
+    return NextResponse.json({ results })
+  }
+
   // ── KEYWORD PLANNER: Fetch search volume for existing keywords ──────
   if (action === 'enrich_volume') {
     const { client_id } = body

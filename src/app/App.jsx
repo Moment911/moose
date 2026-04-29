@@ -50,6 +50,7 @@ import PrivacyPolicyPage from '../views/PrivacyPolicyPage'
 import TermsPage from '../views/TermsPage'
 import AboutPage from '../views/AboutPage'
 import AIAgentsMarketingPage from '../views/AIAgentsMarketingPage'
+import SEOAgentsPage from '../views/SEOAgentsPage'
 import CustomSystemsPage from '../views/CustomSystemsPage'
 import ChatbotsPage from '../views/ChatbotsPage'
 import KotoAIPage from '../views/KotoAIPage'
@@ -328,6 +329,7 @@ export default function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/ai-agents" element={<AIAgentsMarketingPage />} />
+          <Route path="/seo-intelligence" element={<SEOAgentsPage />} />
           <Route path="/custom-systems" element={<CustomSystemsPage />} />
           <Route path="/chatbots" element={<ChatbotsPage />} />
           <Route path="/koto-ai" element={<KotoAIPage />} />

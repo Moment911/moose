@@ -12,6 +12,7 @@ const W     = '#ffffff'
 const COLUMNS = [
   { title: 'Platform', links: [
     { label: 'AI Agents', href: '/ai-agents' },
+    { label: 'SEO Intelligence', href: '/seo-intelligence' },
     { label: 'Chatbots', href: '/chatbots' },
     { label: 'Custom Systems', href: '/custom-systems' },
     // { label: 'KotoIQ', href: '/#kotoiq' },          // lives on /koto-ai (hidden)
