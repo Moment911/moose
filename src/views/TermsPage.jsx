@@ -3,12 +3,12 @@ import { useState } from 'react'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 
-const CO   = 'Koto LLC'
+const CO   = 'Koto Health LLC'
 const APP  = 'Koto'
 const URL  = 'hellokoto.com'
 const ADDR = 'Boca Raton, Florida, United States'
 const EMAIL = 'legal@hellokoto.com'
-const DATE = 'April 5, 2026'
+const DATE = 'April 29, 2026'
 
 const RED  = '#E6007E'
 const BLK = '#111111'
@@ -40,6 +40,7 @@ export default function TermsPage() {
   const sections = [
     { id:'acceptance',     label:'1. Acceptance of Terms' },
     { id:'services',       label:'2. Description of Services' },
+    { id:'health',         label:'2A. Health & Fitness Services' },
     { id:'accounts',       label:'3. Accounts & Registration' },
     { id:'subscription',   label:'4. Subscription, Billing & Payments' },
     { id:'trial',          label:'5. Free Trial' },
@@ -101,6 +102,24 @@ export default function TermsPage() {
           <H2 id="services">2. Description of Services</H2>
           <P>{APP} is a B2B software-as-a-service (SaaS) platform designed for marketing agencies and their clients. The Services include but are not limited to: AI-powered marketing tools, local SEO analysis and reporting, Google Business Profile management tools, review management, client portal and onboarding tools, lead intelligence (Scout), desk ticketing, content generation, keyword analysis, performance reporting, white-label tools, and any additional features added from time to time.</P>
           <P>Koto reserves the right to: (a) modify, suspend, or discontinue any feature or the entire Service at any time with or without notice; (b) impose limits on certain features or restrict access; (c) release subsequent versions of the Service with different features. We are not liable to you or any third party for any modification, suspension, or discontinuation of the Services.</P>
+
+          <H2 id="health">2A. Health & Fitness Services</H2>
+          <Box color='#fef7ed' border='#fed7aa'>
+            <p style={{ margin:0, fontSize:14, fontWeight:700, color:'#9a3412', fontFamily:FH }}>Important Health Notice</p>
+            <p style={{ margin:'6px 0 0', fontSize:14, color:'#7c2d12', fontFamily:FB, lineHeight:1.7 }}>
+              Koto provides general fitness, nutrition, and wellness information for educational purposes only. Koto does not provide medical advice, diagnosis, treatment, or licensed dietetic services.
+            </p>
+          </Box>
+          <H3>No Medical Relationship</H3>
+          <P>Use of Koto does not create a physician-patient or dietitian-client relationship. Koto is not a medical provider and its AI-generated content is not a substitute for professional medical advice, diagnosis, or treatment.</P>
+          <H3>AI Disclaimer</H3>
+          <P>Koto uses automated AI systems to generate fitness plans, nutrition suggestions, and wellness content. These outputs may be inaccurate or incomplete and are not a substitute for professional advice. You should not rely solely on AI-generated content for health decisions.</P>
+          <H3>Assumption of Risk</H3>
+          <P>You acknowledge that physical fitness and nutrition activities involve inherent risks, including but not limited to injury, illness, or death. By using the Services, you voluntarily assume all such risks. You agree to consult a licensed healthcare provider before starting any new fitness or nutrition program, especially if you have pre-existing medical conditions.</P>
+          <H3>Not Intended For</H3>
+          <P>The health and fitness features of Koto are not intended for individuals with medical conditions requiring physician supervision, eating disorders or history thereof, pregnancy-related needs, or conditions requiring licensed dietetic services. If any of these apply to you, consult a licensed healthcare professional before using Koto.</P>
+          <H3>No Guarantees</H3>
+          <P>Koto does not guarantee any specific health, fitness, weight loss, or performance results. Individual results vary based on factors outside Koto's control including genetics, adherence, pre-existing conditions, and lifestyle.</P>
 
           {/* 3. Accounts */}
           <H2 id="accounts">3. Accounts & Registration</H2>

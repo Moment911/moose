@@ -3,12 +3,12 @@
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 
-const CO    = 'Koto LLC'
+const CO    = 'Koto Health LLC'
 const APP   = 'Koto'
 const URL   = 'hellokoto.com'
 const ADDR  = 'Boca Raton, Florida, United States'
 const EMAIL = 'privacy@hellokoto.com'
-const DATE  = 'April 5, 2026'
+const DATE  = 'April 29, 2026'
 const RED   = '#E6007E'
 const BLK = '#111111'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -94,6 +94,7 @@ export default function PrivacyPolicyPage() {
             <Li><strong>Client data:</strong> information about your clients that you enter or import into the platform, including names, emails, phone numbers, addresses, business details, and campaign data</Li>
             <Li><strong>Communications:</strong> messages you send to our support team, feedback, and survey responses</Li>
             <Li><strong>Marketing preferences:</strong> your choices about receiving communications from us</Li>
+            <Li><strong>Health and fitness data (Koto Trainer):</strong> age, sex, height, weight, fitness goals, training experience, dietary preferences, medical flags, injury history, meal logs, workout logs, body measurements, progress photos, and health screening responses. This data is used exclusively to generate personalized fitness and nutrition guidance.</Li>
           </ul>
           <H3>2.2 Information Collected Automatically</H3>
           <ul style={{ paddingLeft:24 }}>
@@ -225,6 +226,17 @@ export default function PrivacyPolicyPage() {
           <H2 id="security">11. Security</H2>
           <P>We implement commercially reasonable technical and organizational security measures to protect your information, including encryption in transit (TLS/SSL), encrypted database storage, access controls, and regular security reviews. However, no method of transmission over the internet or electronic storage is 100% secure. We cannot guarantee absolute security. You use the Services at your own risk.</P>
           <P>In the event of a data breach that is required to be reported under applicable law, we will notify you as required. Koto's liability for any breach is limited as described in Section 13 of our Terms of Service.</P>
+
+          <H3>11A. Health & Fitness Data Protections</H3>
+          <P>Health and fitness data collected through Koto Trainer (including body measurements, medical flags, injury history, dietary information, workout logs, and progress photos) receives additional protections:</P>
+          <ul style={{ paddingLeft:24 }}>
+            <Li><strong>No advertising use:</strong> Health data is never shared with advertising platforms, data brokers, or used for ad targeting</Li>
+            <Li><strong>Encryption:</strong> All health data is encrypted at rest and in transit</Li>
+            <Li><strong>Access controls:</strong> Health data access is limited to the user and their explicitly authorized coach or trainer</Li>
+            <Li><strong>AI processing:</strong> Health data may be processed by AI systems (Anthropic Claude) solely to generate your fitness and nutrition guidance. Our AI vendor agreements prohibit the use of your data for model training without explicit consent</Li>
+            <Li><strong>Deletion:</strong> You may request complete deletion of all health data at any time by contacting {EMAIL}</Li>
+            <Li><strong>Audit logging:</strong> Access to health data is logged for security and compliance purposes</Li>
+          </ul>
 
           <H2 id="rights">12. Your Rights & Choices</H2>
           <P>Subject to applicable law, you may have the following rights:</P>
