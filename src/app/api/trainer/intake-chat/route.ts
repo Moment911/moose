@@ -4,6 +4,7 @@ import { FEATURE_TAGS } from '../../../../lib/trainer/trainerConfig'
 import { buildIntakeChatPrompt } from '../../../../lib/trainer/prompts/intakeChat'
 import { streamSonnetChat } from '../../../../lib/trainer/streamSonnet'
 import { missingIntakeFields } from '../../../../lib/trainer/intakeCompleteness'
+import { classifyInput, logGuardrailEvent } from '../../../../lib/trainer/guardrails'
 import type { IntakeInput } from '../../../../lib/trainer/intakeSchema'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,6 +69,32 @@ export async function POST(req: NextRequest) {
   const missing = missingIntakeFields(extracted)
   const turnCount = messages.filter((m) => m.role === 'user').length
   const mode = typeof body.mode === 'string' ? body.mode : 'onboarding'
+
+  // ── Guardrail check on the latest user message ───────────────────────────
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user')
+  if (lastUserMsg) {
+    const guard = classifyInput(lastUserMsg.content)
+    if (guard.riskLevel > 0) {
+      logGuardrailEvent({
+        userId: userData.user.id,
+        userInput: lastUserMsg.content,
+        riskLevel: guard.riskLevel,
+        triggered: guard.triggered,
+        agencyId,
+      })
+    }
+    // Level 2+ → block the AI call, return the guardrail response directly
+    if (guard.riskLevel >= 2 && guard.response) {
+      const encoder = new TextEncoder()
+      const blocked = encoder.encode(
+        JSON.stringify({ type: 'text_delta', text: guard.response }) + '\n' +
+        JSON.stringify({ type: 'fields', extracted: {}, suggested_replies: [], asking_field: '' }) + '\n'
+      )
+      return new Response(blocked, {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache, no-store' },
+      })
+    }
+  }
 
   const { systemPrompt, tools } = buildIntakeChatPrompt({
     extracted,
