@@ -799,6 +799,7 @@ export default function KotoIQPage() {
   }, [clientId])
 
   useEffect(() => { loadDashboard() }, [loadDashboard])
+  useEffect(() => { if (tab === 'dashboard') loadDashboard() }, [tab, loadDashboard])
 
   // Auto-load unified KPIs when dashboard is active
   useEffect(() => {
