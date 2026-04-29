@@ -67,17 +67,6 @@ const FIELD_GROUPS = [
     ],
   },
   {
-    title: 'Health & Safety',
-    fields: [
-      { key: 'medical_flags', label: 'Medical conditions', type: 'pills_or_text', options: [
-        { value: 'None', label: 'None' },
-      ], textOption: 'Yes — let me explain', textPlaceholder: 'Describe your condition...' },
-      { key: 'injuries', label: 'Current or past injuries', type: 'pills_or_text', options: [
-        { value: 'None', label: 'None' },
-      ], textOption: 'Yes — let me explain', textPlaceholder: 'Describe your injury...' },
-    ],
-  },
-  {
     title: 'Nutrition',
     fields: [
       { key: 'dietary_preference', label: 'Dietary preference', type: 'pills', options: [
@@ -138,9 +127,9 @@ export default function IntakeFormFields({ extracted = {}, onComplete, userName 
     })
   }
 
-  // Count filled required fields
+  // Count filled required fields — medical/injury already handled by compliance gate
   const required = ['age', 'sex', 'height_cm', 'current_weight_kg', 'primary_goal',
-    'training_days_per_week', 'equipment_access', 'medical_flags', 'injuries']
+    'training_days_per_week', 'equipment_access']
   const filledCount = required.filter((k) => {
     const v = fields[k]
     return v !== undefined && v !== null && v !== ''
@@ -150,7 +139,11 @@ export default function IntakeFormFields({ extracted = {}, onComplete, userName 
 
   function handleContinue() {
     if (!allRequired) return
-    onComplete(fields)
+    // Default medical/injury to "None" since compliance gate already screened
+    const output = { ...fields }
+    if (!output.medical_flags) output.medical_flags = 'None'
+    if (!output.injuries) output.injuries = 'None'
+    onComplete(output)
   }
 
   return (
