@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Loader2, Send, Check, Circle, Camera, Pencil, RefreshCw, Bookmark, Map as MapIcon, Dumbbell, BookOpen, Timer, GraduationCap, ExternalLink, Salad, ClipboardCheck, PauseCircle } from 'lucide-react'
 import { PageHeader, PrimaryCTA } from '../../components/trainer/aesthetic'
+import TrainerFooter from '../../components/trainer/TrainerFooter'
 import { cmToFeetInches, kgToLbs } from '../../lib/trainer/units'
 import { supabase } from '../../lib/supabase'
 
@@ -471,6 +472,7 @@ export default function TraineeIntakePage() {
           }
         }
       `}</style>
+      <TrainerFooter />
     </div>
   )
 }
@@ -1019,6 +1021,10 @@ function WelcomeScreen({ name, onStart }) {
     <div style={{ minHeight: '100vh', background: '#ffffff', padding: '0 20px' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
+        <div style={{ paddingTop: 24 }}>
+          <img src="/koto_logo_black.svg" alt="Koto" style={{ height: 22, opacity: 0.85 }} />
+        </div>
+
         <PageHeader
           title={firstName ? `${firstName}, let's build your plan.` : "Let's build your plan."}
           subtitle="A 5-minute conversation. Then a complete personalized program — training, nutrition, everything."
@@ -1173,6 +1179,7 @@ function WelcomeScreen({ name, onStart }) {
           Every plan is generated for the individual — no templates, no copy-paste.
         </div>
       </div>
+      <TrainerFooter maxWidth={560} />
     </div>
   )
 }

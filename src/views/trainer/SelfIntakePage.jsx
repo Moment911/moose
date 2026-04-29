@@ -7,6 +7,7 @@ import { validateIntake } from '../../lib/trainer/intakeSchema'
 import { REQUIRED_INTAKE_FIELDS, missingIntakeFields } from '../../lib/trainer/intakeCompleteness'
 import IntakeChatWidget from '../../components/trainer/IntakeChatWidget'
 import IntakeLiveCard from '../../components/trainer/IntakeLiveCard'
+import TrainerFooter from '../../components/trainer/TrainerFooter'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /my-intake — conversational chat intake (Cal-AI restyle).
@@ -127,11 +128,21 @@ export default function SelfIntakePage() {
       })
       const body = await res.json().catch(() => ({}))
       if (!res.ok) {
+        if (body?.error === 'consent_required') {
+          navigate('/start/consent')
+          return
+        }
         if (body?.error === 'intake_incomplete' && Array.isArray(body.missing_fields)) {
           setGenerateError(`Still missing: ${body.missing_fields.join(', ')}.`)
         } else {
           setGenerateError(body?.error || `Save failed (${res.status})`)
         }
+        setPhase('chat')
+        return
+      }
+      // Medical hold — baseline flagged the user as not cleared to train
+      if (body?.ok_to_train === false) {
+        setGenerateError('Based on your answers, we recommend consulting a healthcare provider before starting a training program. Your information has been saved.')
         setPhase('chat')
         return
       }
@@ -153,6 +164,7 @@ export default function SelfIntakePage() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <header style={{ marginBottom: 16 }}>
+          <img src="/koto_logo_black.svg" alt="Koto" style={{ height: 22, marginBottom: 12, opacity: 0.85 }} />
           <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: INK, letterSpacing: '-.4px', fontFamily: FONT }}>
             Let's build your plan.
           </h1>
@@ -203,6 +215,8 @@ export default function SelfIntakePage() {
           }
         }
       `}</style>
+
+      <TrainerFooter />
     </div>
   )
 }
