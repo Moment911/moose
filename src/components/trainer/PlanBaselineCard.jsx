@@ -149,11 +149,14 @@ export default function PlanBaselineCard({ baseline, onRegenerate, regenerating 
       )}
 
       {/* Calorie + macro tiles */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 8 }}>
         <Tile icon={<Flame size={14} />} label="kcal / day" value={fmtInt(baseline.calorie_target_kcal)} highlight={true} />
         <Tile icon={<Dumbbell size={14} />} label="Protein" value={`${fmtInt(macros.protein_g)} g`} />
         <Tile icon={<Utensils size={14} />} label="Fat" value={`${fmtInt(macros.fat_g)} g`} />
         <Tile icon={<Utensils size={14} />} label="Carbs" value={`${fmtInt(macros.carb_g)} g`} />
+      </div>
+      <div style={{ fontSize: 11, color: INK3, marginBottom: 20, fontFamily: FONT }}>
+        This estimate is general wellness guidance and may not be appropriate for individuals with medical conditions or specialized dietary needs.
       </div>
 
       {/* Top 3 focus areas — hero */}

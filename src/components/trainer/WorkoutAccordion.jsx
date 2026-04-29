@@ -235,6 +235,17 @@ export default function WorkoutAccordion({ workoutPlan, logs = [], onLogSet, onR
       </div>
 
       <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
+
+      {/* Legal disclaimer — Doc 1 compliance */}
+      <div style={{
+        marginTop: 12, padding: '10px 14px',
+        background: T.card, borderRadius: T.rSm,
+        fontSize: 11, color: T.ink4, lineHeight: 1.5,
+        fontFamily: T.font,
+      }}>
+        Exercise involves risk. Start conservatively and stop if you experience pain, dizziness, or discomfort.
+        Consult a healthcare professional before beginning any new exercise program.
+      </div>
     </div>
   )
 }

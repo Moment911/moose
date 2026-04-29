@@ -330,6 +330,17 @@ export default function MealPlanTable({ mealPlan, traineeId }) {
       {/* Meal detail modal */}
       {selected?.meal && <MealDetail meal={selected.meal} onClose={() => setSelected(null)} />}
       <style>{'@keyframes kotoSpin{to{transform:rotate(360deg)}}'}</style>
+
+      {/* Legal disclaimer — Doc 1 compliance */}
+      <div style={{
+        marginTop: 12, padding: '10px 14px',
+        background: C.card, borderRadius: 12,
+        fontSize: 11, color: C.ink4, lineHeight: 1.5,
+        fontFamily: C.font,
+      }}>
+        Nutrition suggestions are general guidance and not medical or dietary advice.
+        This estimate may not be appropriate for individuals with medical conditions or specialized dietary needs.
+      </div>
     </div>
   )
 }
