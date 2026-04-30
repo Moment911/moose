@@ -65,7 +65,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Keyword', 'Intent', 'Match', 'Est. Clicks/mo', 'Est. CPC', 'Priority', 'Status'].map(h => (
-                      <th key={h} style={{ textAlign: h === 'Keyword' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                      <th key={h} style={{ textAlign: h === 'Keyword' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -74,13 +74,13 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
                     <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 600 }}>{r.keyword}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
-                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.intent === 'transactional' ? '#dcfce7' : r.intent === 'commercial' ? '#fef9c3' : '#f3f4f6', color: r.intent === 'transactional' ? GRN : r.intent === 'commercial' ? AMB : '#6b7280' }}>{r.intent}</span>
+                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.intent === 'transactional' ? '#dcfce7' : r.intent === 'commercial' ? '#fef9c3' : '#f1f1f6', color: r.intent === 'transactional' ? GRN : r.intent === 'commercial' ? AMB : '#6b6b70' }}>{r.intent}</span>
                       </td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', fontSize: 11 }}>{r.proposed_match_type}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{r.est_monthly_clicks || '—'}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{r.est_cpc_usd ? `$${r.est_cpc_usd.toFixed(2)}` : '—'}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
-                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.priority === 'high' ? '#fef2f2' : r.priority === 'medium' ? '#fef9c3' : '#f3f4f6', color: r.priority === 'high' ? R : r.priority === 'medium' ? AMB : '#6b7280', fontWeight: 700 }}>{r.priority}</span>
+                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.priority === 'high' ? '#fef2f2' : r.priority === 'medium' ? '#fef9c3' : '#f1f1f6', color: r.priority === 'high' ? R : r.priority === 'medium' ? AMB : '#6b6b70', fontWeight: 700 }}>{r.priority}</span>
                       </td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
                         <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.status === 'approved' ? '#dcfce7' : '#fef9c3', color: r.status === 'approved' ? GRN : AMB }}>{r.status}</span>
@@ -100,7 +100,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Query', 'GSC Impressions', 'GSC Clicks', 'Avg Position', 'Ads Coverage'].map(h => (
-                      <th key={h} style={{ textAlign: h === 'Query' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                      <th key={h} style={{ textAlign: h === 'Query' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>

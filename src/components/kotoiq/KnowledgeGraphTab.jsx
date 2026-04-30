@@ -29,12 +29,12 @@ function renderMarkdown(text) {
     const isList = lines.every(l => /^\s*[-*\d]/.test(l) || !l.trim())
     if (isList && lines.some(l => l.trim())) {
       return (
-        <ol key={pIdx} style={{ margin: '6px 0 10px', paddingLeft: 22, fontSize: 13, lineHeight: 1.65, color: '#374151', fontFamily: FB }}>
+        <ol key={pIdx} style={{ margin: '6px 0 10px', paddingLeft: 22, fontSize: 13, lineHeight: 1.65, color: '#1f1f22', fontFamily: FB }}>
           {lines.filter(l => l.trim()).map((l, i) => <li key={i}>{l.replace(/^\s*[-*\d]+\.?\s*/, '')}</li>)}
         </ol>
       )
     }
-    return <p key={pIdx} style={{ margin: '6px 0', fontSize: 13, lineHeight: 1.65, color: '#374151', fontFamily: FB }}>{para}</p>
+    return <p key={pIdx} style={{ margin: '6px 0', fontSize: 13, lineHeight: 1.65, color: '#1f1f22', fontFamily: FB }}>{para}</p>
   })
 }
 
@@ -99,7 +99,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Knowledge Graph Export</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>Generate entity markup for Wikidata, schema.org, or RDF — the foundation of a Google Knowledge Panel.</div>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>Generate entity markup for Wikidata, schema.org, or RDF — the foundation of a Google Knowledge Panel.</div>
         </div>
       </div>
 
@@ -114,9 +114,9 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
               disabled={running}
               style={{
                 padding: '10px 18px', borderRadius: 8,
-                border: `1.5px solid ${format === f.key ? T : '#e5e7eb'}`,
+                border: `1.5px solid ${format === f.key ? T : '#ececef'}`,
                 background: format === f.key ? T + '14' : '#fff',
-                color: format === f.key ? T : '#374151',
+                color: format === f.key ? T : '#1f1f22',
                 fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
               }}>
               {f.label}
@@ -146,11 +146,11 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
                 <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4, fontFamily: FH }}>
                   Knowledge Panel Trigger Likelihood
                 </div>
-                <div style={{ fontSize: 12, color: '#374151' }}>Deterministic score based on entity completeness, schema, backlinks, and reviews.</div>
+                <div style={{ fontSize: 12, color: '#1f1f22' }}>Deterministic score based on entity completeness, schema, backlinks, and reviews.</div>
               </div>
-              <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: kpColor, letterSpacing: '-.02em' }}>{kpScore}<span style={{ fontSize: 18, color: '#9ca3af' }}>/100</span></div>
+              <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: kpColor, letterSpacing: '-.02em' }}>{kpScore}<span style={{ fontSize: 18, color: '#8e8e93' }}>/100</span></div>
             </div>
-            <div style={{ marginTop: 10, height: 8, background: '#f3f4f6', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ marginTop: 10, height: 8, background: '#f1f1f6', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ width: `${kpScore}%`, height: '100%', background: kpColor, transition: 'width .3s' }} />
             </div>
           </div>
@@ -164,11 +164,11 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
                 {(result.entity_properties || []).map((p, i) => (
                   <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
                     <div style={{ fontWeight: 700, color: BLK, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.04em' }}>{p.name || p.property || p.p_code || p.predicate || '—'}</div>
-                    <div style={{ color: '#374151', wordBreak: 'break-word', marginTop: 2 }}>{String(p.value ?? p.label ?? '').slice(0, 200)}</div>
-                    {p.source && <div style={{ color: '#9ca3af', fontSize: 10, marginTop: 2 }}>{p.source}</div>}
+                    <div style={{ color: '#1f1f22', wordBreak: 'break-word', marginTop: 2 }}>{String(p.value ?? p.label ?? '').slice(0, 200)}</div>
+                    {p.source && <div style={{ color: '#8e8e93', fontSize: 10, marginTop: 2 }}>{p.source}</div>}
                   </div>
                 ))}
-                {!(result.entity_properties || []).length && <div style={{ fontSize: 12, color: '#6b7280' }}>No properties extracted</div>}
+                {!(result.entity_properties || []).length && <div style={{ fontSize: 12, color: '#6b6b70' }}>No properties extracted</div>}
               </div>
             </div>
 
@@ -178,7 +178,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
                 <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>Generated {FORMATS.find(f => f.key === format)?.label}</div>
                 <button onClick={copyAll} style={{
                   padding: '5px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff',
-                  fontSize: 11, fontWeight: 700, color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                  fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                 }}><Copy size={11} /> Copy</button>
               </div>
               <pre style={{
@@ -193,12 +193,12 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
               <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 12 }}>Related Entities</div>
               <div style={{ maxHeight: 500, overflowY: 'auto' }}>
                 {(result.related_entities || []).map((e, i) => (
-                  <div key={i} style={{ padding: '8px 10px', marginBottom: 6, background: '#f9fafb', borderRadius: 8, fontSize: 12 }}>
+                  <div key={i} style={{ padding: '8px 10px', marginBottom: 6, background: '#f9f9fb', borderRadius: 8, fontSize: 12 }}>
                     <div style={{ fontWeight: 700, color: BLK }}>{e.qid_or_label || e.entity || e.label || '—'}</div>
-                    {e.relationship && <div style={{ color: '#6b7280', fontSize: 11, marginTop: 2 }}>{e.relationship}</div>}
+                    {e.relationship && <div style={{ color: '#6b6b70', fontSize: 11, marginTop: 2 }}>{e.relationship}</div>}
                   </div>
                 ))}
-                {!(result.related_entities || []).length && <div style={{ fontSize: 12, color: '#6b7280' }}>None extracted</div>}
+                {!(result.related_entities || []).length && <div style={{ fontSize: 12, color: '#6b6b70' }}>None extracted</div>}
               </div>
             </div>
           </div>
@@ -213,11 +213,11 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={copyAll} style={{
                     padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                    fontSize: 11, fontWeight: 700, color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                    fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                   }}><Copy size={12} /> Copy All</button>
                   <button onClick={download} style={{
                     padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                    fontSize: 11, fontWeight: 700, color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                    fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                   }}><Download size={12} /> Download</button>
                 </div>
               </div>

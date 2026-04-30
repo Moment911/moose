@@ -58,9 +58,9 @@ function EmptyState({ message, tab, onSwitchTab }) {
 
 function MetricPill({ label, value }) {
   return (
-    <div style={{ background: '#f9fafb', borderRadius: 10, padding: '10px 16px', textAlign: 'center', flex: '1 1 0', minWidth: 100 }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '10px 16px', textAlign: 'center', flex: '1 1 0', minWidth: 100 }}>
       <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{value ?? '—'}</div>
-      <div style={{ fontFamily: FB, fontSize: 11, color: '#6b7280', marginTop: 2 }}>{label}</div>
+      <div style={{ fontFamily: FB, fontSize: 11, color: '#6b6b70', marginTop: 2 }}>{label}</div>
     </div>
   )
 }
@@ -70,7 +70,7 @@ function AiInterpretation({ text }) {
   return (
     <div style={{ background: T + '08', border: `1px solid ${T}20`, borderRadius: 10, padding: '12px 16px', marginTop: 14 }}>
       <div style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: T, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>AI Interpretation</div>
-      <div style={{ fontFamily: FB, fontSize: 13, color: '#374151', lineHeight: 1.55 }}>{text}</div>
+      <div style={{ fontFamily: FB, fontSize: 13, color: '#1f1f22', lineHeight: 1.55 }}>{text}</div>
     </div>
   )
 }
@@ -119,7 +119,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
       <Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} />
-      <div style={{ fontFamily: FH, fontSize: 14, color: '#6b7280' }}>Loading master report...</div>
+      <div style={{ fontFamily: FH, fontSize: 14, color: '#6b6b70' }}>Loading master report...</div>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
@@ -168,8 +168,8 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 16 }}>
           {avgScore !== null && <ScoreRing score={avgScore} size={96} />}
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: '#6b7280', marginBottom: 4 }}>Overall Health: {avgScore !== null ? `${grade(avgScore)} (${avgScore}/100)` : 'Insufficient data'}</div>
-            <div style={{ fontFamily: FB, fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+            <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: '#6b6b70', marginBottom: 4 }}>Overall Health: {avgScore !== null ? `${grade(avgScore)} (${avgScore}/100)` : 'Insufficient data'}</div>
+            <div style={{ fontFamily: FB, fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>
               {execSummary || (avgScore !== null ? `Based on ${scores.length} modules analyzed. Run remaining tools to get a complete picture.` : 'Run KotoIQ tools to populate this report.')}
             </div>
           </div>
@@ -194,7 +194,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
           {(kw.categories || kw.buckets) && (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {Object.entries(kw.categories || kw.buckets || {}).map(([k, v]) => (
-                <span key={k} style={{ background: '#f3f4f6', borderRadius: 8, padding: '4px 12px', fontFamily: FB, fontSize: 12, color: '#374151' }}>
+                <span key={k} style={{ background: '#f1f1f6', borderRadius: 8, padding: '4px 12px', fontFamily: FB, fontSize: 12, color: '#1f1f22' }}>
                   {k.replace(/_/g, ' ')}: <strong>{v}</strong>
                 </span>
               ))}
@@ -211,15 +211,15 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
             <ScoreRing score={auth.score ?? 0} size={72} />
             <div>
               <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>Authority Score: {auth.score ?? '—'}/100</div>
-              <div style={{ fontFamily: FB, fontSize: 12, color: '#6b7280' }}>Grade: {auth.grade ?? grade(auth.score ?? 0)}</div>
+              <div style={{ fontFamily: FB, fontSize: 12, color: '#6b6b70' }}>Grade: {auth.grade ?? grade(auth.score ?? 0)}</div>
             </div>
           </div>
           {auth.clusters && auth.clusters.length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 6 }}>Cluster Breakdown</div>
+              <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#6b6b70', marginBottom: 6 }}>Cluster Breakdown</div>
               {auth.clusters.slice(0, 8).map((cl, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #f3f4f6', fontFamily: FB, fontSize: 13 }}>
-                  <span style={{ color: '#374151' }}>{cl.name || cl.cluster}</span>
+                  <span style={{ color: '#1f1f22' }}>{cl.name || cl.cluster}</span>
                   <span style={{ fontWeight: 700, color: (cl.score ?? 0) >= 60 ? GRN : AMB }}>{cl.score ?? cl.coverage ?? '—'}%</span>
                 </div>
               ))}
@@ -241,22 +241,22 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
           {strat.attack && strat.attack.length > 0 && (
             <div style={{ marginBottom: 10 }}>
               <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: GRN, marginBottom: 4 }}>Attack Priorities</div>
-              {strat.attack.slice(0, 5).map((a, i) => <div key={i} style={{ fontFamily: FB, fontSize: 13, color: '#374151', padding: '2px 0' }}>{typeof a === 'string' ? a : a.keyword || a.topic || JSON.stringify(a)}</div>)}
+              {strat.attack.slice(0, 5).map((a, i) => <div key={i} style={{ fontFamily: FB, fontSize: 13, color: '#1f1f22', padding: '2px 0' }}>{typeof a === 'string' ? a : a.keyword || a.topic || JSON.stringify(a)}</div>)}
             </div>
           )}
           {strat.defend && strat.defend.length > 0 && (
             <div style={{ marginBottom: 10 }}>
               <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: AMB, marginBottom: 4 }}>Defend Priorities</div>
-              {strat.defend.slice(0, 5).map((d, i) => <div key={i} style={{ fontFamily: FB, fontSize: 13, color: '#374151', padding: '2px 0' }}>{typeof d === 'string' ? d : d.keyword || d.topic || JSON.stringify(d)}</div>)}
+              {strat.defend.slice(0, 5).map((d, i) => <div key={i} style={{ fontFamily: FB, fontSize: 13, color: '#1f1f22', padding: '2px 0' }}>{typeof d === 'string' ? d : d.keyword || d.topic || JSON.stringify(d)}</div>)}
             </div>
           )}
           {strat.abandon && strat.abandon.length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 4 }}>Consider Abandoning</div>
-              {strat.abandon.slice(0, 3).map((a, i) => <div key={i} style={{ fontFamily: FB, fontSize: 13, color: '#9ca3af', padding: '2px 0' }}>{typeof a === 'string' ? a : a.keyword || a.topic || JSON.stringify(a)}</div>)}
+              <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#8e8e93', marginBottom: 4 }}>Consider Abandoning</div>
+              {strat.abandon.slice(0, 3).map((a, i) => <div key={i} style={{ fontFamily: FB, fontSize: 13, color: '#8e8e93', padding: '2px 0' }}>{typeof a === 'string' ? a : a.keyword || a.topic || JSON.stringify(a)}</div>)}
             </div>
           )}
-          {strat.weekly_actions && <div style={{ fontFamily: FB, fontSize: 13, color: '#374151', marginTop: 8 }}><strong>Weekly Actions:</strong> {Array.isArray(strat.weekly_actions) ? strat.weekly_actions.join(', ') : strat.weekly_actions}</div>}
+          {strat.weekly_actions && <div style={{ fontFamily: FB, fontSize: 13, color: '#1f1f22', marginTop: 8 }}><strong>Weekly Actions:</strong> {Array.isArray(strat.weekly_actions) ? strat.weekly_actions.join(', ') : strat.weekly_actions}</div>}
           <AiInterpretation text="The strategic plan identifies which keywords to attack, defend, and abandon based on ranking difficulty and business value. Focus on attack targets with the highest ROI first." />
         </>) : <EmptyState message="Strategic plan not generated — run Strategic Plan tool" tab="strategy" onSwitchTab={onSwitchTab} />}
       </SectionCard>
@@ -268,7 +268,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
             <ScoreRing score={eeat.overall_score ?? eeat.score ?? 0} size={72} />
             <div>
               <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>E-E-A-T Score: {eeat.overall_score ?? eeat.score ?? '—'}/100</div>
-              <div style={{ fontFamily: FB, fontSize: 12, color: '#6b7280' }}>Grade: {eeat.grade ?? grade(eeat.overall_score ?? eeat.score ?? 0)}</div>
+              <div style={{ fontFamily: FB, fontSize: 12, color: '#6b6b70' }}>Grade: {eeat.grade ?? grade(eeat.overall_score ?? eeat.score ?? 0)}</div>
             </div>
           </div>
           {eeat.signals && eeat.signals.length > 0 && (
@@ -276,7 +276,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
               {eeat.signals.slice(0, 8).map((s, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', fontFamily: FB, fontSize: 13 }}>
                   <span style={{ color: s.found ? GRN : '#d1d5db' }}>{s.found ? '\u2713' : '\u2717'}</span>
-                  <span style={{ color: s.found ? '#374151' : '#9ca3af' }}>{s.name || s.label}</span>
+                  <span style={{ color: s.found ? '#1f1f22' : '#8e8e93' }}>{s.name || s.label}</span>
                 </div>
               ))}
             </div>
@@ -334,7 +334,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
               {tech.sub_scores && (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
                   {Object.entries(tech.sub_scores).map(([k, v]) => (
-                    <span key={k} style={{ background: '#f3f4f6', borderRadius: 6, padding: '2px 10px', fontFamily: FB, fontSize: 11, color: '#374151' }}>{k}: <strong>{v}</strong></span>
+                    <span key={k} style={{ background: '#f1f1f6', borderRadius: 6, padding: '2px 10px', fontFamily: FB, fontSize: 11, color: '#1f1f22' }}>{k}: <strong>{v}</strong></span>
                   ))}
                 </div>
               )}
@@ -407,7 +407,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
       {/* Gaps & Missing Data */}
       {gaps.length > 0 && (
         <SectionCard icon={AlertTriangle} title="Gaps & Missing Data">
-          <div style={{ fontFamily: FB, fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+          <div style={{ fontFamily: FB, fontSize: 13, color: '#6b6b70', marginBottom: 12 }}>
             {gaps.length} tool{gaps.length === 1 ? '' : 's'} ha{gaps.length === 1 ? 's' : 've'}n't been run yet. Complete these for a full picture.
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -416,7 +416,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
                 <AlertTriangle size={14} color={AMB} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{g.label}</div>
-                  <div style={{ fontFamily: FB, fontSize: 11, color: '#6b7280' }}>{g.msg}</div>
+                  <div style={{ fontFamily: FB, fontSize: 11, color: '#6b6b70' }}>{g.msg}</div>
                 </div>
                 <button onClick={() => onSwitchTab?.(g.tab)} style={{ background: T, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: FH, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                   Go <ArrowRight size={12} />

@@ -83,7 +83,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Briefcase size={18} color={T} /> Upwork Pre-Flight Checklist
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Validate a freelance posting before you pitch. Generates a custom cover letter, red flags, win probability, and pricing.
         </div>
         <textarea value={jobDesc} onChange={e => setJobDesc(e.target.value)} placeholder="Paste the Upwork job description..." rows={8} style={{
@@ -121,7 +121,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
 
           {a.actual_need && (
             <div style={{ ...card, borderLeft: `4px solid ${T}` }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', marginBottom: 4 }}>The client's actual need</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', marginBottom: 4 }}>The client's actual need</div>
               <div style={{ fontSize: 14, color: BLK, lineHeight: 1.6 }}>{a.actual_need}</div>
             </div>
           )}
@@ -144,7 +144,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
               {a.hidden_requirements.map((h, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, padding: '8px 12px', background: AMB + '08', borderRadius: 8, marginBottom: 4 }}>
                   <AlertTriangle size={12} color={AMB} style={{ marginTop: 3 }} />
-                  <div style={{ fontSize: 12, color: '#374151' }}>{h}</div>
+                  <div style={{ fontSize: 12, color: '#1f1f22' }}>{h}</div>
                 </div>
               ))}
             </div>
@@ -159,7 +159,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
                   <CopyIcon size={11} /> Copy
                 </button>
               </div>
-              <div style={{ padding: 14, background: '#f9fafb', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#374151', whiteSpace: 'pre-wrap' }}>
+              <div style={{ padding: 14, background: '#f9f9fb', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#1f1f22', whiteSpace: 'pre-wrap' }}>
                 {data.cover_letter}
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <HelpCircle size={16} color={T} /> Clarifying Questions
               </div>
-              <ol style={{ margin: 0, paddingLeft: 20, color: '#374151' }}>
+              <ol style={{ margin: 0, paddingLeft: 20, color: '#1f1f22' }}>
                 {data.clarifying_questions.map((q, i) => (
                   <li key={i} style={{ fontSize: 13, marginBottom: 8, lineHeight: 1.5 }}>{q}</li>
                 ))}
@@ -183,7 +183,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <DollarSign size={16} color={GRN} /> Pricing Strategy
               </div>
-              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{data.pricing_strategy}</div>
+              <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{data.pricing_strategy}</div>
             </div>
           )}
 
@@ -196,7 +196,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
               {generatingPkg ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={15} />}
               {generatingPkg ? 'Building...' : 'Generate Full Proposal Package'}
             </button>
-            <div style={{ fontSize: 11, color: '#374151', marginTop: 8 }}>Scope document, FAQ, and follow-up email included.</div>
+            <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 8 }}>Scope document, FAQ, and follow-up email included.</div>
           </div>
 
           {pkg && (
@@ -204,15 +204,15 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
               {pkg.scope_document && (
                 <div style={card}>
                   <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Scope Document — {pkg.scope_document.project_title}</div>
-                  <div style={{ fontSize: 13, color: '#374151', marginBottom: 12, lineHeight: 1.6 }}>{pkg.scope_document.executive_summary}</div>
+                  <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12, lineHeight: 1.6 }}>{pkg.scope_document.executive_summary}</div>
                   <div style={{ display: 'flex', gap: 18, marginBottom: 12 }}>
                     <span style={{ fontSize: 12 }}><Clock size={12} style={{ verticalAlign: -2 }} /> <strong>{pkg.scope_document.timeline_weeks}w</strong> / <strong>{pkg.scope_document.total_hours}h</strong></span>
                     <span style={{ fontSize: 12 }}><DollarSign size={12} style={{ verticalAlign: -2 }} /> <strong>${(pkg.scope_document.investment?.amount || 0).toLocaleString()} {pkg.scope_document.investment?.type}</strong></span>
                   </div>
                   {pkg.scope_document.phases?.map((p, i) => (
-                    <div key={i} style={{ padding: 12, background: '#f9fafb', borderRadius: 8, marginBottom: 6 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>{p.name} <span style={{ fontSize: 11, color: '#374151' }}>({p.duration})</span></div>
-                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#374151' }}>
+                    <div key={i} style={{ padding: 12, background: '#f9f9fb', borderRadius: 8, marginBottom: 6 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>{p.name} <span style={{ fontSize: 11, color: '#1f1f22' }}>({p.duration})</span></div>
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#1f1f22' }}>
                         {(p.deliverables || []).map((d, j) => <li key={j}>{d}</li>)}
                       </ul>
                     </div>
@@ -240,7 +240,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
                       <CopyIcon size={11} /> Copy
                     </button>
                   </div>
-                  <div style={{ padding: 14, background: '#f9fafb', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#374151', whiteSpace: 'pre-wrap' }}>
+                  <div style={{ padding: 14, background: '#f9f9fb', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#1f1f22', whiteSpace: 'pre-wrap' }}>
                     {pkg.followup_email}
                   </div>
                 </div>
@@ -263,7 +263,7 @@ const btnStyle = {
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9fafb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>
@@ -283,7 +283,7 @@ function FlagBlock({ title, color, Icon, items, objKey, sub }) {
         return (
           <div key={i} style={{ padding: '8px 10px', background: color + '08', borderRadius: 6, marginBottom: 4 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{label}</div>
-            {sub2 && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{sub2}</div>}
+            {sub2 && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{sub2}</div>}
           </div>
         )
       })}

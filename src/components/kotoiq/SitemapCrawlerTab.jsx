@@ -139,7 +139,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Sitemap Crawler</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>Discover every URL on your site — handles multi-sitemap indexes, 10,000+ URLs.</div>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>Discover every URL on your site — handles multi-sitemap indexes, 10,000+ URLs.</div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: T, letterSpacing: '-.02em' }}>{total.toLocaleString()}</div>
@@ -186,7 +186,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
             <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
               Crawl Status: <span style={{ color: crawl.status === 'running' ? T : crawl.status === 'failed' ? R : GRN }}>{crawl.status}</span>
             </div>
-            {crawl.started_at && <div style={{ fontSize: 11, color: '#6b7280' }}>Started {new Date(crawl.started_at).toLocaleString()}</div>}
+            {crawl.started_at && <div style={{ fontSize: 11, color: '#6b6b70' }}>Started {new Date(crawl.started_at).toLocaleString()}</div>}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
             <Stat label="Sitemaps Found" value={crawl.sitemaps_found || 0} />
@@ -205,7 +205,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
                 {errorsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
               {errorsOpen && (
-                <ul style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 12, color: '#374151', maxHeight: 200, overflowY: 'auto' }}>
+                <ul style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 12, color: '#1f1f22', maxHeight: 200, overflowY: 'auto' }}>
                   {crawl.errors.map((err, i) => <li key={i}>{err}</li>)}
                 </ul>
               )}
@@ -234,14 +234,14 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
             </select>
             <button onClick={exportCSV} disabled={!urls.length} style={{
               padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-              fontSize: 12, fontWeight: 700, color: '#374151', cursor: 'pointer',
+              fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer',
               opacity: urls.length ? 1 : 0.5, display: 'flex', alignItems: 'center', gap: 4,
             }}><Download size={12} /> Export CSV</button>
           </div>
         </div>
 
         {urls.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 30, color: '#374151', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 30, color: '#1f1f22', fontSize: 13 }}>
             <FileText size={32} color="#d1d5db" style={{ marginBottom: 8 }} /><br />
             No URLs indexed yet. Run a crawl above.
           </div>
@@ -264,11 +264,11 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
                       <td style={{ padding: '8px', wordBreak: 'break-all' }}>
                         <a href={u.url} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'none' }}>{u.url}</a>
                       </td>
-                      <td style={{ padding: '8px', color: '#374151', whiteSpace: 'nowrap' }}>{u.lastmod ? new Date(u.lastmod).toLocaleDateString() : '—'}</td>
-                      <td style={{ padding: '8px', textAlign: 'center', color: '#374151' }}>{u.priority ?? '—'}</td>
-                      <td style={{ padding: '8px', textAlign: 'center', color: '#374151' }}>{u.changefreq || '—'}</td>
-                      <td style={{ padding: '8px', color: '#6b7280', wordBreak: 'break-all' }}>
-                        {u.source_sitemap ? <a href={u.source_sitemap} target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>{u.source_sitemap}</a> : '—'}
+                      <td style={{ padding: '8px', color: '#1f1f22', whiteSpace: 'nowrap' }}>{u.lastmod ? new Date(u.lastmod).toLocaleDateString() : '—'}</td>
+                      <td style={{ padding: '8px', textAlign: 'center', color: '#1f1f22' }}>{u.priority ?? '—'}</td>
+                      <td style={{ padding: '8px', textAlign: 'center', color: '#1f1f22' }}>{u.changefreq || '—'}</td>
+                      <td style={{ padding: '8px', color: '#6b6b70', wordBreak: 'break-all' }}>
+                        {u.source_sitemap ? <a href={u.source_sitemap} target="_blank" rel="noopener noreferrer" style={{ color: '#6b6b70', textDecoration: 'none' }}>{u.source_sitemap}</a> : '—'}
                       </td>
                     </tr>
                   ))}
@@ -278,7 +278,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
 
             {/* Pagination */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, gap: 10 }}>
-              <div style={{ fontSize: 12, color: '#6b7280' }}>
+              <div style={{ fontSize: 12, color: '#6b6b70' }}>
                 Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total.toLocaleString()}
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -302,7 +302,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
             <Lightbulb size={16} color={AMB} />
             <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Sitemap Recommendations</div>
           </div>
-          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: '#374151', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: '#1f1f22', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {(() => {
               const missingLastmod = urls.filter(u => !u.lastmod).length
               if (missingLastmod > 0) return (
@@ -316,7 +316,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
             {crawl?.errors?.length > 0 && (
               <li><strong>{crawl.errors.length} URL{crawl.errors.length > 1 ? 's' : ''} may have issues</strong> — review and remove broken URLs from your sitemap</li>
             )}
-            <li>Ensure your <code style={{ background: '#f3f4f6', padding: '1px 5px', borderRadius: 4, fontSize: 12 }}>sitemap.xml</code> is referenced in <code style={{ background: '#f3f4f6', padding: '1px 5px', borderRadius: 4, fontSize: 12 }}>robots.txt</code></li>
+            <li>Ensure your <code style={{ background: '#f1f1f6', padding: '1px 5px', borderRadius: 4, fontSize: 12 }}>sitemap.xml</code> is referenced in <code style={{ background: '#f1f1f6', padding: '1px 5px', borderRadius: 4, fontSize: 12 }}>robots.txt</code></li>
           </ul>
         </div>
       )}
@@ -328,12 +328,12 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
 
 const input = { width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12, fontFamily: FB, color: BLK, outline: 'none', background: '#fff' }
 const th = { textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }
-const pageBtn = { display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, color: '#374151', cursor: 'pointer' }
+const pageBtn = { display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer' }
 
 function Field({ label, children }) {
   return (
     <div>
-      <div style={{ fontSize: 10, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4, fontFamily: FH }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 800, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4, fontFamily: FH }}>{label}</div>
       {children}
     </div>
   )
@@ -341,9 +341,9 @@ function Field({ label, children }) {
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
       <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: color || BLK }}>{typeof value === 'number' ? value.toLocaleString() : value}</div>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 2 }}>{label}</div>
     </div>
   )
 }

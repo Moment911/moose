@@ -64,7 +64,7 @@ function StatBox({ label, value, color, sub }) {
     <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px', textAlign: 'center' }}>
       <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
       <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>
-      {sub && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{sub}</div>}
     </div>
   )
 }
@@ -72,7 +72,7 @@ function StatBox({ label, value, color, sub }) {
 function CopyButton({ text }) {
   return (
     <button onClick={() => { navigator.clipboard.writeText(text); toast.success('Copied to clipboard') }}
-      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#374151' }}>
+      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#1f1f22' }}>
       <Copy size={11} /> Copy
     </button>
   )
@@ -147,7 +147,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
         <Code size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Schema & Structured Data</div>
-        <div style={{ fontSize: 14, color: '#374151', marginBottom: 20, maxWidth: 480, margin: '0 auto 20px' }}>
+        <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20, maxWidth: 480, margin: '0 auto 20px' }}>
           Audit your site for JSON-LD structured data, find missing schema opportunities, and auto-generate markup to boost rich results.
         </div>
         <button onClick={runAudit} disabled={running}
@@ -180,7 +180,7 @@ export default function SchemaTab({ clientId, agencyId }) {
 
       {/* Explanation card */}
       <div style={{ ...card, background: T + '06', borderColor: T + '20' }}>
-        <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>
           Schema markup helps search engines understand your content. Pages with proper schema get rich snippets in search results — stars, prices, FAQs, and more.
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function SchemaTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: '32px 24px', background: '#fffbeb', borderColor: AMB + '30' }}>
           <AlertTriangle size={24} color={AMB} style={{ margin: '0 auto 10px' }} />
           <div style={{ fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 6, fontFamily: FH }}>No schema data yet</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>Run a sitemap crawl first to discover all pages, then run a deep enrich to populate schema data.</div>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>Run a sitemap crawl first to discover all pages, then run a deep enrich to populate schema data.</div>
         </div>
       )}
 
@@ -199,12 +199,12 @@ export default function SchemaTab({ clientId, agencyId }) {
         <ScoreRing score={audit.overall_score || 0} label="Overall" color={audit.overall_score >= 70 ? GRN : audit.overall_score >= 40 ? AMB : R} size={80} />
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           <StatBox label="Pages w/ Schema" value={audit.total_pages_with_schema || 0} color={GRN} />
-          <StatBox label="Pages Without" value={audit.total_pages_without || 0} color={audit.total_pages_without > 0 ? R : '#6b7280'} />
+          <StatBox label="Pages Without" value={audit.total_pages_without || 0} color={audit.total_pages_without > 0 ? R : '#6b6b70'} />
           <StatBox label="Coverage" value={`${audit.coverage_pct || 0}%`} color={T} />
           <StatBox label="Semantic HTML" value={audit.semantic_html_score || 0} color={audit.semantic_html_score >= 70 ? GRN : AMB} sub="/100" />
         </div>
         <button onClick={runAudit} disabled={running}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#374151', whiteSpace: 'nowrap' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#1f1f22', whiteSpace: 'nowrap' }}>
           {running ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Rerun
         </button>
       </div>
@@ -220,14 +220,14 @@ export default function SchemaTab({ clientId, agencyId }) {
               <div key={type}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 140, fontSize: 13, fontWeight: 600, color: BLK, fontFamily: FB }}>{type}</div>
-                  <div style={{ flex: 1, height: 20, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
+                  <div style={{ flex: 1, height: 20, borderRadius: 4, background: '#f1f1f6', overflow: 'hidden' }}>
                     <div style={{ width: `${(Number(count) / maxTypeCount) * 100}%`, height: '100%', borderRadius: 4, background: T, transition: 'width .4s ease', display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', fontFamily: FH }}>{String(count)}</span>
                     </div>
                   </div>
                 </div>
                 {SCHEMA_DESCRIPTIONS[type] && (
-                  <div style={{ marginLeft: 152, fontSize: 11, color: '#6b7280', marginTop: 2 }}>{SCHEMA_DESCRIPTIONS[type]}</div>
+                  <div style={{ marginLeft: 152, fontSize: 11, color: '#6b6b70', marginTop: 2 }}>{SCHEMA_DESCRIPTIONS[type]}</div>
                 )}
               </div>
             ))}
@@ -319,10 +319,10 @@ export default function SchemaTab({ clientId, agencyId }) {
 
               return (
                 <div key={i} style={{ borderRadius: 10, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#fafafa', cursor: 'pointer' }} onClick={() => setExpandedSchema(expanded ? null : i)}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#fafafb', cursor: 'pointer' }} onClick={() => setExpandedSchema(expanded ? null : i)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: T + '10', color: T }}>{gen.type}</span>
-                      <span style={{ fontSize: 12, color: '#374151' }}>{gen.url.replace(/^https?:\/\/[^/]+/, '')}</span>
+                      <span style={{ fontSize: 12, color: '#1f1f22' }}>{gen.url.replace(/^https?:\/\/[^/]+/, '')}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <CopyButton text={htmlStr} />
@@ -361,11 +361,11 @@ export default function SchemaTab({ clientId, agencyId }) {
           {expandedSemantic && (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {semanticIssues.map((issue, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 10px', borderRadius: 8, background: '#fafafa' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 10px', borderRadius: 8, background: '#fafafb' }}>
                   <code style={{ fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: AMB + '10', color: AMB, whiteSpace: 'nowrap' }}>{issue.element}</code>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{issue.issue}</div>
-                    <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{issue.suggestion}</div>
+                    <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{issue.suggestion}</div>
                   </div>
                 </div>
               ))}

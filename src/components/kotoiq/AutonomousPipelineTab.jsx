@@ -27,9 +27,9 @@ function StatusBadge({ status }) {
     running: { color: T, icon: Loader2, label: 'Running' },
     failed: { color: R, icon: XCircle, label: 'Failed' },
     flagged: { color: AMB, icon: AlertCircle, label: 'Flagged' },
-    skipped: { color: '#9ca3af', icon: Clock, label: 'Skipped' },
-    pending: { color: '#9ca3af', icon: Clock, label: 'Pending' },
-  }[status] || { color: '#9ca3af', icon: Clock, label: status || 'Pending' }
+    skipped: { color: '#8e8e93', icon: Clock, label: 'Skipped' },
+    pending: { color: '#8e8e93', icon: Clock, label: 'Pending' },
+  }[status] || { color: '#8e8e93', icon: Clock, label: status || 'Pending' }
   const Icon = cfg.icon
   return (
     <span style={{
@@ -49,7 +49,7 @@ function ScoreBadge({ score, label }) {
   return (
     <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 14px', textAlign: 'center', minWidth: 96 }}>
       <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{s || '—'}</div>
-      <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700, color: '#374151', marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700, color: '#1f1f22', marginTop: 2 }}>{label}</div>
     </div>
   )
 }
@@ -146,7 +146,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
           </div>
           <div>
             <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>Auto-Pilot Content Generation</div>
-            <div style={{ fontSize: 13, color: '#374151' }}>Give it a keyword, it runs an 8-step pipeline and ships publish-ready content.</div>
+            <div style={{ fontSize: 13, color: '#1f1f22' }}>Give it a keyword, it runs an 8-step pipeline and ships publish-ready content.</div>
           </div>
         </div>
 
@@ -176,7 +176,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
           </button>
         </div>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, cursor: 'pointer', fontSize: 13, color: '#1f1f22' }}>
           <input type="checkbox" checked={autoPublish} onChange={e => setAutoPublish(e.target.checked)} disabled={running} />
           Auto-publish when Human Score &ge; 85
         </label>
@@ -190,12 +190,12 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             {mergedSteps.map((s, i) => (
               <div key={s.key} style={{
                 display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
-                borderRadius: 8, background: s.status === 'running' ? T + '08' : '#f9fafb',
-                border: `1px solid ${s.status === 'completed' ? GRN + '30' : s.status === 'failed' ? R + '30' : '#e5e7eb'}`,
+                borderRadius: 8, background: s.status === 'running' ? T + '08' : '#f9f9fb',
+                border: `1px solid ${s.status === 'completed' ? GRN + '30' : s.status === 'failed' ? R + '30' : '#ececef'}`,
               }}>
                 <span style={{ flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: '#fff', border: '1px solid #e5e7eb', color: BLK, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                 <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: BLK }}>{s.label}</div>
-                {s.duration_ms ? <span style={{ fontSize: 11, color: '#6b7280' }}>{s.duration_ms}ms</span> : null}
+                {s.duration_ms ? <span style={{ fontSize: 11, color: '#6b6b70' }}>{s.duration_ms}ms</span> : null}
                 <StatusBadge status={s.status || 'pending'} />
               </div>
             ))}
@@ -217,7 +217,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             {result.flagged_reasons?.length > 0 && (
               <div style={{ marginTop: 14, padding: '10px 14px', background: AMB + '10', border: `1px solid ${AMB}40`, borderRadius: 8 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: AMB, marginBottom: 4 }}>Flagged reasons</div>
-                <ul style={{ margin: 0, paddingLeft: 20, fontSize: 12, color: '#374151' }}>
+                <ul style={{ margin: 0, paddingLeft: 20, fontSize: 12, color: '#1f1f22' }}>
                   {result.flagged_reasons.map((r, i) => <li key={i}>{r}</li>)}
                 </ul>
               </div>
@@ -240,7 +240,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
                   )}
                   <button onClick={downloadHTML} style={{
                     padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                    fontSize: 12, fontWeight: 700, color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                    fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                   }}><Download size={12} /> Download HTML</button>
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
                 Schema JSON-LD ({result.schema_json_ld.length})
                 <button onClick={e => { e.stopPropagation(); copyToClipboard(JSON.stringify(result.schema_json_ld, null, 2), 'Schema') }} style={{
                   marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                  fontSize: 11, fontWeight: 700, color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                  fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                 }}><Copy size={11} /> Copy Schema</button>
               </button>
               {schemaOpen && (
@@ -287,11 +287,11 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
           </div>
           <button onClick={loadHistory} disabled={historyLoading} style={{
             padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-            fontSize: 11, fontWeight: 700, color: '#374151', cursor: 'pointer',
+            fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer',
           }}>{historyLoading ? 'Loading...' : 'Refresh'}</button>
         </div>
         {history.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 30, color: '#374151', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 30, color: '#1f1f22', fontSize: 13 }}>
             <FileText size={32} color="#d1d5db" style={{ marginBottom: 8 }} /><br />
             No pipeline runs yet. Kick one off above.
           </div>
@@ -314,7 +314,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
                     <td style={{ padding: '10px 8px', textAlign: 'center' }}><StatusBadge status={r.status} /></td>
                     <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700 }}>{r.human_score ?? '—'}</td>
                     <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700 }}>{r.topicality_score ?? '—'}</td>
-                    <td style={{ padding: '10px 8px', textAlign: 'right', color: '#6b7280' }}>{r.created_at ? new Date(r.created_at).toLocaleString() : '—'}</td>
+                    <td style={{ padding: '10px 8px', textAlign: 'right', color: '#6b6b70' }}>{r.created_at ? new Date(r.created_at).toLocaleString() : '—'}</td>
                   </tr>
                 ))}
               </tbody>

@@ -48,7 +48,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
         <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Search size={20} color="#0078D4" /> Bing Webmaster Audit
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Pull Bing rankings + compare to Google. Most sites underperform on Bing — find the gaps.
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
@@ -93,9 +93,9 @@ export default function BingAuditTab({ clientId, agencyId }) {
                     {data.top_queries.slice(0, 30).map((q, i) => (
                       <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                         <td style={{ padding: '8px', color: BLK }}>{q.query}</td>
-                        <td style={{ padding: '8px', textAlign: 'center', color: '#374151' }}>{fmtN(q.impressions)}</td>
+                        <td style={{ padding: '8px', textAlign: 'center', color: '#1f1f22' }}>{fmtN(q.impressions)}</td>
                         <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: GRN }}>{fmtN(q.clicks)}</td>
-                        <td style={{ padding: '8px', textAlign: 'center', color: '#374151' }}>{q.position?.toFixed(1)}</td>
+                        <td style={{ padding: '8px', textAlign: 'center', color: '#1f1f22' }}>{q.position?.toFixed(1)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -127,7 +127,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
                           <td style={{ padding: '8px', color: BLK }}>{d.query}</td>
                           <td style={{ padding: '8px', textAlign: 'center' }}>{d.google_position?.toFixed(1) || '—'}</td>
                           <td style={{ padding: '8px', textAlign: 'center' }}>{d.bing_position?.toFixed(1) || '—'}</td>
-                          <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: gap > 5 ? R : gap < -5 ? GRN : '#6b7280' }}>
+                          <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: gap > 5 ? R : gap < -5 ? GRN : '#6b6b70' }}>
                             {gap > 0 ? '+' : ''}{gap.toFixed(1)}
                           </td>
                         </tr>
@@ -148,7 +148,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9fafb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{value}</div>
     </div>

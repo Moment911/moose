@@ -98,14 +98,14 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
             {state.connected ? (
               <><CheckCircle size={12} color={GRN} /><span style={{ fontSize: 12, fontWeight: 700, color: GRN }}>Connected</span></>
             ) : (
-              <><XCircle size={12} color="#9ca3af" /><span style={{ fontSize: 12, fontWeight: 700, color: '#6b7280' }}>Not Connected</span></>
+              <><XCircle size={12} color="#9ca3af" /><span style={{ fontSize: 12, fontWeight: 700, color: '#6b6b70' }}>Not Connected</span></>
             )}
           </div>
         </div>
       </div>
 
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 5, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.05em' }}>Webhook URL</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 5, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.05em' }}>Webhook URL</div>
         <input value={state.webhook_url} onChange={e => setState({ ...state, webhook_url: e.target.value })}
           placeholder={type === 'slack' ? 'https://hooks.slack.com/services/...' : 'https://outlook.office.com/webhook/...'}
           style={{
@@ -115,7 +115,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
       </div>
 
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.05em' }}>Alert Types</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 8, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.05em' }}>Alert Types</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {ALERT_TYPES.map(([key, lbl]) => (
             <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', color: '#1f2937' }}>
@@ -137,7 +137,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
         </button>
         <button onClick={testMessage} disabled={testing || !state.connected} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 8,
-          border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 700, fontFamily: FH,
+          border: '1px solid #e5e7eb', background: '#fff', color: '#1f1f22', fontSize: 12, fontWeight: 700, fontFamily: FH,
           cursor: testing ? 'wait' : (state.connected ? 'pointer' : 'not-allowed'), opacity: testing || !state.connected ? 0.6 : 1,
         }}>
           {testing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={12} />}
@@ -199,7 +199,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Link2 size={20} color={T} /> Integrations
           </div>
-          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
             Pipe KotoIQ alerts into your team's existing tools — Slack, Microsoft Teams, email.
           </div>
         </div>
@@ -231,7 +231,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
           <Clock size={16} color={T} />
           <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Automated Schedule</div>
         </div>
-        <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, fontFamily: FB }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, fontFamily: FB }}>
           Daily digests fire at <strong>9:00 AM</strong> in the client's timezone. Competitor watch checks run on the cadence you set per-watch. Weekly digests ship Monday morning, monthly reports the 1st.
         </div>
       </div>
@@ -241,16 +241,16 @@ export default function IntegrationsTab({ clientId, agencyId }) {
           Alert History
         </div>
         {history.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 30, color: '#6b7280', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 30, color: '#6b6b70', fontSize: 13 }}>
             No alert history yet. Sent alerts will show up here.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {history.slice(0, 20).map((h, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9fafb', borderRadius: 8, fontSize: 13 }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, fontSize: 13 }}>
                 {h.status === 'sent' ? <CheckCircle size={14} color={GRN} /> : <XCircle size={14} color={R} />}
                 <span style={{ flex: 1 }}>{h.title}</span>
-                <span style={{ fontSize: 11, color: '#6b7280' }}>{new Date(h.created_at).toLocaleString()}</span>
+                <span style={{ fontSize: 11, color: '#6b6b70' }}>{new Date(h.created_at).toLocaleString()}</span>
               </div>
             ))}
           </div>

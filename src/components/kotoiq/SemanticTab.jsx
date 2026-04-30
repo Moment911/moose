@@ -23,7 +23,7 @@ function ScoreRing({ score, label, size = 80, color }) {
           style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
         <text x="40" y="44" textAnchor="middle" style={{ fontSize: 18, fontWeight: 900, fontFamily: FH, fill: BLK }}>{score || '--'}</text>
       </svg>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>{label}</div>
     </div>
   )
 }
@@ -55,12 +55,12 @@ function WordList({ title, items, icon: Icon, color }) {
   if (!items?.length) return null
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
         <Icon size={12} color={color || T} /> {title}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {items.slice(0, 20).map((w, i) => (
-          <span key={i} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: '#f3f4f6', color: BLK }}>{w}</span>
+          <span key={i} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: '#f1f1f6', color: BLK }}>{w}</span>
         ))}
       </div>
     </div>
@@ -121,7 +121,7 @@ export default function SemanticTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>KotoAgenticIQ Content Network</div>
-          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>Analyze site-wide content structure, topical coverage, and KotoIQ health</div>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Analyze site-wide content structure, topical coverage, and KotoIQ health</div>
         </div>
         <button onClick={runAnalysis} disabled={running}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1 }}>
@@ -141,7 +141,7 @@ export default function SemanticTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 60 }}>
           <Brain size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No KotoIQ Analysis Yet</div>
-          <div style={{ fontSize: 13, color: '#374151', marginBottom: 16 }}>Click "Run Analysis" to scan your content and build a KotoIQ network map.</div>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 16 }}>Click "Run Analysis" to scan your content and build a KotoIQ network map.</div>
         </div>
       )}
 
@@ -153,14 +153,14 @@ export default function SemanticTab({ clientId, agencyId }) {
             <ScoreRing score={a.contextual_flow_score || 0} label="Flow" />
             <ScoreRing score={a.contextual_consistency_score || 0} label="Consistency" />
             <div style={{ flex: 1, borderLeft: '1px solid #e5e7eb', paddingLeft: 24, marginLeft: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 4, fontFamily: FH }}>QUICK SUMMARY</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 4, fontFamily: FH }}>QUICK SUMMARY</div>
               <div style={{ fontSize: 13, color: BLK, lineHeight: 1.6 }}>
                 {a.overall_score >= 70 ? 'Good KotoIQ structure. Content topics are well-organized and internally linked.' :
                  a.overall_score >= 40 ? 'Moderate KotoIQ health. Some content gaps and structural issues to address.' :
                  a.overall_score > 0 ? 'Weak KotoIQ structure. Significant improvements needed in content organization.' :
                  'Analysis incomplete.'}
               </div>
-              <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 11, color: '#374151' }}>
+              <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 11, color: '#1f1f22' }}>
                 <span>{(a.page_analyses || []).length} pages analyzed</span>
                 <span>{(a.thin_content_pages || []).length} thin pages</span>
                 <span>{(a.context_dilution_pages || []).length} diluted pages</span>
@@ -170,24 +170,24 @@ export default function SemanticTab({ clientId, agencyId }) {
           </div>
 
           {/* What These Scores Mean + What To Do */}
-          <div style={{ ...card, background: '#f9fafb' }}>
+          <div style={{ ...card, background: '#f9f9fb' }}>
             <div style={titleStyle}><Brain size={15} color={T} /> What This Data Means</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Overall Score</div>
-                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.5 }}>
                   Measures how well your site content is organized as a topical network. Google rewards sites with deep, interconnected content around core topics. 70+ is strong; below 40 means search engines may not understand your expertise areas.
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Flow Score</div>
-                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.5 }}>
                   Evaluates heading hierarchy (H1 &rarr; H2 &rarr; H3) and logical content order. Low flow means readers and crawlers get lost. Fix by restructuring headings to follow a clear outline on each page.
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Consistency Score</div>
-                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.5 }}>
                   Checks whether heading text matches the content beneath it. If headings promise one thing but paragraphs deliver another, both users and search engines lose trust. Rewrite mismatched headings or reorganize content.
                 </div>
               </div>
@@ -195,7 +195,7 @@ export default function SemanticTab({ clientId, agencyId }) {
             {a.overall_score > 0 && a.overall_score < 70 && (
               <div style={{ marginTop: 16, padding: '12px 16px', background: AMB + '12', borderRadius: 8, border: `1px solid ${AMB}30` }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Recommended Next Steps</div>
-                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#374151', lineHeight: 1.8 }}>
+                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#1f1f22', lineHeight: 1.8 }}>
                   {(a.thin_content_pages || []).length > 0 && <li>Expand or consolidate your {(a.thin_content_pages || []).length} thin pages (under 300 words). Add depth or merge them into related pages.</li>}
                   {(a.context_dilution_pages || []).length > 0 && <li>Split your {(a.context_dilution_pages || []).length} diluted pages so each page focuses on 1-3 topics max.</li>}
                   {(a.orphan_contexts || []).length > 0 && <li>Create dedicated pages for your {(a.orphan_contexts || []).length} orphan topics, then interlink them with existing content.</li>}
@@ -227,7 +227,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               {!ngrams.trigrams?.length && !ngrams.bigrams?.length && (
                 <div style={{ color: '#1f2937', fontSize: 12, padding: 20, textAlign: 'center' }}>No N-gram data</div>
               )}
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
                 These are the most-repeated multi-word phrases across your site. They reveal your topical focus areas. If your core services are missing, you need more content about them. If irrelevant phrases dominate, you may have off-topic content diluting your signal.
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                 <WordList title="Verbs" items={a.top_predicates} icon={Zap} color={GRN} />
                 <WordList title="Adjectives" items={a.top_adjectives} icon={Eye} color={AMB} />
               </div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
                 Your vocabulary profile shows the language identity of your site. Nouns reflect your topics, verbs show what actions you emphasize, and adjectives reveal your tone. Compare these against your target keywords — if there is a mismatch, your content may not align with what customers search for.
               </div>
             </div>
@@ -254,9 +254,9 @@ export default function SemanticTab({ clientId, agencyId }) {
                     <div key={i} style={{ marginBottom: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{hp.pattern}</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#374151' }}>{hp.count}x</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#1f1f22' }}>{hp.count}x</span>
                       </div>
-                      <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden', marginBottom: 4 }}>
+                      <div style={{ height: 6, borderRadius: 3, background: '#f1f1f6', overflow: 'hidden', marginBottom: 4 }}>
                         <div style={{ height: '100%', borderRadius: 3, background: T, width: `${Math.min(hp.count / Math.max(...a.heading_patterns.map(h => h.count)) * 100, 100)}%` }} />
                       </div>
                       {hp.examples?.length > 0 && (
@@ -270,7 +270,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               ) : (
                 <div style={{ color: '#1f2937', fontSize: 12, padding: 20, textAlign: 'center' }}>No heading patterns</div>
               )}
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
                 Heading patterns reveal how your pages are structured. Repetitive patterns (e.g. every page uses the same H2s) can signal template-driven content that Google may see as low-value. Vary your headings to match each page's unique topic.
               </div>
             </div>
@@ -282,41 +282,41 @@ export default function SemanticTab({ clientId, agencyId }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
               {/* Main vs Supplementary ratio */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Main vs Supplementary Content</div>
-                <div style={{ display: 'flex', height: 24, borderRadius: 6, overflow: 'hidden', background: '#f3f4f6', marginBottom: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Main vs Supplementary Content</div>
+                <div style={{ display: 'flex', height: 24, borderRadius: 6, overflow: 'hidden', background: '#f1f1f6', marginBottom: 6 }}>
                   <div style={{ width: `${mainPct}%`, background: T, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>{mainPct}%</div>
                   <div style={{ width: `${suppPct}%`, background: '#d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>{suppPct}%</div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#374151' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#1f1f22' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: T }} /> Main</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: '#d1d5db' }} /> Supplementary</span>
                 </div>
                 <div style={{ fontSize: 12, color: ratioIdeal ? GRN : AMB, fontWeight: 600, marginTop: 4 }}>
                   {ratioIdeal ? 'Ideal range (60-80%)' : mainPct < 60 ? 'Too much supplementary content' : 'Needs more supporting content'}
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 6, lineHeight: 1.4 }}>
                   Main content is your unique page body. Supplementary is nav, sidebars, footers. Aim for 60-80% main content so search engines focus on what matters.
                 </div>
               </div>
 
               {/* Flow score */}
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Contextual Flow</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Contextual Flow</div>
                 <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: a.contextual_flow_score >= 70 ? GRN : a.contextual_flow_score >= 40 ? AMB : R }}>
                   {a.contextual_flow_score || '--'}
                 </div>
-                <div style={{ fontSize: 11, color: '#374151', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>
                   {a.contextual_flow_score >= 70 ? 'Logical heading hierarchy' : a.contextual_flow_score >= 40 ? 'Some structural gaps' : 'Needs restructuring'}
                 </div>
               </div>
 
               {/* Consistency score */}
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Content Consistency</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Content Consistency</div>
                 <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: a.contextual_consistency_score >= 70 ? GRN : a.contextual_consistency_score >= 40 ? AMB : R }}>
                   {a.contextual_consistency_score || '--'}
                 </div>
-                <div style={{ fontSize: 11, color: '#374151', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>
                   {a.contextual_consistency_score >= 70 ? 'Headings match content' : a.contextual_consistency_score >= 40 ? 'Moderate mismatches' : 'Significant mismatches'}
                 </div>
               </div>
@@ -349,7 +349,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No thin content pages detected
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
                 Pages under 300 words rarely rank. Either expand them with useful detail or merge them into a related, stronger page.
               </div>
             </div>
@@ -379,7 +379,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No diluted pages detected
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
                 Pages covering 4+ unrelated topics confuse search engines about what the page is really about. Split into focused pages, each targeting one topic cluster.
               </div>
             </div>
@@ -395,7 +395,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   {a.orphan_contexts.map((o, i) => (
                     <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{o.topic}</div>
-                      <div style={{ fontSize: 12, color: '#374151', marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 2 }}>
                         Mentioned on: <span style={{ color: '#0e7490' }}>{o.mentioned_on}</span>
                       </div>
                       <div style={{ fontSize: 12, color: '#1f2937' }}>
@@ -409,7 +409,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No orphan contexts detected
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
                 Topics mentioned but never given their own page or internal links. Create a dedicated page for each orphan topic and link to it from the pages that mention it.
               </div>
             </div>
@@ -423,13 +423,13 @@ export default function SemanticTab({ clientId, agencyId }) {
                 {a.paragraph_openers.slice(0, 15).map((p, i) => (
                   <span key={i} style={{
                     padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-                    background: '#f3f4f6', color: BLK, display: 'inline-flex', alignItems: 'center', gap: 4,
+                    background: '#f1f1f6', color: BLK, display: 'inline-flex', alignItems: 'center', gap: 4,
                   }}>
                     "{p.opener}..." <span style={{ fontSize: 11, color: '#1f2937' }}>({p.count}x)</span>
                   </span>
                 ))}
               </div>
-              <div style={{ fontSize: 11, color: '#374151', marginTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 8 }}>
                 Repetitive openers can signal template-driven or formulaic content. Vary your paragraph starts for better readability.
               </div>
             </div>

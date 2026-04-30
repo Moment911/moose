@@ -55,12 +55,12 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
         </div>
       ) : (
         <div style={card}>
-          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>{filtered.length} search terms</div>
+          <div style={{ fontSize: 12, color: '#6b6b70', marginBottom: 12 }}>{filtered.length} search terms</div>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: FB }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 {['Search Term', 'Impressions', 'Clicks', 'Cost', 'Conv', 'Status'].map(h => (
-                  <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                  <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -71,7 +71,7 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
                   <td style={{ padding: '10px 6px', textAlign: 'right' }}>{(t.impressions || 0).toLocaleString()}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right' }}>{(t.clicks || 0).toLocaleString()}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right', color: t.cost_usd > 50 ? R : BLK }}>${(t.cost_usd || 0).toFixed(2)}</td>
-                  <td style={{ padding: '10px 6px', textAlign: 'right', color: t.conversions > 0 ? GRN : '#9ca3af' }}>{t.conversions || 0}</td>
+                  <td style={{ padding: '10px 6px', textAlign: 'right', color: t.conversions > 0 ? GRN : '#8e8e93' }}>{t.conversions || 0}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right' }}>
                     {t.status === 'added_as_negative' && <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: '#fef2f2', color: R }}>Negative</span>}
                     {t.status === 'added_as_keyword' && <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: '#dcfce7', color: GRN }}>Keyword</span>}
@@ -81,7 +81,7 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
               ))}
             </tbody>
           </table>
-          {filtered.length > 100 && <div style={{ textAlign: 'center', padding: 12, color: '#9ca3af', fontSize: 12 }}>Showing 100 of {filtered.length} terms</div>}
+          {filtered.length > 100 && <div style={{ textAlign: 'center', padding: 12, color: '#8e8e93', fontSize: 12 }}>Showing 100 of {filtered.length} terms</div>}
         </div>
       )}
     </div>

@@ -19,7 +19,7 @@ function AllocBar({ label, pct, color }) {
         <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', fontFamily: FH }}>{label}</span>
         <span style={{ fontSize: 12, fontWeight: 800, color, fontFamily: FH }}>{width}%</span>
       </div>
-      <div style={{ height: 10, background: '#f3f4f6', borderRadius: 6, overflow: 'hidden' }}>
+      <div style={{ height: 10, background: '#f1f1f6', borderRadius: 6, overflow: 'hidden' }}>
         <div style={{ width: `${width}%`, height: '100%', background: color, transition: 'width .3s' }} />
       </div>
     </div>
@@ -37,14 +37,14 @@ function PriorityCard({ title, items, color, icon: Icon, fieldMap, empty }) {
         </div>
       </div>
       {(!items || items.length === 0) ? (
-        <div style={{ fontSize: 12, color: '#6b7280', fontStyle: 'italic', padding: '12px 0' }}>{empty}</div>
+        <div style={{ fontSize: 12, color: '#6b6b70', fontStyle: 'italic', padding: '12px 0' }}>{empty}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {items.slice(0, 8).map((it, i) => (
-            <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
+            <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #f3f4f6' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>{it.cluster || it.topic || '—'}</div>
               {fieldMap.map(([key, label, style]) => it[key] ? (
-                <div key={key} style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginTop: 3, ...style }}>
+                <div key={key} style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.5, marginTop: 3, ...style }}>
                   {label && <span style={{ fontWeight: 700, color: '#1f2937' }}>{label}: </span>}{it[key]}
                 </div>
               ) : null)}
@@ -120,7 +120,7 @@ export default function StrategyTab({ clientId, agencyId }) {
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Target size={20} color={R} /> Strategic Plan
           </div>
-          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
             AI-generated attack / defend / abandon priorities with weekly actions and resource allocation.
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function StrategyTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Target size={42} color="#d1d5db" style={{ marginBottom: 12 }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Strategic Plan Yet</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>Pick a timeframe above and generate your first plan.</div>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>Pick a timeframe above and generate your first plan.</div>
         </div>
       )}
 
@@ -217,12 +217,12 @@ export default function StrategyTab({ clientId, agencyId }) {
                       {typeof wk === 'number' || /^\d+$/.test(String(wk)) ? `Week ${wk}` : wk}
                     </div>
                     {weeksMap[wk].map((a, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 12px', background: '#f9fafb', borderRadius: 8, marginBottom: 4 }}>
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4 }}>
                         <CheckCircle size={14} color="#d1d5db" style={{ marginTop: 2, flexShrink: 0 }} />
                         <div style={{ flex: 1, fontSize: 13, color: '#1f2937', lineHeight: 1.5 }}>
                           {a.action || a.text || '—'}
                           {(a.owner || a.estimated_hours) && (
-                            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 2 }}>
                               {a.owner && <span>Owner: {a.owner}</span>}
                               {a.owner && a.estimated_hours ? ' · ' : ''}
                               {a.estimated_hours ? <span>~{a.estimated_hours}h</span> : null}
@@ -244,13 +244,13 @@ export default function StrategyTab({ clientId, agencyId }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {milestones.map((m, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', background: '#f9fafb', borderRadius: 10, borderLeft: `3px solid ${T}` }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', background: '#f9f9fb', borderRadius: 10, borderLeft: `3px solid ${T}` }}>
                     <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: T, minWidth: 70 }}>
                       {typeof m.month === 'number' || /^\d+$/.test(String(m.month)) ? `Month ${m.month}` : (m.month || `#${i + 1}`)}
                     </div>
                     <div style={{ flex: 1, fontSize: 13, color: BLK, lineHeight: 1.5 }}>
                       <div style={{ fontWeight: 700 }}>{m.milestone || m.text || '—'}</div>
-                      {m.metric && <div style={{ fontSize: 12, color: '#374151', marginTop: 3 }}>Metric: {m.metric}</div>}
+                      {m.metric && <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 3 }}>Metric: {m.metric}</div>}
                     </div>
                   </div>
                 ))}

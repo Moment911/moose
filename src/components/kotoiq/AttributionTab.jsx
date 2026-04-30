@@ -48,7 +48,7 @@ const GRADE_COLORS = {
   good: '#16a34a',
   'needs-improvement': '#f59e0b',
   poor: '#dc2626',
-  none: '#9ca3af',
+  none: '#8e8e93',
 }
 
 const CONFIDENCE_COLORS = {
@@ -105,14 +105,14 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
-        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#9ca3af' }} />
+        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#8e8e93' }} />
       </div>
     )
   }
 
   if (!kpis) {
     return (
-      <div style={{ ...card, textAlign: 'center', padding: 40, color: '#6b7280' }}>
+      <div style={{ ...card, textAlign: 'center', padding: 40, color: '#6b6b70' }}>
         <Info size={20} style={{ marginBottom: 8 }} />
         <div style={{ fontSize: 14, fontFamily: FH }}>No attribution data found for this publish.</div>
       </div>
@@ -133,7 +133,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
           <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>
             Page Attribution
           </div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>
+          <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 2 }}>
             {kpis.url}
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
                cwv.source === 'rum_beacon' ? 'RUM' : cwv.source}
             </span>
             {cwv.fetched_at && (
-              <span style={{ fontSize: 11, color: '#9ca3af' }}>
+              <span style={{ fontSize: 11, color: '#8e8e93' }}>
                 Fetched {new Date(cwv.fetched_at).toLocaleDateString()}
               </span>
             )}
@@ -206,7 +206,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
               const grade = cwvGrade(key, val)
               return (
                 <div key={key} style={{ textAlign: 'center', padding: '12px 8px', borderRadius: 10, border: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
                     {meta.label}
                   </div>
                   <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: GRADE_COLORS[grade] }}>
@@ -220,13 +220,13 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
             })}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: 24, color: '#9ca3af', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 24, color: '#8e8e93', fontSize: 13 }}>
             No CWV readings yet. Click "Fetch CWV" to pull data from CrUX.
           </div>
         )}
 
         {kpis.cwv_readings_count > 1 && (
-          <div style={{ marginTop: 10, fontSize: 11, color: '#9ca3af', textAlign: 'right' }}>
+          <div style={{ marginTop: 10, fontSize: 11, color: '#8e8e93', textAlign: 'right' }}>
             {kpis.cwv_readings_count} total reading{kpis.cwv_readings_count !== 1 ? 's' : ''} on file
           </div>
         )}
@@ -242,14 +242,14 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
         {kpis.attributed_calls.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {kpis.attributed_calls.map((call, i) => (
-              <div key={call.inbound_call_id || i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fafafa' }}>
+              <div key={call.inbound_call_id || i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fafafb' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Phone size={14} style={{ color: '#6b7280' }} />
+                  <Phone size={14} style={{ color: '#6b6b70' }} />
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>
                       {call.match_method.replace('_', ' ')}
                     </div>
-                    <div style={{ fontSize: 11, color: '#9ca3af' }}>
+                    <div style={{ fontSize: 11, color: '#8e8e93' }}>
                       {new Date(call.matched_at).toLocaleDateString()} {new Date(call.matched_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
@@ -259,7 +259,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
             ))}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: 24, color: '#9ca3af', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 24, color: '#8e8e93', fontSize: 13 }}>
             No attributed calls yet.
           </div>
         )}
@@ -275,7 +275,7 @@ function KpiCard({ icon, label, value, sub, color }) {
     <div style={{ ...card, padding: '16px 18px', marginBottom: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         <span style={{ color }}>{icon}</span>
-        <span style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em' }}>
           {label}
         </span>
       </div>
@@ -283,14 +283,14 @@ function KpiCard({ icon, label, value, sub, color }) {
         {value}
       </div>
       {sub && (
-        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{sub}</div>
+        <div style={{ fontSize: 11, color: '#8e8e93', marginTop: 2 }}>{sub}</div>
       )}
     </div>
   )
 }
 
 function ConfidenceBadge({ confidence }) {
-  const color = CONFIDENCE_COLORS[confidence] || '#6b7280'
+  const color = CONFIDENCE_COLORS[confidence] || '#6b6b70'
   const label = confidence >= 1.0 ? 'Exact'
     : confidence >= 0.85 ? 'High'
     : confidence >= 0.6 ? 'Medium'
@@ -325,9 +325,9 @@ function DeviceToggle({ active, onClick, children }) {
         fontFamily: FH,
         padding: '5px 12px',
         borderRadius: 8,
-        border: '1px solid ' + (active ? T : '#e5e7eb'),
+        border: '1px solid ' + (active ? T : '#ececef'),
         background: active ? T + '10' : '#fff',
-        color: active ? T : '#6b7280',
+        color: active ? T : '#6b6b70',
         cursor: 'pointer',
       }}
     >

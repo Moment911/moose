@@ -94,7 +94,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Content Decay Prediction</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>
             {urls.length} URLs in inventory -- predicts 30/60/90-day ranking drops
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {priorityQueue.map((u, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9fafb' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9f9fb' }}>
                 <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: R + '14', color: R, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                 <div style={{ flex: 1, fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.url}</div>
                 <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 10, background: riskColor(u.decay_risk) + '14', color: riskColor(u.decay_risk) }}>{u.decay_risk}</span>
@@ -130,7 +130,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 30 }}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} color={T} /></div>
         ) : urls.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 30, color: '#374151', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 30, color: '#1f1f22', fontSize: 13 }}>
             <FileText size={32} color="#d1d5db" style={{ marginBottom: 8 }} /><br />
             No URLs indexed yet. Run content refresh audit first.
           </div>
@@ -154,7 +154,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
                   const pos30 = Number(u.predicted_30d || 0)
                   const trend = pos30 > posNow // higher = worse
                   return (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selected?.url === u.url ? '#f9fafb' : 'transparent' }}
+                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selected?.url === u.url ? '#f9f9fb' : 'transparent' }}
                         onClick={() => setSelected(u)}>
                       <td style={{ padding: '10px 8px', color: T, maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.url}</td>
                       <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700 }}>{posNow || '—'}</td>
@@ -188,10 +188,10 @@ export default function ContentDecayTab({ clientId, agencyId }) {
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10 }}>Decay Factors — {selected.url}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {selected.decay_factors.map((f, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9fafb', borderRadius: 8 }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8 }}>
                 {f.direction === 'up' ? <TrendingUp size={14} color={GRN} /> : <TrendingDown size={14} color={R} />}
-                <div style={{ flex: 1, fontSize: 12, color: '#374151' }}>{f.factor || f.name || String(f)}</div>
-                {f.weight && <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>Weight: {f.weight}</span>}
+                <div style={{ flex: 1, fontSize: 12, color: '#1f1f22' }}>{f.factor || f.name || String(f)}</div>
+                {f.weight && <span style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22' }}>Weight: {f.weight}</span>}
               </div>
             ))}
           </div>

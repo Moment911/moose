@@ -188,7 +188,7 @@ export default function BuilderTab({ clientId, agencyId }) {
             </button>
           </div>
           {templates.length === 0 ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>
+            <div style={{ padding: 40, textAlign: 'center', color: '#6b6b70' }}>
               No templates yet. Pick a connected site and ingest an Elementor page.
             </div>
           ) : (
@@ -199,12 +199,12 @@ export default function BuilderTab({ clientId, agencyId }) {
                     <Layers size={20} style={{ color: '#6366f1' }} />
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 15 }}>{t.source_title || 'Untitled'}</div>
-                      <div style={{ fontSize: 13, color: '#6b7280' }}>
+                      <div style={{ fontSize: 13, color: '#6b6b70' }}>
                         Elementor {t.elementor_version} · {t.slot_count} slots · {t.status}
                       </div>
                     </div>
                   </div>
-                  <ChevronRight size={18} style={{ color: '#9ca3af' }} />
+                  <ChevronRight size={18} style={{ color: '#8e8e93' }} />
                 </div>
               ))}
             </div>
@@ -223,7 +223,7 @@ export default function BuilderTab({ clientId, agencyId }) {
                   <Globe size={18} style={{ color: '#059669' }} />
                   <div>
                     <div style={{ fontWeight: 600 }}>{site.site_name}</div>
-                    <div style={{ fontSize: 13, color: '#6b7280' }}>{site.site_url}</div>
+                    <div style={{ fontSize: 13, color: '#6b6b70' }}>{site.site_url}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -245,7 +245,7 @@ export default function BuilderTab({ clientId, agencyId }) {
               </div>
             ))}
             {sites.filter(s => s.connected).length === 0 && (
-              <div style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>
+              <div style={{ padding: 24, textAlign: 'center', color: '#6b6b70' }}>
                 No connected sites. Connect a WordPress site first.
               </div>
             )}
@@ -274,7 +274,7 @@ export default function BuilderTab({ clientId, agencyId }) {
                       <FileText size={16} style={{ color: '#6366f1' }} />
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>{p.title}</div>
-                        <div style={{ fontSize: 12, color: '#6b7280' }}>
+                        <div style={{ fontSize: 12, color: '#6b6b70' }}>
                           /{p.slug} · {p.post_type} · {p.status} · v{p.elementor_version}
                         </div>
                       </div>
@@ -359,7 +359,7 @@ function SlotEditor({ template, slots, onSave, onBack, saving }) {
         <div>
           <button onClick={onBack} style={{ ...btnSmStyle, marginRight: 12 }}>← Back</button>
           <span style={{ fontSize: 18, fontWeight: 700 }}>{template.source_title || 'Template'}</span>
-          <span style={{ fontSize: 14, color: '#6b7280', marginLeft: 8 }}>{activeSlots.length} slots</span>
+          <span style={{ fontSize: 14, color: '#6b6b70', marginLeft: 8 }}>{activeSlots.length} slots</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={addSlot} style={btnSmStyle}><Plus size={14} /> Add Slot</button>
@@ -376,8 +376,8 @@ function SlotEditor({ template, slots, onSave, onBack, saving }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{
                   fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4,
-                  background: (SLOT_COLORS[slot.slot_kind] || '#6b7280') + '15',
-                  color: SLOT_COLORS[slot.slot_kind] || '#6b7280',
+                  background: (SLOT_COLORS[slot.slot_kind] || '#6b6b70') + '15',
+                  color: SLOT_COLORS[slot.slot_kind] || '#6b6b70',
                 }}>
                   {slot.slot_kind}
                 </span>
@@ -389,7 +389,7 @@ function SlotEditor({ template, slots, onSave, onBack, saving }) {
                 />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, color: '#6b7280' }}>
+                <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, color: '#6b6b70' }}>
                   <input
                     type="checkbox"
                     checked={edits[slot.id]?.required ?? slot.required}
@@ -402,9 +402,9 @@ function SlotEditor({ template, slots, onSave, onBack, saving }) {
                 </button>
               </div>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: 'monospace' }}>{slot.json_path}</div>
+            <div style={{ fontSize: 12, color: '#8e8e93', fontFamily: 'monospace' }}>{slot.json_path}</div>
             {slot.current_value && (
-              <div style={{ fontSize: 12, color: '#6b7280', background: '#f9fafb', padding: '4px 8px', borderRadius: 4, maxHeight: 60, overflow: 'hidden' }}>
+              <div style={{ fontSize: 12, color: '#6b6b70', background: '#f9f9fb', padding: '4px 8px', borderRadius: 4, maxHeight: 60, overflow: 'hidden' }}>
                 {typeof slot.current_value === 'string' ? slot.current_value.slice(0, 200) : JSON.stringify(slot.current_value).slice(0, 200)}
               </div>
             )}
@@ -481,7 +481,7 @@ function TabButton({ active, onClick, children }) {
         padding: '6px 14px', fontSize: 14, fontWeight: active ? 600 : 400,
         background: 'none', border: 'none', cursor: 'pointer',
         borderBottom: active ? '2px solid #111' : '2px solid transparent',
-        color: active ? '#111' : '#6b7280',
+        color: active ? '#111' : '#6b6b70',
       }}
     >
       {children}
@@ -499,7 +499,7 @@ const btnStyle = {
 const btnSmStyle = {
   display: 'inline-flex', alignItems: 'center', gap: 4,
   padding: '5px 12px', fontSize: 13, fontWeight: 500,
-  background: '#f3f4f6', color: '#111', border: '1px solid #e5e7eb',
+  background: '#f1f1f6', color: '#111', border: '1px solid #e5e7eb',
   borderRadius: 6, cursor: 'pointer',
 }
 

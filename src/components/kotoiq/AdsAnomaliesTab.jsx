@@ -56,7 +56,7 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
 
       {loading ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div> : (
         <>
-          {alerts.length === 0 && <div style={{ ...card, textAlign: 'center', padding: 40, color: '#9ca3af' }}>
+          {alerts.length === 0 && <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
             <CheckCircle size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
             <div style={{ fontFamily: FH, fontWeight: 700 }}>No anomalies detected</div>
             <div style={{ fontSize: 13 }}>All metrics within normal ranges</div>
@@ -73,20 +73,20 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
                     <div>
                       <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: sev.bg, color: sev.color, fontWeight: 700, marginRight: 8 }}>{a.severity?.toUpperCase()}</span>
                       <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14 }}>{a.metric} anomaly</span>
-                      <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>{a.delta_pct > 0 ? '+' : ''}{(a.delta_pct || 0).toFixed(1)}% from baseline</span>
+                      <span style={{ fontSize: 12, color: '#6b6b70', marginLeft: 8 }}>{a.delta_pct > 0 ? '+' : ''}{(a.delta_pct || 0).toFixed(1)}% from baseline</span>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 11, color: '#9ca3af' }}>{a.created_at?.split('T')[0]}</span>
+                    <span style={{ fontSize: 11, color: '#8e8e93' }}>{a.created_at?.split('T')[0]}</span>
                     {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </div>
                 </div>
                 {isExpanded && (
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12, fontFamily: FB }}>{a.explanation_md}</div>
+                    <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12, fontFamily: FB }}>{a.explanation_md}</div>
                     {a.contributors?.length > 0 && (
                       <div style={{ marginBottom: 12 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 6 }}>TOP CONTRIBUTORS</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', marginBottom: 6 }}>TOP CONTRIBUTORS</div>
                         {a.contributors.map((c, j) => (
                           <div key={j} style={{ fontSize: 12, padding: '4px 0', display: 'flex', justifyContent: 'space-between' }}>
                             <span>{c.entity_name}</span>
@@ -97,7 +97,7 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
                     )}
                     {!a.acknowledged_at && (
                       <button onClick={() => acknowledge(a.id)}
-                        style={{ fontSize: 12, padding: '6px 14px', background: '#f3f4f6', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>Acknowledge</button>
+                        style={{ fontSize: 12, padding: '6px 14px', background: '#f1f1f6', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>Acknowledge</button>
                     )}
                   </div>
                 )}

@@ -32,7 +32,7 @@ function ScoreRing({ score, size = 130 }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: FH, fontSize: size * 0.3, fontWeight: 900, color: c }}>{score}</div>
-        <div style={{ fontSize: size * 0.1, color: '#374151', fontWeight: 700 }}>Grade {g}</div>
+        <div style={{ fontSize: size * 0.1, color: '#1f1f22', fontWeight: 700 }}>Grade {g}</div>
       </div>
     </div>
   )
@@ -43,11 +43,11 @@ function CheckRow({ label, status, detail }) {
     : status === 'fail' ? <XCircle size={14} color={R} />
     : <AlertCircle size={14} color={AMB} />
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9fafb', marginBottom: 4 }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9f9fb', marginBottom: 4 }}>
       <div style={{ marginTop: 2 }}>{icon}</div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{label}</div>
-        {detail && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{detail}</div>}
+        {detail && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{detail}</div>}
       </div>
     </div>
   )
@@ -92,7 +92,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <FileText size={18} color={T} /> On-Page Audit
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Checks title, meta, headings, keyword placement, schema, and more.
         </div>
         <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com/page" style={{
@@ -119,7 +119,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
             <ScoreRing score={data.overall_score || 0} />
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>{url}</div>
-              <div style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 4 }}>
                 {data.checks?.filter(c => c.status === 'pass').length || 0} pass --
                 {' '}{data.checks?.filter(c => c.status === 'warning').length || 0} warn --
                 {' '}{data.checks?.filter(c => c.status === 'fail').length || 0} fail
@@ -138,10 +138,10 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
                   return (
                     <div key={slot} style={{
                       padding: '10px 12px', borderRadius: 8,
-                      background: on ? GRN + '14' : '#f3f4f6', border: `1px solid ${on ? GRN + '30' : '#e5e7eb'}`,
+                      background: on ? GRN + '14' : '#f1f1f6', border: `1px solid ${on ? GRN + '30' : '#ececef'}`,
                     }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', marginBottom: 2 }}>{slot.replace(/_/g, ' ')}</div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: on ? GRN : '#9ca3af' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', marginBottom: 2 }}>{slot.replace(/_/g, ' ')}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: on ? GRN : '#8e8e93' }}>
                         {on ? (typeof val === 'boolean' ? '✓ Present' : String(val)) : '✗ Missing'}
                       </div>
                     </div>
@@ -166,7 +166,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
               {data.critical_fixes.map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 8, background: R + '06', marginBottom: 4 }}>
                   <XCircle size={14} color={R} style={{ marginTop: 2 }} />
-                  <div style={{ fontSize: 12, color: '#374151' }}>{typeof f === 'string' ? f : f.fix || f.text}</div>
+                  <div style={{ fontSize: 12, color: '#1f1f22' }}>{typeof f === 'string' ? f : f.fix || f.text}</div>
                 </div>
               ))}
             </div>
@@ -180,7 +180,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
               {data.quick_wins.map((w, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 8, background: GRN + '06', marginBottom: 4 }}>
                   <Zap size={14} color={GRN} style={{ marginTop: 2 }} />
-                  <div style={{ fontSize: 12, color: '#374151' }}>{typeof w === 'string' ? w : w.win || w.text}</div>
+                  <div style={{ fontSize: 12, color: '#1f1f22' }}>{typeof w === 'string' ? w : w.win || w.text}</div>
                 </div>
               ))}
             </div>

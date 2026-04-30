@@ -29,7 +29,7 @@ async function publishAction(action, payload = {}) {
 // ── Status config ───────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  pending:    { color: '#6b7280', bg: '#f3f4f6', icon: Clock,         label: 'Pending' },
+  pending:    { color: '#6b6b70', bg: '#f1f1f6', icon: Clock,         label: 'Pending' },
   generating: { color: '#8b5cf6', bg: '#f5f3ff', icon: Loader2,       label: 'Generating' },
   ready:      { color: '#2563eb', bg: '#eff6ff', icon: Zap,           label: 'Ready' },
   publishing: { color: '#d97706', bg: '#fffbeb', icon: Loader2,       label: 'Publishing' },
@@ -38,11 +38,11 @@ const STATUS_CONFIG = {
 }
 
 const CAMPAIGN_STATUS = {
-  draft:      { color: '#6b7280', label: 'Draft' },
+  draft:      { color: '#6b6b70', label: 'Draft' },
   publishing: { color: '#d97706', label: 'Publishing' },
   live:       { color: '#16a34a', label: 'Live' },
-  cancelled:  { color: '#9ca3af', label: 'Cancelled' },
-  paused:     { color: '#6b7280', label: 'Paused' },
+  cancelled:  { color: '#8e8e93', label: 'Cancelled' },
+  paused:     { color: '#6b6b70', label: 'Paused' },
   failed:     { color: '#dc2626', label: 'Failed' },
 }
 
@@ -154,7 +154,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
 
   if (!campaigns.length) {
     return (
-      <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontFamily: FH }}>
+      <div style={{ padding: 40, textAlign: 'center', color: '#8e8e93', fontFamily: FH }}>
         <Zap size={32} style={{ marginBottom: 8, opacity: 0.4 }} />
         <div style={{ fontSize: 15, fontWeight: 600 }}>No campaigns yet</div>
         <div style={{ fontSize: 13, marginTop: 4 }}>Create a campaign in the Builder tab to start publishing.</div>
@@ -207,7 +207,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                   cursor: 'pointer', gap: 12,
                   transition: 'background 0.15s',
                 }}
-                onMouseOver={e => e.currentTarget.style.background = '#fafafa'}
+                onMouseOver={e => e.currentTarget.style.background = '#fafafb'}
                 onMouseOut={e => e.currentTarget.style.background = '#fff'}
               >
                 {/* Expand chevron */}
@@ -224,7 +224,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                   }}>
                     {campaign.name || `Campaign ${campaign.id.slice(0, 8)}`}
                   </div>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: '#8e8e93', marginTop: 2 }}>
                     {campaign.cadence || 'burst'} cadence
                     {campaign.total_variants ? ` \u00B7 ${campaign.total_variants} variants` : ''}
                   </div>
@@ -242,7 +242,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                 {/* Progress bar */}
                 {campaign.total_variants > 0 && (
                   <div style={{
-                    width: 100, height: 6, borderRadius: 3, background: '#f3f4f6',
+                    width: 100, height: 6, borderRadius: 3, background: '#f1f1f6',
                     overflow: 'hidden', flexShrink: 0,
                   }}>
                     <div style={{
@@ -294,7 +294,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                 }}>
                   {loading[campaign.id] ? (
                     <div style={{
-                      padding: 24, textAlign: 'center', color: '#9ca3af',
+                      padding: 24, textAlign: 'center', color: '#8e8e93',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}>
                       <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
@@ -354,12 +354,12 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   style={{
-                                    fontSize: 11, color: '#6b7280', textDecoration: 'none',
+                                    fontSize: 11, color: '#6b6b70', textDecoration: 'none',
                                     display: 'block', marginTop: 1,
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                   }}
                                   onMouseOver={e => e.currentTarget.style.color = '#2563eb'}
-                                  onMouseOut={e => e.currentTarget.style.color = '#6b7280'}
+                                  onMouseOut={e => e.currentTarget.style.color = '#6b6b70'}
                                 >
                                   {variant.url}
                                 </a>
@@ -394,7 +394,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                                   display: 'flex', alignItems: 'center', gap: 4,
                                   padding: '4px 10px', borderRadius: 8,
                                   border: '1px solid #e5e7eb', background: '#fff',
-                                  fontSize: 11, fontWeight: 600, color: '#6b7280',
+                                  fontSize: 11, fontWeight: 600, color: '#6b6b70',
                                   cursor: 'pointer', flexShrink: 0,
                                   opacity: loading[`retry-${variant.id}`] ? 0.5 : 1,
                                 }}
@@ -409,7 +409,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
 
                             {/* Published timestamp */}
                             {variant.published_at && (
-                              <div style={{ fontSize: 11, color: '#9ca3af', flexShrink: 0 }}>
+                              <div style={{ fontSize: 11, color: '#8e8e93', flexShrink: 0 }}>
                                 {new Date(variant.published_at).toLocaleDateString()}
                               </div>
                             )}
@@ -418,7 +418,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                       })}
                     </>
                   ) : (
-                    <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+                    <div style={{ padding: 16, textAlign: 'center', color: '#8e8e93', fontSize: 13 }}>
                       No variants found for this campaign.
                     </div>
                   )}

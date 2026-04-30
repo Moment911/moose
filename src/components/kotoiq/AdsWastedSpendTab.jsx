@@ -67,7 +67,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
             <AlertTriangle size={32} color={totalWasted > 100 ? R : AMB} />
             <div>
               <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: R }}>${totalWasted.toFixed(2)}</div>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>Wasted in last 30 days across {candidates.length} search terms (0 conversions, 5+ clicks)</div>
+              <div style={{ fontSize: 13, color: '#6b6b70' }}>Wasted in last 30 days across {candidates.length} search terms (0 conversions, 5+ clicks)</div>
             </div>
           </div>
 
@@ -82,7 +82,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Search Term', 'Match', 'Scope', 'Savings/mo', 'Status', ''].map(h => (
-                      <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                      <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -91,7 +91,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
                     <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 500 }}>{r.search_term}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
-                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: '#f3f4f6' }}>{r.proposed_match_type}</span>
+                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: '#f1f1f6' }}>{r.proposed_match_type}</span>
                       </td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', fontSize: 11 }}>{r.scope}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: GRN, fontWeight: 700 }}>${(r.estimated_savings_usd || 0).toFixed(2)}</td>
@@ -122,7 +122,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Search Term', 'Cost', 'Clicks', 'First Seen', 'Last Seen'].map(h => (
-                      <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                      <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -132,8 +132,8 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
                       <td style={{ padding: '10px 6px', fontWeight: 500 }}>{c.search_term}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: R, fontWeight: 700 }}>${(c.cost_usd || 0).toFixed(2)}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{c.clicks || 0}</td>
-                      <td style={{ padding: '10px 6px', textAlign: 'right', fontSize: 11, color: '#9ca3af' }}>{c.first_seen || '—'}</td>
-                      <td style={{ padding: '10px 6px', textAlign: 'right', fontSize: 11, color: '#9ca3af' }}>{c.last_seen || '—'}</td>
+                      <td style={{ padding: '10px 6px', textAlign: 'right', fontSize: 11, color: '#8e8e93' }}>{c.first_seen || '—'}</td>
+                      <td style={{ padding: '10px 6px', textAlign: 'right', fontSize: 11, color: '#8e8e93' }}>{c.last_seen || '—'}</td>
                     </tr>
                   ))}
                 </tbody>

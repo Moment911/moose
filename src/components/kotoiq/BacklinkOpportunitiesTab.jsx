@@ -77,7 +77,7 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Link Building Opportunities</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>
             {opps.length} opportunities across {Object.keys(grouped).length} types
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
       </div>
 
       {Object.entries(grouped).map(([type, items]) => {
-        const meta = TYPE_META[type] || { label: type, color: '#374151' }
+        const meta = TYPE_META[type] || { label: type, color: '#1f1f22' }
         const open = typeOpen[type] ?? true
         return (
           <div key={type} style={{ ...card, borderLeft: `4px solid ${meta.color}` }}>
@@ -111,21 +111,21 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
                   const isExp = expanded[key]
                   return (
                     <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#fafafa', cursor: 'pointer' }}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#fafafb', cursor: 'pointer' }}
                            onClick={() => setExpanded(s => ({ ...s, [key]: !isExp }))}>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {o.target_url || o.target_domain || o.domain || o.title || o.opportunity}
                           </div>
-                          {o.description && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{o.description}</div>}
+                          {o.description && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{o.description}</div>}
                         </div>
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#1f2937' }}>DA {o.domain_authority || o.da || '—'}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: '#1f2937' }}>DA {o.domain_authority || o.da || '—'}</span>
                         <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: T + '14', color: T }}>R {o.relevance_score || '—'}</span>
                         <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: GRN + '14', color: GRN }}>E {o.ease_score || '—'}</span>
                         <span style={{
                           fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 12,
-                          background: (o.priority === 'high' ? R : o.priority === 'medium' ? AMB : '#9ca3af') + '14',
-                          color: o.priority === 'high' ? R : o.priority === 'medium' ? AMB : '#9ca3af',
+                          background: (o.priority === 'high' ? R : o.priority === 'medium' ? AMB : '#8e8e93') + '14',
+                          color: o.priority === 'high' ? R : o.priority === 'medium' ? AMB : '#8e8e93',
                         }}>{o.priority || 'low'}</span>
                         {isExp ? <ChevronUp size={14} color="#6b7280" /> : <ChevronDown size={14} color="#6b7280" />}
                       </div>
@@ -140,8 +140,8 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
                           )}
                           {o.outreach_template && (
                             <>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', marginBottom: 6 }}>Outreach Template</div>
-                              <pre style={{ fontFamily: 'inherit', fontSize: 12, color: '#374151', background: '#f9fafb', padding: 12, borderRadius: 8, whiteSpace: 'pre-wrap', margin: 0, lineHeight: 1.5 }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', marginBottom: 6 }}>Outreach Template</div>
+                              <pre style={{ fontFamily: 'inherit', fontSize: 12, color: '#1f1f22', background: '#f9f9fb', padding: 12, borderRadius: 8, whiteSpace: 'pre-wrap', margin: 0, lineHeight: 1.5 }}>
                                 {o.outreach_template}
                               </pre>
                               <button onClick={() => { navigator.clipboard.writeText(o.outreach_template); toast.success('Template copied') }} style={{

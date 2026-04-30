@@ -37,7 +37,7 @@ function CoverageBar({ covered, total, height = 8 }) {
         <span>Coverage</span>
         <span style={{ color }}>{pct}% ({covered}/{total})</span>
       </div>
-      <div style={{ height, borderRadius: height / 2, background: '#f3f4f6', overflow: 'hidden', display: 'flex' }}>
+      <div style={{ height, borderRadius: height / 2, background: '#f1f1f6', overflow: 'hidden', display: 'flex' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: GRN, transition: 'width .5s ease' }} />
         <div style={{ width: `${100 - pct}%`, height: '100%', background: R + '30' }} />
       </div>
@@ -111,11 +111,11 @@ export default function QueryPathTab({ clientId, agencyId }) {
       <div style={{ textAlign: 'center', padding: '40px 20px' }}>
         <GitBranch size={40} color={T} style={{ marginBottom: 12, opacity: 0.5 }} />
         <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Query Path Analyzer</div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
           Discover how users search for your services. Group keywords into clusters based on topical, intent, and sequential patterns to find content gaps.
         </div>
         <button onClick={runAnalysis} disabled={analyzing} style={{
-          padding: '10px 24px', borderRadius: 8, border: 'none', background: analyzing ? '#e5e7eb' : BLK,
+          padding: '10px 24px', borderRadius: 8, border: 'none', background: analyzing ? '#ececef' : BLK,
           color: '#fff', fontSize: 13, fontWeight: 700, cursor: analyzing ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
         }}>
           {analyzing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
@@ -136,7 +136,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
         <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
           <GitBranch size={15} color={T} /> How to Read Query Paths
         </div>
-        <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
+        <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6 }}>
           Query paths show how people search for your services. Keywords are grouped into <strong>clusters</strong> based on
           how they relate to each other. <span style={{ color: GRN, fontWeight: 700 }}>Green</span> queries have ranking content on your
           site. <span style={{ color: R, fontWeight: 700 }}>Red</span> queries are gaps where you have no content and are losing potential traffic.
@@ -151,7 +151,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
         <StatBox label="Avg Coverage" value={`${data.avg_coverage_pct || 0}%`} color={data.avg_coverage_pct >= 70 ? GRN : data.avg_coverage_pct >= 40 ? AMB : R} />
         <StatBox label="Gap Queries" value={(data.all_gaps || []).length} color={R} />
         <button onClick={runAnalysis} disabled={analyzing} style={{
-          padding: '8px 18px', borderRadius: 8, border: 'none', background: analyzing ? '#e5e7eb' : BLK,
+          padding: '8px 18px', borderRadius: 8, border: 'none', background: analyzing ? '#ececef' : BLK,
           color: '#fff', fontSize: 12, fontWeight: 700, cursor: analyzing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6,
         }}>
           {analyzing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
@@ -204,8 +204,8 @@ export default function QueryPathTab({ clientId, agencyId }) {
                 const cfg = TYPE_CONFIG[cluster.cluster_type]
                 if (!cfg?.explanation) return null
                 return (
-                  <div style={{ marginTop: 10, padding: '8px 12px', background: '#f9fafb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
-                    <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.5 }}>{cfg.explanation}</div>
+                  <div style={{ marginTop: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
+                    <div style={{ fontSize: 11, color: '#1f1f22', lineHeight: 1.5 }}>{cfg.explanation}</div>
                   </div>
                 )
               })()}
@@ -238,7 +238,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {cluster.common_next_queries.map((q, j) => (
-                          <span key={j} style={{ padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: '#f3f4f6', color: '#374151' }}>
+                          <span key={j} style={{ padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: '#f1f1f6', color: '#1f1f22' }}>
                             {q}
                           </span>
                         ))}
@@ -254,7 +254,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {cluster.common_prev_queries.map((q, j) => (
-                          <span key={j} style={{ padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: '#f3f4f6', color: '#374151' }}>
+                          <span key={j} style={{ padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: '#f1f1f6', color: '#1f1f22' }}>
                             {q}
                           </span>
                         ))}
@@ -281,12 +281,12 @@ export default function QueryPathTab({ clientId, agencyId }) {
                     const cfg = TYPE_CONFIG[cluster.cluster_type]
                     if (!cfg?.actions) return null
                     return (
-                      <div style={{ marginTop: 12, padding: '10px 14px', background: '#f9fafb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
+                      <div style={{ marginTop: 12, padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
                           <Zap size={10} color={T} /> What to do
                         </div>
                         {cfg.actions.map((action, j) => (
-                          <div key={j} style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: j < cfg.actions.length - 1 ? 4 : 0 }}>
+                          <div key={j} style={{ fontSize: 11, color: '#1f1f22', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: j < cfg.actions.length - 1 ? 4 : 0 }}>
                             <span style={{ position: 'absolute', left: 0, color: T, fontWeight: 700 }}>{j + 1}.</span>
                             {action}
                           </div>
@@ -307,7 +307,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
           <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
             <XCircle size={15} color={R} /> Gap Queries — No Ranking Content
           </div>
-          <div style={{ fontSize: 12, color: '#374151', marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 12 }}>
             {(data.all_gaps || []).length} keywords with no ranking page. These are searches people make where your site does not appear — each one is a missed opportunity to attract potential customers.
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -330,15 +330,15 @@ export default function QueryPathTab({ clientId, agencyId }) {
             <div style={{ fontSize: 11, fontWeight: 700, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
               <Zap size={10} color={R} /> What to do
             </div>
-            <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, color: '#1f1f22', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
               <span style={{ position: 'absolute', left: 0, color: R, fontWeight: 700 }}>1.</span>
               Prioritize gaps that appear in high-intent clusters (Intent type) — these are closest to converting into customers.
             </div>
-            <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, color: '#1f1f22', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
               <span style={{ position: 'absolute', left: 0, color: R, fontWeight: 700 }}>2.</span>
               Use the Content Briefs tab to generate optimized content outlines for each gap query.
             </div>
-            <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, paddingLeft: 14, position: 'relative' }}>
+            <div style={{ fontSize: 11, color: '#1f1f22', lineHeight: 1.5, paddingLeft: 14, position: 'relative' }}>
               <span style={{ position: 'absolute', left: 0, color: R, fontWeight: 700 }}>3.</span>
               Group similar gaps together and cover them in a single comprehensive page rather than creating thin pages for each.
             </div>

@@ -158,7 +158,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Eye size={20} color={T} /> Competitor Watch
           </div>
-          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
             Monitor competitor sitemaps, rankings, and backlinks. Get pinged when they move.
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6, fontFamily: FH }}>Competitor Domains</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: FH }}>Competitor Domains</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
             {domains.map(d => (
               <span key={d} style={{
@@ -211,7 +211,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6, fontFamily: FH }}>Email Alerts</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: FH }}>Email Alerts</div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, cursor: 'pointer' }}>
               <input type="checkbox" checked={emailEnabled} onChange={e => setEmailEnabled(e.target.checked)} />
               Send email notifications
@@ -222,7 +222,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
             }} />
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6, fontFamily: FH }}>Slack Webhook (optional)</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: FH }}>Slack Webhook (optional)</div>
             <input value={slackWebhook} onChange={e => setSlackWebhook(e.target.value)} placeholder="https://hooks.slack.com/services/..." style={{
               width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB, boxSizing: 'border-box',
               marginTop: 26,
@@ -232,7 +232,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', fontFamily: FH }}>Frequency:</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', fontFamily: FH }}>Frequency:</span>
             <select value={frequency} onChange={e => setFrequency(e.target.value)} style={{
               padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontWeight: 600, background: '#fff', fontFamily: FH,
             }}>
@@ -259,17 +259,17 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Active Watches ({watches.length})</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {watches.map((w, i) => (
-              <div key={w.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#f9fafb', borderRadius: 10 }}>
+              <div key={w.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#f9f9fb', borderRadius: 10 }}>
                 <Eye size={14} color={T} />
                 <div style={{ flex: 1, fontSize: 13 }}>
                   <div style={{ fontWeight: 700, color: BLK }}>{(w.competitor_domains || []).join(', ')}</div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 2 }}>
                     {w.check_frequency || 'daily'} · last checked {fmtTime(w.last_checked_at)}
                   </div>
                 </div>
                 <span style={{
                   padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700,
-                  background: w.active ? GRN + '14' : '#e5e7eb', color: w.active ? GRN : '#6b7280',
+                  background: w.active ? GRN + '14' : '#ececef', color: w.active ? GRN : '#6b6b70',
                 }}>
                   {w.active ? 'Active' : 'Paused'}
                 </span>
@@ -292,7 +292,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
                 padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 700, fontFamily: FH,
                 border: filter === val ? `1.5px solid ${T}` : '1.5px solid #e5e7eb',
                 background: filter === val ? T + '14' : '#fff',
-                color: filter === val ? T : '#374151', cursor: 'pointer',
+                color: filter === val ? T : '#1f1f22', cursor: 'pointer',
               }}>{lbl}</button>
             ))}
           </div>
@@ -303,7 +303,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
             <Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} />
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 36, color: '#6b7280', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 36, color: '#6b6b70', fontSize: 13 }}>
             No events yet. Save a watch and run a check to populate this feed.
           </div>
         ) : (
@@ -312,17 +312,17 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
               const sev = SEVERITY_STYLES[ev.severity] || SEVERITY_STYLES.info
               const SevIcon = sev.icon
               return (
-                <div key={ev.id || i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', background: '#f9fafb', borderRadius: 10, borderLeft: `3px solid ${sev.color}` }}>
+                <div key={ev.id || i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', background: '#f9f9fb', borderRadius: 10, borderLeft: `3px solid ${sev.color}` }}>
                   <SevIcon size={16} color={sev.color} style={{ flexShrink: 0, marginTop: 2 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 }}>
                       <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: sev.bg, color: sev.color, textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: FH }}>{sev.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{ev.competitor_domain}</span>
-                      <span style={{ fontSize: 11, color: '#6b7280' }}>· {EVENT_TYPE_LABELS[ev.event_type] || ev.event_type}</span>
+                      <span style={{ fontSize: 11, color: '#6b6b70' }}>· {EVENT_TYPE_LABELS[ev.event_type] || ev.event_type}</span>
                     </div>
                     <div style={{ fontSize: 13, color: '#1f2937' }}>{summarizeEvent(ev)}</div>
                   </div>
-                  <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7280', flexShrink: 0 }}>
+                  <div style={{ textAlign: 'right', fontSize: 11, color: '#6b6b70', flexShrink: 0 }}>
                     <div>{fmtTime(ev.created_at)}</div>
                     {ev.alerted && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 2, color: GRN }}>

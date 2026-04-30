@@ -34,7 +34,7 @@ const POSITION_STYLES = {
 
 // Figure out "winning/level/losing" color for a cell
 function cellColor(clientVal, competitorBest, isLowerBetter = false) {
-  if (clientVal == null || competitorBest == null) return { bg: 'transparent', color: '#374151' }
+  if (clientVal == null || competitorBest == null) return { bg: 'transparent', color: '#1f1f22' }
   const diff = isLowerBetter ? competitorBest - clientVal : clientVal - competitorBest
   if (Math.abs(diff) < 0.01) return { bg: AMB + '14', color: AMB }
   return diff > 0 ? { bg: GRN + '14', color: GRN } : { bg: R + '14', color: R }
@@ -100,7 +100,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
             <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Award size={20} color={T} /> Competitive Scorecard
             </div>
-            <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
               Side-by-side SEO comparison with 12 weighted metrics across up to 3 competitors.
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Award size={42} color="#d1d5db" style={{ marginBottom: 12 }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Scorecard Yet</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>Optionally list competitor domains above, then click "Generate Scorecard".</div>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>Optionally list competitor domains above, then click "Generate Scorecard".</div>
         </div>
       )}
 
@@ -174,7 +174,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
                         <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, background: clientCell.bg, color: clientCell.color }}>{fmtVal(clientVal)}</td>
                         {competitors.map((c, i) => {
                           const v = c[row.key]
-                          const cell = v == null ? { bg: 'transparent', color: '#9ca3af' } : cellColor(v, clientVal, isLowerBetter)
+                          const cell = v == null ? { bg: 'transparent', color: '#8e8e93' } : cellColor(v, clientVal, isLowerBetter)
                           return (
                             <td key={i} style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, background: cell.bg, color: cell.color }}>{fmtVal(v)}</td>
                           )
@@ -185,7 +185,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
                 </tbody>
               </table>
             </div>
-            <div style={{ display: 'flex', gap: 14, marginTop: 12, fontSize: 11, color: '#6b7280', fontFamily: FB }}>
+            <div style={{ display: 'flex', gap: 14, marginTop: 12, fontSize: 11, color: '#6b6b70', fontFamily: FB }}>
               <span><span style={{ display: 'inline-block', width: 10, height: 10, background: GRN + '40', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />Winning</span>
               <span><span style={{ display: 'inline-block', width: 10, height: 10, background: AMB + '40', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />Level</span>
               <span><span style={{ display: 'inline-block', width: 10, height: 10, background: R + '40', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />Losing</span>
@@ -198,7 +198,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
                 <CheckCircle size={16} color={GRN} /> Strengths ({strengths.length})
               </div>
               {strengths.length === 0 ? (
-                <div style={{ fontSize: 12, color: '#6b7280', fontStyle: 'italic' }}>No measurable strengths yet — close gaps first.</div>
+                <div style={{ fontSize: 12, color: '#6b6b70', fontStyle: 'italic' }}>No measurable strengths yet — close gaps first.</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {strengths.map((s, i) => (
@@ -215,7 +215,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
                 <AlertCircle size={16} color={R} /> Priority Focus Areas
               </div>
               {focus.length === 0 && gaps.length === 0 ? (
-                <div style={{ fontSize: 12, color: '#6b7280', fontStyle: 'italic' }}>Nothing urgent.</div>
+                <div style={{ fontSize: 12, color: '#6b6b70', fontStyle: 'italic' }}>Nothing urgent.</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {(focus.length ? focus : gaps.slice(0, 5).map(g => `Close ${g.metric} gap`)).map((f, i) => (

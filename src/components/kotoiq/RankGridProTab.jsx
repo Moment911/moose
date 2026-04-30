@@ -16,7 +16,7 @@ const GRID_COLORS = [
 ]
 
 function rankColor(pos) {
-  if (!pos || pos === 0) return '#e5e7eb'
+  if (!pos || pos === 0) return '#ececef'
   for (const c of GRID_COLORS) { if (pos <= c.max) return c.color }
   return '#dc2626'
 }
@@ -64,7 +64,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Grid size={18} color={T} /> Rank Grid Pro
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Geo-grid rank tracking with SoLV and dead-zone analysis.
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
@@ -131,7 +131,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
               {data.dead_zones.slice(0, 10).map((z, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: R + '06', borderRadius: 8, marginBottom: 4 }}>
                   <MapPin size={14} color={R} />
-                  <div style={{ flex: 1, fontSize: 12, color: '#374151' }}>
+                  <div style={{ flex: 1, fontSize: 12, color: '#1f1f22' }}>
                     {z.label || `Cell (${z.row}, ${z.col})`} {z.position ? `— rank ${z.position}` : '— not ranking'}
                   </div>
                 </div>
@@ -180,7 +180,7 @@ const inp = { padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8,
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9fafb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>

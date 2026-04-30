@@ -88,7 +88,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
           style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none' }} />
       </div>
 
-      <div style={{ fontSize: 13, color: '#374151', marginBottom: 14, lineHeight: 1.6 }}>
+      <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 14, lineHeight: 1.6 }}>
         Generate multiple content variants per section. Click a module to generate, or use "Generate All" for the full set.
       </div>
 
@@ -98,12 +98,12 @@ export default function ContentVariantModules({ clientId, agencyId }) {
           const isRunning = generating === mod.id
           return (
             <div key={mod.id}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 10, border: `1px solid ${hasResult ? GRN + '40' : '#e5e7eb'}`, background: hasResult ? GRN + '04' : '#fff', cursor: 'pointer' }}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 10, border: `1px solid ${hasResult ? GRN + '40' : '#ececef'}`, background: hasResult ? GRN + '04' : '#fff', cursor: 'pointer' }}
                 onClick={() => setExpanded(expanded === mod.id ? null : mod.id)}>
                 <span style={{ fontSize: 20, width: 36, textAlign: 'center' }}>{mod.icon}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
-                  <div style={{ fontSize: 12, color: '#374151' }}>{mod.desc}</div>
+                  <div style={{ fontSize: 12, color: '#1f1f22' }}>{mod.desc}</div>
                 </div>
                 {hasResult && <CheckCircle size={16} color={GRN} />}
                 {hasResult && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: GRN + '12', color: GRN }}>{hasResult.variants?.length || 0} variants</span>}
@@ -115,17 +115,17 @@ export default function ContentVariantModules({ clientId, agencyId }) {
               </div>
 
               {expanded === mod.id && hasResult && (
-                <div style={{ padding: '14px 18px', background: '#f9fafb', borderRadius: '0 0 10px 10px', border: '1px solid #e5e7eb', borderTop: 'none', marginTop: -2 }}>
+                <div style={{ padding: '14px 18px', background: '#f9f9fb', borderRadius: '0 0 10px 10px', border: '1px solid #e5e7eb', borderTop: 'none', marginTop: -2 }}>
                   {(hasResult.variants || []).map((v, vi) => (
                     <div key={vi} style={{ marginBottom: 12, padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', position: 'relative' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: T, fontFamily: FH }}>Variant {vi + 1}</span>
                         <button onClick={() => copyToClipboard(v.content || v)}
-                          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280' }}>
+                          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b6b70' }}>
                           <Copy size={10} /> Copy
                         </button>
                       </div>
-                      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                      <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                         {typeof v === 'string' ? v : v.content || JSON.stringify(v)}
                       </div>
                     </div>

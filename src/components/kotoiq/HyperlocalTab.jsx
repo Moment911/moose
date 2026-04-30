@@ -100,14 +100,14 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Hyperlocal Content Generator</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>Turns Rank Grid dead zones into local landing pages and content briefs.</div>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>Turns Rank Grid dead zones into local landing pages and content briefs.</div>
         </div>
       </div>
 
       {/* Description */}
       <div style={{ ...card, background: T + '06', borderColor: T + '30' }}>
         <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 8 }}>How it works</div>
-        <ol style={{ margin: 0, paddingLeft: 22, fontSize: 13, lineHeight: 1.7, color: '#374151', fontFamily: FB }}>
+        <ol style={{ margin: 0, paddingLeft: 22, fontSize: 13, lineHeight: 1.7, color: '#1f1f22', fontFamily: FB }}>
           <li>Reads dead zones (points where you rank &gt; 20) from the latest Rank Grid Pro scan.</li>
           <li>Reverse-geocodes each dead point to find the neighborhood it belongs to.</li>
           <li>Clusters nearby dead points into neighborhood groups.</li>
@@ -123,7 +123,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
             <AlertCircle size={24} color={AMB} />
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>No Grid Scans Found</div>
-              <div style={{ fontSize: 13, color: '#374151' }}>Run a Rank Grid scan first to identify dead zones, or enter locations manually.</div>
+              <div style={{ fontSize: 13, color: '#1f1f22' }}>Run a Rank Grid scan first to identify dead zones, or enter locations manually.</div>
             </div>
             <button
               onClick={() => {
@@ -227,9 +227,9 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Neighborhoods Identified</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
                 {result.neighborhoods_identified.map((n, i) => (
-                  <div key={i} style={{ padding: '12px 14px', background: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+                  <div key={i} style={{ padding: '12px 14px', background: '#f9f9fb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
                     <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>{n.name}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+                    <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 4 }}>
                       {n.weak_points} weak point{n.weak_points === 1 ? '' : 's'}
                       {n.avg_rank != null && ` · avg rank ${Math.round(n.avg_rank)}`}
                     </div>
@@ -247,12 +247,12 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
                 {result.briefs_created.map((b, i) => (
                   <div key={b.brief_id || i} style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                    background: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb',
+                    background: '#f9f9fb', borderRadius: 10, border: '1px solid #e5e7eb',
                   }}>
                     <FileText size={16} color={T} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>{b.neighborhood}</div>
-                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{b.target_keyword}</div>
+                      <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>{b.target_keyword}</div>
                     </div>
                     <button onClick={() => openBrief(b)} style={{
                       padding: '6px 14px', borderRadius: 8, border: `1px solid ${T}`, background: T + '14', color: T,

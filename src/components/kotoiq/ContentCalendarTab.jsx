@@ -10,7 +10,7 @@ import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 const STATUS_CONFIG = {
-  planned: { label: 'Planned', color: '#374151', bg: '#f3f4f6' },
+  planned: { label: 'Planned', color: '#1f1f22', bg: '#f1f1f6' },
   writing: { label: 'Writing', color: '#2563eb', bg: '#eff6ff' },
   review: { label: 'Review', color: AMB, bg: '#fffbeb' },
   published: { label: 'Published', color: GRN, bg: '#f0fdf4' },
@@ -131,13 +131,13 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Content Calendar & Publishing Momentum</div>
-            <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>Plan, schedule, and track your content publishing velocity.</div>
+            <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Plan, schedule, and track your content publishing velocity.</div>
           </div>
         </div>
         <div style={{ ...card, textAlign: 'center', padding: '48px 24px' }}>
           <Calendar size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 8 }}>No content calendar yet</div>
-          <div style={{ fontSize: 13, color: '#374151', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
             Build a calendar from your topical map gaps, content inventory, and keyword data. The AI will prioritize what to publish first.
           </div>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
@@ -216,7 +216,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
           {/* VDM scores */}
           <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>
             <VDMBadge score={momentum.overall_vdm_score} label="VDM Score" />
-            <div style={{ width: 1, height: 40, background: '#e5e7eb' }} />
+            <div style={{ width: 1, height: 40, background: '#ececef' }} />
             <VDMBadge score={momentum.vastness_score} label="Vastness" />
             <VDMBadge score={momentum.depth_score} label="Depth" />
             <VDMBadge score={momentum.momentum_score} label="Momentum" />
@@ -253,7 +253,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
             <Zap size={16} color={T} style={{ marginTop: 2, flexShrink: 0 }} />
             <div>
               <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>AI Recommendation</div>
-              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{momentum.recommended_pace}</div>
+              <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{momentum.recommended_pace}</div>
               {momentum.priority_topics?.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                   {momentum.priority_topics.map((t, i) => (
@@ -275,7 +275,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
               <div style={{ fontSize: 11, fontWeight: 700, color: BLK }}>{p.count}</div>
               <div style={{
                 width: '100%', maxWidth: 48, height: maxPace > 0 ? Math.max((p.count / maxPace) * 70, 4) : 4,
-                background: p.count > 0 ? GRN : '#e5e7eb', borderRadius: '4px 4px 0 0', transition: 'height .3s',
+                background: p.count > 0 ? GRN : '#ececef', borderRadius: '4px 4px 0 0', transition: 'height .3s',
               }} />
               <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 600 }}>{p.label}</div>
             </div>
@@ -289,15 +289,15 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
           {[{ key: '', label: 'All' }, ...Object.entries(STATUS_CONFIG).map(([k, v]) => ({ key: k, label: v.label }))].map(f => (
             <button key={f.key} onClick={() => setStatusFilter(f.key)} style={{
               padding: '5px 12px', borderRadius: 16, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-              border: `1px solid ${statusFilter === f.key ? BLK : '#e5e7eb'}`,
+              border: `1px solid ${statusFilter === f.key ? BLK : '#ececef'}`,
               background: statusFilter === f.key ? BLK : '#fff',
-              color: statusFilter === f.key ? '#fff' : '#6b7280',
+              color: statusFilter === f.key ? '#fff' : '#6b6b70',
             }}>{f.label}</button>
           ))}
         </div>
-        <div style={{ width: 1, background: '#e5e7eb', margin: '0 4px' }} />
+        <div style={{ width: 1, background: '#ececef', margin: '0 4px' }} />
         <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{
-          padding: '5px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 600, color: '#374151', background: '#fff',
+          padding: '5px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 600, color: '#1f1f22', background: '#fff',
         }}>
           <option value="">All types</option>
           {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -335,7 +335,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                       <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
                     )}
                   </td>
-                  <td style={{ padding: '10px 12px', color: '#374151', fontSize: 12 }}>
+                  <td style={{ padding: '10px 12px', color: '#1f1f22', fontSize: 12 }}>
                     {item.target_keyword || '—'}
                   </td>
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>
@@ -362,7 +362,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                       </span>
                     )}
                   </td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, color: '#374151' }}>
+                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, color: '#1f1f22' }}>
                     {isEditing ? (
                       <input type="date" value={(editValues.planned_date ?? item.planned_date) || ''} onChange={e => setEditValues(v => ({ ...v, planned_date: e.target.value }))}
                         style={{ padding: '3px 6px', borderRadius: 4, border: '1px solid #e5e7eb', fontSize: 11 }} />
@@ -370,7 +370,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                       item.planned_date ? new Date(item.planned_date + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'
                     )}
                   </td>
-                  <td style={{ padding: '10px 12px', fontSize: 12, color: '#374151' }}>
+                  <td style={{ padding: '10px 12px', fontSize: 12, color: '#1f1f22' }}>
                     {isEditing ? (
                       <input value={(editValues.assigned_to ?? item.assigned_to) || ''} onChange={e => setEditValues(v => ({ ...v, assigned_to: e.target.value }))}
                         placeholder="Name" style={{ width: 80, padding: '4px 6px', borderRadius: 4, border: '1px solid #e5e7eb', fontSize: 11 }} />
@@ -385,7 +385,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                           padding: '3px 8px', borderRadius: 4, border: 'none', background: GRN, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                         }}>Save</button>
                         <button onClick={() => { setEditingId(null); setEditValues({}) }} style={{
-                          padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#374151',
+                          padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#1f1f22',
                         }}>X</button>
                       </div>
                     ) : (

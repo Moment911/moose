@@ -90,7 +90,7 @@ function dayHeader(iso) {
 
 function StatusPill({ status }) {
   const s = status || 'success'
-  const color = s === 'reverted' ? '#6b7280' : s === 'failed' ? R : GRN
+  const color = s === 'reverted' ? '#6b6b70' : s === 'failed' ? R : GRN
   const Icon = s === 'reverted' ? RotateCcw : s === 'failed' ? XCircle : CheckCircle2
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: color + '18', color, textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: FH }}>
@@ -175,11 +175,11 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <History size={20} color={T} />
           <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Activity</div>
-          <div style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280', fontFamily: FB }}>
+          <div style={{ marginLeft: 'auto', fontSize: 12, color: '#6b6b70', fontFamily: FB }}>
             {activities.length} action{activities.length === 1 ? '' : 's'} on file
           </div>
         </div>
-        <div style={{ fontSize: 13, color: '#374151', fontFamily: FB, marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', fontFamily: FB, marginBottom: 12 }}>
           Every bot-executed action for this client, in order. Revert any artifact you don't want to keep.
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -187,9 +187,9 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
             <button key={f.key} onClick={() => setFilter(f.key)}
               style={{
                 padding: '5px 12px', borderRadius: 16, border: '1px solid',
-                borderColor: filter === f.key ? T : '#e5e7eb',
+                borderColor: filter === f.key ? T : '#ececef',
                 background: filter === f.key ? T + '12' : '#fff',
-                color: filter === f.key ? T : '#374151',
+                color: filter === f.key ? T : '#1f1f22',
                 fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
               }}>
               {f.label}
@@ -199,14 +199,14 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
       </div>
 
       {loading && (
-        <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 8, color: '#6b7280', fontFamily: FB, fontSize: 13 }}>
+        <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 8, color: '#6b6b70', fontFamily: FB, fontSize: 13 }}>
           <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
           Loading activity…
         </div>
       )}
 
       {!loading && filtered.length === 0 && (
-        <div style={{ ...card, textAlign: 'center', padding: '36px 20px', color: '#6b7280', fontFamily: FB }}>
+        <div style={{ ...card, textAlign: 'center', padding: '36px 20px', color: '#6b6b70', fontFamily: FB }}>
           <Clock size={28} color="#d1d5db" style={{ marginBottom: 8 }} />
           <div style={{ fontSize: 14, fontWeight: 600, color: BLK, fontFamily: FH, marginBottom: 4 }}>
             {filter === 'all' ? 'No activity yet' : 'No activity matches this filter'}
@@ -219,7 +219,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
 
       {!loading && groups.map(g => (
         <div key={g.label} style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, padding: '0 4px 8px' }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, padding: '0 4px 8px' }}>
             {g.label}
           </div>
           {g.items.map(a => {
@@ -228,29 +228,29 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
             const inputSummary = summarizeInputs(a.inputs)
             const resultSummary = a.result?.summary || null
             return (
-              <div key={a.id} style={{ ...card, padding: '14px 16px', borderLeft: `3px solid ${a.status === 'reverted' ? '#9ca3af' : a.status === 'failed' ? R : T}` }}>
+              <div key={a.id} style={{ ...card, padding: '14px 16px', borderLeft: `3px solid ${a.status === 'reverted' ? '#8e8e93' : a.status === 'failed' ? R : T}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                   <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
                     {prettyIntent(a.intent)}
                   </div>
                   <StatusPill status={a.status} />
-                  <div style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280', fontFamily: FB, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
+                  <div style={{ marginLeft: 'auto', fontSize: 11, color: '#6b6b70', fontFamily: FB, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
                     <span>{fullStamp(a.created_at)}</span>
-                    <span style={{ fontSize: 10, color: '#9ca3af' }}>{timeAgo(a.created_at)}</span>
+                    <span style={{ fontSize: 10, color: '#8e8e93' }}>{timeAgo(a.created_at)}</span>
                   </div>
                 </div>
                 {inputSummary && (
-                  <div style={{ fontSize: 12, color: '#374151', marginBottom: 4, padding: '6px 10px', background: GRY, borderRadius: 6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
+                  <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 4, padding: '6px 10px', background: GRY, borderRadius: 6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
                     {inputSummary}
                   </div>
                 )}
                 {resultSummary && (
-                  <div style={{ fontSize: 12, color: '#374151', fontFamily: FB, marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, color: '#1f1f22', fontFamily: FB, marginBottom: 10 }}>
                     {resultSummary}
                   </div>
                 )}
                 {a.status === 'reverted' && a.reverted_at && (
-                  <div style={{ fontSize: 11, color: '#6b7280', fontFamily: FB, marginBottom: 10, fontStyle: 'italic' }}>
+                  <div style={{ fontSize: 11, color: '#6b6b70', fontFamily: FB, marginBottom: 10, fontStyle: 'italic' }}>
                     Reverted {fullStamp(a.reverted_at)} ({timeAgo(a.reverted_at)})
                   </div>
                 )}
@@ -261,7 +261,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                       display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6,
                       border: '1px solid #e5e7eb', background: '#fff',
                       fontSize: 12, fontWeight: 600, fontFamily: FH,
-                      color: canView ? BLK : '#9ca3af',
+                      color: canView ? BLK : '#8e8e93',
                       cursor: canView ? 'pointer' : 'not-allowed', opacity: canView ? 1 : 0.5,
                     }}>
                     <Eye size={12} /> View
@@ -273,7 +273,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                       display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6,
                       border: '1px solid #fecaca', background: '#fff',
                       fontSize: 12, fontWeight: 600, fontFamily: FH,
-                      color: revertible ? '#dc2626' : '#9ca3af',
+                      color: revertible ? '#dc2626' : '#8e8e93',
                       cursor: revertible && reverting !== a.id ? 'pointer' : 'not-allowed', opacity: revertible ? 1 : 0.5,
                     }}>
                     {reverting === a.id
@@ -282,7 +282,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                     Revert
                   </button>
                   {a.action_api && (
-                    <div style={{ marginLeft: 'auto', fontSize: 10, color: '#9ca3af', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', alignSelf: 'center' }}>
+                    <div style={{ marginLeft: 'auto', fontSize: 10, color: '#8e8e93', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', alignSelf: 'center' }}>
                       {a.action_api}
                     </div>
                   )}

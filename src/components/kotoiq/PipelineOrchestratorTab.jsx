@@ -20,7 +20,7 @@ const STAGES = [
 ]
 
 const STATUS_COLORS = {
-  waiting: '#9ca3af',
+  waiting: '#8e8e93',
   running: '#3b82f6',
   done: GRN,
   error: '#ef4444',
@@ -195,7 +195,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '8px 14px', borderRadius: 8,
-                  border: `1px solid ${connected ? GRN + '40' : '#e5e7eb'}`,
+                  border: `1px solid ${connected ? GRN + '40' : '#ececef'}`,
                   background: connected ? GRN + '08' : W,
                   fontSize: 13, fontFamily: FH, fontWeight: 600, color: BLK,
                 }}
@@ -267,7 +267,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '4px 10px', borderRadius: 6,
-                  background: '#f3f4f6', fontSize: 12, fontFamily: FB, color: BLK,
+                  background: '#f1f1f6', fontSize: 12, fontFamily: FB, color: BLK,
                 }}
               >
                 {kw}
@@ -301,10 +301,10 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '6px 12px', borderRadius: 8,
-                  border: `1px solid ${active ? T + '60' : '#e5e7eb'}`,
+                  border: `1px solid ${active ? T + '60' : '#ececef'}`,
                   background: active ? T + '10' : W,
                   fontSize: 12, fontWeight: 600, fontFamily: FH,
-                  color: active ? BLK : '#9ca3af',
+                  color: active ? BLK : '#8e8e93',
                   cursor: isRunning ? 'not-allowed' : 'pointer',
                   opacity: isRunning ? 0.6 : 1,
                 }}
@@ -330,7 +330,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
           <span style={{ fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>
             Auto-publish pages
           </span>
-          <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>
+          <span style={{ fontSize: 11, color: '#6b6b70', fontFamily: FB }}>
             {autoPublish ? 'Pages will be published automatically' : 'Pages saved as drafts'}
           </span>
         </div>
@@ -390,7 +390,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
           {/* Overall progress bar */}
           <div style={{
             width: '100%', height: 6, borderRadius: 3,
-            background: '#f3f4f6', marginBottom: 20, overflow: 'hidden',
+            background: '#f1f1f6', marginBottom: 20, overflow: 'hidden',
           }}>
             <div style={{
               width: `${overallProgress}%`, height: '100%', borderRadius: 3,
@@ -428,7 +428,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                   {!isLast && (
                     <div style={{
                       flex: 1, height: 2, marginLeft: 6, marginRight: 6, marginBottom: 18,
-                      background: stage.status === 'done' ? GRN : '#e5e7eb',
+                      background: stage.status === 'done' ? GRN : '#ececef',
                       transition: 'background 0.3s ease',
                     }} />
                   )}
@@ -447,7 +447,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
               <div
                 key={stage.stage}
                 style={{
-                  border: `1px solid ${stage.status === 'running' ? '#3b82f6' + '30' : '#e5e7eb'}`,
+                  border: `1px solid ${stage.status === 'running' ? '#3b82f6' + '30' : '#ececef'}`,
                   borderRadius: 10, marginBottom: 8,
                   background: stage.status === 'running' ? '#3b82f6' + '04' : W,
                 }}
@@ -469,11 +469,11 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 11, fontFamily: FB, color: '#6b7280' }}>
+                    <span style={{ fontSize: 11, fontFamily: FB, color: '#6b6b70' }}>
                       {stage.steps_complete}/{stage.steps_total} steps
                     </span>
                     {stage.duration_ms != null && (
-                      <span style={{ fontSize: 11, fontFamily: FB, color: '#9ca3af' }}>
+                      <span style={{ fontSize: 11, fontFamily: FB, color: '#8e8e93' }}>
                         {(stage.duration_ms / 1000).toFixed(1)}s
                       </span>
                     )}
@@ -538,7 +538,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                 <div style={{ fontSize: 28, fontWeight: 800, fontFamily: FH, color: stat.color }}>
                   {stat.value}
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em' }}>
                   {stat.label}
                 </div>
               </div>

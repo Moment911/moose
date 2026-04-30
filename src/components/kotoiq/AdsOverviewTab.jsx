@@ -12,10 +12,10 @@ function StatCard({ label, value, sub, icon: Icon, color }) {
     <div style={{ ...card, flex: 1, minWidth: 160 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         {Icon && <Icon size={16} color={color || T} />}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
       </div>
       <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: color || BLK, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6, fontFamily: FB }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 6, fontFamily: FB }}>{sub}</div>}
     </div>
   )
 }
@@ -86,7 +86,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
       {loading ? (
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
           <Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} />
-          <div style={{ marginTop: 8, color: '#6b7280', fontSize: 13, fontFamily: FB }}>Loading ads data...</div>
+          <div style={{ marginTop: 8, color: '#6b6b70', fontSize: 13, fontFamily: FB }}>Loading ads data...</div>
         </div>
       ) : (
         <>
@@ -104,14 +104,14 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
               <AlertCircle size={20} color={alertCount > 0 ? R : '#d1d5db'} />
               <div>
                 <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: alertCount > 0 ? R : BLK }}>{alertCount} Active Alerts</div>
-                <div style={{ fontSize: 12, color: '#6b7280' }}>Anomalies detected this week</div>
+                <div style={{ fontSize: 12, color: '#6b6b70' }}>Anomalies detected this week</div>
               </div>
             </div>
             <div style={{ ...card, flex: 1, display: 'flex', alignItems: 'center', gap: 12 }}>
               <CheckCircle size={20} color={recCount > 0 ? AMB : '#d1d5db'} />
               <div>
                 <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: recCount > 0 ? AMB : BLK }}>{recCount} Pending Recs</div>
-                <div style={{ fontSize: 12, color: '#6b7280' }}>Recommendations awaiting review</div>
+                <div style={{ fontSize: 12, color: '#6b6b70' }}>Recommendations awaiting review</div>
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Campaign', 'Status', 'Spend', 'Clicks', 'Conv', 'CPA'].map(h => (
-                      <th key={h} style={{ textAlign: h === 'Campaign' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                      <th key={h} style={{ textAlign: h === 'Campaign' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -133,7 +133,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
                     <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 600 }}>{c.name}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
-                        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: c.status === 'ENABLED' ? '#dcfce7' : '#f3f4f6', color: c.status === 'ENABLED' ? GRN : '#6b7280' }}>{c.status}</span>
+                        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: c.status === 'ENABLED' ? '#dcfce7' : '#f1f1f6', color: c.status === 'ENABLED' ? GRN : '#6b6b70' }}>{c.status}</span>
                       </td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{fmt(c.cost_usd || 0)}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{(c.clicks || 0).toLocaleString()}</td>
@@ -147,7 +147,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
           )}
 
           {!data?.campaigns?.length && !loading && (
-            <div style={{ ...card, textAlign: 'center', padding: 40, color: '#9ca3af' }}>
+            <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
               <BarChart2 size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
               <div style={{ fontFamily: FH, fontWeight: 700, marginBottom: 4 }}>No ads data yet</div>
               <div style={{ fontSize: 13 }}>Click "Sync Google Ads" to import your campaign data</div>

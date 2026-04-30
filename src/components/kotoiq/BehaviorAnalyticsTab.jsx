@@ -93,7 +93,7 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
               <div key={i} style={{ ...card, flex: 1, minWidth: 140 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                   <kpi.icon size={14} color={kpi.color} />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', fontFamily: FH }}>{kpi.label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: FH }}>{kpi.label}</span>
                 </div>
                 <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
               </div>
@@ -108,7 +108,7 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Page URL', 'Sessions', 'Rage Clicks', 'Dead Clicks', 'Scroll %'].map(h => (
-                      <th key={h} style={{ textAlign: h === 'Page URL' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                      <th key={h} style={{ textAlign: h === 'Page URL' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -128,7 +128,7 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
           )}
 
           {!sessions.length && !loading && (
-            <div style={{ ...card, textAlign: 'center', padding: 40, color: '#9ca3af' }}>
+            <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
               <Activity size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
               <div style={{ fontFamily: FH, fontWeight: 700, marginBottom: 4 }}>No behavior data yet</div>
               <div style={{ fontSize: 13 }}>Connect Hotjar or Clarity in the Connect APIs tab, then click Sync</div>

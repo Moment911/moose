@@ -34,7 +34,7 @@ function ScoreRing({ score, size = 140 }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
-        <div style={{ fontSize: size * 0.1, color: '#374151', fontWeight: 700, marginTop: 2 }}>Grade {grade}</div>
+        <div style={{ fontSize: size * 0.1, color: '#1f1f22', fontWeight: 700, marginTop: 2 }}>Grade {grade}</div>
       </div>
     </div>
   )
@@ -43,7 +43,7 @@ function ScoreRing({ score, size = 140 }) {
 function QuadrantCard({ label, score, sub, icon: Icon, accent }) {
   const { color } = gradeFor(score)
   return (
-    <div style={{ background: '#f9fafb', borderRadius: 12, padding: '16px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 12, padding: '16px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: (accent || T) + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={16} color={accent || T} />
@@ -51,7 +51,7 @@ function QuadrantCard({ label, score, sub, icon: Icon, accent }) {
         <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
       </div>
       <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
-      <div style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{sub}</div>
+      <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 4 }}>{sub}</div>
     </div>
   )
 }
@@ -94,14 +94,14 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 28 }}>
         <div style={{ flexShrink: 0 }}>
           {data ? <ScoreRing score={data.overall_score || 0} /> : (
-            <div style={{ width: 140, height: 140, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 140, height: 140, borderRadius: '50%', background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Award size={40} color="#d1d5db" />
             </div>
           )}
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 4 }}>Topical Authority Score</div>
-          <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
             {data
               ? `${data.clusters?.length || 0} clusters analyzed -- updated ${data.updated_at ? new Date(data.updated_at).toLocaleString() : 'recently'}`
               : 'Score your coverage, content depth, historical data, and competitive position'}
@@ -186,9 +186,9 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {data.recommendations.map((r, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 10, background: '#f9fafb' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 10, background: '#f9f9fb' }}>
                     <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: R + '14', color: R, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
-                    <div style={{ flex: 1, fontSize: 13, color: '#374151', lineHeight: 1.5 }}>
+                    <div style={{ flex: 1, fontSize: 13, color: '#1f1f22', lineHeight: 1.5 }}>
                       {typeof r === 'string' ? r : r.recommendation || r.text || ''}
                       {r.priority && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: r.priority === 'high' ? R + '14' : AMB + '14', color: r.priority === 'high' ? R : AMB }}>{r.priority}</span>}
                     </div>

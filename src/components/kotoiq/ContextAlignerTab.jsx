@@ -47,7 +47,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Target size={18} color={T} /> Context Aligner
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Validate that your content outline covers all expected contexts for the target query.
         </div>
         <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Target keyword" style={inp} />
@@ -71,7 +71,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Alignment Score</div>
-              <div style={{ fontSize: 13, color: '#374151' }}>How well your outline covers the expected contexts</div>
+              <div style={{ fontSize: 13, color: '#1f1f22' }}>How well your outline covers the expected contexts</div>
             </div>
           </div>
 
@@ -85,7 +85,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
                   <XCircle size={14} color={R} style={{ marginTop: 2 }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{typeof m === 'string' ? m : m.context}</div>
-                    {typeof m === 'object' && m.why && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{m.why}</div>}
+                    {typeof m === 'object' && m.why && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{m.why}</div>}
                   </div>
                 </div>
               ))}
@@ -96,7 +96,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
             <div style={{ ...card, borderLeft: `4px solid ${AMB}` }}>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: AMB, marginBottom: 12 }}>Extraneous Contexts (consider removing)</div>
               {data.extraneous_contexts.map((m, i) => (
-                <div key={i} style={{ padding: '8px 12px', background: AMB + '08', borderRadius: 8, marginBottom: 4, fontSize: 12, color: '#374151' }}>
+                <div key={i} style={{ padding: '8px 12px', background: AMB + '08', borderRadius: 8, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
                   {typeof m === 'string' ? m : m.context}
                 </div>
               ))}
@@ -108,7 +108,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <CheckCircle size={16} color={GRN} /> Recommended Adjustments
               </div>
-              <ol style={{ margin: 0, paddingLeft: 22, color: '#374151' }}>
+              <ol style={{ margin: 0, paddingLeft: 22, color: '#1f1f22' }}>
                 {data.recommended_adjustments.map((r, i) => (
                   <li key={i} style={{ fontSize: 13, marginBottom: 8, lineHeight: 1.5 }}>
                     {typeof r === 'string' ? r : r.adjustment || r.text}

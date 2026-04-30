@@ -24,7 +24,7 @@ function StatusBadge({ status }) {
     queued: { color: AMB, icon: Pause, label: 'Queued' },
     failed: { color: R, icon: XCircle, label: 'Failed' },
     error: { color: R, icon: XCircle, label: 'Error' },
-  }[status] || { color: '#9ca3af', icon: Clock, label: status || 'Unknown' }
+  }[status] || { color: '#8e8e93', icon: Clock, label: status || 'Unknown' }
   const Icon = cfg.icon
   return (
     <span style={{
@@ -109,11 +109,11 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Background Jobs</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>Live visibility into long-running processing jobs across every engine.</div>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>Live visibility into long-running processing jobs across every engine.</div>
         </div>
         <button onClick={load} disabled={loading} style={{
           padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-          fontSize: 12, fontWeight: 700, color: '#374151', cursor: 'pointer',
+          fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 4,
         }}>
           <RefreshCw size={12} style={loading ? { animation: 'spin 1s linear infinite' } : {}} />
@@ -126,9 +126,9 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
         {STATUS_FILTERS.map(f => (
           <button key={f.key} onClick={() => setStatusFilter(f.key)} style={{
             padding: '8px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-            border: `1.5px solid ${statusFilter === f.key ? T : '#e5e7eb'}`,
+            border: `1.5px solid ${statusFilter === f.key ? T : '#ececef'}`,
             background: statusFilter === f.key ? T + '14' : '#fff',
-            color: statusFilter === f.key ? T : '#6b7280',
+            color: statusFilter === f.key ? T : '#6b6b70',
           }}>
             {f.label}
           </button>
@@ -140,7 +140,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
         {loading && jobs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 30 }}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} color={T} /></div>
         ) : jobs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 30, color: '#374151', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 30, color: '#1f1f22', fontSize: 13 }}>
             <Clock size={32} color="#d1d5db" style={{ marginBottom: 8 }} /><br />
             No jobs found{statusFilter !== 'all' ? ` with status "${statusFilter}"` : ''}.
           </div>
@@ -160,7 +160,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                     onClick={() => setExpanded(isOpen ? null : j.id)}
                     style={{
                       display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', gap: 12, alignItems: 'center',
-                      width: '100%', padding: '12px 14px', background: isOpen ? '#f9fafb' : '#fff',
+                      width: '100%', padding: '12px 14px', background: isOpen ? '#f9f9fb' : '#fff',
                       border: 'none', cursor: 'pointer', textAlign: 'left',
                     }}>
                     <div>
@@ -172,22 +172,22 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                         <StatusBadge status={j.status} />
                         {hasErrors && <span style={{ fontSize: 11, color: R, display: 'flex', alignItems: 'center', gap: 3, fontWeight: 700 }}><AlertCircle size={11} /> errors</span>}
                       </div>
-                      <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
+                      <div style={{ marginTop: 6, fontSize: 11, color: '#6b6b70' }}>
                         Started {j.started_at ? new Date(j.started_at).toLocaleString() : (j.created_at ? new Date(j.created_at).toLocaleString() : '—')}
                       </div>
                     </div>
 
                     <div style={{ minWidth: 200 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: '#374151', fontWeight: 700, marginBottom: 3 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: '#1f1f22', fontWeight: 700, marginBottom: 3 }}>
                         <span>{processed.toLocaleString()} / {total.toLocaleString()}</span>
                         <span>{pct}%</span>
                       </div>
-                      <div style={{ height: 6, background: '#f3f4f6', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: 6, background: '#f1f1f6', borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ width: `${pct}%`, height: '100%', background: j.status === 'failed' ? R : j.status === 'complete' || j.status === 'completed' ? GRN : T, transition: 'width .3s' }} />
                       </div>
                     </div>
 
-                    <div style={{ fontSize: 12, color: '#374151', fontFamily: FH, fontWeight: 700, minWidth: 80, textAlign: 'right' }}>
+                    <div style={{ fontSize: 12, color: '#1f1f22', fontFamily: FH, fontWeight: 700, minWidth: 80, textAlign: 'right' }}>
                       {elapsed(j.started_at || j.created_at, j.completed_at)}
                     </div>
 
@@ -199,10 +199,10 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                   </button>
 
                   {isOpen && (
-                    <div style={{ padding: '12px 14px', background: '#fafafa', borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ padding: '12px 14px', background: '#fafafb', borderTop: '1px solid #e5e7eb' }}>
                       {j.metadata && Object.keys(j.metadata).length > 0 && (
                         <div style={{ marginBottom: 10 }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Metadata</div>
+                          <div style={{ fontSize: 11, fontWeight: 800, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Metadata</div>
                           <pre style={{
                             margin: 0, padding: 10, background: '#0f172a', color: '#e2e8f0',
                             fontSize: 11, fontFamily: 'Menlo,Monaco,monospace', borderRadius: 6,
@@ -213,12 +213,12 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                       {Array.isArray(j.errors) && j.errors.length > 0 && (
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Errors ({j.errors.length})</div>
-                          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 12, color: '#374151', maxHeight: 200, overflowY: 'auto' }}>
+                          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 12, color: '#1f1f22', maxHeight: 200, overflowY: 'auto' }}>
                             {j.errors.map((err, k) => <li key={k}>{typeof err === 'string' ? err : JSON.stringify(err)}</li>)}
                           </ul>
                         </div>
                       )}
-                      <div style={{ display: 'flex', gap: 18, marginTop: 10, fontSize: 11, color: '#6b7280', fontWeight: 600 }}>
+                      <div style={{ display: 'flex', gap: 18, marginTop: 10, fontSize: 11, color: '#6b6b70', fontWeight: 600 }}>
                         <span>Batch: {j.batch_size ?? '—'}</span>
                         <span>Concurrency: {j.concurrency ?? '—'}</span>
                         {j.completed_at && <span>Completed: {new Date(j.completed_at).toLocaleString()}</span>}

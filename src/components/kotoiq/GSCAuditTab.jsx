@@ -25,7 +25,7 @@ function ScoreRing({ score, size = 100 }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color }}>{score}</div>
-        <div style={{ fontSize: size * 0.1, color: '#374151', fontWeight: 600 }}>/ 100</div>
+        <div style={{ fontSize: size * 0.1, color: '#1f1f22', fontWeight: 600 }}>/ 100</div>
       </div>
     </div>
   )
@@ -33,13 +33,13 @@ function ScoreRing({ score, size = 100 }) {
 
 function StatCard({ label, value, icon: Icon, color, sub }) {
   return (
-    <div style={{ background: '#f9fafb', borderRadius: 12, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 12, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <Icon size={14} color={color} />
         <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
       </div>
       <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{sub}</div>}
     </div>
   )
 }
@@ -140,7 +140,7 @@ function IssueSummaryCard({ data }) {
           Your site has {total} issue{total !== 1 ? 's' : ''} that need attention
         </div>
       </div>
-      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+      <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>
         {critical > 0 && (
           <span><strong style={{ color: R }}>{critical} critical</strong> (indexing + cannibalization) requiring immediate action. </span>
         )}
@@ -177,7 +177,7 @@ function AIRecommendations({ data }) {
                 <SeverityBadge level={rec.severity} />
               </div>
               <div style={{ padding: '12px 16px' }}>
-                <div style={{ fontSize: 12, color: '#374151', marginBottom: 10, lineHeight: 1.5 }}>{rec.explanation}</div>
+                <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 10, lineHeight: 1.5 }}>{rec.explanation}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {rec.actions.map((action, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#4b5563', lineHeight: 1.5 }}>
@@ -233,14 +233,14 @@ export default function GSCAuditTab({ clientId, agencyId }) {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 28 }}>
         <div style={{ flexShrink: 0 }}>
           {data ? <ScoreRing score={data.health_score || 0} /> : (
-            <div style={{ width: 100, height: 100, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 100, height: 100, borderRadius: '50%', background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <BarChart2 size={32} color="#d1d5db" />
             </div>
           )}
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>GSC Deep Audit</div>
-          <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
             {data
               ? `Last run ${data.updated_at ? new Date(data.updated_at).toLocaleString() : 'recently'} -- ${data.total_issues || 0} issues`
               : 'Deep Search Console audit: indexing, CTR anomalies, decay, cannibalization'}
@@ -283,7 +283,7 @@ export default function GSCAuditTab({ clientId, agencyId }) {
                 {data.quick_wins.map((w, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: GRN + '08', borderRadius: 8, border: `1px solid ${GRN}30` }}>
                     <TrendingUp size={14} color={GRN} style={{ marginTop: 2 }} />
-                    <div style={{ flex: 1, fontSize: 12, color: '#374151' }}>{typeof w === 'string' ? w : w.recommendation || w.text || JSON.stringify(w)}</div>
+                    <div style={{ flex: 1, fontSize: 12, color: '#1f1f22' }}>{typeof w === 'string' ? w : w.recommendation || w.text || JSON.stringify(w)}</div>
                   </div>
                 ))}
               </div>

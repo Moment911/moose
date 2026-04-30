@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const VELOCITY_COLORS = { accelerating: GRN, stable: '#6b7280', declining: R }
+const VELOCITY_COLORS = { accelerating: GRN, stable: '#6b6b70', declining: R }
 const VELOCITY_ICONS = { accelerating: TrendingUp, declining: TrendingDown, stable: ArrowRight }
 
 function ScoreBadge({ score, label, size = 'md' }) {
@@ -103,13 +103,13 @@ export default function ReviewsTab({ clientId, agencyId }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Review & Reputation Intelligence</div>
-            <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>Analyze your reviews, track sentiment, and build review campaigns.</div>
+            <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Analyze your reviews, track sentiment, and build review campaigns.</div>
           </div>
         </div>
         <div style={{ ...card, textAlign: 'center', padding: '48px 24px' }}>
           <Star size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 8 }}>No review analysis yet</div>
-          <div style={{ fontSize: 13, color: '#374151', marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
             Run an analysis to pull reviews from Google Business Profile, score sentiment, and identify response gaps.
           </div>
           <button onClick={analyze} disabled={analyzing} style={{
@@ -180,7 +180,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
           <div style={card}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 4 }}>Velocity</div>
             <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK }}>{data?.review_velocity || 0}</div>
-            <div style={{ fontSize: 11, color: VELOCITY_COLORS[data?.velocity_trend] || '#6b7280', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: VELOCITY_COLORS[data?.velocity_trend] || '#6b6b70', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
               {(() => { const Icon = VELOCITY_ICONS[data?.velocity_trend] || ArrowRight; return <Icon size={12} /> })()}
               {data?.velocity_trend || 'unknown'}/mo
             </div>
@@ -208,10 +208,10 @@ export default function ReviewsTab({ clientId, agencyId }) {
               <div key={star} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 18, fontSize: 12, fontWeight: 700, color: BLK, textAlign: 'right' }}>{star}</div>
                 <Star size={12} fill="#f59e0b" color="#f59e0b" />
-                <div style={{ flex: 1, height: 16, background: '#f3f4f6', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ flex: 1, height: 16, background: '#f1f1f6', borderRadius: 4, overflow: 'hidden' }}>
                   <div style={{ width: `${pct}%`, height: '100%', background: barColor, borderRadius: 4, transition: 'width .3s' }} />
                 </div>
-                <div style={{ width: 32, fontSize: 12, fontWeight: 700, color: '#374151', textAlign: 'right' }}>{count}</div>
+                <div style={{ width: 32, fontSize: 12, fontWeight: 700, color: '#1f1f22', textAlign: 'right' }}>{count}</div>
               </div>
             )
           })}
@@ -245,7 +245,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
                 {expandedTopic === i && topic.sample_quotes?.length > 0 && (
                   <div style={{ marginTop: 10, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
                     {topic.sample_quotes.map((q, qi) => (
-                      <div key={qi} style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', marginBottom: 4, lineHeight: 1.5 }}>
+                      <div key={qi} style={{ fontSize: 12, color: '#1f1f22', fontStyle: 'italic', marginBottom: 4, lineHeight: 1.5 }}>
                         "{q}"
                       </div>
                     ))}
@@ -274,7 +274,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
                   </div>
                   <span style={{ fontSize: 11, color: '#1f2937' }}>{review.date ? new Date(review.date).toLocaleDateString() : ''}</span>
                 </div>
-                <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, marginBottom: 8 }}>{review.text || 'No text'}</div>
+                <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.5, marginBottom: 8 }}>{review.text || 'No text'}</div>
                 <button onClick={() => toast('Draft response feature coming soon!')} style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6,
                   border: '1px solid ' + R, background: '#fff', fontSize: 11, fontWeight: 700, color: R, cursor: 'pointer',
@@ -308,7 +308,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
                 style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB }} />
               <input type="number" value={campaignTarget} onChange={e => setCampaignTarget(parseInt(e.target.value) || 10)}
                 min={1} max={100} style={{ width: 80, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB, textAlign: 'center' }} />
-              <span style={{ fontSize: 12, color: '#374151', alignSelf: 'center' }}>target</span>
+              <span style={{ fontSize: 12, color: '#1f1f22', alignSelf: 'center' }}>target</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={createCampaign} disabled={creatingCampaign} style={{
@@ -320,7 +320,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
               </button>
               <button onClick={() => { setShowCampaignForm(false); setCampaignName('') }} style={{
                 padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#374151',
+                fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#1f1f22',
               }}>Cancel</button>
             </div>
           </div>
@@ -334,7 +334,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
         )}
         {campaigns.map(camp => {
           const pct = camp.target_count > 0 ? Math.round((camp.collected_count / camp.target_count) * 100) : 0
-          const statusColor = camp.status === 'active' ? GRN : camp.status === 'completed' ? T : camp.status === 'paused' ? AMB : '#6b7280'
+          const statusColor = camp.status === 'active' ? GRN : camp.status === 'completed' ? T : camp.status === 'paused' ? AMB : '#6b6b70'
           return (
             <div key={camp.id} style={{ padding: '14px 16px', borderRadius: 10, border: '1px solid #e5e7eb', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -344,13 +344,13 @@ export default function ReviewsTab({ clientId, agencyId }) {
                     {camp.status}
                   </span>
                 </div>
-                <div style={{ fontSize: 11, color: '#374151' }} title={camp.created_at ? new Date(camp.created_at).toISOString() : ''}>
+                <div style={{ fontSize: 11, color: '#1f1f22' }} title={camp.created_at ? new Date(camp.created_at).toISOString() : ''}>
                   {camp.created_at ? new Date(camp.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : ''}
                 </div>
               </div>
               {/* Progress bar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ flex: 1, height: 8, background: '#f3f4f6', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ flex: 1, height: 8, background: '#f1f1f6', borderRadius: 4, overflow: 'hidden' }}>
                   <div style={{ width: `${Math.min(pct, 100)}%`, height: '100%', background: GRN, borderRadius: 4, transition: 'width .3s' }} />
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: BLK, minWidth: 60, textAlign: 'right' }}>
@@ -358,7 +358,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
                 </div>
               </div>
               {/* Funnel stats */}
-              <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 11, color: '#374151' }}>
+              <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 11, color: '#1f1f22' }}>
                 <span>Sent: {camp.sent_count || 0}</span>
                 <span>Opened: {camp.opened_count || 0}</span>
                 <span>Completed: {camp.completed_count || 0}</span>

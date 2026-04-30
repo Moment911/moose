@@ -58,11 +58,11 @@ export default function AdsReportsTab({ clientId, agencyId }) {
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button onClick={() => setTab('summary')}
-          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'summary' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'summary' ? '#f0f9ff' : '#fff', fontFamily: FH, fontWeight: 700, fontSize: 13, color: tab === 'summary' ? T : '#6b7280', cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'summary' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'summary' ? '#f0f9ff' : '#fff', fontFamily: FH, fontWeight: 700, fontSize: 13, color: tab === 'summary' ? T : '#6b6b70', cursor: 'pointer' }}>
           Weekly Summary
         </button>
         <button onClick={() => setTab('comparison')}
-          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'comparison' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'comparison' ? '#f0f9ff' : '#fff', fontFamily: FH, fontWeight: 700, fontSize: 13, color: tab === 'comparison' ? T : '#6b7280', cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'comparison' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'comparison' ? '#f0f9ff' : '#fff', fontFamily: FH, fontWeight: 700, fontSize: 13, color: tab === 'comparison' ? T : '#6b6b70', cursor: 'pointer' }}>
           Period Comparison
         </button>
       </div>
@@ -80,7 +80,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
             <>
               <div style={{ ...card, borderLeft: `4px solid ${T}` }}>
                 <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>{summary.headline}</div>
-                <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, fontFamily: FB, whiteSpace: 'pre-wrap' }}>{summary.executive_summary_md}</div>
+                <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, fontFamily: FB, whiteSpace: 'pre-wrap' }}>{summary.executive_summary_md}</div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
@@ -120,7 +120,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
 
           {comparison?.narrative && (
             <div style={{ ...card, borderLeft: `4px solid ${T}` }}>
-              <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, fontFamily: FB, whiteSpace: 'pre-wrap' }}>{comparison.narrative.narrative_md}</div>
+              <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, fontFamily: FB, whiteSpace: 'pre-wrap' }}>{comparison.narrative.narrative_md}</div>
               {comparison.narrative.key_takeaways?.length > 0 && (
                 <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: T, fontFamily: FH, marginBottom: 8 }}>KEY TAKEAWAYS</div>
@@ -137,7 +137,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Campaign', 'Cost Δ', 'Conv Δ', 'CPA Δ', 'Flag'].map(h => (
-                      <th key={h} style={{ textAlign: h === 'Campaign' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                      <th key={h} style={{ textAlign: h === 'Campaign' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>

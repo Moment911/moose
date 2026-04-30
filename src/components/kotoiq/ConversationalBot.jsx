@@ -690,7 +690,7 @@ export default function ConversationalBot({
       {mode === 'clarifications' && !showHistory ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: 16, background: GRY }}>
           {clarifLoading ? (
-            <div style={{ textAlign: 'center', padding: '24px 8px', color: '#6b7280', fontSize: 13, fontFamily: FB }}>
+            <div style={{ textAlign: 'center', padding: '24px 8px', color: '#6b6b70', fontSize: 13, fontFamily: FB }}>
               Loading clarifications…
             </div>
           ) : clarifList.length === 0 ? (
@@ -701,7 +701,7 @@ export default function ConversationalBot({
               <div style={{ fontSize: 16, fontWeight: 700, color: BLK, fontFamily: FH, marginBottom: 6 }}>
                 All clear.
               </div>
-              <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB }}>
+              <div style={{ fontSize: 13, color: '#6b6b70', fontFamily: FB }}>
                 I&apos;ll ping you the second I need something.
               </div>
             </div>
@@ -722,9 +722,9 @@ export default function ConversationalBot({
         </div>
       ) : showHistory ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, padding: '4px 8px', fontFamily: FH }}>Past Conversations</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: 0.5, padding: '4px 8px', fontFamily: FH }}>Past Conversations</div>
           {conversations.length === 0 && (
-            <div style={{ padding: 16, color: '#9ca3af', fontSize: 13, textAlign: 'center', fontFamily: FB }}>No conversations yet.</div>
+            <div style={{ padding: 16, color: '#8e8e93', fontSize: 13, textAlign: 'center', fontFamily: FB }}>No conversations yet.</div>
           )}
           {conversations.map(c => (
             <button key={c.id} onClick={() => loadConversation(c.id)}
@@ -732,7 +732,7 @@ export default function ConversationalBot({
               onMouseEnter={e => e.currentTarget.style.background = GRY}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <div style={{ fontSize: 13, color: BLK, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title || 'Untitled'}</div>
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{c.last_message_at ? new Date(c.last_message_at).toLocaleString() : ''}</div>
+              <div style={{ fontSize: 11, color: '#8e8e93', marginTop: 2 }}>{c.last_message_at ? new Date(c.last_message_at).toLocaleString() : ''}</div>
             </button>
           ))}
         </div>
@@ -746,13 +746,13 @@ export default function ConversationalBot({
               <div style={{ fontSize: 18, fontWeight: 700, color: BLK, fontFamily: FH }}>
                 {clientName ? <>Hi! Let's work on <span style={{ color: T }}>{clientName}</span>.</> : 'Hi! Tell me what you want to do.'}
               </div>
-              <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4, fontFamily: FB }}>I can write briefs, audit pages, build topical maps, find backlinks — just describe it.</div>
+              <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4, fontFamily: FB }}>I can write briefs, audit pages, build topical maps, find backlinks — just describe it.</div>
               <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {SUGGESTED_PROMPTS.map(p => (
                   <button key={p.label} onClick={() => send(p.label)}
                     style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13, color: BLK, fontFamily: FB, display: 'flex', alignItems: 'center', gap: 10, transition: 'all .12s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = T; e.currentTarget.style.background = '#f0fdfe' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff' }}>
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#ececef'; e.currentTarget.style.background = '#fff' }}>
                     <p.icon size={14} color={T} />
                     <span style={{ flex: 1 }}>{p.label}</span>
                     <ChevronRight size={14} color="#9ca3af" />
@@ -804,10 +804,10 @@ export default function ConversationalBot({
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#f0fdfe', border: `1px solid ${T}`, borderRadius: 8, marginBottom: 8, fontSize: 12, fontFamily: FB, color: BLK, maxWidth: '100%' }}>
               <Paperclip size={12} color={T} />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>{pendingFile.name}</span>
-              <span style={{ color: '#6b7280' }}>{formatSize(pendingFile.size)}</span>
+              <span style={{ color: '#6b6b70' }}>{formatSize(pendingFile.size)}</span>
               {uploadingFile && <Loader size={12} className="kotoiq-bot-spin" />}
               <button onClick={() => setPendingFile(null)} disabled={uploadingFile}
-                style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                style={{ background: 'transparent', border: 'none', color: '#6b6b70', cursor: 'pointer', padding: 0, display: 'flex' }}>
                 <X size={14} />
               </button>
             </div>
@@ -825,7 +825,7 @@ export default function ConversationalBot({
               }}
             />
             <button title="Attach file" onClick={() => fileInputRef.current?.click()} disabled={thinking || uploadingFile}
-              style={{ background: '#f3f4f6', color: BLK, border: 'none', borderRadius: 10, padding: 10, cursor: thinking || uploadingFile ? 'not-allowed' : 'pointer' }}>
+              style={{ background: '#f1f1f6', color: BLK, border: 'none', borderRadius: 10, padding: 10, cursor: thinking || uploadingFile ? 'not-allowed' : 'pointer' }}>
               <Paperclip size={18} />
             </button>
             <textarea
@@ -837,14 +837,14 @@ export default function ConversationalBot({
               rows={1}
               style={{ flex: 1, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontFamily: FB, color: BLK, resize: 'none', outline: 'none', maxHeight: 140, lineHeight: 1.4 }}
               onFocus={e => e.currentTarget.style.borderColor = T}
-              onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+              onBlur={e => e.currentTarget.style.borderColor = '#ececef'}
             />
             <button title="Voice (coming soon)" disabled
-              style={{ background: '#f3f4f6', color: '#9ca3af', border: 'none', borderRadius: 10, padding: 10, cursor: 'not-allowed' }}>
+              style={{ background: '#f1f1f6', color: '#8e8e93', border: 'none', borderRadius: 10, padding: 10, cursor: 'not-allowed' }}>
               <Mic size={18} />
             </button>
             <button onClick={() => send()} disabled={thinking || uploadingFile || (!input.trim() && !pendingFile)}
-              style={{ background: (input.trim() || pendingFile) && !thinking && !uploadingFile ? T : '#e5e7eb', color: '#fff', border: 'none', borderRadius: 10, padding: 10, cursor: (input.trim() || pendingFile) && !thinking && !uploadingFile ? 'pointer' : 'not-allowed' }}>
+              style={{ background: (input.trim() || pendingFile) && !thinking && !uploadingFile ? T : '#ececef', color: '#fff', border: 'none', borderRadius: 10, padding: 10, cursor: (input.trim() || pendingFile) && !thinking && !uploadingFile ? 'pointer' : 'not-allowed' }}>
               <Send size={18} />
             </button>
           </div>
@@ -870,7 +870,7 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, on
         <div style={{
           background: isUser ? T : (msg.error ? '#fee2e2' : '#fff'),
           color: isUser ? '#fff' : (msg.error ? '#991b1b' : BLK),
-          border: isUser ? 'none' : `1px solid ${msg.error ? '#fecaca' : '#e5e7eb'}`,
+          border: isUser ? 'none' : `1px solid ${msg.error ? '#fecaca' : '#ececef'}`,
           borderRadius: 14,
           padding: '10px 14px',
           fontSize: 13.5,
@@ -927,9 +927,9 @@ function ChoiceChips({ choices, disabled, onClick }) {
           style={{
             padding: '6px 12px',
             borderRadius: 999,
-            border: `1px solid ${disabled ? '#e5e7eb' : '#e5e7eb'}`,
+            border: `1px solid ${disabled ? '#ececef' : '#ececef'}`,
             background: '#fff',
-            color: disabled ? '#9ca3af' : BLK,
+            color: disabled ? '#8e8e93' : BLK,
             fontSize: 12.5,
             fontWeight: 600,
             fontFamily: FB,
@@ -945,7 +945,7 @@ function ChoiceChips({ choices, disabled, onClick }) {
           }}
           onMouseLeave={e => {
             if (disabled) return
-            e.currentTarget.style.borderColor = '#e5e7eb'
+            e.currentTarget.style.borderColor = '#ececef'
             e.currentTarget.style.background = '#fff'
           }}
         >
@@ -998,7 +998,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
         <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: FH, textTransform: 'uppercase', letterSpacing: 0.4 }}>
           {prettyIntent(action.intent)}
         </div>
-        <div style={{ marginLeft: 'auto', fontSize: 10, color: '#6b7280', background: '#fff', padding: '2px 6px', borderRadius: 4 }}>
+        <div style={{ marginLeft: 'auto', fontSize: 10, color: '#6b6b70', background: '#fff', padding: '2px 6px', borderRadius: 4 }}>
           → {action.tab_to_open}
         </div>
       </div>
@@ -1006,7 +1006,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
         <div style={{ background: '#fff', borderRadius: 8, padding: 8, marginBottom: 10 }}>
           {fieldKeys.map(k => (
             <div key={k} style={{ display: 'flex', fontSize: 12, padding: '3px 0', fontFamily: FB }}>
-              <span style={{ color: '#6b7280', minWidth: 90, fontWeight: 600 }}>{k}:</span>
+              <span style={{ color: '#6b6b70', minWidth: 90, fontWeight: 600 }}>{k}:</span>
               <span style={{ color: BLK, flex: 1, wordBreak: 'break-word' }}>{String(fields[k])}</span>
             </div>
           ))}
@@ -1018,7 +1018,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
             const done = i < curStep
             const active = i === curStep
             return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontFamily: FB, padding: '3px 0', color: done ? GRN : active ? BLK : '#9ca3af' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontFamily: FB, padding: '3px 0', color: done ? GRN : active ? BLK : '#8e8e93' }}>
                 {done ? (
                   <CheckCircle2 size={13} color={GRN} />
                 ) : active ? (
@@ -1057,7 +1057,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
         </div>
       )}
       {action.next_question && !executed && !executing && (
-        <div style={{ marginTop: 8, fontSize: 12, color: '#6b7280', fontStyle: 'italic', fontFamily: FB }}>
+        <div style={{ marginTop: 8, fontSize: 12, color: '#6b6b70', fontStyle: 'italic', fontFamily: FB }}>
           {action.next_question}
         </div>
       )}
@@ -1108,7 +1108,7 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
                   {c.name}
                 </div>
                 {c.reason && (
-                  <div style={{ fontSize: 11, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 11, color: '#6b6b70', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {c.reason}
                   </div>
                 )}
@@ -1130,21 +1130,21 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
         </div>
         <div style={{ maxHeight: 180, overflowY: 'auto' }}>
           {filtered.length === 0 && (
-            <div style={{ padding: 10, fontSize: 12, color: '#9ca3af', fontFamily: FB, textAlign: 'center' }}>
+            <div style={{ padding: 10, fontSize: 12, color: '#8e8e93', fontFamily: FB, textAlign: 'center' }}>
               {safeClients.length === 0 ? 'No clients yet.' : 'No matches.'}
             </div>
           )}
           {filtered.map(c => (
             <button key={c.id} onClick={() => onPick(c)} type="button"
               style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: FB, borderBottom: '1px solid #f9fafb' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
+              onMouseEnter={e => e.currentTarget.style.background = '#f1f1f6'}
               onMouseLeave={e => e.currentTarget.style.background = suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent'}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 500, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {c.name}
                 </div>
                 {c.website && (
-                  <div style={{ fontSize: 11, color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 11, color: '#8e8e93', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {c.website}
                   </div>
                 )}
@@ -1153,9 +1153,9 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
           ))}
         </div>
         <button onClick={onNew} type="button"
-          style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, padding: '10px 12px', border: 'none', borderTop: '1px solid #e5e7eb', background: '#fafafa', cursor: 'pointer', fontFamily: FH, fontSize: 12, fontWeight: 700, color: T }}
+          style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, padding: '10px 12px', border: 'none', borderTop: '1px solid #e5e7eb', background: '#fafafb', cursor: 'pointer', fontFamily: FH, fontSize: 12, fontWeight: 700, color: T }}
           onMouseEnter={e => e.currentTarget.style.background = '#f0fdfe'}
-          onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}>
+          onMouseLeave={e => e.currentTarget.style.background = '#fafafb'}>
           <Plus size={14} /> New Client
         </button>
       </div>
@@ -1167,7 +1167,7 @@ function SystemNote({ text }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0', animation: 'kotoiqBotFadeIn .25s ease' }}>
       <div style={{
-        fontSize: 11, fontFamily: FB, color: '#6b7280', background: '#eef2ff',
+        fontSize: 11, fontFamily: FB, color: '#6b6b70', background: '#eef2ff',
         border: '1px solid #dbeafe', borderRadius: 999, padding: '4px 10px',
       }}>
         {text}
@@ -1179,7 +1179,7 @@ function SystemNote({ text }) {
 function Dot({ delay }) {
   return (
     <span style={{
-      width: 6, height: 6, borderRadius: '50%', background: '#9ca3af',
+      width: 6, height: 6, borderRadius: '50%', background: '#8e8e93',
       animation: `kotoiqBotBounce 1.2s ${delay}s infinite`,
       display: 'inline-block',
     }}>

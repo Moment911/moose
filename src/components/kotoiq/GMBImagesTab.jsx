@@ -236,7 +236,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
             onClick={() => fileInputRef.current?.click()}
             style={{
               border: `2px dashed ${dragOver ? T : '#d1d5db'}`, borderRadius: 10, padding: 30,
-              textAlign: 'center', cursor: 'pointer', background: dragOver ? T + '08' : '#fafafa',
+              textAlign: 'center', cursor: 'pointer', background: dragOver ? T + '08' : '#fafafb',
               marginBottom: 10, transition: 'all .15s',
             }}
           >
@@ -246,7 +246,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
               <>
                 <ImageIcon size={32} color="#9ca3af" style={{ marginBottom: 6 }} />
                 <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>Drop image here or click to browse</div>
-                <div style={{ fontSize: 11, color: '#374151', marginTop: 4 }}>PNG auto-converted to JPEG for EXIF</div>
+                <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>PNG auto-converted to JPEG for EXIF</div>
               </>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" onChange={e => handleFile(e.target.files?.[0])} style={{ display: 'none' }} />
@@ -338,8 +338,8 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
                 </div>
               )}
               {preview.caption && (
-                <div style={{ marginTop: 12, padding: 10, background: '#f9fafb', borderRadius: 8, fontSize: 12, color: '#374151' }}>
-                  <div style={{ fontWeight: 700, marginBottom: 4, color: '#374151', fontSize: 11, textTransform: 'uppercase' }}>Caption</div>
+                <div style={{ marginTop: 12, padding: 10, background: '#f9f9fb', borderRadius: 8, fontSize: 12, color: '#1f1f22' }}>
+                  <div style={{ fontWeight: 700, marginBottom: 4, color: '#1f1f22', fontSize: 11, textTransform: 'uppercase' }}>Caption</div>
                   {preview.caption}
                 </div>
               )}
@@ -391,7 +391,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
                       </span>
                     </td>
                     <td style={{ padding: '8px', textAlign: 'center' }}>
-                      {img.gbp_uploaded_at ? <CheckCircle size={14} color={GRN} /> : <span style={{ color: '#374151', fontSize: 11 }}>—</span>}
+                      {img.gbp_uploaded_at ? <CheckCircle size={14} color={GRN} /> : <span style={{ color: '#1f1f22', fontSize: 11 }}>—</span>}
                     </td>
                     <td style={{ padding: '8px', textAlign: 'right' }}>
                       {img.public_url && <button onClick={() => downloadImage(img.public_url, `gmb-${img.id}.jpg`)} style={{ ...btn('#fff', BLK), padding: '4px 10px' }}>
@@ -417,11 +417,11 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
 function MetaRow({ icon: Icon, label, value }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={13} color="#6b7280" />
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
         <div style={{ fontSize: 12, color: BLK }}>{value}</div>
       </div>
     </div>

@@ -74,7 +74,7 @@ function renderMarkdown(text) {
       if (!m) { parts.push(remaining); break }
       if (m.index > 0) parts.push(remaining.slice(0, m.index))
       if (m[2]) parts.push(<strong key={`b-${key++}`} style={{ fontWeight: 700 }}>{m[2]}</strong>)
-      else if (m[3]) parts.push(<code key={`c-${key++}`} style={{ background: '#f3f4f6', padding: '1px 5px', borderRadius: 4, fontSize: 12, fontFamily: 'monospace' }}>{m[3]}</code>)
+      else if (m[3]) parts.push(<code key={`c-${key++}`} style={{ background: '#f1f1f6', padding: '1px 5px', borderRadius: 4, fontSize: 12, fontFamily: 'monospace' }}>{m[3]}</code>)
       else if (m[4]) parts.push(<em key={`i-${key++}`} style={{ fontStyle: 'italic' }}>{m[4]}</em>)
       remaining = remaining.slice(m.index + m[0].length)
     }
@@ -88,13 +88,13 @@ function renderMarkdown(text) {
     }
     if (b.type === 'ul') {
       return (
-        <ul key={i} style={{ margin: '4px 0 10px', paddingLeft: 20, color: '#374151', lineHeight: 1.7, fontSize: 14 }}>
+        <ul key={i} style={{ margin: '4px 0 10px', paddingLeft: 20, color: '#1f1f22', lineHeight: 1.7, fontSize: 14 }}>
           {b.items.map((it, j) => <li key={j} style={{ marginBottom: 4 }}>{renderInline(it)}</li>)}
         </ul>
       )
     }
     if (b.type === 'br') return <div key={i} style={{ height: 6 }} />
-    return <div key={i} style={{ color: '#374151', lineHeight: 1.7, fontSize: 14, marginBottom: 8 }}>{renderInline(b.text)}</div>
+    return <div key={i} style={{ color: '#1f1f22', lineHeight: 1.7, fontSize: 14, marginBottom: 8 }}>{renderInline(b.text)}</div>
   })
 }
 
@@ -288,9 +288,9 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-          {loading && <div style={{ padding: 20, color: '#9ca3af', fontSize: 12, textAlign: 'center' }}><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+          {loading && <div style={{ padding: 20, color: '#8e8e93', fontSize: 12, textAlign: 'center' }}><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /></div>}
           {!loading && conversations.length === 0 && (
-            <div style={{ padding: '20px 16px', color: '#9ca3af', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
+            <div style={{ padding: '20px 16px', color: '#8e8e93', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
               No conversations yet. Ask your first question below.
             </div>
           )}
@@ -301,7 +301,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                 background: convId === c.id ? '#fff' : 'transparent',
                 display: 'flex', alignItems: 'flex-start', gap: 8, transition: 'background .1s',
               }}
-              onMouseEnter={e => { if (convId !== c.id) e.currentTarget.style.background = '#f3f4f6' }}
+              onMouseEnter={e => { if (convId !== c.id) e.currentTarget.style.background = '#f1f1f6' }}
               onMouseLeave={e => { if (convId !== c.id) e.currentTarget.style.background = 'transparent' }}
             >
               <MessageSquare size={13} color="#9ca3af" style={{ marginTop: 3, flexShrink: 0 }} />
@@ -309,10 +309,10 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                 <div style={{ fontSize: 13, fontWeight: 600, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {c.title || 'Untitled'}
                 </div>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{formatTime(c.updated_at || c.created_at)}</div>
+                <div style={{ fontSize: 11, color: '#8e8e93', marginTop: 2 }}>{formatTime(c.updated_at || c.created_at)}</div>
               </div>
               <button onClick={(e) => deleteConversation(c.id, e)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 2, color: '#9ca3af', display: 'flex' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 2, color: '#8e8e93', display: 'flex' }}
                 title="Delete"
               >
                 <Trash2 size={12} />
@@ -332,14 +332,14 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
           </div>
           <div>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Ask KotoIQ</div>
-            <div style={{ fontSize: 11, color: '#6b7280' }}>Conversational intelligence across all client data</div>
+            <div style={{ fontSize: 11, color: '#6b6b70' }}>Conversational intelligence across all client data</div>
           </div>
         </div>
 
         {/* Messages */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
           {convLoading && (
-            <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>
+            <div style={{ textAlign: 'center', padding: 40, color: '#8e8e93' }}>
               <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
             </div>
           )}
@@ -352,7 +352,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 6 }}>
                 What do you want to know?
               </div>
-              <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 14, color: '#6b6b70', marginBottom: 24, lineHeight: 1.6 }}>
                 Ask anything about this client&rsquo;s SEO, rankings, content, or what to do next.<br />
                 KotoIQ pulls from live data — rankings, audits, keywords, recommendations, and calendars.
               </div>
@@ -387,7 +387,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                   <div style={{ width: 30, height: 30, borderRadius: 10, background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Brain size={15} color={T} />
                   </div>
-                  <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, color: '#6b7280', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, color: '#6b6b70', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
                     KotoIQ is thinking&hellip;
                   </div>
@@ -433,7 +433,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 36, height: 36, borderRadius: 10, border: 'none',
-                background: sending || !input.trim() ? '#e5e7eb' : T,
+                background: sending || !input.trim() ? '#ececef' : T,
                 color: '#fff', cursor: sending || !input.trim() ? 'not-allowed' : 'pointer', flexShrink: 0,
               }}>
               {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />}
@@ -475,7 +475,7 @@ function MessageBubble({ message, onActionClick }) {
 
           {dataUsed.length > 0 && (
             <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb', display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 4 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 4 }}>
                 <FileText size={10} style={{ verticalAlign: '-1px', marginRight: 3 }} />
                 Used:
               </span>

@@ -43,7 +43,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Eraser size={18} color={T} /> AI Watermark Remover
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Strip hidden AI fingerprints, homoglyphs, and telltale phrases.
         </div>
         <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Paste your AI-generated content..." rows={10} style={{
@@ -55,7 +55,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
             Aggressiveness: <span style={{ color: R }}>{aggressiveness}</span> / 10
           </label>
           <input type="range" min={1} max={10} value={aggressiveness} onChange={e => setAggressiveness(Number(e.target.value))} style={{ width: '100%' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#374151', marginTop: 2 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#1f1f22', marginTop: 2 }}>
             <span>Minimal changes</span><span>Heavy rewriting</span>
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Sparkles size={16} color={GRN} /> Cleaned Content
             </div>
-            <div style={{ padding: 14, background: '#f9fafb', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#374151', whiteSpace: 'pre-wrap' }}>
+            <div style={{ padding: 14, background: '#f9f9fb', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#1f1f22', whiteSpace: 'pre-wrap' }}>
               {data.cleaned_content}
             </div>
             <button onClick={() => { navigator.clipboard.writeText(data.cleaned_content); toast.success('Copied') }} style={{
@@ -115,7 +115,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
                     <div style={{ padding: '8px 12px', background: GRN + '08', fontSize: 12, color: GRN }}>
                       {r.after}
                     </div>
-                    {r.reason && <div style={{ padding: '6px 12px', fontSize: 11, color: '#374151', borderTop: '1px solid #f3f4f6' }}>{r.reason}</div>}
+                    {r.reason && <div style={{ padding: '6px 12px', fontSize: 11, color: '#1f1f22', borderTop: '1px solid #f3f4f6' }}>{r.reason}</div>}
                   </div>
                 ))}
               </div>
@@ -131,7 +131,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9fafb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>

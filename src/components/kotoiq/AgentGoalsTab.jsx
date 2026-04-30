@@ -12,18 +12,18 @@ const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb'
 const STATUS_BADGE = {
   active: { label: 'Active', color: GRN, bg: GRN + '18' },
   paused: { label: 'Paused', color: AMB, bg: AMB + '18' },
-  completed: { label: 'Completed', color: '#6b7280', bg: '#f3f4f6' },
-  cancelled: { label: 'Cancelled', color: '#9ca3af', bg: '#f9fafb' },
+  completed: { label: 'Completed', color: '#6b6b70', bg: '#f1f1f6' },
+  cancelled: { label: 'Cancelled', color: '#8e8e93', bg: '#f9f9fb' },
 }
 
 const RUN_STATUS_BADGE = {
-  planning: { label: 'Planning', color: '#6b7280' },
+  planning: { label: 'Planning', color: '#6b6b70' },
   awaiting_approval: { label: 'Awaiting Approval', color: AMB },
   executing: { label: 'Executing', color: T },
   verifying: { label: 'Verifying', color: '#8b5cf6' },
   completed: { label: 'Completed', color: GRN },
   failed: { label: 'Failed', color: R },
-  cancelled: { label: 'Cancelled', color: '#9ca3af' },
+  cancelled: { label: 'Cancelled', color: '#8e8e93' },
 }
 
 const GOAL_TYPE_LABELS = {
@@ -140,7 +140,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 60 }}>
         <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color={T} />
-        <span style={{ marginLeft: 10, fontFamily: FB, fontSize: 14, color: '#6b7280' }}>Loading goals…</span>
+        <span style={{ marginLeft: 10, fontFamily: FB, fontSize: 14, color: '#6b6b70' }}>Loading goals…</span>
       </div>
     )
   }
@@ -151,7 +151,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Agent Goals</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4 }}>
             Define what the agent should achieve. Each goal produces a plan and executes it.
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
           <Target size={36} color={T} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No goals yet</div>
-          <div style={{ fontSize: 13, color: '#6b7280' }}>Create a goal to tell the agent what to achieve.</div>
+          <div style={{ fontSize: 13, color: '#6b6b70' }}>Create a goal to tell the agent what to achieve.</div>
         </div>
       )}
 
@@ -204,12 +204,12 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
               </div>
 
               {/* Budget */}
-              <div style={{ fontSize: 11, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 11, color: '#8e8e93', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <DollarSign size={11} /> ${Number(g.budget_usd).toFixed(2)} · {g.budget_actions} actions
               </div>
 
               {/* Created */}
-              <div style={{ fontSize: 11, color: '#9ca3af', marginLeft: 'auto' }}>
+              <div style={{ fontSize: 11, color: '#8e8e93', marginLeft: 'auto' }}>
                 {new Date(g.created_at).toLocaleDateString()}
               </div>
 
@@ -233,7 +233,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 8,
                   border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600,
-                  cursor: 'pointer', color: '#6b7280', fontFamily: FB,
+                  cursor: 'pointer', color: '#6b6b70', fontFamily: FB,
                 }}
               >
                 Runs <ChevronRight size={12} style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
@@ -246,11 +246,11 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                 {runsLoading && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} color={T} />
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Loading runs…</span>
+                    <span style={{ fontSize: 12, color: '#6b6b70' }}>Loading runs…</span>
                   </div>
                 )}
                 {!runsLoading && runs.length === 0 && (
-                  <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 0' }}>No runs yet. Click "Run Now" to start.</div>
+                  <div style={{ fontSize: 12, color: '#8e8e93', padding: '8px 0' }}>No runs yet. Click "Run Now" to start.</div>
                 )}
                 {!runsLoading && runs.map(r => {
                   const rs = RUN_STATUS_BADGE[r.status] || RUN_STATUS_BADGE.planning
@@ -262,13 +262,13 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                       <div style={{ color: rs.color, fontWeight: 700, minWidth: 120 }}>
                         {rs.label}
                       </div>
-                      <div style={{ color: '#6b7280' }}>
+                      <div style={{ color: '#6b6b70' }}>
                         {new Date(r.started_at).toLocaleString()}
                       </div>
-                      <div style={{ color: '#9ca3af' }}>
+                      <div style={{ color: '#8e8e93' }}>
                         {r.actions_taken} action{r.actions_taken !== 1 ? 's' : ''}
                       </div>
-                      <div style={{ color: '#9ca3af' }}>
+                      <div style={{ color: '#8e8e93' }}>
                         ${Number(r.cost_usd).toFixed(4)}
                       </div>
                       {r.status === 'completed' && r.outcome?.verification && (
@@ -298,7 +298,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
 
             {/* Goal type */}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 4, fontFamily: FH }}>Goal Type</label>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>Goal Type</label>
               <select value={newGoalType} onChange={e => setNewGoalType(e.target.value)} style={{
                 width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb',
                 fontSize: 13, fontFamily: FB, background: '#fff',
@@ -311,8 +311,8 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
 
             {/* Scope — topics */}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 4, fontFamily: FH }}>
-                Topics <span style={{ fontWeight: 400, color: '#9ca3af' }}>(comma-separated, optional — empty = all)</span>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>
+                Topics <span style={{ fontWeight: 400, color: '#8e8e93' }}>(comma-separated, optional — empty = all)</span>
               </label>
               <input
                 value={newTopics}
@@ -328,13 +328,13 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
             {/* Budget */}
             <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 4, fontFamily: FH }}>Max Actions</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>Max Actions</label>
                 <input type="number" value={newBudgetActions} onChange={e => setNewBudgetActions(parseInt(e.target.value) || 5)} style={{
                   width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB,
                 }} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 4, fontFamily: FH }}>Budget ($)</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>Budget ($)</label>
                 <input type="number" step="0.10" value={newBudgetUsd} onChange={e => setNewBudgetUsd(parseFloat(e.target.value) || 1)} style={{
                   width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB,
                 }} />
@@ -344,13 +344,13 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
             {/* Requires approval */}
             <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <input type="checkbox" checked={newRequiresApproval} onChange={e => setNewRequiresApproval(e.target.checked)} id="req-approval" />
-              <label htmlFor="req-approval" style={{ fontSize: 13, color: '#374151', fontFamily: FB }}>Require approval before destructive actions</label>
+              <label htmlFor="req-approval" style={{ fontSize: 13, color: '#1f1f22', fontFamily: FB }}>Require approval before destructive actions</label>
             </div>
 
             {/* Schedule cron */}
             <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 4, fontFamily: FH }}>
-                Schedule <span style={{ fontWeight: 400, color: '#9ca3af' }}>(cron, optional — blank = manual only)</span>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>
+                Schedule <span style={{ fontWeight: 400, color: '#8e8e93' }}>(cron, optional — blank = manual only)</span>
               </label>
               <input
                 value={newScheduleCron}
@@ -367,7 +367,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowNewGoal(false)} style={{
                 padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b7280', fontFamily: FB,
+                fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b6b70', fontFamily: FB,
               }}>Cancel</button>
               <button onClick={createGoal} disabled={creating} style={{
                 padding: '8px 18px', borderRadius: 8, border: 'none', background: BLK, color: '#fff',

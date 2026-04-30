@@ -66,7 +66,7 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {TYPES.map(t => (
           <button key={t.id} onClick={() => setType(t.id)}
-            style={{ padding: '8px 16px', borderRadius: 8, border: type === t.id ? `2px solid ${T}` : '1px solid #e5e7eb', background: type === t.id ? '#f0f9ff' : '#fff', fontFamily: FH, fontWeight: 700, fontSize: 13, color: type === t.id ? T : '#6b7280', cursor: 'pointer' }}>
+            style={{ padding: '8px 16px', borderRadius: 8, border: type === t.id ? `2px solid ${T}` : '1px solid #e5e7eb', background: type === t.id ? '#f0f9ff' : '#fff', fontFamily: FH, fontWeight: 700, fontSize: 13, color: type === t.id ? T : '#6b6b70', cursor: 'pointer' }}>
             {t.label}
           </button>
         ))}
@@ -82,7 +82,7 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
 
       {loading ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div> : (
         <>
-          {recs.length === 0 && <div style={{ ...card, textAlign: 'center', padding: 40, color: '#9ca3af' }}>
+          {recs.length === 0 && <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
             <div style={{ fontFamily: FH, fontWeight: 700 }}>No {statusFilter || ''} recommendations</div>
             <div style={{ fontSize: 13 }}>Run an analysis to generate recommendations</div>
           </div>}
@@ -95,14 +95,14 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
                   {type === 'new_keywords' && `${r.keyword} (${r.proposed_match_type})`}
                   {type === 'ad_copy' && `${r.platform?.toUpperCase()} — Variant ${r.variant_label || 'A'}`}
                 </div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>
+                <div style={{ fontSize: 12, color: '#6b6b70', marginBottom: 4 }}>
                   {r.reason || r.rationale_md || r.rationale || ''}
                 </div>
-                <div style={{ display: 'flex', gap: 10, fontSize: 11, color: '#9ca3af' }}>
+                <div style={{ display: 'flex', gap: 10, fontSize: 11, color: '#8e8e93' }}>
                   {r.estimated_savings_usd && <span>Saves ~${r.estimated_savings_usd.toFixed(2)}/mo</span>}
                   {r.est_monthly_clicks && <span>{r.est_monthly_clicks} est. clicks/mo</span>}
-                  {r.intent && <span style={{ padding: '1px 4px', background: '#f3f4f6', borderRadius: 3 }}>{r.intent}</span>}
-                  {r.priority && <span style={{ padding: '1px 4px', background: r.priority === 'high' ? '#fef2f2' : '#f3f4f6', color: r.priority === 'high' ? R : '#6b7280', borderRadius: 3 }}>{r.priority}</span>}
+                  {r.intent && <span style={{ padding: '1px 4px', background: '#f1f1f6', borderRadius: 3 }}>{r.intent}</span>}
+                  {r.priority && <span style={{ padding: '1px 4px', background: r.priority === 'high' ? '#fef2f2' : '#f1f1f6', color: r.priority === 'high' ? R : '#6b6b70', borderRadius: 3 }}>{r.priority}</span>}
                   <span>via {r.model_used || 'AI'}</span>
                   <span>{r.created_at?.split('T')[0]}</span>
                 </div>
@@ -112,7 +112,7 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
                   <button onClick={() => handleAction(r.id, 'approved')}
                     style={{ padding: '6px 12px', background: GRN, color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Approve</button>
                   <button onClick={() => handleAction(r.id, 'rejected')}
-                    style={{ padding: '6px 12px', background: '#f3f4f6', color: '#6b7280', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Reject</button>
+                    style={{ padding: '6px 12px', background: '#f1f1f6', color: '#6b6b70', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Reject</button>
                 </div>
               )}
               {r.status !== 'pending' && (

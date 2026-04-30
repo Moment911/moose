@@ -21,7 +21,7 @@ const STATUS_CONFIG = {
 const CONTENT_TYPE_COLORS = {
   pillar:     { color: '#7c3aed', bg: '#7c3aed14' },
   cluster:    { color: T, bg: T + '14' },
-  support:    { color: '#374151', bg: '#6b728014' },
+  support:    { color: '#1f1f22', bg: '#6b728014' },
   faq:        { color: AMB, bg: AMB + '14' },
   comparison: { color: R, bg: R + '14' },
 }
@@ -78,7 +78,7 @@ function StatusBadge({ status }) {
 // ── Content Type Pill ───────────────────────────────────────────
 
 function ContentTypePill({ type }) {
-  const cfg = CONTENT_TYPE_COLORS[type] || { color: '#374151', bg: '#6b728014' }
+  const cfg = CONTENT_TYPE_COLORS[type] || { color: '#1f1f22', bg: '#6b728014' }
   return (
     <span style={{ padding: '2px 8px', borderRadius: 10, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, textTransform: 'capitalize' }}>
       {type}
@@ -89,7 +89,7 @@ function ContentTypePill({ type }) {
 // ── Priority Badge ──────────────────────────────────────────────
 
 function PriorityBadge({ priority }) {
-  const color = priority <= 3 ? R : priority <= 6 ? AMB : '#9ca3af'
+  const color = priority <= 3 ? R : priority <= 6 ? AMB : '#8e8e93'
   return (
     <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color, background: color + '12', padding: '1px 6px', borderRadius: 8 }}>
       P{priority}
@@ -121,7 +121,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
     <div style={{
       background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px',
       transition: 'box-shadow 0.15s', cursor: 'default',
-      borderLeft: `4px solid ${STATUS_CONFIG[node.status]?.color || '#e5e7eb'}`,
+      borderLeft: `4px solid ${STATUS_CONFIG[node.status]?.color || '#ececef'}`,
     }}
       onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'}
       onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
@@ -148,7 +148,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
 
       {/* Suggested title */}
       {node.suggested_title && (
-        <div style={{ fontSize: 12, color: '#374151', marginBottom: 6, lineHeight: 1.4, fontStyle: 'italic' }}>
+        <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 6, lineHeight: 1.4, fontStyle: 'italic' }}>
           {node.suggested_title}
         </div>
       )}
@@ -179,7 +179,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
           {node.attributes.slice(0, expanded ? 20 : 4).map((attr, i) => (
             <span key={i} style={{
-              padding: '1px 6px', borderRadius: 6, background: '#f3f4f6', fontSize: 12, color: '#374151',
+              padding: '1px 6px', borderRadius: 6, background: '#f1f1f6', fontSize: 12, color: '#1f1f22',
               fontWeight: 500, border: '1px solid #e5e7eb',
             }}>
               {Array.isArray(attr) ? attr.join(': ') : attr}
@@ -207,7 +207,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 4 }}>Search Queries</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {node.micro_contexts.map((mc, i) => (
-                  <div key={i} style={{ fontSize: 11, color: '#374151', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div key={i} style={{ fontSize: 11, color: '#1f1f22', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Search size={9} color="#d1d5db" /> {mc}
                   </div>
                 ))}
@@ -465,7 +465,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
           <Map size={28} color={T} />
         </div>
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>No Topical Map Yet</div>
-        <div style={{ fontSize: 14, color: '#374151', maxWidth: 420, margin: '0 auto 20px', lineHeight: 1.6 }}>
+        <div style={{ fontSize: 14, color: '#1f1f22', maxWidth: 420, margin: '0 auto 20px', lineHeight: 1.6 }}>
           Generate a KotoIQ topical map using KotoIQ's knowledge base. Analyzes your website, identifies the central entity, and maps every topic you should cover for maximum topical authority.
         </div>
         <button onClick={generateMap} disabled={generating}
@@ -497,10 +497,10 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>What is a Topical Map?</div>
-          <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6, marginBottom: 6 }}>
+          <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 6 }}>
             A topical map is a structured plan of every piece of content your site needs to demonstrate complete expertise on a subject. Each node represents a topic to cover. <strong>Core nodes</strong> are directly tied to revenue -- these should be your pillar and cluster pages. <strong>Outer nodes</strong> build surrounding authority and capture long-tail searches.
           </div>
-          <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
+          <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6 }}>
             <strong>How to use it:</strong> Work through gaps (red) first -- these are missing content opportunities. Upgrade partials (amber) by adding depth. Keep covered (green) content fresh. Click "Generate Brief" on any gap node to get a ready-to-write content brief.
           </div>
         </div>
@@ -514,7 +514,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
           <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK, letterSpacing: '-.02em', marginBottom: 4 }}>
             Topical Map
           </div>
-          <div style={{ fontSize: 13, color: '#374151' }}>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>
             {stats.total || 0} nodes mapped -- {stats.covered || 0} covered, {stats.partial || 0} partial, {stats.gap || 0} gaps
           </div>
         </div>
@@ -552,7 +552,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: FH }}>Coverage Distribution</div>
           <div style={{ flex: 1 }} />
-          <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#374151' }}>
+          <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#1f1f22' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
               <span style={{ width: 8, height: 8, borderRadius: 2, background: GRN, display: 'inline-block' }} />
               Covered ({stats.covered || 0})
@@ -567,7 +567,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
             </span>
           </div>
         </div>
-        <div style={{ display: 'flex', height: 10, borderRadius: 5, overflow: 'hidden', background: '#f3f4f6' }}>
+        <div style={{ display: 'flex', height: 10, borderRadius: 5, overflow: 'hidden', background: '#f1f1f6' }}>
           {stats.total > 0 && (
             <>
               <div style={{ width: `${(stats.covered / stats.total) * 100}%`, background: GRN, transition: 'width 0.3s' }} />
@@ -597,7 +597,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
             }
           }} style={{
             display: 'flex', alignItems: 'center', gap: 3, background: 'none', border: '1px solid #e5e7eb',
-            borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#374151',
+            borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#1f1f22',
           }}>
             {editingIdentity ? <X size={10} /> : <Edit2 size={10} />}
             {editingIdentity ? 'Cancel' : 'Edit'}
@@ -612,11 +612,11 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
             </div>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Source Context</div>
-              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>{map.source_context || '--'}</div>
+              <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.4 }}>{map.source_context || '--'}</div>
             </div>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Search Intent</div>
-              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>{map.central_search_intent || '--'}</div>
+              <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.4 }}>{map.central_search_intent || '--'}</div>
             </div>
           </div>
         ) : (
@@ -653,9 +653,9 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
           <button key={key} onClick={() => setFilter(key)}
             style={{
               padding: '5px 12px', borderRadius: 16, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-              border: `1.5px solid ${filter === key ? BLK : '#e5e7eb'}`,
+              border: `1.5px solid ${filter === key ? BLK : '#ececef'}`,
               background: filter === key ? BLK + '08' : '#fff',
-              color: filter === key ? BLK : '#6b7280',
+              color: filter === key ? BLK : '#6b6b70',
             }}>
             {label} {count != null && <span style={{ opacity: 0.6 }}>({count})</span>}
           </button>

@@ -43,7 +43,7 @@ function EligibilityBadge({ level }) {
     high:   { color: GRN, label: 'High' },
     medium: { color: AMB, label: 'Medium' },
     low:    { color: R,   label: 'Low' },
-  }[level] || { color: '#374151', label: 'Unknown' }
+  }[level] || { color: '#1f1f22', label: 'Unknown' }
   return (
     <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 12, background: cfg.color + '14', color: cfg.color, textTransform: 'uppercase', letterSpacing: '.05em' }}>
       {cfg.label}
@@ -90,7 +90,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Sparkles size={18} color={T} /> Multi-Engine AEO Scoring
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Score your content for citation potential across Google AI Overview, Perplexity, ChatGPT Search, Claude, and Copilot.
         </div>
         <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Target keyword (e.g. best running shoes)" style={{
@@ -117,7 +117,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
             <ScoreRing score={data.overall_aeo_score || 0} size={96} />
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Overall AEO Score</div>
-              <div style={{ fontSize: 13, color: '#374151', marginBottom: 8 }}>Composite score across all engines</div>
+              <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 8 }}>Composite score across all engines</div>
               {data.best_positioned_for?.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
                   <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937' }}>Best positioned for:</span>
@@ -145,7 +145,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
                     <ScoreRing score={e.score || 0} size={60} color={engine.color} />
                     <div style={{ flex: 1 }}>
                       <div style={{ marginBottom: 4 }}><EligibilityBadge level={e.eligibility} /></div>
-                      <div style={{ fontSize: 11, color: '#374151' }}>{e.verdict || 'No analysis'}</div>
+                      <div style={{ fontSize: 11, color: '#1f1f22' }}>{e.verdict || 'No analysis'}</div>
                     </div>
                   </div>
                   {e.factors?.length > 0 && (

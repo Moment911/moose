@@ -103,8 +103,8 @@ function StepIndicator({ current }) {
                 width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 13, fontWeight: 800, fontFamily: FH,
-                background: done ? BLK : active ? BLK : '#f3f4f6',
-                color: done || active ? '#fff' : '#9ca3af',
+                background: done ? BLK : active ? BLK : '#f1f1f6',
+                color: done || active ? '#fff' : '#8e8e93',
                 transition: 'all .2s',
               }}>
                 {done ? <CheckCircle size={16} /> : s.num}
@@ -112,7 +112,7 @@ function StepIndicator({ current }) {
               <span style={{
                 fontSize: 13, fontWeight: active ? 700 : 500,
                 fontFamily: FH,
-                color: active ? BLK : done ? '#374151' : '#9ca3af',
+                color: active ? BLK : done ? '#1f1f22' : '#8e8e93',
               }}>
                 {s.label}
               </span>
@@ -120,7 +120,7 @@ function StepIndicator({ current }) {
             {i < STEPS.length - 1 && (
               <div style={{
                 width: 40, height: 2, margin: '0 8px',
-                background: done ? BLK : '#e5e7eb',
+                background: done ? BLK : '#ececef',
                 borderRadius: 1,
               }} />
             )}
@@ -263,7 +263,7 @@ export default function CampaignComposerTab({ agencyId }) {
   return (
     <div>
       <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Campaign Composer</div>
-      <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Create a multi-page campaign from a template and seed dataset.</div>
+      <div style={{ fontSize: 14, color: '#6b6b70', marginBottom: 24 }}>Create a multi-page campaign from a template and seed dataset.</div>
 
       <StepIndicator current={step} />
 
@@ -275,11 +275,11 @@ export default function CampaignComposerTab({ agencyId }) {
           </div>
 
           {loadingTemplates ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6b7280', fontSize: 13 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6b6b70', fontSize: 13 }}>
               <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Loading templates...
             </div>
           ) : templates.length === 0 ? (
-            <div style={{ fontSize: 14, color: '#9ca3af', padding: '32px 0', textAlign: 'center' }}>
+            <div style={{ fontSize: 14, color: '#8e8e93', padding: '32px 0', textAlign: 'center' }}>
               No templates found. Ingest a template from the Templates tab first.
             </div>
           ) : (
@@ -291,15 +291,15 @@ export default function CampaignComposerTab({ agencyId }) {
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '14px 18px', borderRadius: 10,
                     border: active ? `2px solid ${BLK}` : '1px solid #e5e7eb',
-                    background: active ? '#f9fafb' : '#fff',
+                    background: active ? '#f9f9fb' : '#fff',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                     transition: 'all .15s',
                   }}>
-                    <Layers size={18} color={active ? BLK : '#9ca3af'} />
+                    <Layers size={18} color={active ? BLK : '#8e8e93'} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{tpl.name || tpl.title || 'Untitled'}</div>
                       {tpl.slot_count != null && (
-                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{tpl.slot_count} slots</div>
+                        <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>{tpl.slot_count} slots</div>
                       )}
                     </div>
                     {active && <CheckCircle size={18} color={BLK} />}
@@ -312,8 +312,8 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
             <button onClick={nextStep} disabled={!selectedTemplate} style={{
               padding: '10px 24px', borderRadius: 8, border: 'none',
-              background: selectedTemplate ? BLK : '#e5e7eb',
-              color: selectedTemplate ? '#fff' : '#9ca3af',
+              background: selectedTemplate ? BLK : '#ececef',
+              color: selectedTemplate ? '#fff' : '#8e8e93',
               fontSize: 14, fontWeight: 700, fontFamily: FH,
               cursor: selectedTemplate ? 'pointer' : 'not-allowed',
               display: 'flex', alignItems: 'center', gap: 6,
@@ -330,7 +330,7 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
             Upload Seed Dataset
           </div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: '#6b6b70', marginBottom: 16 }}>
             Paste CSV or JSON rows. Each row = one page variant. Columns should match template slots (e.g. city, service, phone).
           </div>
 
@@ -339,7 +339,7 @@ export default function CampaignComposerTab({ agencyId }) {
             <button onClick={() => setInputMode('paste')} style={{
               padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600,
               border: inputMode === 'paste' ? `1px solid ${BLK}` : '1px solid #e5e7eb',
-              background: inputMode === 'paste' ? '#f9fafb' : '#fff',
+              background: inputMode === 'paste' ? '#f9f9fb' : '#fff',
               color: BLK, cursor: 'pointer',
             }}>
               Paste
@@ -347,7 +347,7 @@ export default function CampaignComposerTab({ agencyId }) {
             <button onClick={() => setInputMode('file')} style={{
               padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600,
               border: inputMode === 'file' ? `1px solid ${BLK}` : '1px solid #e5e7eb',
-              background: inputMode === 'file' ? '#f9fafb' : '#fff',
+              background: inputMode === 'file' ? '#f9f9fb' : '#fff',
               color: BLK, cursor: 'pointer',
             }}>
               <Upload size={12} style={{ marginRight: 4 }} /> Upload File
@@ -404,7 +404,7 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK }}>Preview</div>
-              <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
+              <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4 }}>
                 Showing first {Math.min(3, seedRows.length)} of {seedRows.length} rows. Generate preview to see slot fills.
               </div>
             </div>
@@ -424,7 +424,7 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ overflowX: 'auto', borderRadius: 10, border: '1px solid #e5e7eb' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#f9fafb' }}>
+                <tr style={{ background: '#f9f9fb' }}>
                   <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>#</th>
                   {seedHeaders.map(h => (
                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>{h}</th>
@@ -434,9 +434,9 @@ export default function CampaignComposerTab({ agencyId }) {
               <tbody>
                 {(previewRows.length > 0 ? previewRows : seedRows.slice(0, 3)).map((row, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '10px 14px', color: '#9ca3af', fontWeight: 600 }}>{i + 1}</td>
+                    <td style={{ padding: '10px 14px', color: '#8e8e93', fontWeight: 600 }}>{i + 1}</td>
                     {seedHeaders.map(h => (
-                      <td key={h} style={{ padding: '10px 14px', color: '#374151' }}>{row[h] || ''}</td>
+                      <td key={h} style={{ padding: '10px 14px', color: '#1f1f22' }}>{row[h] || ''}</td>
                     ))}
                   </tr>
                 ))}
@@ -478,7 +478,7 @@ export default function CampaignComposerTab({ agencyId }) {
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '14px 18px', borderRadius: 10,
                   border: active ? `2px solid ${BLK}` : '1px solid #e5e7eb',
-                  background: active ? '#f9fafb' : '#fff',
+                  background: active ? '#f9f9fb' : '#fff',
                   cursor: 'pointer', textAlign: 'left', width: '100%',
                   transition: 'all .15s',
                 }}>
@@ -489,7 +489,7 @@ export default function CampaignComposerTab({ agencyId }) {
                   }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{opt.label}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{opt.desc}</div>
+                    <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>{opt.desc}</div>
                   </div>
                 </button>
               )
@@ -553,23 +553,23 @@ export default function CampaignComposerTab({ agencyId }) {
 
           {/* Summary */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '16px 18px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Template</div>
+            <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '16px 18px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Template</div>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK }}>{selectedTemplate?.name || selectedTemplate?.title || 'N/A'}</div>
             </div>
-            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '16px 18px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Variants</div>
+            <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '16px 18px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Variants</div>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK }}>{seedRows.length} pages</div>
             </div>
-            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '16px 18px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Cadence</div>
+            <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '16px 18px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Cadence</div>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK }}>
                 {CADENCE_OPTIONS.find(o => o.key === cadence)?.label}
                 {cadence === 'drip' && ` (${perDayCap}/day)`}
               </div>
             </div>
-            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '16px 18px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Start</div>
+            <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '16px 18px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Start</div>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK }}>
                 {startAt ? new Date(startAt).toLocaleString() : 'Immediately'}
               </div>
@@ -604,7 +604,7 @@ export default function CampaignComposerTab({ agencyId }) {
             {!campaignResult && (
               <button onClick={createCampaign} disabled={creating} style={{
                 padding: '12px 28px', borderRadius: 8, border: 'none',
-                background: creating ? '#6b7280' : BLK,
+                background: creating ? '#6b6b70' : BLK,
                 color: '#fff', fontSize: 14, fontWeight: 800, fontFamily: FH,
                 cursor: creating ? 'wait' : 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,

@@ -16,7 +16,7 @@ const DIMENSION_COLORS = { Experience: T, Expertise: '#8b5cf6', Authority: AMB, 
 const PRIORITY_COLORS = { high: R, medium: AMB, low: T }
 
 function GradeBadge({ grade, score, size = 'large' }) {
-  const color = GRADE_COLORS[grade] || '#6b7280'
+  const color = GRADE_COLORS[grade] || '#6b6b70'
   const isLarge = size === 'large'
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -28,7 +28,7 @@ function GradeBadge({ grade, score, size = 'large' }) {
       }}>
         {grade || '—'}
       </div>
-      <div style={{ fontFamily: FH, fontSize: isLarge ? 14 : 11, fontWeight: 700, color: '#374151' }}>
+      <div style={{ fontFamily: FH, fontSize: isLarge ? 14 : 11, fontWeight: 700, color: '#1f1f22' }}>
         {score != null ? `${score}/100` : ''}
       </div>
     </div>
@@ -37,7 +37,7 @@ function GradeBadge({ grade, score, size = 'large' }) {
 
 function ScoreBar({ score, color }) {
   return (
-    <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
+    <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#f1f1f6', overflow: 'hidden' }}>
       <div style={{ width: `${Math.min(score, 100)}%`, height: '100%', borderRadius: 4, background: color, transition: 'width .5s ease' }} />
     </div>
   )
@@ -54,7 +54,7 @@ function SignalList({ signals, dimension }) {
             : <XCircle size={14} color={'#d1d5db'} style={{ marginTop: 2, flexShrink: 0 }} />
           }
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: sig.found ? BLK : '#9ca3af' }}>{sig.name}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: sig.found ? BLK : '#8e8e93' }}>{sig.name}</div>
             {sig.detail && <div style={{ fontSize: 11, color: '#1f2937', marginTop: 2 }}>{sig.detail}</div>}
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function EEATTab({ clientId, agencyId }) {
       <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
         <Shield size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>E-E-A-T Scorer</div>
-        <div style={{ fontSize: 14, color: '#374151', marginBottom: 20, maxWidth: 460, margin: '0 auto 20px' }}>
+        <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20, maxWidth: 460, margin: '0 auto 20px' }}>
           Analyze your site for Experience, Expertise, Authoritativeness, and Trust signals that Google uses to evaluate content quality.
         </div>
 
@@ -135,7 +135,7 @@ export default function EEATTab({ clientId, agencyId }) {
             Run E-E-A-T Audit
           </button>
           <button onClick={() => setShowUrl(!showUrl)}
-            style={{ padding: '12px 16px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            style={{ padding: '12px 16px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff', color: '#1f1f22', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             <Globe size={13} style={{ marginRight: 4, verticalAlign: -2 }} /> Specific URL
           </button>
         </div>
@@ -159,7 +159,7 @@ export default function EEATTab({ clientId, agencyId }) {
         <GradeBadge grade={audit.grade} score={audit.overall_eeat_score} />
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>E-E-A-T Score</div>
-          <div style={{ fontSize: 13, color: '#374151' }}>
+          <div style={{ fontSize: 13, color: '#1f1f22' }}>
             {audit.url ? `Page: ${audit.url}` : 'Site-wide assessment'} — updated {audit.updated_at ? new Date(audit.updated_at).toLocaleDateString() : 'recently'}
           </div>
           <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
@@ -179,7 +179,7 @@ export default function EEATTab({ clientId, agencyId }) {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <button onClick={runAudit} disabled={running}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#374151' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#1f1f22' }}>
             {running ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Rerun
           </button>
         </div>
@@ -254,7 +254,7 @@ export default function EEATTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                 {audit.author_has_knowledge_panel
                   ? <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: GRN + '12', color: GRN }}>Knowledge Panel</span>
-                  : <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f3f4f6', color: '#1f2937' }}>No Knowledge Panel</span>
+                  : <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: '#1f2937' }}>No Knowledge Panel</span>
                 }
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function EEATTab({ clientId, agencyId }) {
           {audit.author_entity_signals?.length > 0 && (
             <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {audit.author_entity_signals.map((sig, i) => (
-                <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 12, background: sig.found ? GRN + '10' : '#f3f4f6', color: sig.found ? GRN : '#9ca3af' }}>
+                <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 12, background: sig.found ? GRN + '10' : '#f1f1f6', color: sig.found ? GRN : '#8e8e93' }}>
                   {sig.found ? <CheckCircle size={10} style={{ marginRight: 4, verticalAlign: -1 }} /> : <XCircle size={10} style={{ marginRight: 4, verticalAlign: -1 }} />}
                   {sig.signal}
                 </span>
@@ -280,10 +280,10 @@ export default function EEATTab({ clientId, agencyId }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {audit.recommendations.map((rec, i) => {
-              const prioColor = PRIORITY_COLORS[rec.priority] || '#6b7280'
-              const dimColor = DIMENSION_COLORS[rec.dimension?.charAt(0).toUpperCase() + rec.dimension?.slice(1)] || '#6b7280'
+              const prioColor = PRIORITY_COLORS[rec.priority] || '#6b6b70'
+              const dimColor = DIMENSION_COLORS[rec.dimension?.charAt(0).toUpperCase() + rec.dimension?.slice(1)] || '#6b6b70'
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 10, background: '#fafafa', border: '1px solid #f3f4f6' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 10, background: '#fafafb', border: '1px solid #f3f4f6' }}>
                   <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: prioColor + '12', color: prioColor, textTransform: 'uppercase', whiteSpace: 'nowrap', marginTop: 2 }}>
                     {rec.priority}
                   </span>

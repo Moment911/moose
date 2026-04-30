@@ -16,7 +16,7 @@ const PRIORITY_LABELS = { urgent: 'Urgent', soon: 'Soon', scheduled: 'Scheduled'
 
 const TRAJECTORY_CONFIG = {
   improving: { icon: ArrowUp, color: GRN, label: 'Improving' },
-  stable: { icon: ArrowRight, color: '#374151', label: 'Stable' },
+  stable: { icon: ArrowRight, color: '#1f1f22', label: 'Stable' },
   declining: { icon: ArrowDown, color: R, label: 'Declining' },
   dead: { icon: Skull, color: '#991b1b', label: 'Dead' },
   new: { icon: Sparkles, color: T, label: 'New' },
@@ -159,7 +159,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>Content Refresh Engine</div>
-          <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>Monitor content freshness, identify declining pages, plan updates</div>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Monitor content freshness, identify declining pages, plan updates</div>
         </div>
         <button onClick={buildInventory} disabled={building}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: building ? 'wait' : 'pointer', opacity: building ? 0.6 : 1 }}>
@@ -179,7 +179,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 60 }}>
           <FileText size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Content Inventory Yet</div>
-          <div style={{ fontSize: 13, color: '#374151', marginBottom: 16 }}>Click "Build Inventory" to scan your sitemap and analyze content freshness.</div>
+          <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 16 }}>Click "Build Inventory" to scan your sitemap and analyze content freshness.</div>
         </div>
       )}
 
@@ -209,7 +209,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
           {/* Freshness distribution bar */}
           <div style={card}>
             <div style={titleStyle}><BarChart2 size={16} color={T} /> Freshness Distribution</div>
-            <div style={{ display: 'flex', height: 28, borderRadius: 8, overflow: 'hidden', background: '#f3f4f6' }}>
+            <div style={{ display: 'flex', height: 28, borderRadius: 8, overflow: 'hidden', background: '#f1f1f6' }}>
               {freshPct > 0 && <div style={{ width: `${freshPct}%`, background: GRN, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: freshPct > 5 ? 'auto' : 0 }}>{freshPct > 8 ? `${Math.round(freshPct)}%` : ''}</div>}
               {agingPct > 0 && <div style={{ width: `${agingPct}%`, background: AMB, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: agingPct > 5 ? 'auto' : 0 }}>{agingPct > 8 ? `${Math.round(agingPct)}%` : ''}</div>}
               {stalePct > 0 && <div style={{ width: `${stalePct}%`, background: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: stalePct > 5 ? 'auto' : 0 }}>{stalePct > 8 ? `${Math.round(stalePct)}%` : ''}</div>}
@@ -217,7 +217,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             </div>
             <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
               {[['Fresh', GRN], ['Aging', AMB], ['Stale', '#f97316'], ['Critical', R]].map(([l, c]) => (
-                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#374151' }}>
+                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#1f1f22' }}>
                   <div style={{ width: 10, height: 10, borderRadius: 3, background: c }} /> {l}
                 </div>
               ))}
@@ -229,7 +229,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', gap: 6 }}>
               {FILTERS.map(f => (
                 <button key={f.key} onClick={() => setFilter(filter === f.key ? '' : f.key)}
-                  style={{ padding: '5px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: `1.5px solid ${filter === f.key ? R : '#e5e7eb'}`, background: filter === f.key ? R + '12' : '#fff', color: filter === f.key ? R : '#6b7280' }}>
+                  style={{ padding: '5px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: `1.5px solid ${filter === f.key ? R : '#ececef'}`, background: filter === f.key ? R + '12' : '#fff', color: filter === f.key ? R : '#6b6b70' }}>
                   {f.label} {f.key && <span style={{ opacity: 0.7 }}>({f.key === 'urgent' ? s.urgent : f.key === 'declining' ? s.declining : f.key === 'stale' ? (s.stale || 0) + (s.critical || 0) : f.key === 'thin' ? s.thin : ''})</span>}
                 </button>
               ))}
@@ -238,7 +238,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
               <span style={{ fontSize: 11, color: '#1f2937', fontWeight: 600 }}>Sort:</span>
               {SORT_OPTIONS.map(o => (
                 <button key={o.key} onClick={() => { if (sortBy === o.key) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortBy(o.key); setSortDir('asc') } }}
-                  style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${sortBy === o.key ? T : '#e5e7eb'}`, background: sortBy === o.key ? T + '10' : '#fff', color: sortBy === o.key ? T : '#6b7280', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${sortBy === o.key ? T : '#ececef'}`, background: sortBy === o.key ? T + '10' : '#fff', color: sortBy === o.key ? T : '#6b6b70', display: 'flex', alignItems: 'center', gap: 3 }}>
                   {o.label} {sortBy === o.key && (sortDir === 'asc' ? <ChevronUp size={10} /> : <ChevronDown size={10} />)}
                 </button>
               ))}
@@ -249,12 +249,12 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
           <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: FB }}>
               <thead>
-                <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                  <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
+                <tr style={{ background: '#f9f9fb', borderBottom: '1px solid #e5e7eb' }}>
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
                     <input type="checkbox" onChange={e => { if (e.target.checked) setSelectedUrls(new Set(filtered.map(r => r.url))); else setSelectedUrls(new Set()) }} checked={selectedUrls.size === filtered.length && filtered.length > 0} />
                   </th>
                   {['URL', 'Title', 'Words', 'Pos', 'Trajectory', 'Days Old', 'Freshness', 'Priority'].map(h => (
-                    <th key={h} style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -262,8 +262,8 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                 {filtered.slice(0, 100).map((item, i) => {
                   const traj = TRAJECTORY_CONFIG[item.trajectory] || TRAJECTORY_CONFIG.stable
                   const TrajIcon = traj.icon
-                  const fColor = FRESHNESS_COLORS[item.freshness_status] || '#6b7280'
-                  const pColor = PRIORITY_COLORS[item.refresh_priority] || '#6b7280'
+                  const fColor = FRESHNESS_COLORS[item.freshness_status] || '#6b6b70'
+                  const pColor = PRIORITY_COLORS[item.refresh_priority] || '#6b6b70'
                   return (
                     <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: selectedUrls.has(item.url) ? T + '06' : 'transparent' }}>
                       <td style={{ padding: '8px 12px' }}>
@@ -282,7 +282,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                           <TrajIcon size={13} /> {traj.label}
                         </div>
                       </td>
-                      <td style={{ padding: '8px', fontFamily: FH, fontWeight: 700, color: '#374151' }}>{item.days_since_update != null ? `${item.days_since_update}d` : '--'}</td>
+                      <td style={{ padding: '8px', fontFamily: FH, fontWeight: 700, color: '#1f1f22' }}>{item.days_since_update != null ? `${item.days_since_update}d` : '--'}</td>
                       <td style={{ padding: '8px' }}>
                         <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: fColor + '15', color: fColor, textTransform: 'uppercase' }}>
                           {FRESHNESS_LABELS[item.freshness_status] || item.freshness_status}
@@ -323,14 +323,14 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             {plans.map((plan, i) => (
               <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 10, overflow: 'hidden' }}>
                 <div onClick={() => setExpandedPlan(expandedPlan === i ? null : i)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer', background: '#f9fafb' }}>
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer', background: '#f9f9fb' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{plan.title || truncateUrl(plan.url)}</div>
-                    <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{truncateUrl(plan.url, 60)}</div>
+                    <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{truncateUrl(plan.url, 60)}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {plan.priority && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: (PRIORITY_COLORS[plan.priority] || '#6b7280') + '15', color: PRIORITY_COLORS[plan.priority] || '#6b7280', textTransform: 'uppercase' }}>{plan.priority}</span>}
-                    {plan.estimated_hours && <span style={{ fontSize: 11, color: '#374151', fontWeight: 600 }}>{plan.estimated_hours}h est.</span>}
+                    {plan.priority && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: (PRIORITY_COLORS[plan.priority] || '#6b6b70') + '15', color: PRIORITY_COLORS[plan.priority] || '#6b6b70', textTransform: 'uppercase' }}>{plan.priority}</span>}
+                    {plan.estimated_hours && <span style={{ fontSize: 11, color: '#1f1f22', fontWeight: 600 }}>{plan.estimated_hours}h est.</span>}
                     {expandedPlan === i ? <ChevronUp size={14} color="#6b7280" /> : <ChevronDown size={14} color="#6b7280" />}
                   </div>
                 </div>
@@ -338,12 +338,12 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   <div style={{ padding: '16px 20px', borderTop: '1px solid #e5e7eb' }}>
                     {plan.sections_to_update?.length > 0 && (
                       <div style={{ marginBottom: 14 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Sections to Update</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Sections to Update</div>
                         {plan.sections_to_update.map((sec, j) => (
                           <div key={j} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12, color: BLK }}>
                             <span style={{ fontWeight: 700, minWidth: 80, color: T }}>{sec.action}</span>
                             <span style={{ fontWeight: 600 }}>{sec.section}:</span>
-                            <span style={{ color: '#374151' }}>{sec.details}</span>
+                            <span style={{ color: '#1f1f22' }}>{sec.details}</span>
                           </div>
                         ))}
                       </div>
@@ -351,7 +351,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                     {plan.content_to_add?.length > 0 && (
                       <div style={{ marginBottom: 14 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: GRN, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Content to Add</div>
-                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#374151', lineHeight: 1.8 }}>
+                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#1f1f22', lineHeight: 1.8 }}>
                           {plan.content_to_add.map((item, j) => <li key={j}>{item}</li>)}
                         </ul>
                       </div>
@@ -359,7 +359,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                     {plan.content_to_remove?.length > 0 && (
                       <div style={{ marginBottom: 14 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: R, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Content to Remove</div>
-                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#374151', lineHeight: 1.8 }}>
+                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#1f1f22', lineHeight: 1.8 }}>
                           {plan.content_to_remove.map((item, j) => <li key={j}>{item}</li>)}
                         </ul>
                       </div>
@@ -367,7 +367,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                     {plan.seo_improvements?.length > 0 && (
                       <div style={{ marginBottom: 14 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: AMB, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>SEO Improvements</div>
-                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#374151', lineHeight: 1.8 }}>
+                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#1f1f22', lineHeight: 1.8 }}>
                           {plan.seo_improvements.map((item, j) => <li key={j}>{item}</li>)}
                         </ul>
                       </div>

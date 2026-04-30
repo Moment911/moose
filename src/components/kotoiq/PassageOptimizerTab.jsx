@@ -44,7 +44,7 @@ export default function PassageOptimizerTab({ clientId, agencyId }) {
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <FileText size={18} color={T} /> Passage Optimizer
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Optimize passages for featured snippets and AI answer boxes.
         </div>
         <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Target keyword" style={{
@@ -72,7 +72,7 @@ export default function PassageOptimizerTab({ clientId, agencyId }) {
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: GRN, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Star size={16} color={GRN} /> Best Snippet Candidate — Score {best.snippet_score}
               </div>
-              <div style={{ padding: 14, background: GRN + '08', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#374151' }}>
+              <div style={{ padding: 14, background: GRN + '08', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#1f1f22' }}>
                 {best.optimized}
               </div>
             </div>
@@ -90,20 +90,20 @@ export default function PassageOptimizerTab({ clientId, agencyId }) {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', marginBottom: 4 }}>Original</div>
-                    <div style={{ padding: 12, background: '#f9fafb', borderRadius: 8, fontSize: 12, color: '#1f2937', lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', marginBottom: 4 }}>Original</div>
+                    <div style={{ padding: 12, background: '#f9f9fb', borderRadius: 8, fontSize: 12, color: '#1f2937', lineHeight: 1.5 }}>
                       {p.original}
                     </div>
                   </div>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: GRN, textTransform: 'uppercase', marginBottom: 4 }}>Optimized</div>
-                    <div style={{ padding: 12, background: GRN + '08', borderRadius: 8, fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
+                    <div style={{ padding: 12, background: GRN + '08', borderRadius: 8, fontSize: 12, color: '#1f1f22', lineHeight: 1.5 }}>
                       {p.optimized}
                     </div>
                   </div>
                 </div>
                 {p.reason && (
-                  <div style={{ fontSize: 11, color: '#374151', marginTop: 8, fontStyle: 'italic' }}>
+                  <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 8, fontStyle: 'italic' }}>
                     Why: {p.reason}
                   </div>
                 )}

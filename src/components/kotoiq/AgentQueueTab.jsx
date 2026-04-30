@@ -86,7 +86,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 60 }}>
         <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color={T} />
-        <span style={{ marginLeft: 10, fontFamily: FB, fontSize: 14, color: '#6b7280' }}>Loading approvals…</span>
+        <span style={{ marginLeft: 10, fontFamily: FB, fontSize: 14, color: '#6b6b70' }}>Loading approvals…</span>
       </div>
     )
   }
@@ -97,7 +97,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Agent Queue</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4 }}>
             Actions awaiting your approval before the agent proceeds.
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
           <CheckCircle size={36} color={GRN} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No pending approvals</div>
-          <div style={{ fontSize: 13, color: '#6b7280' }}>
+          <div style={{ fontSize: 13, color: '#6b6b70' }}>
             All agent actions are either completed or awaiting a run. Check the <strong>Agent Goals</strong> tab to create or trigger a goal.
           </div>
         </div>
@@ -138,28 +138,28 @@ export default function AgentQueueTab({ clientId, agencyId }) {
                 <BadgeIcon size={12} /> {badge.label}
               </div>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>{a.tool_name}</div>
-              <div style={{ marginLeft: 'auto', fontSize: 11, color: '#9ca3af' }}>
+              <div style={{ marginLeft: 'auto', fontSize: 11, color: '#8e8e93' }}>
                 {a.goal_type} · {a.run_started_at ? new Date(a.run_started_at).toLocaleString() : ''}
               </div>
             </div>
 
             {/* Reason */}
             {a.input && (
-              <div style={{ fontSize: 13, color: '#374151', marginBottom: 10, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 10, lineHeight: 1.5 }}>
                 <strong>Why:</strong> {typeof a.input === 'object' ? (a.input.reason || JSON.stringify(a.input).slice(0, 200)) : String(a.input).slice(0, 200)}
               </div>
             )}
 
             {/* Input summary */}
             <div style={{
-              background: '#f9fafb', borderRadius: 8, padding: '10px 14px', marginBottom: 12,
-              fontSize: 12, fontFamily: 'monospace', color: '#374151', overflowX: 'auto', maxHeight: 120,
+              background: '#f9f9fb', borderRadius: 8, padding: '10px 14px', marginBottom: 12,
+              fontSize: 12, fontFamily: 'monospace', color: '#1f1f22', overflowX: 'auto', maxHeight: 120,
             }}>
               {JSON.stringify(a.input, null, 2)}
             </div>
 
             {/* Cost estimate */}
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>
+            <div style={{ fontSize: 12, color: '#6b6b70', marginBottom: 14 }}>
               Est. cost: ${a.est_cost_usd?.toFixed(2) ?? '?'} · Sequence #{a.sequence}
             </div>
 
@@ -183,7 +183,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
                 disabled={isProcessing}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
-                  border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 13,
+                  border: '1px solid #e5e7eb', background: '#fff', color: '#6b6b70', fontSize: 13,
                   fontWeight: 600, cursor: 'pointer', fontFamily: FB,
                 }}
               >
@@ -204,7 +204,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
             background: '#fff', borderRadius: 16, padding: 28, width: 400, maxWidth: '90vw',
           }} onClick={e => e.stopPropagation()}>
             <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12 }}>Reject Action</div>
-            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>Why are you rejecting this action?</div>
+            <div style={{ fontSize: 13, color: '#6b6b70', marginBottom: 14 }}>Why are you rejecting this action?</div>
             <textarea
               value={rejectReason}
               onChange={e => setRejectReason(e.target.value)}
@@ -218,7 +218,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setRejectModal(null)} style={{
                 padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b7280',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b6b70',
               }}>Cancel</button>
               <button onClick={handleReject} style={{
                 padding: '8px 16px', borderRadius: 8, border: 'none', background: R, color: '#fff',

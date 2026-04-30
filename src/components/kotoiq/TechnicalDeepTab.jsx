@@ -18,9 +18,9 @@ const CWV_THRESHOLDS = {
 }
 
 function cwvColor(value, metric) {
-  if (value === null || value === undefined) return '#9ca3af'
+  if (value === null || value === undefined) return '#8e8e93'
   const t = CWV_THRESHOLDS[metric]
-  if (!t) return '#9ca3af'
+  if (!t) return '#8e8e93'
   if (value <= t.good) return GRN
   if (value <= t.poor) return AMB
   return R
@@ -64,10 +64,10 @@ function ProgressBar({ value, max = 100, color = T, height = 8, label }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
   return (
     <div style={{ flex: 1 }}>
-      {label && <div style={{ fontSize: 11, color: '#374151', marginBottom: 4, display: 'flex', justifyContent: 'space-between' }}>
+      {label && <div style={{ fontSize: 11, color: '#1f1f22', marginBottom: 4, display: 'flex', justifyContent: 'space-between' }}>
         <span>{label}</span><span style={{ fontFamily: FH, fontWeight: 700 }}>{Math.round(pct)}%</span>
       </div>}
-      <div style={{ height, borderRadius: height / 2, background: '#f3f4f6', overflow: 'hidden' }}>
+      <div style={{ height, borderRadius: height / 2, background: '#f1f1f6', overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: height / 2, background: color, transition: 'width .5s ease' }} />
       </div>
     </div>
@@ -78,7 +78,7 @@ function IssueBadge({ type }) {
   const colors = { missing: R, non_self: AMB, points_to_404: R, chain: AMB, no_viewport: R, fixed_width: AMB }
   const labels = { missing: 'Missing', non_self: 'Non-Self', points_to_404: '→ 404', chain: 'Chain', no_viewport: 'No Viewport', fixed_width: 'Fixed Width' }
   return (
-    <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: (colors[type] || '#9ca3af') + '14', color: colors[type] || '#9ca3af' }}>
+    <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: (colors[type] || '#8e8e93') + '14', color: colors[type] || '#8e8e93' }}>
       {labels[type] || type}
     </span>
   )
@@ -137,11 +137,11 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
       <div style={{ textAlign: 'center', padding: '40px 20px' }}>
         <Server size={40} color={T} style={{ marginBottom: 12, opacity: 0.5 }} />
         <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Technical SEO Deep Audit</div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>
           Crawl your site to analyze sitemaps, canonical tags, mobile readiness, Core Web Vitals, and index coverage.
         </div>
         <button onClick={runAudit} disabled={auditing} style={{
-          padding: '10px 24px', borderRadius: 8, border: 'none', background: auditing ? '#e5e7eb' : BLK,
+          padding: '10px 24px', borderRadius: 8, border: 'none', background: auditing ? '#ececef' : BLK,
           color: '#fff', fontSize: 13, fontWeight: 700, cursor: auditing ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
         }}>
           {auditing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
@@ -163,7 +163,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
         <ScoreRing score={d.overall_score || 0} size={90} />
         <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 4 }}>Technical SEO Score</div>
-          <div style={{ fontSize: 12, color: '#374151', marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 12 }}>
             Last audit: {d.updated_at ? new Date(d.updated_at).toLocaleDateString() : 'Unknown'}
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -175,7 +175,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           </div>
         </div>
         <button onClick={runAudit} disabled={auditing} style={{
-          padding: '8px 18px', borderRadius: 8, border: 'none', background: auditing ? '#e5e7eb' : BLK,
+          padding: '8px 18px', borderRadius: 8, border: 'none', background: auditing ? '#ececef' : BLK,
           color: '#fff', fontSize: 12, fontWeight: 700, cursor: auditing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6,
         }}>
           {auditing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
@@ -227,13 +227,13 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 12, color: '#374151', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 8 }}>
                 {(d.canonical_issues || []).length} issues found across sampled pages
               </div>
               {expandCanonical && (d.canonical_issues || []).slice(0, 15).map((issue, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f9fafb', fontSize: 12 }}>
                   <IssueBadge type={issue.issue} />
-                  <span style={{ color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(issue.url)}</span>
+                  <span style={{ color: '#1f1f22', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(issue.url)}</span>
                 </div>
               ))}
             </>
@@ -261,13 +261,13 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 12, color: '#374151', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 8 }}>
                 {(d.mobile_mismatches || []).length} pages missing viewport meta
               </div>
               {expandMobile && (d.mobile_mismatches || []).slice(0, 15).map((m, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f9fafb', fontSize: 12 }}>
                   <IssueBadge type={m.issue} />
-                  <span style={{ color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(m.url)}</span>
+                  <span style={{ color: '#1f1f22', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(m.url)}</span>
                 </div>
               ))}
             </>
@@ -284,14 +284,14 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
             <div style={{ fontSize: 11, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Status Code Distribution</div>
             {Object.entries(statusDist).sort((a, b) => b[1] - a[1]).map(([code, count]) => {
               const pct = (count / statusTotal * 100).toFixed(1)
-              const color = code === '200' ? GRN : code.startsWith('3') ? AMB : code.startsWith('4') ? R : '#9ca3af'
+              const color = code === '200' ? GRN : code.startsWith('3') ? AMB : code.startsWith('4') ? R : '#8e8e93'
               return (
                 <div key={code} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color, width: 36 }}>{code}</span>
-                  <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden' }}>
+                  <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#f1f1f6', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: color }} />
                   </div>
-                  <span style={{ fontSize: 11, color: '#374151', fontFamily: FH, fontWeight: 600, width: 55, textAlign: 'right' }}>{count} ({pct}%)</span>
+                  <span style={{ fontSize: 11, color: '#1f1f22', fontFamily: FH, fontWeight: 600, width: 55, textAlign: 'right' }}>{count} ({pct}%)</span>
                 </div>
               )
             })}
@@ -299,7 +299,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontSize: 11, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>Not Indexed Reasons</div>
                 {Object.entries(d.not_indexed_reasons).map(([reason, count]) => (
-                  <div key={reason} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#374151', marginBottom: 4 }}>
+                  <div key={reason} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1f1f22', marginBottom: 4 }}>
                     <XCircle size={12} color={R} />
                     <span style={{ textTransform: 'capitalize' }}>{reason}</span>
                     <span style={{ fontFamily: FH, fontWeight: 700, marginLeft: 'auto' }}>{count}</span>
@@ -329,7 +329,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
             ['fid', d.cwv_fid, 'INP/FID', 'Interaction to Next Paint'],
             ['cls', d.cwv_cls, 'CLS', 'Cumulative Layout Shift'],
           ].map(([key, value, label, desc]) => (
-            <div key={key} style={{ textAlign: 'center', padding: '16px 12px', background: '#fafafa', borderRadius: 10 }}>
+            <div key={key} style={{ textAlign: 'center', padding: '16px 12px', background: '#fafafb', borderRadius: 10 }}>
               <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>{desc}</div>
               <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: cwvColor(value, key) }}>
                 {value !== null && value !== undefined ? (key === 'cls' ? value.toFixed(2) : `${Math.round(value)}`) : '—'}
@@ -385,7 +385,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
         {expandSitemap && (d.sitemap_issues || []).length > 0 && (
           <div style={{ marginTop: 12, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
             {(d.sitemap_issues || []).map((issue, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 12, color: '#374151', borderBottom: '1px solid #f9fafb' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 12, color: '#1f1f22', borderBottom: '1px solid #f9fafb' }}>
                 <AlertTriangle size={12} color={AMB} />
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(issue.url, 50)}</span>
                 <span style={{ fontSize: 11, color: '#1f2937' }}>{issue.issue}</span>

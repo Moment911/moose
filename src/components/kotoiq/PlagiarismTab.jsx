@@ -67,7 +67,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Shield size={18} color={T} /> Plagiarism &amp; AI Detection
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Detect copied content and AI-generated patterns before publishing.
         </div>
         <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Paste the content to check..." rows={10} style={{
@@ -91,14 +91,14 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
               <ScoreRing score={data.originality_score || 0} />
               <div>
                 <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>Originality</div>
-                <div style={{ fontSize: 12, color: '#374151' }}>Higher = more unique</div>
+                <div style={{ fontSize: 12, color: '#1f1f22' }}>Higher = more unique</div>
               </div>
             </div>
             <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 18, marginBottom: 0 }}>
               <ScoreRing score={data.ai_generation_likelihood || 0} colorFn={s => s >= 70 ? R : s >= 40 ? AMB : GRN} />
               <div>
                 <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>AI Likelihood</div>
-                <div style={{ fontSize: 12, color: '#374151' }}>Higher = more AI-ish</div>
+                <div style={{ fontSize: 12, color: '#1f1f22' }}>Higher = more AI-ish</div>
               </div>
             </div>
           </div>
@@ -111,12 +111,12 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {data.plagiarized_chunks.map((c, i) => (
                   <div key={i} style={{ border: `1px solid ${R}30`, borderRadius: 10, padding: 14, background: R + '06' }}>
-                    <div style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', marginBottom: 8, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12, color: '#1f1f22', fontStyle: 'italic', marginBottom: 8, lineHeight: 1.5 }}>
                       "{c.chunk || c.text}"
                     </div>
                     {c.matched_urls?.length > 0 && (
                       <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', marginBottom: 4 }}>Matches</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', marginBottom: 4 }}>Matches</div>
                         {c.matched_urls.map((u, j) => (
                           <a key={j} href={u} target="_blank" rel="noopener noreferrer" style={{
                             fontSize: 11, color: T, display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 10,
@@ -146,7 +146,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
                     <AlertTriangle size={14} color={AMB} style={{ marginTop: 2 }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{p.pattern || p.name || String(p)}</div>
-                      {p.example && <div style={{ fontSize: 11, color: '#374151', marginTop: 2, fontStyle: 'italic' }}>"{p.example}"</div>}
+                      {p.example && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2, fontStyle: 'italic' }}>"{p.example}"</div>}
                     </div>
                   </div>
                 ))}
@@ -160,7 +160,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
                 <CheckCircle size={20} color={GRN} />
                 <div>
                   <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: GRN }}>Content looks original</div>
-                  <div style={{ fontSize: 12, color: '#374151' }}>No significant matches and AI patterns are within human range.</div>
+                  <div style={{ fontSize: 12, color: '#1f1f22' }}>No significant matches and AI patterns are within human range.</div>
                 </div>
               </div>
             </div>

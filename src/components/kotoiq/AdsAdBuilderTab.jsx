@@ -7,7 +7,7 @@ import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 const input = { width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB, boxSizing: 'border-box' }
-const label = { fontSize: 12, fontWeight: 700, color: '#374151', fontFamily: FH, marginBottom: 4, display: 'block' }
+const label = { fontSize: 12, fontWeight: 700, color: '#1f1f22', fontFamily: FH, marginBottom: 4, display: 'block' }
 
 const PLATFORMS = [
   { id: 'google', name: 'Google RSA', desc: '15 headlines + 4 descriptions' },
@@ -51,7 +51,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
           <button key={p.id} onClick={() => { setPlatform(p.id); setResult(null) }}
             style={{ flex: 1, padding: '14px', borderRadius: 10, border: platform === p.id ? `2px solid ${T}` : '2px solid #e5e7eb', background: platform === p.id ? '#f0f9ff' : '#fff', cursor: 'pointer', textAlign: 'left' }}>
             <div style={{ fontFamily: FH, fontWeight: 800, fontSize: 14, color: platform === p.id ? T : BLK }}>{p.name}</div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{p.desc}</div>
+            <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 2 }}>{p.desc}</div>
           </button>
         ))}
       </div>
@@ -96,23 +96,23 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
             <div style={card}>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Google RSA — 15 Headlines + 4 Descriptions</div>
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>HEADLINES</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', marginBottom: 8 }}>HEADLINES</div>
                 {result.headlines.map((h, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#9ca3af', width: 20 }}>{i + 1}</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#8e8e93', width: 20 }}>{i + 1}</span>
                     <span style={{ flex: 1, fontSize: 13 }}>{h.text}</span>
                     <span style={{ fontSize: 10, color: h.text.length > 30 ? R : GRN }}>{h.text.length}/30</span>
                     {h.pin && <span style={{ fontSize: 10, padding: '1px 4px', background: '#eff6ff', color: T, borderRadius: 3 }}>pin {h.pin}</span>}
-                    <span style={{ fontSize: 10, padding: '1px 4px', background: '#f3f4f6', borderRadius: 3 }}>{h.category}</span>
+                    <span style={{ fontSize: 10, padding: '1px 4px', background: '#f1f1f6', borderRadius: 3 }}>{h.category}</span>
                     <Copy size={12} color="#9ca3af" style={{ cursor: 'pointer' }} onClick={() => copyText(h.text)} />
                   </div>
                 ))}
               </div>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>DESCRIPTIONS</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', marginBottom: 8 }}>DESCRIPTIONS</div>
                 {result.descriptions.map((d, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#9ca3af', width: 20 }}>{i + 1}</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#8e8e93', width: 20 }}>{i + 1}</span>
                     <span style={{ flex: 1, fontSize: 13 }}>{d.text}</span>
                     <span style={{ fontSize: 10, color: d.text.length > 90 ? R : GRN }}>{d.text.length}/90</span>
                     {d.pin && <span style={{ fontSize: 10, padding: '1px 4px', background: '#eff6ff', color: T, borderRadius: 3 }}>pin {d.pin}</span>}
@@ -130,11 +130,11 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
                 <div key={i} style={card}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                     <span style={{ fontFamily: FH, fontWeight: 800, fontSize: 14, color: T }}>Variant {String.fromCharCode(65 + i)}</span>
-                    {v.hook_concept && <span style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic' }}>{v.hook_concept}</span>}
+                    {v.hook_concept && <span style={{ fontSize: 11, color: '#6b6b70', fontStyle: 'italic' }}>{v.hook_concept}</span>}
                   </div>
                   {Object.entries(v).filter(([k]) => !['hook_concept', 'creative_brief'].includes(k)).map(([key, val]) => (
                     <div key={key} style={{ marginBottom: 8 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>{key.replace(/_/g, ' ')}</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase' }}>{key.replace(/_/g, ' ')}</div>
                       <div style={{ fontSize: 13, color: BLK, display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span>{Array.isArray(val) ? val.join(' → ') : String(val)}</span>
                         <Copy size={11} color="#d1d5db" style={{ cursor: 'pointer', flexShrink: 0 }} onClick={() => copyText(String(val))} />
@@ -147,9 +147,9 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
           )}
 
           {result.rationale && (
-            <div style={{ ...card, background: '#f9fafb' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 4 }}>RATIONALE</div>
-              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{result.rationale}</div>
+            <div style={{ ...card, background: '#f9f9fb' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', marginBottom: 4 }}>RATIONALE</div>
+              <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{result.rationale}</div>
             </div>
           )}
         </>
