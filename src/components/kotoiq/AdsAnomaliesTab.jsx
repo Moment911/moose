@@ -54,7 +54,7 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
         </button>
       </div>
 
-      {loading ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div> : (
+      {loading ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div> : (
         <>
           {alerts.length === 0 && <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
             <CheckCircle size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />

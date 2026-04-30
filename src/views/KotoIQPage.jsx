@@ -1175,7 +1175,7 @@ export default function KotoIQPage() {
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
-            <Shield size={48} color={R} style={{ margin: '0 auto 16px', opacity: .4 }} />
+            <Shield size={48} color="#0a0a0a" style={{ margin: '0 auto 16px', opacity: .4 }} />
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK, marginBottom: 8 }}>Login Required</div>
             <div style={{ fontSize: 14, color: '#1f1f22' }}>You need to be logged into an agency to use KotoIQ.</div>
           </div>
@@ -1465,7 +1465,7 @@ export default function KotoIQPage() {
                   onMouseEnter={e => { e.currentTarget.style.background = T + '15' }}
                   onMouseLeave={e => { e.currentTarget.style.background = '#f9f9fb' }}
                 >
-                  <Download size={14} color={T} />
+                  <Download size={14} color="#0a0a0a" />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 800, color: BLK }}>Download Desktop App</div>
                     <div style={{ fontSize: 10, fontWeight: 500, color: '#1f1f22', marginTop: 1 }}>macOS · Windows · Linux</div>
@@ -1491,7 +1491,7 @@ export default function KotoIQPage() {
                     background: `#f9f9fb`, color: BLK, textDecoration: 'none',
                     fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
                   }}>
-                  <Sparkles size={14} color={T} />
+                  <Sparkles size={14} color="#0a0a0a" />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 800, color: BLK }}>Watch Product Tour</div>
                     <div style={{ fontSize: 10, fontWeight: 500, color: '#1f1f22', marginTop: 1 }}>See KotoIQ in action</div>
@@ -1590,7 +1590,7 @@ export default function KotoIQPage() {
             // ── Compact re-run bar (when data exists) ──
             if (hasData) return (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 20 }}>
-                <Sparkles size={18} color={R} />
+                <Sparkles size={18} color="#0a0a0a" />
                 <div style={{ flex: 1 }}>
                   <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Re-run All Audits</span>
                   <span style={{ fontSize: 12, color: '#6b6b70', marginLeft: 8 }}>12 tools in 3 waves — ~$0.50</span>
@@ -1616,7 +1616,7 @@ export default function KotoIQPage() {
                 <div style={{ background: `linear-gradient(135deg, ${BLK} 0%, #1e293b 100%)`, borderRadius: 16, padding: '32px 36px', marginBottom: 20, color: '#fff' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
                     <div style={{ width: 56, height: 56, borderRadius: 14, background: R + '30', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Sparkles size={28} color={R} />
+                      <Sparkles size={28} color="#0a0a0a" />
                     </div>
                     <div>
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900 }}>Run All Audits</div>
@@ -1658,7 +1658,7 @@ export default function KotoIQPage() {
                   {/* Quick Scan */}
                   <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForQuick ? '#ececef' : R + '30'}`, padding: '20px 22px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <Zap size={18} color={R} />
+                      <Zap size={18} color="#0a0a0a" />
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Quick Scan</div>
                       <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: '#6b6b70' }}>No OAuth</span>
                     </div>
@@ -1686,7 +1686,7 @@ export default function KotoIQPage() {
                   {/* Full Sync */}
                   <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForFull ? '#ececef' : AMB + '30'}`, padding: '20px 22px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <RefreshCw size={18} color={T} />
+                      <RefreshCw size={18} color="#0a0a0a" />
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Full Sync</div>
                       <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: T }}>OAuth</span>
                     </div>
@@ -1756,9 +1756,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           <>
             {portfolio?.totals && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
-                <StatCard label="Total Clients" value={portfolio.totals.total_clients} icon={Users} color={T} />
+                <StatCard label="Total Clients" value={portfolio.totals.total_clients} icon={Users} color="#0a0a0a" />
                 <StatCard label="Synced" value={portfolio.totals.synced_clients} icon={CheckCircle} color={GRN} />
-                <StatCard label="Total Keywords" value={fmtN(portfolio.totals.total_keywords)} icon={Search} color={T} />
+                <StatCard label="Total Keywords" value={fmtN(portfolio.totals.total_keywords)} icon={Search} color="#0a0a0a" />
                 <StatCard label="Total Top 3" value={portfolio.totals.total_top3} icon={Star} color={GRN} />
               </div>
             )}
@@ -1814,14 +1814,14 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
         {!clientId && !portfolio && (
           <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
-            <Zap size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
+            <Zap size={48} color="#0a0a0a" style={{ margin: '0 auto 16px', opacity: .3 }} />
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Loading portfolio...</div>
           </div>
         )}
 
         {clientId && loading && (
           <div style={{ textAlign: 'center', padding: 60 }}>
-            <Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />
           </div>
         )}
 
@@ -1984,17 +1984,17 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <>
                 {/* Summary stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
-                  <StatCard label="Total Keywords" value={fmtN(d.summary?.total_keywords)} icon={Search} color={T} />
+                  <StatCard label="Total Keywords" value={fmtN(d.summary?.total_keywords)} icon={Search} color="#0a0a0a" />
                   <StatCard label="Organic Clicks (30d)" value={fmtN(d.summary?.total_organic_clicks)} icon={TrendingUp} color={GRN} />
                   <StatCard label="Ads Spend (30d)" value={fmt$(d.summary?.total_ads_spend || 0)} icon={DollarSign} color={AMB} />
-                  <StatCard label="Wasted Spend" value={fmt$(d.summary?.wasted_spend || 0)} sub="Organic cannibals" icon={AlertCircle} color={R} />
+                  <StatCard label="Wasted Spend" value={fmt$(d.summary?.wasted_spend || 0)} sub="Organic cannibals" icon={AlertCircle} color="#0a0a0a" />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
                   <StatCard label="Top 3 Rankings" value={d.summary?.top3_keywords || 0} icon={Star} color={GRN} />
-                  <StatCard label="Top 10 Rankings" value={d.summary?.top10_keywords || 0} icon={Eye} color={T} />
+                  <StatCard label="Top 10 Rankings" value={d.summary?.top10_keywords || 0} icon={Eye} color="#0a0a0a" />
                   <StatCard label="Avg Position" value={d.summary?.avg_position || '—'} icon={Target} color={AMB} />
-                  <StatCard label="Avg CPC" value={d.summary?.avg_cpc ? `$${d.summary.avg_cpc}` : '—'} icon={DollarSign} color={T} />
+                  <StatCard label="Avg CPC" value={d.summary?.avg_cpc ? `$${d.summary.avg_cpc}` : '—'} icon={DollarSign} color="#0a0a0a" />
                 </div>
 
                 {/* Category breakdown */}
@@ -2336,7 +2336,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Generate new brief */}
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Zap size={18} color={T} /> Generate Content Brief
+                <Zap size={18} color="#0a0a0a" /> Generate Content Brief
               </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'end' }}>
                 <div style={{ flex: 1 }}>
@@ -2681,7 +2681,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 running={rankLoading}
               />
             </div>
-            {rankLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+            {rankLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!rankLoading && !rankData?.total_tracked && (
               <NoDataYet
@@ -2699,11 +2699,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <>
                 {/* Summary stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 20 }}>
-                  <StatCard label="Tracked Keywords" value={rankData.total_tracked} icon={Search} color={T} />
+                  <StatCard label="Tracked Keywords" value={rankData.total_tracked} icon={Search} color="#0a0a0a" />
                   <StatCard label="Top 3" value={rankData.top3} icon={Star} color={GRN} />
-                  <StatCard label="Top 10" value={rankData.top10} icon={Eye} color={T} />
+                  <StatCard label="Top 10" value={rankData.top10} icon={Eye} color="#0a0a0a" />
                   <StatCard label="Improved" value={rankData.improved?.length || 0} icon={ArrowUpRight} color={GRN} />
-                  <StatCard label="Declined" value={rankData.declined?.length || 0} icon={ArrowDownRight} color={R} />
+                  <StatCard label="Declined" value={rankData.declined?.length || 0} icon={ArrowDownRight} color="#0a0a0a" />
                 </div>
 
                 {/* Position distribution bar */}
@@ -2863,7 +2863,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 running={enriching}
               />
             </div>
-            {enrichLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+            {enrichLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!enrichLoading && !enrichment && (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
@@ -2916,7 +2916,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {enrichment.technical_audit && (
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <AlertCircle size={18} color={R} /> Technical SEO Audit
+                      <AlertCircle size={18} color="#0a0a0a" /> Technical SEO Audit
                       <span style={{ marginLeft: 'auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[enrichment.technical_audit.grade] || '#6b6b70' }}>{enrichment.technical_audit.grade}</span>
                     </div>
                     {enrichment.technical_audit.summary && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.technical_audit.summary}</div>}
@@ -2942,7 +2942,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {enrichment.onpage_audit && (
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Eye size={18} color={T} /> On-Page SEO Audit
+                      <Eye size={18} color="#0a0a0a" /> On-Page SEO Audit
                       <span style={{ marginLeft: 'auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: enrichment.onpage_audit.score >= 70 ? GRN : enrichment.onpage_audit.score >= 40 ? AMB : R }}>{enrichment.onpage_audit.score}/100</span>
                     </div>
                     {enrichment.onpage_audit.ai_summary && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.onpage_audit.ai_summary}</div>}
@@ -3013,7 +3013,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {enrichment.market_density && (
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <BarChart2 size={18} color={T} /> Market Density
+                      <BarChart2 size={18} color="#0a0a0a" /> Market Density
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 12 }}>
                       {[
@@ -3038,7 +3038,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {enrichment.content_gap && (
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Zap size={18} color={R} /> Content Gap Analysis
+                      <Zap size={18} color="#0a0a0a" /> Content Gap Analysis
                     </div>
                     {enrichment.content_gap.quick_content_wins?.length > 0 && (
                       <div style={{ marginBottom: 16 }}>
@@ -3080,7 +3080,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {enrichment.grid_scan && (
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <MapPin size={18} color={R} /> Live Local Pack Grid — "{enrichment.grid_scan.keyword}"
+                      <MapPin size={18} color="#0a0a0a" /> Live Local Pack Grid — "{enrichment.grid_scan.keyword}"
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
                       {[
@@ -3113,7 +3113,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {enrichment.competitor_intel && (
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Target size={18} color={R} /> Competitor Intelligence
+                      <Target size={18} color="#0a0a0a" /> Competitor Intelligence
                     </div>
                     {enrichment.competitor_intel.market_position && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.competitor_intel.market_position}</div>}
                     {enrichment.competitor_intel.competitors?.length > 0 && (
@@ -3170,7 +3170,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {enrichment.domain && (
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Search size={18} color={T} /> Domain Intelligence
+                      <Search size={18} color="#0a0a0a" /> Domain Intelligence
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
                       {[
@@ -3427,7 +3427,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Target size={18} color={T} /> Competitor Landscape
+                  <Target size={18} color="#0a0a0a" /> Competitor Landscape
                   <SectionActions
                     onDelete={() => { setCompLandscape(null); setSelectedCompDomain(null); setCompDomainKws(null); toast.success('Competitor data cleared') }}
                     deleteLabel="Clear"
@@ -3454,7 +3454,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 Find all domains competing for the same keywords as your client. Click any competitor to see which keywords they rank for.
               </div>
 
-              {compLandscapeLoading && <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+              {compLandscapeLoading && <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
               {compLandscape && !compLandscapeLoading && (
                 <>
@@ -3517,7 +3517,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
                         {compLandscape.domain} vs {selectedCompDomain} — Shared Keywords
                       </div>
-                      {compDomainLoading && <div style={{ textAlign: 'center', padding: 20 }}><Loader2 size={20} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+                      {compDomainLoading && <div style={{ textAlign: 'center', padding: 20 }}><Loader2 size={20} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>}
                       {compDomainKws && !compDomainLoading && (
                         <div style={{ overflowX: 'auto' }}>
                           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -3653,7 +3653,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Per-keyword page analysis */}
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Target size={18} color={R} /> Competitor Page Analysis
+                <Target size={18} color="#0a0a0a" /> Competitor Page Analysis
                 <SectionActions
                   onDelete={() => { setCompAnalysis(null); toast.success('Analysis cleared') }}
                   deleteLabel="Clear"
@@ -3684,7 +3684,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               )}
             </div>
 
-            {compLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /><div style={{ marginTop: 12, fontSize: 13, color: '#1f1f22' }}>Fetching and analyzing competitor pages...</div></div>}
+            {compLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /><div style={{ marginTop: 12, fontSize: 13, color: '#1f1f22' }}>Fetching and analyzing competitor pages...</div></div>}
 
             {/* Results */}
             {compAnalysis && !compLoading && (
@@ -3790,7 +3790,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {compAnalysis.gap_analysis && (
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Brain size={18} color={T} /> AI Competitive Gap Analysis
+                      <Brain size={18} color="#0a0a0a" /> AI Competitive Gap Analysis
                     </div>
                     <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, marginBottom: 20, padding: '14px 18px', background: '#f9f9fb', borderRadius: 10, border: `1px solid #ececef` }}>
                       {compAnalysis.gap_analysis.summary}
@@ -3928,7 +3928,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               </div>
             )}
 
-            {roiLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+            {roiLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {roiData && !roiLoading && (
               <>
@@ -4061,7 +4061,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 running={gmbLoading}
               />
             </div>
-            {gmbLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+            {gmbLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!gmbLoading && !gmb?.gbp && (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
@@ -4232,7 +4232,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div style={card}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Zap size={18} color={R} /> GBP Content Calendar
+                        <Zap size={18} color="#0a0a0a" /> GBP Content Calendar
                         <SectionActions
                           onDelete={() => { setGmbPosts([]); toast.success('Posts cleared') }}
                           onRerun={generatePosts}
@@ -4420,7 +4420,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {gmbPosts.length > 0 && (
                     <div style={card}>
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Clock size={18} color={T} /> 4-Week Post Calendar
+                        <Clock size={18} color="#0a0a0a" /> 4-Week Post Calendar
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                         {[0, 1, 2, 3].map(week => {
@@ -4450,7 +4450,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {/* Grid Rank Map (placeholder — needs DataForSEO) */}
                   <div style={card}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <MapPin size={18} color={R} /> Local Pack Grid Tracker
+                      <MapPin size={18} color="#0a0a0a" /> Local Pack Grid Tracker
                     </div>
                     <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, lineHeight: 1.6 }}>
                       See your Google Maps 3-Pack position from 25 geographic points around your business. Green = you're in the pack. Red = competitors dominate.
@@ -4660,7 +4660,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Sitemap URL */}
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Globe size={18} color={T} /> Sitemap URL
+                <Globe size={18} color="#0a0a0a" /> Sitemap URL
               </div>
               <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
                 Adding your sitemap helps KotoIQ discover all indexed pages and analyze your site structure. We'll also try to auto-detect it from your website.
@@ -5082,7 +5082,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {oauthStep === 'exchanging' && (
               <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
-                <Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
+                <Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
                 <div style={{ fontSize: 14, color: '#1f1f22' }}>Exchanging tokens with Google...</div>
               </div>
             )}
@@ -5103,7 +5103,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Moz API */}
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TrendingUp size={18} color={T} /> Moz API
+                <TrendingUp size={18} color="#0a0a0a" /> Moz API
               </div>
               <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
                 Domain Authority, Page Authority, backlink counts, spam score — used in Quick Scan and competitor analysis.
@@ -5347,7 +5347,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
       {/* Search input */}
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Brain size={18} color={T} /> AEO Research — AI Overview Gap Finder
+          <Brain size={18} color="#0a0a0a" /> AEO Research — AI Overview Gap Finder
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 14, lineHeight: 1.6 }}>
           Search any keyword to see what Google's AI Overview says, which companies it mentions, what information it misses, and which new pages you should create to get cited.
@@ -5383,14 +5383,14 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
         )}
       </div>
 
-      {loading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /><div style={{ marginTop: 12, fontSize: 13, color: '#1f1f22' }}>Searching Google + analyzing AI Overview...</div></div>}
+      {loading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /><div style={{ marginTop: 12, fontSize: 13, color: '#1f1f22' }}>Searching Google + analyzing AI Overview...</div></div>}
 
       {result && !loading && (
         <>
           {/* AI Overview */}
           <div style={{ ...card, borderLeft: result.ai_overview ? `4px solid ${T}` : '4px solid #e5e7eb' }}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Brain size={16} color={T} />
+              <Brain size={16} color="#0a0a0a" />
               {result.ai_overview ? 'AI Overview Present' : 'No AI Overview for This Query'}
             </div>
             {result.ai_overview ? (

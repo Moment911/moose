@@ -106,13 +106,13 @@ export default function EEATTab({ clientId, agencyId }) {
     setRunning(false)
   }
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>
 
   // Empty state
   if (!audit) {
     return (
       <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
-        <Shield size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
+        <Shield size={48} color="#0a0a0a" style={{ margin: '0 auto 16px', opacity: .3 }} />
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>E-E-A-T Scorer</div>
         <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20, maxWidth: 460, margin: '0 auto 20px' }}>
           Analyze your site for Experience, Expertise, Authoritativeness, and Trust signals that Google uses to evaluate content quality.
@@ -242,12 +242,12 @@ export default function EEATTab({ clientId, agencyId }) {
       {audit.author_name && (
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <User size={16} color={T} />
+            <User size={16} color="#0a0a0a" />
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Author Entity</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <User size={24} color={T} />
+              <User size={24} color="#0a0a0a" />
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: BLK }}>{audit.author_name}</div>

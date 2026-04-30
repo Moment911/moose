@@ -97,7 +97,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
         border: `1px solid #ececef`, borderRadius: 12, padding: '14px 18px', marginBottom: 18,
         display: 'flex', alignItems: 'center', gap: 12,
       }}>
-        <Users size={20} color={T} />
+        <Users size={20} color="#0a0a0a" />
         <div>
           <div style={{ fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>Agency-wide operations</div>
           <div style={{ fontSize: 12, color: '#475569' }}>
@@ -191,7 +191,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Layers size={16} color={T} /> Progress
+              <Layers size={16} color="#0a0a0a" /> Progress
             </div>
             <div style={{ fontSize: 12, color: '#475569' }}>
               {status.completed} complete · {status.failed} failed · {status.in_progress} in progress

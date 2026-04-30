@@ -135,7 +135,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Layers size={30} color={T} />
+          <Layers size={30} color="#0a0a0a" />
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Sitemap Crawler</div>

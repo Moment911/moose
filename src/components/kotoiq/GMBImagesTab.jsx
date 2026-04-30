@@ -227,7 +227,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
         {/* LEFT — Upload */}
         <div style={card}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Upload size={16} color={T} /> Upload Image
+            <Upload size={16} color="#0a0a0a" /> Upload Image
           </div>
           <div
             onDragOver={e => { e.preventDefault(); setDragOver(true) }}
@@ -270,7 +270,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
         {/* RIGHT — Generate */}
         <div style={card}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Sparkles size={16} color={R} /> Generate with AI
+            <Sparkles size={16} color="#0a0a0a" /> Generate with AI
           </div>
           <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe the image (e.g. friendly dentist office interior with natural light)" rows={4} style={{
             width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",

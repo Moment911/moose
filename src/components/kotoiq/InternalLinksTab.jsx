@@ -220,7 +220,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
     return (
       <div style={{ maxWidth: 520, margin: '60px auto', textAlign: 'center' }}>
         <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-          <Link2 size={28} color={T} />
+          <Link2 size={28} color="#0a0a0a" />
         </div>
         <h2 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Internal Link Intelligence</h2>
         <p style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>
@@ -283,7 +283,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
       {/* Stats Row */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <StatBox label="Total Pages" value={fmtN(a.total_pages)} icon={Globe} color={T} />
+        <StatBox label="Total Pages" value={fmtN(a.total_pages)} icon={Globe} color="#0a0a0a" />
         <StatBox label="Total Links" value={fmtN(a.total_internal_links)} icon={Link2} color={BLK} />
         <StatBox label="Avg Links/Page" value={a.avg_links_per_page?.toFixed(1) || '0'} icon={BarChart2} color={GRN} />
         <StatBox label="Orphan Pages" value={orphans.length} icon={AlertTriangle} color={orphans.length > 0 ? R : GRN} />
@@ -295,13 +295,13 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         <IssueCard
           title="Orphan Pages"
           icon="🏝️"
-          color={R}
+          color="#0a0a0a"
           items={orphans}
           description="These pages have zero or very few internal links pointing to them. Add links from related content pages to boost their authority."
           emptyMsg="All pages have at least one inbound internal link."
           renderItem={(url) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <XCircle size={11} color={R} />
+              <XCircle size={11} color="#0a0a0a" />
               <a href={url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#1f1f22', textDecoration: 'none' }}
                 onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#1f1f22'}
               >{shortUrl(url)}</a>
@@ -362,12 +362,12 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         <IssueCard
           title="Over-linked Pages"
           icon="🔗"
-          color={R}
+          color="#0a0a0a"
           items={overLinked}
           emptyMsg="No pages exceed the 150-link threshold."
           renderItem={(item) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <AlertTriangle size={11} color={R} />
+              <AlertTriangle size={11} color="#0a0a0a" />
               <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#1f1f22', textDecoration: 'none' }}
                 onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#1f1f22'}
               >{shortUrl(item.url)}</a>
@@ -381,7 +381,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       {topEquity.length > 0 && (
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <BarChart2 size={15} color={T} />
+            <BarChart2 size={15} color="#0a0a0a" />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Link Equity Distribution</span>
             <span style={{ fontSize: 11, color: '#1f2937', marginLeft: 4 }}>Top 10 pages by inbound links</span>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, fontSize: 12, color: '#1f2937' }}>
@@ -465,7 +465,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       {/* Breadcrumb Coverage */}
       <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <ArrowRight size={15} color={T} />
+          <ArrowRight size={15} color="#0a0a0a" />
           <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Breadcrumb Coverage</span>
           <span style={{
             marginLeft: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800,
@@ -510,7 +510,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       {recommendations.length > 0 && (
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <Eye size={15} color={R} />
+            <Eye size={15} color="#0a0a0a" />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>AI Recommendations</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -531,7 +531,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       {(suggestLoading || suggestions) && (
         <div style={{ background: '#fff', borderRadius: 14, border: `2px solid ${T}`, padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <Zap size={15} color={T} />
+            <Zap size={15} color="#0a0a0a" />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Link Suggestions for {shortUrl(suggestUrl)}</span>
             <button onClick={() => { setSuggestions(null); setSuggestUrl('') }} style={{
               marginLeft: 'auto', border: 'none', background: 'none', fontSize: 11, color: '#1f2937', cursor: 'pointer',
@@ -577,7 +577,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                   {suggestions.should_receive_links_from.map((s, i) => (
                     <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <ArrowRight size={11} color={T} style={{ transform: 'rotate(180deg)' }} />
+                        <ArrowRight size={11} color="#0a0a0a" style={{ transform: 'rotate(180deg)' }} />
                         <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: '#1f1f22', textDecoration: 'none' }}
                           onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#1f1f22'}
                         >{shortUrl(s.url)}</a>

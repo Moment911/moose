@@ -58,7 +58,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
 
       {loading ? (
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
-          <Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} />
+          <Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : (
         <>

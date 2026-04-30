@@ -103,13 +103,13 @@ export default function QueryPathTab({ clientId, agencyId }) {
 
   const toggleCluster = (i) => setExpandedClusters(prev => ({ ...prev, [i]: !prev[i] }))
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={28} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={28} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>
 
   // ── Empty state ──────────────────────────────────────────────────────
   if (!data) return (
     <div style={card}>
       <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-        <GitBranch size={40} color={T} style={{ marginBottom: 12, opacity: 0.5 }} />
+        <GitBranch size={40} color="#0a0a0a" style={{ marginBottom: 12, opacity: 0.5 }} />
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Query Path Analyzer</div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
           Discover how users search for your services. Group keywords into clusters based on topical, intent, and sequential patterns to find content gaps.
@@ -134,7 +134,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
       {/* Intro Explanation */}
       <div style={{ ...card, background: '#f9f9fb', border: `1px solid #ececef` }}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <GitBranch size={15} color={T} /> How to Read Query Paths
+          <GitBranch size={15} color="#0a0a0a" /> How to Read Query Paths
         </div>
         <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6 }}>
           Query paths show how people search for your services. Keywords are grouped into <strong>clusters</strong> based on
@@ -146,10 +146,10 @@ export default function QueryPathTab({ clientId, agencyId }) {
 
       {/* Header Stats */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-        <StatBox label="Clusters" value={data.total_clusters || 0} color={T} />
+        <StatBox label="Clusters" value={data.total_clusters || 0} color="#0a0a0a" />
         <StatBox label="Total Queries" value={data.total_queries || 0} color={BLK} />
         <StatBox label="Avg Coverage" value={`${data.avg_coverage_pct || 0}%`} color={data.avg_coverage_pct >= 70 ? GRN : data.avg_coverage_pct >= 40 ? AMB : R} />
-        <StatBox label="Gap Queries" value={(data.all_gaps || []).length} color={R} />
+        <StatBox label="Gap Queries" value={(data.all_gaps || []).length} color="#0a0a0a" />
         <button onClick={runAnalysis} disabled={analyzing} style={{
           padding: '8px 18px', borderRadius: 8, border: 'none', background: analyzing ? '#ececef' : BLK,
           color: '#fff', fontSize: 12, fontWeight: 700, cursor: analyzing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6,
@@ -191,7 +191,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
 
               {/* Seed Query */}
               <div style={{ padding: '6px 12px', background: '#f9f9fb', borderRadius: 8, border: `1px solid #ececef`, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Target size={12} color={T} />
+                <Target size={12} color="#0a0a0a" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: T }}>Seed:</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{cluster.seed_query}</span>
               </div>
@@ -283,7 +283,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                     return (
                       <div style={{ marginTop: 12, padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Zap size={10} color={T} /> What to do
+                          <Zap size={10} color="#0a0a0a" /> What to do
                         </div>
                         {cfg.actions.map((action, j) => (
                           <div key={j} style={{ fontSize: 11, color: '#1f1f22', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: j < cfg.actions.length - 1 ? 4 : 0 }}>
@@ -305,7 +305,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
       {(data.all_gaps || []).length > 0 && (
         <div style={{ ...card, marginTop: 14 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <XCircle size={15} color={R} /> Gap Queries — No Ranking Content
+            <XCircle size={15} color="#0a0a0a" /> Gap Queries — No Ranking Content
           </div>
           <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 12 }}>
             {(data.all_gaps || []).length} keywords with no ranking page. These are searches people make where your site does not appear — each one is a missed opportunity to attract potential customers.
@@ -328,7 +328,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
           {/* What to do about gaps */}
           <div style={{ marginTop: 14, padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: `1px solid ${R}15` }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Zap size={10} color={R} /> What to do
+              <Zap size={10} color="#0a0a0a" /> What to do
             </div>
             <div style={{ fontSize: 11, color: '#1f1f22', lineHeight: 1.5, paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
               <span style={{ position: 'absolute', left: 0, color: R, fontWeight: 700 }}>1.</span>

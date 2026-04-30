@@ -171,7 +171,7 @@ export default function SemanticTab({ clientId, agencyId }) {
 
           {/* What These Scores Mean + What To Do */}
           <div style={{ ...card, background: '#f9f9fb' }}>
-            <div style={titleStyle}><Brain size={15} color={T} /> What This Data Means</div>
+            <div style={titleStyle}><Brain size={15} color="#0a0a0a" /> What This Data Means</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Overall Score</div>
@@ -211,7 +211,7 @@ export default function SemanticTab({ clientId, agencyId }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
             {/* N-grams */}
             <div style={card}>
-              <div style={titleStyle}><Hash size={15} color={T} /> Top N-grams</div>
+              <div style={titleStyle}><Hash size={15} color="#0a0a0a" /> Top N-grams</div>
               {ngrams.trigrams?.length > 0 && (
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 6 }}>3-word phrases</div>
@@ -234,9 +234,9 @@ export default function SemanticTab({ clientId, agencyId }) {
 
             {/* Nouns / Predicates / Adjectives */}
             <div style={card}>
-              <div style={titleStyle}><Type size={15} color={T} /> Vocabulary Profile</div>
+              <div style={titleStyle}><Type size={15} color="#0a0a0a" /> Vocabulary Profile</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <WordList title="Nouns" items={a.top_nouns} icon={FileText} color={T} />
+                <WordList title="Nouns" items={a.top_nouns} icon={FileText} color="#0a0a0a" />
                 <WordList title="Verbs" items={a.top_predicates} icon={Zap} color={GRN} />
                 <WordList title="Adjectives" items={a.top_adjectives} icon={Eye} color={AMB} />
               </div>
@@ -247,7 +247,7 @@ export default function SemanticTab({ clientId, agencyId }) {
 
             {/* Heading Patterns */}
             <div style={card}>
-              <div style={titleStyle}><BarChart2 size={15} color={T} /> Heading Patterns</div>
+              <div style={titleStyle}><BarChart2 size={15} color="#0a0a0a" /> Heading Patterns</div>
               {(a.heading_patterns || []).length > 0 ? (
                 <div>
                   {a.heading_patterns.map((hp, i) => (
@@ -278,7 +278,7 @@ export default function SemanticTab({ clientId, agencyId }) {
 
           {/* Content Network Health */}
           <div style={card}>
-            <div style={titleStyle}><TrendingUp size={15} color={T} /> Content Network Health</div>
+            <div style={titleStyle}><TrendingUp size={15} color="#0a0a0a" /> Content Network Health</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
               {/* Main vs Supplementary ratio */}
               <div>
@@ -328,7 +328,7 @@ export default function SemanticTab({ clientId, agencyId }) {
             {/* Thin Content */}
             <div style={card}>
               <div style={titleStyle}>
-                <AlertTriangle size={15} color={R} /> Thin Content
+                <AlertTriangle size={15} color="#0a0a0a" /> Thin Content
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#1f2937', marginLeft: 'auto' }}>{(a.thin_content_pages || []).length} pages</span>
               </div>
               {(a.thin_content_pages || []).length > 0 ? (
@@ -418,7 +418,7 @@ export default function SemanticTab({ clientId, agencyId }) {
           {/* Paragraph Openers */}
           {(a.paragraph_openers || []).length > 0 && (
             <div style={card}>
-              <div style={titleStyle}><FileText size={15} color={T} /> Common Paragraph Openers</div>
+              <div style={titleStyle}><FileText size={15} color="#0a0a0a" /> Common Paragraph Openers</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {a.paragraph_openers.slice(0, 15).map((p, i) => (
                   <span key={i} style={{

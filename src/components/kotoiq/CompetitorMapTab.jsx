@@ -43,7 +43,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
       <HowItWorks tool="competitor_map" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Map size={18} color={T} /> Competitor Topical Map
+          <Map size={18} color="#0a0a0a" /> Competitor Topical Map
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Reverse-engineer a competitor's topical strategy.
@@ -76,7 +76,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Target size={16} color={R} /> Core Topics
+                <Target size={16} color="#0a0a0a" /> Core Topics
               </div>
               {(data.core_topics || []).map((t, i) => (
                 <div key={i} style={{ padding: '8px 12px', background: '#f9f9fb', borderRadius: 6, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
@@ -102,11 +102,11 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
           {data.coverage_comparison && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TrendingUp size={16} color={T} /> Coverage vs. Client
+                <TrendingUp size={16} color="#0a0a0a" /> Coverage vs. Client
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                <Stat label="Client Coverage" value={`${data.coverage_comparison.client_coverage || 0}%`} color={T} />
-                <Stat label="Competitor Coverage" value={`${data.coverage_comparison.competitor_coverage || 0}%`} color={R} />
+                <Stat label="Client Coverage" value={`${data.coverage_comparison.client_coverage || 0}%`} color="#0a0a0a" />
+                <Stat label="Competitor Coverage" value={`${data.coverage_comparison.competitor_coverage || 0}%`} color="#0a0a0a" />
                 <Stat label="Gap" value={`${data.coverage_comparison.gap || 0}%`} color={AMB} />
               </div>
               {data.coverage_comparison.missing_topics?.length > 0 && (

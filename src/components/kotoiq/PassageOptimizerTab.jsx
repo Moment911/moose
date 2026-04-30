@@ -42,7 +42,7 @@ export default function PassageOptimizerTab({ clientId, agencyId }) {
       <HowItWorks tool="passage_opt" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FileText size={18} color={T} /> Passage Optimizer
+          <FileText size={18} color="#0a0a0a" /> Passage Optimizer
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Optimize passages for featured snippets and AI answer boxes.

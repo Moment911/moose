@@ -95,7 +95,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <GitBranch size={30} color={T} />
+          <GitBranch size={30} color="#0a0a0a" />
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Knowledge Graph Export</div>
@@ -208,7 +208,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Info size={16} color={T} /> Submission Guide
+                  <Info size={16} color="#0a0a0a" /> Submission Guide
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={copyAll} style={{

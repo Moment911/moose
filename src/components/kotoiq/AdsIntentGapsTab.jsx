@@ -48,7 +48,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
         </button>
       </div>
 
-      {loading ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div> : (
+      {loading ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div> : (
         <>
           <div style={{ ...card, background: '#f0f9ff', borderColor: '#bae6fd' }}>
             <div style={{ fontSize: 13, color: '#0369a1', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>

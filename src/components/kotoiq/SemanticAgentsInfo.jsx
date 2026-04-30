@@ -92,7 +92,7 @@ export default function SemanticAgentsInfo() {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <Brain size={18} color={T} />
+            <Brain size={18} color="#0a0a0a" />
           </div>
           <div style={{ textAlign: 'left' }}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, letterSpacing: '-.01em' }}>

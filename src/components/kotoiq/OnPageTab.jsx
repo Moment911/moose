@@ -40,7 +40,7 @@ function ScoreRing({ score, size = 130 }) {
 
 function CheckRow({ label, status, detail }) {
   const icon = status === 'pass' ? <CheckCircle size={14} color={GRN} />
-    : status === 'fail' ? <XCircle size={14} color={R} />
+    : status === 'fail' ? <XCircle size={14} color="#0a0a0a" />
     : <AlertCircle size={14} color={AMB} />
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9f9fb', marginBottom: 4 }}>
@@ -90,7 +90,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
       <HowItWorks tool="on_page" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FileText size={18} color={T} /> On-Page Audit
+          <FileText size={18} color="#0a0a0a" /> On-Page Audit
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Checks title, meta, headings, keyword placement, schema, and more.
@@ -130,7 +130,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
           {data.keyword_placement && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Target size={16} color={T} /> Keyword Placement
+                <Target size={16} color="#0a0a0a" /> Keyword Placement
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
                 {Object.entries(data.keyword_placement).map(([slot, val]) => {
@@ -165,7 +165,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 12 }}>Critical Fixes</div>
               {data.critical_fixes.map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 8, background: '#f9f9fb', marginBottom: 4 }}>
-                  <XCircle size={14} color={R} style={{ marginTop: 2 }} />
+                  <XCircle size={14} color="#0a0a0a" style={{ marginTop: 2 }} />
                   <div style={{ fontSize: 12, color: '#1f1f22' }}>{typeof f === 'string' ? f : f.fix || f.text}</div>
                 </div>
               ))}

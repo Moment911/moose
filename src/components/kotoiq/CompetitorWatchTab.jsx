@@ -156,7 +156,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 220 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Eye size={20} color={T} /> Competitor Watch
+            <Eye size={20} color="#0a0a0a" /> Competitor Watch
           </div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
             Monitor competitor sitemaps, rankings, and backlinks. Get pinged when they move.
@@ -176,7 +176,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
       {/* Setup card */}
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Plus size={16} color={T} /> New Watch
+          <Plus size={16} color="#0a0a0a" /> New Watch
         </div>
 
         <div style={{ marginBottom: 14 }}>
@@ -260,7 +260,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {watches.map((w, i) => (
               <div key={w.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#f9f9fb', borderRadius: 10 }}>
-                <Eye size={14} color={T} />
+                <Eye size={14} color="#0a0a0a" />
                 <div style={{ flex: 1, fontSize: 13 }}>
                   <div style={{ fontWeight: 700, color: BLK }}>{(w.competitor_domains || []).join(', ')}</div>
                   <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 2 }}>
@@ -283,7 +283,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Bell size={16} color={T} /> Event Feed
+            <Bell size={16} color="#0a0a0a" /> Event Feed
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, alignItems: 'center' }}>
             <Filter size={12} color="#6b7280" />
@@ -300,7 +300,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: 30 }}>
-            <Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />
           </div>
         ) : filteredEvents.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 36, color: '#6b6b70', fontSize: 13 }}>

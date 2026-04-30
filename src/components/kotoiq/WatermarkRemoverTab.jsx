@@ -41,7 +41,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
       <HowItWorks tool="watermark" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Eraser size={18} color={T} /> AI Watermark Remover
+          <Eraser size={18} color="#0a0a0a" /> AI Watermark Remover
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Strip hidden AI fingerprints, homoglyphs, and telltale phrases.
@@ -72,7 +72,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
       {data && (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 14 }}>
-            <Stat label="Watermarks Removed" value={data.watermarks_removed || 0} color={R} />
+            <Stat label="Watermarks Removed" value={data.watermarks_removed || 0} color="#0a0a0a" />
             <Stat label="Human Score Before" value={`${data.human_score_before || 0}%`} color={AMB} />
             <Stat label="Human Score After" value={`${data.human_score_after || 0}%`} color={GRN} />
           </div>

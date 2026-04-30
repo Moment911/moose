@@ -173,7 +173,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
     <div>
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <History size={20} color={T} />
+          <History size={20} color="#0a0a0a" />
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Activity</div>
           <div style={{ marginLeft: 'auto', fontSize: 12, color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             {activities.length} action{activities.length === 1 ? '' : 's'} on file

@@ -33,7 +33,7 @@ function SectionCard({ icon: Icon, title, children }) {
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
         <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon size={18} color={T} />
+          <Icon size={18} color="#0a0a0a" />
         </div>
         <h3 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 17, fontWeight: 800, color: BLK, margin: 0 }}>{title}</h3>
       </div>
@@ -118,7 +118,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
-      <Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} />
+      <Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: '#6b6b70' }}>Loading master report...</div>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>

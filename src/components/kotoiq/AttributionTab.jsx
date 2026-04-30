@@ -151,7 +151,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
 
       {/* ── KPI summary cards ────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
-        <KpiCard icon={<Phone size={16} />} label="Calls" value={kpis.call_count} color={T} />
+        <KpiCard icon={<Phone size={16} />} label="Calls" value={kpis.call_count} color="#0a0a0a" />
         <KpiCard icon={<BarChart3 size={16} />} label="Rank" value={kpis.rank ?? '--'} sub={kpis.rank_keyword} color="#6366f1" />
         <KpiCard icon={<ArrowUpRight size={16} />} label="Est. Revenue" value={kpis.estimated_revenue ? `$${kpis.estimated_revenue.toLocaleString()}` : '--'} color="#16a34a" />
         <KpiCard icon={<Clock size={16} />} label="Days Live" value={daysSincePublish ?? '--'} color="#6b7280" />

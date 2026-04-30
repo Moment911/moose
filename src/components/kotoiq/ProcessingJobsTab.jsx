@@ -105,7 +105,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Clock size={30} color={T} />
+          <Clock size={30} color="#0a0a0a" />
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Background Jobs</div>
@@ -138,7 +138,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
       {/* Jobs list */}
       <div style={card}>
         {loading && jobs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 30 }}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} color={T} /></div>
+          <div style={{ textAlign: 'center', padding: 30 }}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} color="#0a0a0a" /></div>
         ) : jobs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 30, color: '#1f1f22', fontSize: 13 }}>
             <Clock size={32} color="#d1d5db" style={{ marginBottom: 8 }} /><br />

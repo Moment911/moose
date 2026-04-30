@@ -85,7 +85,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
 
       {loading ? (
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
-          <Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} />
+          <Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />
           <div style={{ marginTop: 8, color: '#6b6b70', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Loading ads data...</div>
         </div>
       ) : (
@@ -93,7 +93,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
           {/* KPI Cards */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
             <StatCard label="7-Day Spend" value={fmt(cost7d)} icon={DollarSign} color={BLK} />
-            <StatCard label="Clicks" value={clicks7d.toLocaleString()} icon={TrendingUp} color={T} />
+            <StatCard label="Clicks" value={clicks7d.toLocaleString()} icon={TrendingUp} color="#0a0a0a" />
             <StatCard label="Conversions" value={conv7d.toLocaleString()} icon={Target} color={GRN} />
             <StatCard label="CPA" value={fmt(cpa)} icon={BarChart2} color={cpa > 100 ? R : GRN} sub={cpa > 100 ? 'Above target' : 'On track'} />
           </div>

@@ -111,7 +111,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
       {priorityQueue.length > 0 && (
         <div style={{ ...card, borderLeft: `4px solid ${R}` }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Zap size={16} color={R} /> Refresh Priority Queue
+            <Zap size={16} color="#0a0a0a" /> Refresh Priority Queue
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {priorityQueue.map((u, i) => (
@@ -128,7 +128,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Content Inventory</div>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 30 }}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} color={T} /></div>
+          <div style={{ textAlign: 'center', padding: 30 }}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} color="#0a0a0a" /></div>
         ) : urls.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 30, color: '#1f1f22', fontSize: 13 }}>
             <FileText size={32} color="#d1d5db" style={{ marginBottom: 8 }} /><br />
@@ -189,7 +189,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {selected.decay_factors.map((f, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8 }}>
-                {f.direction === 'up' ? <TrendingUp size={14} color={GRN} /> : <TrendingDown size={14} color={R} />}
+                {f.direction === 'up' ? <TrendingUp size={14} color={GRN} /> : <TrendingDown size={14} color="#0a0a0a" />}
                 <div style={{ flex: 1, fontSize: 12, color: '#1f1f22' }}>{f.factor || f.name || String(f)}</div>
                 {f.weight && <span style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22' }}>Weight: {f.weight}</span>}
               </div>

@@ -142,7 +142,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
       <div style={{ ...card, background: `linear-gradient(135deg, #f9f9fb 0%, #f9f9fb 100%)`, borderColor: T + '40' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
           <div style={{ width: 54, height: 54, borderRadius: 14, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={28} color={R} />
+            <Zap size={28} color="#0a0a0a" />
           </div>
           <div>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK }}>Auto-Pilot Content Generation</div>
@@ -229,7 +229,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Eye size={16} color={T} /> Content Preview
+                  <Eye size={16} color="#0a0a0a" /> Content Preview
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {result.auto_published && result.published_url && (
@@ -283,7 +283,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Clock size={16} color={T} /> Pipeline History
+            <Clock size={16} color="#0a0a0a" /> Pipeline History
           </div>
           <button onClick={loadHistory} disabled={historyLoading} style={{
             padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',

@@ -81,7 +81,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
       <HowItWorks tool="upwork" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Briefcase size={18} color={T} /> Upwork Pre-Flight Checklist
+          <Briefcase size={18} color="#0a0a0a" /> Upwork Pre-Flight Checklist
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Validate a freelance posting before you pitch. Generates a custom cover letter, red flags, win probability, and pricing.
@@ -116,7 +116,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
             <Stat label="Difficulty" value={`${a.difficulty_score}/100`} color={a.difficulty_score >= 70 ? R : a.difficulty_score >= 40 ? AMB : GRN} />
             <Stat label={type === 'hourly' ? 'Est. Hours' : 'Est. Quote'}
                   value={type === 'hourly' ? `${data.project_estimate?.hours || 0}h` : `$${(data.project_estimate?.fixed_price || 0).toLocaleString()}`}
-                  color={T} />
+                  color="#0a0a0a" />
           </div>
 
           {a.actual_need && (
@@ -127,12 +127,12 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <FlagBlock title="Must-Haves" color={T} items={a.must_haves} />
+            <FlagBlock title="Must-Haves" color="#0a0a0a" items={a.must_haves} />
             <FlagBlock title="Nice-to-Haves" color="#8b5cf6" items={a.nice_to_haves} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <FlagBlock title="Red Flags" color={R} Icon={Flag} items={a.red_flags} objKey="flag" sub="why" />
+            <FlagBlock title="Red Flags" color="#0a0a0a" Icon={Flag} items={a.red_flags} objKey="flag" sub="why" />
             <FlagBlock title="Green Flags" color={GRN} Icon={CheckCircle} items={a.green_flags} objKey="flag" sub="why" />
           </div>
 
@@ -153,7 +153,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
           {data.cover_letter && (
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <FileText size={16} color={T} />
+                <FileText size={16} color="#0a0a0a" />
                 <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, flex: 1 }}>Cover Letter Draft</div>
                 <button onClick={() => copy(data.cover_letter, 'Cover letter copied')} style={btnStyle}>
                   <CopyIcon size={11} /> Copy
@@ -168,7 +168,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
           {data.clarifying_questions?.length > 0 && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <HelpCircle size={16} color={T} /> Clarifying Questions
+                <HelpCircle size={16} color="#0a0a0a" /> Clarifying Questions
               </div>
               <ol style={{ margin: 0, paddingLeft: 20, color: '#1f1f22' }}>
                 {data.clarifying_questions.map((q, i) => (

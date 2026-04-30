@@ -129,13 +129,13 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
     setAuditing(false)
   }
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={28} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={28} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>
 
   // ── Empty state ──────────────────────────────────────────────────────
   if (!data) return (
     <div style={card}>
       <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-        <Server size={40} color={T} style={{ marginBottom: 12, opacity: 0.5 }} />
+        <Server size={40} color="#0a0a0a" style={{ marginBottom: 12, opacity: 0.5 }} />
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Technical SEO Deep Audit</div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>
           Crawl your site to analyze sitemaps, canonical tags, mobile readiness, Core Web Vitals, and index coverage.
@@ -188,7 +188,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
         {/* Crawl Budget */}
         <div style={card}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Activity size={15} color={T} /> Crawl Budget
+            <Activity size={15} color="#0a0a0a" /> Crawl Budget
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div>
@@ -202,7 +202,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           </div>
           <ProgressBar value={100 - (d.crawl_waste_pct || 0)} label="Crawl Efficiency" color={d.crawl_waste_pct > 30 ? R : d.crawl_waste_pct > 15 ? AMB : GRN} />
           <div style={{ marginTop: 10 }}>
-            <ProgressBar value={d.url_value_ratio || 0} label="URL Value Ratio (pages with traffic)" color={T} />
+            <ProgressBar value={d.url_value_ratio || 0} label="URL Value Ratio (pages with traffic)" color="#0a0a0a" />
           </div>
         </div>
 
@@ -244,7 +244,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
         <div style={card}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Smartphone size={15} color={T} /> Mobile-First
+              <Smartphone size={15} color="#0a0a0a" /> Mobile-First
               <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 900, color: d.mobile_score >= 70 ? GRN : d.mobile_score >= 40 ? AMB : R, marginLeft: 8 }}>
                 {d.mobile_score}
               </span>
@@ -300,7 +300,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
                 <div style={{ fontSize: 11, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>Not Indexed Reasons</div>
                 {Object.entries(d.not_indexed_reasons).map(([reason, count]) => (
                   <div key={reason} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1f1f22', marginBottom: 4 }}>
-                    <XCircle size={12} color={R} />
+                    <XCircle size={12} color="#0a0a0a" />
                     <span style={{ textTransform: 'capitalize' }}>{reason}</span>
                     <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, marginLeft: 'auto' }}>{count}</span>
                   </div>
@@ -351,7 +351,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <BarChart2 size={15} color={T} /> Sitemap Analysis
+            <BarChart2 size={15} color="#0a0a0a" /> Sitemap Analysis
           </div>
           {(d.sitemap_issues || []).length > 0 && (
             <button onClick={() => setExpandSitemap(!expandSitemap)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#1f2937', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>

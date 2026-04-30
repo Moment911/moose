@@ -328,7 +328,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
         {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Brain size={18} color={T} />
+            <Brain size={18} color="#0a0a0a" />
           </div>
           <div>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Ask KotoIQ</div>
@@ -347,7 +347,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
           {!convLoading && messages.length === 0 && (
             <div style={{ maxWidth: 620, margin: '60px auto 0', textAlign: 'center' }}>
               <div style={{ width: 64, height: 64, borderRadius: 20, background: T + '15', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Brain size={32} color={T} />
+                <Brain size={32} color="#0a0a0a" />
               </div>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 6 }}>
                 What do you want to know?
@@ -385,7 +385,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               {sending && (
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 20 }}>
                   <div style={{ width: 30, height: 30, borderRadius: 10, background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Brain size={15} color={T} />
+                    <Brain size={15} color="#0a0a0a" />
                   </div>
                   <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, color: '#6b6b70', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
@@ -455,7 +455,7 @@ function MessageBubble({ message, onActionClick }) {
     return (
       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 20, flexDirection: 'row-reverse' }}>
         <div style={{ width: 30, height: 30, borderRadius: 10, background: R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <User size={15} color={R} />
+          <User size={15} color="#0a0a0a" />
         </div>
         <div style={{ padding: '10px 14px', background: R, color: '#fff', borderRadius: 12, fontSize: 14, lineHeight: 1.6, maxWidth: '75%', whiteSpace: 'pre-wrap' }}>
           {message.content}
@@ -467,7 +467,7 @@ function MessageBubble({ message, onActionClick }) {
   return (
     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 20 }}>
       <div style={{ width: 30, height: 30, borderRadius: 10, background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Brain size={15} color={T} />
+        <Brain size={15} color="#0a0a0a" />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, maxWidth: '92%' }}>

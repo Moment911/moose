@@ -137,7 +137,7 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
           {data.clusters?.length > 0 && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TrendingUp size={16} color={T} /> Cluster Scores
+                <TrendingUp size={16} color="#0a0a0a" /> Cluster Scores
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -166,7 +166,7 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
                           <td style={{ padding: '10px 8px', color: '#1f2937' }}>
                             {(c.gaps || []).slice(0, 3).map((g, j) => (
                               <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
-                                <AlertCircle size={11} color={R} /> {g}
+                                <AlertCircle size={11} color="#0a0a0a" /> {g}
                               </div>
                             ))}
                           </td>

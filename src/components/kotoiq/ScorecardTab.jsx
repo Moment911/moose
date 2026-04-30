@@ -98,7 +98,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 220 }}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Award size={20} color={T} /> Competitive Scorecard
+              <Award size={20} color="#0a0a0a" /> Competitive Scorecard
             </div>
             <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
               Side-by-side SEO comparison with 12 weighted metrics across up to 3 competitors.
@@ -146,7 +146,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
 
           <div style={card}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <TrendingUp size={16} color={T} /> Side-by-Side Comparison
+              <TrendingUp size={16} color="#0a0a0a" /> Side-by-Side Comparison
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -212,7 +212,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
 
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <AlertCircle size={16} color={R} /> Priority Focus Areas
+                <AlertCircle size={16} color="#0a0a0a" /> Priority Focus Areas
               </div>
               {focus.length === 0 && gaps.length === 0 ? (
                 <div style={{ fontSize: 12, color: '#6b6b70', fontStyle: 'italic' }}>Nothing urgent.</div>

@@ -139,7 +139,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 60 }}>
-        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color={T} />
+        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color="#0a0a0a" />
         <span style={{ marginLeft: 10, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: '#6b6b70' }}>Loading goals…</span>
       </div>
     )
@@ -176,7 +176,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
       {/* Goals list */}
       {goals.length === 0 && (
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
-          <Target size={36} color={T} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+          <Target size={36} color="#0a0a0a" style={{ margin: '0 auto 12px', opacity: 0.5 }} />
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No goals yet</div>
           <div style={{ fontSize: 13, color: '#6b6b70' }}>Create a goal to tell the agent what to achieve.</div>
         </div>
@@ -245,7 +245,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
               <div style={{ marginTop: 14, borderTop: '1px solid #f3f4f6', paddingTop: 14 }}>
                 {runsLoading && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
-                    <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} color={T} />
+                    <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} color="#0a0a0a" />
                     <span style={{ fontSize: 12, color: '#6b6b70' }}>Loading runs…</span>
                   </div>
                 )}

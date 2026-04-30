@@ -753,7 +753,7 @@ export default function ConversationalBot({
                     style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', gap: 10, transition: 'all .12s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = T; e.currentTarget.style.background = '#f0fdfe' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = '#ececef'; e.currentTarget.style.background = '#fff' }}>
-                    <p.icon size={14} color={T} />
+                    <p.icon size={14} color="#0a0a0a" />
                     <span style={{ flex: 1 }}>{p.label}</span>
                     <ChevronRight size={14} color="#9ca3af" />
                   </button>
@@ -802,7 +802,7 @@ export default function ConversationalBot({
         <div style={{ padding: 12, borderTop: '1px solid #e5e7eb', background: '#fff' }}>
           {pendingFile && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#f0fdfe', border: `1px solid ${T}`, borderRadius: 8, marginBottom: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, maxWidth: '100%' }}>
-              <Paperclip size={12} color={T} />
+              <Paperclip size={12} color="#0a0a0a" />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>{pendingFile.name}</span>
               <span style={{ color: '#6b6b70' }}>{formatSize(pendingFile.size)}</span>
               {uploadingFile && <Loader size={12} className="kotoiq-bot-spin" />}
@@ -969,7 +969,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
     return (
       <div style={{ marginTop: 8, border: `1px solid ${T}`, borderRadius: 12, background: '#f0fdfe', padding: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-          <UserPlus size={14} color={T} />
+          <UserPlus size={14} color="#0a0a0a" />
           <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: 0.4 }}>
             Pick A Client
           </div>
@@ -994,7 +994,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
   return (
     <div style={{ marginTop: 8, border: `1px solid ${T}`, borderRadius: 12, background: '#f0fdfe', padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-        <Sparkles size={14} color={T} />
+        <Sparkles size={14} color="#0a0a0a" />
         <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: 0.4 }}>
           {prettyIntent(action.intent)}
         </div>

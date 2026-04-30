@@ -118,7 +118,7 @@ export default function StrategyTab({ clientId, agencyId }) {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Target size={20} color={R} /> Strategic Plan
+            <Target size={20} color="#0a0a0a" /> Strategic Plan
           </div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
             AI-generated attack / defend / abandon priorities with weekly actions and resource allocation.
@@ -162,7 +162,7 @@ export default function StrategyTab({ clientId, agencyId }) {
             <PriorityCard
               title="Attack"
               items={attack}
-              color={R}
+              color="#0a0a0a"
               icon={Target}
               empty="No attack priorities yet."
               fieldMap={[
@@ -196,9 +196,9 @@ export default function StrategyTab({ clientId, agencyId }) {
           {Object.keys(alloc).length > 0 && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TrendingUp size={16} color={T} /> Resource Allocation
+                <TrendingUp size={16} color="#0a0a0a" /> Resource Allocation
               </div>
-              <AllocBar label="Content" pct={alloc.content_pct} color={T} />
+              <AllocBar label="Content" pct={alloc.content_pct} color="#0a0a0a" />
               <AllocBar label="Links" pct={alloc.links_pct} color="#8b5cf6" />
               <AllocBar label="Technical" pct={alloc.technical_pct} color={AMB} />
               <AllocBar label="Local" pct={alloc.local_pct} color={GRN} />
@@ -208,7 +208,7 @@ export default function StrategyTab({ clientId, agencyId }) {
           {weekKeys.length > 0 && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Calendar size={16} color={T} /> Weekly Actions
+                <Calendar size={16} color="#0a0a0a" /> Weekly Actions
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {weekKeys.map(wk => (
@@ -240,7 +240,7 @@ export default function StrategyTab({ clientId, agencyId }) {
           {milestones.length > 0 && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Clock size={16} color={T} /> Monthly Milestones
+                <Clock size={16} color="#0a0a0a" /> Monthly Milestones
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {milestones.map((m, i) => (

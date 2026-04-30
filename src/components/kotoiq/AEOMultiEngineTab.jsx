@@ -88,7 +88,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
       <HowItWorks tool="aeo_multi" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Sparkles size={18} color={T} /> Multi-Engine AEO Scoring
+          <Sparkles size={18} color="#0a0a0a" /> Multi-Engine AEO Scoring
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Score your content for citation potential across Google AI Overview, Perplexity, ChatGPT Search, Claude, and Copilot.
@@ -152,7 +152,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
                     <div style={{ marginTop: 12, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
                       {e.factors.slice(0, 6).map((f, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#1f2937', marginBottom: 4 }}>
-                          {f.pass ? <CheckCircle size={11} color={GRN} /> : <XCircle size={11} color={R} />}
+                          {f.pass ? <CheckCircle size={11} color={GRN} /> : <XCircle size={11} color="#0a0a0a" />}
                           <span>{f.label || f.name || String(f)}</span>
                         </div>
                       ))}

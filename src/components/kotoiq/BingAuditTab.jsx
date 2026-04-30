@@ -73,7 +73,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
             <Stat label="Total Impressions" value={fmtN(data.total_impressions)} color={BLK} />
             <Stat label="Total Clicks" value={fmtN(data.total_clicks)} color={GRN} />
             <Stat label="Avg Position" value={data.avg_position ? data.avg_position.toFixed(1) : '—'} color={AMB} />
-            <Stat label="Indexed Pages" value={fmtN(data.indexed_pages)} color={T} />
+            <Stat label="Indexed Pages" value={fmtN(data.indexed_pages)} color="#0a0a0a" />
           </div>
 
           {data.top_queries?.length > 0 && (

@@ -261,18 +261,18 @@ export default function GSCAuditTab({ clientId, agencyId }) {
           <IssueSummaryCard data={data} />
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
-            <StatCard label="Indexing Issues" value={data.indexing_issues?.length || 0} icon={FileWarning} color={R} sub="Pages not indexed properly" />
+            <StatCard label="Indexing Issues" value={data.indexing_issues?.length || 0} icon={FileWarning} color="#0a0a0a" sub="Pages not indexed properly" />
             <StatCard label="CTR Anomalies" value={data.ctr_anomalies?.length || 0} icon={AlertTriangle} color={AMB} sub="High impressions, low clicks" />
             <StatCard label="Decaying URLs" value={data.decay_issues?.length || 0} icon={TrendingDown} color={AMB} sub="Losing rankings" />
-            <StatCard label="Cannibalization" value={data.cannibalization_issues?.length || 0} icon={CopyIcon} color={R} sub="Competing URLs" />
+            <StatCard label="Cannibalization" value={data.cannibalization_issues?.length || 0} icon={CopyIcon} color="#0a0a0a" sub="Competing URLs" />
           </div>
 
           <AIRecommendations data={data} />
 
-          <IssueTable title="Indexing Issues" color={R} Icon={FileWarning} items={data.indexing_issues} columns={['url', 'status', 'last_crawled']} />
+          <IssueTable title="Indexing Issues" color="#0a0a0a" Icon={FileWarning} items={data.indexing_issues} columns={['url', 'status', 'last_crawled']} />
           <IssueTable title="CTR Anomalies" color={AMB} Icon={AlertTriangle} items={data.ctr_anomalies} columns={['url', 'query', 'impressions', 'ctr', 'expected_ctr']} />
           <IssueTable title="Decaying URLs" color={AMB} Icon={TrendingDown} items={data.decay_issues} columns={['url', 'prev_position', 'current_position', 'clicks_lost']} />
-          <IssueTable title="Cannibalization" color={R} Icon={CopyIcon} items={data.cannibalization_issues} columns={['query', 'urls', 'severity']} />
+          <IssueTable title="Cannibalization" color="#0a0a0a" Icon={CopyIcon} items={data.cannibalization_issues} columns={['query', 'urls', 'severity']} />
 
           {data.quick_wins?.length > 0 && (
             <div style={card}>

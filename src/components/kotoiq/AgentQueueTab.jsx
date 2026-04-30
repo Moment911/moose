@@ -85,7 +85,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 60 }}>
-        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color={T} />
+        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color="#0a0a0a" />
         <span style={{ marginLeft: 10, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: '#6b6b70' }}>Loading approvals…</span>
       </div>
     )

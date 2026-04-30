@@ -452,7 +452,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80 }}>
-        <Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} />
+        <Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />
         <span style={{ marginLeft: 10, fontSize: 14, color: '#1f2937' }}>Loading topical map...</span>
       </div>
     )
@@ -462,7 +462,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
     return (
       <div style={{ ...card, textAlign: 'center', padding: '48px 32px' }}>
         <div style={{ width: 56, height: 56, borderRadius: 14, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-          <Map size={28} color={T} />
+          <Map size={28} color="#0a0a0a" />
         </div>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>No Topical Map Yet</div>
         <div style={{ fontSize: 14, color: '#1f1f22', maxWidth: 420, margin: '0 auto 20px', lineHeight: 1.6 }}>
@@ -493,7 +493,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
       {/* Explanation card */}
       <div style={{ ...card, background: '#f9f9fb', border: `1px solid ${T}25`, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
         <div style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, background: T + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
-          <Info size={18} color={T} />
+          <Info size={18} color="#0a0a0a" />
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>What is a Topical Map?</div>

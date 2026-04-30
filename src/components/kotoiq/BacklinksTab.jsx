@@ -161,7 +161,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {/* DR Distribution */}
           <div style={card}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <TrendingUp size={16} color={T} /> Domain Rating Distribution
+              <TrendingUp size={16} color="#0a0a0a" /> Domain Rating Distribution
             </div>
             <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 120 }}>
               {Object.entries(drBins).map(([label, count]) => {
@@ -191,7 +191,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {/* Anchor Text Distribution */}
           <div style={card}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Link2 size={16} color={T} /> Anchor Text Distribution
+              <Link2 size={16} color="#0a0a0a" /> Anchor Text Distribution
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {Object.entries(anchorDist).map(([type, count]) => {
@@ -216,7 +216,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {data.top_anchors?.length > 0 && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Target size={16} color={T} /> Top Anchor Texts
+                <Target size={16} color="#0a0a0a" /> Top Anchor Texts
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {data.top_anchors.slice(0, 15).map((a, i) => (
@@ -239,7 +239,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                 fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8,
                 background: 'none', border: 'none', cursor: 'pointer', width: '100%', padding: 0, marginBottom: showToxic ? 14 : 0,
               }}>
-                <AlertTriangle size={16} color={R} /> Toxic Links ({data.toxic_links.length})
+                <AlertTriangle size={16} color="#0a0a0a" /> Toxic Links ({data.toxic_links.length})
                 <span style={{ marginLeft: 'auto' }}>{showToxic ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
               </button>
               {showToxic && (
@@ -327,7 +327,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                 fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8,
                 background: 'none', border: 'none', cursor: 'pointer', width: '100%', padding: 0, marginBottom: showComp ? 14 : 0,
               }}>
-                <Globe size={16} color={T} /> Competitor Comparison ({data.competitor_comparison.length})
+                <Globe size={16} color="#0a0a0a" /> Competitor Comparison ({data.competitor_comparison.length})
                 <span style={{ marginLeft: 'auto' }}>{showComp ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
               </button>
               {showComp && (

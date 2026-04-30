@@ -208,7 +208,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
 
           {/* Freshness distribution bar */}
           <div style={card}>
-            <div style={titleStyle}><BarChart2 size={16} color={T} /> Freshness Distribution</div>
+            <div style={titleStyle}><BarChart2 size={16} color="#0a0a0a" /> Freshness Distribution</div>
             <div style={{ display: 'flex', height: 28, borderRadius: 8, overflow: 'hidden', background: '#f1f1f6' }}>
               {freshPct > 0 && <div style={{ width: `${freshPct}%`, background: GRN, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: freshPct > 5 ? 'auto' : 0 }}>{freshPct > 8 ? `${Math.round(freshPct)}%` : ''}</div>}
               {agingPct > 0 && <div style={{ width: `${agingPct}%`, background: AMB, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: agingPct > 5 ? 'auto' : 0 }}>{agingPct > 8 ? `${Math.round(agingPct)}%` : ''}</div>}
@@ -306,7 +306,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
           {/* Refresh Plan section */}
           <div style={{ ...card, marginTop: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={titleStyle}><Zap size={16} color={R} /> Refresh Plan</div>
+              <div style={titleStyle}><Zap size={16} color="#0a0a0a" /> Refresh Plan</div>
               <button onClick={generatePlan} disabled={planLoading}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: planLoading ? 'wait' : 'pointer', opacity: planLoading ? 0.6 : 1 }}>
                 {planLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}

@@ -261,7 +261,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
       {unresponded.length > 0 && (
         <div style={{ ...card, marginBottom: 20, borderColor: '#fecaca' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <AlertTriangle size={16} color={R} />
+            <AlertTriangle size={16} color="#0a0a0a" />
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: R }}>Unresponded Negative Reviews ({unresponded.length})</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

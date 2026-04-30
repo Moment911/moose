@@ -250,7 +250,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
       {momentum?.recommended_pace && (
         <div style={{ ...card, marginBottom: 20, borderColor: T + '50', background: '#f9f9fb' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <Zap size={16} color={T} style={{ marginTop: 2, flexShrink: 0 }} />
+            <Zap size={16} color="#0a0a0a" style={{ marginTop: 2, flexShrink: 0 }} />
             <div>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>AI Recommendation</div>
               <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{momentum.recommended_pace}</div>

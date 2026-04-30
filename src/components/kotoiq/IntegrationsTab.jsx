@@ -197,7 +197,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Link2 size={20} color={T} /> Integrations
+            <Link2 size={20} color="#0a0a0a" /> Integrations
           </div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
             Pipe KotoIQ alerts into your team's existing tools — Slack, Microsoft Teams, email.
@@ -228,7 +228,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
 
       <div style={{ ...card, background: 'linear-gradient(135deg,#f0f9ff 0%,#fefce8 100%)', borderLeft: `4px solid ${T}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-          <Clock size={16} color={T} />
+          <Clock size={16} color="#0a0a0a" />
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Automated Schedule</div>
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
@@ -248,7 +248,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {history.slice(0, 20).map((h, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, fontSize: 13 }}>
-                {h.status === 'sent' ? <CheckCircle size={14} color={GRN} /> : <XCircle size={14} color={R} />}
+                {h.status === 'sent' ? <CheckCircle size={14} color={GRN} /> : <XCircle size={14} color="#0a0a0a" />}
                 <span style={{ flex: 1 }}>{h.title}</span>
                 <span style={{ fontSize: 11, color: '#6b6b70' }}>{new Date(h.created_at).toLocaleString()}</span>
               </div>

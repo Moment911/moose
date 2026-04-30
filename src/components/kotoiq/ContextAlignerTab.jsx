@@ -45,7 +45,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
       <HowItWorks tool="context_aligner" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Target size={18} color={T} /> Context Aligner
+          <Target size={18} color="#0a0a0a" /> Context Aligner
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Validate that your content outline covers all expected contexts for the target query.
@@ -78,11 +78,11 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
           {data.missing_contexts?.length > 0 && (
             <div style={{ ...card, borderLeft: `4px solid ${R}` }}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <XCircle size={16} color={R} /> Missing Contexts
+                <XCircle size={16} color="#0a0a0a" /> Missing Contexts
               </div>
               {data.missing_contexts.map((m, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4 }}>
-                  <XCircle size={14} color={R} style={{ marginTop: 2 }} />
+                  <XCircle size={14} color="#0a0a0a" style={{ marginTop: 2 }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{typeof m === 'string' ? m : m.context}</div>
                     {typeof m === 'object' && m.why && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{m.why}</div>}

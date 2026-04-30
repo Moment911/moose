@@ -139,13 +139,13 @@ export default function SchemaTab({ clientId, agencyId }) {
     setGeneratingUrl(null)
   }
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div>
 
   // Empty state
   if (!audit) {
     return (
       <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
-        <Code size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
+        <Code size={48} color="#0a0a0a" style={{ margin: '0 auto 16px', opacity: .3 }} />
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Schema & Structured Data</div>
         <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20, maxWidth: 480, margin: '0 auto 20px' }}>
           Audit your site for JSON-LD structured data, find missing schema opportunities, and auto-generate markup to boost rich results.
@@ -174,7 +174,7 @@ export default function SchemaTab({ clientId, agencyId }) {
 
       {/* Title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <Code size={22} color={T} />
+        <Code size={22} color="#0a0a0a" />
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK }}>Schema Markup Audit</div>
       </div>
 
@@ -200,7 +200,7 @@ export default function SchemaTab({ clientId, agencyId }) {
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           <StatBox label="Pages w/ Schema" value={audit.total_pages_with_schema || 0} color={GRN} />
           <StatBox label="Pages Without" value={audit.total_pages_without || 0} color={audit.total_pages_without > 0 ? R : '#6b6b70'} />
-          <StatBox label="Coverage" value={`${audit.coverage_pct || 0}%`} color={T} />
+          <StatBox label="Coverage" value={`${audit.coverage_pct || 0}%`} color="#0a0a0a" />
           <StatBox label="Semantic HTML" value={audit.semantic_html_score || 0} color={audit.semantic_html_score >= 70 ? GRN : AMB} sub="/100" />
         </div>
         <button onClick={runAudit} disabled={running}
@@ -213,7 +213,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       {Object.keys(schemaTypes).length > 0 && (
         <div style={card}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FileCode size={16} color={T} /> Schema Types Found
+            <FileCode size={16} color="#0a0a0a" /> Schema Types Found
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {Object.entries(schemaTypes).sort((a, b) => Number(b[1]) - Number(a[1])).map(([type, count]) => (
@@ -280,7 +280,7 @@ export default function SchemaTab({ clientId, agencyId }) {
         <div style={{ ...card, borderLeft: `3px solid ${R}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setExpandedErrors(!expandedErrors)}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AlertTriangle size={16} color={R} /> Schema Errors
+              <AlertTriangle size={16} color="#0a0a0a" /> Schema Errors
               <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: R }}>{schemaErrors.length}</span>
             </div>
             {expandedErrors ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
@@ -290,7 +290,7 @@ export default function SchemaTab({ clientId, agencyId }) {
               {schemaErrors.map((err, i) => (
                 <div key={i} style={{ padding: '10px 12px', borderRadius: 8, background: '#f9f9fb', border: `1px solid ${R}15` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <XCircle size={12} color={R} />
+                    <XCircle size={12} color="#0a0a0a" />
                     <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{err.type}</span>
                     <a href={err.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: T, textDecoration: 'none' }}>{err.url.replace(/^https?:\/\/[^/]+/, '')}</a>
                   </div>

@@ -96,7 +96,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <MapPin size={30} color={R} />
+          <MapPin size={30} color="#0a0a0a" />
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Hyperlocal Content Generator</div>
@@ -249,7 +249,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
                     display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
                     background: '#f9f9fb', borderRadius: 10, border: '1px solid #e5e7eb',
                   }}>
-                    <FileText size={16} color={T} />
+                    <FileText size={16} color="#0a0a0a" />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>{b.neighborhood}</div>
                       <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>{b.target_keyword}</div>

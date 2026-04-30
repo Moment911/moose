@@ -62,7 +62,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
       <HowItWorks tool="rank_grid" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Grid size={18} color={T} /> Rank Grid Pro
+          <Grid size={18} color="#0a0a0a" /> Rank Grid Pro
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Geo-grid rank tracking with SoLV and dead-zone analysis.
@@ -94,8 +94,8 @@ export default function RankGridProTab({ clientId, agencyId }) {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
             <Stat label="Share of Local Voice" value={`${data.solv_pct ?? 0}%`} color={GRN} />
-            <Stat label="Top 3 Coverage" value={`${data.top3_coverage_pct ?? 0}%`} color={T} />
-            <Stat label="Dead Zones" value={data.dead_zones?.length || 0} color={R} />
+            <Stat label="Top 3 Coverage" value={`${data.top3_coverage_pct ?? 0}%`} color="#0a0a0a" />
+            <Stat label="Dead Zones" value={data.dead_zones?.length || 0} color="#0a0a0a" />
           </div>
 
           <div style={card}>
@@ -130,7 +130,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 12 }}>Dead Zones</div>
               {data.dead_zones.slice(0, 10).map((z, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4 }}>
-                  <MapPin size={14} color={R} />
+                  <MapPin size={14} color="#0a0a0a" />
                   <div style={{ flex: 1, fontSize: 12, color: '#1f1f22' }}>
                     {z.label || `Cell (${z.row}, ${z.col})`} {z.position ? `— rank ${z.position}` : '— not ranking'}
                   </div>
@@ -142,7 +142,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
           {data.top_competitors?.length > 0 && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Target size={16} color={T} /> Top Competitors in Grid
+                <Target size={16} color="#0a0a0a" /> Top Competitors in Grid
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>

@@ -65,7 +65,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
       <HowItWorks tool="plagiarism" />
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Shield size={18} color={T} /> Plagiarism &amp; AI Detection
+          <Shield size={18} color="#0a0a0a" /> Plagiarism &amp; AI Detection
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Detect copied content and AI-generated patterns before publishing.
@@ -106,7 +106,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
           {data.plagiarized_chunks?.length > 0 && (
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <AlertTriangle size={16} color={R} /> Potential Plagiarism ({data.plagiarized_chunks.length})
+                <AlertTriangle size={16} color="#0a0a0a" /> Potential Plagiarism ({data.plagiarized_chunks.length})
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {data.plagiarized_chunks.map((c, i) => (

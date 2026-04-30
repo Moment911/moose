@@ -483,7 +483,7 @@ export default function HowItWorks({ tool, compact = false }) {
         background: 'none', border: 'none', cursor: 'pointer', padding: 0,
         color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700,
       }}>
-        <Info size={15} color={T} />
+        <Info size={15} color="#0a0a0a" />
         <span>How this works & what the output means</span>
         {!expanded && info.layman && <span style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', marginLeft: 4 }}>— click to learn</span>}
         <div style={{ marginLeft: 'auto' }}>
