@@ -118,6 +118,8 @@ function AnimatedScore({ value, color }) {
   return <span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color, animation: 'mc-count .3s ease' }}>{display}</span>
 }
 
+const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+
 export default function MissionControl({ clientId, agencyId, clients, onSwitchTab, onEditClient, onRunQuickScan, onRunDeepEnrich, onRunSync, syncing, enriching }) {
   const [statuses, setStatuses] = useState({})
   const [snippets, setSnippets] = useState({})
@@ -281,33 +283,49 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
 
   return (
     <div style={{ marginBottom: 24 }}>
-      {/* ── Hero — dark panel with title + launch button ── */}
-      <div style={{ background: `linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)`, borderRadius: 20, padding: '28px 32px 24px', marginBottom: 0, color: '#fff', position: 'relative', overflow: 'hidden' }}>
-        {runningAll && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${R}, transparent)`, animation: 'mc-scan 2s linear infinite' }} />}
+      {/* ── Hero — Cal-AI white panel with title + launch button ── */}
+      <div style={{
+        background: '#ffffff', borderRadius: 20, padding: '28px 32px 24px',
+        marginBottom: 0, color: '#0a0a0a', position: 'relative', overflow: 'hidden',
+        border: '1px solid #ececef',
+        fontFamily: SF,
+      }}>
+        {runningAll && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${R}, transparent)`, animation: 'mc-scan 2s linear infinite' }} />}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: R + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: runningAll ? 'mc-glow 2s ease infinite' : 'none' }}>
-            <Sparkles size={28} color={R} />
+          <div style={{
+            width: 52, height: 52, borderRadius: 14, background: '#f1f1f6',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: runningAll ? 'mc-glow 2s ease infinite' : 'none',
+          }}>
+            <Sparkles size={24} strokeWidth={1.75} color="#0a0a0a" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, letterSpacing: '-0.02em' }}>Koto Mission Control</div>
-            <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>
+            <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.4px', color: '#0a0a0a' }}>Mission Control</div>
+            <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 2 }}>
               {runningAll
-                ? <span style={{ color: R, animation: 'mc-pulse 1.5s infinite' }}>Deploying {WAVE_ACTIONS.flat().length} AI agents across 3 waves...</span>
-                : `Full-spectrum SEO intelligence — ${client?.name || 'Select a client'}`}
+                ? <span style={{ color: R, animation: 'mc-pulse 1.5s infinite', fontWeight: 600 }}>Deploying {WAVE_ACTIONS.flat().length} AI agents across 3 waves…</span>
+                : `Full-spectrum SEO intelligence · ${client?.name || 'Select a client'}`}
             </div>
           </div>
           <button onClick={runAll} disabled={runningAll || !hasWebsite}
-            style={{ padding: '14px 36px', borderRadius: 12, border: 'none', background: hasWebsite ? `linear-gradient(135deg, ${R}, #be185d)` : '#374151', color: '#fff', fontSize: 15, fontWeight: 800, fontFamily: FH, cursor: runningAll ? 'wait' : hasWebsite ? 'pointer' : 'not-allowed', opacity: runningAll ? 0.8 : 1, display: 'flex', alignItems: 'center', gap: 8, boxShadow: hasWebsite ? `0 4px 24px ${R}50` : 'none', transition: 'transform .1s' }}
-            onMouseDown={e => { if (hasWebsite && !runningAll) e.currentTarget.style.transform = 'scale(0.96)' }}
+            style={{
+              padding: '12px 28px', borderRadius: 12, border: 'none',
+              background: hasWebsite ? '#0a0a0a' : '#a1a1a6',
+              color: '#fff', fontSize: 14, fontWeight: 600, fontFamily: SF,
+              cursor: runningAll ? 'wait' : hasWebsite ? 'pointer' : 'not-allowed',
+              opacity: runningAll ? 0.85 : 1,
+              display: 'flex', alignItems: 'center', gap: 8,
+              transition: 'transform 100ms ease',
+            }}
+            onMouseDown={e => { if (hasWebsite && !runningAll) e.currentTarget.style.transform = 'scale(0.97)' }}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}>
-            {runningAll ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={18} />}
+            {runningAll ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={15} strokeWidth={2} />}
             {runningAll ? `Wave ${currentWave}/3` : doneCount > 0 ? 'Re-deploy All' : 'Launch All Systems'}
           </button>
         </div>
 
-        {/* ── 4 BIG SCORE RINGS ── */}
-        {/* ── 4 BIG ANIMATED SCORE RINGS ── */}
+        {/* ── 4 score rings ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 20, marginBottom: runningAll ? 24 : 0 }}>
           {heroScores.map((hs, i) => {
             const Icon = hs.icon
@@ -316,22 +334,20 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
             const size = 130
             const radius = (size - 12) / 2
             const circ = 2 * Math.PI * radius
-            const flashAnim = `mc-ring-flash-${i + 1} 3s ease infinite`
             const colorCycle = `mc-color-cycle-${i + 1} 4s ease infinite`
             return (
               <div key={i} style={{ textAlign: 'center', animation: `mc-fade-in .5s ease ${i * 120}ms both` }}>
-                <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 10px' }}>
-                  {/* Outer spinning ring when scanning */}
+                <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 12px' }}>
                   {isScanning && (
-                    <svg width={size} height={size} style={{ position: 'absolute', top: 0, left: 0, animation: 'mc-ring-rotate 3s linear infinite', opacity: 0.3 }}>
+                    <svg width={size} height={size} style={{ position: 'absolute', top: 0, left: 0, animation: 'mc-ring-rotate 3s linear infinite', opacity: 0.4 }}>
                       <circle cx={size / 2} cy={size / 2} r={radius + 2} fill="none" stroke={hs.color} strokeWidth={2}
                         strokeDasharray={`${circ * 0.15} ${circ * 0.85}`} strokeLinecap="round" />
                     </svg>
                   )}
-                  <svg width={size} height={size} style={{ animation: isActive ? flashAnim : 'none' }}>
-                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1e293b" strokeWidth={7} />
+                  <svg width={size} height={size}>
+                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f1f6" strokeWidth={7} />
                     <circle cx={size / 2} cy={size / 2} r={radius} fill="none"
-                      stroke={isActive ? hs.color : '#334155'} strokeWidth={7}
+                      stroke={isActive ? '#0a0a0a' : '#ececef'} strokeWidth={7}
                       strokeDasharray={circ} strokeDashoffset={isScanning ? circ * 0.7 : circ * (1 - hs.value / 100)}
                       strokeLinecap="round" transform={`rotate(-90 ${size / 2} ${size / 2})`}
                       style={{
@@ -342,41 +358,40 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
                   </svg>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     {isActive ? (
-                      <AnimatedScore value={hs.value} color={hs.color} />
+                      <AnimatedScore value={hs.value} color="#0a0a0a" />
                     ) : (
-                      <Icon size={28} color={isScanning ? hs.color : '#475569'} style={{ animation: isScanning ? 'mc-pulse 1s infinite' : 'none', transition: 'color .5s' }} />
+                      <Icon size={26} strokeWidth={1.5} color={isScanning ? hs.color : '#a1a1a6'} style={{ animation: isScanning ? 'mc-pulse 1s infinite' : 'none', transition: 'color .5s' }} />
                     )}
                   </div>
                 </div>
-                <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: isActive ? '#e2e8f0' : '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em' }}>{hs.label}</div>
-                <div style={{ fontSize: 12, color: isActive ? '#94a3b8' : '#64748b', marginTop: 3 }}>
-                  {isActive ? hs.sub : (isScanning ? <span style={{ animation: 'mc-pulse 1.5s infinite' }}>Analyzing...</span> : 'Awaiting scan')}
+                <div style={{ fontSize: 12, fontWeight: 600, color: isActive ? '#0a0a0a' : '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em' }}>{hs.label}</div>
+                <div style={{ fontSize: 12, color: isActive ? '#6b6b70' : '#a1a1a6', marginTop: 4 }}>
+                  {isActive ? hs.sub : (isScanning ? <span style={{ animation: 'mc-pulse 1.5s infinite' }}>Analyzing…</span> : 'Awaiting scan')}
                 </div>
               </div>
             )
           })}
         </div>
 
-        {/* Wave progress + large white status text when running */}
+        {/* Wave progress when running */}
         {runningAll && (
           <div>
-            {/* Large white status text */}
             <div style={{ textAlign: 'center', marginBottom: 18 }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#ffffff', fontFamily: FH, lineHeight: 1.6 }}>
-                {currentWave === 1 && 'Extracting keywords, scanning website, checking backlinks, auditing E-E-A-T, Brand SERP, GBP health...'}
-                {currentWave === 2 && 'Building topical map, scoring vs competitors, crawling internal links, building content inventory...'}
-                {currentWave === 3 && 'Computing authority score, generating 3-month strategic plan, analyzing query paths...'}
+              <div style={{ fontSize: 16, fontWeight: 500, color: '#0a0a0a', lineHeight: 1.6 }}>
+                {currentWave === 1 && 'Extracting keywords, scanning website, checking backlinks, auditing E-E-A-T, Brand SERP, GBP health…'}
+                {currentWave === 2 && 'Building topical map, scoring vs competitors, crawling internal links, building content inventory…'}
+                {currentWave === 3 && 'Computing authority score, generating 3-month strategic plan, analyzing query paths…'}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               {[1, 2, 3].map(w => (
                 <div key={w} style={{ flex: 1 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: currentWave >= w ? '#94a3b8' : '#475569', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: currentWave >= w ? '#0a0a0a' : '#a1a1a6', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.08em' }}>
                     {['Scan & Discover', 'Map & Score', 'Strategize'][w - 1]}
                   </div>
-                  <div style={{ height: 8, borderRadius: 8, background: '#1e293b', overflow: 'hidden' }}>
-                    <div style={{ width: currentWave > w ? '100%' : currentWave === w ? '60%' : '0%', height: '100%', background: currentWave > w ? GRN : `linear-gradient(90deg, ${R}, #be185d)`, borderRadius: 8, transition: 'width 1s ease', position: 'relative', overflow: 'hidden' }}>
-                      {currentWave === w && <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent)`, animation: 'mc-scan 1.2s linear infinite' }} />}
+                  <div style={{ height: 6, borderRadius: 6, background: '#f1f1f6', overflow: 'hidden' }}>
+                    <div style={{ width: currentWave > w ? '100%' : currentWave === w ? '60%' : '0%', height: '100%', background: currentWave > w ? GRN : '#0a0a0a', borderRadius: 6, transition: 'width 1s ease', position: 'relative', overflow: 'hidden' }}>
+                      {currentWave === w && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent)', animation: 'mc-scan 1.2s linear infinite' }} />}
                     </div>
                   </div>
                 </div>
@@ -386,31 +401,49 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
         )}
 
         {!hasWebsite && (
-          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: '#7f1d1d40', fontSize: 12, color: '#fca5a5', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <AlertCircle size={14} /> Website URL required — edit your client to add one
+          <div style={{
+            marginTop: 16, padding: '10px 14px', borderRadius: 10,
+            background: '#fef2f2', border: '1px solid #fecaca',
+            fontSize: 12, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <AlertCircle size={14} strokeWidth={1.75} /> Website URL required — edit client to add one
           </div>
         )}
       </div>
 
-      {/* ── AI EXECUTIVE SUMMARY ── */}
+      {/* ── AI Intelligence Brief ── */}
       {(aiSummary || loadingSummary) && (
-        <div style={{ background: `linear-gradient(135deg, #0f172a, #1a1a2e)`, borderRadius: '0 0 20px 20px', padding: '20px 32px 24px', marginBottom: 20, marginTop: -4, color: '#fff', borderTop: `1px solid #ffffff10` }}>
+        <div style={{
+          background: '#f9f9fb', borderRadius: '0 0 20px 20px',
+          padding: '20px 32px 24px', marginBottom: 20, marginTop: -4,
+          borderLeft: '1px solid #ececef', borderRight: '1px solid #ececef', borderBottom: '1px solid #ececef',
+          fontFamily: SF,
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <Brain size={16} color={T} />
-            <span style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em' }}>AI Intelligence Brief</span>
-            {loadingSummary && <Loader2 size={12} color={T} style={{ animation: 'spin 1s linear infinite' }} />}
-            <button onClick={generateSummary} style={{ marginLeft: 'auto', fontSize: 11, color: '#64748b', background: 'none', border: '1px solid #334155', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontWeight: 600 }}>
-              <RefreshCw size={10} style={{ marginRight: 4 }} />Refresh
+            <Brain size={15} strokeWidth={1.75} color="#0a0a0a" />
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#0a0a0a', textTransform: 'uppercase', letterSpacing: '.06em' }}>AI Intelligence Brief</span>
+            {loadingSummary && <Loader2 size={12} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />}
+            <button onClick={generateSummary} style={{
+              marginLeft: 'auto', fontSize: 12, color: '#6b6b70',
+              background: '#fff', border: '1px solid #ececef', borderRadius: 8,
+              padding: '4px 10px', cursor: 'pointer', fontWeight: 500, fontFamily: SF,
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+            }}>
+              <RefreshCw size={10} strokeWidth={1.75} /> Refresh
             </button>
           </div>
           {aiSummary ? (
             <div style={{ animation: 'mc-fade-in .5s ease' }}>
-              <div style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.7, marginBottom: 14 }}>{aiSummary.summary}</div>
+              <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, marginBottom: 14 }}>{aiSummary.summary}</div>
               {aiSummary.actions?.length > 0 && (
                 <div style={{ display: 'flex', gap: 10 }}>
                   {aiSummary.actions.map((a, i) => (
-                    <div key={i} style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: '#ffffff08', border: '1px solid #ffffff10', fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>
-                      <span style={{ fontFamily: FH, fontWeight: 800, color: [R, AMB, T][i] || T, marginRight: 6 }}>#{i + 1}</span>
+                    <div key={i} style={{
+                      flex: 1, padding: '12px 14px', borderRadius: 12,
+                      background: '#fff', border: '1px solid #ececef',
+                      fontSize: 13, color: '#1f1f22', lineHeight: 1.5,
+                    }}>
+                      <span style={{ fontWeight: 700, color: '#0a0a0a', marginRight: 6 }}>#{i + 1}</span>
                       {a}
                     </div>
                   ))}
@@ -418,7 +451,7 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
               )}
             </div>
           ) : (
-            <div style={{ fontSize: 13, color: '#475569', animation: 'mc-pulse 1.5s infinite' }}>Analyzing all available data to generate executive brief...</div>
+            <div style={{ fontSize: 13, color: '#a1a1a6', animation: 'mc-pulse 1.5s infinite' }}>Analyzing all available data to generate executive brief…</div>
           )}
         </div>
       )}
@@ -427,22 +460,27 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
       {doneCount >= 1 && (
         <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
           <button onClick={() => onSwitchTab('master_report')}
-            style={{ padding: '14px 40px', borderRadius: 12, border: `2px solid ${T}40`, background: `linear-gradient(135deg, ${T}08, ${T}14)`, color: T, fontSize: 15, fontWeight: 800, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, transition: 'all .15s' }}
-            onMouseEnter={e => { e.currentTarget.style.background = T + '20'; e.currentTarget.style.borderColor = T }}
-            onMouseLeave={e => { e.currentTarget.style.background = `linear-gradient(135deg, ${T}08, ${T}14)`; e.currentTarget.style.borderColor = T + '40' }}>
-            <FileText size={18} /> View Full Intelligence Report
+            style={{
+              padding: '12px 32px', borderRadius: 12, border: '1px solid #ececef',
+              background: '#fff', color: '#0a0a0a', fontSize: 14, fontWeight: 600,
+              fontFamily: SF, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8, transition: 'background 120ms ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#f9f9fb' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+            <FileText size={15} strokeWidth={1.75} /> View Full Intelligence Report
           </button>
         </div>
       )}
 
       {/* ── Client Setup + Scan Types ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20, fontFamily: SF }}>
         {/* Client info panel */}
-        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '22px 26px' }}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Settings size={15} color={T} /> Client Setup
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '22px 24px' }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#0a0a0a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Settings size={14} strokeWidth={1.75} color="#0a0a0a" /> Client Setup
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
               { label: 'Client Name', value: client?.name, ok: !!client?.name, required: true },
               { label: 'Website URL', value: client?.website, ok: hasWebsite, required: true },
@@ -450,66 +488,66 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
               { label: 'Industry', value: client?.industry, ok: !!client?.industry, required: false },
             ].map(f => (
               <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {f.ok ? <CheckCircle size={14} color={GRN} /> : f.required ? <XCircle size={14} color={R} /> : <Clock size={14} color="#d1d5db" />}
+                {f.ok
+                  ? <CheckCircle size={14} strokeWidth={2} color="#0a0a0a" />
+                  : f.required
+                    ? <XCircle size={14} strokeWidth={2} color="#e9695c" />
+                    : <Clock size={14} strokeWidth={1.75} color="#a1a1a6" />}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>{f.label} {f.required && !f.ok && <span style={{ color: R }}>*required</span>}</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: f.ok ? BLK : '#9ca3af' }}>{f.value || 'Not set'}</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                    {f.label}{f.required && !f.ok && <span style={{ color: '#e9695c', marginLeft: 4 }}>required</span>}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: f.ok ? '#0a0a0a' : '#a1a1a6' }}>{f.value || 'Not set'}</div>
                 </div>
               </div>
             ))}
           </div>
           {onEditClient && (
             <button onClick={() => onEditClient(client)}
-              style={{ marginTop: 14, width: '100%', padding: '10px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: T, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <Settings size={12} /> Edit Client Info
+              style={{
+                marginTop: 16, width: '100%', padding: '10px 14px', borderRadius: 10,
+                border: '1px solid #ececef', background: '#fff', fontSize: 13, fontWeight: 600,
+                fontFamily: SF, cursor: 'pointer', color: '#0a0a0a',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                transition: 'background 120ms ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f9f9fb' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+              <Settings size={13} strokeWidth={1.75} /> Edit Client Info
             </button>
           )}
         </div>
 
         {/* Scan types */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {/* Quick Scan card */}
-          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Zap size={20} color={R} />
+          {[
+            { label: 'Quick Scan', desc: 'Keywords + competitors + Moz DA', icon: Zap, run: () => { if (!hasWebsite) { toast.error('Add website first'); return }; onRunQuickScan?.() }, busy: syncing, ready: hasWebsite },
+            { label: 'Deep Audit', desc: '11-point technical SEO sweep', icon: Shield, run: () => onRunDeepEnrich?.(), busy: enriching, ready: hasWebsite },
+            { label: 'Full Sync', desc: 'Pull real data from connected Google accounts', icon: RefreshCw, run: () => onRunSync?.(), busy: syncing, ready: hasWebsite },
+          ].map(opt => (
+            <div key={opt.label} style={{
+              background: '#fff', borderRadius: 14, border: '1px solid #ececef',
+              padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <opt.icon size={16} strokeWidth={1.75} color="#0a0a0a" />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#0a0a0a' }}>{opt.label}</div>
+                <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 1 }}>{opt.desc}</div>
+              </div>
+              <button onClick={opt.run} disabled={opt.busy || !opt.ready}
+                style={{
+                  padding: '8px 18px', borderRadius: 10, border: 'none',
+                  background: opt.ready ? '#0a0a0a' : '#a1a1a6', color: '#fff',
+                  fontSize: 13, fontWeight: 600, fontFamily: SF,
+                  cursor: opt.busy || !opt.ready ? 'not-allowed' : 'pointer',
+                  opacity: opt.busy ? 0.6 : 1, whiteSpace: 'nowrap',
+                }}>
+                {opt.busy ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : 'Run'}
+              </button>
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Quick Scan</div>
-              <div style={{ fontSize: 11, color: '#6b7280' }}>Keywords + competitors + Moz DA — needs <b style={{ color: hasWebsite ? GRN : R }}>website</b></div>
-            </div>
-            <button onClick={() => { if (!hasWebsite) { toast.error('Add website first'); return }; onRunQuickScan?.() }} disabled={syncing || !hasWebsite}
-              style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing || !hasWebsite ? 0.5 : 1, whiteSpace: 'nowrap' }}>
-              {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : 'Run'}
-            </button>
-          </div>
-          {/* Deep Audit card */}
-          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: AMB + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Shield size={20} color={AMB} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Deep Audit</div>
-              <div style={{ fontSize: 11, color: '#6b7280' }}>11-point technical SEO — needs <b style={{ color: hasWebsite ? GRN : R }}>website</b></div>
-            </div>
-            <button onClick={() => onRunDeepEnrich?.()} disabled={enriching || !hasWebsite}
-              style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: AMB, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: enriching || !hasWebsite ? 0.5 : 1, whiteSpace: 'nowrap' }}>
-              {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : 'Run'}
-            </button>
-          </div>
-          {/* Full Sync card */}
-          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <RefreshCw size={20} color={T} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Full Sync</div>
-              <div style={{ fontSize: 11, color: '#6b7280' }}>Real Google data — needs <b style={{ color: hasWebsite ? GRN : R }}>website</b> + <b style={{ color: false ? GRN : AMB }}>Google OAuth</b></div>
-            </div>
-            <button onClick={() => onRunSync?.()} disabled={syncing || !hasWebsite}
-              style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing || !hasWebsite ? 0.5 : 1, whiteSpace: 'nowrap' }}>
-              {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : 'Run'}
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -521,24 +559,26 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
         const sectionCheckable = section.tools.filter(t => t.check).length
 
         return (
-          <div key={section.title} style={{ marginBottom: 6, animation: 'mc-fade-in .3s ease' }}>
+          <div key={section.title} style={{ marginBottom: 8, animation: 'mc-fade-in .3s ease', fontFamily: SF }}>
             <button onClick={() => toggleSection(section.title)}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: isCollapsed ? 12 : '12px 12px 0 0', cursor: 'pointer', textAlign: 'left' }}>
-              <SIcon size={15} color={sectionDone === sectionCheckable && sectionCheckable > 0 ? GRN : T} />
-              {isCollapsed ? <ChevronRight size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
-              <span style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, flex: 1 }}>{section.title}</span>
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#fff', border: '1px solid #ececef', borderRadius: isCollapsed ? 12 : '12px 12px 0 0', cursor: 'pointer', textAlign: 'left', fontFamily: SF }}>
+              <SIcon size={14} strokeWidth={1.75} color={sectionDone === sectionCheckable && sectionCheckable > 0 ? GRN : '#0a0a0a'} />
+              {isCollapsed
+                ? <ChevronRight size={13} strokeWidth={2} color="#a1a1a6" />
+                : <ChevronDown size={13} strokeWidth={2} color="#a1a1a6" />}
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#0a0a0a', flex: 1 }}>{section.title}</span>
               {sectionCheckable > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 60, height: 4, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
-                    <div style={{ width: `${(sectionDone / Math.max(sectionCheckable, 1)) * 100}%`, height: '100%', background: sectionDone === sectionCheckable ? GRN : T, borderRadius: 4, transition: 'width .5s ease' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 56, height: 3, borderRadius: 4, background: '#f1f1f6', overflow: 'hidden' }}>
+                    <div style={{ width: `${(sectionDone / Math.max(sectionCheckable, 1)) * 100}%`, height: '100%', background: sectionDone === sectionCheckable ? GRN : '#0a0a0a', borderRadius: 4, transition: 'width .5s ease' }} />
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: sectionDone === sectionCheckable ? GRN : '#6b7280', minWidth: 28 }}>{sectionDone}/{sectionCheckable}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: sectionDone === sectionCheckable ? GRN : '#a1a1a6', minWidth: 28 }}>{sectionDone}/{sectionCheckable}</span>
                 </div>
               )}
             </button>
 
             {!isCollapsed && (
-              <div style={{ border: '1px solid #e5e7eb', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
+              <div style={{ border: '1px solid #ececef', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
                 {section.tools.map((tool, i) => {
                   const Icon = tool.icon
                   const isDone = statuses[tool.id] === 'done' || statuses[tool.check] === 'done'
@@ -548,21 +588,27 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
                   return (
                     <div key={tool.id}
                       onClick={() => onSwitchTab(tool.tab)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 18px', background: i % 2 === 0 ? '#fff' : '#fafbfc', cursor: 'pointer', borderBottom: i < section.tools.length - 1 ? '1px solid #f3f4f6' : 'none', transition: 'all .15s' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = T + '08'; e.currentTarget.style.paddingLeft = '22px' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = i % 2 === 0 ? '#fff' : '#fafbfc'; e.currentTarget.style.paddingLeft = '18px' }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 8, background: isDone ? GRN + '12' : isRunning ? T + '12' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .3s' }}>
-                        <Icon size={14} color={isDone ? GRN : isRunning ? T : '#9ca3af'} />
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '11px 16px', background: '#fff',
+                        cursor: 'pointer',
+                        borderBottom: i < section.tools.length - 1 ? '1px solid #f1f1f6' : 'none',
+                        transition: 'background 120ms ease',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#f9f9fb' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 8, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 200ms ease' }}>
+                        <Icon size={13} strokeWidth={1.75} color={isDone ? GRN : isRunning ? '#0a0a0a' : '#6b6b70'} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{tool.label}</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: '#0a0a0a' }}>{tool.label}</div>
                         {snippet && isDone && <LiveSnippet text={snippet} delay={i * 50} />}
-                        {isRunning && <div style={{ fontSize: 11, color: T, animation: 'mc-pulse 1.5s infinite' }}>Analyzing...</div>}
+                        {isRunning && <div style={{ fontSize: 11, color: '#0a0a0a', animation: 'mc-pulse 1.5s infinite' }}>Analyzing…</div>}
                       </div>
-                      {isDone && <CheckCircle size={15} color={GRN} style={{ animation: 'mc-count .3s ease' }} />}
-                      {isRunning && <Loader2 size={15} color={T} style={{ animation: 'spin 1s linear infinite' }} />}
-                      {!isDone && !isRunning && tool.check && <Clock size={13} color="#d1d5db" />}
-                      <ChevronRight size={12} color="#d1d5db" />
+                      {isDone && <CheckCircle size={14} strokeWidth={2} color={GRN} style={{ animation: 'mc-count .3s ease' }} />}
+                      {isRunning && <Loader2 size={14} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />}
+                      {!isDone && !isRunning && tool.check && <Clock size={12} strokeWidth={1.75} color="#a1a1a6" />}
+                      <ChevronRight size={12} strokeWidth={2} color="#a1a1a6" />
                     </div>
                   )
                 })}
