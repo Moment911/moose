@@ -1171,9 +1171,9 @@ export default function KotoIQPage() {
                     </span>
                     <ChevronDown size={12} color="#9ca3af" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform .15s' }} />
                   </button>
-                  {!isCollapsed && section.items.map(([key, label, Icon]) => (
+                  {!isCollapsed && section.items.map(([key, label, Icon, desc]) => (
                     <button key={key} onClick={() => setTab(key)}
-                      title={item[3] || ''}
+                      title={desc || ''}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                         padding: '6px 20px 6px 28px', border: 'none', background: tab === key ? '#fff' : 'transparent',
