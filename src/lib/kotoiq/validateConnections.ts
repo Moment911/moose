@@ -121,12 +121,11 @@ async function probeHotjar(conn: any): Promise<ValidationResult> {
 }
 
 async function probeClarity(conn: any): Promise<ValidationResult> {
+  // Clarity has no REST API — we just verify that a Project ID is configured.
+  // The Behavior Analytics tab links directly to clarity.microsoft.com/projects/{id}.
   const projectId = conn.account_id || conn.external_id
   if (!projectId) return { provider: 'clarity', valid: false, error: 'Missing Project ID' }
-  const { ok, status } = await probe(`https://www.clarity.ms/api/v1/projects/${projectId}`, {
-    headers: { Authorization: `Bearer ${conn.access_token}`, 'Content-Type': 'application/json' },
-  })
-  return { provider: 'clarity', valid: ok, ...(!ok && { error: errorMsg('clarity', status) }) }
+  return { provider: 'clarity', valid: true }
 }
 
 export async function validateConnections(
