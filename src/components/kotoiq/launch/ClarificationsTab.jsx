@@ -157,7 +157,7 @@ export default function ClarificationsTab({ agencyId, clientId }) {
           )
         })}
 
-        <span style={{ borderLeft: '1px solid #e5e7eb', height: 24 }} />
+        <span style={{ borderLeft: '1px solid #ececef', height: 24 }} />
 
         {['<1h', 'today', 'this_week', 'all'].map((a) => {
           const display = a === '<1h' ? '< 1h' : a === 'this_week' ? 'this week' : a
@@ -181,7 +181,7 @@ export default function ClarificationsTab({ agencyId, clientId }) {
           )
         })}
 
-        <span style={{ borderLeft: '1px solid #e5e7eb', height: 24 }} />
+        <span style={{ borderLeft: '1px solid #ececef', height: 24 }} />
 
         <select
           value={statusFilter}
@@ -192,7 +192,7 @@ export default function ClarificationsTab({ agencyId, clientId }) {
             fontSize: 12,
             padding: '4px 8px',
             borderRadius: 6,
-            border: '1px solid #e5e7eb',
+            border: '1px solid #ececef',
             background: '#fff',
           }}
         >

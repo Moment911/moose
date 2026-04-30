@@ -83,7 +83,7 @@ export default function RejectFieldModal({ fieldName, open, onCancel, onConfirm 
               borderRadius: 8,
               background: '#fff',
               color: BLK,
-              border: '1px solid #e5e7eb',
+              border: '1px solid #ececef',
               fontFamily: FH,
               fontSize: 14,
               fontWeight: 700,

@@ -124,7 +124,7 @@ export default function BriefingDoc({
 
           {discrepancies.length > 0 && (
             <section aria-label="Flagged mismatches" style={{ marginTop: 32 }}>
-              <hr style={{ border: 0, borderTop: '1px solid #e5e7eb', margin: '16px 0 24px' }} />
+              <hr style={{ border: 0, borderTop: '1px solid #ececef', margin: '16px 0 24px' }} />
               <h2
                 style={{
                   fontFamily: FH,

@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 function fmt(n) { return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n || 0) }
 

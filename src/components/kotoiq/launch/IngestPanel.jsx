@@ -58,7 +58,7 @@ export default function IngestPanel({ onSubmit, disabled }) {
               fontWeight: 700,
               background: mode === m ? T : '#fff',
               color: mode === m ? '#fff' : BLK,
-              border: `1px solid ${mode === m ? T : '#e5e7eb'}`,
+              border: `1px solid ${mode === m ? T : '#ececef'}`,
             }}
           >
             {m === 'url' ? 'Koto link' : 'Paste text'}
@@ -79,7 +79,7 @@ export default function IngestPanel({ onSubmit, disabled }) {
             height: 44,
             padding: '0 14px',
             borderRadius: 8,
-            border: '1px solid #e5e7eb',
+            border: '1px solid #ececef',
             fontSize: 15,
             fontFamily: FB,
             boxSizing: 'border-box',
@@ -97,7 +97,7 @@ export default function IngestPanel({ onSubmit, disabled }) {
             width: '100%',
             padding: 14,
             borderRadius: 8,
-            border: '1px solid #e5e7eb',
+            border: '1px solid #ececef',
             fontSize: 14,
             fontFamily: FB,
             resize: 'vertical',

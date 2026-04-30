@@ -4,7 +4,7 @@ import { CheckCircle, Circle, Loader2, Link2, Shield, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const PROVIDERS = [
   { id: 'search_console', label: 'Google Search Console', color: '#4285F4', oauthType: 'google' },

@@ -108,7 +108,7 @@ export default function CitationChip({
             padding: '8px 12px',
             borderRadius: 6,
             background: '#fff',
-            border: '1px solid #e5e7eb',
+            border: '1px solid #ececef',
             boxShadow: '0 6px 16px rgba(0,0,0,.08)',
             fontSize: 12,
             fontWeight: 400,

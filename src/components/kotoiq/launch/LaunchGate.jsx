@@ -38,7 +38,7 @@ export default function LaunchGate({ score, softGaps = [], onLaunch, launching =
         right: 0,
         zIndex: 40,
         background: '#fff',
-        borderTop: '1px solid #e5e7eb',
+        borderTop: '1px solid #ececef',
         borderLeft: `4px solid ${tint}`,
         boxShadow: '0 -8px 24px rgba(0,0,0,0.06)',
         minHeight: 120,

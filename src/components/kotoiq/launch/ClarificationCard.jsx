@@ -91,7 +91,7 @@ export default function ClarificationCard({
   const padding = variant === 'hotspot' ? 14 : 20
   const width = variant === 'chat' ? '100%' : variant === 'hotspot' ? 420 : '100%'
   const borderWidth = variant === 'hotspot' ? 2 : 1
-  const borderColor = variant === 'hotspot' ? pill.color : '#e5e7eb'
+  const borderColor = variant === 'hotspot' ? pill.color : '#ececef'
 
   return (
     <div
@@ -146,7 +146,7 @@ export default function ClarificationCard({
                 top: 28,
                 zIndex: 5,
                 background: '#fff',
-                border: '1px solid #e5e7eb',
+                border: '1px solid #ececef',
                 borderRadius: 8,
                 boxShadow: '0 6px 16px rgba(0,0,0,.08)',
                 padding: 4,
@@ -196,7 +196,7 @@ export default function ClarificationCard({
             width: '100%',
             padding: 10,
             borderRadius: 8,
-            border: '1px solid #e5e7eb',
+            border: '1px solid #ececef',
             fontSize: 13,
             fontFamily: FB,
             resize: 'vertical',
@@ -256,7 +256,7 @@ export default function ClarificationCard({
             borderRadius: 6,
             background: '#fff',
             color: BLK,
-            border: '1px solid #e5e7eb',
+            border: '1px solid #ececef',
             fontFamily: FH,
             fontSize: 12,
             fontWeight: 700,
