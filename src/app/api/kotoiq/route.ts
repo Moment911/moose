@@ -27,6 +27,7 @@ import { runCommentGenerator, runSentimentOptimizer, runEntityInserter, runMetad
 import { runTopicalAuthorityAuditor, runContextVectorAligner, runMultiEngineAEO, runContentDecayPredictor, runCompetitorTopicalMapExtractor, runPassageRankingOptimizer } from '@/lib/kotoiqAdvancedAgents'
 import { runSerpIntentClassifier, runQueryDocumentAlignmentScorer, runTopicalBordersDetector, runCornerstoneContentIdentifier, runLinkPropositionValueScorer } from '@/lib/kotoiqAdvancedAgents2'
 import { geoTagImage } from '@/lib/imageGeoTagger'
+import { validateConnections } from '@/lib/kotoiq/validateConnections'
 import { generateGMBImage, generateImageCaption, uploadImageToStorage, uploadImageToGBP } from '@/lib/gmbImageEngine'
 import { analyzeUpworkJob, generateProposalPackage } from '@/lib/upworkChecklistEngine'
 import { checkPlagiarism, getPlagiarismHistory } from '@/lib/plagiarismEngine'
@@ -372,6 +373,20 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { action } = body
   const s = sb()
+
+  // ── VALIDATE_CONNECTIONS: Probe each connected provider's API to confirm
+  // tokens still work and surface last-synced timestamp. Read-only.
+  if (action === 'validate_connections') {
+    const { client_id, provider } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    try {
+      const results = await validateConnections(s, String(client_id), typeof provider === 'string' ? provider : undefined)
+      return NextResponse.json({ results, validated_at: new Date().toISOString() })
+    } catch (e: any) {
+      console.error('[validate_connections] error', e?.message || e)
+      return NextResponse.json({ error: 'validation_failed' }, { status: 500 })
+    }
+  }
 
   // ── SYNC: Pull all data sources and merge into UKF ────────────────────
   if (action === 'sync') {

@@ -1713,37 +1713,139 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               onToggleAll={() => setShowAllQuickWins(v => !v)}
             />
 
-            {d.empty ? (
-              <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
-                <Brain size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
-                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No keyword data yet</div>
-                <div style={{ fontSize: 14, color: '#374151', marginBottom: 20 }}>Choose how to get started:</div>
-                <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <div style={{ padding: '24px', borderRadius: 14, border: `2px solid ${R}20`, background: R + '04', maxWidth: 280, textAlign: 'center' }}>
-                    <Zap size={32} color={R} style={{ margin: '0 auto 12px' }} />
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Quick Scan</div>
-                    <div style={{ fontSize: 12, color: '#374151', marginBottom: 16, lineHeight: 1.5 }}>No login required. Scans website, sitemap, competitors, and Moz DA. AI extracts 30-60 target keywords.</div>
-                    <button onClick={() => {
-                      const c = clients.find(x => x.id === clientId)
-                      if (!c?.website) { toast.error('This client needs a website URL first — click the ✏️ edit button to add one'); return }
-                      runQuickScan()
-                    }} disabled={syncing}
-                      style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      <Zap size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Run Quick Scan
-                    </button>
+            {d.empty ? (() => {
+              const c = clients.find(x => x.id === clientId)
+              const hasWebsite = !!c?.website
+              const hasConnection = connections.some(x => x.connected)
+              const step1Done = hasWebsite
+              const step2Done = hasConnection
+              const Step = ({ n, done, active, title, sub, children }) => (
+                <div style={{
+                  display: 'flex', gap: 14,
+                  padding: '18px 20px',
+                  borderRadius: 14,
+                  border: `1px solid ${active ? '#0a0a0a' : '#ececef'}`,
+                  background: done ? '#f9f9fb' : '#fff',
+                  marginBottom: 10,
+                  opacity: !active && !done ? 0.55 : 1,
+                  transition: 'opacity 200ms ease',
+                }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 999, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: done ? '#0a0a0a' : active ? '#0a0a0a' : '#f1f1f6',
+                    color: done || active ? '#fff' : '#a1a1a6',
+                    fontSize: 13, fontWeight: 700,
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif",
+                  }}>
+                    {done ? <CheckCircle size={14} strokeWidth={2.25} /> : n}
                   </div>
-                  <div style={{ padding: '24px', borderRadius: 14, border: `2px solid ${T}20`, background: T + '04', maxWidth: 280, textAlign: 'center' }}>
-                    <RefreshCw size={32} color={T} style={{ margin: '0 auto 12px' }} />
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Full Sync</div>
-                    <div style={{ fontSize: 12, color: '#374151', marginBottom: 16, lineHeight: 1.5 }}>Pulls real ranking and traffic data from Google Search Console and Analytics. Connect your Google account first.</div>
-                    <button onClick={() => { setTab('connect') }} disabled={syncing}
-                      style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Connect Google →
-                    </button>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#0a0a0a', marginBottom: 2 }}>{title}</div>
+                    <div style={{ fontSize: 13, color: '#6b6b70', lineHeight: 1.5, marginBottom: active ? 12 : 0 }}>{sub}</div>
+                    {active && children}
                   </div>
                 </div>
-              </div>
-            ) : (
+              )
+              return (
+                <div style={{
+                  background: '#fff', borderRadius: 18, border: '1px solid #ececef',
+                  padding: 28, marginBottom: 16,
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+                }}>
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.4px' }}>Get started in 3 steps</div>
+                    <div style={{ fontSize: 14, color: '#6b6b70', marginTop: 4 }}>
+                      {step1Done && step2Done ? 'Almost there — run your first sync.' : step1Done ? 'Connect your data sources to see real rankings and traffic.' : 'Tell KotoIQ where to look, then point it at your data.'}
+                    </div>
+                  </div>
+
+                  <Step
+                    n={1}
+                    done={step1Done}
+                    active={!step1Done}
+                    title="Add a website URL"
+                    sub={step1Done ? c.website : 'KotoIQ scans this site to find the keywords you should be targeting.'}>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        defaultValue=""
+                        placeholder="https://example.com"
+                        id="setup-website-input"
+                        style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef', fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                      <button onClick={async () => {
+                        const url = document.getElementById('setup-website-input')?.value?.trim()
+                        if (!url) return toast.error('Enter a website URL')
+                        await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ action: 'update_client', client_id: clientId, agency_id: agencyId, website: url }) })
+                        await loadClients()
+                        toast.success('Website saved')
+                      }}
+                        style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: '#0a0a0a', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        Save
+                      </button>
+                    </div>
+                  </Step>
+
+                  <Step
+                    n={2}
+                    done={step2Done}
+                    active={step1Done && !step2Done}
+                    title="Pick a path"
+                    sub={step2Done
+                      ? `Connected — ${connections.filter(x => x.connected).length} provider${connections.filter(x => x.connected).length === 1 ? '' : 's'}`
+                      : 'Quick Scan works with just a website. Connect Google for real ranking and traffic data.'}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <button onClick={() => runQuickScan()} disabled={syncing}
+                        style={{
+                          display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
+                          padding: '14px 16px', borderRadius: 12, border: '1px solid #ececef',
+                          background: '#f9f9fb', color: '#0a0a0a', cursor: 'pointer', textAlign: 'left',
+                          fontFamily: 'inherit',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f1f1f6'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#f9f9fb'}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>
+                          <Zap size={14} strokeWidth={1.75} /> Quick Scan
+                        </div>
+                        <div style={{ fontSize: 12, color: '#6b6b70', lineHeight: 1.4 }}>AI extracts 30-60 keywords from your site. No login needed.</div>
+                      </button>
+                      <button onClick={() => setTab('connect')}
+                        style={{
+                          display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
+                          padding: '14px 16px', borderRadius: 12, border: '1px solid #0a0a0a',
+                          background: '#0a0a0a', color: '#fff', cursor: 'pointer', textAlign: 'left',
+                          fontFamily: 'inherit',
+                        }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>
+                          <Plug size={14} strokeWidth={1.75} /> Connect Google
+                        </div>
+                        <div style={{ fontSize: 12, color: '#a1a1a6', lineHeight: 1.4 }}>Real Search Console rankings, GA4 traffic, Ads spend.</div>
+                      </button>
+                    </div>
+                  </Step>
+
+                  <Step
+                    n={3}
+                    done={false}
+                    active={step1Done && step2Done}
+                    title="Run your first sync"
+                    sub={step2Done
+                      ? 'Pull live data from your connected accounts. Keywords, rankings, and traffic will populate the dashboard.'
+                      : 'Once you pick a path above, this step unlocks.'}>
+                    <button onClick={runSync} disabled={syncing || !step2Done}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                        padding: '11px 22px', borderRadius: 10, border: 'none',
+                        background: '#0a0a0a', color: '#fff', fontSize: 14, fontWeight: 600,
+                        cursor: syncing ? 'wait' : 'pointer', fontFamily: 'inherit',
+                      }}>
+                      {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} strokeWidth={1.75} />}
+                      {syncing ? 'Syncing…' : 'Run Sync'}
+                    </button>
+                  </Step>
+                </div>
+              )
+            })() : (
               <>
                 {/* Summary stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
