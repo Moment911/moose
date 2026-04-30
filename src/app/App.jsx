@@ -339,6 +339,7 @@ export default function App() {
           <Route path="/discovery/form/:token" element={<DiscoveryClientFormPage />} />
           <Route path="/discovery/view/:token" element={<DiscoverySharedViewPage />} />
           <Route path="/integrations/gmail/callback" element={<GmailCallbackPage />} />
+          <Route path="/encyclopedia" element={<KotoIQEncyclopediaPage />} />
           <Route path="/access-guide" element={<AccessGuidePage />} />
           <Route path="/my-plan" element={<MyPlanPage />} />
           <Route path="/train" element={<TrainerLandingPage />} />
@@ -491,7 +492,6 @@ function AppRoutes() {
           <Route path="/intelligence" element={<IntelligenceDashboardPage />} />
           <Route path="/intel" element={<IntelPage />} />
           <Route path="/intel/:reportId" element={<IntelPage />} />
-          <Route path="/kotoiq/encyclopedia" element={<KotoIQEncyclopediaPage />} />
           <Route path="/kotoiq" element={<KotoIQPage />} />
           <Route path="/kotoiq/launch/:clientId" element={<LaunchPage />} />
           <Route path="/kotoiq-shell" element={<KotoIQShellPage />} />

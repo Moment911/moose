@@ -543,8 +543,8 @@ const TOTAL = CATEGORIES.reduce((s, c) => s + c.entries.length, 0)
 
 export default function KotoIQEncyclopediaPage() {
   usePageMeta({
-    title: `KotoIQ Encyclopedia — ${TOTAL} Semantic SEO Concepts`,
-    description: `The complete reference guide to the semantic SEO framework powering KotoIQ. ${TOTAL} concepts across ${CATEGORIES.length} domains — from topical authority to entity intelligence to AI visibility.`,
+    title: `The Brain Behind the Rank — KotoIQ Semantic SEO Encyclopedia`,
+    description: `${TOTAL} concepts across ${CATEGORIES.length} domains. The complete framework powering KotoIQ's 32 AI agents — from topical authority to entity intelligence to AI visibility.`,
   })
 
   const navigate = useNavigate()
@@ -582,8 +582,8 @@ export default function KotoIQEncyclopediaPage() {
             letterSpacing: '-.035em', lineHeight: 1.05,
             color: INK, maxWidth: 900, margin: '0 auto',
           }}>
-            The Semantic SEO<br />
-            <span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>Encyclopedia.</span>
+            The Brain Behind<br />
+            the <span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', letterSpacing: 'inherit', lineHeight: 'inherit', display: 'inline' }}>Rank.</span>
           </h1>
           <p className="fade fade-2" style={{
             fontSize: 20, color: MUTED, fontFamily: FB,
