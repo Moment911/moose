@@ -78,7 +78,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Ads Intelligence Overview</div>
         <button onClick={syncAll} disabled={syncing}
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: syncing ? 0.6 : 1 }}>
-          {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+          {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
           {syncing ? 'Syncing...' : 'Sync Google Ads'}
         </button>
       </div>

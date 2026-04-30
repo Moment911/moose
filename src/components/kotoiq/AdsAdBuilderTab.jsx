@@ -83,7 +83,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
         </div>
         <button onClick={generate} disabled={generating || !brief.offer}
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: generating || !brief.offer ? 0.6 : 1 }}>
-          {generating ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+          {generating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={16} />}
           {generating ? 'Generating...' : 'Generate Ad Copy'}
         </button>
       </div>

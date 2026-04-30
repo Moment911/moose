@@ -232,14 +232,14 @@ export default function BuilderTab({ clientId, agencyId }) {
                     disabled={loading === 'detect'}
                     style={btnSmStyle}
                   >
-                    {loading === 'detect' ? <Loader2 size={14} className="animate-spin" /> : 'Detect'}
+                    {loading === 'detect' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Detect'}
                   </button>
                   <button
                     onClick={() => { listPages(site); }}
                     disabled={loading === 'pages'}
                     style={{ ...btnSmStyle, background: '#111', color: '#fff' }}
                   >
-                    {loading === 'pages' ? <Loader2 size={14} className="animate-spin" /> : 'List Pages'}
+                    {loading === 'pages' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'List Pages'}
                   </button>
                 </div>
               </div>
@@ -284,7 +284,7 @@ export default function BuilderTab({ clientId, agencyId }) {
                       disabled={loading === `ingest-${p.id}`}
                       style={{ ...btnSmStyle, background: '#111', color: '#fff' }}
                     >
-                      {loading === `ingest-${p.id}` ? <Loader2 size={14} className="animate-spin" /> : (
+                      {loading === `ingest-${p.id}` ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : (
                         <><Download size={14} /> Ingest</>
                       )}
                     </button>
@@ -364,7 +364,7 @@ function SlotEditor({ template, slots, onSave, onBack, saving }) {
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={addSlot} style={btnSmStyle}><Plus size={14} /> Add Slot</button>
           <button onClick={saveAll} disabled={!hasChanges || saving} style={{ ...btnStyle, opacity: hasChanges ? 1 : 0.4 }}>
-            {saving ? <Loader2 size={14} className="animate-spin" /> : 'Save Changes'}
+            {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Save Changes'}
           </button>
         </div>
       </div>
