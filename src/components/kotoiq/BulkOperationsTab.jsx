@@ -188,7 +188,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
 
       {/* Progress panel */}
       {status && (
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px' }}>
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Layers size={16} color="#0a0a0a" /> Progress

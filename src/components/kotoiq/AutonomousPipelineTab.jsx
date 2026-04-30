@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const PIPELINE_STEPS = [
   { key: 'query_gap_analysis', label: 'Query Gap Analysis' },
@@ -141,7 +141,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
       {/* Hero */}
       <div style={{ ...card, background: `linear-gradient(135deg, #f9f9fb 0%, #f9f9fb 100%)`, borderColor: T + '40' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-          <div style={{ width: 54, height: 54, borderRadius: 14, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 54, height: 54, borderRadius: 16, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={28} color="#0a0a0a" />
           </div>
           <div>

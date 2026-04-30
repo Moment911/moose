@@ -94,7 +94,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
     setCreatingCampaign(false)
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px' }
+  const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 24px' }
 
   // ── Empty state ──
   if (!loading && !data) {

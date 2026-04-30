@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 const SEVERITY = { critical: { bg: '#fef2f2', color: R }, warn: { bg: '#fef9c3', color: AMB }, info: { bg: '#eff6ff', color: T } }
 
 export default function AdsAnomaliesTab({ clientId, agencyId }) {

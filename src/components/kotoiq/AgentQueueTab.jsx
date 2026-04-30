@@ -7,7 +7,7 @@ import {
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const CAPTAIN_BADGE = {
   content: { label: 'Content', color: '#3b82f6', bg: '#eff6ff', icon: FileText },

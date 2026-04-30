@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const ENGINE_LIST = [
   { key: 'google_ai_overview', label: 'Google AI Overview', Icon: Search,        color: '#4285F4' },
@@ -134,7 +134,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
               const e = data.engines?.[engine.key] || {}
               const Icon = engine.Icon
               return (
-                <div key={engine.key} style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 20px' }}>
+                <div key={engine.key} style={{ background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '18px 20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                     <div style={{ width: 34, height: 34, borderRadius: 8, background: engine.color + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Icon size={18} color={engine.color} />

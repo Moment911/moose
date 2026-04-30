@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const TYPE_CONFIG = {
   topical:     { color: T,        label: 'Topical',     icon: Layers,    explanation: 'These queries share a common topic or theme. Users searching these terms are exploring a subject area broadly.', actions: ['Create a pillar page covering the core topic, then link supporting articles for each sub-query.', 'Add FAQ sections to existing pages that directly answer the related queries.', 'Build internal links between pages that cover queries in this cluster.'] },

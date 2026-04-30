@@ -445,7 +445,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
   const coreFiltered = filteredNodes.filter(n => n.section === 'core')
   const outerFiltered = filteredNodes.filter(n => n.section === 'outer')
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
+  const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
 
   // ── Empty state ──────────────────────────────────────────────
 
@@ -461,7 +461,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
   if (!map) {
     return (
       <div style={{ ...card, textAlign: 'center', padding: '48px 32px' }}>
-        <div style={{ width: 56, height: 56, borderRadius: 14, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div style={{ width: 56, height: 56, borderRadius: 16, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <Map size={28} color="#0a0a0a" />
         </div>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>No Topical Map Yet</div>

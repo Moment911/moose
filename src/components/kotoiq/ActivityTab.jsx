@@ -6,7 +6,7 @@ import {
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, FH, FB } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 20px', marginBottom: 12 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '18px 20px', marginBottom: 12 }
 
 const REVERTIBLE_TABLES = new Set([
   'kotoiq_content_briefs',

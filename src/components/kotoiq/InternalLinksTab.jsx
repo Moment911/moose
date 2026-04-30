@@ -57,7 +57,7 @@ function IssueCard({ title, icon, color, items, renderItem, emptyMsg, descriptio
   const [expanded, setExpanded] = useState(false)
   const shown = expanded ? items : items.slice(0, 5)
   return (
-    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', overflow: 'hidden' }}>
+    <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ececef', overflow: 'hidden' }}>
       <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: items.length > 0 ? '1px solid #f1f1f6' : 'none' }}>
         <span style={{ fontSize: 16 }}>{icon}</span>
         <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: BLK }}>{title}</span>
@@ -379,7 +379,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
       {/* Link Equity Flow */}
       {topEquity.length > 0 && (
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <BarChart2 size={15} color="#0a0a0a" />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Link Equity Distribution</span>
@@ -416,7 +416,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
       {/* Quality Node Suggestions */}
       {qualityNodes.length > 0 && (
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Zap size={15} color={GRN} />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Quality Node Suggestions</span>
@@ -463,7 +463,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       )}
 
       {/* Breadcrumb Coverage */}
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
+      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <ArrowRight size={15} color="#0a0a0a" />
           <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Breadcrumb Coverage</span>
@@ -508,7 +508,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
       {/* AI Recommendations */}
       {recommendations.length > 0 && (
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Eye size={15} color="#0a0a0a" />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>AI Recommendations</span>
@@ -529,7 +529,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
       {/* Link Suggestions Panel */}
       {(suggestLoading || suggestions) && (
-        <div style={{ background: '#fff', borderRadius: 14, border: `2px solid ${T}`, padding: '18px 22px', marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 16, border: `2px solid ${T}`, padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Zap size={15} color="#0a0a0a" />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Link Suggestions for {shortUrl(suggestUrl)}</span>

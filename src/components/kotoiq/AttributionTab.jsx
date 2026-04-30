@@ -340,7 +340,7 @@ function DeviceToggle({ active, onClick, children }) {
 
 const card = {
   background: '#fff',
-  borderRadius: 14,
+  borderRadius: 16,
   border: '1px solid #ececef',
   padding: '20px 22px',
   marginBottom: 0,

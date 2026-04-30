@@ -104,7 +104,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
     } catch (e) { toast.error('Update failed') }
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px' }
+  const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 24px' }
 
   const filteredItems = items.filter(it => {
     if (statusFilter && it.status !== statusFilter) return false

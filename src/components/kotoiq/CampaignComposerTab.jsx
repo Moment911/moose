@@ -258,7 +258,7 @@ export default function CampaignComposerTab({ agencyId }) {
     setStep(s => Math.min(s + 1, 5))
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '24px' }
+  const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '24px' }
 
   return (
     <div>

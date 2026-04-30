@@ -272,7 +272,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
   }, [send])
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 180px)', gap: 0, background: '#fff', borderRadius: 14, border: '1px solid #ececef', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 180px)', gap: 0, background: '#fff', borderRadius: 16, border: '1px solid #ececef', overflow: 'hidden' }}>
 
       {/* ── Conversation list sidebar ────────────────────────────── */}
       <div style={{ width: 260, flexShrink: 0, borderRight: '1px solid #ececef', background: GRY, display: 'flex', flexDirection: 'column' }}>
