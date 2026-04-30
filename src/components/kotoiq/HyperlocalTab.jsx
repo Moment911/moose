@@ -95,7 +95,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
       <HowItWorks tool="hyperlocal" />
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div style={{ width: 60, height: 60, borderRadius: 12, background: R + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <MapPin size={30} color={R} />
         </div>
         <div style={{ flex: 1 }}>
@@ -105,7 +105,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
       </div>
 
       {/* Description */}
-      <div style={{ ...card, background: T + '06', borderColor: T + '30' }}>
+      <div style={{ ...card, background: '#f9f9fb', borderColor: T + '30' }}>
         <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 8 }}>How it works</div>
         <ol style={{ margin: 0, paddingLeft: 22, fontSize: 13, lineHeight: 1.7, color: '#1f1f22', fontFamily: FB }}>
           <li>Reads dead zones (points where you rank &gt; 20) from the latest Rank Grid Pro scan.</li>
@@ -255,7 +255,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
                       <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>{b.target_keyword}</div>
                     </div>
                     <button onClick={() => openBrief(b)} style={{
-                      padding: '6px 14px', borderRadius: 8, border: `1px solid ${T}`, background: T + '14', color: T,
+                      padding: '6px 14px', borderRadius: 8, border: `1px solid ${T}`, background: '#f1f1f6', color: T,
                       fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                     }}>
                       Open Brief <ArrowRight size={12} />

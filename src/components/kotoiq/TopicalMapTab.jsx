@@ -13,17 +13,17 @@ import HowItWorks from './HowItWorks'
 // ── Status helpers ──────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  gap:     { label: 'Gap',     color: R,   bg: R + '12',   icon: XCircle },
-  partial: { label: 'Partial', color: AMB, bg: AMB + '12', icon: AlertCircle },
+  gap:     { label: 'Gap',     color: R,   bg: '#f1f1f6',   icon: XCircle },
+  partial: { label: 'Partial', color: AMB, bg: '#f1f1f6', icon: AlertCircle },
   covered: { label: 'Covered', color: GRN, bg: GRN + '12', icon: CheckCircle },
 }
 
 const CONTENT_TYPE_COLORS = {
   pillar:     { color: '#7c3aed', bg: '#7c3aed14' },
-  cluster:    { color: T, bg: T + '14' },
+  cluster:    { color: T, bg: '#f1f1f6' },
   support:    { color: '#1f1f22', bg: '#6b728014' },
-  faq:        { color: AMB, bg: AMB + '14' },
-  comparison: { color: R, bg: R + '14' },
+  faq:        { color: AMB, bg: '#f1f1f6' },
+  comparison: { color: R, bg: '#f1f1f6' },
 }
 
 function fmtN(n) { return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n || 0) }
@@ -156,7 +156,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
       {/* Actionable guidance */}
       <div style={{
         fontSize: 11, lineHeight: 1.5, padding: '6px 10px', borderRadius: 8, marginBottom: 8,
-        background: node.status === 'gap' ? R + '08' : node.status === 'partial' ? AMB + '08' : GRN + '08',
+        background: node.status === 'gap' ? '#f9f9fb' : node.status === 'partial' ? '#f9f9fb' : GRN + '08',
         color: node.status === 'gap' ? '#991b1b' : node.status === 'partial' ? '#92400e' : '#166534',
         borderLeft: `3px solid ${STATUS_CONFIG[node.status]?.color || R}`,
       }}>
@@ -167,7 +167,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
       {node.status === 'gap' && (
         <button onClick={() => onGenerateBrief(node)} style={{
           display: 'flex', alignItems: 'center', gap: 5, width: '100%', padding: '8px 12px', borderRadius: 8,
-          border: `1.5px dashed ${R}`, background: R + '06', color: R, fontSize: 12, fontWeight: 700,
+          border: `1.5px dashed ${R}`, background: '#f9f9fb', color: R, fontSize: 12, fontWeight: 700,
           cursor: 'pointer', marginBottom: 8, justifyContent: 'center',
         }}>
           <PlusCircle size={13} /> Create Content for This Topic
@@ -221,7 +221,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 4 }}>Connected Topics</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                 {node.contextual_bridges.map((cb, i) => (
-                  <span key={i} style={{ padding: '2px 8px', borderRadius: 8, background: T + '10', color: T, fontSize: 12, fontWeight: 600, border: `1px solid ${T}30` }}>
+                  <span key={i} style={{ padding: '2px 8px', borderRadius: 8, background: T + '10', color: T, fontSize: 12, fontWeight: 600, border: `1px solid #ececef` }}>
                     {cb}
                   </span>
                 ))}
@@ -461,7 +461,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
   if (!map) {
     return (
       <div style={{ ...card, textAlign: 'center', padding: '48px 32px' }}>
-        <div style={{ width: 56, height: 56, borderRadius: 14, background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div style={{ width: 56, height: 56, borderRadius: 14, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <Map size={28} color={T} />
         </div>
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>No Topical Map Yet</div>
@@ -491,7 +491,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
       <HowItWorks tool="topical_map" />
 
       {/* Explanation card */}
-      <div style={{ ...card, background: T + '06', border: `1px solid ${T}25`, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+      <div style={{ ...card, background: '#f9f9fb', border: `1px solid ${T}25`, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
         <div style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, background: T + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
           <Info size={18} color={T} />
         </div>
@@ -732,7 +732,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
       {/* Few nodes hint */}
       {(stats.total || 0) > 0 && (stats.total || 0) < 15 && (
         <div style={{
-          ...card, background: AMB + '08', border: `1px solid ${AMB}25`,
+          ...card, background: '#f9f9fb', border: `1px solid ${AMB}25`,
           display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px',
         }}>
           <AlertCircle size={16} color={AMB} style={{ flexShrink: 0 }} />

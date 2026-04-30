@@ -95,7 +95,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Patterns Detected</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {data.patterns_detected.map((p, i) => (
-                  <span key={i} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 12, background: R + '14', color: R }}>
+                  <span key={i} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 12, background: '#f1f1f6', color: R }}>
                     {typeof p === 'string' ? p : p.pattern || p.name}
                   </span>
                 ))}
@@ -109,7 +109,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {data.rewrites.slice(0, 20).map((r, i) => (
                   <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
-                    <div style={{ padding: '8px 12px', background: R + '08', fontSize: 12, color: R, textDecoration: 'line-through' }}>
+                    <div style={{ padding: '8px 12px', background: '#f9f9fb', fontSize: 12, color: R, textDecoration: 'line-through' }}>
                       {r.before}
                     </div>
                     <div style={{ padding: '8px 12px', background: GRN + '08', fontSize: 12, color: GRN }}>

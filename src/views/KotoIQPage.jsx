@@ -1457,13 +1457,13 @@ export default function KotoIQPage() {
                 <a href="/downloads" target="_blank" rel="noopener noreferrer"
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                    padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${T}30`,
-                    background: T + '08', color: BLK, textDecoration: 'none',
+                    padding: '10px 12px', borderRadius: 8, border: `1.5px solid #ececef`,
+                    background: '#f9f9fb', color: BLK, textDecoration: 'none',
                     fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
                     transition: 'all .1s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = T + '15' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = T + '08' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#f9f9fb' }}
                 >
                   <Download size={14} color={T} />
                   <div>
@@ -1487,8 +1487,8 @@ export default function KotoIQPage() {
                 <a href="/tour"
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                    marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${T}30`,
-                    background: `${T}08`, color: BLK, textDecoration: 'none',
+                    marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1.5px solid #ececef`,
+                    background: `#f9f9fb`, color: BLK, textDecoration: 'none',
                     fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
                   }}>
                   <Sparkles size={14} color={T} />
@@ -1688,7 +1688,7 @@ export default function KotoIQPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                       <RefreshCw size={18} color={T} />
                       <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Full Sync</div>
-                      <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: T + '12', color: T }}>OAuth</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: T }}>OAuth</span>
                     </div>
                     <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>Search Console, Google Ads, GA4, Keyword Planner</div>
                     <div style={{ fontSize: 11, color: '#6b6b70', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b> + <b style={{ color: hasConnections ? GRN : R }}>Google OAuth</b></div>
@@ -2367,7 +2367,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {dashboard.top_opportunities.filter(k => k.category === 'striking_distance' || k.category === 'quick_win' || k.category === 'dark_matter').slice(0, 8).map((kw, i) => (
                       <button key={i} onClick={() => generateBrief(kw.keyword)}
-                        style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1.5px solid ${T}30`, background: '#fff', color: T, transition: 'all .15s' }}>
+                        style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1.5px solid #ececef`, background: '#fff', color: T, transition: 'all .15s' }}>
                         {kw.keyword}
                       </button>
                     ))}
@@ -2472,7 +2472,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Required Schema Markup</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {activeBrief.schema_types.map((s, i) => (
-                        <span key={i} style={{ padding: '4px 12px', borderRadius: 6, background: T + '12', color: T, fontSize: 12, fontWeight: 600 }}>{s}</span>
+                        <span key={i} style={{ padding: '4px 12px', borderRadius: 6, background: '#f1f1f6', color: T, fontSize: 12, fontWeight: 600 }}>{s}</span>
                       ))}
                     </div>
                   </div>
@@ -2531,7 +2531,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* AEO + Guidelines */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {activeBrief.aeo_optimization && (
-                    <div style={{ padding: 16, borderRadius: 10, background: R + '06', border: `1px solid ${R}20` }}>
+                    <div style={{ padding: 16, borderRadius: 10, background: '#f9f9fb', border: `1px solid #ececef` }}>
                       <div style={{ fontSize: 12, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>AEO / Featured Snippet</div>
                       <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6 }}>
                         <div><strong>Target:</strong> {activeBrief.aeo_optimization.target_snippet_type} snippet</div>
@@ -2837,7 +2837,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <span style={{ fontSize: 11, color: '#1f2937' }}>#{Math.round(kw.previous_position)}</span>
                               <span style={{ color: R }}>→</span>
                               <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: R }}>#{Math.round(kw.current_position)}</span>
-                              <span style={{ fontSize: 11, fontWeight: 800, color: R, background: R + '12', padding: '2px 6px', borderRadius: 4 }}>{kw.change}</span>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: R, background: '#f1f1f6', padding: '2px 6px', borderRadius: 4 }}>{kw.change}</span>
                             </div>
                           </div>
                         ))}
@@ -2923,7 +2923,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     {enrichment.technical_audit.critical_issues?.length > 0 && (
                       <div style={{ marginBottom: 12 }}>
                         {enrichment.technical_audit.critical_issues.map((issue, i) => (
-                          <div key={i} style={{ padding: '10px 14px', borderRadius: 8, background: R + '06', borderLeft: `3px solid ${R}`, marginBottom: 6 }}>
+                          <div key={i} style={{ padding: '10px 14px', borderRadius: 8, background: '#f9f9fb', borderLeft: `3px solid ${R}`, marginBottom: 6 }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{issue.issue} ({issue.count})</div>
                             <div style={{ fontSize: 12, color: '#1f1f22' }}>{issue.fix}</div>
                           </div>
@@ -2947,7 +2947,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     </div>
                     {enrichment.onpage_audit.ai_summary && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.onpage_audit.ai_summary}</div>}
                     {enrichment.onpage_audit.critical_fails?.length > 0 && enrichment.onpage_audit.critical_fails.map((f, i) => (
-                      <div key={i} style={{ padding: '8px 12px', borderRadius: 6, background: R + '06', borderLeft: `3px solid ${R}`, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
+                      <div key={i} style={{ padding: '8px 12px', borderRadius: 6, background: '#f9f9fb', borderLeft: `3px solid ${R}`, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
                         <strong>{f.label}:</strong> {f.detail} — <span style={{ color: R }}>{f.fix}</span>
                       </div>
                     ))}
@@ -3460,7 +3460,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <>
                   {/* Client's own keywords summary */}
                   {compLandscape.client_keywords && (
-                    <div style={{ padding: '14px 18px', background: T + '08', borderRadius: 10, border: `1px solid ${T}20`, marginBottom: 16 }}>
+                    <div style={{ padding: '14px 18px', background: '#f9f9fb', borderRadius: 10, border: `1px solid #ececef`, marginBottom: 16 }}>
                       <div style={{ display: 'flex', gap: 20 }}>
                         <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: T }}>{compLandscape.client_keywords.total || 0}</span><div style={{ fontSize: 12, color: '#1f1f22', textTransform: 'uppercase' }}>Total Keywords</div></div>
                         <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{compLandscape.domain}</span><div style={{ fontSize: 12, color: '#1f1f22', textTransform: 'uppercase' }}>Your Domain</div></div>
@@ -3481,7 +3481,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         </thead>
                         <tbody>
                           {compLandscape.competitors.map((comp, i) => (
-                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selectedCompDomain === comp.domain ? T + '06' : 'transparent' }}
+                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selectedCompDomain === comp.domain ? '#f9f9fb' : 'transparent' }}
                               onClick={async () => {
                                 setSelectedCompDomain(comp.domain)
                                 setCompDomainLoading(true)
@@ -3574,17 +3574,17 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                             {/* Opportunity cards */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
-                              <div style={{ padding: '16px', background: R + '06', borderRadius: 10, border: `1px solid ${R}15` }}>
+                              <div style={{ padding: '16px', background: '#f9f9fb', borderRadius: 10, border: `1px solid ${R}15` }}>
                                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: R }}>{losing.length}</div>
                                 <div style={{ fontSize: 11, color: '#1f1f22', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>They Beat You</div>
                                 <div style={{ fontSize: 11, color: '#1f2937', marginTop: 4 }}>Keywords where competitor ranks higher</div>
                               </div>
-                              <div style={{ padding: '16px', background: AMB + '06', borderRadius: 10, border: `1px solid ${AMB}15` }}>
+                              <div style={{ padding: '16px', background: '#f9f9fb', borderRadius: 10, border: `1px solid ${AMB}15` }}>
                                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: AMB }}>{strikingDistance.length}</div>
                                 <div style={{ fontSize: 11, color: '#1f1f22', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Striking Distance</div>
                                 <div style={{ fontSize: 11, color: '#1f2937', marginTop: 4 }}>You're position 4-10 — push to top 3</div>
                               </div>
-                              <div style={{ padding: '16px', background: T + '06', borderRadius: 10, border: `1px solid ${T}15` }}>
+                              <div style={{ padding: '16px', background: '#f9f9fb', borderRadius: 10, border: `1px solid ${T}15` }}>
                                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: T }}>{gaps.length}</div>
                                 <div style={{ fontSize: 11, color: '#1f1f22', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Keyword Gaps</div>
                                 <div style={{ fontSize: 11, color: '#1f2937', marginTop: 4 }}>They rank, you don't — new opportunities</div>
@@ -3625,7 +3625,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                       <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: '#1f2937' }}>You: —</span>
                                       <span style={{ fontSize: 12, color: '#1f2937' }}>vs</span>
                                       <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.position}</span>
-                                      <span style={{ padding: '2px 8px', borderRadius: 12, background: T + '12', fontSize: 12, fontWeight: 700, color: T }}>NEW OPP</span>
+                                      <span style={{ padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', fontSize: 12, fontWeight: 700, color: T }}>NEW OPP</span>
                                     </div>
                                   </div>
                                 ))}
@@ -3677,7 +3677,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', marginBottom: 6 }}>Striking distance keywords:</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {dashboard.top_opportunities.filter(k => k.category === 'striking_distance').slice(0, 6).map((kw, i) => (
-                      <button key={i} onClick={() => setCompKeyword(kw.keyword)} style={{ padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 600, border: `1px solid ${AMB}30`, background: '#fff', color: AMB, cursor: 'pointer' }}>#{Math.round(kw.sc_position)} {kw.keyword}</button>
+                      <button key={i} onClick={() => setCompKeyword(kw.keyword)} style={{ padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 600, border: `1px solid #ececef`, background: '#fff', color: AMB, cursor: 'pointer' }}>#{Math.round(kw.sc_position)} {kw.keyword}</button>
                     ))}
                   </div>
                 </div>
@@ -3705,10 +3705,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <tbody>
                           {compAnalysis.analyses.map((a, i) => (
                             <React.Fragment key={i}>
-                            <tr style={{ borderBottom: expandedCompIdx === i ? 'none' : '1px solid #f3f4f6', background: a.is_client ? T + '06' : 'transparent', cursor: 'pointer' }}
+                            <tr style={{ borderBottom: expandedCompIdx === i ? 'none' : '1px solid #f3f4f6', background: a.is_client ? '#f9f9fb' : 'transparent', cursor: 'pointer' }}
                               onClick={() => setExpandedCompIdx(expandedCompIdx === i ? null : i)}
                               onMouseEnter={e => { if (!a.is_client) e.currentTarget.style.background = '#f9f9fb' }}
-                              onMouseLeave={e => { if (!a.is_client) e.currentTarget.style.background = a.is_client ? T + '06' : 'transparent' }}>
+                              onMouseLeave={e => { if (!a.is_client) e.currentTarget.style.background = a.is_client ? '#f9f9fb' : 'transparent' }}>
                               <td style={{ padding: '10px', fontSize: 12, fontWeight: a.is_client ? 800 : 600, color: BLK, maxWidth: 220 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                   {a.is_client && <span style={{ color: T }}>★</span>}
@@ -3721,7 +3721,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.h3_count}</td>
                               <td style={{ textAlign: 'center' }}>
                                 <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-                                  {(a.schemas || []).slice(0, 3).map((s, j) => <span key={j} style={{ fontSize: 8, padding: '2px 5px', borderRadius: 3, background: T + '12', color: T, fontWeight: 700 }}>{s}</span>)}
+                                  {(a.schemas || []).slice(0, 3).map((s, j) => <span key={j} style={{ fontSize: 8, padding: '2px 5px', borderRadius: 3, background: '#f1f1f6', color: T, fontWeight: 700 }}>{s}</span>)}
                                   {(!a.schemas || a.schemas.length === 0) && <span style={{ fontSize: 12, color: R }}>None</span>}
                                 </div>
                               </td>
@@ -3792,7 +3792,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Brain size={18} color={T} /> AI Competitive Gap Analysis
                     </div>
-                    <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, marginBottom: 20, padding: '14px 18px', background: T + '06', borderRadius: 10, border: `1px solid ${T}20` }}>
+                    <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, marginBottom: 20, padding: '14px 18px', background: '#f9f9fb', borderRadius: 10, border: `1px solid #ececef` }}>
                       {compAnalysis.gap_analysis.summary}
                     </div>
 
@@ -3833,7 +3833,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                     {/* Content targets */}
                     {compAnalysis.gap_analysis.content_targets && (
-                      <div style={{ padding: '16px 20px', borderRadius: 10, background: R + '06', border: `1px solid ${R}15` }}>
+                      <div style={{ padding: '16px 20px', borderRadius: 10, background: '#f9f9fb', border: `1px solid ${R}15` }}>
                         <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Content Targets to Win</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                           {[
@@ -3851,7 +3851,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {compAnalysis.gap_analysis.content_targets.required_schema?.length > 0 && (
                           <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             {compAnalysis.gap_analysis.content_targets.required_schema.map((s, i) => (
-                              <span key={i} style={{ fontSize: 12, padding: '3px 8px', borderRadius: 4, background: T + '12', color: T, fontWeight: 700 }}>{s}</span>
+                              <span key={i} style={{ fontSize: 12, padding: '3px 8px', borderRadius: 4, background: '#f1f1f6', color: T, fontWeight: 700 }}>{s}</span>
                             ))}
                           </div>
                         )}
@@ -4002,7 +4002,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {roiData.improvements.map((imp, i) => (
                           <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                             <td style={{ padding: '10px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 250 }}>{imp.action}</td>
-                            <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: T + '12', color: T }}>{imp.category}</span></td>
+                            <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: T }}>{imp.category}</span></td>
                             <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>+{imp.traffic_gain_pct}%</td>
                             <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14 }}>+{imp.estimated_additional_clicks}</td>
                             <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>+${imp.estimated_additional_revenue?.toLocaleString()}</td>
@@ -4169,7 +4169,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                       {/* Batch responses view */}
                       {batchReviews && (
-                        <div style={{ marginBottom: 16, padding: '16px', borderRadius: 10, background: T + '06', border: `1px solid ${T}20` }}>
+                        <div style={{ marginBottom: 16, padding: '16px', borderRadius: 10, background: '#f9f9fb', border: `1px solid #ececef` }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                             <div style={{ fontSize: 14, fontWeight: 800, color: T }}>{batchReviews.length} Responses Ready</div>
                             <button onClick={() => { navigator.clipboard.writeText(batchReviews.map(r => `Review by ${r.original_author} (${r.original_rating}★):\n${r.response}`).join('\n\n---\n\n')); toast.success('All responses copied!') }}
@@ -4196,7 +4196,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                 <span style={{ fontSize: 12, color: rev.rating >= 4 ? GRN : rev.rating >= 3 ? AMB : R, marginLeft: 8 }}>{'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}</span>
                               </div>
                               <button onClick={() => draftReviewResponse(rev)}
-                                style={{ padding: '4px 12px', borderRadius: 6, border: `1px solid ${T}30`, background: '#fff', color: T, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                                style={{ padding: '4px 12px', borderRadius: 6, border: `1px solid #ececef`, background: '#fff', color: T, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                                 <Brain size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Draft Response
                               </button>
                             </div>
@@ -4205,7 +4205,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                             {/* AI Draft Response */}
                             {isActive && reviewDraft && (
-                              <div style={{ marginTop: 12, padding: '12px 16px', borderRadius: 8, background: T + '06', border: `1px solid ${T}20` }}>
+                              <div style={{ marginTop: 12, padding: '12px 16px', borderRadius: 8, background: '#f9f9fb', border: `1px solid #ececef` }}>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI-Drafted Response</div>
                                 <textarea value={reviewDraft} onChange={e => setReviewDraft(e.target.value)}
                                   style={{ width: '100%', minHeight: 100, padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }} />
@@ -4399,7 +4399,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             </div>
 
                             {/* Pace comparison */}
-                            <div style={{ padding: '14px 18px', borderRadius: 10, background: currentPace < 4 ? R + '06' : GRN + '06', border: `1px solid ${currentPace < 4 ? R + '20' : GRN + '20'}` }}>
+                            <div style={{ padding: '14px 18px', borderRadius: 10, background: currentPace < 4 ? '#f9f9fb' : GRN + '06', border: `1px solid ${currentPace < 4 ? R + '20' : GRN + '20'}` }}>
                               <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>
                                 {currentPace < 4
                                   ? `At ~${currentPace} reviews/month, reaching ${target} reviews will take ${monthsAtCurrent > 100 ? 'forever' : `${monthsAtCurrent} months`}. Industry leaders earn 8-12/month. Implement SMS follow-up within 2 hours of service — conversion rate: 35-45%.`
@@ -5395,7 +5395,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
             </div>
             {result.ai_overview ? (
               <>
-                <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, marginBottom: 12, padding: '12px 16px', background: T + '06', borderRadius: 10 }}>
+                <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, marginBottom: 12, padding: '12px 16px', background: '#f9f9fb', borderRadius: 10 }}>
                   {result.ai_overview.text || 'AI Overview text not extracted'}
                 </div>
                 {result.mentioned_companies?.length > 0 && (
@@ -5426,7 +5426,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Gaps in Current Content (Your Opportunity)</div>
                   {result.gap_analysis.information_gaps.map((gap, i) => (
-                    <div key={i} style={{ padding: '8px 14px', background: R + '04', borderRadius: 8, borderLeft: `3px solid ${R}`, marginBottom: 6, fontSize: 13, color: '#1f1f22', lineHeight: 1.5 }}>
+                    <div key={i} style={{ padding: '8px 14px', background: '#f9f9fb', borderRadius: 8, borderLeft: `3px solid ${R}`, marginBottom: 6, fontSize: 13, color: '#1f1f22', lineHeight: 1.5 }}>
                       {gap}
                     </div>
                   ))}
@@ -5443,7 +5443,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
                 </div>
               )}
               {result.gap_analysis.aeo_strategy && (
-                <div style={{ padding: '14px 18px', background: T + '06', borderRadius: 10, border: `1px solid ${T}20`, marginBottom: 12 }}>
+                <div style={{ padding: '14px 18px', background: '#f9f9fb', borderRadius: 10, border: `1px solid #ececef`, marginBottom: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>AEO Strategy</div>
                   <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{result.gap_analysis.aeo_strategy}</div>
                 </div>
@@ -5653,7 +5653,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>${((kw.ads_cpc_cents || 0) / 100).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: pos <= 3 ? R + '12' : AMB + '12', color: pos <= 3 ? R : AMB }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: pos <= 3 ? '#f1f1f6' : '#f1f1f6', color: pos <= 3 ? R : AMB }}>
                         {pos <= 3 ? 'Pause Ad' : pos <= 10 ? 'Reduce Bid' : 'Keep'}
                       </span>
                     </td>
@@ -5728,7 +5728,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
               <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <span style={{ fontSize: 12, color: '#1f2937' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
-                <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: AMB + '12', color: AMB }}>Snippet</span>
+                <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#f1f1f6', color: AMB }}>Snippet</span>
               </div>
             </div>
           ))}
@@ -5753,11 +5753,11 @@ function ReportsTab({ clientId, keywords, dashboard }) {
                 <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: GRN }}>${Math.round(organicValue).toLocaleString()}</div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>Organic Value/mo</div>
               </div>
-              <div style={{ padding: '18px', background: R + '06', borderRadius: 10, textAlign: 'center' }}>
+              <div style={{ padding: '18px', background: '#f9f9fb', borderRadius: 10, textAlign: 'center' }}>
                 <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: R }}>${Math.round(totalPaidSpend).toLocaleString()}</div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>Ad Spend/mo</div>
               </div>
-              <div style={{ padding: '18px', background: T + '06', borderRadius: 10, textAlign: 'center' }}>
+              <div style={{ padding: '18px', background: '#f9f9fb', borderRadius: 10, textAlign: 'center' }}>
                 <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: T }}>{totalPaidSpend > 0 ? `${(organicValue / totalPaidSpend).toFixed(1)}x` : '∞'}</div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>ROI Multiple</div>
               </div>
@@ -5880,7 +5880,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {presets.map(p => (
             <button key={p.label} onClick={() => { setSource(p.source); setMedium(p.medium); setCampaign(p.campaign) }}
-              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e5e7eb', background: source === p.source && medium === p.medium ? T + '12' : '#fff', color: source === p.source && medium === p.medium ? T : '#6b6b70', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .12s' }}>
+              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e5e7eb', background: source === p.source && medium === p.medium ? '#f1f1f6' : '#fff', color: source === p.source && medium === p.medium ? T : '#6b6b70', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .12s' }}>
               {p.label}
             </button>
           ))}
@@ -5960,11 +5960,11 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
 
           {/* Parameter breakdown */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {source && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: T + '12', color: T }}>source: {source}</span>}
+            {source && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#f1f1f6', color: T }}>source: {source}</span>}
             {medium && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: GRN + '12', color: GRN }}>medium: {medium}</span>}
-            {campaign && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: AMB + '12', color: AMB }}>campaign: {campaign}</span>}
+            {campaign && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#f1f1f6', color: AMB }}>campaign: {campaign}</span>}
             {content && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#7c3aed12', color: '#7c3aed' }}>content: {content}</span>}
-            {term && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: R + '12', color: R }}>term: {term}</span>}
+            {term && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#f1f1f6', color: R }}>term: {term}</span>}
           </div>
         </div>
       )}

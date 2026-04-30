@@ -133,7 +133,7 @@ function IssueSummaryCard({ data }) {
   )
 
   return (
-    <div style={{ ...card, background: critical > 0 ? R + '06' : AMB + '06', border: `1px solid ${critical > 0 ? R : AMB}25` }}>
+    <div style={{ ...card, background: critical > 0 ? '#f9f9fb' : '#f9f9fb', border: `1px solid ${critical > 0 ? R : AMB}25` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
         <ShieldAlert size={18} color={critical > 0 ? R : AMB} />
         <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>

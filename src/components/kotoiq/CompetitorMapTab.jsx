@@ -79,7 +79,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
                 <Target size={16} color={R} /> Core Topics
               </div>
               {(data.core_topics || []).map((t, i) => (
-                <div key={i} style={{ padding: '8px 12px', background: R + '08', borderRadius: 6, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
+                <div key={i} style={{ padding: '8px 12px', background: '#f9f9fb', borderRadius: 6, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
                   {typeof t === 'string' ? t : t.topic || t.name}
                 </div>
               ))}
@@ -91,7 +91,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
                 <Target size={16} color={AMB} /> Outer Topics
               </div>
               {(data.outer_topics || []).map((t, i) => (
-                <div key={i} style={{ padding: '8px 12px', background: AMB + '08', borderRadius: 6, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
+                <div key={i} style={{ padding: '8px 12px', background: '#f9f9fb', borderRadius: 6, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
                   {typeof t === 'string' ? t : t.topic || t.name}
                 </div>
               ))}
@@ -114,7 +114,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', marginBottom: 6 }}>Topics competitor covers that you don't</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {data.coverage_comparison.missing_topics.map((m, i) => (
-                      <span key={i} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 12, background: R + '14', color: R }}>{m}</span>
+                      <span key={i} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 12, background: '#f1f1f6', color: R }}>{m}</span>
                     ))}
                   </div>
                 </div>

@@ -11,9 +11,9 @@ import HowItWorks from './HowItWorks'
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
 const SEVERITY_STYLES = {
-  critical: { color: R, bg: R + '14', icon: AlertCircle, label: 'Critical' },
-  warning: { color: AMB, bg: AMB + '14', icon: AlertTriangle, label: 'Warning' },
-  info: { color: T, bg: T + '14', icon: Info, label: 'Info' },
+  critical: { color: R, bg: '#f1f1f6', icon: AlertCircle, label: 'Critical' },
+  warning: { color: AMB, bg: '#f1f1f6', icon: AlertTriangle, label: 'Warning' },
+  info: { color: T, bg: '#f1f1f6', icon: Info, label: 'Info' },
 }
 
 const EVENT_TYPE_LABELS = {
@@ -185,7 +185,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
             {domains.map(d => (
               <span key={d} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px',
-                background: T + '14', color: T, borderRadius: 16, fontSize: 12, fontWeight: 700, fontFamily: FH,
+                background: '#f1f1f6', color: T, borderRadius: 16, fontSize: 12, fontWeight: 700, fontFamily: FH,
               }}>
                 {d}
                 <button onClick={() => removeDomain(d)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: T, display: 'flex' }}>
@@ -291,7 +291,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
               <button key={val} onClick={() => setFilter(val)} style={{
                 padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 700, fontFamily: FH,
                 border: filter === val ? `1.5px solid ${T}` : '1.5px solid #e5e7eb',
-                background: filter === val ? T + '14' : '#fff',
+                background: filter === val ? '#f1f1f6' : '#fff',
                 color: filter === val ? T : '#1f1f22', cursor: 'pointer',
               }}>{lbl}</button>
             ))}

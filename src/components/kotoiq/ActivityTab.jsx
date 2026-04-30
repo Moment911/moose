@@ -188,7 +188,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
               style={{
                 padding: '5px 12px', borderRadius: 16, border: '1px solid',
                 borderColor: filter === f.key ? T : '#ececef',
-                background: filter === f.key ? T + '12' : '#fff',
+                background: filter === f.key ? '#f1f1f6' : '#fff',
                 color: filter === f.key ? T : '#1f1f22',
                 fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
               }}>

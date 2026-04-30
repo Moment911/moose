@@ -134,7 +134,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
       <HowItWorks tool="sitemap_crawler" />
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div style={{ width: 60, height: 60, borderRadius: 12, background: T + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Layers size={30} color={T} />
         </div>
         <div style={{ flex: 1 }}>

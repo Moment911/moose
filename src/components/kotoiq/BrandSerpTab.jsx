@@ -265,7 +265,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
 
           {/* Negative Results */}
           {data.negative_results?.length > 0 && (
-            <div style={{ ...card, border: `1px solid ${R}30`, background: R + '05' }}>
+            <div style={{ ...card, border: `1px solid #ececef`, background: R + '05' }}>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <AlertTriangle size={16} color={R} /> Negative Results Detected ({data.negative_results.length})
               </div>

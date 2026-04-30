@@ -246,7 +246,7 @@ export default function EEATTab({ clientId, agencyId }) {
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Author Entity</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <User size={24} color={T} />
             </div>
             <div>

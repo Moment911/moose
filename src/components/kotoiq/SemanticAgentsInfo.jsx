@@ -87,7 +87,7 @@ export default function SemanticAgentsInfo() {
             width: 34,
             height: 34,
             borderRadius: 10,
-            background: `linear-gradient(135deg, ${T}20, ${R}20)`,
+            background: `linear-gradient(135deg, #ececef, #ececef)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

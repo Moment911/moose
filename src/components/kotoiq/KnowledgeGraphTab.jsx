@@ -94,7 +94,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
       <HowItWorks tool="knowledge_graph" />
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div style={{ width: 60, height: 60, borderRadius: 12, background: T + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <GitBranch size={30} color={T} />
         </div>
         <div style={{ flex: 1 }}>
@@ -115,7 +115,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
               style={{
                 padding: '10px 18px', borderRadius: 8,
                 border: `1.5px solid ${format === f.key ? T : '#ececef'}`,
-                background: format === f.key ? T + '14' : '#fff',
+                background: format === f.key ? '#f1f1f6' : '#fff',
                 color: format === f.key ? T : '#1f1f22',
                 fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
               }}>

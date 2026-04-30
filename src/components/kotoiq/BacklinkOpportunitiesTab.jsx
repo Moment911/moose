@@ -120,7 +120,7 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
                           {o.description && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{o.description}</div>}
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: '#1f2937' }}>DA {o.domain_authority || o.da || '—'}</span>
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: T + '14', color: T }}>R {o.relevance_score || '—'}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: T }}>R {o.relevance_score || '—'}</span>
                         <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: GRN + '14', color: GRN }}>E {o.ease_score || '—'}</span>
                         <span style={{
                           fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 12,

@@ -187,10 +187,10 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {data.recommendations.map((r, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 10, background: '#f9f9fb' }}>
-                    <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: R + '14', color: R, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                    <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#f1f1f6', color: R, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                     <div style={{ flex: 1, fontSize: 13, color: '#1f1f22', lineHeight: 1.5 }}>
                       {typeof r === 'string' ? r : r.recommendation || r.text || ''}
-                      {r.priority && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: r.priority === 'high' ? R + '14' : AMB + '14', color: r.priority === 'high' ? R : AMB }}>{r.priority}</span>}
+                      {r.priority && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: r.priority === 'high' ? '#f1f1f6' : '#f1f1f6', color: r.priority === 'high' ? R : AMB }}>{r.priority}</span>}
                     </div>
                   </div>
                 ))}

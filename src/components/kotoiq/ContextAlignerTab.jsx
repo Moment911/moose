@@ -81,7 +81,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
                 <XCircle size={16} color={R} /> Missing Contexts
               </div>
               {data.missing_contexts.map((m, i) => (
-                <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', background: R + '06', borderRadius: 8, marginBottom: 4 }}>
+                <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4 }}>
                   <XCircle size={14} color={R} style={{ marginTop: 2 }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{typeof m === 'string' ? m : m.context}</div>
@@ -96,7 +96,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
             <div style={{ ...card, borderLeft: `4px solid ${AMB}` }}>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: AMB, marginBottom: 12 }}>Extraneous Contexts (consider removing)</div>
               {data.extraneous_contexts.map((m, i) => (
-                <div key={i} style={{ padding: '8px 12px', background: AMB + '08', borderRadius: 8, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
+                <div key={i} style={{ padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
                   {typeof m === 'string' ? m : m.context}
                 </div>
               ))}

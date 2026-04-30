@@ -142,7 +142,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
                 <AlertTriangle size={16} color={AMB} /> Hidden Requirements
               </div>
               {a.hidden_requirements.map((h, i) => (
-                <div key={i} style={{ display: 'flex', gap: 10, padding: '8px 12px', background: AMB + '08', borderRadius: 8, marginBottom: 4 }}>
+                <div key={i} style={{ display: 'flex', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4 }}>
                   <AlertTriangle size={12} color={AMB} style={{ marginTop: 3 }} />
                   <div style={{ fontSize: 12, color: '#1f1f22' }}>{h}</div>
                 </div>

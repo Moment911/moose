@@ -94,7 +94,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
       {/* Scope banner */}
       <div style={{
         background: `linear-gradient(135deg, ${T}12, ${T}04)`,
-        border: `1px solid ${T}30`, borderRadius: 12, padding: '14px 18px', marginBottom: 18,
+        border: `1px solid #ececef`, borderRadius: 12, padding: '14px 18px', marginBottom: 18,
         display: 'flex', alignItems: 'center', gap: 12,
       }}>
         <Users size={20} color={T} />

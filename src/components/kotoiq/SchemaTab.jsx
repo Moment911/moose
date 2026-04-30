@@ -179,7 +179,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       </div>
 
       {/* Explanation card */}
-      <div style={{ ...card, background: T + '06', borderColor: T + '20' }}>
+      <div style={{ ...card, background: '#f9f9fb', borderColor: T + '20' }}>
         <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>
           Schema markup helps search engines understand your content. Pages with proper schema get rich snippets in search results — stars, prices, FAQs, and more.
         </div>
@@ -240,7 +240,7 @@ export default function SchemaTab({ clientId, agencyId }) {
         <div style={card}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Zap size={16} color={AMB} /> Missing Schema Opportunities
-            <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: AMB + '12', color: AMB }}>{eligible.length}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: AMB }}>{eligible.length}</span>
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -281,14 +281,14 @@ export default function SchemaTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setExpandedErrors(!expandedErrors)}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8 }}>
               <AlertTriangle size={16} color={R} /> Schema Errors
-              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: R + '12', color: R }}>{schemaErrors.length}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: R }}>{schemaErrors.length}</span>
             </div>
             {expandedErrors ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
           </div>
           {expandedErrors && (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {schemaErrors.map((err, i) => (
-                <div key={i} style={{ padding: '10px 12px', borderRadius: 8, background: R + '04', border: `1px solid ${R}15` }}>
+                <div key={i} style={{ padding: '10px 12px', borderRadius: 8, background: '#f9f9fb', border: `1px solid ${R}15` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <XCircle size={12} color={R} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{err.type}</span>
@@ -351,7 +351,7 @@ export default function SchemaTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setExpandedSemantic(!expandedSemantic)}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Layout size={16} color={AMB} /> Semantic HTML Issues
-              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: AMB + '12', color: AMB }}>{semanticIssues.length}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: AMB }}>{semanticIssues.length}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: audit.semantic_html_score >= 70 ? GRN : AMB }}>{audit.semantic_html_score}/100</div>

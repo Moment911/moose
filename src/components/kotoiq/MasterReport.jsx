@@ -32,7 +32,7 @@ function SectionCard({ icon: Icon, title, children }) {
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: T + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={18} color={T} />
         </div>
         <h3 style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: BLK, margin: 0 }}>{title}</h3>
@@ -44,7 +44,7 @@ function SectionCard({ icon: Icon, title, children }) {
 
 function EmptyState({ message, tab, onSwitchTab }) {
   return (
-    <div style={{ background: AMB + '10', border: `1px solid ${AMB}30`, borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div style={{ background: AMB + '10', border: `1px solid #ececef`, borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
       <AlertTriangle size={18} color={AMB} style={{ flexShrink: 0 }} />
       <span style={{ fontFamily: FB, fontSize: 13, color: '#92400e', flex: 1 }}>{message}</span>
       {tab && onSwitchTab && (
@@ -68,7 +68,7 @@ function MetricPill({ label, value }) {
 function AiInterpretation({ text }) {
   if (!text) return null
   return (
-    <div style={{ background: T + '08', border: `1px solid ${T}20`, borderRadius: 10, padding: '12px 16px', marginTop: 14 }}>
+    <div style={{ background: '#f9f9fb', border: `1px solid #ececef`, borderRadius: 10, padding: '12px 16px', marginTop: 14 }}>
       <div style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: T, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>AI Interpretation</div>
       <div style={{ fontFamily: FB, fontSize: 13, color: '#1f1f22', lineHeight: 1.55 }}>{text}</div>
     </div>
@@ -341,7 +341,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
             </div>
           </div>
           {(tech.critical_issues ?? tech.issues ?? []).length > 0 && (
-            <div style={{ background: R + '08', borderRadius: 8, padding: '10px 14px' }}>
+            <div style={{ background: '#f9f9fb', borderRadius: 8, padding: '10px 14px' }}>
               <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: R, marginBottom: 4 }}>Critical Issues</div>
               {(tech.critical_issues ?? tech.issues).slice(0, 5).map((issue, i) => <div key={i} style={{ fontFamily: FB, fontSize: 12, color: '#991b1b', padding: '2px 0' }}>{typeof issue === 'string' ? issue : issue.title || issue.description}</div>)}
             </div>

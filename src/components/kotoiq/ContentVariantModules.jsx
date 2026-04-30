@@ -108,7 +108,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
                 {hasResult && <CheckCircle size={16} color={GRN} />}
                 {hasResult && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: GRN + '12', color: GRN }}>{hasResult.variants?.length || 0} variants</span>}
                 <button onClick={e => { e.stopPropagation(); generateModule(mod) }} disabled={isRunning || generatingAll}
-                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 14px', borderRadius: 6, border: `1px solid ${T}40`, background: '#fff', fontSize: 11, fontWeight: 700, cursor: isRunning ? 'wait' : 'pointer', color: T }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 14px', borderRadius: 6, border: `1px solid #ececef`, background: '#fff', fontSize: 11, fontWeight: 700, cursor: isRunning ? 'wait' : 'pointer', color: T }}>
                   {isRunning ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
                   {isRunning ? 'Generating...' : hasResult ? 'Regenerate' : 'Generate'}
                 </button>
@@ -137,7 +137,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
         })}
       </div>
 
-      <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 10, background: AMB + '06', border: `1px solid ${AMB}20`, fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
+      <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 10, background: '#f9f9fb', border: `1px solid #ececef`, fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
         <strong>How rotation works:</strong> After publishing via the WP plugin, each section's variants rotate every 10 page views — updating <code>last_modified</code> and pinging Google/Bing for re-indexing.
       </div>
     </div>

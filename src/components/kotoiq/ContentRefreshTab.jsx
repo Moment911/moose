@@ -229,7 +229,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', gap: 6 }}>
               {FILTERS.map(f => (
                 <button key={f.key} onClick={() => setFilter(filter === f.key ? '' : f.key)}
-                  style={{ padding: '5px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: `1.5px solid ${filter === f.key ? R : '#ececef'}`, background: filter === f.key ? R + '12' : '#fff', color: filter === f.key ? R : '#6b6b70' }}>
+                  style={{ padding: '5px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: `1.5px solid ${filter === f.key ? R : '#ececef'}`, background: filter === f.key ? '#f1f1f6' : '#fff', color: filter === f.key ? R : '#6b6b70' }}>
                   {f.label} {f.key && <span style={{ opacity: 0.7 }}>({f.key === 'urgent' ? s.urgent : f.key === 'declining' ? s.declining : f.key === 'stale' ? (s.stale || 0) + (s.critical || 0) : f.key === 'thin' ? s.thin : ''})</span>}
                 </button>
               ))}
@@ -265,7 +265,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   const fColor = FRESHNESS_COLORS[item.freshness_status] || '#6b6b70'
                   const pColor = PRIORITY_COLORS[item.refresh_priority] || '#6b6b70'
                   return (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: selectedUrls.has(item.url) ? T + '06' : 'transparent' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: selectedUrls.has(item.url) ? '#f9f9fb' : 'transparent' }}>
                       <td style={{ padding: '8px 12px' }}>
                         <input type="checkbox" checked={selectedUrls.has(item.url)} onChange={() => toggleUrl(item.url)} />
                       </td>

@@ -361,7 +361,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                 {QUICK_PROMPTS.map((p, i) => (
                   <button key={i} onClick={() => send(p.text)}
                     style={{
-                      padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${T}40`, background: '#fff',
+                      padding: '8px 14px', borderRadius: 20, border: `1.5px solid #ececef`, background: '#fff',
                       color: T, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FB,
                       display: 'flex', alignItems: 'center', gap: 6,
                     }}>

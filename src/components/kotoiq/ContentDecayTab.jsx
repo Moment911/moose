@@ -89,7 +89,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="content_decay" />
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div style={{ width: 60, height: 60, borderRadius: 12, background: AMB + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <AlertCircle size={28} color={AMB} />
         </div>
         <div style={{ flex: 1 }}>
@@ -116,7 +116,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {priorityQueue.map((u, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9f9fb' }}>
-                <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: R + '14', color: R, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#f1f1f6', color: R, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                 <div style={{ flex: 1, fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.url}</div>
                 <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 10, background: riskColor(u.decay_risk) + '14', color: riskColor(u.decay_risk) }}>{u.decay_risk}</span>
               </div>

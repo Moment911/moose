@@ -541,8 +541,8 @@ export default function HowItWorks({ tool, compact = false }) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                   {info.data_sources.map((ds, i) => (
                     <span key={i} style={{
-                      fontSize: 11, fontWeight: 600, color: T, background: T + '14',
-                      padding: '3px 9px', borderRadius: 6, border: `1px solid ${T}30`,
+                      fontSize: 11, fontWeight: 600, color: T, background: '#f1f1f6',
+                      padding: '3px 9px', borderRadius: 6, border: `1px solid #ececef`,
                     }}>
                       {ds}
                     </span>

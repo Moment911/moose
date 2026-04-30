@@ -139,9 +139,9 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
       <HowItWorks tool="autopilot" />
 
       {/* Hero */}
-      <div style={{ ...card, background: `linear-gradient(135deg, ${R}08 0%, ${T}08 100%)`, borderColor: T + '40' }}>
+      <div style={{ ...card, background: `linear-gradient(135deg, #f9f9fb 0%, #f9f9fb 100%)`, borderColor: T + '40' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-          <div style={{ width: 54, height: 54, borderRadius: 14, background: R + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 54, height: 54, borderRadius: 14, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={28} color={R} />
           </div>
           <div>
@@ -190,7 +190,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             {mergedSteps.map((s, i) => (
               <div key={s.key} style={{
                 display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
-                borderRadius: 8, background: s.status === 'running' ? T + '08' : '#f9f9fb',
+                borderRadius: 8, background: s.status === 'running' ? '#f9f9fb' : '#f9f9fb',
                 border: `1px solid ${s.status === 'completed' ? GRN + '30' : s.status === 'failed' ? R + '30' : '#ececef'}`,
               }}>
                 <span style={{ flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: '#fff', border: '1px solid #e5e7eb', color: BLK, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>

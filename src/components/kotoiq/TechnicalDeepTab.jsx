@@ -317,7 +317,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           <Zap size={15} color={AMB} /> Core Web Vitals
           <span style={{
             marginLeft: 8, padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
-            background: d.cwv_grade === 'Good' ? GRN + '14' : d.cwv_grade === 'Poor' ? R + '14' : AMB + '14',
+            background: d.cwv_grade === 'Good' ? GRN + '14' : d.cwv_grade === 'Poor' ? '#f1f1f6' : '#f1f1f6',
             color: d.cwv_grade === 'Good' ? GRN : d.cwv_grade === 'Poor' ? R : AMB,
           }}>
             {d.cwv_grade || 'No Data'}

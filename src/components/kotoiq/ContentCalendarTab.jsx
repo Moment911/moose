@@ -248,7 +248,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
 
       {/* Recommendation */}
       {momentum?.recommended_pace && (
-        <div style={{ ...card, marginBottom: 20, borderColor: T + '50', background: T + '08' }}>
+        <div style={{ ...card, marginBottom: 20, borderColor: T + '50', background: '#f9f9fb' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <Zap size={16} color={T} style={{ marginTop: 2, flexShrink: 0 }} />
             <div>
@@ -345,7 +345,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                         {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
                     ) : (
-                      <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 8, background: T + '12', color: T }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 8, background: '#f1f1f6', color: T }}>
                         {TYPE_LABELS[item.content_type] || item.content_type}
                       </span>
                     )}

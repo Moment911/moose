@@ -110,7 +110,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {data.plagiarized_chunks.map((c, i) => (
-                  <div key={i} style={{ border: `1px solid ${R}30`, borderRadius: 10, padding: 14, background: R + '06' }}>
+                  <div key={i} style={{ border: `1px solid #ececef`, borderRadius: 10, padding: 14, background: '#f9f9fb' }}>
                     <div style={{ fontSize: 12, color: '#1f1f22', fontStyle: 'italic', marginBottom: 8, lineHeight: 1.5 }}>
                       "{c.chunk || c.text}"
                     </div>
@@ -142,7 +142,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {data.ai_patterns.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', background: AMB + '08', borderRadius: 8 }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', background: '#f9f9fb', borderRadius: 8 }}>
                     <AlertTriangle size={14} color={AMB} style={{ marginTop: 2 }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{p.pattern || p.name || String(p)}</div>

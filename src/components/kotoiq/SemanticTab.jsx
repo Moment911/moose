@@ -193,7 +193,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               </div>
             </div>
             {a.overall_score > 0 && a.overall_score < 70 && (
-              <div style={{ marginTop: 16, padding: '12px 16px', background: AMB + '12', borderRadius: 8, border: `1px solid ${AMB}30` }}>
+              <div style={{ marginTop: 16, padding: '12px 16px', background: '#f1f1f6', borderRadius: 8, border: `1px solid #ececef` }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 4 }}>Recommended Next Steps</div>
                 <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#1f1f22', lineHeight: 1.8 }}>
                   {(a.thin_content_pages || []).length > 0 && <li>Expand or consolidate your {(a.thin_content_pages || []).length} thin pages (under 300 words). Add depth or merge them into related pages.</li>}

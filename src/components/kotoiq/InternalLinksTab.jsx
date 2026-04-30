@@ -219,7 +219,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
   if (!a) {
     return (
       <div style={{ maxWidth: 520, margin: '60px auto', textAlign: 'center' }}>
-        <div style={{ width: 64, height: 64, borderRadius: 16, background: T + '14', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <Link2 size={28} color={T} />
         </div>
         <h2 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Internal Link Intelligence</h2>
@@ -448,7 +448,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                       <button onClick={() => getSuggestions(node.url)} style={{
-                        border: 'none', background: T + '14', color: T, fontWeight: 700, fontSize: 12,
+                        border: 'none', background: '#f1f1f6', color: T, fontWeight: 700, fontSize: 12,
                         padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
                       }}>
                         Suggestions

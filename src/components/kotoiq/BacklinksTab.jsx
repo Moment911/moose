@@ -222,7 +222,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                 {data.top_anchors.slice(0, 15).map((a, i) => (
                   <span key={i} style={{
                     fontSize: 11, fontWeight: 600, padding: '4px 12px', borderRadius: 16,
-                    background: i < 3 ? T + '12' : '#f1f1f6', color: i < 3 ? T : '#6b6b70',
+                    background: i < 3 ? '#f1f1f6' : '#f1f1f6', color: i < 3 ? T : '#6b6b70',
                     border: `1px solid ${i < 3 ? T + '30' : '#ececef'}`,
                   }}>
                     {a.anchor || '(empty)'} <span style={{ opacity: 0.6 }}>({a.count})</span>
@@ -234,7 +234,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
 
           {/* Toxic Links */}
           {data.toxic_links?.length > 0 && (
-            <div style={{ ...card, border: `1px solid ${R}30` }}>
+            <div style={{ ...card, border: `1px solid #ececef` }}>
               <button onClick={() => setShowToxic(!showToxic)} style={{
                 fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8,
                 background: 'none', border: 'none', cursor: 'pointer', width: '100%', padding: 0, marginBottom: showToxic ? 14 : 0,
@@ -344,7 +344,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                     </thead>
                     <tbody>
                       {/* Client row first */}
-                      <tr style={{ borderBottom: '1px solid #e5e7eb', background: T + '08' }}>
+                      <tr style={{ borderBottom: '1px solid #e5e7eb', background: '#f9f9fb' }}>
                         <td style={{ padding: '10px 8px', fontWeight: 700, color: T }}>You</td>
                         <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700, color: BLK }}>{data.domain_authority}</td>
                         <td style={{ padding: '10px 8px', textAlign: 'center', color: BLK }}>{fmtN(data.total_referring_domains)}</td>

@@ -104,7 +104,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
       <HowItWorks tool="jobs" />
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div style={{ width: 60, height: 60, borderRadius: 12, background: T + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 60, height: 60, borderRadius: 12, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Clock size={30} color={T} />
         </div>
         <div style={{ flex: 1 }}>
@@ -127,7 +127,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
           <button key={f.key} onClick={() => setStatusFilter(f.key)} style={{
             padding: '8px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
             border: `1.5px solid ${statusFilter === f.key ? T : '#ececef'}`,
-            background: statusFilter === f.key ? T + '14' : '#fff',
+            background: statusFilter === f.key ? '#f1f1f6' : '#fff',
             color: statusFilter === f.key ? T : '#6b6b70',
           }}>
             {f.label}
@@ -166,7 +166,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{
-                          fontSize: 11, fontWeight: 800, color: T, background: T + '14',
+                          fontSize: 11, fontWeight: 800, color: T, background: '#f1f1f6',
                           padding: '3px 9px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '.04em',
                         }}>{j.engine || 'engine'}</span>
                         <StatusBadge status={j.status} />

@@ -17,9 +17,9 @@ const STYLE_TAG = `
 @keyframes mc-fade-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 @keyframes mc-count { from{opacity:0;transform:scale(.5)} to{opacity:1;transform:scale(1)} }
 @keyframes mc-glow { 0%,100%{box-shadow:0 0 4px ${R}40} 50%{box-shadow:0 0 20px ${R}60} }
-@keyframes mc-ring-flash-1 { 0%{filter:drop-shadow(0 0 4px ${T}30)} 25%{filter:drop-shadow(0 0 18px ${T}90)} 50%{filter:drop-shadow(0 0 4px ${T}30)} 100%{filter:drop-shadow(0 0 4px ${T}30)} }
+@keyframes mc-ring-flash-1 { 0%{filter:drop-shadow(0 0 4px #ececef)} 25%{filter:drop-shadow(0 0 18px ${T}90)} 50%{filter:drop-shadow(0 0 4px #ececef)} 100%{filter:drop-shadow(0 0 4px #ececef)} }
 @keyframes mc-ring-flash-2 { 0%{filter:drop-shadow(0 0 4px #8b5cf630)} 35%{filter:drop-shadow(0 0 18px #8b5cf690)} 60%{filter:drop-shadow(0 0 4px #8b5cf630)} 100%{filter:drop-shadow(0 0 4px #8b5cf630)} }
-@keyframes mc-ring-flash-3 { 0%{filter:drop-shadow(0 0 4px ${AMB}30)} 45%{filter:drop-shadow(0 0 18px ${AMB}90)} 70%{filter:drop-shadow(0 0 4px ${AMB}30)} 100%{filter:drop-shadow(0 0 4px ${AMB}30)} }
+@keyframes mc-ring-flash-3 { 0%{filter:drop-shadow(0 0 4px #ececef)} 45%{filter:drop-shadow(0 0 18px ${AMB}90)} 70%{filter:drop-shadow(0 0 4px #ececef)} 100%{filter:drop-shadow(0 0 4px #ececef)} }
 @keyframes mc-ring-flash-4 { 0%{filter:drop-shadow(0 0 4px ${GRN}30)} 55%{filter:drop-shadow(0 0 18px ${GRN}90)} 80%{filter:drop-shadow(0 0 4px ${GRN}30)} 100%{filter:drop-shadow(0 0 4px ${GRN}30)} }
 @keyframes mc-ring-rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 @keyframes mc-color-cycle-1 { 0%,100%{stroke:${T}} 33%{stroke:#6366f1} 66%{stroke:#06b6d4} }

@@ -164,7 +164,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
             <div style={{ ...card, borderLeft: `4px solid ${R}` }}>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, marginBottom: 12 }}>Critical Fixes</div>
               {data.critical_fixes.map((f, i) => (
-                <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 8, background: R + '06', marginBottom: 4 }}>
+                <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 8, background: '#f9f9fb', marginBottom: 4 }}>
                   <XCircle size={14} color={R} style={{ marginTop: 2 }} />
                   <div style={{ fontSize: 12, color: '#1f1f22' }}>{typeof f === 'string' ? f : f.fix || f.text}</div>
                 </div>

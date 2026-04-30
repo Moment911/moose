@@ -36,8 +36,8 @@ const POSITION_STYLES = {
 function cellColor(clientVal, competitorBest, isLowerBetter = false) {
   if (clientVal == null || competitorBest == null) return { bg: 'transparent', color: '#1f1f22' }
   const diff = isLowerBetter ? competitorBest - clientVal : clientVal - competitorBest
-  if (Math.abs(diff) < 0.01) return { bg: AMB + '14', color: AMB }
-  return diff > 0 ? { bg: GRN + '14', color: GRN } : { bg: R + '14', color: R }
+  if (Math.abs(diff) < 0.01) return { bg: '#f1f1f6', color: AMB }
+  return diff > 0 ? { bg: GRN + '14', color: GRN } : { bg: '#f1f1f6', color: R }
 }
 
 function fmtVal(v) {

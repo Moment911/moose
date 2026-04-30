@@ -129,7 +129,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
             <div style={{ ...card, borderLeft: `4px solid ${R}` }}>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, marginBottom: 12 }}>Dead Zones</div>
               {data.dead_zones.slice(0, 10).map((z, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: R + '06', borderRadius: 8, marginBottom: 4 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4 }}>
                   <MapPin size={14} color={R} />
                   <div style={{ flex: 1, fontSize: 12, color: '#1f1f22' }}>
                     {z.label || `Cell (${z.row}, ${z.col})`} {z.position ? `— rank ${z.position}` : '— not ranking'}

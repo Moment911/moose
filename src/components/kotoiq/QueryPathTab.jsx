@@ -132,7 +132,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
       <HowItWorks tool="query_paths" />
 
       {/* Intro Explanation */}
-      <div style={{ ...card, background: T + '06', border: `1px solid ${T}20` }}>
+      <div style={{ ...card, background: '#f9f9fb', border: `1px solid #ececef` }}>
         <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
           <GitBranch size={15} color={T} /> How to Read Query Paths
         </div>
@@ -190,7 +190,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
               </div>
 
               {/* Seed Query */}
-              <div style={{ padding: '6px 12px', background: T + '08', borderRadius: 8, border: `1px solid ${T}20`, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ padding: '6px 12px', background: '#f9f9fb', borderRadius: 8, border: `1px solid #ececef`, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Target size={12} color={T} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: T }}>Seed:</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{cluster.seed_query}</span>
@@ -269,7 +269,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                       url.searchParams.set('tab', 'briefs')
                       navigate(url.pathname + url.search)
                     }} style={{
-                      marginTop: 6, padding: '6px 14px', borderRadius: 8, border: `1px solid ${T}40`, background: T + '08',
+                      marginTop: 6, padding: '6px 14px', borderRadius: 8, border: `1px solid #ececef`, background: '#f9f9fb',
                       color: T, fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                     }}>
                       <FileText size={11} /> Create Content for {gapQueries.length} Gaps
@@ -314,7 +314,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
             {(data.all_gaps || []).slice(0, 40).map((q, i) => (
               <span key={i} style={{
                 display: 'inline-block', padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                background: R + '0a', color: R, border: `1px solid ${R}20`, margin: '2px 3px',
+                background: R + '0a', color: R, border: `1px solid #ececef`, margin: '2px 3px',
               }}>
                 {q}
               </span>
@@ -326,7 +326,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
             )}
           </div>
           {/* What to do about gaps */}
-          <div style={{ marginTop: 14, padding: '10px 14px', background: R + '06', borderRadius: 8, border: `1px solid ${R}15` }}>
+          <div style={{ marginTop: 14, padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: `1px solid ${R}15` }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
               <Zap size={10} color={R} /> What to do
             </div>
