@@ -226,7 +226,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         {/* LEFT — Upload */}
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Upload size={16} color={T} /> Upload Image
           </div>
           <div
@@ -252,14 +252,14 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
             <input ref={fileInputRef} type="file" accept="image/*" onChange={e => handleFile(e.target.files?.[0])} style={{ display: 'none' }} />
           </div>
           <input value={uploadKeywords} onChange={e => setUploadKeywords(e.target.value)} placeholder="Keywords (comma-separated)" style={{
-            width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: FH, marginBottom: 8, boxSizing: 'border-box',
+            width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 8, boxSizing: 'border-box',
           }} />
           <input value={uploadCaption} onChange={e => setUploadCaption(e.target.value)} placeholder="Caption" style={{
-            width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: FH, marginBottom: 10, boxSizing: 'border-box',
+            width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 10, boxSizing: 'border-box',
           }} />
           <button onClick={doGeoTag} disabled={uploading || !uploadDataUrl} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 8,
-            border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+            border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: uploading || !uploadDataUrl ? 'not-allowed' : 'pointer', opacity: (uploading || !uploadDataUrl) ? 0.6 : 1,
           }}>
             {uploading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MapPin size={14} />}
@@ -269,23 +269,23 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
 
         {/* RIGHT — Generate */}
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Sparkles size={16} color={R} /> Generate with AI
           </div>
           <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe the image (e.g. friendly dentist office interior with natural light)" rows={4} style={{
-            width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: FH,
+            width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             resize: 'vertical', marginBottom: 8, boxSizing: 'border-box',
           }} />
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <select value={style} onChange={e => setStyle(e.target.value)} style={{
-              flex: 1, padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: FH,
+              flex: 1, padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             }}>
               <option value="photo">Photo</option>
               <option value="illustration">Illustration</option>
               <option value="flat">Flat</option>
             </select>
             <select value={gbpCategory} onChange={e => setGbpCategory(e.target.value)} style={{
-              flex: 1, padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: FH,
+              flex: 1, padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             }}>
               <option value="ADDITIONAL">Additional</option>
               <option value="EXTERIOR">Exterior</option>
@@ -310,7 +310,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
           </div>
           <button onClick={doGenerate} disabled={generating} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 8,
-            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: generating ? 'wait' : 'pointer', opacity: generating ? 0.6 : 1,
           }}>
             {generating ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
@@ -322,7 +322,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
       {/* Preview */}
       {preview && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Preview</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Preview</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
               <img src={preview.dataUrl} alt="Generated" style={{ width: '100%', borderRadius: 10, border: '1px solid #e5e7eb' }} />
@@ -366,7 +366,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
       {/* Recent uploads */}
       {images.length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Recent Uploads</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Recent Uploads</div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>

@@ -143,7 +143,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
 
   const s = summary || {}
   const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
-  const titleStyle = { fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }
+  const titleStyle = { fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }
 
   // ── Freshness distribution bar widths ──
   const total = s.total || 0
@@ -158,11 +158,11 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
       {/* Summary header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>Content Refresh Engine</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK }}>Content Refresh Engine</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Monitor content freshness, identify declining pages, plan updates</div>
         </div>
         <button onClick={buildInventory} disabled={building}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: building ? 'wait' : 'pointer', opacity: building ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: building ? 'wait' : 'pointer', opacity: building ? 0.6 : 1 }}>
           {building ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={16} />}
           {building ? 'Scanning...' : 'Build Inventory'}
         </button>
@@ -171,14 +171,14 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
       {loading && (
         <div style={{ textAlign: 'center', padding: 60, color: '#1f2937' }}>
           <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
-          <div style={{ fontFamily: FH, fontWeight: 600 }}>Loading inventory...</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600 }}>Loading inventory...</div>
         </div>
       )}
 
       {!loading && !inventory.length && (
         <div style={{ ...card, textAlign: 'center', padding: 60 }}>
           <FileText size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Content Inventory Yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Content Inventory Yet</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 16 }}>Click "Build Inventory" to scan your sitemap and analyze content freshness.</div>
         </div>
       )}
@@ -199,9 +199,9 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   <div style={{ width: 28, height: 28, borderRadius: 7, background: color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={14} color={color} />
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</span>
                 </div>
-                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{value}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: BLK }}>{value}</div>
               </div>
             ))}
           </div>
@@ -247,14 +247,14 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
 
           {/* Priority table */}
           <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: FB }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
               <thead>
                 <tr style={{ background: '#f9f9fb', borderBottom: '1px solid #e5e7eb' }}>
-                  <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
                     <input type="checkbox" onChange={e => { if (e.target.checked) setSelectedUrls(new Set(filtered.map(r => r.url))); else setSelectedUrls(new Set()) }} checked={selectedUrls.size === filtered.length && filtered.length > 0} />
                   </th>
                   {['URL', 'Title', 'Words', 'Pos', 'Trajectory', 'Days Old', 'Freshness', 'Priority'].map(h => (
-                    <th key={h} style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 8px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -275,14 +275,14 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                         </a>
                       </td>
                       <td style={{ padding: '8px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11 }}>{item.title || '(no title)'}</td>
-                      <td style={{ padding: '8px', fontFamily: FH, fontWeight: 700, color: item.thin_content ? R : BLK }}>{item.word_count || 0}</td>
-                      <td style={{ padding: '8px', fontFamily: FH, fontWeight: 700 }}>{item.sc_position ? Math.round(item.sc_position) : '--'}</td>
+                      <td style={{ padding: '8px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: item.thin_content ? R : BLK }}>{item.word_count || 0}</td>
+                      <td style={{ padding: '8px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }}>{item.sc_position ? Math.round(item.sc_position) : '--'}</td>
                       <td style={{ padding: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: traj.color, fontWeight: 700, fontSize: 11 }}>
                           <TrajIcon size={13} /> {traj.label}
                         </div>
                       </td>
-                      <td style={{ padding: '8px', fontFamily: FH, fontWeight: 700, color: '#1f1f22' }}>{item.days_since_update != null ? `${item.days_since_update}d` : '--'}</td>
+                      <td style={{ padding: '8px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: '#1f1f22' }}>{item.days_since_update != null ? `${item.days_since_update}d` : '--'}</td>
                       <td style={{ padding: '8px' }}>
                         <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: fColor + '15', color: fColor, textTransform: 'uppercase' }}>
                           {FRESHNESS_LABELS[item.freshness_status] || item.freshness_status}
@@ -308,7 +308,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={titleStyle}><Zap size={16} color={R} /> Refresh Plan</div>
               <button onClick={generatePlan} disabled={planLoading}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: planLoading ? 'wait' : 'pointer', opacity: planLoading ? 0.6 : 1 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: planLoading ? 'wait' : 'pointer', opacity: planLoading ? 0.6 : 1 }}>
                 {planLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
                 {planLoading ? 'Generating...' : `Generate Plan${selectedUrls.size > 0 ? ` (${selectedUrls.size} selected)` : ''}`}
               </button>
@@ -325,7 +325,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                 <div onClick={() => setExpandedPlan(expandedPlan === i ? null : i)}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer', background: '#f9f9fb' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{plan.title || truncateUrl(plan.url)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{plan.title || truncateUrl(plan.url)}</div>
                     <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{truncateUrl(plan.url, 60)}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

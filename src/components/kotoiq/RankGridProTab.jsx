@@ -61,7 +61,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="rank_grid" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Grid size={18} color={T} /> Rank Grid Pro
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
@@ -82,7 +82,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
         </div>
         <button onClick={run} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MapPin size={14} />}
@@ -99,7 +99,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
           </div>
 
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Heatmap</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Heatmap</div>
             {grid.length > 0 && (
               <div style={{
                 display: 'grid', gridTemplateColumns: `repeat(${gridSize}, 1fr)`, gap: 4,
@@ -109,7 +109,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
                   <div key={i} style={{
                     aspectRatio: '1/1', borderRadius: 6, background: rankColor(cell?.position || 0),
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', fontSize: 12, fontWeight: 900, fontFamily: FH,
+                    color: '#fff', fontSize: 12, fontWeight: 900, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                   }}>
                     {cell?.position || '—'}
                   </div>
@@ -127,7 +127,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
 
           {data.dead_zones?.length > 0 && (
             <div style={{ ...card, borderLeft: `4px solid ${R}` }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, marginBottom: 12 }}>Dead Zones</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 12 }}>Dead Zones</div>
               {data.dead_zones.slice(0, 10).map((z, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4 }}>
                   <MapPin size={14} color={R} />
@@ -141,7 +141,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
 
           {data.top_competitors?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={16} color={T} /> Top Competitors in Grid
               </div>
               <div style={{ overflowX: 'auto' }}>
@@ -176,13 +176,13 @@ export default function RankGridProTab({ clientId, agencyId }) {
   )
 }
 
-const inp = { padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: FH, boxSizing: 'border-box' }
+const inp = { padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box' }
 
 function Stat({ label, value, color }) {
   return (
     <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color }}>{value}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>
   )
 }

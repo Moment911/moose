@@ -46,9 +46,9 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="ads-anomalies" />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Anomaly Detection</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Anomaly Detection</div>
         <button onClick={runDetection} disabled={analyzing}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: analyzing ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: analyzing ? 0.6 : 1 }}>
           {analyzing ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
           {analyzing ? 'Detecting...' : 'Run Detection'}
         </button>
@@ -58,7 +58,7 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
         <>
           {alerts.length === 0 && <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
             <CheckCircle size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-            <div style={{ fontFamily: FH, fontWeight: 700 }}>No anomalies detected</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }}>No anomalies detected</div>
             <div style={{ fontSize: 13 }}>All metrics within normal ranges</div>
           </div>}
 
@@ -72,7 +72,7 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
                     <AlertCircle size={18} color={sev.color} />
                     <div>
                       <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: sev.bg, color: sev.color, fontWeight: 700, marginRight: 8 }}>{a.severity?.toUpperCase()}</span>
-                      <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14 }}>{a.metric} anomaly</span>
+                      <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>{a.metric} anomaly</span>
                       <span style={{ fontSize: 12, color: '#6b6b70', marginLeft: 8 }}>{a.delta_pct > 0 ? '+' : ''}{(a.delta_pct || 0).toFixed(1)}% from baseline</span>
                     </div>
                   </div>
@@ -83,7 +83,7 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
                 </div>
                 {isExpanded && (
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12, fontFamily: FB }}>{a.explanation_md}</div>
+                    <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{a.explanation_md}</div>
                     {a.contributors?.length > 0 && (
                       <div style={{ marginBottom: 12 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', marginBottom: 6 }}>TOP CONTRIBUTORS</div>

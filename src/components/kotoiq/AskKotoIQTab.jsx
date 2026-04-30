@@ -84,7 +84,7 @@ function renderMarkdown(text) {
   return blocks.map((b, i) => {
     if (b.type === 'h') {
       const sizes = { 1: 20, 2: 17, 3: 15 }
-      return <div key={i} style={{ fontSize: sizes[b.level], fontWeight: 800, color: BLK, margin: '14px 0 6px', fontFamily: FH }}>{renderInline(b.text)}</div>
+      return <div key={i} style={{ fontSize: sizes[b.level], fontWeight: 800, color: BLK, margin: '14px 0 6px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{renderInline(b.text)}</div>
     }
     if (b.type === 'ul') {
       return (
@@ -281,7 +281,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               padding: '10px 14px', borderRadius: 10, border: 'none', background: T, color: '#fff',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+              fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             }}>
             <Plus size={14} /> New conversation
           </button>
@@ -331,7 +331,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
             <Brain size={18} color={T} />
           </div>
           <div>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Ask KotoIQ</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Ask KotoIQ</div>
             <div style={{ fontSize: 11, color: '#6b6b70' }}>Conversational intelligence across all client data</div>
           </div>
         </div>
@@ -349,7 +349,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               <div style={{ width: 64, height: 64, borderRadius: 20, background: T + '15', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Brain size={32} color={T} />
               </div>
-              <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 6 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 6 }}>
                 What do you want to know?
               </div>
               <div style={{ fontSize: 14, color: '#6b6b70', marginBottom: 24, lineHeight: 1.6 }}>
@@ -362,7 +362,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                   <button key={i} onClick={() => send(p.text)}
                     style={{
                       padding: '8px 14px', borderRadius: 20, border: `1.5px solid #ececef`, background: '#fff',
-                      color: T, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FB,
+                      color: T, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                       display: 'flex', alignItems: 'center', gap: 6,
                     }}>
                     <Sparkles size={11} /> {p.label}
@@ -408,7 +408,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                   style={{
                     padding: '5px 11px', borderRadius: 16, border: '1px solid #e5e7eb', background: '#fff',
                     color: '#4b5563', fontSize: 11, fontWeight: 600, cursor: sending ? 'wait' : 'pointer',
-                    opacity: sending ? 0.5 : 1, fontFamily: FB,
+                    opacity: sending ? 0.5 : 1, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                   }}>
                   {p.label}
                 </button>
@@ -425,7 +425,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               placeholder="Ask anything about this client's SEO, rankings, or next steps... (Shift+Enter for newline)"
               rows={1}
               style={{
-                flex: 1, border: 'none', outline: 'none', resize: 'none', fontFamily: FB,
+                flex: 1, border: 'none', outline: 'none', resize: 'none', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 fontSize: 14, color: BLK, background: 'transparent', minHeight: 24, maxHeight: 160, padding: '4px 0',
               }}
             />
@@ -499,7 +499,7 @@ function MessageBubble({ message, onActionClick }) {
                 style={{
                   padding: '6px 12px', borderRadius: 8, border: `1.5px solid ${T}`, background: '#fff',
                   color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex',
-                  alignItems: 'center', gap: 5, fontFamily: FB,
+                  alignItems: 'center', gap: 5, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}>
                 {a.label} <ChevronRight size={11} />
               </button>

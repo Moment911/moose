@@ -99,15 +99,15 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
           <MapPin size={30} color={R} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Hyperlocal Content Generator</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Hyperlocal Content Generator</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Turns Rank Grid dead zones into local landing pages and content briefs.</div>
         </div>
       </div>
 
       {/* Description */}
       <div style={{ ...card, background: '#f9f9fb', borderColor: T + '30' }}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 8 }}>How it works</div>
-        <ol style={{ margin: 0, paddingLeft: 22, fontSize: 13, lineHeight: 1.7, color: '#1f1f22', fontFamily: FB }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 8 }}>How it works</div>
+        <ol style={{ margin: 0, paddingLeft: 22, fontSize: 13, lineHeight: 1.7, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
           <li>Reads dead zones (points where you rank &gt; 20) from the latest Rank Grid Pro scan.</li>
           <li>Reverse-geocodes each dead point to find the neighborhood it belongs to.</li>
           <li>Clusters nearby dead points into neighborhood groups.</li>
@@ -122,7 +122,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <AlertCircle size={24} color={AMB} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>No Grid Scans Found</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>No Grid Scans Found</div>
               <div style={{ fontSize: 13, color: '#1f1f22' }}>Run a Rank Grid scan first to identify dead zones, or enter locations manually.</div>
             </div>
             <button
@@ -138,7 +138,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
               }}
               style={{
                 padding: '10px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff',
-                fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
               <Grid size={14} /> Run Grid Scan
@@ -148,14 +148,14 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
       ) : (
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-            <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Source Grid Scan</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Source Grid Scan</div>
             <select
               value={selectedScanId}
               onChange={e => setSelectedScanId(e.target.value)}
               disabled={generating || loadingScans}
               style={{
                 flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #d1d5db',
-                fontSize: 13, fontFamily: FB, color: BLK, background: '#fff', outline: 'none',
+                fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, background: '#fff', outline: 'none',
               }}>
               <option value="">Latest scan</option>
               {gridScans.map((s) => (
@@ -170,7 +170,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
               disabled={generating}
               style={{
                 padding: '10px 20px', borderRadius: 8, border: 'none', background: R, color: '#fff',
-                fontSize: 13, fontWeight: 700, fontFamily: FH,
+                fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 cursor: generating ? 'wait' : 'pointer', opacity: generating ? 0.6 : 1,
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
@@ -183,7 +183,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
           {genError && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0 0' }}>
               <AlertCircle size={14} color="#dc2626" />
-              <div style={{ fontSize: 13, color: '#dc2626', fontFamily: FB }}>{genError}</div>
+              <div style={{ fontSize: 13, color: '#dc2626', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{genError}</div>
             </div>
           )}
         </div>
@@ -195,15 +195,15 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
           {/* Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 14 }}>
             <div style={{ ...card, margin: 0, textAlign: 'center' }}>
-              <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: R, letterSpacing: '-.02em' }}>{result.dead_zones_analyzed || 0}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color: R, letterSpacing: '-.02em' }}>{result.dead_zones_analyzed || 0}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>Dead Zones Found</div>
             </div>
             <div style={{ ...card, margin: 0, textAlign: 'center' }}>
-              <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: T, letterSpacing: '-.02em' }}>{result.neighborhoods_identified?.length || 0}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color: T, letterSpacing: '-.02em' }}>{result.neighborhoods_identified?.length || 0}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>Neighborhoods</div>
             </div>
             <div style={{ ...card, margin: 0, textAlign: 'center' }}>
-              <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: GRN, letterSpacing: '-.02em' }}>{result.briefs_created?.length || 0}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color: GRN, letterSpacing: '-.02em' }}>{result.briefs_created?.length || 0}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>Briefs Created</div>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
                 <ArrowRight size={18} color={GRN} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em' }}>Estimated Coverage Improvement</div>
-                  <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: GRN, marginTop: 2 }}>{result.estimated_coverage_improvement}</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: GRN, marginTop: 2 }}>{result.estimated_coverage_improvement}</div>
                 </div>
               </div>
             </div>
@@ -224,11 +224,11 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
           {/* Neighborhoods */}
           {result.neighborhoods_identified?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Neighborhoods Identified</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Neighborhoods Identified</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
                 {result.neighborhoods_identified.map((n, i) => (
                   <div key={i} style={{ padding: '12px 14px', background: '#f9f9fb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>{n.name}</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>{n.name}</div>
                     <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 4 }}>
                       {n.weak_points} weak point{n.weak_points === 1 ? '' : 's'}
                       {n.avg_rank != null && ` · avg rank ${Math.round(n.avg_rank)}`}
@@ -242,7 +242,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
           {/* Briefs */}
           {result.briefs_created?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Briefs Created</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Briefs Created</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {result.briefs_created.map((b, i) => (
                   <div key={b.brief_id || i} style={{
@@ -251,7 +251,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
                   }}>
                     <FileText size={16} color={T} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>{b.neighborhood}</div>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>{b.neighborhood}</div>
                       <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>{b.target_keyword}</div>
                     </div>
                     <button onClick={() => openBrief(b)} style={{

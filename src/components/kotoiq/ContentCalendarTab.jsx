@@ -26,7 +26,7 @@ function VDMBadge({ score, label }) {
   const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? R : '#d1d5db'
   return (
     <div style={{ textAlign: 'center', padding: '8px 16px' }}>
-      <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
       <div style={{ fontSize: 11, color: '#1f2937', marginTop: 3, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>{label}</div>
     </div>
   )
@@ -130,13 +130,13 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Content Calendar & Publishing Momentum</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Content Calendar & Publishing Momentum</div>
             <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Plan, schedule, and track your content publishing velocity.</div>
           </div>
         </div>
         <div style={{ ...card, textAlign: 'center', padding: '48px 24px' }}>
           <Calendar size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 8 }}>No content calendar yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 8 }}>No content calendar yet</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
             Build a calendar from your topical map gaps, content inventory, and keyword data. The AI will prioritize what to publish first.
           </div>
@@ -187,7 +187,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Content Calendar & Publishing Momentum</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Content Calendar & Publishing Momentum</div>
           <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>
             {stats ? `${stats.total} items | ${stats.published} published | ${stats.writing} in progress` : ''}
           </div>
@@ -226,15 +226,15 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>This Month</div>
-                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_this_month}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_this_month}</div>
               </div>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Last Month</div>
-                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_last_month}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_last_month}</div>
               </div>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>3mo Avg</div>
-                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_3mo_avg}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_3mo_avg}</div>
               </div>
             </div>
             {momentum.pages_due_refresh > 0 && (
@@ -252,7 +252,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <Zap size={16} color={T} style={{ marginTop: 2, flexShrink: 0 }} />
             <div>
-              <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>AI Recommendation</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>AI Recommendation</div>
               <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{momentum.recommended_pace}</div>
               {momentum.priority_topics?.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
@@ -268,7 +268,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
 
       {/* Publishing Pace Chart */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12 }}>Publishing Pace (Last 6 Months)</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12 }}>Publishing Pace (Last 6 Months)</div>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 100 }}>
           {paceData.map((p, i) => (
             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -309,13 +309,13 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #e5e7eb', background: GRY }}>
-              <th style={{ padding: '10px 16px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Title</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Keyword</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Type</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Status</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Date</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Assigned</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase', width: 60 }}>Edit</th>
+              <th style={{ padding: '10px 16px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Title</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Keyword</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Type</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Status</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Date</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Assigned</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase', width: 60 }}>Edit</th>
             </tr>
           </thead>
           <tbody>

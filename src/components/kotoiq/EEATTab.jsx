@@ -24,11 +24,11 @@ function GradeBadge({ grade, score, size = 'large' }) {
         width: isLarge ? 80 : 48, height: isLarge ? 80 : 48, borderRadius: '50%',
         background: color + '14', border: `3px solid ${color}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: FH, fontSize: isLarge ? 36 : 20, fontWeight: 900, color,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: isLarge ? 36 : 20, fontWeight: 900, color,
       }}>
         {grade || '—'}
       </div>
-      <div style={{ fontFamily: FH, fontSize: isLarge ? 14 : 11, fontWeight: 700, color: '#1f1f22' }}>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: isLarge ? 14 : 11, fontWeight: 700, color: '#1f1f22' }}>
         {score != null ? `${score}/100` : ''}
       </div>
     </div>
@@ -113,7 +113,7 @@ export default function EEATTab({ clientId, agencyId }) {
     return (
       <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
         <Shield size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>E-E-A-T Scorer</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>E-E-A-T Scorer</div>
         <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20, maxWidth: 460, margin: '0 auto 20px' }}>
           Analyze your site for Experience, Expertise, Authoritativeness, and Trust signals that Google uses to evaluate content quality.
         </div>
@@ -123,7 +123,7 @@ export default function EEATTab({ clientId, agencyId }) {
             <input
               value={targetUrl} onChange={e => setTargetUrl(e.target.value)}
               placeholder="https://example.com/page (optional — leave blank for homepage)"
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #d1d5db', fontSize: 13, fontFamily: FB, color: BLK, outline: 'none' }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #d1d5db', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, outline: 'none' }}
             />
           </div>
         )}
@@ -158,7 +158,7 @@ export default function EEATTab({ clientId, agencyId }) {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 24 }}>
         <GradeBadge grade={audit.grade} score={audit.overall_eeat_score} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>E-E-A-T Score</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>E-E-A-T Score</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>
             {audit.url ? `Page: ${audit.url}` : 'Site-wide assessment'} — updated {audit.updated_at ? new Date(audit.updated_at).toLocaleDateString() : 'recently'}
           </div>
@@ -168,8 +168,8 @@ export default function EEATTab({ clientId, agencyId }) {
               return (
                 <div key={d.key} style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: FH }}>{d.key}</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color, fontFamily: FH }}>{d.score}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{d.key}</span>
+                    <span style={{ fontSize: 12, fontWeight: 800, color, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{d.score}</span>
                   </div>
                   <ScoreBar score={d.score} color={color} />
                 </div>
@@ -190,7 +190,7 @@ export default function EEATTab({ clientId, agencyId }) {
         <input
           value={targetUrl} onChange={e => setTargetUrl(e.target.value)}
           placeholder="Audit specific URL (leave blank for homepage)"
-          style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, color: BLK, outline: 'none' }}
+          style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, outline: 'none' }}
         />
         <button onClick={runAudit} disabled={running}
           style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -215,12 +215,12 @@ export default function EEATTab({ clientId, agencyId }) {
                     <Icon size={16} color={color} />
                   </div>
                   <div>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>{dim.key}</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>{dim.key}</div>
                     <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 600 }}>Weight: {dim.weight}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color }}>{dim.score}</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color }}>{dim.score}</div>
                   <div style={{ fontSize: 12, color: '#1f2937' }}>{foundCount}/{totalCount}</div>
                   {expanded ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
                 </div>
@@ -243,7 +243,7 @@ export default function EEATTab({ clientId, agencyId }) {
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <User size={16} color={T} />
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Author Entity</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Author Entity</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -275,7 +275,7 @@ export default function EEATTab({ clientId, agencyId }) {
       {/* Recommendations */}
       {audit.recommendations?.length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <AlertTriangle size={16} color={AMB} /> Recommendations
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

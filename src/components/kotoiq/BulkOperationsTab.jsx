@@ -99,7 +99,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
       }}>
         <Users size={20} color={T} />
         <div>
-          <div style={{ fontWeight: 800, fontFamily: FH, color: BLK }}>Agency-wide operations</div>
+          <div style={{ fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>Agency-wide operations</div>
           <div style={{ fontSize: 12, color: '#475569' }}>
             Run a KotoIQ task across many clients at once. Progress shown per-client, real-time.
           </div>
@@ -122,7 +122,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <Icon size={16} color={op.color} />
-                  <div style={{ fontWeight: 800, fontFamily: FH, fontSize: 14, color: BLK }}>{op.label}</div>
+                  <div style={{ fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: BLK }}>{op.label}</div>
                 </div>
                 <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.5 }}>{op.detail}</div>
               </button>
@@ -154,7 +154,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
                   <label key={c.id} style={{
                     display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8,
                     cursor: 'pointer', background: on ? '#f0f9ff' : 'transparent',
-                    fontSize: 13, fontFamily: FB,
+                    fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                   }}>
                     <input type="checkbox" checked={on} onChange={() => toggleClient(c.id)} />
                     <span style={{ flex: 1, color: BLK, fontWeight: on ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
@@ -171,7 +171,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
         style={{
           padding: '14px 28px', borderRadius: 12, border: 'none',
           background: starting || selectedIds.length === 0 ? '#94a3b8' : (selected?.color || T),
-          color: '#fff', fontSize: 15, fontWeight: 800, fontFamily: FH,
+          color: '#fff', fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: starting ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 8,
           boxShadow: starting ? 'none' : `0 6px 18px ${(selected?.color || T)}33`,
           marginBottom: 24,
@@ -190,7 +190,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
       {status && (
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Layers size={16} color={T} /> Progress
             </div>
             <div style={{ fontSize: 12, color: '#475569' }}>
@@ -245,7 +245,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
 }
 
 const sectionLabel = {
-  fontSize: 12, fontWeight: 800, fontFamily: FH, color: '#334155',
+  fontSize: 12, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#334155',
   textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10,
 }
 const miniBtn = {

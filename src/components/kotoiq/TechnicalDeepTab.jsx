@@ -40,7 +40,7 @@ function ScoreRing({ score, size = 80, strokeWidth = 6, color }) {
           style={{ transition: 'stroke-dashoffset .8s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color: c, lineHeight: 1 }}>{score}</span>
+        <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.32, fontWeight: 900, color: c, lineHeight: 1 }}>{score}</span>
         <span style={{ fontSize: 11, color: '#1f2937', fontWeight: 600 }}>/100</span>
       </div>
     </div>
@@ -54,7 +54,7 @@ function SubScoreBadge({ label, score, icon: Icon, color }) {
       <Icon size={14} color={c} />
       <div>
         <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
-        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: c }}>{score}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 900, color: c }}>{score}</div>
       </div>
     </div>
   )
@@ -65,7 +65,7 @@ function ProgressBar({ value, max = 100, color = T, height = 8, label }) {
   return (
     <div style={{ flex: 1 }}>
       {label && <div style={{ fontSize: 11, color: '#1f1f22', marginBottom: 4, display: 'flex', justifyContent: 'space-between' }}>
-        <span>{label}</span><span style={{ fontFamily: FH, fontWeight: 700 }}>{Math.round(pct)}%</span>
+        <span>{label}</span><span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }}>{Math.round(pct)}%</span>
       </div>}
       <div style={{ height, borderRadius: height / 2, background: '#f1f1f6', overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: height / 2, background: color, transition: 'width .5s ease' }} />
@@ -136,7 +136,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
     <div style={card}>
       <div style={{ textAlign: 'center', padding: '40px 20px' }}>
         <Server size={40} color={T} style={{ marginBottom: 12, opacity: 0.5 }} />
-        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Technical SEO Deep Audit</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Technical SEO Deep Audit</div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>
           Crawl your site to analyze sitemaps, canonical tags, mobile readiness, Core Web Vitals, and index coverage.
         </div>
@@ -162,7 +162,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
         <ScoreRing score={d.overall_score || 0} size={90} />
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 4 }}>Technical SEO Score</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 4 }}>Technical SEO Score</div>
           <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 12 }}>
             Last audit: {d.updated_at ? new Date(d.updated_at).toLocaleDateString() : 'Unknown'}
           </div>
@@ -187,17 +187,17 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         {/* Crawl Budget */}
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Activity size={15} color={T} /> Crawl Budget
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div>
               <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase' }}>Total URLs</div>
-              <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{(d.total_urls || 0).toLocaleString()}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: BLK }}>{(d.total_urls || 0).toLocaleString()}</div>
             </div>
             <div>
               <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase' }}>Indexable</div>
-              <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: GRN }}>{(d.indexable_urls || 0).toLocaleString()}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: GRN }}>{(d.indexable_urls || 0).toLocaleString()}</div>
             </div>
           </div>
           <ProgressBar value={100 - (d.crawl_waste_pct || 0)} label="Crawl Efficiency" color={d.crawl_waste_pct > 30 ? R : d.crawl_waste_pct > 15 ? AMB : GRN} />
@@ -208,10 +208,10 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
 
         {/* Canonical Health */}
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <FileText size={15} color={AMB} /> Canonical Health
-              <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: d.canonical_score >= 70 ? GRN : d.canonical_score >= 40 ? AMB : R, marginLeft: 8 }}>
+              <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 900, color: d.canonical_score >= 70 ? GRN : d.canonical_score >= 40 ? AMB : R, marginLeft: 8 }}>
                 {d.canonical_score}
               </span>
             </div>
@@ -242,10 +242,10 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
 
         {/* Mobile-First */}
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Smartphone size={15} color={T} /> Mobile-First
-              <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: d.mobile_score >= 70 ? GRN : d.mobile_score >= 40 ? AMB : R, marginLeft: 8 }}>
+              <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 900, color: d.mobile_score >= 70 ? GRN : d.mobile_score >= 40 ? AMB : R, marginLeft: 8 }}>
                 {d.mobile_score}
               </span>
             </div>
@@ -276,7 +276,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
 
         {/* Index Coverage */}
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Globe size={15} color={GRN} /> Index Coverage
           </div>
           <ProgressBar value={d.indexed_pct || 0} label="Indexed" color={d.indexed_pct >= 80 ? GRN : d.indexed_pct >= 50 ? AMB : R} height={10} />
@@ -287,11 +287,11 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
               const color = code === '200' ? GRN : code.startsWith('3') ? AMB : code.startsWith('4') ? R : '#8e8e93'
               return (
                 <div key={code} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color, width: 36 }}>{code}</span>
+                  <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 800, color, width: 36 }}>{code}</span>
                   <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#f1f1f6', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: color }} />
                   </div>
-                  <span style={{ fontSize: 11, color: '#1f1f22', fontFamily: FH, fontWeight: 600, width: 55, textAlign: 'right' }}>{count} ({pct}%)</span>
+                  <span style={{ fontSize: 11, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600, width: 55, textAlign: 'right' }}>{count} ({pct}%)</span>
                 </div>
               )
             })}
@@ -302,7 +302,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
                   <div key={reason} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1f1f22', marginBottom: 4 }}>
                     <XCircle size={12} color={R} />
                     <span style={{ textTransform: 'capitalize' }}>{reason}</span>
-                    <span style={{ fontFamily: FH, fontWeight: 700, marginLeft: 'auto' }}>{count}</span>
+                    <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, marginLeft: 'auto' }}>{count}</span>
                   </div>
                 ))}
               </div>
@@ -313,7 +313,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
 
       {/* Core Web Vitals */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
           <Zap size={15} color={AMB} /> Core Web Vitals
           <span style={{
             marginLeft: 8, padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
@@ -331,7 +331,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           ].map(([key, value, label, desc]) => (
             <div key={key} style={{ textAlign: 'center', padding: '16px 12px', background: '#fafafb', borderRadius: 10 }}>
               <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>{desc}</div>
-              <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: cwvColor(value, key) }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color: cwvColor(value, key) }}>
                 {value !== null && value !== undefined ? (key === 'cls' ? value.toFixed(2) : `${Math.round(value)}`) : '—'}
               </div>
               <div style={{ fontSize: 11, color: '#1f2937', marginTop: 2 }}>
@@ -349,7 +349,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
 
       {/* Sitemap Analysis */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <BarChart2 size={15} color={T} /> Sitemap Analysis
           </div>
@@ -362,7 +362,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
         <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase' }}>URL Count</div>
-            <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>{(d.sitemap_urls_count || 0).toLocaleString()}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK }}>{(d.sitemap_urls_count || 0).toLocaleString()}</div>
           </div>
           <div>
             <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase' }}>Categorized</div>
@@ -389,7 +389,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
                 <AlertTriangle size={12} color={AMB} />
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(issue.url, 50)}</span>
                 <span style={{ fontSize: 11, color: '#1f2937' }}>{issue.issue}</span>
-                {issue.status && <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 11, color: R }}>{issue.status}</span>}
+                {issue.status && <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: R }}>{issue.status}</span>}
               </div>
             ))}
           </div>

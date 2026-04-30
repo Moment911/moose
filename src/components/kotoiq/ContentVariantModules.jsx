@@ -72,11 +72,11 @@ export default function ContentVariantModules({ clientId, agencyId }) {
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
           <LayoutGrid size={18} color={AMB} /> Content Variant Modules
         </div>
         <button onClick={generateAll} disabled={generatingAll || generating}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: generatingAll ? 'wait' : 'pointer', opacity: generatingAll ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: generatingAll ? 'wait' : 'pointer', opacity: generatingAll ? 0.6 : 1 }}>
           {generatingAll ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
           {generatingAll ? 'Generating All...' : 'Generate All Variants'}
         </button>
@@ -102,7 +102,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
                 onClick={() => setExpanded(expanded === mod.id ? null : mod.id)}>
                 <span style={{ fontSize: 20, width: 36, textAlign: 'center' }}>{mod.icon}</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
                   <div style={{ fontSize: 12, color: '#1f1f22' }}>{mod.desc}</div>
                 </div>
                 {hasResult && <CheckCircle size={16} color={GRN} />}
@@ -119,7 +119,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
                   {(hasResult.variants || []).map((v, vi) => (
                     <div key={vi} style={{ marginBottom: 12, padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', position: 'relative' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: T, fontFamily: FH }}>Variant {vi + 1}</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: T, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Variant {vi + 1}</span>
                         <button onClick={() => copyToClipboard(v.content || v)}
                           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b6b70' }}>
                           <Copy size={10} /> Copy

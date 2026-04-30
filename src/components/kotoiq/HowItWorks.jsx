@@ -481,7 +481,7 @@ export default function HowItWorks({ tool, compact = false }) {
       <button onClick={() => setExpanded(!expanded)} style={{
         display: 'flex', alignItems: 'center', gap: 8, width: '100%',
         background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-        color: BLK, fontFamily: FH, fontSize: 13, fontWeight: 700,
+        color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700,
       }}>
         <Info size={15} color={T} />
         <span>How this works & what the output means</span>
@@ -497,7 +497,7 @@ export default function HowItWorks({ tool, compact = false }) {
           <div>
             <div style={{
               fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase',
-              letterSpacing: '.06em', marginBottom: 8, fontFamily: FH,
+              letterSpacing: '.06em', marginBottom: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <BookOpen size={12} /> How It Works
@@ -510,7 +510,7 @@ export default function HowItWorks({ tool, compact = false }) {
                 background: methodView === 'layman' ? BLK : 'transparent',
                 color: methodView === 'layman' ? '#fff' : '#1f2937',
                 fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+                display: 'flex', alignItems: 'center', gap: 5, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }}>
                 <BookOpen size={12} /> Plain English
               </button>
@@ -519,14 +519,14 @@ export default function HowItWorks({ tool, compact = false }) {
                 background: methodView === 'technical' ? BLK : 'transparent',
                 color: methodView === 'technical' ? '#fff' : '#1f2937',
                 fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+                display: 'flex', alignItems: 'center', gap: 5, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }}>
                 <Code size={12} /> Technical
               </button>
             </div>
 
             <div style={{
-              fontSize: 13, lineHeight: 1.65, color: '#111827', fontFamily: FB,
+              fontSize: 13, lineHeight: 1.65, color: '#111827', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb',
             }}>
               {info[methodView]}
@@ -535,7 +535,7 @@ export default function HowItWorks({ tool, compact = false }) {
             {/* Data sources */}
             {info.data_sources && (
               <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                   Data Sources Used
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -560,7 +560,7 @@ export default function HowItWorks({ tool, compact = false }) {
             }}>
               <div style={{
                 fontSize: 11, fontWeight: 800, color: GRN, textTransform: 'uppercase',
-                letterSpacing: '.06em', marginBottom: 8, fontFamily: FH,
+                letterSpacing: '.06em', marginBottom: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
                 <Target size={12} /> What The Output Means
@@ -573,7 +573,7 @@ export default function HowItWorks({ tool, compact = false }) {
                   background: outputView === 'layman' ? BLK : 'transparent',
                   color: outputView === 'layman' ? '#fff' : '#1f2937',
                   fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+                  display: 'flex', alignItems: 'center', gap: 5, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}>
                   <BookOpen size={12} /> Plain English
                 </button>
@@ -582,14 +582,14 @@ export default function HowItWorks({ tool, compact = false }) {
                   background: outputView === 'technical' ? BLK : 'transparent',
                   color: outputView === 'technical' ? '#fff' : '#1f2937',
                   fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+                  display: 'flex', alignItems: 'center', gap: 5, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}>
                   <Code size={12} /> Technical
                 </button>
               </div>
 
               <div style={{
-                fontSize: 13, lineHeight: 1.65, color: '#111827', fontFamily: FB,
+                fontSize: 13, lineHeight: 1.65, color: '#111827', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 padding: '12px 14px', background: '#fff', borderRadius: 8,
                 border: '1px solid #e5e7eb',
               }}>

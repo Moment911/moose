@@ -97,7 +97,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Award size={20} color={T} /> Competitive Scorecard
             </div>
             <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
@@ -107,7 +107,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
           {pos && (
             <div style={{
               padding: '8px 16px', borderRadius: 20, background: pos.bg, color: pos.color,
-              fontSize: 13, fontWeight: 800, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.05em',
+              fontSize: 13, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '.05em',
             }}>
               {pos.label}
             </div>
@@ -115,11 +115,11 @@ export default function ScorecardTab({ clientId, agencyId }) {
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input value={compInput} onChange={e => setCompInput(e.target.value)} placeholder="competitor1.com, competitor2.com, competitor3.com (optional — autodetects)" style={{
-            flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB, minWidth: 0,
+            flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", minWidth: 0,
           }} />
           <button onClick={generate} disabled={running || !clientId} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-            border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+            border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1, whiteSpace: 'nowrap',
           }}>
             {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : data ? <RefreshCw size={14} /> : <Sparkles size={14} />}
@@ -131,7 +131,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
       {!data && !running && (
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Award size={42} color="#d1d5db" style={{ marginBottom: 12 }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Scorecard Yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Scorecard Yet</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Optionally list competitor domains above, then click "Generate Scorecard".</div>
         </div>
       )}
@@ -140,22 +140,22 @@ export default function ScorecardTab({ clientId, agencyId }) {
         <>
           {data.narrative && (
             <div style={{ ...card, background: 'linear-gradient(135deg,#f0f9ff 0%,#fefce8 100%)', borderLeft: `4px solid ${T}` }}>
-              <div style={{ fontSize: 14, color: BLK, lineHeight: 1.65, fontFamily: FB }}>{data.narrative}</div>
+              <div style={{ fontSize: 14, color: BLK, lineHeight: 1.65, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{data.narrative}</div>
             </div>
           )}
 
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <TrendingUp size={16} color={T} /> Side-by-Side Comparison
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                    <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: FH }}>Metric</th>
-                    <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: T, textTransform: 'uppercase', fontFamily: FH }}>Client</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Metric</th>
+                    <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: T, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Client</th>
                     {competitors.map((c, i) => (
-                      <th key={i} style={{ textAlign: 'center', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: FH, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <th key={i} style={{ textAlign: 'center', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {c.domain}
                       </th>
                     ))}
@@ -185,7 +185,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
                 </tbody>
               </table>
             </div>
-            <div style={{ display: 'flex', gap: 14, marginTop: 12, fontSize: 11, color: '#6b6b70', fontFamily: FB }}>
+            <div style={{ display: 'flex', gap: 14, marginTop: 12, fontSize: 11, color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
               <span><span style={{ display: 'inline-block', width: 10, height: 10, background: GRN + '40', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />Winning</span>
               <span><span style={{ display: 'inline-block', width: 10, height: 10, background: AMB + '40', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />Level</span>
               <span><span style={{ display: 'inline-block', width: 10, height: 10, background: R + '40', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />Losing</span>
@@ -194,7 +194,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <CheckCircle size={16} color={GRN} /> Strengths ({strengths.length})
               </div>
               {strengths.length === 0 ? (
@@ -211,7 +211,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
             </div>
 
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <AlertCircle size={16} color={R} /> Priority Focus Areas
               </div>
               {focus.length === 0 && gaps.length === 0 ? (

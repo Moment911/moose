@@ -48,9 +48,9 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="ads-wasted-spend" />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Wasted Spend Detection</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Wasted Spend Detection</div>
         <button onClick={runAnalysis} disabled={analyzing}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: R, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: analyzing ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: R, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: analyzing ? 0.6 : 1 }}>
           {analyzing ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
           {analyzing ? 'Analyzing...' : 'Run Analysis'}
         </button>
@@ -66,7 +66,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
           <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
             <AlertTriangle size={32} color={totalWasted > 100 ? R : AMB} />
             <div>
-              <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: R }}>${totalWasted.toFixed(2)}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: R }}>${totalWasted.toFixed(2)}</div>
               <div style={{ fontSize: 13, color: '#6b6b70' }}>Wasted in last 30 days across {candidates.length} search terms (0 conversions, 5+ clicks)</div>
             </div>
           </div>
@@ -74,11 +74,11 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
           {/* Negative Recommendations */}
           {recs.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
                 <CheckCircle size={14} color={GRN} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                 {recs.length} Negative Keyword Recommendations
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: FB }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Search Term', 'Match', 'Scope', 'Savings/mo', 'Status', ''].map(h => (
@@ -117,8 +117,8 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
           {/* Wasted Terms Table */}
           {candidates.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>All Wasted Search Terms</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: FB }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>All Wasted Search Terms</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Search Term', 'Cost', 'Clicks', 'First Seen', 'Last Seen'].map(h => (

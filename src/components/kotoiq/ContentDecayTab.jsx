@@ -93,14 +93,14 @@ export default function ContentDecayTab({ clientId, agencyId }) {
           <AlertCircle size={28} color={AMB} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Content Decay Prediction</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Content Decay Prediction</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>
             {urls.length} URLs in inventory -- predicts 30/60/90-day ranking drops
           </div>
         </div>
         <button onClick={runAll} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
@@ -110,7 +110,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
 
       {priorityQueue.length > 0 && (
         <div style={{ ...card, borderLeft: `4px solid ${R}` }}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Zap size={16} color={R} /> Refresh Priority Queue
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -126,7 +126,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
       )}
 
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Content Inventory</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Content Inventory</div>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 30 }}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} color={T} /></div>
         ) : urls.length === 0 ? (
@@ -185,7 +185,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
 
       {selected && selected.decay_factors?.length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10 }}>Decay Factors — {selected.url}</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10 }}>Decay Factors — {selected.url}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {selected.decay_factors.map((f, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8 }}>

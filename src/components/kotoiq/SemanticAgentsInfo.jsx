@@ -95,7 +95,7 @@ export default function SemanticAgentsInfo() {
             <Brain size={18} color={T} />
           </div>
           <div style={{ textAlign: 'left' }}>
-            <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, letterSpacing: '-.01em' }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, letterSpacing: '-.01em' }}>
               Powered by 8 KotoAgenticIQ Intelligence Agents
             </div>
             <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 1 }}>
@@ -148,7 +148,7 @@ export default function SemanticAgentsInfo() {
                     <Icon size={16} color={agent.color} />
                   </div>
                   <div>
-                    <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 3 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 3 }}>
                       {agent.name}
                     </div>
                     <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.5 }}>

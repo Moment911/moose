@@ -138,18 +138,18 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
           <Layers size={30} color={T} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Sitemap Crawler</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Sitemap Crawler</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Discover every URL on your site — handles multi-sitemap indexes, 10,000+ URLs.</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: T, letterSpacing: '-.02em' }}>{total.toLocaleString()}</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 36, fontWeight: 900, color: T, letterSpacing: '-.02em' }}>{total.toLocaleString()}</div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em' }}>Total URLs</div>
         </div>
       </div>
 
       {/* Options */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14 }}>Crawl Options</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14 }}>Crawl Options</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
           <Field label="Max URLs">
             <input type="number" value={options.maxUrls} onChange={e => setOptions({ ...options, maxUrls: e.target.value })} disabled={running} style={input} />
@@ -170,7 +170,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
         <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={startCrawl} disabled={running} style={{
             padding: '10px 22px', borderRadius: 8, border: 'none', background: R, color: '#fff',
-            fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: running ? 'wait' : 'pointer',
+            fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: running ? 'wait' : 'pointer',
             opacity: running ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 6,
           }}>
             {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={14} />}
@@ -183,7 +183,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
       {crawl && (
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>
               Crawl Status: <span style={{ color: crawl.status === 'running' ? T : crawl.status === 'failed' ? R : GRN }}>{crawl.status}</span>
             </div>
             {crawl.started_at && <div style={{ fontSize: 11, color: '#6b6b70' }}>Started {new Date(crawl.started_at).toLocaleString()}</div>}
@@ -217,7 +217,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
       {/* URL explorer */}
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>URL Explorer</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>URL Explorer</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <input
               type="text"
@@ -300,7 +300,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Lightbulb size={16} color={AMB} />
-            <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Sitemap Recommendations</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Sitemap Recommendations</div>
           </div>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: '#1f1f22', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {(() => {
@@ -326,14 +326,14 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
   )
 }
 
-const input = { width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12, fontFamily: FB, color: BLK, outline: 'none', background: '#fff' }
+const input = { width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, outline: 'none', background: '#fff' }
 const th = { textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }
 const pageBtn = { display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer' }
 
 function Field({ label, children }) {
   return (
     <div>
-      <div style={{ fontSize: 10, fontWeight: 800, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4, fontFamily: FH }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 800, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</div>
       {children}
     </div>
   )
@@ -342,7 +342,7 @@ function Field({ label, children }) {
 function Stat({ label, value, color }) {
   return (
     <div style={{ background: '#f9f9fb', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-      <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: color || BLK }}>{typeof value === 'number' ? value.toLocaleString() : value}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: color || BLK }}>{typeof value === 'number' ? value.toLocaleString() : value}</div>
       <div style={{ fontSize: 10, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 2 }}>{label}</div>
     </div>
   )

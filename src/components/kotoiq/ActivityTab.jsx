@@ -93,7 +93,7 @@ function StatusPill({ status }) {
   const color = s === 'reverted' ? '#6b6b70' : s === 'failed' ? R : GRN
   const Icon = s === 'reverted' ? RotateCcw : s === 'failed' ? XCircle : CheckCircle2
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: color + '18', color, textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: FH }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: color + '18', color, textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
       <Icon size={10} /> {s}
     </span>
   )
@@ -174,12 +174,12 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <History size={20} color={T} />
-          <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Activity</div>
-          <div style={{ marginLeft: 'auto', fontSize: 12, color: '#6b6b70', fontFamily: FB }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Activity</div>
+          <div style={{ marginLeft: 'auto', fontSize: 12, color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             {activities.length} action{activities.length === 1 ? '' : 's'} on file
           </div>
         </div>
-        <div style={{ fontSize: 13, color: '#1f1f22', fontFamily: FB, marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 12 }}>
           Every bot-executed action for this client, in order. Revert any artifact you don't want to keep.
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -190,7 +190,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                 borderColor: filter === f.key ? T : '#ececef',
                 background: filter === f.key ? '#f1f1f6' : '#fff',
                 color: filter === f.key ? T : '#1f1f22',
-                fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
               }}>
               {f.label}
             </button>
@@ -199,16 +199,16 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
       </div>
 
       {loading && (
-        <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 8, color: '#6b6b70', fontFamily: FB, fontSize: 13 }}>
+        <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 8, color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13 }}>
           <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
           Loading activity…
         </div>
       )}
 
       {!loading && filtered.length === 0 && (
-        <div style={{ ...card, textAlign: 'center', padding: '36px 20px', color: '#6b6b70', fontFamily: FB }}>
+        <div style={{ ...card, textAlign: 'center', padding: '36px 20px', color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
           <Clock size={28} color="#d1d5db" style={{ marginBottom: 8 }} />
-          <div style={{ fontSize: 14, fontWeight: 600, color: BLK, fontFamily: FH, marginBottom: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>
             {filter === 'all' ? 'No activity yet' : 'No activity matches this filter'}
           </div>
           <div style={{ fontSize: 12 }}>
@@ -219,7 +219,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
 
       {!loading && groups.map(g => (
         <div key={g.label} style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, padding: '0 4px 8px' }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", padding: '0 4px 8px' }}>
             {g.label}
           </div>
           {g.items.map(a => {
@@ -230,11 +230,11 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
             return (
               <div key={a.id} style={{ ...card, padding: '14px 16px', borderLeft: `3px solid ${a.status === 'reverted' ? '#8e8e93' : a.status === 'failed' ? R : T}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>
                     {prettyIntent(a.intent)}
                   </div>
                   <StatusPill status={a.status} />
-                  <div style={{ marginLeft: 'auto', fontSize: 11, color: '#6b6b70', fontFamily: FB, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
+                  <div style={{ marginLeft: 'auto', fontSize: 11, color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
                     <span>{fullStamp(a.created_at)}</span>
                     <span style={{ fontSize: 10, color: '#8e8e93' }}>{timeAgo(a.created_at)}</span>
                   </div>
@@ -245,12 +245,12 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                   </div>
                 )}
                 {resultSummary && (
-                  <div style={{ fontSize: 12, color: '#1f1f22', fontFamily: FB, marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 10 }}>
                     {resultSummary}
                   </div>
                 )}
                 {a.status === 'reverted' && a.reverted_at && (
-                  <div style={{ fontSize: 11, color: '#6b6b70', fontFamily: FB, marginBottom: 10, fontStyle: 'italic' }}>
+                  <div style={{ fontSize: 11, color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 10, fontStyle: 'italic' }}>
                     Reverted {fullStamp(a.reverted_at)} ({timeAgo(a.reverted_at)})
                   </div>
                 )}
@@ -260,7 +260,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6,
                       border: '1px solid #e5e7eb', background: '#fff',
-                      fontSize: 12, fontWeight: 600, fontFamily: FH,
+                      fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                       color: canView ? BLK : '#8e8e93',
                       cursor: canView ? 'pointer' : 'not-allowed', opacity: canView ? 1 : 0.5,
                     }}>
@@ -272,7 +272,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6,
                       border: '1px solid #fecaca', background: '#fff',
-                      fontSize: 12, fontWeight: 600, fontFamily: FH,
+                      fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                       color: revertible ? '#dc2626' : '#8e8e93',
                       cursor: revertible && reverting !== a.id ? 'pointer' : 'not-allowed', opacity: revertible ? 1 : 0.5,
                     }}>

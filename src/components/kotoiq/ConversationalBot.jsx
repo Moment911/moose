@@ -586,7 +586,7 @@ export default function ConversationalBot({
                 position: 'absolute', top: -2, right: -2,
                 width: 18, height: 18, borderRadius: 9,
                 background: R, color: '#fff',
-                fontFamily: FH, fontSize: 11, fontWeight: 700,
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 11, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: '2px solid #fff',
               }}
@@ -624,7 +624,7 @@ export default function ConversationalBot({
                 position: 'absolute', top: -6, right: -6,
                 width: 18, height: 18, borderRadius: 9,
                 background: R, color: '#fff',
-                fontFamily: FH, fontSize: 10, fontWeight: 700,
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 10, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: '2px solid #fff',
               }}
@@ -633,7 +633,7 @@ export default function ConversationalBot({
         </div>
         <div style={{
           writingMode: 'vertical-rl', transform: 'rotate(180deg)',
-          fontFamily: FH, fontSize: 12, fontWeight: 700, letterSpacing: 1.2,
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: 1.2,
         }}>
           {mode === 'clarifications'
             ? (clientName ? `Clarifications · ${clientName}` : 'Clarifications')
@@ -659,10 +659,10 @@ export default function ConversationalBot({
           <Brain size={18} color="#fff" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH }}>
+          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             {mode === 'clarifications' ? 'Clarifications' : 'KotoIQ Assistant'}
           </div>
-          <div style={{ fontSize: 11, opacity: 0.75, fontFamily: FB, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ fontSize: 11, opacity: 0.75, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', gap: 4 }}>
             {thinking ? 'Thinking…' : clientName ? <>Working on <span style={{ color: T, fontWeight: 700 }}>{clientName}</span></> : 'No client selected'}
           </div>
         </div>
@@ -690,7 +690,7 @@ export default function ConversationalBot({
       {mode === 'clarifications' && !showHistory ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: 16, background: GRY }}>
           {clarifLoading ? (
-            <div style={{ textAlign: 'center', padding: '24px 8px', color: '#6b6b70', fontSize: 13, fontFamily: FB }}>
+            <div style={{ textAlign: 'center', padding: '24px 8px', color: '#6b6b70', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
               Loading clarifications…
             </div>
           ) : clarifList.length === 0 ? (
@@ -698,10 +698,10 @@ export default function ConversationalBot({
               <div style={{ width: 56, height: 56, borderRadius: '50%', background: T, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <CheckCircle2 size={28} color="#fff" />
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: BLK, fontFamily: FH, marginBottom: 6 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 6 }}>
                 All clear.
               </div>
-              <div style={{ fontSize: 13, color: '#6b6b70', fontFamily: FB }}>
+              <div style={{ fontSize: 13, color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 I&apos;ll ping you the second I need something.
               </div>
             </div>
@@ -722,13 +722,13 @@ export default function ConversationalBot({
         </div>
       ) : showHistory ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: 0.5, padding: '4px 8px', fontFamily: FH }}>Past Conversations</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: 0.5, padding: '4px 8px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Past Conversations</div>
           {conversations.length === 0 && (
-            <div style={{ padding: 16, color: '#8e8e93', fontSize: 13, textAlign: 'center', fontFamily: FB }}>No conversations yet.</div>
+            <div style={{ padding: 16, color: '#8e8e93', fontSize: 13, textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>No conversations yet.</div>
           )}
           {conversations.map(c => (
             <button key={c.id} onClick={() => loadConversation(c.id)}
-              style={{ display: 'block', width: '100%', textAlign: 'left', padding: 10, border: 'none', background: 'transparent', borderRadius: 8, cursor: 'pointer', fontFamily: FB }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: 10, border: 'none', background: 'transparent', borderRadius: 8, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}
               onMouseEnter={e => e.currentTarget.style.background = GRY}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <div style={{ fontSize: 13, color: BLK, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title || 'Untitled'}</div>
@@ -743,14 +743,14 @@ export default function ConversationalBot({
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: T, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <Brain size={32} color="#fff" />
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: BLK, fontFamily: FH }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 {clientName ? <>Hi! Let's work on <span style={{ color: T }}>{clientName}</span>.</> : 'Hi! Tell me what you want to do.'}
               </div>
-              <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4, fontFamily: FB }}>I can write briefs, audit pages, build topical maps, find backlinks — just describe it.</div>
+              <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>I can write briefs, audit pages, build topical maps, find backlinks — just describe it.</div>
               <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {SUGGESTED_PROMPTS.map(p => (
                   <button key={p.label} onClick={() => send(p.label)}
-                    style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13, color: BLK, fontFamily: FB, display: 'flex', alignItems: 'center', gap: 10, transition: 'all .12s' }}
+                    style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', gap: 10, transition: 'all .12s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = T; e.currentTarget.style.background = '#f0fdfe' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = '#ececef'; e.currentTarget.style.background = '#fff' }}>
                     <p.icon size={14} color={T} />
@@ -801,7 +801,7 @@ export default function ConversationalBot({
       {!showHistory && mode !== 'clarifications' && (
         <div style={{ padding: 12, borderTop: '1px solid #e5e7eb', background: '#fff' }}>
           {pendingFile && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#f0fdfe', border: `1px solid ${T}`, borderRadius: 8, marginBottom: 8, fontSize: 12, fontFamily: FB, color: BLK, maxWidth: '100%' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#f0fdfe', border: `1px solid ${T}`, borderRadius: 8, marginBottom: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, maxWidth: '100%' }}>
               <Paperclip size={12} color={T} />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>{pendingFile.name}</span>
               <span style={{ color: '#6b6b70' }}>{formatSize(pendingFile.size)}</span>
@@ -835,7 +835,7 @@ export default function ConversationalBot({
               onKeyDown={onKeyDown}
               placeholder="Describe what you want to do…"
               rows={1}
-              style={{ flex: 1, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontFamily: FB, color: BLK, resize: 'none', outline: 'none', maxHeight: 140, lineHeight: 1.4 }}
+              style={{ flex: 1, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, resize: 'none', outline: 'none', maxHeight: 140, lineHeight: 1.4 }}
               onFocus={e => e.currentTarget.style.borderColor = T}
               onBlur={e => e.currentTarget.style.borderColor = '#ececef'}
             />
@@ -875,7 +875,7 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, on
           padding: '10px 14px',
           fontSize: 13.5,
           lineHeight: 1.5,
-          fontFamily: FB,
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
         }}>
@@ -905,7 +905,7 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, on
         )}
         {msg.viewActivity && !isUser && onViewActivity && (
           <button onClick={onViewActivity}
-            style={{ marginTop: 6, padding: '6px 10px', background: '#fff', color: T, border: `1px solid ${T}`, borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            style={{ marginTop: 6, padding: '6px 10px', background: '#fff', color: T, border: `1px solid ${T}`, borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <History size={12} /> View activity
           </button>
         )}
@@ -932,7 +932,7 @@ function ChoiceChips({ choices, disabled, onClick }) {
             color: disabled ? '#8e8e93' : BLK,
             fontSize: 12.5,
             fontWeight: 600,
-            fontFamily: FB,
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: disabled ? 'not-allowed' : 'pointer',
             opacity: disabled ? 0.55 : 1,
             transition: 'all .12s',
@@ -970,12 +970,12 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
       <div style={{ marginTop: 8, border: `1px solid ${T}`, borderRadius: 12, background: '#f0fdfe', padding: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
           <UserPlus size={14} color={T} />
-          <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: FH, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: 0.4 }}>
             Pick A Client
           </div>
         </div>
         {executed ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: result?.ok === false ? '#991b1b' : GRN, fontFamily: FB }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: result?.ok === false ? '#991b1b' : GRN, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             {result?.ok === false ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
             <span>{result?.summary || 'Selected'}</span>
           </div>
@@ -995,7 +995,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
     <div style={{ marginTop: 8, border: `1px solid ${T}`, borderRadius: 12, background: '#f0fdfe', padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         <Sparkles size={14} color={T} />
-        <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: FH, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: 0.4 }}>
           {prettyIntent(action.intent)}
         </div>
         <div style={{ marginLeft: 'auto', fontSize: 10, color: '#6b6b70', background: '#fff', padding: '2px 6px', borderRadius: 4 }}>
@@ -1005,7 +1005,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
       {fieldKeys.length > 0 && (
         <div style={{ background: '#fff', borderRadius: 8, padding: 8, marginBottom: 10 }}>
           {fieldKeys.map(k => (
-            <div key={k} style={{ display: 'flex', fontSize: 12, padding: '3px 0', fontFamily: FB }}>
+            <div key={k} style={{ display: 'flex', fontSize: 12, padding: '3px 0', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
               <span style={{ color: '#6b6b70', minWidth: 90, fontWeight: 600 }}>{k}:</span>
               <span style={{ color: BLK, flex: 1, wordBreak: 'break-word' }}>{String(fields[k])}</span>
             </div>
@@ -1018,7 +1018,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
             const done = i < curStep
             const active = i === curStep
             return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontFamily: FB, padding: '3px 0', color: done ? GRN : active ? BLK : '#8e8e93' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", padding: '3px 0', color: done ? GRN : active ? BLK : '#8e8e93' }}>
                 {done ? (
                   <CheckCircle2 size={13} color={GRN} />
                 ) : active ? (
@@ -1038,7 +1038,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
         </div>
       )}
       {executed ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: result?.ok === false ? '#991b1b' : GRN, fontFamily: FB }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: result?.ok === false ? '#991b1b' : GRN, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
           {result?.ok === false ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
           <span>{result?.ok === false ? 'Failed' : (result?.mode === 'prefill' ? 'Form pre-filled — opened the tab' : 'Run complete')}</span>
         </div>
@@ -1046,18 +1046,18 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
         <div style={{ display: 'flex', gap: 6 }}>
           {action.should_execute ? (
             <button onClick={() => onRun(idx, true)} disabled={executing}
-              style={{ flex: 1, padding: '8px 12px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: executing ? 'wait' : 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              style={{ flex: 1, padding: '8px 12px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: executing ? 'wait' : 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               {executing ? <><Loader size={14} className="kotoiq-bot-spin" /> Running…</> : <>Run This</>}
             </button>
           ) : null}
           <button onClick={() => onRun(idx, false)} disabled={executing}
-            style={{ flex: action.should_execute ? 'none' : 1, padding: '8px 12px', background: '#fff', color: BLK, border: '1px solid #d1d5db', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: executing ? 'wait' : 'pointer', fontFamily: FH }}>
+            style={{ flex: action.should_execute ? 'none' : 1, padding: '8px 12px', background: '#fff', color: BLK, border: '1px solid #d1d5db', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: executing ? 'wait' : 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             {action.should_execute ? 'Modify First' : 'Open Form'}
           </button>
         </div>
       )}
       {action.next_question && !executed && !executing && (
-        <div style={{ marginTop: 8, fontSize: 12, color: '#6b6b70', fontStyle: 'italic', fontFamily: FB }}>
+        <div style={{ marginTop: 8, fontSize: 12, color: '#6b6b70', fontStyle: 'italic', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
           {action.next_question}
         </div>
       )}
@@ -1095,12 +1095,12 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
     <div>
       {suggestionRows.length > 0 && (
         <div style={{ background: '#fff', borderRadius: 8, padding: 8, marginBottom: 8, border: `1px dashed ${T}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6, fontFamily: FH }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             Suggested
           </div>
           {suggestionRows.map(c => (
             <button key={c.id} onClick={() => onPick(c)} type="button"
-              style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: FB }}
+              style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}
               onMouseEnter={e => e.currentTarget.style.background = '#f0fdfe'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -1125,18 +1125,18 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search clients…"
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, fontFamily: FB, color: BLK, background: 'transparent' }}
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, background: 'transparent' }}
           />
         </div>
         <div style={{ maxHeight: 180, overflowY: 'auto' }}>
           {filtered.length === 0 && (
-            <div style={{ padding: 10, fontSize: 12, color: '#8e8e93', fontFamily: FB, textAlign: 'center' }}>
+            <div style={{ padding: 10, fontSize: 12, color: '#8e8e93', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: 'center' }}>
               {safeClients.length === 0 ? 'No clients yet.' : 'No matches.'}
             </div>
           )}
           {filtered.map(c => (
             <button key={c.id} onClick={() => onPick(c)} type="button"
-              style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: FB, borderBottom: '1px solid #f9fafb' }}
+              style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", borderBottom: '1px solid #f9fafb' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f1f1f6'}
               onMouseLeave={e => e.currentTarget.style.background = suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent'}>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -1153,7 +1153,7 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
           ))}
         </div>
         <button onClick={onNew} type="button"
-          style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, padding: '10px 12px', border: 'none', borderTop: '1px solid #e5e7eb', background: '#fafafb', cursor: 'pointer', fontFamily: FH, fontSize: 12, fontWeight: 700, color: T }}
+          style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, padding: '10px 12px', border: 'none', borderTop: '1px solid #e5e7eb', background: '#fafafb', cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, color: T }}
           onMouseEnter={e => e.currentTarget.style.background = '#f0fdfe'}
           onMouseLeave={e => e.currentTarget.style.background = '#fafafb'}>
           <Plus size={14} /> New Client
@@ -1167,7 +1167,7 @@ function SystemNote({ text }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0', animation: 'kotoiqBotFadeIn .25s ease' }}>
       <div style={{
-        fontSize: 11, fontFamily: FB, color: '#6b6b70', background: '#eef2ff',
+        fontSize: 11, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#6b6b70', background: '#eef2ff',
         border: '1px solid #dbeafe', borderRadius: 999, padding: '4px 10px',
       }}>
         {text}

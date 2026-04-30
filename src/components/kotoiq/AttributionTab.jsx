@@ -114,7 +114,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
     return (
       <div style={{ ...card, textAlign: 'center', padding: 40, color: '#6b6b70' }}>
         <Info size={20} style={{ marginBottom: 8 }} />
-        <div style={{ fontSize: 14, fontFamily: FH }}>No attribution data found for this publish.</div>
+        <div style={{ fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>No attribution data found for this publish.</div>
       </div>
     )
   }
@@ -130,7 +130,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
       {/* ── Header row ──────────────────────────────────────────────── */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>
+          <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
             Page Attribution
           </div>
           <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 2 }}>
@@ -206,10 +206,10 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
               const grade = cwvGrade(key, val)
               return (
                 <div key={key} style={{ textAlign: 'center', padding: '12px 8px', borderRadius: 10, border: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
                     {meta.label}
                   </div>
-                  <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: GRADE_COLORS[grade] }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: GRADE_COLORS[grade] }}>
                     {val != null ? (key === 'cls_p75' ? val.toFixed(2) : Math.round(val)) : '--'}
                   </div>
                   <div style={{ fontSize: 10, color: GRADE_COLORS[grade], fontWeight: 600, marginTop: 2 }}>
@@ -246,7 +246,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Phone size={14} style={{ color: '#6b6b70' }} />
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
                       {call.match_method.replace('_', ' ')}
                     </div>
                     <div style={{ fontSize: 11, color: '#8e8e93' }}>
@@ -275,11 +275,11 @@ function KpiCard({ icon, label, value, sub, color }) {
     <div style={{ ...card, padding: '16px 18px', marginBottom: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         <span style={{ color }}>{icon}</span>
-        <span style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em' }}>
           {label}
         </span>
       </div>
-      <div style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: BLK }}>
+      <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
         {value}
       </div>
       {sub && (
@@ -322,7 +322,7 @@ function DeviceToggle({ active, onClick, children }) {
         gap: 4,
         fontSize: 12,
         fontWeight: 600,
-        fontFamily: FH,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
         padding: '5px 12px',
         borderRadius: 8,
         border: '1px solid ' + (active ? T : '#ececef'),
@@ -349,7 +349,7 @@ const card = {
 const sectionTitle = {
   fontSize: 15,
   fontWeight: 800,
-  fontFamily: FH,
+  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
   color: BLK,
   marginBottom: 14,
   display: 'flex',
@@ -363,7 +363,7 @@ const actionBtn = {
   gap: 6,
   fontSize: 13,
   fontWeight: 600,
-  fontFamily: FH,
+  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
   padding: '8px 16px',
   borderRadius: 10,
   border: '1px solid #e5e7eb',

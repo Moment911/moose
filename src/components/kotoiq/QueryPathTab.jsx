@@ -62,7 +62,7 @@ function QueryPill({ keyword, status }) {
 function StatBox({ label, value, color }) {
   return (
     <div style={{ textAlign: 'center', flex: 1, minWidth: 100 }}>
-      <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
       <div style={{ fontSize: 12, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
     </div>
   )
@@ -110,7 +110,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
     <div style={card}>
       <div style={{ textAlign: 'center', padding: '40px 20px' }}>
         <GitBranch size={40} color={T} style={{ marginBottom: 12, opacity: 0.5 }} />
-        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Query Path Analyzer</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Query Path Analyzer</div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
           Discover how users search for your services. Group keywords into clusters based on topical, intent, and sequential patterns to find content gaps.
         </div>
@@ -133,7 +133,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
 
       {/* Intro Explanation */}
       <div style={{ ...card, background: '#f9f9fb', border: `1px solid #ececef` }}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
           <GitBranch size={15} color={T} /> How to Read Query Paths
         </div>
         <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6 }}>
@@ -176,7 +176,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
               {/* Cluster Header */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div>
-                  <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 4 }}>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 4 }}>
                     {cluster.cluster_name}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -227,7 +227,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                 <div style={{ marginTop: 14, borderTop: '1px solid #f3f4f6', paddingTop: 12 }}>
                   {/* Session depth */}
                   <div style={{ fontSize: 11, color: '#1f2937', marginBottom: 8 }}>
-                    Avg session depth: <span style={{ fontFamily: FH, fontWeight: 700, color: BLK }}>{cluster.avg_session_depth || '—'}</span> queries
+                    Avg session depth: <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: BLK }}>{cluster.avg_session_depth || '—'}</span> queries
                   </div>
 
                   {/* Next queries */}
@@ -304,7 +304,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
       {/* Coverage Summary */}
       {(data.all_gaps || []).length > 0 && (
         <div style={{ ...card, marginTop: 14 }}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
             <XCircle size={15} color={R} /> Gap Queries — No Ranking Content
           </div>
           <div style={{ fontSize: 12, color: '#1f1f22', marginBottom: 12 }}>

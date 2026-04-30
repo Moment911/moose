@@ -108,7 +108,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
           <Clock size={30} color={T} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Background Jobs</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Background Jobs</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Live visibility into long-running processing jobs across every engine.</div>
         </div>
         <button onClick={load} disabled={loading} style={{
@@ -187,7 +187,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                       </div>
                     </div>
 
-                    <div style={{ fontSize: 12, color: '#1f1f22', fontFamily: FH, fontWeight: 700, minWidth: 80, textAlign: 'right' }}>
+                    <div style={{ fontSize: 12, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, minWidth: 80, textAlign: 'right' }}>
                       {elapsed(j.started_at || j.created_at, j.completed_at)}
                     </div>
 

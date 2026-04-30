@@ -159,7 +159,7 @@ function CategoryPill({ cat, count, active, onClick }) {
       color: active ? cfg.color : '#6b6b70', transition: 'all .15s',
       display: 'flex', alignItems: 'center', gap: 6,
     }}>
-      <span>{cfg.icon}</span> {cfg.label} <span style={{ fontFamily: FH, fontSize: 11, opacity: .7 }}>({count})</span>
+      <span>{cfg.icon}</span> {cfg.label} <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 11, opacity: .7 }}>({count})</span>
     </button>
   )
 }
@@ -168,7 +168,7 @@ function ScoreBadge({ score, label }) {
   const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? R : '#d1d5db'
   return (
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color, lineHeight: 1 }}>{score || '—'}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 900, color, lineHeight: 1 }}>{score || '—'}</div>
       <div style={{ fontSize: 11, color: '#1f2937', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
     </div>
   )
@@ -200,9 +200,9 @@ function ScoreRing({ score, grade, size = 160 }) {
           style={{ transition: 'stroke-dashoffset .8s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: BLK, lineHeight: 1 }}>{Math.round(s)}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 42, fontWeight: 900, color: BLK, lineHeight: 1 }}>{Math.round(s)}</div>
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.08em', marginTop: 4 }}>out of 100</div>
-        <div style={{ marginTop: 6, padding: '2px 10px', borderRadius: 20, background: color + '15', color, fontFamily: FH, fontSize: 14, fontWeight: 900 }}>{grade || '—'}</div>
+        <div style={{ marginTop: 6, padding: '2px 10px', borderRadius: 20, background: color + '15', color, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 900 }}>{grade || '—'}</div>
       </div>
     </div>
   )
@@ -1171,12 +1171,12 @@ export default function KotoIQPage() {
   // Auth guard — must be logged into an agency
   if (!agencyId) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', background: GRY, fontFamily: FB }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: GRY, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
             <Shield size={48} color={R} style={{ margin: '0 auto 16px', opacity: .4 }} />
-            <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK, marginBottom: 8 }}>Login Required</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK, marginBottom: 8 }}>Login Required</div>
             <div style={{ fontSize: 14, color: '#1f1f22' }}>You need to be logged into an agency to use KotoIQ.</div>
           </div>
         </div>
@@ -1185,7 +1185,7 @@ export default function KotoIQPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#ffffff', fontFamily: FB }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#ffffff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
       {!sidebarCollapsed && <Sidebar />}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
         {/* Sidebar collapse toggle */}
@@ -1209,12 +1209,12 @@ export default function KotoIQPage() {
               <div style={{ width: 36, height: 36, borderRadius: 10, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Brain size={18} color="#fff" />
               </div>
-              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>KotoIQ</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>KotoIQ</div>
             </div>
 
             {/* Client selector — prominent */}
             <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
-              style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontWeight: 600, fontFamily: FH, background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#8e8e93', maxWidth: 400 }}>
+              style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#8e8e93', maxWidth: 400 }}>
               <option value="">Select a client...</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -1459,7 +1459,7 @@ export default function KotoIQPage() {
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                     padding: '10px 12px', borderRadius: 8, border: `1.5px solid #ececef`,
                     background: '#f9f9fb', color: BLK, textDecoration: 'none',
-                    fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                    fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
                     transition: 'all .1s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = T + '15' }}
@@ -1476,7 +1476,7 @@ export default function KotoIQPage() {
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                     marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1.5px solid #e5e7eb`,
                     background: '#fff', color: BLK, textDecoration: 'none',
-                    fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                    fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
                   }}>
                   <Globe size={14} color="#374151" />
                   <div>
@@ -1489,7 +1489,7 @@ export default function KotoIQPage() {
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                     marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1.5px solid #ececef`,
                     background: `#f9f9fb`, color: BLK, textDecoration: 'none',
-                    fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                    fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
                   }}>
                   <Sparkles size={14} color={T} />
                   <div>
@@ -1592,17 +1592,17 @@ export default function KotoIQPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 20 }}>
                 <Sparkles size={18} color={R} />
                 <div style={{ flex: 1 }}>
-                  <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Re-run All Audits</span>
+                  <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Re-run All Audits</span>
                   <span style={{ fontSize: 12, color: '#6b6b70', marginLeft: 8 }}>12 tools in 3 waves — ~$0.50</span>
                 </div>
-                <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Zap size={12} /> Quick Scan
                 </button>
-                <button onClick={runDeepEnrich} disabled={enriching || syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button onClick={runDeepEnrich} disabled={enriching || syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Shield size={12} /> Deep Audit
                 </button>
                 <button onClick={runAllAudits} disabled={syncing || enriching || !readyForAll}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 800, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
                   {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
                   {syncing ? 'Running...' : 'Run All'}
                 </button>
@@ -1619,7 +1619,7 @@ export default function KotoIQPage() {
                       <Sparkles size={28} color={R} />
                     </div>
                     <div>
-                      <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900 }}>Run All Audits</div>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900 }}>Run All Audits</div>
                       <div style={{ fontSize: 14, color: '#94a3b8' }}>12 tools in 3 waves — keywords, technical, strategy — ~$0.50 in AI tokens</div>
                     </div>
                   </div>
@@ -1639,13 +1639,13 @@ export default function KotoIQPage() {
 
                   <div style={{ display: 'flex', gap: 12 }}>
                     <button onClick={runAllAudits} disabled={syncing || enriching || !readyForAll}
-                      style={{ flex: 1, padding: '16px', borderRadius: 12, border: 'none', background: readyForAll ? R : '#1f1f22', color: '#fff', fontSize: 16, fontWeight: 800, fontFamily: FH, cursor: syncing ? 'wait' : readyForAll ? 'pointer' : 'not-allowed', opacity: syncing || enriching ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      style={{ flex: 1, padding: '16px', borderRadius: 12, border: 'none', background: readyForAll ? R : '#1f1f22', color: '#fff', fontSize: 16, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: syncing ? 'wait' : readyForAll ? 'pointer' : 'not-allowed', opacity: syncing || enriching ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                       {syncing ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={18} />}
                       {syncing ? 'Running All Audits...' : 'Run All Audits'}
                     </button>
                     {!hasWebsite && (
                       <button onClick={() => { setEditingClient(c); setClientForm({ name: c?.name || '', website: c?.website || '', primary_service: c?.primary_service || '', location: '' }); setShowClientModal(true) }}
-                        style={{ padding: '16px 28px', borderRadius: 12, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                        style={{ padding: '16px 28px', borderRadius: 12, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer' }}>
                         Edit Client
                       </button>
                     )}
@@ -1659,13 +1659,13 @@ export default function KotoIQPage() {
                   <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForQuick ? '#ececef' : R + '30'}`, padding: '20px 22px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                       <Zap size={18} color={R} />
-                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Quick Scan</div>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Quick Scan</div>
                       <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: '#6b6b70' }}>No OAuth</span>
                     </div>
                     <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>AI keyword extraction, competitor discovery, Moz DA</div>
                     <div style={{ fontSize: 11, color: '#6b6b70', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b>, <span style={{ color: hasIndustry ? GRN : '#8e8e93' }}>Industry (optional)</span></div>
                     <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing || enriching || !readyForQuick}
-                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing || !readyForQuick ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: syncing || !readyForQuick ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                       {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Run
                     </button>
                   </div>
@@ -1673,13 +1673,13 @@ export default function KotoIQPage() {
                   <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForDeep ? '#ececef' : R + '30'}`, padding: '20px 22px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                       <Shield size={18} color={AMB} />
-                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Deep Audit</div>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Deep Audit</div>
                       <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: '#6b6b70' }}>11 tools</span>
                     </div>
                     <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>PageSpeed, CWV, SSL, schema, tech stack, domain signals</div>
                     <div style={{ fontSize: 11, color: '#6b6b70', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b></div>
                     <button onClick={runDeepEnrich} disabled={enriching || syncing || !readyForDeep}
-                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: AMB, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: enriching || !readyForDeep ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: AMB, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: enriching || !readyForDeep ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                       {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />} Run
                     </button>
                   </div>
@@ -1687,13 +1687,13 @@ export default function KotoIQPage() {
                   <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForFull ? '#ececef' : AMB + '30'}`, padding: '20px 22px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                       <RefreshCw size={18} color={T} />
-                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Full Sync</div>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Full Sync</div>
                       <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: T }}>OAuth</span>
                     </div>
                     <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>Search Console, Google Ads, GA4, Keyword Planner</div>
                     <div style={{ fontSize: 11, color: '#6b6b70', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b> + <b style={{ color: hasConnections ? GRN : R }}>Google OAuth</b></div>
                     <button onClick={runSync} disabled={syncing || !readyForFull}
-                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: readyForFull ? T : '#ececef', color: readyForFull ? '#fff' : '#8e8e93', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: readyForFull ? 'pointer' : 'not-allowed', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: readyForFull ? T : '#ececef', color: readyForFull ? '#fff' : '#8e8e93', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: readyForFull ? 'pointer' : 'not-allowed', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                       {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} {readyForFull ? 'Run' : 'Connect Google First'}
                     </button>
                   </div>
@@ -1763,13 +1763,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               </div>
             )}
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 16 }}>Client Portfolio</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 16 }}>Client Portfolio</div>
               {portfolio?.clients?.length > 0 ? (
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                       {['Client', 'Keywords', 'Top 3', 'Top 10', 'Avg Opp', 'Ads Spend', 'Cannibals', 'Actions', 'Last Sync', ''].map(h => (
-                        <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Client' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Client' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -1783,12 +1783,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <div style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{c.name}</div>
                           <div style={{ fontSize: 11, color: '#1f2937' }}>{c.service || c.website}</div>
                         </td>
-                        <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: c.total_keywords > 0 ? BLK : '#d1d5db' }}>{c.total_keywords || '—'}</td>
-                        <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: c.top3 > 0 ? GRN : '#d1d5db' }}>{c.top3 || '—'}</td>
-                        <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: c.top10 > 0 ? T : '#d1d5db' }}>{c.top10 || '—'}</td>
+                        <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: c.total_keywords > 0 ? BLK : '#d1d5db' }}>{c.total_keywords || '—'}</td>
+                        <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: c.top3 > 0 ? GRN : '#d1d5db' }}>{c.top3 || '—'}</td>
+                        <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: c.top10 > 0 ? T : '#d1d5db' }}>{c.top10 || '—'}</td>
                         <td style={{ textAlign: 'center' }}><ScoreBadge score={c.avg_opportunity} label="" /></td>
-                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{c.ads_spend ? fmt$(c.ads_spend) : '—'}</td>
-                        <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: c.cannibals > 0 ? R : '#d1d5db' }}>{c.cannibals || '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{c.ads_spend ? fmt$(c.ads_spend) : '—'}</td>
+                        <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: c.cannibals > 0 ? R : '#d1d5db' }}>{c.cannibals || '—'}</td>
                         <td style={{ textAlign: 'center' }}>
                           {c.critical_actions > 0 && <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 12, background: R + '15', color: R }}>{c.critical_actions}</span>}
                           {c.critical_actions === 0 && c.total_actions > 0 && <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 12, background: T + '15', color: T }}>{c.total_actions}</span>}
@@ -1815,7 +1815,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {!clientId && !portfolio && (
           <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
             <Zap size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
-            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Loading portfolio...</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Loading portfolio...</div>
           </div>
         )}
 
@@ -2324,7 +2324,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Page Builder Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>PageIQ — Content Builder</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>PageIQ — Content Builder</div>
                 <div style={{ fontSize: 13, color: '#1f1f22' }}>AI content briefs + multi-variant page generation with automatic rotation</div>
               </div>
               <SectionActions
@@ -2335,7 +2335,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {/* Generate new brief */}
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Zap size={18} color={T} /> Generate Content Brief
               </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'end' }}>
@@ -2381,7 +2381,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div ref={briefViewerRef} style={card} id="brief-printable">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                   <div>
-                    <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{activeBrief.h1}</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK }}>{activeBrief.h1}</div>
                     <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 4 }}>{activeBrief.target_url} · {activeBrief.target_word_count} words</div>
                   </div>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -2485,7 +2485,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     {activeBrief.outline.map((section, i) => (
                       <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #e5e7eb', marginBottom: 8, borderLeft: `3px solid ${T}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>H2: {section.h2}</div>
+                          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>H2: {section.h2}</div>
                           <span style={{ fontSize: 11, color: '#1f2937' }}>~{section.word_count_target} words</span>
                         </div>
                         {section.h3s?.length > 0 && (
@@ -2593,7 +2593,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {fullPageContent && (
                   <div style={{ marginTop: 16, padding: '20px 24px', borderRadius: 12, background: '#f9f9fb', border: '1px solid #e5e7eb' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>Full Page Content — {fullPageContent.word_count} words</div>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>Full Page Content — {fullPageContent.word_count} words</div>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button onClick={() => { navigator.clipboard.writeText(fullPageContent.plain_text); toast.success('Plain text copied!') }}
                           style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy Text</button>
@@ -2604,8 +2604,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.8, maxHeight: 500, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: fullPageContent.content_html + (fullPageContent.faq_html ? '<hr style="margin:24px 0"/>' + fullPageContent.faq_html : '') }} />
                     {fullPageContent.topicality_score && (
                       <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em' }}>Topicality Score</div>
-                        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: (fullPageContent.topicality_score.score || 0) >= 80 ? GRN : (fullPageContent.topicality_score.score || 0) >= 60 ? AMB : R }}>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 800, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em' }}>Topicality Score</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: (fullPageContent.topicality_score.score || 0) >= 80 ? GRN : (fullPageContent.topicality_score.score || 0) >= 60 ? AMB : R }}>
                           {fullPageContent.topicality_score.score || '—'}/100
                         </div>
                         {fullPageContent.topicality_score.summary && (
@@ -2621,7 +2621,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {schemaCode && (
                   <div style={{ marginTop: 16, padding: '20px 24px', borderRadius: 12, background: '#0f172a', border: '1px solid #1e293b' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#fff' }}>JSON-LD Schema — {schemaCode.schema_count} blocks</div>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: '#fff' }}>JSON-LD Schema — {schemaCode.schema_count} blocks</div>
                       <button onClick={() => { navigator.clipboard.writeText(schemaCode.html); toast.success('Schema code copied!') }}
                         style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: GRN, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy All Schema</button>
                     </div>
@@ -2634,7 +2634,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Saved briefs list */}
             {briefs.length > 0 && (
               <div style={card}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Saved Briefs</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Saved Briefs</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {briefs.map((b, i) => (
                     <div key={b.id || i} role="button" tabIndex={0}
@@ -2672,7 +2672,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {clientId && tab === 'ranks' && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Rank Tracker</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Rank Tracker</div>
               <SectionActions
                 onRerun={loadRanks}
                 onDelete={() => { setRankData(null); toast.success('Rank data cleared') }}
@@ -2708,7 +2708,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                 {/* Position distribution bar */}
                 <div style={card}>
-                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Position Distribution</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Position Distribution</div>
                   {(() => {
                     const all = rankData.all || []
                     const buckets = [
@@ -2765,7 +2765,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <thead>
                           <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                             {['Keyword', 'Position', 'Change', 'Previous', 'Clicks', 'Impressions', 'Opp Score', 'Category'].map(h => (
-                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -2776,22 +2776,22 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             return (
                               <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                                 <td style={{ padding: '10px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
-                                <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 16, fontWeight: 900, color: kw.current_position <= 3 ? GRN : kw.current_position <= 10 ? T : kw.current_position <= 20 ? AMB : R }}>
+                                <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 900, color: kw.current_position <= 3 ? GRN : kw.current_position <= 10 ? T : kw.current_position <= 20 ? AMB : R }}>
                                   #{Math.round(kw.current_position * 10) / 10}
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                   {kw.change != null ? (
-                                    <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: changeColor, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                                    <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: changeColor, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
                                       {kw.change > 0 ? <ArrowUpRight size={14} /> : kw.change < 0 ? <ArrowDownRight size={14} /> : null}
                                       {kw.change > 0 ? '+' : ''}{kw.change}
                                     </span>
                                   ) : <span style={{ fontSize: 12, color: '#1f2937' }}>—</span>}
                                 </td>
-                                <td style={{ textAlign: 'center', fontSize: 12, color: '#1f1f22', fontFamily: FH }}>
+                                <td style={{ textAlign: 'center', fontSize: 12, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                                   {kw.previous_position ? `#${Math.round(kw.previous_position * 10) / 10}` : '—'}
                                 </td>
-                                <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.clicks || 0}</td>
-                                <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.impressions?.toLocaleString() || 0}</td>
+                                <td style={{ textAlign: 'center', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{kw.clicks || 0}</td>
+                                <td style={{ textAlign: 'center', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{kw.impressions?.toLocaleString() || 0}</td>
                                 <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="" /></td>
                                 <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
                               </tr>
@@ -2809,7 +2809,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     {rankData.improved?.length > 0 && (
                       <div style={card}>
-                        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: GRN, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                           <ArrowUpRight size={16} /> Biggest Improvers (7d)
                         </div>
                         {rankData.improved.slice(0, 5).map((kw, i) => (
@@ -2818,7 +2818,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{ fontSize: 11, color: '#1f2937' }}>#{Math.round(kw.previous_position)}</span>
                               <span style={{ color: GRN }}>→</span>
-                              <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>#{Math.round(kw.current_position)}</span>
+                              <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: GRN }}>#{Math.round(kw.current_position)}</span>
                               <span style={{ fontSize: 11, fontWeight: 800, color: GRN, background: GRN + '12', padding: '2px 6px', borderRadius: 4 }}>+{kw.change}</span>
                             </div>
                           </div>
@@ -2827,7 +2827,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     )}
                     {rankData.declined?.length > 0 && (
                       <div style={card}>
-                        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                           <ArrowDownRight size={16} /> Biggest Declines (7d)
                         </div>
                         {rankData.declined.slice(0, 5).map((kw, i) => (
@@ -2836,7 +2836,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{ fontSize: 11, color: '#1f2937' }}>#{Math.round(kw.previous_position)}</span>
                               <span style={{ color: R }}>→</span>
-                              <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: R }}>#{Math.round(kw.current_position)}</span>
+                              <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: R }}>#{Math.round(kw.current_position)}</span>
                               <span style={{ fontSize: 11, fontWeight: 800, color: R, background: '#f1f1f6', padding: '2px 6px', borderRadius: 4 }}>{kw.change}</span>
                             </div>
                           </div>
@@ -2854,7 +2854,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {clientId && tab === 'audit' && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Deep Technical Audit</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Deep Technical Audit</div>
               <SectionActions
                 onRerun={runDeepEnrich}
                 onDelete={() => { setEnrichment(null); toast.success('Audit data cleared') }}
@@ -2868,7 +2868,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {!enrichLoading && !enrichment && (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <Shield size={48} color={AMB} style={{ margin: '0 auto 16px', opacity: .3 }} />
-                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No audit data yet</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No audit data yet</div>
                 <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20 }}>Run a Deep Audit to analyze this client with 11 SEO tools in parallel — technical audit, on-page analysis, citations, AI visibility, content gaps, market density, and more.</div>
                 <button onClick={runDeepEnrich} disabled={enriching}
                   style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: AMB, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
@@ -2882,7 +2882,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Tools run badge */}
                 {enrichment.tools_run?.length > 0 && (
                   <div style={{ padding: '12px 20px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                       {enrichment.tools_run.length} Tools Ran · {enrichment.enriched_at ? new Date(enrichment.enriched_at).toLocaleDateString() : ''}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -2904,7 +2904,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     const color = numScore >= 70 ? GRN : numScore >= 40 ? AMB : numScore > 0 ? R : '#d1d5db'
                     return (
                       <div key={label} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px', textAlign: 'center' }}>
-                        <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color, lineHeight: 1 }}>{grade || '—'}</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color, lineHeight: 1 }}>{grade || '—'}</div>
                         <div style={{ fontSize: 11, color: '#1f2937', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
                         {typeof score === 'number' && <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>{score}/100</div>}
                       </div>
@@ -2915,9 +2915,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Technical Audit */}
                 {enrichment.technical_audit && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <AlertCircle size={18} color={R} /> Technical SEO Audit
-                      <span style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 24, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[enrichment.technical_audit.grade] || '#6b6b70' }}>{enrichment.technical_audit.grade}</span>
+                      <span style={{ marginLeft: 'auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[enrichment.technical_audit.grade] || '#6b6b70' }}>{enrichment.technical_audit.grade}</span>
                     </div>
                     {enrichment.technical_audit.summary && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.technical_audit.summary}</div>}
                     {enrichment.technical_audit.critical_issues?.length > 0 && (
@@ -2941,9 +2941,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* On-Page Audit */}
                 {enrichment.onpage_audit && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Eye size={18} color={T} /> On-Page SEO Audit
-                      <span style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 24, fontWeight: 900, color: enrichment.onpage_audit.score >= 70 ? GRN : enrichment.onpage_audit.score >= 40 ? AMB : R }}>{enrichment.onpage_audit.score}/100</span>
+                      <span style={{ marginLeft: 'auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: enrichment.onpage_audit.score >= 70 ? GRN : enrichment.onpage_audit.score >= 40 ? AMB : R }}>{enrichment.onpage_audit.score}/100</span>
                     </div>
                     {enrichment.onpage_audit.ai_summary && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.onpage_audit.ai_summary}</div>}
                     {enrichment.onpage_audit.critical_fails?.length > 0 && enrichment.onpage_audit.critical_fails.map((f, i) => (
@@ -2960,9 +2960,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Citations */}
                 {enrichment.citations && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <MapPin size={18} color={AMB} /> Citation Check
-                      <span style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 20, fontWeight: 900, color: enrichment.citations.score >= 70 ? GRN : enrichment.citations.score >= 40 ? AMB : R }}>{enrichment.citations.found}/{enrichment.citations.total} found</span>
+                      <span style={{ marginLeft: 'auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: enrichment.citations.score >= 70 ? GRN : enrichment.citations.score >= 40 ? AMB : R }}>{enrichment.citations.found}/{enrichment.citations.total} found</span>
                     </div>
                     {enrichment.citations.ai_summary && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.citations.ai_summary}</div>}
                     {enrichment.citations.directories && (
@@ -2981,17 +2981,17 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* AI Visibility */}
                 {enrichment.ai_visibility && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Brain size={18} color={'#8b5cf6'} /> AI Visibility Test
-                      <span style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 24, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[enrichment.ai_visibility.grade] || '#6b6b70' }}>{enrichment.ai_visibility.grade}</span>
+                      <span style={{ marginLeft: 'auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[enrichment.ai_visibility.grade] || '#6b6b70' }}>{enrichment.ai_visibility.grade}</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                       <div style={{ padding: 14, borderRadius: 10, background: '#f9f9fb', textAlign: 'center' }}>
-                        <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: enrichment.ai_visibility.mention_rate >= 50 ? GRN : AMB }}>{enrichment.ai_visibility.mention_rate}%</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: enrichment.ai_visibility.mention_rate >= 50 ? GRN : AMB }}>{enrichment.ai_visibility.mention_rate}%</div>
                         <div style={{ fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Mention Rate</div>
                       </div>
                       <div style={{ padding: 14, borderRadius: 10, background: '#f9f9fb', textAlign: 'center' }}>
-                        <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: enrichment.ai_visibility.positive_rate >= 50 ? GRN : AMB }}>{enrichment.ai_visibility.positive_rate}%</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: enrichment.ai_visibility.positive_rate >= 50 ? GRN : AMB }}>{enrichment.ai_visibility.positive_rate}%</div>
                         <div style={{ fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Positive Rate</div>
                       </div>
                     </div>
@@ -3012,7 +3012,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Market Density */}
                 {enrichment.market_density && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <BarChart2 size={18} color={T} /> Market Density
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 12 }}>
@@ -3023,7 +3023,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         ['Saturation', `${enrichment.market_density.saturation_score}/100`, enrichment.market_density.saturation_score >= 70 ? R : enrichment.market_density.saturation_score >= 40 ? AMB : GRN],
                       ].map(([label, val, color]) => (
                         <div key={label} style={{ padding: 14, borderRadius: 10, background: '#f9f9fb', textAlign: 'center' }}>
-                          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{val}</div>
+                          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color }}>{val}</div>
                           <div style={{ fontSize: 12, color: '#1f2937', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
                         </div>
                       ))}
@@ -3037,7 +3037,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Content Gap */}
                 {enrichment.content_gap && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Zap size={18} color={R} /> Content Gap Analysis
                     </div>
                     {enrichment.content_gap.quick_content_wins?.length > 0 && (
@@ -3079,7 +3079,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Grid Scan */}
                 {enrichment.grid_scan && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <MapPin size={18} color={R} /> Live Local Pack Grid — "{enrichment.grid_scan.keyword}"
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
@@ -3089,7 +3089,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         ['Avg Rank', enrichment.grid_scan.avg_rank ? `#${Math.round(enrichment.grid_scan.avg_rank)}` : '—', T],
                       ].map(([l, v, c]) => (
                         <div key={l} style={{ padding: 14, borderRadius: 10, background: '#f9f9fb', textAlign: 'center' }}>
-                          <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: c }}>{v}</div>
+                          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: c }}>{v}</div>
                           <div style={{ fontSize: 12, color: '#1f2937', textTransform: 'uppercase', marginTop: 4 }}>{l}</div>
                         </div>
                       ))}
@@ -3099,7 +3099,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {enrichment.grid_scan.results.map((g, i) => {
                           const color = !g.rank ? '#d1d5db' : g.rank <= 3 ? GRN : g.rank <= 10 ? AMB : R
                           return (
-                            <div key={i} style={{ aspectRatio: '1', borderRadius: 6, background: color + '15', border: `2px solid ${color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color, fontFamily: FH }}>
+                            <div key={i} style={{ aspectRatio: '1', borderRadius: 6, background: color + '15', border: `2px solid ${color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                               {g.rank ? `#${g.rank}` : '—'}
                             </div>
                           )
@@ -3112,7 +3112,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Competitor Intel */}
                 {enrichment.competitor_intel && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Target size={18} color={R} /> Competitor Intelligence
                     </div>
                     {enrichment.competitor_intel.market_position && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.competitor_intel.market_position}</div>}
@@ -3121,7 +3121,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {enrichment.competitor_intel.competitors.map((c, i) => (
                           <div key={i} style={{ padding: 12, borderRadius: 8, background: '#f9f9fb', border: '1px solid #e5e7eb' }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{c.name}</div>
-                            <div style={{ fontSize: 20, fontWeight: 900, color: T, fontFamily: FH }}>{c.score}/100</div>
+                            <div style={{ fontSize: 20, fontWeight: 900, color: T, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{c.score}/100</div>
                             <div style={{ fontSize: 11, color: '#1f1f22' }}>{c.rating}★ · {c.reviews} reviews</div>
                           </div>
                         ))}
@@ -3136,17 +3136,17 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* PPC Keywords */}
                 {enrichment.ppc_keywords && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <DollarSign size={18} color={GRN} /> PPC Keyword Strategy
                     </div>
                     {enrichment.ppc_keywords.campaign_strategy && <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.ppc_keywords.campaign_strategy}</div>}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                       <div style={{ padding: 14, borderRadius: 10, background: '#f9f9fb', textAlign: 'center' }}>
-                        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: T }}>{enrichment.ppc_keywords.target_cpc_range}</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 900, color: T }}>{enrichment.ppc_keywords.target_cpc_range}</div>
                         <div style={{ fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Target CPC</div>
                       </div>
                       <div style={{ padding: 14, borderRadius: 10, background: '#f9f9fb', textAlign: 'center' }}>
-                        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: GRN }}>{enrichment.ppc_keywords.monthly_budget_suggestion}</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 900, color: GRN }}>{enrichment.ppc_keywords.monthly_budget_suggestion}</div>
                         <div style={{ fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Budget Suggestion</div>
                       </div>
                     </div>
@@ -3169,7 +3169,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Domain Enrichment */}
                 {enrichment.domain && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Search size={18} color={T} /> Domain Intelligence
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
@@ -3426,7 +3426,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Competitor Landscape — auto-discovers competitors via DataForSEO */}
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Target size={18} color={T} /> Competitor Landscape
                   <SectionActions
                     onDelete={() => { setCompLandscape(null); setSelectedCompDomain(null); setCompDomainKws(null); toast.success('Competitor data cleared') }}
@@ -3462,8 +3462,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {compLandscape.client_keywords && (
                     <div style={{ padding: '14px 18px', background: '#f9f9fb', borderRadius: 10, border: `1px solid #ececef`, marginBottom: 16 }}>
                       <div style={{ display: 'flex', gap: 20 }}>
-                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: T }}>{compLandscape.client_keywords.total || 0}</span><div style={{ fontSize: 12, color: '#1f1f22', textTransform: 'uppercase' }}>Total Keywords</div></div>
-                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{compLandscape.domain}</span><div style={{ fontSize: 12, color: '#1f1f22', textTransform: 'uppercase' }}>Your Domain</div></div>
+                        <div><span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: T }}>{compLandscape.client_keywords.total || 0}</span><div style={{ fontSize: 12, color: '#1f1f22', textTransform: 'uppercase' }}>Total Keywords</div></div>
+                        <div><span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK }}>{compLandscape.domain}</span><div style={{ fontSize: 12, color: '#1f1f22', textTransform: 'uppercase' }}>Your Domain</div></div>
                       </div>
                     </div>
                   )}
@@ -3475,7 +3475,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <thead>
                           <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                             {['Competitor', 'Shared KWs', 'Organic KWs', 'Est. Traffic', 'Est. Traffic Value', 'Relevance', ''].map(h => (
-                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Competitor' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Competitor' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -3493,11 +3493,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                 } catch {}
                                 setCompDomainLoading(false)
                               }}>
-                              <td style={{ padding: '10px', fontSize: 14, fontWeight: 700, color: BLK, fontFamily: FH }}>{comp.domain}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: T }}>{comp.intersections || comp.keywords_count}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{(comp.organic_count || 0).toLocaleString()}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{Math.round(comp.organic_traffic || 0).toLocaleString()}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: GRN }}>${Math.round(comp.organic_cost || 0).toLocaleString()}</td>
+                              <td style={{ padding: '10px', fontSize: 14, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{comp.domain}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: T }}>{comp.intersections || comp.keywords_count}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: BLK }}>{(comp.organic_count || 0).toLocaleString()}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: BLK }}>{Math.round(comp.organic_traffic || 0).toLocaleString()}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: GRN }}>${Math.round(comp.organic_cost || 0).toLocaleString()}</td>
                               <td style={{ textAlign: 'center' }}>
                                 <div style={{ height: 6, borderRadius: 3, background: '#f1f1f6', width: 60, margin: '0 auto', overflow: 'hidden' }}>
                                   <div style={{ height: '100%', borderRadius: 3, background: comp.competitor_relevance > 0.5 ? R : comp.competitor_relevance > 0.2 ? AMB : GRN, width: `${Math.min(comp.competitor_relevance * 100, 100)}%` }} />
@@ -3514,7 +3514,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {/* Selected competitor detail — keyword comparison */}
                   {selectedCompDomain && (
                     <div style={{ marginTop: 16, padding: '16px 20px', background: '#f9f9fb', borderRadius: 12, border: '1px solid #e5e7eb' }}>
-                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
                         {compLandscape.domain} vs {selectedCompDomain} — Shared Keywords
                       </div>
                       {compDomainLoading && <div style={{ textAlign: 'center', padding: 20 }}><Loader2 size={20} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
@@ -3524,7 +3524,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             <thead>
                               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                                 {['Keyword', 'Volume', 'CPC', 'Your Pos', 'Their Pos', 'Gap'].map(h => (
-                                  <th key={h} style={{ padding: '6px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                                  <th key={h} style={{ padding: '6px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                                 ))}
                               </tr>
                             </thead>
@@ -3536,13 +3536,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                     <td style={{ padding: '8px 10px', fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</td>
                                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{(kw.search_volume || 0).toLocaleString()}</td>
                                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>${(kw.cpc || 0).toFixed(2)}</td>
-                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: kw.domain1_position <= 3 ? GRN : kw.domain1_position <= 10 ? T : kw.domain1_position <= 20 ? AMB : R }}>
+                                    <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: kw.domain1_position <= 3 ? GRN : kw.domain1_position <= 10 ? T : kw.domain1_position <= 20 ? AMB : R }}>
                                       {kw.domain1_position || '—'}
                                     </td>
-                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: kw.domain2_position <= 3 ? GRN : kw.domain2_position <= 10 ? T : kw.domain2_position <= 20 ? AMB : R }}>
+                                    <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: kw.domain2_position <= 3 ? GRN : kw.domain2_position <= 10 ? T : kw.domain2_position <= 20 ? AMB : R }}>
                                       {kw.domain2_position || '—'}
                                     </td>
-                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 13, fontWeight: 700, color: gap < 0 ? GRN : gap > 0 ? R : '#8e8e93' }}>
+                                    <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: gap < 0 ? GRN : gap > 0 ? R : '#8e8e93' }}>
                                       {gap < 0 ? `+${Math.abs(gap)}` : gap > 0 ? `-${gap}` : '='}
                                     </td>
                                   </tr>
@@ -3570,22 +3570,22 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                         return (
                           <div style={{ marginTop: 16 }}>
-                            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Attack Opportunities</div>
+                            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Attack Opportunities</div>
 
                             {/* Opportunity cards */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
                               <div style={{ padding: '16px', background: '#f9f9fb', borderRadius: 10, border: `1px solid ${R}15` }}>
-                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: R }}>{losing.length}</div>
+                                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: R }}>{losing.length}</div>
                                 <div style={{ fontSize: 11, color: '#1f1f22', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>They Beat You</div>
                                 <div style={{ fontSize: 11, color: '#1f2937', marginTop: 4 }}>Keywords where competitor ranks higher</div>
                               </div>
                               <div style={{ padding: '16px', background: '#f9f9fb', borderRadius: 10, border: `1px solid ${AMB}15` }}>
-                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: AMB }}>{strikingDistance.length}</div>
+                                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: AMB }}>{strikingDistance.length}</div>
                                 <div style={{ fontSize: 11, color: '#1f1f22', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Striking Distance</div>
                                 <div style={{ fontSize: 11, color: '#1f2937', marginTop: 4 }}>You're position 4-10 — push to top 3</div>
                               </div>
                               <div style={{ padding: '16px', background: '#f9f9fb', borderRadius: 10, border: `1px solid ${T}15` }}>
-                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: T }}>{gaps.length}</div>
+                                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: T }}>{gaps.length}</div>
                                 <div style={{ fontSize: 11, color: '#1f1f22', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Keyword Gaps</div>
                                 <div style={{ fontSize: 11, color: '#1f2937', marginTop: 4 }}>They rank, you don't — new opportunities</div>
                               </div>
@@ -3602,9 +3602,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                       <div style={{ fontSize: 11, color: '#1f2937' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: R }}>You: #{kw.domain1_position}</span>
+                                      <span style={{ fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, color: R }}>You: #{kw.domain1_position}</span>
                                       <span style={{ fontSize: 12, color: '#1f2937' }}>vs</span>
-                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.domain2_position}</span>
+                                      <span style={{ fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, color: GRN }}>Them: #{kw.domain2_position}</span>
                                     </div>
                                   </div>
                                 ))}
@@ -3622,9 +3622,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                       <div style={{ fontSize: 11, color: '#1f2937' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: '#1f2937' }}>You: —</span>
+                                      <span style={{ fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, color: '#1f2937' }}>You: —</span>
                                       <span style={{ fontSize: 12, color: '#1f2937' }}>vs</span>
-                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.position}</span>
+                                      <span style={{ fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, color: GRN }}>Them: #{kw.position}</span>
                                       <span style={{ padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', fontSize: 12, fontWeight: 700, color: T }}>NEW OPP</span>
                                     </div>
                                   </div>
@@ -3652,7 +3652,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {/* Per-keyword page analysis */}
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={18} color={R} /> Competitor Page Analysis
                 <SectionActions
                   onDelete={() => { setCompAnalysis(null); toast.success('Analysis cleared') }}
@@ -3692,13 +3692,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Page comparison table */}
                 {compAnalysis.analyses?.length > 0 && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Page-by-Page Comparison: "{compAnalysis.keyword}"</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Page-by-Page Comparison: "{compAnalysis.keyword}"</div>
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 800 }}>
                         <thead>
                           <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                             {['Page', 'Words', 'H2s', 'H3s', 'Schema', 'FAQ', 'Images', 'Int. Links', 'DA', 'PA', 'KW in Title', 'KW in H1'].map(h => (
-                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -3716,20 +3716,20 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   <ChevronDown size={12} color="#9ca3af" style={{ marginLeft: 'auto', transition: 'transform .2s', transform: expandedCompIdx === i ? 'rotate(180deg)' : 'none' }} />
                                 </div>
                               </td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>{a.word_count?.toLocaleString()}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.h2_count}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.h3_count}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>{a.word_count?.toLocaleString()}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: BLK }}>{a.h2_count}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: BLK }}>{a.h3_count}</td>
                               <td style={{ textAlign: 'center' }}>
                                 <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
                                   {(a.schemas || []).slice(0, 3).map((s, j) => <span key={j} style={{ fontSize: 8, padding: '2px 5px', borderRadius: 3, background: '#f1f1f6', color: T, fontWeight: 700 }}>{s}</span>)}
                                   {(!a.schemas || a.schemas.length === 0) && <span style={{ fontSize: 12, color: R }}>None</span>}
                                 </div>
                               </td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: a.has_faq ? GRN : R }}>{a.has_faq ? `✓ ${a.faq_count}` : '✕'}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.image_count} <span style={{ fontSize: 11, color: '#1f2937' }}>({a.images_with_alt} alt)</span></td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.internal_links}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 16, fontWeight: 900, color: (a.da || 0) >= 40 ? GRN : (a.da || 0) >= 20 ? AMB : R }}>{a.da || '—'}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.pa || '—'}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: a.has_faq ? GRN : R }}>{a.has_faq ? `✓ ${a.faq_count}` : '✕'}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: BLK }}>{a.image_count} <span style={{ fontSize: 11, color: '#1f2937' }}>({a.images_with_alt} alt)</span></td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: BLK }}>{a.internal_links}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 900, color: (a.da || 0) >= 40 ? GRN : (a.da || 0) >= 20 ? AMB : R }}>{a.da || '—'}</td>
+                              <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: BLK }}>{a.pa || '—'}</td>
                               <td style={{ textAlign: 'center', color: a.keyword_in_title ? GRN : R, fontSize: 14 }}>{a.keyword_in_title ? '✓' : '✕'}</td>
                               <td style={{ textAlign: 'center', color: a.keyword_in_h1 ? GRN : R, fontSize: 14 }}>{a.keyword_in_h1 ? '✓' : '✕'}</td>
                             </tr>
@@ -3789,7 +3789,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* AI Gap Analysis */}
                 {compAnalysis.gap_analysis && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Brain size={18} color={T} /> AI Competitive Gap Analysis
                     </div>
                     <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, marginBottom: 20, padding: '14px 18px', background: '#f9f9fb', borderRadius: 10, border: `1px solid #ececef` }}>
@@ -3843,7 +3843,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             ['Images', compAnalysis.gap_analysis.content_targets.image_count_target || 0],
                           ].map(([l, v]) => (
                             <div key={l} style={{ textAlign: 'center' }}>
-                              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: R }}>{v}</div>
+                              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: R }}>{v}</div>
                               <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 2 }}>{l}</div>
                             </div>
                           ))}
@@ -3896,18 +3896,18 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {!roiData && !roiLoading && (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <DollarSign size={48} color={GRN} style={{ margin: '0 auto 16px', opacity: .3 }} />
-                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>ROI Projections</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>ROI Projections</div>
                 <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20 }}>Calculate the estimated traffic and revenue impact of fixing issues found in your audit.</div>
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 20 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: FH }}>Avg Job Value ($)</label>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Avg Job Value ($)</label>
                     <input type="number" min="0" placeholder="e.g. 500" value={roiJobValue} onChange={e => setRoiJobValue(e.target.value)}
-                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FH, fontWeight: 700 }} />
+                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: FH }}>Customer LTV ($)</label>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Customer LTV ($)</label>
                     <input type="number" min="0" placeholder="e.g. 5000" value={roiLtv} onChange={e => setRoiLtv(e.target.value)}
-                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FH, fontWeight: 700 }} />
+                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
                   </div>
                 </div>
                 <button onClick={async () => {
@@ -3942,7 +3942,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Current vs Projected */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', marginBottom: 12 }}>Current State</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', marginBottom: 12 }}>Current State</div>
                     {[
                       ['Monthly Traffic', roiData.current_state?.estimated_monthly_organic_traffic, T],
                       ['Monthly Leads', roiData.current_state?.estimated_monthly_leads, AMB],
@@ -3950,12 +3950,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     ].map(([l, v, c]) => (
                       <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
                         <span style={{ fontSize: 13, color: '#1f1f22' }}>{l}</span>
-                        <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</span>
+                        <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</span>
                       </div>
                     ))}
                   </div>
                   <div style={{ ...card, borderLeft: `4px solid ${GRN}` }}>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN, textTransform: 'uppercase', marginBottom: 12 }}>Projected State ({roiData.projected_state?.timeline_months || '?'} months)</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: GRN, textTransform: 'uppercase', marginBottom: 12 }}>Projected State ({roiData.projected_state?.timeline_months || '?'} months)</div>
                     {[
                       ['Monthly Traffic', roiData.projected_state?.estimated_monthly_organic_traffic, GRN],
                       ['Monthly Leads', roiData.projected_state?.estimated_monthly_leads, GRN],
@@ -3963,7 +3963,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     ].map(([l, v, c]) => (
                       <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
                         <span style={{ fontSize: 13, color: '#1f1f22' }}>{l}</span>
-                        <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</span>
+                        <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</span>
                       </div>
                     ))}
                   </div>
@@ -3979,7 +3979,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ['Annual Impact', roiData.total_opportunity.annual_revenue_impact, R],
                     ].map(([l, v, c]) => (
                       <div key={l} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px', textAlign: 'center' }}>
-                        <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') || l.includes('Impact') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') || l.includes('Impact') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</div>
                         <div style={{ fontSize: 12, color: '#1f2937', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{l}</div>
                       </div>
                     ))}
@@ -3989,12 +3989,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Improvement breakdown */}
                 {roiData.improvements?.length > 0 && (
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Improvement Breakdown</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Improvement Breakdown</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
                         <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                           {['Action', 'Category', 'Traffic Gain', 'Add\'l Clicks', 'Revenue', 'Effort', 'Confidence'].map(h => (
-                            <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Action' ? 'left' : 'center' }}>{h}</th>
+                            <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Action' ? 'left' : 'center' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -4003,9 +4003,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                             <td style={{ padding: '10px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 250 }}>{imp.action}</td>
                             <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: T }}>{imp.category}</span></td>
-                            <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>+{imp.traffic_gain_pct}%</td>
-                            <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14 }}>+{imp.estimated_additional_clicks}</td>
-                            <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>+${imp.estimated_additional_revenue?.toLocaleString()}</td>
+                            <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: GRN }}>+{imp.traffic_gain_pct}%</td>
+                            <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14 }}>+{imp.estimated_additional_clicks}</td>
+                            <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: GRN }}>+${imp.estimated_additional_revenue?.toLocaleString()}</td>
                             <td style={{ textAlign: 'center', fontSize: 11, color: '#1f1f22' }}>{imp.effort}</td>
                             <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, color: { high: GRN, medium: AMB, low: R }[imp.confidence] || '#6b6b70' }}>{imp.confidence}</span></td>
                           </tr>
@@ -4017,21 +4017,21 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                 {roiData.total_opportunity?.roi_on_seo_investment && (
                   <div style={{ ...card, textAlign: 'center', background: GRN + '06', borderLeft: `4px solid ${GRN}` }}>
-                    <div style={{ fontFamily: FH, fontSize: 48, fontWeight: 900, color: GRN }}>{roiData.total_opportunity.roi_on_seo_investment}</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 48, fontWeight: 900, color: GRN }}>{roiData.total_opportunity.roi_on_seo_investment}</div>
                     <div style={{ fontSize: 14, color: '#1f1f22', fontWeight: 600 }}>Projected Return on SEO Investment</div>
                   </div>
                 )}
 
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, justifyContent: 'center', padding: '16px 0' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: FH }}>Avg Job Value ($)</label>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Avg Job Value ($)</label>
                     <input type="number" min="0" placeholder="e.g. 500" value={roiJobValue} onChange={e => setRoiJobValue(e.target.value)}
-                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FH, fontWeight: 700 }} />
+                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: FH }}>Customer LTV ($)</label>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Customer LTV ($)</label>
                     <input type="number" min="0" placeholder="e.g. 5000" value={roiLtv} onChange={e => setRoiLtv(e.target.value)}
-                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FH, fontWeight: 700 }} />
+                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
                   </div>
                   <button onClick={async () => {
                     setRoiLoading(true)
@@ -4052,7 +4052,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {clientId && tab === 'gmb' && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Google Business Profile</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Google Business Profile</div>
               <SectionActions
                 onRerun={loadGMB}
                 onDelete={() => { setGmb(null); setGmbPosts([]); toast.success('GMB data cleared') }}
@@ -4066,7 +4066,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {!gmbLoading && !gmb?.gbp && (
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <Star size={48} color={AMB} style={{ margin: '0 auto 16px', opacity: .3 }} />
-                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No GBP data found</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No GBP data found</div>
                 <div style={{ fontSize: 14, color: '#1f1f22' }}>Run a KotoIntel scan first, or check that the client has a Google Business Profile listing.</div>
               </div>
             )}
@@ -4081,10 +4081,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div style={card}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
                       <div style={{ width: 80, height: 80, borderRadius: '50%', background: scoreColor + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: scoreColor }}>{audit.score}</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 36, fontWeight: 900, color: scoreColor }}>{audit.score}</div>
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>{g.name}</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK }}>{g.name}</div>
                         <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 2 }}>{g.address}</div>
                         <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>{g.phone} · {g.primary_category?.replace(/_/g, ' ')}</div>
                       </div>
@@ -4106,7 +4106,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         ['GBP Score', `${audit.score}/100`, scoreColor],
                       ].map(([label, val, color]) => (
                         <div key={label} style={{ padding: '14px 16px', background: '#f9f9fb', borderRadius: 10, textAlign: 'center' }}>
-                          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
+                          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
                           <div style={{ fontSize: 12, color: '#1f2937', marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
                         </div>
                       ))}
@@ -4134,7 +4134,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     {gmb.moz && (
                       <div style={{ marginTop: 16, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', gap: 16 }}>
                         <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: gmb.moz.domain_authority >= 40 ? GRN : gmb.moz.domain_authority >= 20 ? AMB : R }}>{gmb.moz.domain_authority}</div>
+                          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: gmb.moz.domain_authority >= 40 ? GRN : gmb.moz.domain_authority >= 20 ? AMB : R }}>{gmb.moz.domain_authority}</div>
                           <div style={{ fontSize: 11, color: '#1f1f22', textTransform: 'uppercase' }}>Domain Authority</div>
                         </div>
                         <div style={{ fontSize: 12, color: '#0c4a6e' }}>Spam Score: {gmb.moz.spam_score}% · {gmb.moz.linking_root_domains?.toLocaleString()} linking domains · {gmb.moz.external_backlinks?.toLocaleString()} backlinks</div>
@@ -4146,7 +4146,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {g.recent_reviews?.length > 0 && (
                     <div style={card}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                           <Star size={18} color={AMB} /> Recent Reviews ({g.recent_reviews.length})
                         </div>
                         <button onClick={async () => {
@@ -4231,7 +4231,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {/* GBP Post Generator + Content Calendar */}
                   <div style={card}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Zap size={18} color={R} /> GBP Content Calendar
                         <SectionActions
                           onDelete={() => { setGmbPosts([]); toast.success('Posts cleared') }}
@@ -4308,7 +4308,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                     const updated = [...gmbPosts]
                                     updated[i] = { ...updated[i], _editText: e.target.value }
                                     setGmbPosts(updated)
-                                  }} rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB, lineHeight: 1.6, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+                                  }} rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", lineHeight: 1.6, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
                                     <div style={{ display: 'flex', gap: 6 }}>
                                       <span style={{ fontSize: 11, fontWeight: 700, color }}>{post.cta}</span>
@@ -4357,7 +4357,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {/* Review Velocity Chart */}
                   {g.review_count > 0 && (
                     <div style={card}>
-                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <TrendingUp size={18} color={GRN} /> Review Velocity & Growth Projection
                       </div>
                       {(() => {
@@ -4380,7 +4380,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                 ['Months to Target', monthsAtCurrent > 100 ? '∞' : monthsAtCurrent, monthsAtCurrent <= 12 ? GRN : AMB],
                               ].map(([label, val, color]) => (
                                 <div key={label} style={{ padding: '14px', background: '#f9f9fb', borderRadius: 10, textAlign: 'center' }}>
-                                  <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
+                                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
                                   <div style={{ fontSize: 12, color: '#1f2937', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
                                 </div>
                               ))}
@@ -4419,7 +4419,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {/* Post Calendar (4-week view) */}
                   {gmbPosts.length > 0 && (
                     <div style={card}>
-                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Clock size={18} color={T} /> 4-Week Post Calendar
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
@@ -4449,7 +4449,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                   {/* Grid Rank Map (placeholder — needs DataForSEO) */}
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <MapPin size={18} color={R} /> Local Pack Grid Tracker
                     </div>
                     <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, lineHeight: 1.6 }}>
@@ -4560,7 +4560,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   ['Found', `${gridResult.ranked_cells}/${gridResult.total_cells}`, GRN],
                                 ].map(([label, val, color]) => (
                                   <div key={label} style={{ textAlign: 'center' }}>
-                                    <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{val}</div>
+                                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color }}>{val}</div>
                                     <div style={{ fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>{label}</div>
                                   </div>
                                 ))}
@@ -4577,7 +4577,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                       border: `2px solid ${isCenter ? BLK : color}`,
                                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                                       fontSize: isCenter ? 14 : 12, fontWeight: 800,
-                                      color: isCenter ? '#fff' : rank === null ? '#d1d5db' : color, fontFamily: FH,
+                                      color: isCenter ? '#fff' : rank === null ? '#d1d5db' : color, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                                     }} title={cell.top_3?.map(t => `#${t.rank} ${t.title}`).join('\n') || 'Not found'}>
                                       {isCenter ? '📍' : rank ? `#${rank}` : '·'}
                                     </div>
@@ -4590,7 +4590,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           {!gridResult && (
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, maxWidth: 400, margin: '0 auto 16px' }}>
                               {Array.from({ length: 25 }).map((_, i) => (
-                                <div key={i} style={{ aspectRatio: '1', borderRadius: 8, background: '#f1f1f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#1f2937', fontFamily: FH, fontWeight: 800 }}>
+                                <div key={i} style={{ aspectRatio: '1', borderRadius: 8, background: '#f1f1f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#1f2937', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800 }}>
                                   {i === 12 ? '📍' : '·'}
                                 </div>
                               ))}
@@ -4622,7 +4622,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ VISITORS TAB (Pixel Tracking embedded) ══ */}
         {clientId && tab === 'visitors' && (
           <div>
-            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Visitor Intelligence</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Visitor Intelligence</div>
             <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20 }}>
               Real-time visitor tracking, browser fingerprinting, and behavioral analysis for your client's website.
             </div>
@@ -4644,10 +4644,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {clientId && tab === 'connect' && (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Connect Data Sources</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Connect Data Sources</div>
               {connections.some(c => c.connected) && (
                 <button onClick={() => runValidation()} disabled={validatingAll}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: BLK, fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: validatingAll ? 'default' : 'pointer', opacity: validatingAll ? 0.6 : 1 }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: BLK, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: validatingAll ? 'default' : 'pointer', opacity: validatingAll ? 0.6 : 1 }}>
                   {validatingAll ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={14} />}
                   {validatingAll ? 'Validating...' : 'Validate All'}
                 </button>
@@ -4659,7 +4659,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {/* Sitemap URL */}
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Globe size={18} color={T} /> Sitemap URL
               </div>
               <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
@@ -4686,7 +4686,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Google Services — one-click OAuth */}
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Shield size={18} color={GRN} /> Google Services
                 </div>
                 {/* Search Console + Analytics — non-sensitive scopes, no Google review needed */}
@@ -4704,7 +4704,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 }} style={{
                   display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 10,
                   border: 'none', background: '#4285F4', color: '#fff', fontSize: 14, fontWeight: 700,
-                  fontFamily: FH, cursor: 'pointer',
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
                 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                   Connect Search Console + Analytics
@@ -4746,7 +4746,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <svc.icon size={18} color={svc.color} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
+                          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
                           <div style={{ fontSize: 11, color: '#8e8e93', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {isConnected
                               ? (c.account_id?.replace('sc-domain:', '').replace('https://', '') || (c.property_id ? `Property ${c.property_id}` : svc.desc))
@@ -4796,7 +4796,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 20 }}>📱</span> Meta Ads
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4810,7 +4810,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           const redirectUri = window.location.origin + '/kotoiq'
                           const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'meta', returnTo: '/kotoiq?tab=connect' }))
                           window.location.href = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${metaAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=ads_read,ads_management,business_management&response_type=code&state=${state}`
-                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#1877F2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#1877F2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer' }}>
                           Connect Meta
                         </button>
                       )}
@@ -4835,7 +4835,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 20 }}>💼</span> LinkedIn Ads
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4849,7 +4849,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           const redirectUri = window.location.origin + '/kotoiq'
                           const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'linkedin', returnTo: '/kotoiq?tab=connect' }))
                           window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${liClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=r_ads,r_ads_reporting,r_organization_social&state=${state}`
-                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#0A66C2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#0A66C2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer' }}>
                           Connect LinkedIn
                         </button>
                       )}
@@ -4874,7 +4874,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 20 }}>🔥</span> Hotjar
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4920,7 +4920,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 20 }}>🔬</span> Microsoft Clarity
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4957,13 +4957,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* Property picker — shown after OAuth */}
             {oauthStep === 'pick_properties' && oauthTokens && (
               <div style={{ ...card, borderLeft: `4px solid ${GRN}` }}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: GRN, marginBottom: 16 }}>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: GRN, marginBottom: 16 }}>
                   Authenticated — Select Properties to Connect
                 </div>
 
                 {/* GSC picker */}
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Search size={14} color="#4285F4" /> Search Console Site
                   </div>
                   {gscSites.length === 0 ? (
@@ -4991,7 +4991,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                 {/* GA4 picker */}
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <BarChart2 size={14} color="#F4B400" /> Google Analytics 4 Property
                   </div>
                   {ga4Properties.length === 0 ? (
@@ -5060,7 +5060,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     setOauthStep('done')
                   } catch (e) { toast.error('Failed to save: ' + e.message); setOauthStep('pick_properties') }
                 }} disabled={oauthStep === 'saving' || (!selectedGsc && !selectedGa4)}
-                  style={{ width: '100%', padding: '14px', borderRadius: 10, border: 'none', background: (!selectedGsc && !selectedGa4) ? '#ececef' : GRN, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                  style={{ width: '100%', padding: '14px', borderRadius: 10, border: 'none', background: (!selectedGsc && !selectedGa4) ? '#ececef' : GRN, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer' }}>
                   {oauthStep === 'saving' ? 'Saving...' : `Save Connections${selectedGsc && selectedGa4 ? ' (2)' : selectedGsc || selectedGa4 ? ' (1)' : ''}`}
                 </button>
               </div>
@@ -5068,7 +5068,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {oauthStep === 'done' && (
               <div style={{ ...card, borderLeft: `4px solid ${GRN}`, background: GRN + '04' }}>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: GRN, marginBottom: 8 }}>Connected Successfully</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: GRN, marginBottom: 8 }}>Connected Successfully</div>
                 <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 14 }}>
                   {selectedGsc && <div>Search Console: {selectedGsc.replace('sc-domain:', '').replace('https://', '')}</div>}
                   {selectedGa4 && <div>GA4 Property: {selectedGa4}</div>}
@@ -5089,7 +5089,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {/* DataForSEO */}
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Zap size={18} color={AMB} /> DataForSEO API
               </div>
               <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
@@ -5102,7 +5102,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {/* Moz API */}
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <TrendingUp size={18} color={T} /> Moz API
               </div>
               <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
@@ -5162,7 +5162,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   onClick={() => toast('Report coming soon — data sources need to be connected first')}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                     <report.icon size={16} color={report.color} />
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{report.title}</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK }}>{report.title}</div>
                   </div>
                   <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.5, marginBottom: 8 }}>{report.desc}</div>
                   <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: report.color + '10', color: report.color }}>{report.source}</span>
@@ -5180,7 +5180,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div onClick={() => setShowClientModal(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.4)' }} />
           <div style={{ position: 'relative', background: '#fff', borderRadius: 16, padding: '32px', width: 480, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,.15)' }}>
-            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 4 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 4 }}>
               {editingClient ? 'Edit Client' : 'Add New Client'}
             </div>
             <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 24 }}>
@@ -5346,7 +5346,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
     <>
       {/* Search input */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Brain size={18} color={T} /> AEO Research — AI Overview Gap Finder
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 14, lineHeight: 1.6 }}>
@@ -5356,9 +5356,9 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
           <input value={query} onChange={e => setQuery(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') runResearch() }}
             placeholder="Enter a keyword or phrase to research..."
-            style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, fontFamily: FH, fontWeight: 600, outline: 'none' }} />
+            style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600, outline: 'none' }} />
           <button onClick={runResearch} disabled={loading || !query.trim()}
-            style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: loading ? '#ececef' : BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+            style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: loading ? '#ececef' : BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
             {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={16} />}
             {loading ? 'Searching...' : 'Research'}
           </button>
@@ -5389,7 +5389,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
         <>
           {/* AI Overview */}
           <div style={{ ...card, borderLeft: result.ai_overview ? `4px solid ${T}` : '4px solid #e5e7eb' }}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Brain size={16} color={T} />
               {result.ai_overview ? 'AI Overview Present' : 'No AI Overview for This Query'}
             </div>
@@ -5421,7 +5421,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
           {/* Gap Analysis */}
           {result.gap_analysis && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Information Gap Analysis</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Information Gap Analysis</div>
               {result.gap_analysis.information_gaps?.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Gaps in Current Content (Your Opportunity)</div>
@@ -5464,7 +5464,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
           {/* Suggested Pages */}
           {(result.gap_analysis?.suggested_pages?.length > 0 || result.related_searches?.length > 0) && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Suggested New Pages to Create</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Suggested New Pages to Create</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {(result.gap_analysis?.suggested_pages || result.related_searches || []).map((page, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
@@ -5479,7 +5479,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
           {/* People Also Ask */}
           {result.people_also_ask?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>People Also Ask ({result.people_also_ask.length})</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>People Also Ask ({result.people_also_ask.length})</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {result.people_also_ask.map((q, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: '#f9f9fb', borderRadius: 8 }}>
@@ -5494,10 +5494,10 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
           {/* Top Organic Results */}
           {result.top_results?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Top 10 Organic Results</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Top 10 Organic Results</div>
               {result.top_results.map((r, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < result.top_results.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
-                  <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 900, color: r.position <= 3 ? GRN : r.position <= 10 ? AMB : R, minWidth: 30, textAlign: 'center' }}>#{r.position}</span>
+                  <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 900, color: r.position <= 3 ? GRN : r.position <= 10 ? AMB : R, minWidth: 30, textAlign: 'center' }}>#{r.position}</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{r.title}</div>
                     <div style={{ fontSize: 11, color: '#0e7490' }}>{r.domain}</div>
@@ -5510,7 +5510,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
           {/* Featured Snippet */}
           {result.featured_snippet && (
             <div style={{ ...card, borderLeft: `4px solid ${AMB}` }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 8 }}>Featured Snippet</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 8 }}>Featured Snippet</div>
               <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 8 }}>{result.featured_snippet.description}</div>
               <div style={{ fontSize: 12, color: AMB, fontWeight: 700 }}>{result.featured_snippet.domain} — {result.featured_snippet.type}</div>
             </div>
@@ -5519,7 +5519,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
           {/* Related Searches */}
           {result.related_searches?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Related Searches ({result.related_searches.length})</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Related Searches ({result.related_searches.length})</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {result.related_searches.map((s, i) => (
                   <button key={i} onClick={() => setQuery(s)} style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: BLK }}>
@@ -5563,7 +5563,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 20px' }}>
         <BarChart2 size={48} color="#d1d5db" style={{ margin: '0 auto 16px' }} />
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No Data Yet</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No Data Yet</div>
         <div style={{ fontSize: 14, color: '#1f1f22', maxWidth: 400, margin: '0 auto' }}>Run a Quick Scan or Full Sync first to populate keyword data. Reports will generate automatically from your data.</div>
       </div>
     )
@@ -5571,12 +5571,12 @@ function ReportsTab({ clientId, keywords, dashboard }) {
 
   return (
     <div>
-      <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Data Reports</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Data Reports</div>
       <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 24 }}>{kws.length} keywords tracked · {ranked.length} with ranking data</div>
 
       {/* Position Distribution */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Position Distribution</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Position Distribution</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 16 }}>
           {[
             ['#1-3', posGroups.top3.length, GRN],
@@ -5586,7 +5586,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
             ['Not Ranked', posGroups.unranked.length, '#8e8e93'],
           ].map(([label, count, color]) => (
             <div key={label} style={{ textAlign: 'center', padding: '16px', background: color + '08', borderRadius: 10 }}>
-              <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color }}>{count}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color }}>{count}</div>
               <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4, fontWeight: 600 }}>{label}</div>
             </div>
           ))}
@@ -5601,18 +5601,18 @@ function ReportsTab({ clientId, keywords, dashboard }) {
 
       {/* AI Overview Coverage */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>AI Overview Coverage</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>AI Overview Coverage</div>
         <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: '#7c3aed' }}>{aiOverviewKws.length}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color: '#7c3aed' }}>{aiOverviewKws.length}</div>
             <div style={{ fontSize: 12, color: '#1f1f22' }}>Keywords with AI Overview</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: '#1f2937' }}>{kws.length - aiOverviewKws.length}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color: '#1f2937' }}>{kws.length - aiOverviewKws.length}</div>
             <div style={{ fontSize: 12, color: '#1f1f22' }}>Without AI Overview</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: T }}>{kws.length > 0 ? Math.round((aiOverviewKws.length / kws.length) * 100) : 0}%</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color: T }}>{kws.length > 0 ? Math.round((aiOverviewKws.length / kws.length) * 100) : 0}%</div>
             <div style={{ fontSize: 12, color: '#1f1f22' }}>Coverage Rate</div>
           </div>
         </div>
@@ -5622,7 +5622,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
             {aiOverviewKws.slice(0, 10).map((kw, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
-                <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: (kw.sc_position || kw.position) <= 10 ? GRN : AMB }}>#{kw.sc_position || kw.position || '—'}</span>
+                <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: (kw.sc_position || kw.position) <= 10 ? GRN : AMB }}>#{kw.sc_position || kw.position || '—'}</span>
               </div>
             ))}
           </div>
@@ -5632,13 +5632,13 @@ function ReportsTab({ clientId, keywords, dashboard }) {
       {/* Paid vs Organic Overlap */}
       {organicPaidOverlap.length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Paid vs Organic Overlap — Cannibal Keywords</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Paid vs Organic Overlap — Cannibal Keywords</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>Keywords where you rank organically AND pay for ads. Consider reducing bids on keywords where organic rank is strong.</div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 {['Keyword', 'Organic Pos', 'Ad Spend', 'Ad CPC', 'Volume', 'Action'].map(h => (
-                  <th key={h} style={{ padding: '8px 10px', fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -5648,7 +5648,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
                 return (
                   <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                     <td style={{ padding: '8px 10px', fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</td>
-                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: pos <= 3 ? GRN : pos <= 10 ? T : AMB }}>#{pos}</td>
+                    <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: pos <= 3 ? GRN : pos <= 10 ? T : AMB }}>#{pos}</td>
                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>${((kw.ads_spend_cents || 0) / 100).toFixed(0)}</td>
                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>${((kw.ads_cpc_cents || 0) / 100).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}</td>
@@ -5667,10 +5667,10 @@ function ReportsTab({ clientId, keywords, dashboard }) {
 
       {/* Opportunity Matrix */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Opportunities by Score</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Opportunities by Score</div>
         {kws.filter(k => k.opportunity_score > 0).sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0)).slice(0, 15).map((kw, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
-            <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 900, color: T, minWidth: 36 }}>{Math.round(kw.opportunity_score)}</span>
+            <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 900, color: T, minWidth: 36 }}>{Math.round(kw.opportunity_score)}</span>
             <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#f1f1f6', overflow: 'hidden' }}>
               <div style={{ width: `${kw.opportunity_score}%`, height: '100%', borderRadius: 3, background: kw.opportunity_score >= 70 ? GRN : kw.opportunity_score >= 40 ? AMB : '#d1d5db' }} />
             </div>
@@ -5686,7 +5686,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
 
       {/* Search Intent Distribution */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Search Intent Distribution</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Search Intent Distribution</div>
         {(() => {
           const intents = {}
           kws.forEach(k => { const i = k.intent || 'unknown'; intents[i] = (intents[i] || 0) + 1 })
@@ -5695,7 +5695,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
               {Object.entries(intents).map(([intent, count]) => (
                 <div key={intent} style={{ textAlign: 'center', padding: '14px', background: (intentColors[intent] || '#8e8e93') + '08', borderRadius: 10 }}>
-                  <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: intentColors[intent] || '#8e8e93' }}>{count}</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: intentColors[intent] || '#8e8e93' }}>{count}</div>
                   <div style={{ fontSize: 11, color: '#1f1f22', textTransform: 'capitalize', marginTop: 4 }}>{intent}</div>
                 </div>
               ))}
@@ -5707,11 +5707,11 @@ function ReportsTab({ clientId, keywords, dashboard }) {
       {/* Category Breakdown */}
       {dashboard?.categories && Object.keys(dashboard.categories).length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Keyword Categories</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Keyword Categories</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
             {Object.entries(dashboard.categories).map(([cat, count]) => (
               <div key={cat} style={{ padding: '14px', background: '#f9f9fb', borderRadius: 10, textAlign: 'center' }}>
-                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{count}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK }}>{count}</div>
                 <div style={{ fontSize: 11, color: '#1f1f22', textTransform: 'capitalize', marginTop: 4 }}>{cat.replace(/_/g, ' ')}</div>
               </div>
             ))}
@@ -5722,7 +5722,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
       {/* Featured Snippet Opportunities */}
       {kws.filter(k => k.featured_snippet).length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Featured Snippet Opportunities</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Featured Snippet Opportunities</div>
           {kws.filter(k => k.featured_snippet).slice(0, 10).map((kw, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
@@ -5747,18 +5747,18 @@ function ReportsTab({ clientId, keywords, dashboard }) {
         }, 0)
         return (
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>ROI: Organic Value vs Paid Cost</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>ROI: Organic Value vs Paid Cost</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
               <div style={{ padding: '18px', background: GRN + '06', borderRadius: 10, textAlign: 'center' }}>
-                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: GRN }}>${Math.round(organicValue).toLocaleString()}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: GRN }}>${Math.round(organicValue).toLocaleString()}</div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>Organic Value/mo</div>
               </div>
               <div style={{ padding: '18px', background: '#f9f9fb', borderRadius: 10, textAlign: 'center' }}>
-                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: R }}>${Math.round(totalPaidSpend).toLocaleString()}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: R }}>${Math.round(totalPaidSpend).toLocaleString()}</div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>Ad Spend/mo</div>
               </div>
               <div style={{ padding: '18px', background: '#f9f9fb', borderRadius: 10, textAlign: 'center' }}>
-                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: T }}>{totalPaidSpend > 0 ? `${(organicValue / totalPaidSpend).toFixed(1)}x` : '∞'}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: T }}>{totalPaidSpend > 0 ? `${(organicValue / totalPaidSpend).toFixed(1)}x` : '∞'}</div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>ROI Multiple</div>
               </div>
             </div>
@@ -5768,7 +5768,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
 
       {/* Volume Distribution */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Search Volume Distribution</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Search Volume Distribution</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
           {[
             ['High (1K+)', kws.filter(k => (k.kp_monthly_volume || 0) >= 1000).length, GRN],
@@ -5777,7 +5777,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
             ['Very Low (<10)', kws.filter(k => (k.kp_monthly_volume || 0) < 10).length, '#8e8e93'],
           ].map(([label, count, color]) => (
             <div key={label} style={{ padding: '16px', background: color + '08', borderRadius: 10, textAlign: 'center' }}>
-              <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color }}>{count}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color }}>{count}</div>
               <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>{label}</div>
             </div>
           ))}
@@ -5787,7 +5787,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
       {/* Local Pack Keywords */}
       {kws.filter(k => k.local_pack).length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Local Pack Keywords ({kws.filter(k => k.local_pack).length})</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Local Pack Keywords ({kws.filter(k => k.local_pack).length})</div>
           {kws.filter(k => k.local_pack).slice(0, 10).map((kw, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
@@ -5805,10 +5805,10 @@ function ReportsTab({ clientId, keywords, dashboard }) {
         if (pages.length === 0) return null
         return (
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Pages by Keyword Count</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Pages by Keyword Count</div>
             {pages.map((p, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
-                <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 900, color: T, minWidth: 30 }}>{p.count}</span>
+                <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 900, color: T, minWidth: 30 }}>{p.count}</span>
                 <div style={{ flex: 1, fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {p.url?.replace(/https?:\/\/[^/]+/, '') || '/'}
                 </div>
@@ -5869,14 +5869,14 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
 
   return (
     <div>
-      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>UTM Builder</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>UTM Builder</div>
       <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 24, lineHeight: 1.6 }}>
         Create UTM-tagged URLs to track which marketing channels drive traffic. Every link is trackable in Google Analytics.
       </div>
 
       {/* Quick Presets */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Quick Presets</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Quick Presets</div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {presets.map(p => (
             <button key={p.label} onClick={() => { setSource(p.source); setMedium(p.medium); setCampaign(p.campaign) }}
@@ -5889,7 +5889,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
 
       {/* Builder Form */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 16 }}>Build Your URL</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 16 }}>Build Your URL</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
@@ -5947,7 +5947,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
       {/* Generated URL */}
       {generatedUrl && source && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Generated URL</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Generated URL</div>
           <div style={{ padding: '14px 18px', background: '#111', borderRadius: 10, marginBottom: 14, position: 'relative' }}>
             <code style={{ fontSize: 13, color: '#a3e635', fontFamily: 'monospace', wordBreak: 'break-all', lineHeight: 1.6 }}>
               {generatedUrl}
@@ -5972,7 +5972,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
       {/* History */}
       {history.length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Recently Generated ({history.length})</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Recently Generated ({history.length})</div>
           {history.map((h, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < history.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -5988,7 +5988,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
 
       {/* Tips */}
       <div style={{ ...card, background: '#f9f9fb' }}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 10 }}>UTM Best Practices</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 10 }}>UTM Best Practices</div>
         <ul style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.8, paddingLeft: 18, margin: 0 }}>
           <li>Always use lowercase — GA4 treats "Google" and "google" as different sources</li>
           <li>Use underscores instead of spaces (e.g. <code>spring_promo</code> not <code>spring promo</code>)</li>

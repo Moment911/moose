@@ -33,15 +33,15 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="ads-search-terms" />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Search Terms Explorer</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Search Terms Explorer</div>
         <div style={{ display: 'flex', gap: 8 }}>
           <div style={{ position: 'relative' }}>
             <Search size={14} color="#9ca3af" style={{ position: 'absolute', left: 10, top: 10 }} />
             <input value={filter} onChange={e => setFilter(e.target.value)} placeholder="Filter terms..."
-              style={{ paddingLeft: 30, padding: '8px 12px 8px 30px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB, width: 200 }} />
+              style={{ paddingLeft: 30, padding: '8px 12px 8px 30px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", width: 200 }} />
           </div>
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-            style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB }}>
+            style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             <option value="cost">Sort by Cost</option>
             <option value="clicks">Sort by Clicks</option>
             <option value="impressions">Sort by Impressions</option>
@@ -56,7 +56,7 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
       ) : (
         <div style={card}>
           <div style={{ fontSize: 12, color: '#6b6b70', marginBottom: 12 }}>{filtered.length} search terms</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: FB }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 {['Search Term', 'Impressions', 'Clicks', 'Cost', 'Conv', 'Status'].map(h => (

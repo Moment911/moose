@@ -31,7 +31,7 @@ function ScoreRing({ score, size = 130 }) {
           transform={`rotate(-90 ${size / 2} ${size / 2})`} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontFamily: FH, fontSize: size * 0.3, fontWeight: 900, color: c }}>{score}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.3, fontWeight: 900, color: c }}>{score}</div>
         <div style={{ fontSize: size * 0.1, color: '#1f1f22', fontWeight: 700 }}>Grade {g}</div>
       </div>
     </div>
@@ -89,23 +89,23 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
     <div>
       <HowItWorks tool="on_page" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <FileText size={18} color={T} /> On-Page Audit
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Checks title, meta, headings, keyword placement, schema, and more.
         </div>
         <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com/page" style={{
-          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           marginBottom: 10, boxSizing: 'border-box',
         }} />
         <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Target keyword" style={{
-          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           marginBottom: 10, boxSizing: 'border-box',
         }} />
         <button onClick={run} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileText size={14} />}
@@ -118,7 +118,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
           <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 28 }}>
             <ScoreRing score={data.overall_score || 0} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>{url}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>{url}</div>
               <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 4 }}>
                 {data.checks?.filter(c => c.status === 'pass').length || 0} pass --
                 {' '}{data.checks?.filter(c => c.status === 'warning').length || 0} warn --
@@ -129,7 +129,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
 
           {data.keyword_placement && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={16} color={T} /> Keyword Placement
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
@@ -153,7 +153,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
 
           {data.checks?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>All Checks</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>All Checks</div>
               {data.checks.map((c, i) => (
                 <CheckRow key={i} label={c.label || c.name} status={c.status} detail={c.detail || c.message} />
               ))}
@@ -162,7 +162,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
 
           {data.critical_fixes?.length > 0 && (
             <div style={{ ...card, borderLeft: `4px solid ${R}` }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, marginBottom: 12 }}>Critical Fixes</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 12 }}>Critical Fixes</div>
               {data.critical_fixes.map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 8, background: '#f9f9fb', marginBottom: 4 }}>
                   <XCircle size={14} color={R} style={{ marginTop: 2 }} />
@@ -174,7 +174,7 @@ export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
 
           {data.quick_wins?.length > 0 && (
             <div style={{ ...card, borderLeft: `4px solid ${GRN}` }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: GRN, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: GRN, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Zap size={16} color={GRN} /> Quick Wins
               </div>
               {data.quick_wins.map((w, i) => (

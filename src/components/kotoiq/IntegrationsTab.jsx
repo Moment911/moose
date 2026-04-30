@@ -93,7 +93,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
           <Icon size={20} color={color} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>{label}</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>{label}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
             {state.connected ? (
               <><CheckCircle size={12} color={GRN} /><span style={{ fontSize: 12, fontWeight: 700, color: GRN }}>Connected</span></>
@@ -105,17 +105,17 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
       </div>
 
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 5, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.05em' }}>Webhook URL</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 5, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '.05em' }}>Webhook URL</div>
         <input value={state.webhook_url} onChange={e => setState({ ...state, webhook_url: e.target.value })}
           placeholder={type === 'slack' ? 'https://hooks.slack.com/services/...' : 'https://outlook.office.com/webhook/...'}
           style={{
             width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8,
-            fontSize: 12, fontFamily: FB, boxSizing: 'border-box',
+            fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box',
           }} />
       </div>
 
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 8, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.05em' }}>Alert Types</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '.05em' }}>Alert Types</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {ALERT_TYPES.map(([key, lbl]) => (
             <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', color: '#1f2937' }}>
@@ -129,7 +129,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <button onClick={save} disabled={saving} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 8,
-          border: 'none', background: color, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: color, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.6 : 1,
         }}>
           {saving ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={12} />}
@@ -137,7 +137,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
         </button>
         <button onClick={testMessage} disabled={testing || !state.connected} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 8,
-          border: '1px solid #e5e7eb', background: '#fff', color: '#1f1f22', fontSize: 12, fontWeight: 700, fontFamily: FH,
+          border: '1px solid #e5e7eb', background: '#fff', color: '#1f1f22', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: testing ? 'wait' : (state.connected ? 'pointer' : 'not-allowed'), opacity: testing || !state.connected ? 0.6 : 1,
         }}>
           {testing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={12} />}
@@ -146,7 +146,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
         {state.connected && (
           <button onClick={disconnect} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 8,
-            border: '1px solid #fecaca', background: '#fff', color: R, fontSize: 12, fontWeight: 700, fontFamily: FH,
+            border: '1px solid #fecaca', background: '#fff', color: R, fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: 'pointer', marginLeft: 'auto',
           }}>
             <Trash2 size={12} /> Disconnect
@@ -196,7 +196,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Link2 size={20} color={T} /> Integrations
           </div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
@@ -205,7 +205,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
         </div>
         <button onClick={sendDigest} disabled={sending} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '12px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: sending ? 'wait' : 'pointer', opacity: sending ? 0.6 : 1,
         }}>
           {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -229,15 +229,15 @@ export default function IntegrationsTab({ clientId, agencyId }) {
       <div style={{ ...card, background: 'linear-gradient(135deg,#f0f9ff 0%,#fefce8 100%)', borderLeft: `4px solid ${T}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
           <Clock size={16} color={T} />
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Automated Schedule</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Automated Schedule</div>
         </div>
-        <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, fontFamily: FB }}>
+        <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
           Daily digests fire at <strong>9:00 AM</strong> in the client's timezone. Competitor watch checks run on the cadence you set per-watch. Weekly digests ship Monday morning, monthly reports the 1st.
         </div>
       </div>
 
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
           Alert History
         </div>
         {history.length === 0 ? (

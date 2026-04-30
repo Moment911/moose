@@ -170,7 +170,7 @@ export default function BuilderTab({ clientId, agencyId }) {
   // ═══════════════════════════════════════════════════════════════════════
 
   return (
-    <div style={{ fontFamily: FH }}>
+    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
       {/* Tab bar */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid #e5e7eb', paddingBottom: 12 }}>
         <TabButton active={view === 'templates'} onClick={() => setView('templates')}>Templates</TabButton>

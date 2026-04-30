@@ -32,7 +32,7 @@ function ScoreRing({ score, size = 72, color }) {
           style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontFamily: FH, fontSize: size * 0.28, fontWeight: 900, color: col }}>{score}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.28, fontWeight: 900, color: col }}>{score}</div>
       </div>
     </div>
   )
@@ -87,23 +87,23 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
     <div>
       <HowItWorks tool="aeo_multi" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Sparkles size={18} color={T} /> Multi-Engine AEO Scoring
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Score your content for citation potential across Google AI Overview, Perplexity, ChatGPT Search, Claude, and Copilot.
         </div>
         <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Target keyword (e.g. best running shoes)" style={{
-          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           marginBottom: 10, boxSizing: 'border-box',
         }} />
         <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Paste your page content here..." rows={8} style={{
-          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           resize: 'vertical', marginBottom: 10, boxSizing: 'border-box',
         }} />
         <button onClick={run} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
@@ -116,7 +116,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
           <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 24 }}>
             <ScoreRing score={data.overall_aeo_score || 0} size={96} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Overall AEO Score</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Overall AEO Score</div>
               <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 8 }}>Composite score across all engines</div>
               {data.best_positioned_for?.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
@@ -139,7 +139,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
                     <div style={{ width: 34, height: 34, borderRadius: 8, background: engine.color + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Icon size={18} color={engine.color} />
                     </div>
-                    <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>{engine.label}</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>{engine.label}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <ScoreRing score={e.score || 0} size={60} color={engine.color} />

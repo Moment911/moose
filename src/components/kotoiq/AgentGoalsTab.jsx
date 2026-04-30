@@ -140,7 +140,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 60 }}>
         <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color={T} />
-        <span style={{ marginLeft: 10, fontFamily: FB, fontSize: 14, color: '#6b6b70' }}>Loading goals…</span>
+        <span style={{ marginLeft: 10, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: '#6b6b70' }}>Loading goals…</span>
       </div>
     )
   }
@@ -150,7 +150,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Agent Goals</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Agent Goals</div>
           <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4 }}>
             Define what the agent should achieve. Each goal produces a plan and executes it.
           </div>
@@ -159,14 +159,14 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
           <button onClick={loadGoals} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
             border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600,
-            cursor: 'pointer', color: BLK, fontFamily: FB,
+            cursor: 'pointer', color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           }}>
             <RefreshCw size={14} /> Refresh
           </button>
           <button onClick={() => setShowNewGoal(true)} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
             border: 'none', background: BLK, color: '#fff', fontSize: 13, fontWeight: 700,
-            cursor: 'pointer', fontFamily: FH,
+            cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           }}>
             <Plus size={14} /> New Goal
           </button>
@@ -177,7 +177,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
       {goals.length === 0 && (
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
           <Target size={36} color={T} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No goals yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No goals yet</div>
           <div style={{ fontSize: 13, color: '#6b6b70' }}>Create a goal to tell the agent what to achieve.</div>
         </div>
       )}
@@ -199,7 +199,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
               </div>
 
               {/* Goal type */}
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
                 {GOAL_TYPE_LABELS[g.goal_type] || g.goal_type}
               </div>
 
@@ -221,7 +221,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8,
                     border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700,
-                    cursor: isRunning ? 'wait' : 'pointer', opacity: isRunning ? 0.6 : 1, fontFamily: FH,
+                    cursor: isRunning ? 'wait' : 'pointer', opacity: isRunning ? 0.6 : 1, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                   }}
                 >
                   {isRunning ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={12} />}
@@ -233,7 +233,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 8,
                   border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600,
-                  cursor: 'pointer', color: '#6b6b70', fontFamily: FB,
+                  cursor: 'pointer', color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               >
                 Runs <ChevronRight size={12} style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
@@ -294,14 +294,14 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
           <div style={{
             background: '#fff', borderRadius: 16, padding: 28, width: 460, maxWidth: '90vw',
           }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 18 }}>New Agent Goal</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 18 }}>New Agent Goal</div>
 
             {/* Goal type */}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>Goal Type</label>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Goal Type</label>
               <select value={newGoalType} onChange={e => setNewGoalType(e.target.value)} style={{
                 width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb',
-                fontSize: 13, fontFamily: FB, background: '#fff',
+                fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", background: '#fff',
               }}>
                 <option value="close_topical_gap">Close Topical Gap</option>
                 <option value="defend_brand_serp">Defend Brand SERP</option>
@@ -311,7 +311,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
 
             {/* Scope — topics */}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 Topics <span style={{ fontWeight: 400, color: '#8e8e93' }}>(comma-separated, optional — empty = all)</span>
               </label>
               <input
@@ -320,7 +320,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                 placeholder="e.g. digital marketing, SEO strategy"
                 style={{
                   width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb',
-                  fontSize: 13, fontFamily: FB,
+                  fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               />
             </div>
@@ -328,15 +328,15 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
             {/* Budget */}
             <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>Max Actions</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Max Actions</label>
                 <input type="number" value={newBudgetActions} onChange={e => setNewBudgetActions(parseInt(e.target.value) || 5)} style={{
-                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB,
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>Budget ($)</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Budget ($)</label>
                 <input type="number" step="0.10" value={newBudgetUsd} onChange={e => setNewBudgetUsd(parseFloat(e.target.value) || 1)} style={{
-                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB,
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }} />
               </div>
             </div>
@@ -344,12 +344,12 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
             {/* Requires approval */}
             <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <input type="checkbox" checked={newRequiresApproval} onChange={e => setNewRequiresApproval(e.target.checked)} id="req-approval" />
-              <label htmlFor="req-approval" style={{ fontSize: 13, color: '#1f1f22', fontFamily: FB }}>Require approval before destructive actions</label>
+              <label htmlFor="req-approval" style={{ fontSize: 13, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Require approval before destructive actions</label>
             </div>
 
             {/* Schedule cron */}
             <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: FH }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 Schedule <span style={{ fontWeight: 400, color: '#8e8e93' }}>(cron, optional — blank = manual only)</span>
               </label>
               <input
@@ -358,7 +358,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                 placeholder="e.g. 0 6 * * * (daily at 6am UTC)"
                 style={{
                   width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb',
-                  fontSize: 13, fontFamily: FB,
+                  fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               />
             </div>
@@ -367,12 +367,12 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowNewGoal(false)} style={{
                 padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b6b70', fontFamily: FB,
+                fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }}>Cancel</button>
               <button onClick={createGoal} disabled={creating} style={{
                 padding: '8px 18px', borderRadius: 8, border: 'none', background: BLK, color: '#fff',
                 fontSize: 13, fontWeight: 700, cursor: creating ? 'wait' : 'pointer',
-                opacity: creating ? 0.6 : 1, fontFamily: FH,
+                opacity: creating ? 0.6 : 1, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }}>
                 {creating ? 'Creating…' : 'Create Goal'}
               </button>

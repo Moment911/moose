@@ -32,7 +32,7 @@ function ScoreCircle({ score, size = 72 }) {
           style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
+        <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
         <span style={{ fontSize: 8, color: '#1f2937', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Score</span>
       </div>
     </div>
@@ -46,9 +46,9 @@ function StatBox({ label, value, icon: Icon, color }) {
         <div style={{ width: 26, height: 26, borderRadius: 6, background: (color || T) + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={13} color={color || T} />
         </div>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</span>
       </div>
-      <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>{value}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK }}>{value}</div>
     </div>
   )
 }
@@ -60,9 +60,9 @@ function IssueCard({ title, icon, color, items, renderItem, emptyMsg, descriptio
     <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
       <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: items.length > 0 ? '1px solid #f3f4f6' : 'none' }}>
         <span style={{ fontSize: 16 }}>{icon}</span>
-        <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 13, color: BLK }}>{title}</span>
+        <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: BLK }}>{title}</span>
         <span style={{
-          marginLeft: 'auto', fontFamily: FH, fontSize: 11, fontWeight: 800, padding: '2px 8px',
+          marginLeft: 'auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 11, fontWeight: 800, padding: '2px 8px',
           borderRadius: 10, background: items.length > 0 ? color + '14' : GRN + '14',
           color: items.length > 0 ? color : GRN,
         }}>
@@ -111,7 +111,7 @@ function EquityBar({ url, count, maxCount, isOverLinked, isStarved }) {
       <div style={{ width: 180, height: 14, background: '#f1f1f6', borderRadius: 7, overflow: 'hidden', flexShrink: 0 }}>
         <div style={{ height: '100%', width: `${Math.min(pct, 100)}%`, background: color, borderRadius: 7, transition: 'width 0.4s ease' }} />
       </div>
-      <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color, width: 36, textAlign: 'right', flexShrink: 0 }}>{count}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, color, width: 36, textAlign: 'right', flexShrink: 0 }}>{count}</div>
     </div>
   )
 }
@@ -222,7 +222,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <Link2 size={28} color={T} />
         </div>
-        <h2 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Internal Link Intelligence</h2>
+        <h2 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Internal Link Intelligence</h2>
         <p style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>
           Run an internal link scan to analyze your site's link structure. This requires a sitemap crawl to be completed first.
         </p>
@@ -234,7 +234,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         </div>
         <button onClick={runScan} disabled={scanning} style={{
           padding: '12px 28px', borderRadius: 10, border: 'none', background: BLK, color: '#fff',
-          fontFamily: FH, fontWeight: 700, fontSize: 13, cursor: scanning ? 'wait' : 'pointer',
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, cursor: scanning ? 'wait' : 'pointer',
           display: 'inline-flex', alignItems: 'center', gap: 8, opacity: scanning ? 0.6 : 1,
         }}>
           {scanning ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
@@ -264,7 +264,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       }}>
         <ScoreCircle score={a.overall_score || 0} />
         <div style={{ flex: 1 }}>
-          <h2 style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, margin: 0 }}>Internal Link Score</h2>
+          <h2 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK, margin: 0 }}>Internal Link Score</h2>
           <p style={{ fontSize: 12, color: '#1f1f22', margin: '4px 0 0' }}>
             {a.overall_score >= 70 ? 'Good internal linking structure.' :
              a.overall_score >= 40 ? 'Some issues need attention.' :
@@ -273,7 +273,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         </div>
         <button onClick={runScan} disabled={scanning} style={{
           padding: '10px 20px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-          fontFamily: FH, fontWeight: 700, fontSize: 12, cursor: scanning ? 'wait' : 'pointer',
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, cursor: scanning ? 'wait' : 'pointer',
           display: 'flex', alignItems: 'center', gap: 6, color: '#1f1f22',
         }}>
           {scanning ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={13} />}
@@ -371,7 +371,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
               <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#1f1f22', textDecoration: 'none' }}
                 onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#1f1f22'}
               >{shortUrl(item.url)}</a>
-              <span style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: R }}>{item.link_count} links</span>
+              <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 11, fontWeight: 700, color: R }}>{item.link_count} links</span>
             </div>
           )}
         />
@@ -382,7 +382,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <BarChart2 size={15} color={T} />
-            <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14, color: BLK }}>Link Equity Distribution</span>
+            <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Link Equity Distribution</span>
             <span style={{ fontSize: 11, color: '#1f2937', marginLeft: 4 }}>Top 10 pages by inbound links</span>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, fontSize: 12, color: '#1f2937' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: GRN, display: 'inline-block' }} /> Healthy</span>
@@ -419,18 +419,18 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Zap size={15} color={GRN} />
-            <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14, color: BLK }}>Quality Node Suggestions</span>
+            <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Quality Node Suggestions</span>
             <span style={{ fontSize: 11, color: '#1f2937', marginLeft: 4 }}>High-traffic pages that should be linked from homepage</span>
           </div>
           <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #f3f4f6' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#f9f9fb' }}>
-                  <th style={{ textAlign: 'left', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Page</th>
-                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Clicks</th>
-                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Inbound Links</th>
-                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Keywords</th>
-                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Action</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Page</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Clicks</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Inbound Links</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Keywords</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, color: '#1f2937', textTransform: 'uppercase' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -441,8 +441,8 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                         onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#1f1f22'}
                       >{shortUrl(node.url)}</a>
                     </td>
-                    <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, color: GRN }}>{fmtN(node.organic_clicks)}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, color: node.inbound_links < 3 ? R : BLK }}>{node.inbound_links}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: GRN }}>{fmtN(node.organic_clicks)}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: node.inbound_links < 3 ? R : BLK }}>{node.inbound_links}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'center', fontSize: 12, color: '#1f1f22' }}>
                       {node.top_keywords?.slice(0, 2).join(', ') || '—'}
                     </td>
@@ -466,9 +466,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <ArrowRight size={15} color={T} />
-          <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14, color: BLK }}>Breadcrumb Coverage</span>
+          <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Breadcrumb Coverage</span>
           <span style={{
-            marginLeft: 8, fontFamily: FH, fontSize: 13, fontWeight: 800,
+            marginLeft: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800,
             color: a.breadcrumb_coverage >= 80 ? GRN : a.breadcrumb_coverage >= 50 ? AMB : R,
           }}>
             {a.breadcrumb_coverage || 0}%
@@ -511,7 +511,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Eye size={15} color={R} />
-            <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14, color: BLK }}>AI Recommendations</span>
+            <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>AI Recommendations</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {recommendations.map((rec, i) => (
@@ -519,7 +519,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                 padding: '10px 14px', borderRadius: 8, background: '#f9f9fb', fontSize: 12,
                 color: '#1f1f22', lineHeight: 1.5, display: 'flex', gap: 8,
               }}>
-                <span style={{ fontFamily: FH, fontWeight: 800, color: T, flexShrink: 0 }}>{i + 1}.</span>
+                <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, color: T, flexShrink: 0 }}>{i + 1}.</span>
                 {rec}
               </div>
             ))}
@@ -532,7 +532,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         <div style={{ background: '#fff', borderRadius: 14, border: `2px solid ${T}`, padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Zap size={15} color={T} />
-            <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14, color: BLK }}>Link Suggestions for {shortUrl(suggestUrl)}</span>
+            <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Link Suggestions for {shortUrl(suggestUrl)}</span>
             <button onClick={() => { setSuggestions(null); setSuggestUrl('') }} style={{
               marginLeft: 'auto', border: 'none', background: 'none', fontSize: 11, color: '#1f2937', cursor: 'pointer',
             }}>

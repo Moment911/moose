@@ -17,7 +17,7 @@ function ScoreBadge({ score, label, size = 'md' }) {
   const fontSize = size === 'lg' ? 36 : 18
   return (
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontFamily: FH, fontSize, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
       <div style={{ fontSize: 11, color: '#1f2937', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
     </div>
   )
@@ -102,13 +102,13 @@ export default function ReviewsTab({ clientId, agencyId }) {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Review & Reputation Intelligence</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Review & Reputation Intelligence</div>
             <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Analyze your reviews, track sentiment, and build review campaigns.</div>
           </div>
         </div>
         <div style={{ ...card, textAlign: 'center', padding: '48px 24px' }}>
           <Star size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 8 }}>No review analysis yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 8 }}>No review analysis yet</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
             Run an analysis to pull reviews from Google Business Profile, score sentiment, and identify response gaps.
           </div>
@@ -143,7 +143,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Review & Reputation Intelligence</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 18, fontWeight: 800, color: BLK }}>Review & Reputation Intelligence</div>
           <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>
             Last scanned: {data?.scanned_at ? new Date(data.scanned_at).toLocaleDateString() : 'Never'}
           </div>
@@ -163,7 +163,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 20, marginBottom: 20 }}>
         {/* Big Score */}
         <div style={{ ...card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px 36px', minWidth: 140 }}>
-          <div style={{ fontFamily: FH, fontSize: 48, fontWeight: 900, color: (data?.overall_score || 0) >= 70 ? GRN : (data?.overall_score || 0) >= 40 ? AMB : R, lineHeight: 1 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 48, fontWeight: 900, color: (data?.overall_score || 0) >= 70 ? GRN : (data?.overall_score || 0) >= 40 ? AMB : R, lineHeight: 1 }}>
             {data?.overall_score || 0}
           </div>
           <div style={{ fontSize: 11, color: '#1f2937', marginTop: 4, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '.05em' }}>Review Score</div>
@@ -175,11 +175,11 @@ export default function ReviewsTab({ clientId, agencyId }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           <div style={card}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 4 }}>Total Reviews</div>
-            <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK }}>{data?.total_reviews || 0}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: BLK }}>{data?.total_reviews || 0}</div>
           </div>
           <div style={card}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 4 }}>Velocity</div>
-            <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK }}>{data?.review_velocity || 0}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: BLK }}>{data?.review_velocity || 0}</div>
             <div style={{ fontSize: 11, color: VELOCITY_COLORS[data?.velocity_trend] || '#6b6b70', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
               {(() => { const Icon = VELOCITY_ICONS[data?.velocity_trend] || ArrowRight; return <Icon size={12} /> })()}
               {data?.velocity_trend || 'unknown'}/mo
@@ -187,18 +187,18 @@ export default function ReviewsTab({ clientId, agencyId }) {
           </div>
           <div style={card}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 4 }}>Response Rate</div>
-            <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: (data?.response_rate || 0) >= 80 ? GRN : (data?.response_rate || 0) >= 50 ? AMB : R }}>{data?.response_rate || 0}%</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: (data?.response_rate || 0) >= 80 ? GRN : (data?.response_rate || 0) >= 50 ? AMB : R }}>{data?.response_rate || 0}%</div>
           </div>
           <div style={card}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 4 }}>Avg Response</div>
-            <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK }}>{data?.avg_response_time_hours ? `${Math.round(data.avg_response_time_hours)}h` : '—'}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: BLK }}>{data?.avg_response_time_hours ? `${Math.round(data.avg_response_time_hours)}h` : '—'}</div>
           </div>
         </div>
       </div>
 
       {/* Rating Distribution */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12 }}>Rating Distribution</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12 }}>Rating Distribution</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {[5, 4, 3, 2, 1].map(star => {
             const count = dist[String(star)] || 0
@@ -221,13 +221,13 @@ export default function ReviewsTab({ clientId, agencyId }) {
       {/* Sentiment by Topic */}
       {sentimentTopics.length > 0 && (
         <div style={{ ...card, marginBottom: 20 }}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12 }}>Sentiment by Topic</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12 }}>Sentiment by Topic</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
             {sentimentTopics.map((topic, i) => (
               <div key={i} style={{ padding: '14px 16px', borderRadius: 10, border: '1px solid #e5e7eb', cursor: 'pointer' }}
                 onClick={() => setExpandedTopic(expandedTopic === i ? null : i)}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{topic.topic}</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK }}>{topic.topic}</div>
                   {expandedTopic === i ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
                 </div>
                 {/* Sentiment bar */}
@@ -262,7 +262,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
         <div style={{ ...card, marginBottom: 20, borderColor: '#fecaca' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <AlertTriangle size={16} color={R} />
-            <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: R }}>Unresponded Negative Reviews ({unresponded.length})</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: R }}>Unresponded Negative Reviews ({unresponded.length})</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {unresponded.slice(0, 10).map((review, i) => (
@@ -290,7 +290,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
       {/* Review Campaigns */}
       <div style={{ ...card }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Review Campaigns</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Review Campaigns</div>
           <button onClick={() => setShowCampaignForm(!showCampaignForm)} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8,
             border: 'none', background: BLK, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
@@ -305,9 +305,9 @@ export default function ReviewsTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
               <input value={campaignName} onChange={e => setCampaignName(e.target.value)}
                 placeholder="Campaign name (e.g. Q2 Review Push)"
-                style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB }} />
+                style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }} />
               <input type="number" value={campaignTarget} onChange={e => setCampaignTarget(parseInt(e.target.value) || 10)}
-                min={1} max={100} style={{ width: 80, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB, textAlign: 'center' }} />
+                min={1} max={100} style={{ width: 80, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: 'center' }} />
               <span style={{ fontSize: 12, color: '#1f1f22', alignSelf: 'center' }}>target</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -339,7 +339,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
             <div key={camp.id} style={{ padding: '14px 16px', borderRadius: 10, border: '1px solid #e5e7eb', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{camp.name}</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK }}>{camp.name}</div>
                   <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: statusColor + '18', color: statusColor, textTransform: 'uppercase' }}>
                     {camp.status}
                   </span>

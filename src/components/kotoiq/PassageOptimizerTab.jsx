@@ -41,23 +41,23 @@ export default function PassageOptimizerTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="passage_opt" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <FileText size={18} color={T} /> Passage Optimizer
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Optimize passages for featured snippets and AI answer boxes.
         </div>
         <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Target keyword" style={{
-          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           marginBottom: 10, boxSizing: 'border-box',
         }} />
         <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Paste your content..." rows={10} style={{
-          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           resize: 'vertical', marginBottom: 10, boxSizing: 'border-box',
         }} />
         <button onClick={run} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
@@ -69,7 +69,7 @@ export default function PassageOptimizerTab({ clientId, agencyId }) {
         <>
           {best && (
             <div style={{ ...card, borderLeft: `4px solid ${GRN}` }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: GRN, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: GRN, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Star size={16} color={GRN} /> Best Snippet Candidate — Score {best.snippet_score}
               </div>
               <div style={{ padding: 14, background: GRN + '08', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#1f1f22' }}>
@@ -83,7 +83,7 @@ export default function PassageOptimizerTab({ clientId, agencyId }) {
             return (
               <div key={i} style={card}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, flex: 1 }}>Passage {i + 1}</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, flex: 1 }}>Passage {i + 1}</div>
                   <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 12, background: color + '14', color }}>
                     Snippet score: {p.snippet_score || 0}
                   </span>

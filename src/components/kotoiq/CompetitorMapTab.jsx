@@ -42,7 +42,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
     <div>
       <HowItWorks tool="competitor_map" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Map size={18} color={T} /> Competitor Topical Map
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
@@ -50,11 +50,11 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://competitor.com" style={{
-            flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+            flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           }} />
           <button onClick={run} disabled={running} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
           }}>
             {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Globe size={14} />}
@@ -68,14 +68,14 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
           {data.central_entity && (
             <div style={{ ...card, borderLeft: `4px solid ${T}` }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', marginBottom: 4 }}>Inferred Central Entity</div>
-              <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: T }}>{data.central_entity}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 800, color: T }}>{data.central_entity}</div>
               {data.niche && <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Niche: {data.niche}</div>}
             </div>
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={16} color={R} /> Core Topics
               </div>
               {(data.core_topics || []).map((t, i) => (
@@ -87,7 +87,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
             </div>
 
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={16} color={AMB} /> Outer Topics
               </div>
               {(data.outer_topics || []).map((t, i) => (
@@ -101,7 +101,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
 
           {data.coverage_comparison && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <TrendingUp size={16} color={T} /> Coverage vs. Client
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
@@ -124,7 +124,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
 
           {data.strategic_insights?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Lightbulb size={16} color={AMB} /> Strategic Insights
               </div>
               {data.strategic_insights.map((s, i) => (
@@ -147,7 +147,7 @@ function Stat({ label, value, color }) {
   return (
     <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color }}>{value}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>
   )
 }

@@ -76,14 +76,14 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
           <Target size={28} color={GRN} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Link Building Opportunities</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Link Building Opportunities</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>
             {opps.length} opportunities across {Object.keys(grouped).length} types
           </div>
         </div>
         <button onClick={run} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
@@ -98,7 +98,7 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
           <div key={type} style={{ ...card, borderLeft: `4px solid ${meta.color}` }}>
             <button onClick={() => setTypeOpen(s => ({ ...s, [type]: !open }))} style={{
               background: 'none', border: 'none', padding: 0, cursor: 'pointer', width: '100%',
-              display: 'flex', alignItems: 'center', gap: 8, fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: open ? 12 : 0,
+              display: 'flex', alignItems: 'center', gap: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: open ? 12 : 0,
             }}>
               <span>{meta.label}</span>
               <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 12, background: meta.color + '14', color: meta.color }}>{items.length}</span>
@@ -166,7 +166,7 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
       {opps.length === 0 && !running && (
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
           <Target size={36} color="#d1d5db" style={{ marginBottom: 10 }} />
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Opportunities Yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Opportunities Yet</div>
           <div style={{ fontSize: 12, color: '#1f2937' }}>Run a scan to find link prospects from competitors, mentions, and directories.</div>
         </div>
       )}

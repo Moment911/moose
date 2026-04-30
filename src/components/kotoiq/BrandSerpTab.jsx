@@ -26,7 +26,7 @@ function ScoreRing({ score, size = 100 }) {
           style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
         <div style={{ fontSize: size * 0.1, color: '#1f2937', fontWeight: 600, marginTop: 2 }}>/ 100</div>
       </div>
     </div>
@@ -125,7 +125,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Brand SERP Score</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Brand SERP Score</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
             {data
               ? `Scanning "${data.brand_query}" -- ${featuresPresent}/${featuresTotal} SERP features detected, ${data.owned_results}/${data.total_results} owned results`
@@ -135,7 +135,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
             <button onClick={runScan} disabled={scanning} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
               border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700,
-              fontFamily: FH, cursor: scanning ? 'wait' : 'pointer', opacity: scanning ? 0.6 : 1,
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: scanning ? 'wait' : 'pointer', opacity: scanning ? 0.6 : 1,
             }}>
               {scanning ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
               {scanning ? 'Scanning...' : 'Scan Brand SERP'}
@@ -144,7 +144,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
               <button onClick={loadStrategy} disabled={strategyLoading} style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
                 border: '1px solid #e5e7eb', background: '#fff', color: BLK, fontSize: 13, fontWeight: 600,
-                fontFamily: FH, cursor: strategyLoading ? 'wait' : 'pointer',
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: strategyLoading ? 'wait' : 'pointer',
               }}>
                 {strategyLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
                 Generate Defense Strategy
@@ -157,7 +157,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
       {!data && !scanning && (
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Shield size={40} color="#d1d5db" style={{ marginBottom: 12 }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Brand SERP Data</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Brand SERP Data</div>
           <div style={{ fontSize: 13, color: '#1f2937' }}>Click "Scan Brand SERP" to analyze how your brand appears in Google</div>
         </div>
       )}
@@ -166,7 +166,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
         <>
           {/* SERP Features Checklist */}
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Globe size={16} color={T} /> SERP Features
               <span style={{ fontSize: 11, fontWeight: 600, color: '#1f2937', marginLeft: 'auto' }}>{featuresPresent} / {featuresTotal} active</span>
             </div>
@@ -196,11 +196,11 @@ export default function BrandSerpTab({ clientId, agencyId }) {
 
           {/* Owned Results Bar */}
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Shield size={16} color={R} /> Owned Results
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 10 }}>
-              <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: data.owned_results >= 5 ? GRN : data.owned_results >= 3 ? AMB : R }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 36, fontWeight: 900, color: data.owned_results >= 5 ? GRN : data.owned_results >= 3 ? AMB : R }}>
                 {data.owned_results}
               </div>
               <div>
@@ -233,7 +233,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
           {data.paa_questions?.length > 0 && (
             <div style={card}>
               <button onClick={() => setShowPaa(!showPaa)} style={{
-                fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8,
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8,
                 background: 'none', border: 'none', cursor: 'pointer', width: '100%', padding: 0, marginBottom: showPaa ? 14 : 0,
               }}>
                 <Search size={16} color={T} /> People Also Ask ({data.paa_questions.length})
@@ -266,7 +266,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
           {/* Negative Results */}
           {data.negative_results?.length > 0 && (
             <div style={{ ...card, border: `1px solid #ececef`, background: R + '05' }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <AlertTriangle size={16} color={R} /> Negative Results Detected ({data.negative_results.length})
               </div>
               {data.negative_results.map((nr, i) => (
@@ -298,7 +298,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
           {/* Knowledge Panel Details */}
           {data.has_knowledge_panel && data.kp_description && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Globe size={16} color={T} /> Knowledge Panel
               </div>
               <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{data.kp_description}</div>
@@ -316,7 +316,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
           {/* Defense Strategy */}
           {showStrategy && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Zap size={16} color={AMB} /> Brand Defense Strategy
               </div>
               {strategyLoading ? (

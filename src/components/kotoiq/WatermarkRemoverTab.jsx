@@ -40,14 +40,14 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="watermark" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Eraser size={18} color={T} /> AI Watermark Remover
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Strip hidden AI fingerprints, homoglyphs, and telltale phrases.
         </div>
         <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Paste your AI-generated content..." rows={10} style={{
-          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           resize: 'vertical', marginBottom: 10, boxSizing: 'border-box',
         }} />
         <div style={{ marginBottom: 10 }}>
@@ -61,7 +61,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
         </div>
         <button onClick={run} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Eraser size={14} />}
@@ -78,7 +78,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
           </div>
 
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Sparkles size={16} color={GRN} /> Cleaned Content
             </div>
             <div style={{ padding: 14, background: '#f9f9fb', borderRadius: 8, fontSize: 13, lineHeight: 1.6, color: '#1f1f22', whiteSpace: 'pre-wrap' }}>
@@ -92,7 +92,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
 
           {data.patterns_detected?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Patterns Detected</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Patterns Detected</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {data.patterns_detected.map((p, i) => (
                   <span key={i} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 12, background: '#f1f1f6', color: R }}>
@@ -105,7 +105,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
 
           {data.rewrites?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Diff</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Diff</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {data.rewrites.slice(0, 20).map((r, i) => (
                   <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
@@ -133,7 +133,7 @@ function Stat({ label, value, color }) {
   return (
     <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color }}>{value}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>
   )
 }

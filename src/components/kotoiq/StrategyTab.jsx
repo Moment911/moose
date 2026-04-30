@@ -16,8 +16,8 @@ function AllocBar({ label, pct, color }) {
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', fontFamily: FH }}>{label}</span>
-        <span style={{ fontSize: 12, fontWeight: 800, color, fontFamily: FH }}>{width}%</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 800, color, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{width}%</span>
       </div>
       <div style={{ height: 10, background: '#f1f1f6', borderRadius: 6, overflow: 'hidden' }}>
         <div style={{ width: `${width}%`, height: '100%', background: color, transition: 'width .3s' }} />
@@ -31,7 +31,7 @@ function PriorityCard({ title, items, color, icon: Icon, fieldMap, empty }) {
     <div style={{ ...card, marginBottom: 0, borderTop: `4px solid ${color}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <Icon size={18} color={color} />
-        <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>{title}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>{title}</div>
         <div style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color, background: color + '14', padding: '3px 10px', borderRadius: 12 }}>
           {items?.length || 0}
         </div>
@@ -117,7 +117,7 @@ export default function StrategyTab({ clientId, agencyId }) {
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Target size={20} color={R} /> Strategic Plan
           </div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
@@ -125,7 +125,7 @@ export default function StrategyTab({ clientId, agencyId }) {
           </div>
         </div>
         <select value={timeframe} onChange={e => setTimeframe(e.target.value)} style={{
-          padding: '9px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, fontFamily: FH, background: '#fff',
+          padding: '9px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", background: '#fff',
         }}>
           <option value="1_month">1 Month</option>
           <option value="3_month">3 Month</option>
@@ -133,7 +133,7 @@ export default function StrategyTab({ clientId, agencyId }) {
         </select>
         <button onClick={generate} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : plan ? <RefreshCw size={14} /> : <Sparkles size={14} />}
@@ -144,7 +144,7 @@ export default function StrategyTab({ clientId, agencyId }) {
       {!plan && !running && (
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Target size={42} color="#d1d5db" style={{ marginBottom: 12 }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Strategic Plan Yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Strategic Plan Yet</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Pick a timeframe above and generate your first plan.</div>
         </div>
       )}
@@ -153,8 +153,8 @@ export default function StrategyTab({ clientId, agencyId }) {
         <>
           {summary && (
             <div style={{ ...card, background: 'linear-gradient(135deg,#f0f9ff 0%,#fefce8 100%)', borderLeft: `4px solid ${T}` }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Executive Summary</div>
-              <div style={{ fontSize: 14, color: BLK, lineHeight: 1.65, fontFamily: FB }}>{summary}</div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Executive Summary</div>
+              <div style={{ fontSize: 14, color: BLK, lineHeight: 1.65, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{summary}</div>
             </div>
           )}
 
@@ -195,7 +195,7 @@ export default function StrategyTab({ clientId, agencyId }) {
 
           {Object.keys(alloc).length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <TrendingUp size={16} color={T} /> Resource Allocation
               </div>
               <AllocBar label="Content" pct={alloc.content_pct} color={T} />
@@ -207,13 +207,13 @@ export default function StrategyTab({ clientId, agencyId }) {
 
           {weekKeys.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Calendar size={16} color={T} /> Weekly Actions
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {weekKeys.map(wk => (
                   <div key={wk}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, fontFamily: FH }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                       {typeof wk === 'number' || /^\d+$/.test(String(wk)) ? `Week ${wk}` : wk}
                     </div>
                     {weeksMap[wk].map((a, i) => (
@@ -239,13 +239,13 @@ export default function StrategyTab({ clientId, agencyId }) {
 
           {milestones.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Clock size={16} color={T} /> Monthly Milestones
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {milestones.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', background: '#f9f9fb', borderRadius: 10, borderLeft: `3px solid ${T}` }}>
-                    <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: T, minWidth: 70 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: T, minWidth: 70 }}>
                       {typeof m.month === 'number' || /^\d+$/.test(String(m.month)) ? `Month ${m.month}` : (m.month || `#${i + 1}`)}
                     </div>
                     <div style={{ flex: 1, fontSize: 13, color: BLK, lineHeight: 1.5 }}>

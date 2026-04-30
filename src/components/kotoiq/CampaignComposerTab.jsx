@@ -102,7 +102,7 @@ function StepIndicator({ current }) {
               <div style={{
                 width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 800, fontFamily: FH,
+                fontSize: 13, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 background: done ? BLK : active ? BLK : '#f1f1f6',
                 color: done || active ? '#fff' : '#8e8e93',
                 transition: 'all .2s',
@@ -111,7 +111,7 @@ function StepIndicator({ current }) {
               </div>
               <span style={{
                 fontSize: 13, fontWeight: active ? 700 : 500,
-                fontFamily: FH,
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 color: active ? BLK : done ? '#1f1f22' : '#8e8e93',
               }}>
                 {s.label}
@@ -262,7 +262,7 @@ export default function CampaignComposerTab({ agencyId }) {
 
   return (
     <div>
-      <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Campaign Composer</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Campaign Composer</div>
       <div style={{ fontSize: 14, color: '#6b6b70', marginBottom: 24 }}>Create a multi-page campaign from a template and seed dataset.</div>
 
       <StepIndicator current={step} />
@@ -270,7 +270,7 @@ export default function CampaignComposerTab({ agencyId }) {
       {/* ── Step 1: Pick Template ────────────────────────────────── */}
       {step === 1 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
             Pick a Template
           </div>
 
@@ -297,7 +297,7 @@ export default function CampaignComposerTab({ agencyId }) {
                   }}>
                     <Layers size={18} color={active ? BLK : '#8e8e93'} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{tpl.name || tpl.title || 'Untitled'}</div>
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK }}>{tpl.name || tpl.title || 'Untitled'}</div>
                       {tpl.slot_count != null && (
                         <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>{tpl.slot_count} slots</div>
                       )}
@@ -314,7 +314,7 @@ export default function CampaignComposerTab({ agencyId }) {
               padding: '10px 24px', borderRadius: 8, border: 'none',
               background: selectedTemplate ? BLK : '#ececef',
               color: selectedTemplate ? '#fff' : '#8e8e93',
-              fontSize: 14, fontWeight: 700, fontFamily: FH,
+              fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: selectedTemplate ? 'pointer' : 'not-allowed',
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
@@ -327,7 +327,7 @@ export default function CampaignComposerTab({ agencyId }) {
       {/* ── Step 2: Upload Seed Data ─────────────────────────────── */}
       {step === 2 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
             Upload Seed Dataset
           </div>
           <div style={{ fontSize: 13, color: '#6b6b70', marginBottom: 16 }}>
@@ -382,14 +382,14 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
             <button onClick={() => setStep(1)} style={{
               padding: '10px 24px', borderRadius: 8, border: '1px solid #e5e7eb',
-              background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: FH,
+              background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <ChevronLeft size={16} /> Back
             </button>
             <button onClick={nextStep} style={{
               padding: '10px 24px', borderRadius: 8, border: 'none',
-              background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH,
+              background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
               Next <ChevronRight size={16} />
@@ -403,14 +403,14 @@ export default function CampaignComposerTab({ agencyId }) {
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK }}>Preview</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK }}>Preview</div>
               <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4 }}>
                 Showing first {Math.min(3, seedRows.length)} of {seedRows.length} rows. Generate preview to see slot fills.
               </div>
             </div>
             <button onClick={generatePreview} disabled={generatingPreview} style={{
               padding: '8px 16px', borderRadius: 8, border: 'none',
-              background: BLK, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+              background: BLK, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: generatingPreview ? 'wait' : 'pointer',
               display: 'flex', alignItems: 'center', gap: 6,
               opacity: generatingPreview ? 0.6 : 1,
@@ -425,9 +425,9 @@ export default function CampaignComposerTab({ agencyId }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#f9f9fb' }}>
-                  <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>#</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>#</th>
                   {seedHeaders.map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -447,14 +447,14 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
             <button onClick={() => setStep(2)} style={{
               padding: '10px 24px', borderRadius: 8, border: '1px solid #e5e7eb',
-              background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: FH,
+              background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <ChevronLeft size={16} /> Back
             </button>
             <button onClick={nextStep} style={{
               padding: '10px 24px', borderRadius: 8, border: 'none',
-              background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH,
+              background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
               Next <ChevronRight size={16} />
@@ -466,7 +466,7 @@ export default function CampaignComposerTab({ agencyId }) {
       {/* ── Step 4: Cadence ──────────────────────────────────────── */}
       {step === 4 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
             Set Publish Cadence
           </div>
 
@@ -488,7 +488,7 @@ export default function CampaignComposerTab({ agencyId }) {
                     transition: 'all .15s',
                   }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{opt.label}</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK }}>{opt.label}</div>
                     <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>{opt.desc}</div>
                   </div>
                 </button>
@@ -499,14 +499,14 @@ export default function CampaignComposerTab({ agencyId }) {
           {/* Per-day cap for drip */}
           {cadence === 'drip' && (
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK, marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 6 }}>
                 Pages per day
               </label>
               <input type="number" min={1} max={100} value={perDayCap}
                 onChange={e => setPerDayCap(Number(e.target.value) || 1)}
                 style={{
                   padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb',
-                  fontSize: 14, fontFamily: FH, fontWeight: 600, width: 120, outline: 'none',
+                  fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600, width: 120, outline: 'none',
                 }}
               />
             </div>
@@ -514,13 +514,13 @@ export default function CampaignComposerTab({ agencyId }) {
 
           {/* Start date */}
           <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK, marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 6 }}>
               Start date (optional)
             </label>
             <input type="datetime-local" value={startAt} onChange={e => setStartAt(e.target.value)}
               style={{
                 padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb',
-                fontSize: 13, fontFamily: FH, width: 240, outline: 'none',
+                fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", width: 240, outline: 'none',
               }}
             />
           </div>
@@ -528,14 +528,14 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
             <button onClick={() => setStep(3)} style={{
               padding: '10px 24px', borderRadius: 8, border: '1px solid #e5e7eb',
-              background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: FH,
+              background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <ChevronLeft size={16} /> Back
             </button>
             <button onClick={nextStep} style={{
               padding: '10px 24px', borderRadius: 8, border: 'none',
-              background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH,
+              background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
               Next <ChevronRight size={16} />
@@ -547,7 +547,7 @@ export default function CampaignComposerTab({ agencyId }) {
       {/* ── Step 5: Create Campaign ──────────────────────────────── */}
       {step === 5 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 16 }}>
             Review &amp; Create
           </div>
 
@@ -555,22 +555,22 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
             <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '16px 18px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Template</div>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK }}>{selectedTemplate?.name || selectedTemplate?.title || 'N/A'}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 700, color: BLK }}>{selectedTemplate?.name || selectedTemplate?.title || 'N/A'}</div>
             </div>
             <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '16px 18px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Variants</div>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK }}>{seedRows.length} pages</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 700, color: BLK }}>{seedRows.length} pages</div>
             </div>
             <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '16px 18px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Cadence</div>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 700, color: BLK }}>
                 {CADENCE_OPTIONS.find(o => o.key === cadence)?.label}
                 {cadence === 'drip' && ` (${perDayCap}/day)`}
               </div>
             </div>
             <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '16px 18px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Start</div>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 700, color: BLK }}>
                 {startAt ? new Date(startAt).toLocaleString() : 'Immediately'}
               </div>
             </div>
@@ -585,7 +585,7 @@ export default function CampaignComposerTab({ agencyId }) {
             }}>
               <CheckCircle size={20} color="#16a34a" />
               <div>
-                <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: '#166534' }}>Campaign Created</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: '#166534' }}>Campaign Created</div>
                 <div style={{ fontSize: 13, color: '#15803d', marginTop: 2 }}>
                   ID: {campaignResult.campaign_id || campaignResult.id || 'N/A'} — {seedRows.length} variants queued
                 </div>
@@ -596,7 +596,7 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
             <button onClick={() => setStep(4)} disabled={creating} style={{
               padding: '10px 24px', borderRadius: 8, border: '1px solid #e5e7eb',
-              background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: FH,
+              background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <ChevronLeft size={16} /> Back
@@ -605,7 +605,7 @@ export default function CampaignComposerTab({ agencyId }) {
               <button onClick={createCampaign} disabled={creating} style={{
                 padding: '12px 28px', borderRadius: 8, border: 'none',
                 background: creating ? '#6b6b70' : BLK,
-                color: '#fff', fontSize: 14, fontWeight: 800, fontFamily: FH,
+                color: '#fff', fontSize: 14, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 cursor: creating ? 'wait' : 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>

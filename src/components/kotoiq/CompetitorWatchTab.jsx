@@ -155,7 +155,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 220 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Eye size={20} color={T} /> Competitor Watch
           </div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
@@ -164,7 +164,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
         </div>
         <button onClick={runCheck} disabled={running || watches.length === 0} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : (watches.length === 0 ? 'not-allowed' : 'pointer'),
           opacity: running || watches.length === 0 ? 0.6 : 1,
         }}>
@@ -175,17 +175,17 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
 
       {/* Setup card */}
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Plus size={16} color={T} /> New Watch
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: FH }}>Competitor Domains</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Competitor Domains</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
             {domains.map(d => (
               <span key={d} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px',
-                background: '#f1f1f6', color: T, borderRadius: 16, fontSize: 12, fontWeight: 700, fontFamily: FH,
+                background: '#f1f1f6', color: T, borderRadius: 16, fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }}>
                 {d}
                 <button onClick={() => removeDomain(d)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: T, display: 'flex' }}>
@@ -198,11 +198,11 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
             <input value={domainInput} onChange={e => setDomainInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addDomain() } }}
               placeholder="competitor.com" style={{
-                flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB,
+                flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }} />
             <button onClick={addDomain} style={{
               padding: '9px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', gap: 4,
             }}>
               <Plus size={13} /> Add
             </button>
@@ -211,20 +211,20 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: FH }}>Email Alerts</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Email Alerts</div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, cursor: 'pointer' }}>
               <input type="checkbox" checked={emailEnabled} onChange={e => setEmailEnabled(e.target.checked)} />
               Send email notifications
             </label>
             <input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@agency.com" disabled={!emailEnabled} style={{
-              width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB, boxSizing: 'border-box',
+              width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box',
               opacity: emailEnabled ? 1 : 0.5,
             }} />
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: FH }}>Slack Webhook (optional)</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Slack Webhook (optional)</div>
             <input value={slackWebhook} onChange={e => setSlackWebhook(e.target.value)} placeholder="https://hooks.slack.com/services/..." style={{
-              width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB, boxSizing: 'border-box',
+              width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box',
               marginTop: 26,
             }} />
           </div>
@@ -232,9 +232,9 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', fontFamily: FH }}>Frequency:</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Frequency:</span>
             <select value={frequency} onChange={e => setFrequency(e.target.value)} style={{
-              padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontWeight: 600, background: '#fff', fontFamily: FH,
+              padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontWeight: 600, background: '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             }}>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
@@ -243,7 +243,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
           <div style={{ marginLeft: 'auto' }}>
             <button onClick={saveWatch} disabled={saving || domains.length === 0} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-              border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+              border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: saving ? 'wait' : 'pointer', opacity: saving || domains.length === 0 ? 0.6 : 1,
             }}>
               {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
@@ -256,7 +256,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
       {/* Active watches */}
       {watches.length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Active Watches ({watches.length})</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Active Watches ({watches.length})</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {watches.map((w, i) => (
               <div key={w.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#f9f9fb', borderRadius: 10 }}>
@@ -282,14 +282,14 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
       {/* Events feed */}
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Bell size={16} color={T} /> Event Feed
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, alignItems: 'center' }}>
             <Filter size={12} color="#6b7280" />
             {[['all', 'All'], ['critical', 'Critical'], ['unread', 'Unread']].map(([val, lbl]) => (
               <button key={val} onClick={() => setFilter(val)} style={{
-                padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 700, fontFamily: FH,
+                padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 border: filter === val ? `1.5px solid ${T}` : '1.5px solid #e5e7eb',
                 background: filter === val ? '#f1f1f6' : '#fff',
                 color: filter === val ? T : '#1f1f22', cursor: 'pointer',
@@ -316,7 +316,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
                   <SevIcon size={16} color={sev.color} style={{ flexShrink: 0, marginTop: 2 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 }}>
-                      <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: sev.bg, color: sev.color, textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: FH }}>{sev.label}</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: sev.bg, color: sev.color, textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{sev.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{ev.competitor_domain}</span>
                       <span style={{ fontSize: 11, color: '#6b6b70' }}>· {EVENT_TYPE_LABELS[ev.event_type] || ev.event_type}</span>
                     </div>

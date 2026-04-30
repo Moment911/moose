@@ -41,7 +41,7 @@ function ScoreCircle({ score, size = 64, strokeWidth = 5 }) {
       <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth}
         strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
       <text x={size / 2} y={size / 2} textAnchor="middle" dominantBaseline="central"
-        style={{ transform: 'rotate(90deg)', transformOrigin: 'center', fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, fill: color }}>
+        style={{ transform: 'rotate(90deg)', transformOrigin: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.32, fontWeight: 900, fill: color }}>
         {score}
       </text>
     </svg>
@@ -56,7 +56,7 @@ function ScoreBadge({ score, label, icon: Icon }) {
     <div style={{ textAlign: 'center', padding: '8px 16px', background: '#fff', borderRadius: 10, border: '1px solid #e5e7eb' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 4 }}>
         {Icon && <Icon size={12} color={color} />}
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color, lineHeight: 1 }}>{score || '--'}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color, lineHeight: 1 }}>{score || '--'}</div>
       </div>
       <div style={{ fontSize: 11, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>{label}</div>
     </div>
@@ -91,7 +91,7 @@ function ContentTypePill({ type }) {
 function PriorityBadge({ priority }) {
   const color = priority <= 3 ? R : priority <= 6 ? AMB : '#8e8e93'
   return (
-    <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color, background: color + '12', padding: '1px 6px', borderRadius: 8 }}>
+    <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 800, color, background: color + '12', padding: '1px 6px', borderRadius: 8 }}>
       P{priority}
     </span>
   )
@@ -129,7 +129,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, lineHeight: 1.3, marginBottom: 4 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, lineHeight: 1.3, marginBottom: 4 }}>
             {node.entity}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
@@ -140,7 +140,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
         </div>
         {node.search_volume > 0 && (
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 900, color: BLK }}>{fmtN(node.search_volume)}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 900, color: BLK }}>{fmtN(node.search_volume)}</div>
             <div style={{ fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>vol</div>
           </div>
         )}
@@ -464,14 +464,14 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         <div style={{ width: 56, height: 56, borderRadius: 14, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <Map size={28} color={T} />
         </div>
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>No Topical Map Yet</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>No Topical Map Yet</div>
         <div style={{ fontSize: 14, color: '#1f1f22', maxWidth: 420, margin: '0 auto 20px', lineHeight: 1.6 }}>
           Generate a KotoIQ topical map using KotoIQ's knowledge base. Analyzes your website, identifies the central entity, and maps every topic you should cover for maximum topical authority.
         </div>
         <button onClick={generateMap} disabled={generating}
           style={{
             padding: '12px 28px', borderRadius: 10, border: 'none', background: BLK, color: '#fff',
-            fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: generating ? 'wait' : 'pointer',
+            fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: generating ? 'wait' : 'pointer',
             display: 'inline-flex', alignItems: 'center', gap: 8, opacity: generating ? 0.6 : 1,
           }}>
           {generating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Map size={16} />}
@@ -496,7 +496,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
           <Info size={18} color={T} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>What is a Topical Map?</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 4 }}>What is a Topical Map?</div>
           <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 6 }}>
             A topical map is a structured plan of every piece of content your site needs to demonstrate complete expertise on a subject. Each node represents a topic to cover. <strong>Core nodes</strong> are directly tied to revenue -- these should be your pillar and cluster pages. <strong>Outer nodes</strong> build surrounding authority and capture long-tail searches.
           </div>
@@ -511,7 +511,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         <ScoreCircle score={coverageScore} />
 
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK, letterSpacing: '-.02em', marginBottom: 4 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK, letterSpacing: '-.02em', marginBottom: 4 }}>
             Topical Map
           </div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>
@@ -550,7 +550,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
       {/* Coverage progress bar */}
       <div style={{ ...card, padding: '14px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: FH }}>Coverage Distribution</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Coverage Distribution</div>
           <div style={{ flex: 1 }} />
           <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#1f1f22' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -581,7 +581,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
       {/* Map identity card */}
       <div style={{ ...card }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em' }}>
             KotoIQ Identity
           </div>
           <button onClick={() => {
@@ -608,7 +608,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Entity</div>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>{map.central_entity || '--'}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>{map.central_entity || '--'}</div>
             </div>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Source Context</div>
@@ -624,7 +624,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Entity</div>
               <input value={identityForm.central_entity} onChange={e => setIdentityForm(p => ({ ...p, central_entity: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FH, fontWeight: 700 }} />
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
             </div>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Source Context</div>
@@ -685,7 +685,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <div style={{ width: 4, height: 18, borderRadius: 2, background: R }} />
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
               Core Section
             </div>
             <span style={{ fontSize: 11, color: '#1f2937', fontWeight: 600 }}>
@@ -705,7 +705,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <div style={{ width: 4, height: 18, borderRadius: 2, background: T }} />
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
               Outer Section
             </div>
             <span style={{ fontSize: 11, color: '#1f2937', fontWeight: 600 }}>

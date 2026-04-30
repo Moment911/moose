@@ -57,16 +57,16 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="budget-forecast" />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Budget & Forecast</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Budget & Forecast</div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <select value={horizon} onChange={e => setHorizon(Number(e.target.value))}
-            style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FB }}>
+            style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             <option value={30}>30 days</option>
             <option value={60}>60 days</option>
             <option value={90}>90 days</option>
           </select>
           <button onClick={generate} disabled={generating}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: generating ? 0.6 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: generating ? 0.6 : 1 }}>
             {generating ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
             {generating ? 'Calculating...' : 'Generate Forecast'}
           </button>
@@ -80,7 +80,7 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
             <div style={{ ...card, background: forecast.pacing_status === 'critical' ? '#fef2f2' : '#fef9c3', borderColor: pacingColor, display: 'flex', alignItems: 'center', gap: 12 }}>
               <AlertTriangle size={20} color={pacingColor} />
               <div>
-                <div style={{ fontFamily: FH, fontWeight: 800, color: pacingColor }}>{PACING_LABELS[forecast.pacing_status]}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, color: pacingColor }}>{PACING_LABELS[forecast.pacing_status]}</div>
                 <div style={{ fontSize: 13, color: '#1f1f22' }}>
                   {forecast.pacing_status === 'critical' && `At current rate, you'll exceed your ${fmt(p.budget)} budget by ${fmt(p.projected_month_end - p.budget)}. `}
                   {forecast.pacing_status === 'over_pace' && `Projected to exceed ${fmt(p.budget)} budget by month end. `}
@@ -95,21 +95,21 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
           {forecast && (
             <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <div style={{ ...card, flex: 1, minWidth: 150 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: FH, marginBottom: 4 }}>Projected {horizon}d Total</div>
-                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK }}>{fmt(forecast.total_projected)}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>Projected {horizon}d Total</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: BLK }}>{fmt(forecast.total_projected)}</div>
               </div>
               <div style={{ ...card, flex: 1, minWidth: 150 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: FH, marginBottom: 4 }}>Daily Average</div>
-                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: T }}>{fmt(forecast.daily_avg_total)}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>Daily Average</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: T }}>{fmt(forecast.daily_avg_total)}</div>
               </div>
               <div style={{ ...card, flex: 1, minWidth: 150 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: FH, marginBottom: 4 }}>Pacing</div>
-                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: pacingColor }}>{PACING_LABELS[forecast.pacing_status] || 'N/A'}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>Pacing</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: pacingColor }}>{PACING_LABELS[forecast.pacing_status] || 'N/A'}</div>
                 <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 2 }}>{fmt(p.spent_so_far || 0)} of {fmt(p.budget || 0)} this month</div>
               </div>
               <div style={{ ...card, flex: 1, minWidth: 150 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: FH, marginBottom: 4 }}>Days Until Exhausted</div>
-                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: p.days_until_exhausted != null && p.days_until_exhausted < 10 ? R : GRN }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>Days Until Exhausted</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: p.days_until_exhausted != null && p.days_until_exhausted < 10 ? R : GRN }}>
                   {p.days_until_exhausted != null ? p.days_until_exhausted : '—'}
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
           {/* Spend Trend Chart */}
           {trend.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16 }}>Daily Spend Trend</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16 }}>Daily Spend Trend</div>
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={trend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
@@ -137,8 +137,8 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
           {/* Breakdown Table */}
           {forecast && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Cost Breakdown</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: FB }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Cost Breakdown</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Category', 'Daily Avg', `${horizon}d Projected`].map(h => (
@@ -159,9 +159,9 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
                     </tr>
                   ))}
                   <tr style={{ borderTop: '2px solid #e5e7eb' }}>
-                    <td style={{ padding: '10px 6px', fontWeight: 800, fontFamily: FH }}>Total</td>
+                    <td style={{ padding: '10px 6px', fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Total</td>
                     <td style={{ padding: '10px 6px', textAlign: 'right', fontWeight: 800 }}>{fmt(forecast.daily_avg_total)}</td>
-                    <td style={{ padding: '10px 6px', textAlign: 'right', fontWeight: 800, fontFamily: FH }}>{fmt(forecast.total_projected)}</td>
+                    <td style={{ padding: '10px 6px', textAlign: 'right', fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{fmt(forecast.total_projected)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -171,7 +171,7 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
           {!forecast && !loading && (
             <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
               <DollarSign size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-              <div style={{ fontFamily: FH, fontWeight: 700, marginBottom: 4 }}>No forecast data yet</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, marginBottom: 4 }}>No forecast data yet</div>
               <div style={{ fontSize: 13 }}>Click "Generate Forecast" to project your spend</div>
             </div>
           )}

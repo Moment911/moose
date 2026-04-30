@@ -24,7 +24,7 @@ function ScoreRing({ score, size = 100 }) {
           transform={`rotate(-90 ${size / 2} ${size / 2})`} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color }}>{score}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.32, fontWeight: 900, color }}>{score}</div>
         <div style={{ fontSize: size * 0.1, color: '#1f1f22', fontWeight: 600 }}>/ 100</div>
       </div>
     </div>
@@ -38,7 +38,7 @@ function StatCard({ label, value, icon: Icon, color, sub }) {
         <Icon size={14} color={color} />
         <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
       </div>
-      <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color }}>{value}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{sub}</div>}
     </div>
   )
@@ -136,7 +136,7 @@ function IssueSummaryCard({ data }) {
     <div style={{ ...card, background: critical > 0 ? '#f9f9fb' : '#f9f9fb', border: `1px solid ${critical > 0 ? R : AMB}25` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
         <ShieldAlert size={18} color={critical > 0 ? R : AMB} />
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>
           Your site has {total} issue{total !== 1 ? 's' : ''} that need attention
         </div>
       </div>
@@ -158,7 +158,7 @@ function AIRecommendations({ data }) {
 
   return (
     <div style={card}>
-      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
         <Lightbulb size={16} color={AMB} /> AI Recommendations
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -171,7 +171,7 @@ function AIRecommendations({ data }) {
             <div key={rec.key} style={{ borderRadius: 10, border: `1px solid ${sev.border}`, overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: sev.bg }}>
                 <Icon size={14} color={sev.color} />
-                <div style={{ flex: 1, fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>
+                <div style={{ flex: 1, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>
                   {rec.title} ({count})
                 </div>
                 <SeverityBadge level={rec.severity} />
@@ -239,7 +239,7 @@ export default function GSCAuditTab({ clientId, agencyId }) {
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>GSC Deep Audit</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>GSC Deep Audit</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
             {data
               ? `Last run ${data.updated_at ? new Date(data.updated_at).toLocaleString() : 'recently'} -- ${data.total_issues || 0} issues`
@@ -247,7 +247,7 @@ export default function GSCAuditTab({ clientId, agencyId }) {
           </div>
           <button onClick={run} disabled={running} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
           }}>
             {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
@@ -276,7 +276,7 @@ export default function GSCAuditTab({ clientId, agencyId }) {
 
           {data.quick_wins?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Zap size={16} color={GRN} /> Quick Wins
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -301,7 +301,7 @@ function IssueTable({ title, color, Icon, items, columns }) {
   if (!items?.length) return null
   return (
     <div style={card}>
-      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
         <Icon size={16} color={color} /> {title} ({items.length})
       </div>
       <div style={{ overflowX: 'auto' }}>

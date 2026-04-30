@@ -53,8 +53,8 @@ function ScoreRing({ score, label, color, size = 64 }) {
           strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset .6s ease' }} />
       </svg>
-      <div style={{ marginTop: -size / 2 - 10, fontFamily: FH, fontSize: size > 50 ? 18 : 14, fontWeight: 900, color, lineHeight: `${size}px` }}>{score}</div>
-      {label && <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>}
+      <div style={{ marginTop: -size / 2 - 10, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size > 50 ? 18 : 14, fontWeight: 900, color, lineHeight: `${size}px` }}>{score}</div>
+      {label && <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginTop: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</div>}
     </div>
   )
 }
@@ -62,8 +62,8 @@ function ScoreRing({ score, label, color, size = 64 }) {
 function StatBox({ label, value, color, sub }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px', textAlign: 'center' }}>
-      <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginTop: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</div>
       {sub && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{sub}</div>}
     </div>
   )
@@ -146,7 +146,7 @@ export default function SchemaTab({ clientId, agencyId }) {
     return (
       <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
         <Code size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Schema & Structured Data</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Schema & Structured Data</div>
         <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20, maxWidth: 480, margin: '0 auto 20px' }}>
           Audit your site for JSON-LD structured data, find missing schema opportunities, and auto-generate markup to boost rich results.
         </div>
@@ -175,7 +175,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       {/* Title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
         <Code size={22} color={T} />
-        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>Schema Markup Audit</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK }}>Schema Markup Audit</div>
       </div>
 
       {/* Explanation card */}
@@ -189,7 +189,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       {hasNoData && (
         <div style={{ ...card, textAlign: 'center', padding: '32px 24px', background: '#fffbeb', borderColor: AMB + '30' }}>
           <AlertTriangle size={24} color={AMB} style={{ margin: '0 auto 10px' }} />
-          <div style={{ fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 6, fontFamily: FH }}>No schema data yet</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>No schema data yet</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Run a sitemap crawl first to discover all pages, then run a deep enrich to populate schema data.</div>
         </div>
       )}
@@ -212,17 +212,17 @@ export default function SchemaTab({ clientId, agencyId }) {
       {/* Schema Types distribution */}
       {Object.keys(schemaTypes).length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <FileCode size={16} color={T} /> Schema Types Found
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {Object.entries(schemaTypes).sort((a, b) => Number(b[1]) - Number(a[1])).map(([type, count]) => (
               <div key={type}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 140, fontSize: 13, fontWeight: 600, color: BLK, fontFamily: FB }}>{type}</div>
+                  <div style={{ width: 140, fontSize: 13, fontWeight: 600, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{type}</div>
                   <div style={{ flex: 1, height: 20, borderRadius: 4, background: '#f1f1f6', overflow: 'hidden' }}>
                     <div style={{ width: `${(Number(count) / maxTypeCount) * 100}%`, height: '100%', borderRadius: 4, background: T, transition: 'width .4s ease', display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', fontFamily: FH }}>{String(count)}</span>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{String(count)}</span>
                     </div>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       {/* Missing Schema Opportunities */}
       {eligible.length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Zap size={16} color={AMB} /> Missing Schema Opportunities
             <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: AMB }}>{eligible.length}</span>
           </div>
@@ -246,7 +246,7 @@ export default function SchemaTab({ clientId, agencyId }) {
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 {['URL', 'Recommended Schema', 'CTR Lift', ''].map(h => (
-                  <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'URL' ? 'left' : 'center' }}>{h}</th>
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'URL' ? 'left' : 'center' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -259,7 +259,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                   <td style={{ textAlign: 'center' }}>
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 12, background: T + '10', color: T }}>{opp.recommended_type}</span>
                   </td>
-                  <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 13, fontWeight: 800, color: GRN }}>{opp.potential_ctr_lift}</td>
+                  <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: GRN }}>{opp.potential_ctr_lift}</td>
                   <td style={{ textAlign: 'center' }}>
                     <button
                       onClick={() => generateForUrl(opp.url, opp.recommended_type)}
@@ -279,7 +279,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       {schemaErrors.length > 0 && (
         <div style={{ ...card, borderLeft: `3px solid ${R}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setExpandedErrors(!expandedErrors)}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8 }}>
               <AlertTriangle size={16} color={R} /> Schema Errors
               <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: R }}>{schemaErrors.length}</span>
             </div>
@@ -307,7 +307,7 @@ export default function SchemaTab({ clientId, agencyId }) {
       {/* Generated Schemas */}
       {generated.length > 0 && (
         <div style={card}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Code size={16} color={GRN} /> Generated Schemas
             <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: GRN + '12', color: GRN }}>{generated.length}</span>
           </div>
@@ -349,12 +349,12 @@ export default function SchemaTab({ clientId, agencyId }) {
       {semanticIssues.length > 0 && (
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setExpandedSemantic(!expandedSemantic)}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Layout size={16} color={AMB} /> Semantic HTML Issues
               <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: AMB }}>{semanticIssues.length}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: audit.semantic_html_score >= 70 ? GRN : AMB }}>{audit.semantic_html_score}/100</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: audit.semantic_html_score >= 70 ? GRN : AMB }}>{audit.semantic_html_score}/100</div>
               {expandedSemantic ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
             </div>
           </div>

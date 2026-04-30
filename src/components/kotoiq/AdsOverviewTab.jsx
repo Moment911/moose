@@ -12,10 +12,10 @@ function StatCard({ label, value, sub, icon: Icon, color }) {
     <div style={{ ...card, flex: 1, minWidth: 160 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         {Icon && <Icon size={16} color={color || T} />}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</div>
       </div>
-      <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: color || BLK, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 6, fontFamily: FB }}>{sub}</div>}
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: color || BLK, lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{sub}</div>}
     </div>
   )
 }
@@ -75,9 +75,9 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Ads Intelligence Overview</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Ads Intelligence Overview</div>
         <button onClick={syncAll} disabled={syncing}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: syncing ? 0.6 : 1 }}>
           {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
           {syncing ? 'Syncing...' : 'Sync Google Ads'}
         </button>
@@ -86,7 +86,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
       {loading ? (
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
           <Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} />
-          <div style={{ marginTop: 8, color: '#6b6b70', fontSize: 13, fontFamily: FB }}>Loading ads data...</div>
+          <div style={{ marginTop: 8, color: '#6b6b70', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Loading ads data...</div>
         </div>
       ) : (
         <>
@@ -103,14 +103,14 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
             <div style={{ ...card, flex: 1, display: 'flex', alignItems: 'center', gap: 12 }}>
               <AlertCircle size={20} color={alertCount > 0 ? R : '#d1d5db'} />
               <div>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: alertCount > 0 ? R : BLK }}>{alertCount} Active Alerts</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: alertCount > 0 ? R : BLK }}>{alertCount} Active Alerts</div>
                 <div style={{ fontSize: 12, color: '#6b6b70' }}>Anomalies detected this week</div>
               </div>
             </div>
             <div style={{ ...card, flex: 1, display: 'flex', alignItems: 'center', gap: 12 }}>
               <CheckCircle size={20} color={recCount > 0 ? AMB : '#d1d5db'} />
               <div>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: recCount > 0 ? AMB : BLK }}>{recCount} Pending Recs</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: recCount > 0 ? AMB : BLK }}>{recCount} Pending Recs</div>
                 <div style={{ fontSize: 12, color: '#6b6b70' }}>Recommendations awaiting review</div>
               </div>
             </div>
@@ -119,8 +119,8 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
           {/* Campaign Table */}
           {data?.campaigns?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Campaigns</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: FB }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Campaigns</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Campaign', 'Status', 'Spend', 'Clicks', 'Conv', 'CPA'].map(h => (
@@ -149,7 +149,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
           {!data?.campaigns?.length && !loading && (
             <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
               <BarChart2 size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-              <div style={{ fontFamily: FH, fontWeight: 700, marginBottom: 4 }}>No ads data yet</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, marginBottom: 4 }}>No ads data yet</div>
               <div style={{ fontSize: 13 }}>Click "Sync Google Ads" to import your campaign data</div>
             </div>
           )}

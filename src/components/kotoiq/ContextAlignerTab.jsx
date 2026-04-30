@@ -44,7 +44,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="context_aligner" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Target size={18} color={T} /> Context Aligner
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
@@ -55,7 +55,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
         <textarea value={competitorH2s} onChange={e => setCompetitorH2s(e.target.value)} placeholder="Competitor H2s (optional, one per line)" rows={4} style={ta} />
         <button onClick={run} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
@@ -67,17 +67,17 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
         <>
           <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
             <div style={{ width: 80, height: 80, borderRadius: '50%', background: scoreColor + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: scoreColor }}>{score}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: scoreColor }}>{score}</div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Alignment Score</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Alignment Score</div>
               <div style={{ fontSize: 13, color: '#1f1f22' }}>How well your outline covers the expected contexts</div>
             </div>
           </div>
 
           {data.missing_contexts?.length > 0 && (
             <div style={{ ...card, borderLeft: `4px solid ${R}` }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <XCircle size={16} color={R} /> Missing Contexts
               </div>
               {data.missing_contexts.map((m, i) => (
@@ -94,7 +94,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
 
           {data.extraneous_contexts?.length > 0 && (
             <div style={{ ...card, borderLeft: `4px solid ${AMB}` }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: AMB, marginBottom: 12 }}>Extraneous Contexts (consider removing)</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: AMB, marginBottom: 12 }}>Extraneous Contexts (consider removing)</div>
               {data.extraneous_contexts.map((m, i) => (
                 <div key={i} style={{ padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, marginBottom: 4, fontSize: 12, color: '#1f1f22' }}>
                   {typeof m === 'string' ? m : m.context}
@@ -105,7 +105,7 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
 
           {data.recommended_adjustments?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <CheckCircle size={16} color={GRN} /> Recommended Adjustments
               </div>
               <ol style={{ margin: 0, paddingLeft: 22, color: '#1f1f22' }}>
@@ -125,5 +125,5 @@ export default function ContextAlignerTab({ clientId, agencyId }) {
   )
 }
 
-const inp = { width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH, marginBottom: 10, boxSizing: 'border-box' }
+const inp = { width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 10, boxSizing: 'border-box' }
 const ta = { ...inp, resize: 'vertical' }

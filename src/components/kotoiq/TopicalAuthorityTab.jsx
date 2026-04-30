@@ -33,7 +33,7 @@ function ScoreRing({ score, size = 140 }) {
           style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
         <div style={{ fontSize: size * 0.1, color: '#1f1f22', fontWeight: 700, marginTop: 2 }}>Grade {grade}</div>
       </div>
     </div>
@@ -48,9 +48,9 @@ function QuadrantCard({ label, score, sub, icon: Icon, accent }) {
         <div style={{ width: 30, height: 30, borderRadius: 8, background: (accent || T) + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={16} color={accent || T} />
         </div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</div>
       </div>
-      <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
       <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 4 }}>{sub}</div>
     </div>
   )
@@ -100,7 +100,7 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 4 }}>Topical Authority Score</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 4 }}>Topical Authority Score</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
             {data
               ? `${data.clusters?.length || 0} clusters analyzed -- updated ${data.updated_at ? new Date(data.updated_at).toLocaleString() : 'recently'}`
@@ -108,7 +108,7 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
           </div>
           <button onClick={run} disabled={running} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
           }}>
             {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
@@ -120,7 +120,7 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
       {!data && !running && (
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Award size={42} color="#d1d5db" style={{ marginBottom: 12 }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Authority Audit Yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Authority Audit Yet</div>
           <div style={{ fontSize: 13, color: '#1f2937' }}>Run an audit to see your topical authority score across all clusters.</div>
         </div>
       )}
@@ -136,7 +136,7 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
 
           {data.clusters?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <TrendingUp size={16} color={T} /> Cluster Scores
               </div>
               <div style={{ overflowX: 'auto' }}>
@@ -181,7 +181,7 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
 
           {data.recommendations?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Lightbulb size={16} color={AMB} /> AI Recommendations
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

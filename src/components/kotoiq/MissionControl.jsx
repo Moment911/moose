@@ -115,7 +115,7 @@ function AnimatedScore({ value, color }) {
     frame = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(frame)
   }, [value])
-  return <span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color, animation: 'mc-count .3s ease' }}>{display}</span>
+  return <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color, animation: 'mc-count .3s ease' }}>{display}</span>
 }
 
 const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"

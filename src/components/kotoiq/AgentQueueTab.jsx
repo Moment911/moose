@@ -86,7 +86,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 60 }}>
         <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color={T} />
-        <span style={{ marginLeft: 10, fontFamily: FB, fontSize: 14, color: '#6b6b70' }}>Loading approvals…</span>
+        <span style={{ marginLeft: 10, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, color: '#6b6b70' }}>Loading approvals…</span>
       </div>
     )
   }
@@ -96,7 +96,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Agent Queue</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Agent Queue</div>
           <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 4 }}>
             Actions awaiting your approval before the agent proceeds.
           </div>
@@ -104,7 +104,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
         <button onClick={loadActions} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
           border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600,
-          cursor: 'pointer', color: BLK, fontFamily: FB,
+          cursor: 'pointer', color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
         }}>
           <RefreshCw size={14} /> Refresh
         </button>
@@ -114,7 +114,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
       {actions.length === 0 && (
         <div style={{ ...card, textAlign: 'center', padding: 40 }}>
           <CheckCircle size={36} color={GRN} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No pending approvals</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No pending approvals</div>
           <div style={{ fontSize: 13, color: '#6b6b70' }}>
             All agent actions are either completed or awaiting a run. Check the <strong>Agent Goals</strong> tab to create or trigger a goal.
           </div>
@@ -137,7 +137,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
               }}>
                 <BadgeIcon size={12} /> {badge.label}
               </div>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>{a.tool_name}</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>{a.tool_name}</div>
               <div style={{ marginLeft: 'auto', fontSize: 11, color: '#8e8e93' }}>
                 {a.goal_type} · {a.run_started_at ? new Date(a.run_started_at).toLocaleString() : ''}
               </div>
@@ -172,7 +172,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
                   display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
                   border: 'none', background: BLK, color: '#fff', fontSize: 13, fontWeight: 700,
                   cursor: isProcessing ? 'wait' : 'pointer', opacity: isProcessing ? 0.6 : 1,
-                  fontFamily: FH,
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               >
                 {isProcessing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={14} />}
@@ -184,7 +184,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
                   border: '1px solid #e5e7eb', background: '#fff', color: '#6b6b70', fontSize: 13,
-                  fontWeight: 600, cursor: 'pointer', fontFamily: FB,
+                  fontWeight: 600, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               >
                 <XCircle size={14} /> Reject
@@ -203,7 +203,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
           <div style={{
             background: '#fff', borderRadius: 16, padding: 28, width: 400, maxWidth: '90vw',
           }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12 }}>Reject Action</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12 }}>Reject Action</div>
             <div style={{ fontSize: 13, color: '#6b6b70', marginBottom: 14 }}>Why are you rejecting this action?</div>
             <textarea
               value={rejectReason}
@@ -212,7 +212,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
               rows={3}
               style={{
                 width: '100%', borderRadius: 8, border: '1px solid #e5e7eb', padding: '10px 12px',
-                fontSize: 13, fontFamily: FB, resize: 'vertical', marginBottom: 14,
+                fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", resize: 'vertical', marginBottom: 14,
               }}
             />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -222,7 +222,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
               }}>Cancel</button>
               <button onClick={handleReject} style={{
                 padding: '8px 16px', borderRadius: 8, border: 'none', background: R, color: '#fff',
-                fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+                fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }}>Reject</button>
             </div>
           </div>

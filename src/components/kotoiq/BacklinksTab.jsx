@@ -25,7 +25,7 @@ function ScoreRing({ score, size = 100 }) {
           style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
         <div style={{ fontSize: size * 0.1, color: '#1f2937', fontWeight: 600, marginTop: 2 }}>/ 100</div>
       </div>
     </div>
@@ -35,8 +35,8 @@ function ScoreRing({ score, size = 100 }) {
 function StatBox({ label, value, sub, color }) {
   return (
     <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', flex: 1, minWidth: 120 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: color || BLK, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: color || BLK, lineHeight: 1 }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: '#1f2937', marginTop: 4 }}>{sub}</div>}
     </div>
   )
@@ -119,7 +119,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Backlink Profile Score</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Backlink Profile Score</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
             {data
               ? `DA ${data.domain_authority} -- ${fmtN(data.total_referring_domains)} referring domains -- ${fmtN(data.total_backlinks)} total backlinks`
@@ -128,7 +128,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           <button onClick={runAnalysis} disabled={analyzing} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
             border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700,
-            fontFamily: FH, cursor: analyzing ? 'wait' : 'pointer', opacity: analyzing ? 0.6 : 1,
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: analyzing ? 'wait' : 'pointer', opacity: analyzing ? 0.6 : 1,
           }}>
             {analyzing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
             {analyzing ? 'Analyzing...' : 'Analyze Backlinks'}
@@ -143,7 +143,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
             <div><strong>Setup Required:</strong> Backlink analysis requires the Moz API. Configure MOZ_API_KEY in Vercel environment variables for domain authority, backlink counts, and spam scores.</div>
           </div>
           <Link2 size={40} color="#d1d5db" style={{ marginBottom: 12 }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Backlink Data</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Backlink Data</div>
           <div style={{ fontSize: 13, color: '#1f2937' }}>Click "Analyze Backlinks" to pull your backlink profile from Moz</div>
         </div>
       )}
@@ -160,7 +160,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
 
           {/* DR Distribution */}
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <TrendingUp size={16} color={T} /> Domain Rating Distribution
             </div>
             <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 120 }}>
@@ -190,7 +190,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
 
           {/* Anchor Text Distribution */}
           <div style={card}>
-            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Link2 size={16} color={T} /> Anchor Text Distribution
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -215,7 +215,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {/* Top Anchors */}
           {data.top_anchors?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={16} color={T} /> Top Anchor Texts
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -236,7 +236,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {data.toxic_links?.length > 0 && (
             <div style={{ ...card, border: `1px solid #ececef` }}>
               <button onClick={() => setShowToxic(!showToxic)} style={{
-                fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8,
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8,
                 background: 'none', border: 'none', cursor: 'pointer', width: '100%', padding: 0, marginBottom: showToxic ? 14 : 0,
               }}>
                 <AlertTriangle size={16} color={R} /> Toxic Links ({data.toxic_links.length})
@@ -273,7 +273,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {data.high_quality_links?.length > 0 && (
             <div style={{ ...card, border: `1px solid ${GRN}30` }}>
               <button onClick={() => setShowHQ(!showHQ)} style={{
-                fontFamily: FH, fontSize: 15, fontWeight: 800, color: GRN, display: 'flex', alignItems: 'center', gap: 8,
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: GRN, display: 'flex', alignItems: 'center', gap: 8,
                 background: 'none', border: 'none', cursor: 'pointer', width: '100%', padding: 0, marginBottom: showHQ ? 14 : 0,
               }}>
                 <CheckCircle size={16} color={GRN} /> High Quality Links ({data.high_quality_links.length})
@@ -307,13 +307,13 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {/* Edu/Gov + Trust */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
             <div style={{ ...card, flex: 1, marginBottom: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 6 }}>.edu / .gov Links</div>
-              <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: data.edu_gov_links > 0 ? GRN : '#d1d5db' }}>{data.edu_gov_links}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 6 }}>.edu / .gov Links</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: data.edu_gov_links > 0 ? GRN : '#d1d5db' }}>{data.edu_gov_links}</div>
               <div style={{ fontSize: 11, color: '#1f2937' }}>{data.edu_gov_links > 0 ? 'Strong trust signals' : 'No .edu/.gov backlinks'}</div>
             </div>
             <div style={{ ...card, flex: 1, marginBottom: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 6 }}>Trust Rank Estimate</div>
-              <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: data.trust_rank_estimate >= 40 ? GRN : data.trust_rank_estimate >= 20 ? AMB : R }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 6 }}>Trust Rank Estimate</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: data.trust_rank_estimate >= 40 ? GRN : data.trust_rank_estimate >= 20 ? AMB : R }}>
                 {Math.round(data.trust_rank_estimate)}
               </div>
               <div style={{ fontSize: 11, color: '#1f2937' }}>Based on link quality ratio</div>
@@ -324,7 +324,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {data.competitor_comparison?.length > 0 && (
             <div style={card}>
               <button onClick={() => setShowComp(!showComp)} style={{
-                fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8,
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8,
                 background: 'none', border: 'none', cursor: 'pointer', width: '100%', padding: 0, marginBottom: showComp ? 14 : 0,
               }}>
                 <Globe size={16} color={T} /> Competitor Comparison ({data.competitor_comparison.length})
@@ -371,7 +371,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {(data.unlinked_mentions?.length > 0 || data.broken_link_opportunities?.length > 0 || data.competitor_common_links?.length > 0) && (
             <div style={card}>
               <button onClick={() => setShowOpps(!showOpps)} style={{
-                fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8,
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8,
                 background: 'none', border: 'none', cursor: 'pointer', width: '100%', padding: 0, marginBottom: showOpps ? 14 : 0,
               }}>
                 <Zap size={16} color={AMB} /> Link Building Opportunities

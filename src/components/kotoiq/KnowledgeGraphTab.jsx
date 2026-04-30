@@ -24,17 +24,17 @@ function renderMarkdown(text) {
     if (heading && lines.length === 1) {
       const level = heading[1].length
       const Tag = `h${Math.min(level + 2, 6)}`
-      return <Tag key={pIdx} style={{ fontFamily: FH, fontSize: 16 - level, fontWeight: 800, color: BLK, margin: '12px 0 6px' }}>{heading[2]}</Tag>
+      return <Tag key={pIdx} style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16 - level, fontWeight: 800, color: BLK, margin: '12px 0 6px' }}>{heading[2]}</Tag>
     }
     const isList = lines.every(l => /^\s*[-*\d]/.test(l) || !l.trim())
     if (isList && lines.some(l => l.trim())) {
       return (
-        <ol key={pIdx} style={{ margin: '6px 0 10px', paddingLeft: 22, fontSize: 13, lineHeight: 1.65, color: '#1f1f22', fontFamily: FB }}>
+        <ol key={pIdx} style={{ margin: '6px 0 10px', paddingLeft: 22, fontSize: 13, lineHeight: 1.65, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
           {lines.filter(l => l.trim()).map((l, i) => <li key={i}>{l.replace(/^\s*[-*\d]+\.?\s*/, '')}</li>)}
         </ol>
       )
     }
-    return <p key={pIdx} style={{ margin: '6px 0', fontSize: 13, lineHeight: 1.65, color: '#1f1f22', fontFamily: FB }}>{para}</p>
+    return <p key={pIdx} style={{ margin: '6px 0', fontSize: 13, lineHeight: 1.65, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{para}</p>
   })
 }
 
@@ -98,14 +98,14 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
           <GitBranch size={30} color={T} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Knowledge Graph Export</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Knowledge Graph Export</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Generate entity markup for Wikidata, schema.org, or RDF — the foundation of a Google Knowledge Panel.</div>
         </div>
       </div>
 
       {/* Format toggle */}
       <div style={card}>
-        <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, fontFamily: FH }}>Export Format</div>
+        <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Export Format</div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {FORMATS.map(f => (
             <button
@@ -117,7 +117,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
                 border: `1.5px solid ${format === f.key ? T : '#ececef'}`,
                 background: format === f.key ? '#f1f1f6' : '#fff',
                 color: format === f.key ? T : '#1f1f22',
-                fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
               }}>
               {f.label}
             </button>
@@ -127,7 +127,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
             disabled={running}
             style={{
               marginLeft: 'auto', padding: '10px 22px', borderRadius: 8, border: 'none',
-              background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+              background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
@@ -143,12 +143,12 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
           <div style={card}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4, fontFamily: FH }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                   Knowledge Panel Trigger Likelihood
                 </div>
                 <div style={{ fontSize: 12, color: '#1f1f22' }}>Deterministic score based on entity completeness, schema, backlinks, and reviews.</div>
               </div>
-              <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: kpColor, letterSpacing: '-.02em' }}>{kpScore}<span style={{ fontSize: 18, color: '#8e8e93' }}>/100</span></div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 42, fontWeight: 900, color: kpColor, letterSpacing: '-.02em' }}>{kpScore}<span style={{ fontSize: 18, color: '#8e8e93' }}>/100</span></div>
             </div>
             <div style={{ marginTop: 10, height: 8, background: '#f1f1f6', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ width: `${kpScore}%`, height: '100%', background: kpColor, transition: 'width .3s' }} />
@@ -159,7 +159,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr 1fr', gap: 14, marginBottom: 14 }}>
             {/* Entity properties */}
             <div style={{ ...card, margin: 0 }}>
-              <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 12 }}>Entity Properties</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 12 }}>Entity Properties</div>
               <div style={{ maxHeight: 500, overflowY: 'auto' }}>
                 {(result.entity_properties || []).map((p, i) => (
                   <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
@@ -175,7 +175,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
             {/* Content */}
             <div style={{ ...card, margin: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>Generated {FORMATS.find(f => f.key === format)?.label}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>Generated {FORMATS.find(f => f.key === format)?.label}</div>
                 <button onClick={copyAll} style={{
                   padding: '5px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff',
                   fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
@@ -190,7 +190,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
 
             {/* Related entities */}
             <div style={{ ...card, margin: 0 }}>
-              <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 12 }}>Related Entities</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 12 }}>Related Entities</div>
               <div style={{ maxHeight: 500, overflowY: 'auto' }}>
                 {(result.related_entities || []).map((e, i) => (
                   <div key={i} style={{ padding: '8px 10px', marginBottom: 6, background: '#f9f9fb', borderRadius: 8, fontSize: 12 }}>
@@ -207,7 +207,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
           {result.submission_guide_markdown && (
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Info size={16} color={T} /> Submission Guide
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>

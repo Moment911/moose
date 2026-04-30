@@ -80,14 +80,14 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="upwork" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Briefcase size={18} color={T} /> Upwork Pre-Flight Checklist
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Validate a freelance posting before you pitch. Generates a custom cover letter, red flags, win probability, and pricing.
         </div>
         <textarea value={jobDesc} onChange={e => setJobDesc(e.target.value)} placeholder="Paste the Upwork job description..." rows={8} style={{
-          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           resize: 'vertical', marginBottom: 10, boxSizing: 'border-box',
         }} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
@@ -101,7 +101,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
         </div>
         <button onClick={analyze} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Briefcase size={14} />}
@@ -138,7 +138,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
 
           {a.hidden_requirements?.length > 0 && (
             <div style={{ ...card, borderLeft: `4px solid ${AMB}` }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: AMB, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: AMB, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <AlertTriangle size={16} color={AMB} /> Hidden Requirements
               </div>
               {a.hidden_requirements.map((h, i) => (
@@ -154,7 +154,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <FileText size={16} color={T} />
-                <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, flex: 1 }}>Cover Letter Draft</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, flex: 1 }}>Cover Letter Draft</div>
                 <button onClick={() => copy(data.cover_letter, 'Cover letter copied')} style={btnStyle}>
                   <CopyIcon size={11} /> Copy
                 </button>
@@ -167,7 +167,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
 
           {data.clarifying_questions?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <HelpCircle size={16} color={T} /> Clarifying Questions
               </div>
               <ol style={{ margin: 0, paddingLeft: 20, color: '#1f1f22' }}>
@@ -180,7 +180,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
 
           {data.pricing_strategy && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <DollarSign size={16} color={GRN} /> Pricing Strategy
               </div>
               <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{data.pricing_strategy}</div>
@@ -190,7 +190,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
           <div style={{ ...card, textAlign: 'center' }}>
             <button onClick={generatePkg} disabled={generatingPkg} style={{
               display: 'inline-flex', alignItems: 'center', gap: 6, padding: '12px 28px', borderRadius: 10,
-              border: 'none', background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH,
+              border: 'none', background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: generatingPkg ? 'wait' : 'pointer', opacity: generatingPkg ? 0.6 : 1,
             }}>
               {generatingPkg ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={15} />}
@@ -203,7 +203,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
             <>
               {pkg.scope_document && (
                 <div style={card}>
-                  <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Scope Document — {pkg.scope_document.project_title}</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Scope Document — {pkg.scope_document.project_title}</div>
                   <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12, lineHeight: 1.6 }}>{pkg.scope_document.executive_summary}</div>
                   <div style={{ display: 'flex', gap: 18, marginBottom: 12 }}>
                     <span style={{ fontSize: 12 }}><Clock size={12} style={{ verticalAlign: -2 }} /> <strong>{pkg.scope_document.timeline_weeks}w</strong> / <strong>{pkg.scope_document.total_hours}h</strong></span>
@@ -222,7 +222,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
 
               {pkg.faq?.length > 0 && (
                 <div style={card}>
-                  <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>FAQ</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>FAQ</div>
                   {pkg.faq.map((f, i) => (
                     <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>{f.q}</div>
@@ -235,7 +235,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
               {pkg.followup_email && (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, flex: 1 }}>Follow-up Email (72hr)</div>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, flex: 1 }}>Follow-up Email (72hr)</div>
                     <button onClick={() => copy(pkg.followup_email, 'Follow-up copied')} style={btnStyle}>
                       <CopyIcon size={11} /> Copy
                     </button>
@@ -255,7 +255,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
   )
 }
 
-const inp = { padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: FH, boxSizing: 'border-box' }
+const inp = { padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box' }
 const btnStyle = {
   display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 6,
   border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, color: BLK, cursor: 'pointer',
@@ -265,7 +265,7 @@ function Stat({ label, value, color }) {
   return (
     <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color }}>{value}</div>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>
   )
 }
@@ -274,7 +274,7 @@ function FlagBlock({ title, color, Icon, items, objKey, sub }) {
   if (!items?.length) return null
   return (
     <div style={{ ...card, borderLeft: `4px solid ${color}` }}>
-      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
         {Icon && <Icon size={14} color={color} />} {title}
       </div>
       {items.map((it, i) => {

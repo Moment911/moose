@@ -23,7 +23,7 @@ function ScoreRing({ score, size = 110, colorFn }) {
           transform={`rotate(-90 ${size / 2} ${size / 2})`} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontFamily: FH, fontSize: size * 0.3, fontWeight: 900, color }}>{score}</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: size * 0.3, fontWeight: 900, color }}>{score}</div>
       </div>
     </div>
   )
@@ -64,19 +64,19 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
     <div>
       <HowItWorks tool="plagiarism" />
       <div style={card}>
-        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Shield size={18} color={T} /> Plagiarism &amp; AI Detection
         </div>
         <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>
           Detect copied content and AI-generated patterns before publishing.
         </div>
         <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Paste the content to check..." rows={10} style={{
-          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: FH,
+          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           resize: 'vertical', marginBottom: 10, boxSizing: 'border-box',
         }} />
         <button onClick={run} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
         }}>
           {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={14} />}
@@ -90,14 +90,14 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
             <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 18, marginBottom: 0 }}>
               <ScoreRing score={data.originality_score || 0} />
               <div>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>Originality</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>Originality</div>
                 <div style={{ fontSize: 12, color: '#1f1f22' }}>Higher = more unique</div>
               </div>
             </div>
             <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 18, marginBottom: 0 }}>
               <ScoreRing score={data.ai_generation_likelihood || 0} colorFn={s => s >= 70 ? R : s >= 40 ? AMB : GRN} />
               <div>
-                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>AI Likelihood</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>AI Likelihood</div>
                 <div style={{ fontSize: 12, color: '#1f1f22' }}>Higher = more AI-ish</div>
               </div>
             </div>
@@ -105,7 +105,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
 
           {data.plagiarized_chunks?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <AlertTriangle size={16} color={R} /> Potential Plagiarism ({data.plagiarized_chunks.length})
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -137,7 +137,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
 
           {data.ai_patterns?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: AMB, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: AMB, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Brain size={16} color={AMB} /> AI Patterns Detected
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -159,7 +159,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <CheckCircle size={20} color={GRN} />
                 <div>
-                  <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: GRN }}>Content looks original</div>
+                  <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: GRN }}>Content looks original</div>
                   <div style={{ fontSize: 12, color: '#1f1f22' }}>No significant matches and AI patterns are within human range.</div>
                 </div>
               </div>

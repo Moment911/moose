@@ -67,14 +67,14 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="behavior-analytics" />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>Behavior Analytics</div>
+        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Behavior Analytics</div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => sync('hotjar')} disabled={!!syncing}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#ff3c00', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing ? 0.6 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#ff3c00', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: syncing ? 0.6 : 1 }}>
             {syncing === 'hotjar' ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} />} Sync Hotjar
           </button>
           <button onClick={() => sync('clarity')} disabled={!!syncing}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#5B2D8E', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: syncing ? 0.6 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#5B2D8E', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: syncing ? 0.6 : 1 }}>
             {syncing === 'clarity' ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} />} Sync Clarity
           </button>
         </div>
@@ -93,9 +93,9 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
               <div key={i} style={{ ...card, flex: 1, minWidth: 140 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                   <kpi.icon size={14} color={kpi.color} />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: FH }}>{kpi.label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{kpi.label}</span>
                 </div>
-                <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
               </div>
             ))}
           </div>
@@ -103,8 +103,8 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
           {/* Top Pages Table */}
           {topPages.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Top Pages by Sessions</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: FB }}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Top Pages by Sessions</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Page URL', 'Sessions', 'Rage Clicks', 'Dead Clicks', 'Scroll %'].map(h => (
@@ -130,7 +130,7 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
           {!sessions.length && !loading && (
             <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
               <Activity size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-              <div style={{ fontFamily: FH, fontWeight: 700, marginBottom: 4 }}>No behavior data yet</div>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, marginBottom: 4 }}>No behavior data yet</div>
               <div style={{ fontSize: 13 }}>Connect Hotjar or Clarity in the Connect APIs tab, then click Sync</div>
             </div>
           )}

@@ -21,7 +21,7 @@ function ScoreRing({ score, label, size = 80, color }) {
           strokeDasharray={circumference} strokeDashoffset={offset}
           strokeLinecap="round" transform="rotate(-90 40 40)"
           style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
-        <text x="40" y="44" textAnchor="middle" style={{ fontSize: 18, fontWeight: 900, fontFamily: FH, fill: BLK }}>{score || '--'}</text>
+        <text x="40" y="44" textAnchor="middle" style={{ fontSize: 18, fontWeight: 900, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fill: BLK }}>{score || '--'}</text>
       </svg>
       <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>{label}</div>
     </div>
@@ -39,7 +39,7 @@ function TagCloud({ items }) {
         const opacity = 0.5 + ratio * 0.5
         return (
           <span key={i} style={{
-            fontSize: size, fontWeight: 600 + Math.round(ratio * 200), fontFamily: FB,
+            fontSize: size, fontWeight: 600 + Math.round(ratio * 200), fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             padding: '3px 10px', borderRadius: 6, background: T + Math.round(opacity * 20).toString(16).padStart(2, '0'),
             color: T, opacity, display: 'inline-block',
           }}>
@@ -105,7 +105,7 @@ export default function SemanticTab({ clientId, agencyId }) {
   }
 
   const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
-  const titleStyle = { fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }
+  const titleStyle = { fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }
   const a = analysis || {}
   const ngrams = a.site_ngrams || {}
 
@@ -120,11 +120,11 @@ export default function SemanticTab({ clientId, agencyId }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>KotoAgenticIQ Content Network</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK }}>KotoAgenticIQ Content Network</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Analyze site-wide content structure, topical coverage, and KotoIQ health</div>
         </div>
         <button onClick={runAnalysis} disabled={running}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1 }}>
           {running ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Brain size={16} />}
           {running ? 'Analyzing...' : 'Run Analysis'}
         </button>
@@ -133,14 +133,14 @@ export default function SemanticTab({ clientId, agencyId }) {
       {loading && (
         <div style={{ textAlign: 'center', padding: 60, color: '#1f2937' }}>
           <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
-          <div style={{ fontFamily: FH, fontWeight: 600 }}>Loading analysis...</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600 }}>Loading analysis...</div>
         </div>
       )}
 
       {!loading && !analysis && (
         <div style={{ ...card, textAlign: 'center', padding: 60 }}>
           <Brain size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
-          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No KotoIQ Analysis Yet</div>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No KotoIQ Analysis Yet</div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 16 }}>Click "Run Analysis" to scan your content and build a KotoIQ network map.</div>
         </div>
       )}
@@ -153,7 +153,7 @@ export default function SemanticTab({ clientId, agencyId }) {
             <ScoreRing score={a.contextual_flow_score || 0} label="Flow" />
             <ScoreRing score={a.contextual_consistency_score || 0} label="Consistency" />
             <div style={{ flex: 1, borderLeft: '1px solid #e5e7eb', paddingLeft: 24, marginLeft: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 4, fontFamily: FH }}>QUICK SUMMARY</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>QUICK SUMMARY</div>
               <div style={{ fontSize: 13, color: BLK, lineHeight: 1.6 }}>
                 {a.overall_score >= 70 ? 'Good KotoIQ structure. Content topics are well-organized and internally linked.' :
                  a.overall_score >= 40 ? 'Moderate KotoIQ health. Some content gaps and structural issues to address.' :
@@ -302,7 +302,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               {/* Flow score */}
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Contextual Flow</div>
-                <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: a.contextual_flow_score >= 70 ? GRN : a.contextual_flow_score >= 40 ? AMB : R }}>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 36, fontWeight: 900, color: a.contextual_flow_score >= 70 ? GRN : a.contextual_flow_score >= 40 ? AMB : R }}>
                   {a.contextual_flow_score || '--'}
                 </div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>
@@ -313,7 +313,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               {/* Consistency score */}
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Content Consistency</div>
-                <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: a.contextual_consistency_score >= 70 ? GRN : a.contextual_consistency_score >= 40 ? AMB : R }}>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 36, fontWeight: 900, color: a.contextual_consistency_score >= 70 ? GRN : a.contextual_consistency_score >= 40 ? AMB : R }}>
                   {a.contextual_consistency_score || '--'}
                 </div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>
