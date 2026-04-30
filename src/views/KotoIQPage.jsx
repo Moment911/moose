@@ -129,7 +129,7 @@ function StatCard({ label, value, sub, icon: Icon, trend }) {
               <Icon size={14} strokeWidth={1.75} color="#0a0a0a" />
             </div>
           )}
-          <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+          <div style={{ fontSize: 11, fontWeight: 500, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
         </div>
         {trend != null && trend !== 0 && (
           <div style={{
@@ -322,7 +322,7 @@ function AiVisibilityHero({ data, history, loading, onRefresh }) {
               color: trendDir === 'up' ? '#16a34a' : trendDir === 'down' ? '#e9695c' : '#6b6b70',
               fontSize: 12, fontWeight: 600, fontFamily: SF,
             }}>
-              {trendDir === 'up' ? <ArrowUpRight size={12} strokeWidth={2} /> : trendDir === 'down' ? <ArrowDownRight size={12} strokeWidth={2} /> : <span style={{ width: 6, height: 6, borderRadius: 999, background: '#a1a1a6' }} />}
+              {trendDir === 'up' ? <ArrowUpRight size={12} strokeWidth={2} /> : trendDir === 'down' ? <ArrowDownRight size={12} strokeWidth={2} /> : <span style={{ width: 6, height: 6, borderRadius: 999, background: '#8e8e93' }} />}
               {trendDir === 'flat' ? 'flat' : `${trendPct > 0 ? '+' : ''}${trendPct}%`} vs 30d
             </div>
             <div style={{ flex: 1 }}>
@@ -334,7 +334,7 @@ function AiVisibilityHero({ data, history, loading, onRefresh }) {
               const v = Number(sub.value || 0)
               return (
                 <div key={sub.key} style={{ padding: '12px 14px', borderRadius: 12, background: '#f9f9fb' }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{sub.label}</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{sub.label}</div>
                   <div style={{ fontSize: 24, fontWeight: 700, color: '#0a0a0a', lineHeight: 1, letterSpacing: '-0.4px' }}>{Math.round(v)}</div>
                 </div>
               )
@@ -342,7 +342,7 @@ function AiVisibilityHero({ data, history, loading, onRefresh }) {
           </div>
           {focus.length > 0 && (
             <div style={{ padding: '12px 14px', borderRadius: 12, background: '#f9f9fb' }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Focus on</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Focus on</div>
               <div style={{ fontSize: 14, color: '#0a0a0a', fontWeight: 500, lineHeight: 1.5 }}>{focus.join(' · ')}</div>
             </div>
           )}
@@ -380,7 +380,7 @@ function QuickWinRow({ item, index, onMarkDone, onMarkSkipped }) {
       }}>{priorityLabel}</div>
       <div>
         <div style={{ fontSize: 13, fontWeight: 600, color: '#0a0a0a', lineHeight: 1.35, marginBottom: 2 }}>{item.title}</div>
-        <div style={{ fontSize: 11, color: '#a1a1a6' }}>{(item.source || '').replace(/_/g, ' ').replace(/\./g, ' / ')}</div>
+        <div style={{ fontSize: 11, color: '#8e8e93' }}>{(item.source || '').replace(/_/g, ' ').replace(/\./g, ' / ')}</div>
       </div>
       <div style={{
         fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
@@ -390,7 +390,7 @@ function QuickWinRow({ item, index, onMarkDone, onMarkSkipped }) {
       </div>
       <div style={{ fontSize: 12, textAlign: 'right', minWidth: 70 }}>
         <div style={{ fontWeight: 600, color: '#0a0a0a' }}>+{item.estimated_traffic_gain || 0}</div>
-        <div style={{ fontSize: 10, color: '#a1a1a6', marginTop: 1 }}>traffic</div>
+        <div style={{ fontSize: 10, color: '#8e8e93', marginTop: 1 }}>traffic</div>
       </div>
       <button onClick={() => onMarkDone(item.id)} title="Mark done" style={{
         display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 8,
@@ -403,10 +403,10 @@ function QuickWinRow({ item, index, onMarkDone, onMarkSkipped }) {
       </button>
       <button onClick={() => onMarkSkipped(item.id)} title="Skip" style={{
         padding: '6px 12px', borderRadius: 8, border: 'none', background: 'transparent',
-        color: '#a1a1a6', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: SF,
+        color: '#8e8e93', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: SF,
       }}
         onMouseEnter={e => e.currentTarget.style.color = '#6b6b70'}
-        onMouseLeave={e => e.currentTarget.style.color = '#a1a1a6'}>Skip</button>
+        onMouseLeave={e => e.currentTarget.style.color = '#8e8e93'}>Skip</button>
     </div>
   )
 }
@@ -1191,6 +1191,7 @@ export default function KotoIQPage() {
         {/* Sidebar collapse toggle */}
         <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+          aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
           style={{
             position: 'absolute', top: 12, left: 8, zIndex: 20,
             width: 28, height: 28, borderRadius: 6, border: '1px solid #e5e7eb',
@@ -1237,7 +1238,7 @@ export default function KotoIQPage() {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 6,
                         padding: '9px 16px', border: 'none',
-                        background: busy ? '#a1a1a6' : '#0a0a0a',
+                        background: busy ? '#8e8e93' : '#0a0a0a',
                         color: '#fff', fontSize: 13, fontWeight: 600,
                         cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit',
                       }}>
@@ -1248,7 +1249,7 @@ export default function KotoIQPage() {
                       aria-label="More actions"
                       style={{
                         padding: '9px 10px', border: 'none', borderLeft: '1px solid rgba(255,255,255,.18)',
-                        background: busy ? '#a1a1a6' : '#0a0a0a',
+                        background: busy ? '#8e8e93' : '#0a0a0a',
                         color: '#fff', cursor: 'pointer',
                       }}>
                       <ChevronDown size={14} strokeWidth={2} style={{ transform: actionMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 150ms ease' }} />
@@ -1301,12 +1302,12 @@ export default function KotoIQPage() {
                 <button onClick={() => {
                   const c = clients.find(x => x.id === clientId)
                   if (c) { setEditingClient(c); setClientForm({ name: c.name || '', website: c.website || '', primary_service: c.primary_service || '', location: '' }); setShowClientModal(true) }
-                }} style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Edit Client">
+                }} style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Edit Client" aria-label="Edit client">
                   <Edit2 size={14} color="#6b7280" />
                 </button>
               )}
               <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
-                style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Add Client">
+                style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Add Client" aria-label="Add client">
                 <Plus size={14} color="#6b7280" />
               </button>
             </div>
@@ -1362,14 +1363,14 @@ export default function KotoIQPage() {
                   onMouseLeave={e => { e.currentTarget.style.background = '#f9f9fb' }}>
                   <Search size={14} strokeWidth={1.75} />
                   <span style={{ flex: 1, textAlign: 'left' }}>Search tools…</span>
-                  <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 5, background: '#fff', border: '1px solid #ececef', color: '#a1a1a6', fontFamily: 'ui-monospace, SFMono-Regular, monospace' }}>⌘K</span>
+                  <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 5, background: '#fff', border: '1px solid #ececef', color: '#8e8e93', fontFamily: 'ui-monospace, SFMono-Regular, monospace' }}>⌘K</span>
                 </button>
               </div>
 
               {/* Recently used */}
               {recentTabs.length > 0 && (
                 <div style={{ padding: '0 12px', marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', padding: '0 4px 6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em', padding: '0 4px 6px' }}>
                     <History size={11} strokeWidth={2} /> Recent
                   </div>
                   {recentTabs.map(key => {
@@ -1424,10 +1425,10 @@ export default function KotoIQPage() {
                       padding: '6px 8px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: 11, fontWeight: 600, color: hasActiveTab ? '#0a0a0a' : '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: hasActiveTab ? '#0a0a0a' : '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em' }}>
                       {section.group}
                     </span>
-                    <ChevronDown size={11} strokeWidth={2} color="#a1a1a6" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 150ms ease' }} />
+                    <ChevronDown size={11} strokeWidth={2} color="#8e8e93" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 150ms ease' }} />
                   </button>
                   {!isCollapsed && section.items.filter(([k]) => !KOTOIQ_PINNED_KEYS.includes(k)).map(([key, label, Icon, desc]) => (
                     <button key={key} onClick={() => setTab(key)}
@@ -1868,7 +1869,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     width: 28, height: 28, borderRadius: 999, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: done ? '#0a0a0a' : active ? '#0a0a0a' : '#f1f1f6',
-                    color: done || active ? '#fff' : '#a1a1a6',
+                    color: done || active ? '#fff' : '#8e8e93',
                     fontSize: 13, fontWeight: 700,
                     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif",
                   }}>
@@ -1953,7 +1954,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>
                           <Plug size={14} strokeWidth={1.75} /> Connect Google
                         </div>
-                        <div style={{ fontSize: 12, color: '#a1a1a6', lineHeight: 1.4 }}>Real Search Console rankings, GA4 traffic, Ads spend.</div>
+                        <div style={{ fontSize: 12, color: '#8e8e93', lineHeight: 1.4 }}>Real Search Console rankings, GA4 traffic, Ads spend.</div>
                       </button>
                     </div>
                   </Step>
@@ -2015,7 +2016,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           }}
                           onMouseEnter={e => { e.currentTarget.style.background = '#f1f1f6'; e.currentTarget.style.borderColor = '#ececef' }}
                           onMouseLeave={e => { e.currentTarget.style.background = '#f9f9fb'; e.currentTarget.style.borderColor = 'transparent' }}>
-                          <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{cfg.label}</div>
+                          <div style={{ fontSize: 11, fontWeight: 500, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{cfg.label}</div>
                           <div style={{ fontSize: 26, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.4px', lineHeight: 1, marginBottom: 4 }}>{count}</div>
                           <div style={{ fontSize: 12, color: '#6b6b70', lineHeight: 1.4 }}>{cfg.desc}</div>
                         </div>
@@ -2038,7 +2039,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <thead>
                         <tr style={{ borderBottom: '1px solid #ececef' }}>
                           {['Keyword', 'Opp', 'Rank', 'Position', 'Volume', 'Ads $', 'Conv', 'Category', 'Intent'].map(h => (
-                            <th key={h} style={{ padding: '10px 10px', fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                            <th key={h} style={{ padding: '10px 10px', fontSize: 11, fontWeight: 500, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em', textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -2050,7 +2051,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <td style={{ padding: '12px 10px', fontSize: 14, fontWeight: 500, color: '#0a0a0a', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
                               <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="Opp" /></td>
                               <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.rank_propensity} label="Rank" /></td>
-                              <td style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: kw.sc_position ? '#0a0a0a' : '#a1a1a6' }}>{kw.sc_position ? `#${Math.round(kw.sc_position)}` : '—'}</td>
+                              <td style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: kw.sc_position ? '#0a0a0a' : '#8e8e93' }}>{kw.sc_position ? `#${Math.round(kw.sc_position)}` : '—'}</td>
                               <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.volume ? fmtN(kw.volume) : '—'}</td>
                               <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_spend ? fmt$(kw.ads_spend) : '—'}</td>
                               <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_conversions || '—'}</td>
@@ -2095,7 +2096,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                 textTransform: 'capitalize',
                               }}>{rec.type?.replace(/_/g, ' ')}</span>
                               {rec.effort && (
-                                <span style={{ fontSize: 11, color: '#a1a1a6', textTransform: 'capitalize' }}>
+                                <span style={{ fontSize: 11, color: '#8e8e93', textTransform: 'capitalize' }}>
                                   · {rec.effort.replace(/_/g, ' ')}
                                 </span>
                               )}
@@ -2151,7 +2152,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ position: 'relative', flex: 1 }}>
-                  <Search size={14} strokeWidth={1.75} color="#a1a1a6" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+                  <Search size={14} strokeWidth={1.75} color="#8e8e93" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
                   <input value={searchQ} onChange={e => { setSearchQ(e.target.value); setKwPage(0) }}
                     placeholder="Search keywords…"
                     style={{
@@ -2177,6 +2178,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 </select>
                 <button onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
                   title={sortDir === 'desc' ? 'Descending' : 'Ascending'}
+                  aria-label={`Sort ${sortDir === 'desc' ? 'descending' : 'ascending'}`}
                   style={{
                     padding: '10px 12px', borderRadius: 10, border: '1px solid #ececef',
                     background: '#fff', cursor: 'pointer',
@@ -2215,7 +2217,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <thead>
                   <tr style={{ borderBottom: '1px solid #ececef' }}>
                     {['Keyword', 'Opp', 'Rank P.', 'Position', 'SC Clicks', 'Volume', 'Ads $', 'Conv', 'CPC', 'QS', 'Cat', 'Intent', ''].map(h => (
-                      <th key={h} style={{ padding: '12px 10px', fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                      <th key={h} style={{ padding: '12px 10px', fontSize: 11, fontWeight: 500, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em', textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -2229,7 +2231,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <td style={{ padding: '12px 10px', fontSize: 14, fontWeight: 500, color: '#0a0a0a', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
                         <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="" /></td>
                         <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.rank_propensity} label="" /></td>
-                        <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, color: kw.sc_avg_position ? '#0a0a0a' : '#a1a1a6' }}>
+                        <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, color: kw.sc_avg_position ? '#0a0a0a' : '#8e8e93' }}>
                           {kw.sc_avg_position ? `#${Math.round(kw.sc_avg_position * 10) / 10}` : '—'}
                         </td>
                         <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.sc_clicks || '—'}</td>
@@ -2237,16 +2239,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_cost_cents ? fmt$(Math.round(kw.ads_cost_cents / 100)) : '—'}</td>
                         <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_conversions || '—'}</td>
                         <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_cpc_cents ? `$${(kw.ads_cpc_cents / 100).toFixed(2)}` : '—'}</td>
-                        <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 500, color: kw.ads_quality_score ? '#0a0a0a' : '#a1a1a6' }}>{kw.ads_quality_score || '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 500, color: kw.ads_quality_score ? '#0a0a0a' : '#8e8e93' }}>{kw.ads_quality_score || '—'}</td>
                         <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 500, padding: '3px 9px', borderRadius: 999, background: '#f1f1f6', color: '#6b6b70' }}>{cfg.label}</span></td>
                         <td style={{ textAlign: 'center', fontSize: 11, fontWeight: 500, color: '#6b6b70', textTransform: 'capitalize' }}>{kw.intent?.slice(0, 4) || '—'}</td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                            <button title="Generate Brief" onClick={() => { setBriefKeyword(kw.keyword); setTab('briefs') }}
+                            <button title="Generate Brief" aria-label={`Generate brief for ${kw.keyword}`} onClick={() => { setBriefKeyword(kw.keyword); setTab('briefs') }}
                               style={{ width: 26, height: 26, borderRadius: 8, border: '1px solid #ececef', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <Zap size={11} strokeWidth={1.75} color="#0a0a0a" />
                             </button>
-                            <button title="Analyze Competitors" onClick={() => { setCompKeyword(kw.keyword); setTab('competitors') }}
+                            <button title="Analyze Competitors" aria-label={`Analyze competitors for ${kw.keyword}`} onClick={() => { setCompKeyword(kw.keyword); setTab('competitors') }}
                               style={{ width: 26, height: 26, borderRadius: 8, border: '1px solid #ececef', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <Target size={11} strokeWidth={1.75} color="#0a0a0a" />
                             </button>
@@ -5248,7 +5250,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   flex: 1, border: 'none', outline: 'none', fontSize: 16,
                   color: '#0a0a0a', fontFamily: 'inherit', background: 'transparent',
                 }} />
-              <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 5, background: '#f1f1f6', color: '#a1a1a6', fontFamily: 'ui-monospace, SFMono-Regular, monospace' }}>esc</span>
+              <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 5, background: '#f1f1f6', color: '#8e8e93', fontFamily: 'ui-monospace, SFMono-Regular, monospace' }}>esc</span>
             </div>
             <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '6px 0' }}>
               {(() => {
@@ -5258,7 +5260,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   return label.toLowerCase().includes(q) || (desc || '').toLowerCase().includes(q) || key.toLowerCase().includes(q)
                 }).slice(0, 30)
                 if (matches.length === 0) return (
-                  <div style={{ padding: '40px 20px', textAlign: 'center', color: '#a1a1a6', fontSize: 14 }}>
+                  <div style={{ padding: '40px 20px', textAlign: 'center', color: '#8e8e93', fontSize: 14 }}>
                     No tools match "{cmdQuery}"
                   </div>
                 )
@@ -5278,7 +5280,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <div style={{ fontSize: 14, fontWeight: 600, color: '#0a0a0a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
                       {desc && <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>}
                     </div>
-                    <span style={{ fontSize: 11, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.04em', flexShrink: 0 }}>{group}</span>
+                    <span style={{ fontSize: 11, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.04em', flexShrink: 0 }}>{group}</span>
                   </button>
                 ))
               })()}

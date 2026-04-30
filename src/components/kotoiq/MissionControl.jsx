@@ -311,7 +311,7 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
           <button onClick={runAll} disabled={runningAll || !hasWebsite}
             style={{
               padding: '12px 28px', borderRadius: 12, border: 'none',
-              background: hasWebsite ? '#0a0a0a' : '#a1a1a6',
+              background: hasWebsite ? '#0a0a0a' : '#8e8e93',
               color: '#fff', fontSize: 14, fontWeight: 600, fontFamily: SF,
               cursor: runningAll ? 'wait' : hasWebsite ? 'pointer' : 'not-allowed',
               opacity: runningAll ? 0.85 : 1,
@@ -360,12 +360,12 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
                     {isActive ? (
                       <AnimatedScore value={hs.value} color="#0a0a0a" />
                     ) : (
-                      <Icon size={26} strokeWidth={1.5} color={isScanning ? hs.color : '#a1a1a6'} style={{ animation: isScanning ? 'mc-pulse 1s infinite' : 'none', transition: 'color .5s' }} />
+                      <Icon size={26} strokeWidth={1.5} color={isScanning ? hs.color : '#8e8e93'} style={{ animation: isScanning ? 'mc-pulse 1s infinite' : 'none', transition: 'color .5s' }} />
                     )}
                   </div>
                 </div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: isActive ? '#0a0a0a' : '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em' }}>{hs.label}</div>
-                <div style={{ fontSize: 12, color: isActive ? '#6b6b70' : '#a1a1a6', marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: isActive ? '#0a0a0a' : '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em' }}>{hs.label}</div>
+                <div style={{ fontSize: 12, color: isActive ? '#6b6b70' : '#8e8e93', marginTop: 4 }}>
                   {isActive ? hs.sub : (isScanning ? <span style={{ animation: 'mc-pulse 1.5s infinite' }}>Analyzing…</span> : 'Awaiting scan')}
                 </div>
               </div>
@@ -386,7 +386,7 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
             <div style={{ display: 'flex', gap: 10 }}>
               {[1, 2, 3].map(w => (
                 <div key={w} style={{ flex: 1 }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: currentWave >= w ? '#0a0a0a' : '#a1a1a6', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: currentWave >= w ? '#0a0a0a' : '#8e8e93', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.08em' }}>
                     {['Scan & Discover', 'Map & Score', 'Strategize'][w - 1]}
                   </div>
                   <div style={{ height: 6, borderRadius: 6, background: '#f1f1f6', overflow: 'hidden' }}>
@@ -451,7 +451,7 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
               )}
             </div>
           ) : (
-            <div style={{ fontSize: 13, color: '#a1a1a6', animation: 'mc-pulse 1.5s infinite' }}>Analyzing all available data to generate executive brief…</div>
+            <div style={{ fontSize: 13, color: '#8e8e93', animation: 'mc-pulse 1.5s infinite' }}>Analyzing all available data to generate executive brief…</div>
           )}
         </div>
       )}
@@ -492,12 +492,12 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
                   ? <CheckCircle size={14} strokeWidth={2} color="#0a0a0a" />
                   : f.required
                     ? <XCircle size={14} strokeWidth={2} color="#e9695c" />
-                    : <Clock size={14} strokeWidth={1.75} color="#a1a1a6" />}
+                    : <Clock size={14} strokeWidth={1.75} color="#8e8e93" />}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.05em' }}>
                     {f.label}{f.required && !f.ok && <span style={{ color: '#e9695c', marginLeft: 4 }}>required</span>}
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: f.ok ? '#0a0a0a' : '#a1a1a6' }}>{f.value || 'Not set'}</div>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: f.ok ? '#0a0a0a' : '#8e8e93' }}>{f.value || 'Not set'}</div>
                 </div>
               </div>
             ))}
@@ -539,7 +539,7 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
               <button onClick={opt.run} disabled={opt.busy || !opt.ready}
                 style={{
                   padding: '8px 18px', borderRadius: 10, border: 'none',
-                  background: opt.ready ? '#0a0a0a' : '#a1a1a6', color: '#fff',
+                  background: opt.ready ? '#0a0a0a' : '#8e8e93', color: '#fff',
                   fontSize: 13, fontWeight: 600, fontFamily: SF,
                   cursor: opt.busy || !opt.ready ? 'not-allowed' : 'pointer',
                   opacity: opt.busy ? 0.6 : 1, whiteSpace: 'nowrap',
@@ -564,15 +564,15 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#fff', border: '1px solid #ececef', borderRadius: isCollapsed ? 12 : '12px 12px 0 0', cursor: 'pointer', textAlign: 'left', fontFamily: SF }}>
               <SIcon size={14} strokeWidth={1.75} color={sectionDone === sectionCheckable && sectionCheckable > 0 ? GRN : '#0a0a0a'} />
               {isCollapsed
-                ? <ChevronRight size={13} strokeWidth={2} color="#a1a1a6" />
-                : <ChevronDown size={13} strokeWidth={2} color="#a1a1a6" />}
+                ? <ChevronRight size={13} strokeWidth={2} color="#8e8e93" />
+                : <ChevronDown size={13} strokeWidth={2} color="#8e8e93" />}
               <span style={{ fontSize: 13, fontWeight: 600, color: '#0a0a0a', flex: 1 }}>{section.title}</span>
               {sectionCheckable > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 56, height: 3, borderRadius: 4, background: '#f1f1f6', overflow: 'hidden' }}>
                     <div style={{ width: `${(sectionDone / Math.max(sectionCheckable, 1)) * 100}%`, height: '100%', background: sectionDone === sectionCheckable ? GRN : '#0a0a0a', borderRadius: 4, transition: 'width .5s ease' }} />
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: sectionDone === sectionCheckable ? GRN : '#a1a1a6', minWidth: 28 }}>{sectionDone}/{sectionCheckable}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: sectionDone === sectionCheckable ? GRN : '#8e8e93', minWidth: 28 }}>{sectionDone}/{sectionCheckable}</span>
                 </div>
               )}
             </button>
@@ -607,8 +607,8 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
                       </div>
                       {isDone && <CheckCircle size={14} strokeWidth={2} color={GRN} style={{ animation: 'mc-count .3s ease' }} />}
                       {isRunning && <Loader2 size={14} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />}
-                      {!isDone && !isRunning && tool.check && <Clock size={12} strokeWidth={1.75} color="#a1a1a6" />}
-                      <ChevronRight size={12} strokeWidth={2} color="#a1a1a6" />
+                      {!isDone && !isRunning && tool.check && <Clock size={12} strokeWidth={1.75} color="#8e8e93" />}
+                      <ChevronRight size={12} strokeWidth={2} color="#8e8e93" />
                     </div>
                   )
                 })}
