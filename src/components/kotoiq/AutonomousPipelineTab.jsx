@@ -45,7 +45,7 @@ function StatusBadge({ status }) {
 
 function ScoreBadge({ score, label }) {
   const s = Number(score || 0)
-  const color = s >= 85 ? GRN : s >= 60 ? AMB : s > 0 ? R : '#d1d5db'
+  const color = s >= 85 ? GRN : s >= 60 ? AMB : s > 0 ? '#e9695c' : '#d1d5db'
   return (
     <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 14px', textAlign: 'center', minWidth: 96 }}>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color }}>{s || '—'}</div>

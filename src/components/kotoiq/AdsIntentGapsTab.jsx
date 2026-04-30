@@ -80,7 +80,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{r.est_monthly_clicks || '—'}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{r.est_cpc_usd ? `$${r.est_cpc_usd.toFixed(2)}` : '—'}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
-                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.priority === 'high' ? '#fef2f2' : r.priority === 'medium' ? '#fef9c3' : '#f1f1f6', color: r.priority === 'high' ? R : r.priority === 'medium' ? AMB : '#6b6b70', fontWeight: 700 }}>{r.priority}</span>
+                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.priority === 'high' ? '#fef2f2' : r.priority === 'medium' ? '#fef9c3' : '#f1f1f6', color: r.priority === 'high' ? '#e9695c' : r.priority === 'medium' ? AMB : '#6b6b70', fontWeight: 700 }}>{r.priority}</span>
                       </td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
                         <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.status === 'approved' ? '#dcfce7' : '#fef9c3', color: r.status === 'approved' ? GRN : AMB }}>{r.status}</span>
@@ -112,7 +112,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{g.gsc_clicks || 0}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{g.avg_position?.toFixed(1) || '—'}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
-                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: g.ads_coverage === 'none' ? '#fef2f2' : '#fef9c3', color: g.ads_coverage === 'none' ? R : AMB }}>{g.ads_coverage}</span>
+                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: g.ads_coverage === 'none' ? '#fef2f2' : '#fef9c3', color: g.ads_coverage === 'none' ? '#e9695c' : AMB }}>{g.ads_coverage}</span>
                       </td>
                     </tr>
                   ))}

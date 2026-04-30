@@ -51,7 +51,7 @@ function ScoreCircle({ score, size = 64, strokeWidth = 5 }) {
 // ── Score Badge ─────────────────────────────────────────────────
 
 function ScoreBadge({ score, label, icon: Icon }) {
-  const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? R : '#d1d5db'
+  const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? '#e9695c' : '#d1d5db'
   return (
     <div style={{ textAlign: 'center', padding: '8px 16px', background: '#fff', borderRadius: 10, border: '1px solid #e5e7eb' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 4 }}>
@@ -89,7 +89,7 @@ function ContentTypePill({ type }) {
 // ── Priority Badge ──────────────────────────────────────────────
 
 function PriorityBadge({ priority }) {
-  const color = priority <= 3 ? R : priority <= 6 ? AMB : '#8e8e93'
+  const color = priority <= 3 ? '#e9695c' : priority <= 6 ? AMB : '#8e8e93'
   return (
     <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 800, color, background: color + '12', padding: '1px 6px', borderRadius: 8 }}>
       P{priority}

@@ -90,7 +90,7 @@ function dayHeader(iso) {
 
 function StatusPill({ status }) {
   const s = status || 'success'
-  const color = s === 'reverted' ? '#6b6b70' : s === 'failed' ? R : GRN
+  const color = s === 'reverted' ? '#6b6b70' : s === 'failed' ? '#e9695c' : GRN
   const Icon = s === 'reverted' ? RotateCcw : s === 'failed' ? XCircle : CheckCircle2
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: color + '18', color, textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
@@ -187,9 +187,9 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
             <button key={f.key} onClick={() => setFilter(f.key)}
               style={{
                 padding: '5px 12px', borderRadius: 16, border: '1px solid',
-                borderColor: filter === f.key ? T : '#ececef',
+                borderColor: filter === f.key ? '#5aa0ff' : '#ececef',
                 background: filter === f.key ? '#f1f1f6' : '#fff',
-                color: filter === f.key ? T : '#1f1f22',
+                color: filter === f.key ? '#5aa0ff' : '#1f1f22',
                 fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
               }}>
               {f.label}
@@ -228,7 +228,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
             const inputSummary = summarizeInputs(a.inputs)
             const resultSummary = a.result?.summary || null
             return (
-              <div key={a.id} style={{ ...card, padding: '14px 16px', borderLeft: `3px solid ${a.status === 'reverted' ? '#8e8e93' : a.status === 'failed' ? R : T}` }}>
+              <div key={a.id} style={{ ...card, padding: '14px 16px', borderLeft: `3px solid ${a.status === 'reverted' ? '#8e8e93' : a.status === 'failed' ? '#e9695c' : T}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                   <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>
                     {prettyIntent(a.intent)}

@@ -90,7 +90,7 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
                         {a.contributors.map((c, j) => (
                           <div key={j} style={{ fontSize: 12, padding: '4px 0', display: 'flex', justifyContent: 'space-between' }}>
                             <span>{c.entity_name}</span>
-                            <span style={{ color: c.delta_value > 0 ? R : GRN }}>{c.contribution_pct?.toFixed(0)}% contribution</span>
+                            <span style={{ color: c.delta_value > 0 ? '#e9695c' : GRN }}>{c.contribution_pct?.toFixed(0)}% contribution</span>
                           </div>
                         ))}
                       </div>

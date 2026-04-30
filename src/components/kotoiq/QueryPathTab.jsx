@@ -46,7 +46,7 @@ function CoverageBar({ covered, total, height = 8 }) {
 }
 
 function QueryPill({ keyword, status }) {
-  const color = status === 'covered' ? GRN : status === 'gap' ? R : AMB
+  const color = status === 'covered' ? GRN : status === 'gap' ? '#e9695c' : AMB
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 12,

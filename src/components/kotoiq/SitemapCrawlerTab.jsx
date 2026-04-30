@@ -184,7 +184,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>
-              Crawl Status: <span style={{ color: crawl.status === 'running' ? T : crawl.status === 'failed' ? R : GRN }}>{crawl.status}</span>
+              Crawl Status: <span style={{ color: crawl.status === 'running' ? '#5aa0ff' : crawl.status === 'failed' ? '#e9695c' : GRN }}>{crawl.status}</span>
             </div>
             {crawl.started_at && <div style={{ fontSize: 11, color: '#6b6b70' }}>Started {new Date(crawl.started_at).toLocaleString()}</div>}
           </div>

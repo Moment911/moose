@@ -98,7 +98,7 @@ function IssueCard({ title, icon, color, items, renderItem, emptyMsg, descriptio
 
 function EquityBar({ url, count, maxCount, isOverLinked, isStarved }) {
   const pct = maxCount > 0 ? (count / maxCount) * 100 : 0
-  const color = isStarved ? R : isOverLinked ? AMB : GRN
+  const color = isStarved ? '#e9695c' : isOverLinked ? AMB : GRN
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -286,8 +286,8 @@ export default function InternalLinksTab({ clientId, agencyId }) {
         <StatBox label="Total Pages" value={fmtN(a.total_pages)} icon={Globe} color="#0a0a0a" />
         <StatBox label="Total Links" value={fmtN(a.total_internal_links)} icon={Link2} color={BLK} />
         <StatBox label="Avg Links/Page" value={a.avg_links_per_page?.toFixed(1) || '0'} icon={BarChart2} color={GRN} />
-        <StatBox label="Orphan Pages" value={orphans.length} icon={AlertTriangle} color={orphans.length > 0 ? R : GRN} />
-        <StatBox label="Broken Links" value={brokenLinks.length} icon={XCircle} color={brokenLinks.length > 0 ? R : GRN} />
+        <StatBox label="Orphan Pages" value={orphans.length} icon={AlertTriangle} color={orphans.length > 0 ? '#e9695c' : GRN} />
+        <StatBox label="Broken Links" value={brokenLinks.length} icon={XCircle} color={brokenLinks.length > 0 ? '#e9695c' : GRN} />
       </div>
 
       {/* Issues Grid */}
@@ -442,7 +442,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                       >{shortUrl(node.url)}</a>
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: GRN }}>{fmtN(node.organic_clicks)}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: node.inbound_links < 3 ? R : BLK }}>{node.inbound_links}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: node.inbound_links < 3 ? '#e9695c' : BLK }}>{node.inbound_links}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'center', fontSize: 12, color: '#1f1f22' }}>
                       {node.top_keywords?.slice(0, 2).join(', ') || '—'}
                     </td>

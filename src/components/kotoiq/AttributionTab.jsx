@@ -325,9 +325,9 @@ function DeviceToggle({ active, onClick, children }) {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
         padding: '5px 12px',
         borderRadius: 8,
-        border: '1px solid ' + (active ? T : '#ececef'),
+        border: '1px solid ' + (active ? '#5aa0ff' : '#ececef'),
         background: active ? T + '10' : '#fff',
-        color: active ? T : '#6b6b70',
+        color: active ? '#5aa0ff' : '#6b6b70',
         cursor: 'pointer',
       }}
     >

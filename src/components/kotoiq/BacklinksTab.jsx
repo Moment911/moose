@@ -222,7 +222,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                 {data.top_anchors.slice(0, 15).map((a, i) => (
                   <span key={i} style={{
                     fontSize: 11, fontWeight: 600, padding: '4px 12px', borderRadius: 16,
-                    background: i < 3 ? '#f1f1f6' : '#f1f1f6', color: i < 3 ? T : '#6b6b70',
+                    background: i < 3 ? '#f1f1f6' : '#f1f1f6', color: i < 3 ? '#5aa0ff' : '#6b6b70',
                     border: `1px solid ${i < 3 ? T + '30' : '#ececef'}`,
                   }}>
                     {a.anchor || '(empty)'} <span style={{ opacity: 0.6 }}>({a.count})</span>
@@ -354,7 +354,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                       {data.competitor_comparison.map((c, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                           <td style={{ padding: '10px 8px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><a href={`https://${c.domain}`} target="_blank" rel="noopener noreferrer" style={{ color: BLK, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>{c.domain} <ExternalLink size={10} /></a></td>
-                          <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700, color: c.domain_authority > data.domain_authority ? R : GRN }}>{c.domain_authority}</td>
+                          <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700, color: c.domain_authority > data.domain_authority ? '#e9695c' : GRN }}>{c.domain_authority}</td>
                           <td style={{ padding: '10px 8px', textAlign: 'center', color: '#1f1f22' }}>{fmtN(c.referring_domains)}</td>
                           <td style={{ padding: '10px 8px', textAlign: 'center', color: '#1f1f22' }}>{fmtN(c.total_backlinks)}</td>
                           <td style={{ padding: '10px 8px', textAlign: 'center', color: c.spam_score <= 5 ? GRN : R }}>{c.spam_score}%</td>

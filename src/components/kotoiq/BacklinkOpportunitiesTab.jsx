@@ -124,8 +124,8 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
                         <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: GRN + '14', color: GRN }}>E {o.ease_score || '—'}</span>
                         <span style={{
                           fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 12,
-                          background: (o.priority === 'high' ? R : o.priority === 'medium' ? AMB : '#8e8e93') + '14',
-                          color: o.priority === 'high' ? R : o.priority === 'medium' ? AMB : '#8e8e93',
+                          background: (o.priority === 'high' ? '#e9695c' : o.priority === 'medium' ? AMB : '#8e8e93') + '14',
+                          color: o.priority === 'high' ? '#e9695c' : o.priority === 'medium' ? AMB : '#8e8e93',
                         }}>{o.priority || 'low'}</span>
                         {isExp ? <ChevronUp size={14} color="#6b7280" /> : <ChevronDown size={14} color="#6b7280" />}
                       </div>

@@ -133,9 +133,9 @@ function IssueSummaryCard({ data }) {
   )
 
   return (
-    <div style={{ ...card, background: critical > 0 ? '#f9f9fb' : '#f9f9fb', border: `1px solid ${critical > 0 ? R : AMB}25` }}>
+    <div style={{ ...card, background: critical > 0 ? '#f9f9fb' : '#f9f9fb', border: `1px solid ${critical > 0 ? '#e9695c' : AMB}25` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <ShieldAlert size={18} color={critical > 0 ? R : AMB} />
+        <ShieldAlert size={18} color={critical > 0 ? '#e9695c' : AMB} />
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>
           Your site has {total} issue{total !== 1 ? 's' : ''} that need attention
         </div>
@@ -317,7 +317,7 @@ function IssueTable({ title, color, Icon, items, columns }) {
             {items.slice(0, 20).map((it, i) => (
               <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 {columns.map(c => (
-                  <td key={c} style={{ padding: '8px', color: c === 'url' ? T : '#4b5563', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td key={c} style={{ padding: '8px', color: c === 'url' ? '#5aa0ff' : '#4b5563', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {Array.isArray(it[c]) ? it[c].join(', ') : String(it[c] ?? '—')}
                   </td>
                 ))}

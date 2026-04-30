@@ -13,7 +13,7 @@ const VELOCITY_COLORS = { accelerating: GRN, stable: '#6b6b70', declining: R }
 const VELOCITY_ICONS = { accelerating: TrendingUp, declining: TrendingDown, stable: ArrowRight }
 
 function ScoreBadge({ score, label, size = 'md' }) {
-  const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? R : '#d1d5db'
+  const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? '#e9695c' : '#d1d5db'
   const fontSize = size === 'lg' ? 36 : 18
   return (
     <div style={{ textAlign: 'center' }}>
@@ -334,7 +334,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
         )}
         {campaigns.map(camp => {
           const pct = camp.target_count > 0 ? Math.round((camp.collected_count / camp.target_count) * 100) : 0
-          const statusColor = camp.status === 'active' ? GRN : camp.status === 'completed' ? T : camp.status === 'paused' ? AMB : '#6b6b70'
+          const statusColor = camp.status === 'active' ? GRN : camp.status === 'completed' ? '#5aa0ff' : camp.status === 'paused' ? AMB : '#6b6b70'
           return (
             <div key={camp.id} style={{ padding: '14px 16px', borderRadius: 10, border: '1px solid #e5e7eb', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>

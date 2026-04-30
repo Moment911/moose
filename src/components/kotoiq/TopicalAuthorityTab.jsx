@@ -190,7 +190,7 @@ export default function TopicalAuthorityTab({ clientId, agencyId }) {
                     <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#f1f1f6', color: R, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                     <div style={{ flex: 1, fontSize: 13, color: '#1f1f22', lineHeight: 1.5 }}>
                       {typeof r === 'string' ? r : r.recommendation || r.text || ''}
-                      {r.priority && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: r.priority === 'high' ? '#f1f1f6' : '#f1f1f6', color: r.priority === 'high' ? R : AMB }}>{r.priority}</span>}
+                      {r.priority && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: r.priority === 'high' ? '#f1f1f6' : '#f1f1f6', color: r.priority === 'high' ? '#e9695c' : AMB }}>{r.priority}</span>}
                     </div>
                   </div>
                 ))}

@@ -109,7 +109,7 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
               </div>
               <div style={{ ...card, flex: 1, minWidth: 150 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>Days Until Exhausted</div>
-                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: p.days_until_exhausted != null && p.days_until_exhausted < 10 ? R : GRN }}>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: p.days_until_exhausted != null && p.days_until_exhausted < 10 ? '#e9695c' : GRN }}>
                   {p.days_until_exhausted != null ? p.days_until_exhausted : '—'}
                 </div>
               </div>

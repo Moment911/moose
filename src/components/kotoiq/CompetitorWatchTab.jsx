@@ -292,7 +292,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
                 padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 border: filter === val ? `1.5px solid ${T}` : '1.5px solid #e5e7eb',
                 background: filter === val ? '#f1f1f6' : '#fff',
-                color: filter === val ? T : '#1f1f22', cursor: 'pointer',
+                color: filter === val ? '#5aa0ff' : '#1f1f22', cursor: 'pointer',
               }}>{lbl}</button>
             ))}
           </div>

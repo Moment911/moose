@@ -117,7 +117,7 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
                     <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 500, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.page_url}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{fmt(p.sessions)}</td>
-                      <td style={{ padding: '10px 6px', textAlign: 'right', color: p.rage_clicks > 10 ? R : BLK }}>{p.rage_clicks}</td>
+                      <td style={{ padding: '10px 6px', textAlign: 'right', color: p.rage_clicks > 10 ? '#e9695c' : BLK }}>{p.rage_clicks}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: p.dead_clicks > 10 ? AMB : BLK }}>{p.dead_clicks}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{p.scroll_depth_avg.toFixed(0)}%</td>
                     </tr>

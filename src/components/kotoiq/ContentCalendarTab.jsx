@@ -23,7 +23,7 @@ const TYPE_LABELS = {
 }
 
 function VDMBadge({ score, label }) {
-  const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? R : '#d1d5db'
+  const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? '#e9695c' : '#d1d5db'
   return (
     <div style={{ textAlign: 'center', padding: '8px 16px' }}>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>

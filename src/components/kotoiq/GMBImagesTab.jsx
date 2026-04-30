@@ -235,7 +235,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             style={{
-              border: `2px dashed ${dragOver ? T : '#d1d5db'}`, borderRadius: 10, padding: 30,
+              border: `2px dashed ${dragOver ? '#5aa0ff' : '#d1d5db'}`, borderRadius: 10, padding: 30,
               textAlign: 'center', cursor: 'pointer', background: dragOver ? '#f9f9fb' : '#fafafb',
               marginBottom: 10, transition: 'all .15s',
             }}
@@ -386,7 +386,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
                     </td>
                     <td style={{ padding: '8px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', color: '#1f2937' }}>{img.caption || '—'}</td>
                     <td style={{ padding: '8px', textAlign: 'center' }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: img.source === 'generated' ? '#f1f1f6' : '#f1f1f6', color: img.source === 'generated' ? R : T }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: img.source === 'generated' ? '#f1f1f6' : '#f1f1f6', color: img.source === 'generated' ? '#e9695c' : T }}>
                         {img.source}
                       </span>
                     </td>

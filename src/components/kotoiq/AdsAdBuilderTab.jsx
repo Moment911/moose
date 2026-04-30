@@ -50,7 +50,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
         {PLATFORMS.map(p => (
           <button key={p.id} onClick={() => { setPlatform(p.id); setResult(null) }}
             style={{ flex: 1, padding: '14px', borderRadius: 10, border: platform === p.id ? `2px solid ${T}` : '2px solid #e5e7eb', background: platform === p.id ? '#f0f9ff' : '#fff', cursor: 'pointer', textAlign: 'left' }}>
-            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: platform === p.id ? T : BLK }}>{p.name}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: platform === p.id ? '#5aa0ff' : BLK }}>{p.name}</div>
             <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 2 }}>{p.desc}</div>
           </button>
         ))}
@@ -101,7 +101,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
                     <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#8e8e93', width: 20 }}>{i + 1}</span>
                     <span style={{ flex: 1, fontSize: 13 }}>{h.text}</span>
-                    <span style={{ fontSize: 10, color: h.text.length > 30 ? R : GRN }}>{h.text.length}/30</span>
+                    <span style={{ fontSize: 10, color: h.text.length > 30 ? '#e9695c' : GRN }}>{h.text.length}/30</span>
                     {h.pin && <span style={{ fontSize: 10, padding: '1px 4px', background: '#eff6ff', color: T, borderRadius: 3 }}>pin {h.pin}</span>}
                     <span style={{ fontSize: 10, padding: '1px 4px', background: '#f1f1f6', borderRadius: 3 }}>{h.category}</span>
                     <Copy size={12} color="#9ca3af" style={{ cursor: 'pointer' }} onClick={() => copyText(h.text)} />
@@ -114,7 +114,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
                     <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#8e8e93', width: 20 }}>{i + 1}</span>
                     <span style={{ flex: 1, fontSize: 13 }}>{d.text}</span>
-                    <span style={{ fontSize: 10, color: d.text.length > 90 ? R : GRN }}>{d.text.length}/90</span>
+                    <span style={{ fontSize: 10, color: d.text.length > 90 ? '#e9695c' : GRN }}>{d.text.length}/90</span>
                     {d.pin && <span style={{ fontSize: 10, padding: '1px 4px', background: '#eff6ff', color: T, borderRadius: 3 }}>pin {d.pin}</span>}
                     <Copy size={12} color="#9ca3af" style={{ cursor: 'pointer' }} onClick={() => copyText(d.text)} />
                   </div>

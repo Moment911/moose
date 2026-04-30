@@ -106,7 +106,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
     }
   }
 
-  const sentimentColor = (s) => s === 'trust' ? GRN : s === 'negative' ? R : '#8e8e93'
+  const sentimentColor = (s) => s === 'trust' ? GRN : s === 'negative' ? '#e9695c' : '#8e8e93'
   const sentimentBg = (s) => s === 'trust' ? GRN + '15' : s === 'negative' ? R + '15' : '#f1f1f6'
 
   const featuresPresent = data ? FEATURES.filter(f => data[f.key]).length : 0

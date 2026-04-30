@@ -199,7 +199,7 @@ export default function SchemaTab({ clientId, agencyId }) {
         <ScoreRing score={audit.overall_score || 0} label="Overall" color={audit.overall_score >= 70 ? GRN : audit.overall_score >= 40 ? AMB : R} size={80} />
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           <StatBox label="Pages w/ Schema" value={audit.total_pages_with_schema || 0} color={GRN} />
-          <StatBox label="Pages Without" value={audit.total_pages_without || 0} color={audit.total_pages_without > 0 ? R : '#6b6b70'} />
+          <StatBox label="Pages Without" value={audit.total_pages_without || 0} color={audit.total_pages_without > 0 ? '#e9695c' : '#6b6b70'} />
           <StatBox label="Coverage" value={`${audit.coverage_pct || 0}%`} color="#0a0a0a" />
           <StatBox label="Semantic HTML" value={audit.semantic_html_score || 0} color={audit.semantic_html_score >= 70 ? GRN : AMB} sub="/100" />
         </div>

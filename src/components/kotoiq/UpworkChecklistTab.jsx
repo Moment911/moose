@@ -113,7 +113,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
             <Stat label="Win Probability" value={`${a.win_probability}%`} color={a.win_probability >= 70 ? GRN : a.win_probability >= 40 ? AMB : R} />
-            <Stat label="Difficulty" value={`${a.difficulty_score}/100`} color={a.difficulty_score >= 70 ? R : a.difficulty_score >= 40 ? AMB : GRN} />
+            <Stat label="Difficulty" value={`${a.difficulty_score}/100`} color={a.difficulty_score >= 70 ? '#e9695c' : a.difficulty_score >= 40 ? AMB : GRN} />
             <Stat label={type === 'hourly' ? 'Est. Hours' : 'Est. Quote'}
                   value={type === 'hourly' ? `${data.project_estimate?.hours || 0}h` : `$${(data.project_estimate?.fixed_price || 0).toLocaleString()}`}
                   color="#0a0a0a" />

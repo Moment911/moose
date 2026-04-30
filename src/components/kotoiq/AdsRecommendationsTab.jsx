@@ -66,7 +66,7 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {TYPES.map(t => (
           <button key={t.id} onClick={() => setType(t.id)}
-            style={{ padding: '8px 16px', borderRadius: 8, border: type === t.id ? `2px solid ${T}` : '1px solid #e5e7eb', background: type === t.id ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: type === t.id ? T : '#6b6b70', cursor: 'pointer' }}>
+            style={{ padding: '8px 16px', borderRadius: 8, border: type === t.id ? `2px solid ${T}` : '1px solid #e5e7eb', background: type === t.id ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: type === t.id ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
             {t.label}
           </button>
         ))}
@@ -102,7 +102,7 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
                   {r.estimated_savings_usd && <span>Saves ~${r.estimated_savings_usd.toFixed(2)}/mo</span>}
                   {r.est_monthly_clicks && <span>{r.est_monthly_clicks} est. clicks/mo</span>}
                   {r.intent && <span style={{ padding: '1px 4px', background: '#f1f1f6', borderRadius: 3 }}>{r.intent}</span>}
-                  {r.priority && <span style={{ padding: '1px 4px', background: r.priority === 'high' ? '#fef2f2' : '#f1f1f6', color: r.priority === 'high' ? R : '#6b6b70', borderRadius: 3 }}>{r.priority}</span>}
+                  {r.priority && <span style={{ padding: '1px 4px', background: r.priority === 'high' ? '#fef2f2' : '#f1f1f6', color: r.priority === 'high' ? '#e9695c' : '#6b6b70', borderRadius: 3 }}>{r.priority}</span>}
                   <span>via {r.model_used || 'AI'}</span>
                   <span>{r.created_at?.split('T')[0]}</span>
                 </div>

@@ -127,7 +127,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
                           <td style={{ padding: '8px', color: BLK }}>{d.query}</td>
                           <td style={{ padding: '8px', textAlign: 'center' }}>{d.google_position?.toFixed(1) || '—'}</td>
                           <td style={{ padding: '8px', textAlign: 'center' }}>{d.bing_position?.toFixed(1) || '—'}</td>
-                          <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: gap > 5 ? R : gap < -5 ? GRN : '#6b6b70' }}>
+                          <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: gap > 5 ? '#e9695c' : gap < -5 ? GRN : '#6b6b70' }}>
                             {gap > 0 ? '+' : ''}{gap.toFixed(1)}
                           </td>
                         </tr>

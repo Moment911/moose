@@ -64,7 +64,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
         <>
           {/* Summary */}
           <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 20 }}>
-            <AlertTriangle size={32} color={totalWasted > 100 ? R : AMB} />
+            <AlertTriangle size={32} color={totalWasted > 100 ? '#e9695c' : AMB} />
             <div>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: R }}>${totalWasted.toFixed(2)}</div>
               <div style={{ fontSize: 13, color: '#6b6b70' }}>Wasted in last 30 days across {candidates.length} search terms (0 conversions, 5+ clicks)</div>
@@ -96,7 +96,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
                       <td style={{ padding: '10px 6px', textAlign: 'right', fontSize: 11 }}>{r.scope}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: GRN, fontWeight: 700 }}>${(r.estimated_savings_usd || 0).toFixed(2)}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
-                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.status === 'approved' ? '#dcfce7' : r.status === 'rejected' ? '#fef2f2' : '#fef9c3', color: r.status === 'approved' ? GRN : r.status === 'rejected' ? R : AMB }}>{r.status}</span>
+                        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.status === 'approved' ? '#dcfce7' : r.status === 'rejected' ? '#fef2f2' : '#fef9c3', color: r.status === 'approved' ? GRN : r.status === 'rejected' ? '#e9695c' : AMB }}>{r.status}</span>
                       </td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
                         {r.status === 'pending' && (

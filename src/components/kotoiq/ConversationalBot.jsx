@@ -844,7 +844,7 @@ export default function ConversationalBot({
               <Mic size={18} />
             </button>
             <button onClick={() => send()} disabled={thinking || uploadingFile || (!input.trim() && !pendingFile)}
-              style={{ background: (input.trim() || pendingFile) && !thinking && !uploadingFile ? T : '#ececef', color: '#fff', border: 'none', borderRadius: 10, padding: 10, cursor: (input.trim() || pendingFile) && !thinking && !uploadingFile ? 'pointer' : 'not-allowed' }}>
+              style={{ background: (input.trim() || pendingFile) && !thinking && !uploadingFile ? '#5aa0ff' : '#ececef', color: '#fff', border: 'none', borderRadius: 10, padding: 10, cursor: (input.trim() || pendingFile) && !thinking && !uploadingFile ? 'pointer' : 'not-allowed' }}>
               <Send size={18} />
             </button>
           </div>
@@ -868,7 +868,7 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, on
       )}
       <div style={{ maxWidth: '80%' }}>
         <div style={{
-          background: isUser ? T : (msg.error ? '#fee2e2' : '#fff'),
+          background: isUser ? '#5aa0ff' : (msg.error ? '#fee2e2' : '#fff'),
           color: isUser ? '#fff' : (msg.error ? '#991b1b' : BLK),
           border: isUser ? 'none' : `1px solid ${msg.error ? '#fecaca' : '#ececef'}`,
           borderRadius: 14,

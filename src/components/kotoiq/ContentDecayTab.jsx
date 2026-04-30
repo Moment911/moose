@@ -158,7 +158,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
                         onClick={() => setSelected(u)}>
                       <td style={{ padding: '10px 8px', color: T, maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.url}</td>
                       <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700 }}>{posNow || '—'}</td>
-                      <td style={{ padding: '10px 8px', textAlign: 'center', color: trend ? R : GRN }}>{pos30 || '—'}</td>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', color: trend ? '#e9695c' : GRN }}>{pos30 || '—'}</td>
                       <td style={{ padding: '10px 8px', textAlign: 'center' }}>{u.predicted_60d || '—'}</td>
                       <td style={{ padding: '10px 8px', textAlign: 'center' }}>{u.predicted_90d || '—'}</td>
                       <td style={{ padding: '10px 8px', textAlign: 'center' }}>

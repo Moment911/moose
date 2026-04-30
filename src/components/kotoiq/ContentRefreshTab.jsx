@@ -229,7 +229,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', gap: 6 }}>
               {FILTERS.map(f => (
                 <button key={f.key} onClick={() => setFilter(filter === f.key ? '' : f.key)}
-                  style={{ padding: '5px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: `1.5px solid ${filter === f.key ? R : '#ececef'}`, background: filter === f.key ? '#f1f1f6' : '#fff', color: filter === f.key ? R : '#6b6b70' }}>
+                  style={{ padding: '5px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: `1.5px solid ${filter === f.key ? '#e9695c' : '#ececef'}`, background: filter === f.key ? '#f1f1f6' : '#fff', color: filter === f.key ? '#e9695c' : '#6b6b70' }}>
                   {f.label} {f.key && <span style={{ opacity: 0.7 }}>({f.key === 'urgent' ? s.urgent : f.key === 'declining' ? s.declining : f.key === 'stale' ? (s.stale || 0) + (s.critical || 0) : f.key === 'thin' ? s.thin : ''})</span>}
                 </button>
               ))}
@@ -238,7 +238,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
               <span style={{ fontSize: 11, color: '#1f2937', fontWeight: 600 }}>Sort:</span>
               {SORT_OPTIONS.map(o => (
                 <button key={o.key} onClick={() => { if (sortBy === o.key) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortBy(o.key); setSortDir('asc') } }}
-                  style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${sortBy === o.key ? T : '#ececef'}`, background: sortBy === o.key ? T + '10' : '#fff', color: sortBy === o.key ? T : '#6b6b70', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${sortBy === o.key ? '#5aa0ff' : '#ececef'}`, background: sortBy === o.key ? T + '10' : '#fff', color: sortBy === o.key ? '#5aa0ff' : '#6b6b70', display: 'flex', alignItems: 'center', gap: 3 }}>
                   {o.label} {sortBy === o.key && (sortDir === 'asc' ? <ChevronUp size={10} /> : <ChevronDown size={10} />)}
                 </button>
               ))}
@@ -275,7 +275,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                         </a>
                       </td>
                       <td style={{ padding: '8px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11 }}>{item.title || '(no title)'}</td>
-                      <td style={{ padding: '8px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: item.thin_content ? R : BLK }}>{item.word_count || 0}</td>
+                      <td style={{ padding: '8px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: item.thin_content ? '#e9695c' : BLK }}>{item.word_count || 0}</td>
                       <td style={{ padding: '8px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }}>{item.sc_position ? Math.round(item.sc_position) : '--'}</td>
                       <td style={{ padding: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: traj.color, fontWeight: 700, fontSize: 11 }}>

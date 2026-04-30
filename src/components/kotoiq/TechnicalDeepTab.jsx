@@ -200,7 +200,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: GRN }}>{(d.indexable_urls || 0).toLocaleString()}</div>
             </div>
           </div>
-          <ProgressBar value={100 - (d.crawl_waste_pct || 0)} label="Crawl Efficiency" color={d.crawl_waste_pct > 30 ? R : d.crawl_waste_pct > 15 ? AMB : GRN} />
+          <ProgressBar value={100 - (d.crawl_waste_pct || 0)} label="Crawl Efficiency" color={d.crawl_waste_pct > 30 ? '#e9695c' : d.crawl_waste_pct > 15 ? AMB : GRN} />
           <div style={{ marginTop: 10 }}>
             <ProgressBar value={d.url_value_ratio || 0} label="URL Value Ratio (pages with traffic)" color="#0a0a0a" />
           </div>
@@ -284,7 +284,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
             <div style={{ fontSize: 11, color: '#1f2937', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Status Code Distribution</div>
             {Object.entries(statusDist).sort((a, b) => b[1] - a[1]).map(([code, count]) => {
               const pct = (count / statusTotal * 100).toFixed(1)
-              const color = code === '200' ? GRN : code.startsWith('3') ? AMB : code.startsWith('4') ? R : '#8e8e93'
+              const color = code === '200' ? GRN : code.startsWith('3') ? AMB : code.startsWith('4') ? '#e9695c' : '#8e8e93'
               return (
                 <div key={code} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 800, color, width: 36 }}>{code}</span>
@@ -318,7 +318,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           <span style={{
             marginLeft: 8, padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
             background: d.cwv_grade === 'Good' ? GRN + '14' : d.cwv_grade === 'Poor' ? '#f1f1f6' : '#f1f1f6',
-            color: d.cwv_grade === 'Good' ? GRN : d.cwv_grade === 'Poor' ? R : AMB,
+            color: d.cwv_grade === 'Good' ? GRN : d.cwv_grade === 'Poor' ? '#e9695c' : AMB,
           }}>
             {d.cwv_grade || 'No Data'}
           </span>

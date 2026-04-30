@@ -126,9 +126,9 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
         {STATUS_FILTERS.map(f => (
           <button key={f.key} onClick={() => setStatusFilter(f.key)} style={{
             padding: '8px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-            border: `1.5px solid ${statusFilter === f.key ? T : '#ececef'}`,
+            border: `1.5px solid ${statusFilter === f.key ? '#5aa0ff' : '#ececef'}`,
             background: statusFilter === f.key ? '#f1f1f6' : '#fff',
-            color: statusFilter === f.key ? T : '#6b6b70',
+            color: statusFilter === f.key ? '#5aa0ff' : '#6b6b70',
           }}>
             {f.label}
           </button>
@@ -183,7 +183,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                         <span>{pct}%</span>
                       </div>
                       <div style={{ height: 6, background: '#f1f1f6', borderRadius: 3, overflow: 'hidden' }}>
-                        <div style={{ width: `${pct}%`, height: '100%', background: j.status === 'failed' ? R : j.status === 'complete' || j.status === 'completed' ? GRN : T, transition: 'width .3s' }} />
+                        <div style={{ width: `${pct}%`, height: '100%', background: j.status === 'failed' ? '#e9695c' : j.status === 'complete' || j.status === 'completed' ? GRN : T, transition: 'width .3s' }} />
                       </div>
                     </div>
 

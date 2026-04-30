@@ -95,7 +95,7 @@ export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
               </div>
             </div>
             <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 18, marginBottom: 0 }}>
-              <ScoreRing score={data.ai_generation_likelihood || 0} colorFn={s => s >= 70 ? R : s >= 40 ? AMB : GRN} />
+              <ScoreRing score={data.ai_generation_likelihood || 0} colorFn={s => s >= 70 ? '#e9695c' : s >= 40 ? AMB : GRN} />
               <div>
                 <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>AI Likelihood</div>
                 <div style={{ fontSize: 12, color: '#1f1f22' }}>Higher = more AI-ish</div>

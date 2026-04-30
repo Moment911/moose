@@ -70,7 +70,7 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
                   <td style={{ padding: '10px 6px', fontWeight: 500, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.search_term}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right' }}>{(t.impressions || 0).toLocaleString()}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right' }}>{(t.clicks || 0).toLocaleString()}</td>
-                  <td style={{ padding: '10px 6px', textAlign: 'right', color: t.cost_usd > 50 ? R : BLK }}>${(t.cost_usd || 0).toFixed(2)}</td>
+                  <td style={{ padding: '10px 6px', textAlign: 'right', color: t.cost_usd > 50 ? '#e9695c' : BLK }}>${(t.cost_usd || 0).toFixed(2)}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right', color: t.conversions > 0 ? GRN : '#8e8e93' }}>{t.conversions || 0}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right' }}>
                     {t.status === 'added_as_negative' && <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: '#fef2f2', color: R }}>Negative</span>}

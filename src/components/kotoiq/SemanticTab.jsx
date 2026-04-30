@@ -9,7 +9,7 @@ import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 function ScoreRing({ score, label, size = 80, color }) {
-  const c = color || (score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? R : '#d1d5db')
+  const c = color || (score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? '#e9695c' : '#d1d5db')
   const pct = Math.min(score, 100) / 100
   const circumference = 2 * Math.PI * 32
   const offset = circumference * (1 - pct)

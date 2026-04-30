@@ -114,9 +114,9 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
               disabled={running}
               style={{
                 padding: '10px 18px', borderRadius: 8,
-                border: `1.5px solid ${format === f.key ? T : '#ececef'}`,
+                border: `1.5px solid ${format === f.key ? '#5aa0ff' : '#ececef'}`,
                 background: format === f.key ? '#f1f1f6' : '#fff',
-                color: format === f.key ? T : '#1f1f22',
+                color: format === f.key ? '#5aa0ff' : '#1f1f22',
                 fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
               }}>
               {f.label}

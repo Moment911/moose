@@ -95,15 +95,15 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
             <StatCard label="7-Day Spend" value={fmt(cost7d)} icon={DollarSign} color={BLK} />
             <StatCard label="Clicks" value={clicks7d.toLocaleString()} icon={TrendingUp} color="#0a0a0a" />
             <StatCard label="Conversions" value={conv7d.toLocaleString()} icon={Target} color={GRN} />
-            <StatCard label="CPA" value={fmt(cpa)} icon={BarChart2} color={cpa > 100 ? R : GRN} sub={cpa > 100 ? 'Above target' : 'On track'} />
+            <StatCard label="CPA" value={fmt(cpa)} icon={BarChart2} color={cpa > 100 ? '#e9695c' : GRN} sub={cpa > 100 ? 'Above target' : 'On track'} />
           </div>
 
           {/* Status Cards */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
             <div style={{ ...card, flex: 1, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <AlertCircle size={20} color={alertCount > 0 ? R : '#d1d5db'} />
+              <AlertCircle size={20} color={alertCount > 0 ? '#e9695c' : '#d1d5db'} />
               <div>
-                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: alertCount > 0 ? R : BLK }}>{alertCount} Active Alerts</div>
+                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: alertCount > 0 ? '#e9695c' : BLK }}>{alertCount} Active Alerts</div>
                 <div style={{ fontSize: 12, color: '#6b6b70' }}>Anomalies detected this week</div>
               </div>
             </div>

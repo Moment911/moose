@@ -58,11 +58,11 @@ export default function AdsReportsTab({ clientId, agencyId }) {
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button onClick={() => setTab('summary')}
-          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'summary' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'summary' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'summary' ? T : '#6b6b70', cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'summary' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'summary' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'summary' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
           Weekly Summary
         </button>
         <button onClick={() => setTab('comparison')}
-          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'comparison' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'comparison' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'comparison' ? T : '#6b6b70', cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'comparison' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'comparison' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'comparison' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
           Period Comparison
         </button>
       </div>
@@ -145,11 +145,11 @@ export default function AdsReportsTab({ clientId, agencyId }) {
                   {comparison.deltas.map((d, i) => (
                     <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 600 }}>{d.name}</td>
-                      <td style={{ padding: '10px 6px', textAlign: 'right', color: d.delta_pct?.cost > 0 ? R : GRN }}>{d.delta_pct?.cost > 0 ? '+' : ''}{(d.delta_pct?.cost || 0).toFixed(1)}%</td>
+                      <td style={{ padding: '10px 6px', textAlign: 'right', color: d.delta_pct?.cost > 0 ? '#e9695c' : GRN }}>{d.delta_pct?.cost > 0 ? '+' : ''}{(d.delta_pct?.cost || 0).toFixed(1)}%</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: d.delta_pct?.conversions > 0 ? GRN : R }}>{d.delta_pct?.conversions > 0 ? '+' : ''}{(d.delta_pct?.conversions || 0).toFixed(1)}%</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: d.delta_pct?.cpa < 0 ? GRN : R }}>{d.delta_pct?.cpa > 0 ? '+' : ''}{(d.delta_pct?.cpa || 0).toFixed(1)}%</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
-                        {d.flag && <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: d.flag?.includes('drop') || d.flag?.includes('increase') ? '#fef2f2' : '#dcfce7', color: d.flag?.includes('drop') || d.flag?.includes('increase') ? R : GRN, fontWeight: 700 }}>{d.flag?.replace(/_/g, ' ')}</span>}
+                        {d.flag && <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: d.flag?.includes('drop') || d.flag?.includes('increase') ? '#fef2f2' : '#dcfce7', color: d.flag?.includes('drop') || d.flag?.includes('increase') ? '#e9695c' : GRN, fontWeight: 700 }}>{d.flag?.replace(/_/g, ' ')}</span>}
                       </td>
                     </tr>
                   ))}
