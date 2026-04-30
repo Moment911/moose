@@ -101,14 +101,14 @@ function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel =
 
 // ── Category config ─────────────────────────────────────────────────────────
 const CAT_CONFIG = {
-  organic_cannibal: { label: 'Organic Cannibals', color: R, icon: '💸', desc: 'Ranking top 5 AND paying for ads — reduce waste' },
-  striking_distance: { label: 'Striking Distance', color: AMB, icon: '🎯', desc: 'Position 4-15 — push to top 3' },
-  quick_win: { label: 'Quick Wins', color: GRN, icon: '⚡', desc: 'Position 11-20 with high volume' },
-  dark_matter: { label: 'Dark Matter', color: '#8b5cf6', icon: '🌑', desc: 'Not ranking, not bidding — hidden opportunity' },
-  paid_only: { label: 'Paid Only', color: T, icon: '💳', desc: 'Ads traffic but no organic presence' },
-  defend: { label: 'Defend', color: GRN, icon: '🛡️', desc: 'Top 3 organically — protect position' },
-  underperformer: { label: 'Underperformers', color: AMB, icon: '📉', desc: 'Has impressions but low CTR' },
-  monitor: { label: 'Monitor', color: '#1f1f22', icon: '👁️', desc: 'Tracking — no immediate action' },
+  organic_cannibal: { label: 'Organic Cannibals', color: R, icon: '$', desc: 'Ranking top 5 AND paying for ads — reduce waste' },
+  striking_distance: { label: 'Striking Distance', color: AMB, icon: '+', desc: 'Position 4-15 — push to top 3' },
+  quick_win: { label: 'Quick Wins', color: GRN, icon: '!', desc: 'Position 11-20 with high volume' },
+  dark_matter: { label: 'Dark Matter', color: '#8b5cf6', icon: '?', desc: 'Not ranking, not bidding — hidden opportunity' },
+  paid_only: { label: 'Paid Only', color: T, icon: '$', desc: 'Ads traffic but no organic presence' },
+  defend: { label: 'Defend', color: GRN, icon: '#', desc: 'Top 3 organically — protect position' },
+  underperformer: { label: 'Underperformers', color: AMB, icon: '~', desc: 'Has impressions but low CTR' },
+  monitor: { label: 'Monitor', color: '#1f1f22', icon: '-', desc: 'Tracking — no immediate action' },
 }
 
 const INTENT_COLORS = { transactional: R, commercial: AMB, informational: T, navigational: '#6b6b70' }

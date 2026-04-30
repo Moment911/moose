@@ -7,15 +7,15 @@ import { R, T, BLK, GRN, AMB, FH, FB } from '../../../lib/theme'
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
 const PROVIDERS = [
-  { id: 'search_console', label: 'Google Search Console', icon: '🔍', color: '#4285F4', oauthType: 'google' },
-  { id: 'analytics', label: 'Google Analytics 4', icon: '📊', color: '#F57C00', oauthType: 'google' },
-  { id: 'ads', label: 'Google Ads', icon: '💰', color: '#34A853', oauthType: 'google' },
-  { id: 'meta', label: 'Meta Ads', icon: '📱', color: '#1877F2', oauthType: 'meta' },
-  { id: 'linkedin', label: 'LinkedIn Ads', icon: '💼', color: '#0A66C2', oauthType: 'linkedin' },
-  { id: 'gmb', label: 'Google Business Profile', icon: '📍', color: '#4285F4', oauthType: 'google' },
-  { id: 'hotjar', label: 'Hotjar', icon: '🔥', color: '#FF3C00', oauthType: 'apikey' },
-  { id: 'clarity', label: 'Microsoft Clarity', icon: '🔬', color: '#5B2D8E', oauthType: 'apikey' },
-  { id: 'ghl', label: 'GoHighLevel CRM', icon: '🤝', color: '#1DB954', oauthType: 'ghl' },
+  { id: 'search_console', label: 'Google Search Console', color: '#4285F4', oauthType: 'google' },
+  { id: 'analytics', label: 'Google Analytics 4', color: '#F57C00', oauthType: 'google' },
+  { id: 'ads', label: 'Google Ads', color: '#34A853', oauthType: 'google' },
+  { id: 'meta', label: 'Meta Ads', color: '#1877F2', oauthType: 'meta' },
+  { id: 'linkedin', label: 'LinkedIn Ads', color: '#0A66C2', oauthType: 'linkedin' },
+  { id: 'gmb', label: 'Google Business Profile', color: '#4285F4', oauthType: 'google' },
+  { id: 'hotjar', label: 'Hotjar', color: '#FF3C00', oauthType: 'apikey' },
+  { id: 'clarity', label: 'Microsoft Clarity', color: '#5B2D8E', oauthType: 'apikey' },
+  { id: 'ghl', label: 'GoHighLevel CRM', color: '#1DB954', oauthType: 'ghl' },
 ]
 
 export default function ConnectionChecklist({ clientId, agencyId, profileText }) {
@@ -98,7 +98,9 @@ export default function ConnectionChecklist({ clientId, agencyId, profileText })
               borderRadius: 10, border: `1px solid ${isConnected ? GRN + '40' : isRecommended ? T + '40' : '#e5e7eb'}`,
               background: isConnected ? '#f0fdf4' : isRecommended ? '#f0f9ff' : '#fff',
             }}>
-              <span style={{ fontSize: 18 }}>{p.icon}</span>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: p.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Link2 size={14} color={p.color} />
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>{p.label}</div>
                 {isConnected && <div style={{ fontSize: 11, color: GRN }}>Connected</div>}

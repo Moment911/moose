@@ -7,17 +7,17 @@ import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const MODULES = [
-  { id: 'intro', label: 'Introduction', desc: 'Opening headline + value proposition', icon: '📝' },
-  { id: 'what_is', label: 'What Is This Service', desc: 'Educational explainer content', icon: '❓' },
-  { id: 'why_us', label: 'Why Choose Us', desc: 'Trust signals + differentiators', icon: '✅' },
-  { id: 'services', label: 'Services Offered', desc: 'Service breakdown with descriptions', icon: '📋' },
-  { id: 'local', label: 'Local Area Focus', desc: 'Hyperlocal city/area content', icon: '📍' },
-  { id: 'process', label: 'Our Process', desc: 'Step-by-step how-it-works', icon: '⚙️' },
-  { id: 'trust', label: 'Trust & Social Proof', desc: 'Reviews + testimonials', icon: '⭐' },
-  { id: 'comparison', label: 'Comparison / vs.', desc: 'Pro vs DIY, local vs national', icon: '⚖️' },
-  { id: 'faq', label: 'FAQ Block', desc: 'AEO-optimized with schema markup', icon: '💬' },
-  { id: 'internal_links', label: 'Internal Links', desc: 'Service area + related page links', icon: '🔗' },
-  { id: 'cta', label: 'Call to Action', desc: 'Conversion-focused closing section', icon: '📞' },
+  { id: 'intro', label: 'Introduction', desc: 'Opening headline + value proposition' },
+  { id: 'what_is', label: 'What Is This Service', desc: 'Educational explainer content' },
+  { id: 'why_us', label: 'Why Choose Us', desc: 'Trust signals + differentiators' },
+  { id: 'services', label: 'Services Offered', desc: 'Service breakdown with descriptions' },
+  { id: 'local', label: 'Local Area Focus', desc: 'Hyperlocal city/area content' },
+  { id: 'process', label: 'Our Process', desc: 'Step-by-step how-it-works' },
+  { id: 'trust', label: 'Trust & Social Proof', desc: 'Reviews + testimonials' },
+  { id: 'comparison', label: 'Comparison / vs.', desc: 'Pro vs DIY, local vs national' },
+  { id: 'faq', label: 'FAQ Block', desc: 'AEO-optimized with schema markup' },
+  { id: 'internal_links', label: 'Internal Links', desc: 'Service area + related page links' },
+  { id: 'cta', label: 'Call to Action', desc: 'Conversion-focused closing section' },
 ]
 
 export default function ContentVariantModules({ clientId, agencyId }) {
@@ -100,7 +100,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
             <div key={mod.id}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 10, border: `1px solid ${hasResult ? GRN + '40' : '#ececef'}`, background: hasResult ? GRN + '04' : '#fff', cursor: 'pointer' }}
                 onClick={() => setExpanded(expanded === mod.id ? null : mod.id)}>
-                <span style={{ fontSize: 20, width: 36, textAlign: 'center' }}>{mod.icon}</span>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: T + '10', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: FH, fontSize: 13, fontWeight: 800, color: T }}>{(mod.label[0] || '').toUpperCase()}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
                   <div style={{ fontSize: 12, color: '#1f1f22' }}>{mod.desc}</div>
