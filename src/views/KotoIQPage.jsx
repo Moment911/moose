@@ -118,22 +118,33 @@ function fmt$(n) { return n >= 1000 ? `$${(n/1000).toFixed(1)}K` : `$${n}` }
 function fmtN(n) { return n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n || 0) }
 function timeAgo(d) { if (!d) return ''; const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m}m ago`; const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`; return `${Math.floor(h / 24)}d ago` }
 
-function StatCard({ label, value, sub, icon: Icon, color, trend }) {
+function StatCard({ label, value, sub, icon: Icon, trend }) {
+  const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
   return (
-    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 6, fontFamily: SF }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: (color || T) + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon size={16} color={color || T} />
-          </div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
+          {Icon && (
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon size={14} strokeWidth={1.75} color="#0a0a0a" />
+            </div>
+          )}
+          <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
         </div>
-        {trend && <div style={{ fontSize: 11, fontWeight: 700, color: trend > 0 ? GRN : R, display: 'flex', alignItems: 'center', gap: 2 }}>
-          {trend > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{Math.abs(trend)}%
-        </div>}
+        {trend != null && trend !== 0 && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 2,
+            padding: '2px 8px', borderRadius: 999,
+            background: trend > 0 ? '#16a34a14' : '#e9695c14',
+            color: trend > 0 ? '#16a34a' : '#e9695c',
+            fontSize: 11, fontWeight: 600,
+          }}>
+            {trend > 0 ? <ArrowUpRight size={11} strokeWidth={2} /> : <ArrowDownRight size={11} strokeWidth={2} />}{Math.abs(trend)}%
+          </div>
+        )}
       </div>
-      <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#374151' }}>{sub}</div>}
+      <div style={{ fontSize: 28, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.5px', lineHeight: 1.05 }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: '#6b6b70' }}>{sub}</div>}
     </div>
   )
 }
@@ -351,97 +362,115 @@ function effortBadgeColor(effort) {
 }
 
 function QuickWinRow({ item, index, onMarkDone, onMarkSkipped }) {
+  const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
   const priorityLabel = index < 3 ? 'P1' : index < 7 ? 'P2' : 'P3'
-  const priorityColor = index < 3 ? R : index < 7 ? AMB : T
-  const ec = effortBadgeColor(item.effort)
+  const effortLabel = (item.effort || '').replace('_', ' ')
   return (
     <div style={{
-      display: 'grid', gridTemplateColumns: '50px 1fr auto auto auto auto',
-      alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10,
-      border: '1px solid #e5e7eb', background: '#fff', marginBottom: 8,
-    }}>
+      display: 'grid', gridTemplateColumns: '40px 1fr auto auto auto auto',
+      alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12,
+      border: '1px solid #ececef', background: '#fff', marginBottom: 6,
+      fontFamily: SF, transition: 'background 120ms ease',
+    }}
+      onMouseEnter={e => e.currentTarget.style.background = '#f9f9fb'}
+      onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
       <div style={{
-        fontFamily: FH, fontSize: 13, fontWeight: 900, color: priorityColor,
-        background: priorityColor + '15', padding: '4px 8px', borderRadius: 6, textAlign: 'center',
+        fontSize: 11, fontWeight: 700, color: '#6b6b70',
+        background: '#f1f1f6', padding: '4px 8px', borderRadius: 6, textAlign: 'center',
       }}>{priorityLabel}</div>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH, lineHeight: 1.3, marginBottom: 3 }}>{item.title}</div>
-        <div style={{ fontSize: 11, color: '#6b7280' }}>{(item.source || '').replace(/_/g, ' ').replace(/\./g, ' / ')}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#0a0a0a', lineHeight: 1.35, marginBottom: 2 }}>{item.title}</div>
+        <div style={{ fontSize: 11, color: '#a1a1a6' }}>{(item.source || '').replace(/_/g, ' ').replace(/\./g, ' / ')}</div>
       </div>
-      <div style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: ec + '15', color: ec, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-        {(item.effort || '').replace('_', ' ')}
+      <div style={{
+        fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+        background: '#f1f1f6', color: '#6b6b70', textTransform: 'capitalize',
+      }}>
+        {effortLabel}
       </div>
-      <div style={{ fontSize: 12, color: '#374151', fontFamily: FH, textAlign: 'right', minWidth: 80 }}>
-        <div style={{ fontWeight: 800, color: GRN }}>+{item.estimated_traffic_gain || 0}</div>
-        <div style={{ fontSize: 10, color: '#9ca3af' }}>traffic</div>
+      <div style={{ fontSize: 12, textAlign: 'right', minWidth: 70 }}>
+        <div style={{ fontWeight: 600, color: '#0a0a0a' }}>+{item.estimated_traffic_gain || 0}</div>
+        <div style={{ fontSize: 10, color: '#a1a1a6', marginTop: 1 }}>traffic</div>
       </div>
       <button onClick={() => onMarkDone(item.id)} title="Mark done" style={{
-        display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 6,
-        border: `1px solid ${GRN}`, background: '#fff', color: GRN, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
-      }}>
-        <CheckCircle size={12} /> Done
+        display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 8,
+        border: '1px solid #ececef', background: '#fff', color: '#0a0a0a',
+        fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: SF,
+      }}
+        onMouseEnter={e => e.currentTarget.style.background = '#f1f1f6'}
+        onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+        <CheckCircle size={12} strokeWidth={1.75} /> Done
       </button>
       <button onClick={() => onMarkSkipped(item.id)} title="Skip" style={{
-        padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff',
-        color: '#6b7280', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
-      }}>Skip</button>
+        padding: '6px 12px', borderRadius: 8, border: 'none', background: 'transparent',
+        color: '#a1a1a6', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: SF,
+      }}
+        onMouseEnter={e => e.currentTarget.style.color = '#6b6b70'}
+        onMouseLeave={e => e.currentTarget.style.color = '#a1a1a6'}>Skip</button>
     </div>
   )
 }
 
 function QuickWinQueueCard({ queue, totals, loading, onGenerate, onMarkDone, onMarkSkipped, showAll, onToggleAll }) {
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
   const visibleItems = showAll ? queue : queue.slice(0, 10)
   return (
-    <div style={card}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={16} color={R} />
-          </div>
-          <div>
-            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 900, color: BLK }}>Quick Wins — This Week's Action Queue</div>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Ranked across every KotoIQ tool by impact / effort</div>
-          </div>
+    <div style={{
+      background: '#fff', borderRadius: 18, border: '1px solid #ececef',
+      padding: '22px 24px', marginBottom: 16, fontFamily: SF,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.3px' }}>Quick Wins</div>
+          <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 2 }}>This week's action queue · ranked by impact / effort</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {queue.length > 0 && (
-            <div style={{ fontSize: 12, color: '#374151' }}>
-              <span style={{ fontWeight: 800, color: GRN }}>+{totals.estimated_total_traffic_gain || 0}</span> est. traffic · {totals.total_items} items
+            <div style={{ fontSize: 12, color: '#6b6b70' }}>
+              <span style={{ fontWeight: 600, color: '#0a0a0a' }}>+{totals.estimated_total_traffic_gain || 0}</span> est. · {totals.total_items} items
             </div>
           )}
           <button onClick={onGenerate} disabled={loading} style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
-            border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH,
+            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10,
+            border: 'none', background: '#0a0a0a', color: '#fff',
+            fontSize: 13, fontWeight: 600, fontFamily: SF,
             cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.6 : 1,
           }}>
-            {loading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <TrendingUp size={12} />}
-            {loading ? 'Generating…' : 'Generate Queue'}
+            {loading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <TrendingUp size={13} strokeWidth={1.75} />}
+            {loading ? 'Generating…' : 'Generate'}
           </button>
         </div>
       </div>
       {queue.length === 0 && !loading && (
-        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6b7280' }}>
-          <Zap size={32} color={T} style={{ opacity: 0.3, margin: '0 auto 12px' }} />
-          <div style={{ fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 6 }}>No queue yet</div>
-          <div style={{ fontSize: 12 }}>Run a few KotoIQ tools first, then click "Generate Queue" to stack the top 25 priorities.</div>
+        <div style={{ textAlign: 'center', padding: '32px 20px' }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12, background: '#f1f1f6',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12,
+          }}>
+            <Zap size={20} strokeWidth={1.5} color="#0a0a0a" />
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#0a0a0a', marginBottom: 4 }}>No queue yet</div>
+          <div style={{ fontSize: 13, color: '#6b6b70', maxWidth: 380, margin: '0 auto' }}>Run a few KotoIQ tools, then generate to stack the top 25 priorities.</div>
         </div>
       )}
       {queue.length === 0 && loading && (
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <Loader2 size={24} color={R} style={{ animation: 'spin 1s linear infinite' }} />
+        <div style={{ textAlign: 'center', padding: 36 }}>
+          <Loader2 size={22} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       )}
       {visibleItems.map((item, i) => (
         <QuickWinRow key={item.id || i} item={item} index={i} onMarkDone={onMarkDone} onMarkSkipped={onMarkSkipped} />
       ))}
       {queue.length > 10 && (
-        <div style={{ textAlign: 'center', marginTop: 8 }}>
+        <div style={{ textAlign: 'center', marginTop: 10 }}>
           <button onClick={onToggleAll} style={{
-            padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-            color: BLK, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
-          }}>
-            {showAll ? 'Show Top 10' : `View All ${queue.length} Items`}
+            padding: '8px 18px', borderRadius: 10, border: '1px solid #ececef', background: '#fff',
+            color: '#0a0a0a', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: SF,
+            transition: 'background 120ms ease',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = '#f9f9fb'}
+            onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+            {showAll ? 'Show Top 10' : `View all ${queue.length}`}
           </button>
         </div>
       )}
@@ -1968,18 +1997,27 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 </div>
 
                 {/* Category breakdown */}
-                <div style={card}>
-                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Keyword Categories</div>
+                <div style={{
+                  background: '#fff', borderRadius: 18, border: '1px solid #ececef',
+                  padding: '22px 24px', marginBottom: 16,
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif",
+                }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.3px', marginBottom: 16 }}>Keyword Categories</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                     {Object.entries(d.categories || {}).sort((a, b) => b[1] - a[1]).map(([cat, count]) => {
                       const cfg = CAT_CONFIG[cat] || { label: cat, color: '#374151', icon: '•', desc: '' }
                       return (
                         <div key={cat} onClick={() => { setTab('keywords'); setCatFilter(cat) }}
-                          style={{ padding: '16px 18px', borderRadius: 12, background: cfg.color + '08', border: `1.5px solid ${cfg.color}20`, cursor: 'pointer', transition: 'all .15s' }}>
-                          <div style={{ fontSize: 20, marginBottom: 4 }}>{cfg.icon}</div>
-                          <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: cfg.color }}>{count}</div>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{cfg.label}</div>
-                          <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{cfg.desc}</div>
+                          style={{
+                            padding: '16px 18px', borderRadius: 14, background: '#f9f9fb',
+                            border: '1px solid transparent', cursor: 'pointer',
+                            transition: 'background 120ms ease, border-color 120ms ease',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#f1f1f6'; e.currentTarget.style.borderColor = '#ececef' }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#f9f9fb'; e.currentTarget.style.borderColor = 'transparent' }}>
+                          <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{cfg.label}</div>
+                          <div style={{ fontSize: 26, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.4px', lineHeight: 1, marginBottom: 4 }}>{count}</div>
+                          <div style={{ fontSize: 12, color: '#6b6b70', lineHeight: 1.4 }}>{cfg.desc}</div>
                         </div>
                       )
                     })}
