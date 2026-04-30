@@ -213,6 +213,7 @@ import GmailCallbackPage from '../views/GmailCallbackPage'
 import HelpPage from '../views/HelpPage'
 import IntelPage from '../views/IntelPage'
 import KotoIQPage from '../views/KotoIQPage'
+import KotoIQEncyclopediaPage from '../views/KotoIQEncyclopediaPage'
 import KotoIQShellPage from '../views/kotoiq/KotoIQShellPage'
 import LaunchPage from '../views/kotoiq/LaunchPage'
 import KotoFinPro from '../components/KotoFinPro'
@@ -490,6 +491,7 @@ function AppRoutes() {
           <Route path="/intelligence" element={<IntelligenceDashboardPage />} />
           <Route path="/intel" element={<IntelPage />} />
           <Route path="/intel/:reportId" element={<IntelPage />} />
+          <Route path="/kotoiq/encyclopedia" element={<KotoIQEncyclopediaPage />} />
           <Route path="/kotoiq" element={<KotoIQPage />} />
           <Route path="/kotoiq/launch/:clientId" element={<LaunchPage />} />
           <Route path="/kotoiq-shell" element={<KotoIQShellPage />} />
