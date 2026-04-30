@@ -271,7 +271,7 @@ function HomeSplitter() {
 function RouteTracker() {
   const location = useLocation()
   useEffect(() => {
-    const skip = ['/', '/login', '/signup', '/onboard', '/onboarding', '/review', '/r/', '/p/', '/trainer/login']
+    const skip = ['/', '/login', '/signup', '/onboard', '/onboarding', '/review', '/r/', '/p/', '/trainer/login', '/encyclopedia']
     const shouldSkip = skip.some((s) => location.pathname === s || location.pathname.startsWith(s + '/'))
     if (!shouldSkip) {
       try { localStorage.setItem('koto_last_route', location.pathname + location.search) } catch {}
@@ -331,6 +331,7 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/ai-agents" element={<AIAgentsMarketingPage />} />
           <Route path="/seo-intelligence" element={<SEOAgentsPage />} />
+          <Route path="/encyclopedia" element={<KotoIQEncyclopediaPage />} />
           <Route path="/custom-systems" element={<CustomSystemsPage />} />
           <Route path="/chatbots" element={<ChatbotsPage />} />
           <Route path="/koto-ai" element={<KotoAIPage />} />
@@ -339,7 +340,6 @@ export default function App() {
           <Route path="/discovery/form/:token" element={<DiscoveryClientFormPage />} />
           <Route path="/discovery/view/:token" element={<DiscoverySharedViewPage />} />
           <Route path="/integrations/gmail/callback" element={<GmailCallbackPage />} />
-          <Route path="/encyclopedia" element={<KotoIQEncyclopediaPage />} />
           <Route path="/access-guide" element={<AccessGuidePage />} />
           <Route path="/my-plan" element={<MyPlanPage />} />
           <Route path="/train" element={<TrainerLandingPage />} />
