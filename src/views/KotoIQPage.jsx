@@ -4809,8 +4809,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 20 }}>📱</span> Meta Ads
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1877F212', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Target size={16} color="#1877F2" /></div>
+                      Meta Ads
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {metaValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
@@ -4823,15 +4824,15 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           const redirectUri = window.location.origin + '/kotoiq'
                           const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'meta', returnTo: '/kotoiq?tab=connect' }))
                           window.location.href = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${metaAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=ads_read,ads_management,business_management&response_type=code&state=${state}`
-                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#1877F2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer' }}>
+                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#1877F2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
                           Connect Meta
                         </button>
                       )}
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: '#6b6b70' }}>Facebook + Instagram ad campaigns, spend, conversions, and audience data.</div>
-                  {metaVr && !metaVr.valid && !metaValidating && <div style={{ marginTop: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{metaVr.error}</div>}
-                  {metaVr?.last_synced && <div style={{ marginTop: 4, fontSize: 10, color: '#8e8e93' }}>Last synced: {timeAgo(metaVr.last_synced)}</div>}
+                  <div style={{ fontSize: 14, color: '#6b6b70' }}>Facebook + Instagram ad campaigns, spend, conversions, and audience data.</div>
+                  {metaVr && !metaVr.valid && !metaValidating && <div style={{ marginTop: 8, fontSize: 12, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{metaVr.error}</div>}
+                  {metaVr?.last_synced && <div style={{ marginTop: 4, fontSize: 11, color: '#8e8e93' }}>Last synced: {timeAgo(metaVr.last_synced)}</div>}
                 </div>
               )
             })()}
@@ -4848,8 +4849,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 20 }}>💼</span> LinkedIn Ads
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#0A66C212', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Briefcase size={16} color="#0A66C2" /></div>
+                      LinkedIn Ads
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {liValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
@@ -4862,15 +4864,15 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           const redirectUri = window.location.origin + '/kotoiq'
                           const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), provider: 'linkedin', returnTo: '/kotoiq?tab=connect' }))
                           window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${liClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=r_ads,r_ads_reporting,r_organization_social&state=${state}`
-                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#0A66C2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer' }}>
+                        }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#0A66C2', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
                           Connect LinkedIn
                         </button>
                       )}
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: '#6b6b70' }}>B2B campaign groups, campaigns, creatives, and performance metrics.</div>
-                  {liVr && !liVr.valid && !liValidating && <div style={{ marginTop: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{liVr.error}</div>}
-                  {liVr?.last_synced && <div style={{ marginTop: 4, fontSize: 10, color: '#8e8e93' }}>Last synced: {timeAgo(liVr.last_synced)}</div>}
+                  <div style={{ fontSize: 14, color: '#6b6b70' }}>B2B campaign groups, campaigns, creatives, and performance metrics.</div>
+                  {liVr && !liVr.valid && !liValidating && <div style={{ marginTop: 8, fontSize: 12, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{liVr.error}</div>}
+                  {liVr?.last_synced && <div style={{ marginTop: 4, fontSize: 11, color: '#8e8e93' }}>Last synced: {timeAgo(liVr.last_synced)}</div>}
                 </div>
               )
             })()}
@@ -4887,8 +4889,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 20 }}>🔥</span> Hotjar
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#FF3C0012', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Activity size={16} color="#FF3C00" /></div>
+                      Hotjar
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {hjValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
@@ -4896,7 +4899,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       {hjConn && !hjValidating && <button onClick={() => runValidation('hotjar')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: '#6b6b70', marginBottom: 12 }}>Session recordings, heatmaps, rage clicks, and scroll depth data.</div>
+                  <div style={{ fontSize: 14, color: '#6b6b70', marginBottom: 12 }}>Session recordings, heatmaps, rage clicks, and scroll depth data.</div>
                   {hjVr && !hjVr.valid && !hjValidating && <div style={{ marginBottom: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{hjVr.error}</div>}
                   {hjVr?.last_synced && <div style={{ marginBottom: 8, fontSize: 10, color: '#8e8e93' }}>Last synced: {timeAgo(hjVr.last_synced)}</div>}
                   <div style={{ display: 'flex', gap: 10 }}>
@@ -4928,8 +4931,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 20 }}>🔬</span> Microsoft Clarity
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#5B2D8E12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Eye size={16} color="#5B2D8E" /></div>
+                      Microsoft Clarity
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {clBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: clBadge.bg, color: clBadge.color }}>{clBadge.label}</span>}
@@ -4941,7 +4945,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       )}
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>Free behavior analytics by Microsoft — heatmaps, session recordings, rage clicks, scroll depth.</div>
+                  <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>Free behavior analytics by Microsoft — heatmaps, session recordings, rage clicks, scroll depth.</div>
                   <div style={{ fontSize: 12, color: '#374151', marginBottom: 12, background: '#f3f0ff', padding: '8px 12px', borderRadius: 8, lineHeight: 1.5 }}>
                     Just add your Clarity Project ID below. We'll link directly to your dashboard, heatmaps, and recordings. No API key needed — Clarity is free.
                   </div>
