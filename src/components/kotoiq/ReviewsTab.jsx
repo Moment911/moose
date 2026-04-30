@@ -234,7 +234,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
                 <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 6 }}>
                   <div style={{ width: `${topic.positive_pct || 0}%`, background: GRN }} />
                   <div style={{ width: `${topic.neutral_pct || 0}%`, background: '#d1d5db' }} />
-                  <div style={{ width: `${topic.negative_pct || 0}%`, background: R }} />
+                  <div style={{ width: `${topic.negative_pct || 0}%`, background: "#0a0a0a" }} />
                 </div>
                 <div style={{ display: 'flex', gap: 12, fontSize: 12, fontWeight: 600 }}>
                   <span style={{ color: GRN }}>{topic.positive_pct || 0}% positive</span>

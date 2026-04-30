@@ -119,7 +119,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
           }} />
           <button onClick={generate} disabled={running || !clientId} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-            border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+            border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1, whiteSpace: 'nowrap',
           }}>
             {running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : data ? <RefreshCw size={14} /> : <Sparkles size={14} />}
@@ -220,7 +220,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {(focus.length ? focus : gaps.slice(0, 5).map(g => `Close ${g.metric} gap`)).map((f, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: R + '10', borderRadius: 8, fontSize: 13, color: BLK }}>
-                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: R, color: '#fff', fontSize: 11, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: "#0a0a0a", color: '#fff', fontSize: 11, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
                       <span>{typeof f === 'string' ? f : (f.recommendation || f.text || JSON.stringify(f))}</span>
                     </div>
                   ))}

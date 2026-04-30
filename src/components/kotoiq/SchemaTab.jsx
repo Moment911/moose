@@ -151,7 +151,7 @@ export default function SchemaTab({ clientId, agencyId }) {
           Audit your site for JSON-LD structured data, find missing schema opportunities, and auto-generate markup to boost rich results.
         </div>
         <button onClick={runAudit} disabled={running}
-          style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 14, fontWeight: 700, cursor: running ? 'wait' : 'pointer', opacity: running ? .7 : 1 }}>
+          style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 14, fontWeight: 700, cursor: running ? 'wait' : 'pointer', opacity: running ? .7 : 1 }}>
           {running ? <Loader2 size={14} style={{ marginRight: 6, verticalAlign: -2, animation: 'spin 1s linear infinite' }} /> : <Code size={14} style={{ marginRight: 6, verticalAlign: -2 }} />}
           Run Schema Audit
         </button>
@@ -221,7 +221,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 140, fontSize: 13, fontWeight: 600, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{type}</div>
                   <div style={{ flex: 1, height: 20, borderRadius: 4, background: '#f1f1f6', overflow: 'hidden' }}>
-                    <div style={{ width: `${(Number(count) / maxTypeCount) * 100}%`, height: '100%', borderRadius: 4, background: T, transition: 'width .4s ease', display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+                    <div style={{ width: `${(Number(count) / maxTypeCount) * 100}%`, height: '100%', borderRadius: 4, background: "#0a0a0a", transition: 'width .4s ease', display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{String(count)}</span>
                     </div>
                   </div>

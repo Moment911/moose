@@ -130,7 +130,7 @@ export default function EEATTab({ clientId, agencyId }) {
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button onClick={runAudit} disabled={running}
-            style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 14, fontWeight: 700, cursor: running ? 'wait' : 'pointer', opacity: running ? .7 : 1 }}>
+            style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 14, fontWeight: 700, cursor: running ? 'wait' : 'pointer', opacity: running ? .7 : 1 }}>
             {running ? <Loader2 size={14} style={{ marginRight: 6, verticalAlign: -2, animation: 'spin 1s linear infinite' }} /> : <Shield size={14} style={{ marginRight: 6, verticalAlign: -2 }} />}
             Run E-E-A-T Audit
           </button>
@@ -193,7 +193,7 @@ export default function EEATTab({ clientId, agencyId }) {
           style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, outline: 'none' }}
         />
         <button onClick={runAudit} disabled={running}
-          style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
           Audit URL
         </button>
       </div>

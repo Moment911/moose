@@ -387,7 +387,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, fontSize: 12, color: '#1f2937' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: GRN, display: 'inline-block' }} /> Healthy</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: AMB, display: 'inline-block' }} /> Over-linked</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: R, display: 'inline-block' }} /> Starved</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: "#0a0a0a", display: 'inline-block' }} /> Starved</span>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

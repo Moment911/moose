@@ -280,7 +280,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
           <button onClick={newConversation}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '10px 14px', borderRadius: 10, border: 'none', background: T, color: '#fff',
+              padding: '10px 14px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff',
               fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             }}>
             <Plus size={14} /> New conversation
@@ -457,7 +457,7 @@ function MessageBubble({ message, onActionClick }) {
         <div style={{ width: 30, height: 30, borderRadius: 10, background: R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <User size={15} color="#0a0a0a" />
         </div>
-        <div style={{ padding: '10px 14px', background: R, color: '#fff', borderRadius: 12, fontSize: 14, lineHeight: 1.6, maxWidth: '75%', whiteSpace: 'pre-wrap' }}>
+        <div style={{ padding: '10px 14px', background: "#0a0a0a", color: '#fff', borderRadius: 12, fontSize: 14, lineHeight: 1.6, maxWidth: '75%', whiteSpace: 'pre-wrap' }}>
           {message.content}
         </div>
       </div>

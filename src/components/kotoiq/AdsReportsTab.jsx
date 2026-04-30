@@ -71,7 +71,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
       {tab === 'summary' && (
         <div>
           <button onClick={generateSummary} disabled={loadingSummary}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', marginBottom: 16, opacity: loadingSummary ? 0.6 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', marginBottom: 16, opacity: loadingSummary ? 0.6 : 1 }}>
             {loadingSummary ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
             {loadingSummary ? 'Generating...' : 'Generate Weekly Summary'}
           </button>
@@ -112,7 +112,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
               <option value="month">Month-over-Month</option>
             </select>
             <button onClick={runComparison} disabled={loadingComparison}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: loadingComparison ? 0.6 : 1 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: loadingComparison ? 0.6 : 1 }}>
               {loadingComparison ? <Loader2 size={16} className="animate-spin" /> : <TrendingUp size={16} />}
               {loadingComparison ? 'Comparing...' : 'Compare Periods'}
             </button>

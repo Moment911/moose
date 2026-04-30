@@ -50,7 +50,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Wasted Spend Detection</div>
         <button onClick={runAnalysis} disabled={analyzing}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: R, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: analyzing ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: analyzing ? 0.6 : 1 }}>
           {analyzing ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
           {analyzing ? 'Analyzing...' : 'Run Analysis'}
         </button>

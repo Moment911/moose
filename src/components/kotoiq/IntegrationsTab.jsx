@@ -205,7 +205,7 @@ export default function IntegrationsTab({ clientId, agencyId }) {
         </div>
         <button onClick={sendDigest} disabled={sending} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '12px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+          border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: sending ? 'wait' : 'pointer', opacity: sending ? 0.6 : 1,
         }}>
           {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}

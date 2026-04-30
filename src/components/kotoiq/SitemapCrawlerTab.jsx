@@ -169,7 +169,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
         </div>
         <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={startCrawl} disabled={running} style={{
-            padding: '10px 22px', borderRadius: 8, border: 'none', background: R, color: '#fff',
+            padding: '10px 22px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff',
             fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: running ? 'wait' : 'pointer',
             opacity: running ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 6,
           }}>

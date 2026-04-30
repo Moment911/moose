@@ -127,7 +127,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
           </div>
           <button onClick={runAnalysis} disabled={analyzing} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
-            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700,
+            border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700,
             fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: analyzing ? 'wait' : 'pointer', opacity: analyzing ? 0.6 : 1,
           }}>
             {analyzing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}

@@ -562,7 +562,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
               Partial ({stats.partial || 0})
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 2, background: R, display: 'inline-block' }} />
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: "#0a0a0a", display: 'inline-block' }} />
               Gap ({stats.gap || 0})
             </span>
           </div>
@@ -572,7 +572,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
             <>
               <div style={{ width: `${(stats.covered / stats.total) * 100}%`, background: GRN, transition: 'width 0.3s' }} />
               <div style={{ width: `${(stats.partial / stats.total) * 100}%`, background: AMB, transition: 'width 0.3s' }} />
-              <div style={{ width: `${(stats.gap / stats.total) * 100}%`, background: R, transition: 'width 0.3s' }} />
+              <div style={{ width: `${(stats.gap / stats.total) * 100}%`, background: "#0a0a0a", transition: 'width 0.3s' }} />
             </>
           )}
         </div>
@@ -684,7 +684,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
       {(filter === 'all' || filter === 'core' || filter === 'gaps' || filter === 'covered') && coreFiltered.length > 0 && (
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <div style={{ width: 4, height: 18, borderRadius: 2, background: R }} />
+            <div style={{ width: 4, height: 18, borderRadius: 2, background: "#0a0a0a" }} />
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
               Core Section
             </div>
@@ -704,7 +704,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
       {(filter === 'all' || filter === 'outer' || filter === 'gaps' || filter === 'covered') && outerFiltered.length > 0 && (
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <div style={{ width: 4, height: 18, borderRadius: 2, background: T }} />
+            <div style={{ width: 4, height: 18, borderRadius: 2, background: "#0a0a0a" }} />
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
               Outer Section
             </div>

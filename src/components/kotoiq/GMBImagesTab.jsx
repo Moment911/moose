@@ -259,7 +259,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
           }} />
           <button onClick={doGeoTag} disabled={uploading || !uploadDataUrl} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 8,
-            border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+            border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: uploading || !uploadDataUrl ? 'not-allowed' : 'pointer', opacity: (uploading || !uploadDataUrl) ? 0.6 : 1,
           }}>
             {uploading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MapPin size={14} />}
@@ -310,7 +310,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
           </div>
           <button onClick={doGenerate} disabled={generating} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 8,
-            border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+            border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             cursor: generating ? 'wait' : 'pointer', opacity: generating ? 0.6 : 1,
           }}>
             {generating ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}

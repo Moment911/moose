@@ -66,7 +66,7 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
             <option value={90}>90 days</option>
           </select>
           <button onClick={generate} disabled={generating}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: generating ? 0.6 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: generating ? 0.6 : 1 }}>
             {generating ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
             {generating ? 'Calculating...' : 'Generate Forecast'}
           </button>

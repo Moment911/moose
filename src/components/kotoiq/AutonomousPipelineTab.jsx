@@ -166,7 +166,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             onClick={startPipeline}
             disabled={running || !keyword.trim()}
             style={{
-              padding: '14px 26px', borderRadius: 10, border: 'none', background: R, color: '#fff',
+              padding: '14px 26px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff',
               fontSize: 14, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: running ? 'wait' : 'pointer', opacity: running || !keyword.trim() ? 0.6 : 1,
               display: 'flex', alignItems: 'center', gap: 8,

@@ -164,7 +164,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
         </div>
         <button onClick={runCheck} disabled={running || watches.length === 0} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-          border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+          border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: running ? 'wait' : (watches.length === 0 ? 'not-allowed' : 'pointer'),
           opacity: running || watches.length === 0 ? 0.6 : 1,
         }}>
@@ -243,7 +243,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
           <div style={{ marginLeft: 'auto' }}>
             <button onClick={saveWatch} disabled={saving || domains.length === 0} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
-              border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: saving ? 'wait' : 'pointer', opacity: saving || domains.length === 0 ? 0.6 : 1,
             }}>
               {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}

@@ -162,7 +162,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Monitor content freshness, identify declining pages, plan updates</div>
         </div>
         <button onClick={buildInventory} disabled={building}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: building ? 'wait' : 'pointer', opacity: building ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: building ? 'wait' : 'pointer', opacity: building ? 0.6 : 1 }}>
           {building ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={16} />}
           {building ? 'Scanning...' : 'Build Inventory'}
         </button>
@@ -213,7 +213,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
               {freshPct > 0 && <div style={{ width: `${freshPct}%`, background: GRN, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: freshPct > 5 ? 'auto' : 0 }}>{freshPct > 8 ? `${Math.round(freshPct)}%` : ''}</div>}
               {agingPct > 0 && <div style={{ width: `${agingPct}%`, background: AMB, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: agingPct > 5 ? 'auto' : 0 }}>{agingPct > 8 ? `${Math.round(agingPct)}%` : ''}</div>}
               {stalePct > 0 && <div style={{ width: `${stalePct}%`, background: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: stalePct > 5 ? 'auto' : 0 }}>{stalePct > 8 ? `${Math.round(stalePct)}%` : ''}</div>}
-              {critPct > 0 && <div style={{ width: `${critPct}%`, background: R, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: critPct > 5 ? 'auto' : 0 }}>{critPct > 8 ? `${Math.round(critPct)}%` : ''}</div>}
+              {critPct > 0 && <div style={{ width: `${critPct}%`, background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: critPct > 5 ? 'auto' : 0 }}>{critPct > 8 ? `${Math.round(critPct)}%` : ''}</div>}
             </div>
             <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
               {[['Fresh', GRN], ['Aging', AMB], ['Stale', '#f97316'], ['Critical', R]].map(([l, c]) => (
@@ -308,7 +308,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={titleStyle}><Zap size={16} color="#0a0a0a" /> Refresh Plan</div>
               <button onClick={generatePlan} disabled={planLoading}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: planLoading ? 'wait' : 'pointer', opacity: planLoading ? 0.6 : 1 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: planLoading ? 'wait' : 'pointer', opacity: planLoading ? 0.6 : 1 }}>
                 {planLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
                 {planLoading ? 'Generating...' : `Generate Plan${selectedUrls.size > 0 ? ` (${selectedUrls.size} selected)` : ''}`}
               </button>

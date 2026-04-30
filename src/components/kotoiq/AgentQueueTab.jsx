@@ -221,7 +221,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
                 fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b6b70',
               }}>Cancel</button>
               <button onClick={handleReject} style={{
-                padding: '8px 16px', borderRadius: 8, border: 'none', background: R, color: '#fff',
+                padding: '8px 16px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff',
                 fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }}>Reject</button>
             </div>

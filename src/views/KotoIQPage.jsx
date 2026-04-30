@@ -1602,7 +1602,7 @@ export default function KotoIQPage() {
                   <Shield size={12} /> Deep Audit
                 </button>
                 <button onClick={runAllAudits} disabled={syncing || enriching || !readyForAll}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
                   {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
                   {syncing ? 'Running...' : 'Run All'}
                 </button>
@@ -1665,7 +1665,7 @@ export default function KotoIQPage() {
                     <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>AI keyword extraction, competitor discovery, Moz DA</div>
                     <div style={{ fontSize: 11, color: '#6b6b70', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b>, <span style={{ color: hasIndustry ? GRN : '#8e8e93' }}>Industry (optional)</span></div>
                     <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing || enriching || !readyForQuick}
-                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: syncing || !readyForQuick ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: syncing || !readyForQuick ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                       {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Run
                     </button>
                   </div>
@@ -1742,7 +1742,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   () => toast.success('Client portal link copied'),
                   () => toast.error('Copy failed — URL: ' + url)
                 )
-              }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+              }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
                 title="Copy shareable white-label client portal link">
                 <Share2 size={14} /> Share Portal Link
               </button>
@@ -2568,7 +2568,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     } catch { toast.error('Failed', { id: 'write' }) }
                     setWritingPage(false)
                   }} disabled={writingPage || !activeBrief.id}
-                    style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                     {writingPage ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
                     {writingPage ? 'Writing...' : 'Write Full Page'}
                   </button>
@@ -2598,7 +2598,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <button onClick={() => { navigator.clipboard.writeText(fullPageContent.plain_text); toast.success('Plain text copied!') }}
                           style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy Text</button>
                         <button onClick={() => { navigator.clipboard.writeText(fullPageContent.content_html + '\n\n' + fullPageContent.faq_html); toast.success('HTML copied!') }}
-                          style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy HTML</button>
+                          style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy HTML</button>
                       </div>
                     </div>
                     <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.8, maxHeight: 500, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: fullPageContent.content_html + (fullPageContent.faq_html ? '<hr style="margin:24px 0"/>' + fullPageContent.faq_html : '') }} />
@@ -3867,7 +3867,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                     {/* Generate brief button */}
                     <button onClick={() => { setBriefKeyword(compAnalysis.keyword); setTab('briefs') }}
-                      style={{ marginTop: 16, padding: '12px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      style={{ marginTop: 16, padding: '12px 24px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Zap size={14} /> Generate Content Brief for "{compAnalysis.keyword}"
                     </button>
                   </div>
@@ -4088,7 +4088,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 2 }}>{g.address}</div>
                         <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>{g.phone} · {g.primary_category?.replace(/_/g, ' ')}</div>
                       </div>
-                      {g.maps_url && <a href={g.maps_url} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', borderRadius: 8, background: T, color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>View on Maps</a>}
+                      {g.maps_url && <a href={g.maps_url} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', borderRadius: 8, background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>View on Maps</a>}
                     </div>
 
                     <div style={{ padding: '12px 16px', borderRadius: 10, background: '#fef3c7', border: '1px solid #f59e0b30', fontSize: 12, color: '#92400e', lineHeight: 1.6, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -4161,7 +4161,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           } catch { toast.error('Failed', { id: 'batch' }) }
                           setBatchingReviews(false)
                         }} disabled={batchingReviews}
-                          style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                           {batchingReviews ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Brain size={12} />}
                           {batchingReviews ? 'Drafting...' : 'Draft All Responses'}
                         </button>
@@ -4173,7 +4173,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                             <div style={{ fontSize: 14, fontWeight: 800, color: T }}>{batchReviews.length} Responses Ready</div>
                             <button onClick={() => { navigator.clipboard.writeText(batchReviews.map(r => `Review by ${r.original_author} (${r.original_rating}★):\n${r.response}`).join('\n\n---\n\n')); toast.success('All responses copied!') }}
-                              style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: T, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Copy All</button>
+                              style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Copy All</button>
                           </div>
                           {batchReviews.map((br, i) => (
                             <div key={i} style={{ padding: '12px 14px', borderRadius: 8, background: '#fff', border: '1px solid #e5e7eb', marginBottom: 6, borderLeft: `3px solid ${br.original_rating >= 4 ? GRN : br.original_rating >= 3 ? AMB : R}` }}>
@@ -4211,7 +4211,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   style={{ width: '100%', minHeight: 100, padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }} />
                                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                                   <button onClick={() => { navigator.clipboard.writeText(reviewDraft); toast.success('Copied!') }}
-                                    style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy to Clipboard</button>
+                                    style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy to Clipboard</button>
                                   <button onClick={() => { setDraftingReview(null); setReviewDraft('') }}
                                     style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Dismiss</button>
                                 </div>

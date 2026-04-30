@@ -127,7 +127,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
             disabled={running}
             style={{
               marginLeft: 'auto', padding: '10px 22px', borderRadius: 8, border: 'none',
-              background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1,
               display: 'flex', alignItems: 'center', gap: 6,
             }}>

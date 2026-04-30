@@ -124,7 +124,7 @@ export default function SemanticTab({ clientId, agencyId }) {
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>Analyze site-wide content structure, topical coverage, and KotoIQ health</div>
         </div>
         <button onClick={runAnalysis} disabled={running}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1 }}>
           {running ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Brain size={16} />}
           {running ? 'Analyzing...' : 'Run Analysis'}
         </button>
@@ -257,7 +257,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                         <span style={{ fontSize: 11, fontWeight: 600, color: '#1f1f22' }}>{hp.count}x</span>
                       </div>
                       <div style={{ height: 6, borderRadius: 3, background: '#f1f1f6', overflow: 'hidden', marginBottom: 4 }}>
-                        <div style={{ height: '100%', borderRadius: 3, background: T, width: `${Math.min(hp.count / Math.max(...a.heading_patterns.map(h => h.count)) * 100, 100)}%` }} />
+                        <div style={{ height: '100%', borderRadius: 3, background: "#0a0a0a", width: `${Math.min(hp.count / Math.max(...a.heading_patterns.map(h => h.count)) * 100, 100)}%` }} />
                       </div>
                       {hp.examples?.length > 0 && (
                         <div style={{ fontSize: 12, color: '#1f2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -284,11 +284,11 @@ export default function SemanticTab({ clientId, agencyId }) {
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Main vs Supplementary Content</div>
                 <div style={{ display: 'flex', height: 24, borderRadius: 6, overflow: 'hidden', background: '#f1f1f6', marginBottom: 6 }}>
-                  <div style={{ width: `${mainPct}%`, background: T, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>{mainPct}%</div>
+                  <div style={{ width: `${mainPct}%`, background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>{mainPct}%</div>
                   <div style={{ width: `${suppPct}%`, background: '#d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>{suppPct}%</div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#1f1f22' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: T }} /> Main</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: "#0a0a0a" }} /> Main</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: '#d1d5db' }} /> Supplementary</span>
                 </div>
                 <div style={{ fontSize: 12, color: ratioIdeal ? GRN : AMB, fontWeight: 600, marginTop: 4 }}>

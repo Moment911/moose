@@ -220,7 +220,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                   disabled={isRunning}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8,
-                    border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700,
+                    border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700,
                     cursor: isRunning ? 'wait' : 'pointer', opacity: isRunning ? 0.6 : 1, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                   }}
                 >

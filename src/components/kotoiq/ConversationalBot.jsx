@@ -570,7 +570,7 @@ export default function ConversationalBot({
           aria-label={orbTitle}
           style={{
             position: 'fixed', bottom: 24, right: 24, width: 56, height: 56, borderRadius: '50%',
-            background: T, color: '#fff', border: 'none', cursor: 'pointer',
+            background: "#0a0a0a", color: '#fff', border: 'none', cursor: 'pointer',
             boxShadow: '0 6px 20px rgba(0,194,203,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 9999, transition: 'transform .15s',
             animation: pinkPulse || (hasNewSuggestion ? 'kotoiqBotPulse 1.6s infinite' : 'none'),
@@ -585,7 +585,7 @@ export default function ConversationalBot({
               style={{
                 position: 'absolute', top: -2, right: -2,
                 width: 18, height: 18, borderRadius: 9,
-                background: R, color: '#fff',
+                background: "#0a0a0a", color: '#fff',
                 fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 11, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: '2px solid #fff',
@@ -615,7 +615,7 @@ export default function ConversationalBot({
           animation: pinkPulse || (hasNewSuggestion ? 'kotoiqSidePulse 1.6s infinite' : 'none'),
         }}
       >
-        <div style={{ position: 'relative', width: 28, height: 28, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'relative', width: 28, height: 28, borderRadius: '50%', background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Brain size={16} color="#fff" />
           {showBadge ? (
             <span
@@ -623,7 +623,7 @@ export default function ConversationalBot({
               style={{
                 position: 'absolute', top: -6, right: -6,
                 width: 18, height: 18, borderRadius: 9,
-                background: R, color: '#fff',
+                background: "#0a0a0a", color: '#fff',
                 fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 10, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: '2px solid #fff',
@@ -655,7 +655,7 @@ export default function ConversationalBot({
     <div style={{ ...panelStyle, background: '#fff', border: '1px solid #e5e7eb', boxShadow: '0 20px 50px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10, background: BLK, color: '#fff' }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Brain size={18} color="#fff" />
         </div>
         <div style={{ flex: 1 }}>
@@ -695,7 +695,7 @@ export default function ConversationalBot({
             </div>
           ) : clarifList.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 12px' }}>
-              <div style={{ width: 56, height: 56, borderRadius: '50%', background: T, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: "#0a0a0a", display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <CheckCircle2 size={28} color="#fff" />
               </div>
               <div style={{ fontSize: 16, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 6 }}>
@@ -740,7 +740,7 @@ export default function ConversationalBot({
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 16, background: GRY }}>
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', padding: '24px 8px' }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: T, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: "#0a0a0a", display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <Brain size={32} color="#fff" />
               </div>
               <div style={{ fontSize: 18, fontWeight: 700, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
@@ -782,7 +782,7 @@ export default function ConversationalBot({
 
           {thinking && (
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0' }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Brain size={15} color="#fff" />
               </div>
               <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '10px 14px' }}>
@@ -862,7 +862,7 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, on
   return (
     <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexDirection: isUser ? 'row-reverse' : 'row', animation: 'kotoiqBotFadeIn .25s ease' }}>
       {!isUser && (
-        <div style={{ width: 28, height: 28, borderRadius: '50%', background: T, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Brain size={15} color="#fff" />
         </div>
       )}
@@ -1023,7 +1023,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
                   <CheckCircle2 size={13} color={GRN} />
                 ) : active ? (
                   <span style={{ width: 13, height: 13, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: T, animation: 'kotoiqBotStepPulse 1s infinite' }} />
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: "#0a0a0a", animation: 'kotoiqBotStepPulse 1s infinite' }} />
                   </span>
                 ) : (
                   <span style={{ width: 13, height: 13, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1046,7 +1046,7 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
         <div style={{ display: 'flex', gap: 6 }}>
           {action.should_execute ? (
             <button onClick={() => onRun(idx, true)} disabled={executing}
-              style={{ flex: 1, padding: '8px 12px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: executing ? 'wait' : 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              style={{ flex: 1, padding: '8px 12px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: executing ? 'wait' : 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               {executing ? <><Loader size={14} className="kotoiq-bot-spin" /> Running…</> : <>Run This</>}
             </button>
           ) : null}

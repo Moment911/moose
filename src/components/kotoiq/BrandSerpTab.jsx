@@ -134,7 +134,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={runScan} disabled={scanning} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
-              border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700,
+              border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700,
               fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: scanning ? 'wait' : 'pointer', opacity: scanning ? 0.6 : 1,
             }}>
               {scanning ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}

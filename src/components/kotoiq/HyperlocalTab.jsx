@@ -137,7 +137,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
                 }
               }}
               style={{
-                padding: '10px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff',
+                padding: '10px 18px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff',
                 fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
@@ -169,7 +169,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
               onClick={generate}
               disabled={generating}
               style={{
-                padding: '10px 20px', borderRadius: 8, border: 'none', background: R, color: '#fff',
+                padding: '10px 20px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff',
                 fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 cursor: generating ? 'wait' : 'pointer', opacity: generating ? 0.6 : 1,
                 display: 'flex', alignItems: 'center', gap: 6,

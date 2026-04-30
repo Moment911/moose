@@ -48,7 +48,7 @@ function EmptyState({ message, tab, onSwitchTab }) {
       <AlertTriangle size={18} color={AMB} style={{ flexShrink: 0 }} />
       <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, color: '#92400e', flex: 1 }}>{message}</span>
       {tab && onSwitchTab && (
-        <button onClick={() => onSwitchTab(tab)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: T, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        <button onClick={() => onSwitchTab(tab)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
           Go <ArrowRight size={12} />
         </button>
       )}
@@ -418,7 +418,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
                   <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK }}>{g.label}</div>
                   <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 11, color: '#6b6b70' }}>{g.msg}</div>
                 </div>
-                <button onClick={() => onSwitchTab?.(g.tab)} style={{ background: T, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button onClick={() => onSwitchTab?.(g.tab)} style={{ background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                   Go <ArrowRight size={12} />
                 </button>
               </div>
