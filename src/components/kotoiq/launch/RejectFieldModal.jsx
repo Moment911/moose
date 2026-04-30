@@ -51,7 +51,7 @@ export default function RejectFieldModal({ fieldName, open, onCancel, onConfirm 
         onClick={(e) => e.stopPropagation()}
         style={{
           background: '#fff',
-          borderRadius: 14,
+          borderRadius: 16,
           padding: 24,
           maxWidth: 420,
           width: '92%',

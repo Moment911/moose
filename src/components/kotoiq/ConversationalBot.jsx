@@ -785,7 +785,7 @@ export default function ConversationalBot({
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Brain size={15} color="#fff" />
               </div>
-              <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 14, padding: '10px 14px' }}>
+              <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 16, padding: '10px 14px' }}>
                 <span style={{ display: 'inline-flex', gap: 4 }}>
                   <Dot delay={0} /><Dot delay={0.15} /><Dot delay={0.3} />
                 </span>
@@ -871,7 +871,7 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, on
           background: isUser ? '#5aa0ff' : (msg.error ? '#fee2e2' : '#fff'),
           color: isUser ? '#fff' : (msg.error ? '#991b1b' : BLK),
           border: isUser ? 'none' : `1px solid ${msg.error ? '#fecaca' : '#ececef'}`,
-          borderRadius: 14,
+          borderRadius: 16,
           padding: '10px 14px',
           fontSize: 13.5,
           lineHeight: 1.5,

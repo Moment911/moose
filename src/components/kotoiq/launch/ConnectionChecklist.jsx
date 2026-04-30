@@ -95,7 +95,7 @@ export default function ConnectionChecklist({ clientId, agencyId, profileText })
           return (
             <div key={p.id} style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
-              borderRadius: 10, border: `1px solid ${isConnected ? GRN + '40' : isRecommended ? T + '40' : '#e5e7eb'}`,
+              borderRadius: 10, border: `1px solid ${isConnected ? GRN + '40' : isRecommended ? T + '40' : '#ececef'}`,
               background: isConnected ? '#f0fdf4' : isRecommended ? '#f0f9ff' : '#fff',
             }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: p.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

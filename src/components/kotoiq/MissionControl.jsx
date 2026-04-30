@@ -294,7 +294,7 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
           <div style={{
-            width: 52, height: 52, borderRadius: 14, background: '#f1f1f6',
+            width: 52, height: 52, borderRadius: 16, background: '#f1f1f6',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: runningAll ? 'mc-glow 2s ease infinite' : 'none',
           }}>
@@ -526,7 +526,7 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
             { label: 'Full Sync', desc: 'Pull real data from connected Google accounts', icon: RefreshCw, run: () => onRunSync?.(), busy: syncing, ready: hasWebsite },
           ].map(opt => (
             <div key={opt.label} style={{
-              background: '#fff', borderRadius: 14, border: '1px solid #ececef',
+              background: '#fff', borderRadius: 16, border: '1px solid #ececef',
               padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14,
             }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

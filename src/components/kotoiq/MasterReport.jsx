@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '24px 28px', marginBottom: 16 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '24px 28px', marginBottom: 16 }
 
 function ScoreRing({ score, size = 80, color }) {
   const r = (size - 8) / 2, c = 2 * Math.PI * r

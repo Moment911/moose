@@ -4,7 +4,7 @@ import { LayoutGrid, Loader2, Sparkles, Copy, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const MODULES = [
   { id: 'intro', label: 'Introduction', desc: 'Opening headline + value proposition' },

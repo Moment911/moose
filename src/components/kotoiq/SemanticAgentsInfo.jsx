@@ -63,7 +63,7 @@ export default function SemanticAgentsInfo() {
   return (
     <div style={{
       marginTop: 24,
-      borderRadius: 14,
+      borderRadius: 16,
       border: '1px solid #ececef',
       background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 50%, #faf5ff 100%)',
       overflow: 'hidden',

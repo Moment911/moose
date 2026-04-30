@@ -101,7 +101,7 @@ export default function ClarificationCard({
         width,
         background: '#fff',
         border: `${borderWidth}px solid ${borderColor}`,
-        borderRadius: 14,
+        borderRadius: 16,
         padding,
         marginBottom: variant === 'dashboard' ? 14 : 0,
         fontFamily: FB,
