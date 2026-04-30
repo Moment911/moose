@@ -9,7 +9,7 @@ import {
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
   Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings,
   Map, Code, Award, GitBranch, Eraser, Grid, Sparkles, Briefcase, Image as ImageIcon,
-  Layers, Share2
+  Layers, Share2, LayoutDashboard, Plug, Command, History,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -401,6 +401,103 @@ function QuickWinQueueCard({ queue, totals, loading, onGenerate, onMarkDone, onM
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// KotoIQ navigation — pinned shortcuts plus the long-tail tool catalog.
+// Pinned tabs are shown at the top of the sidebar; everything else is
+// reachable via the "All Tools" disclosure or the ⌘K command palette.
+const KOTOIQ_PINNED_KEYS = ['dashboard', 'keywords', 'ranks', 'reports', 'connect']
+
+const KOTOIQ_NAV_GROUPS = [
+  { group: 'AI', items: [
+    ['ask', 'Ask KotoIQ', Brain, 'Ask AI questions about this client\'s SEO'],
+  ]},
+  { group: 'Overview', items: [
+    ['dashboard', 'Dashboard', LayoutDashboard, 'Keyword overview, quick wins, and AI visibility score'],
+    ['keywords', 'Keywords', Search, 'All discovered and tracked keywords'],
+    ['ranks', 'Rankings', TrendingUp, 'Google ranking positions from Search Console'],
+    ['topical_authority', 'Authority Score', Award, 'Domain authority and topical relevance analysis'],
+  ]},
+  { group: 'Ads Intelligence', items: [
+    ['ads_overview', 'Ads Overview', BarChart2],
+    ['ads_search_terms', 'Search Terms', Search],
+    ['ads_wasted_spend', 'Wasted Spend', DollarSign],
+    ['ads_anomalies', 'Anomalies', AlertCircle],
+    ['ads_intent_gaps', 'Intent Gaps', Target],
+    ['ads_ad_builder', 'Ad Builder', Zap],
+    ['ads_recommendations', 'Recommendations', CheckCircle],
+    ['ads_reports', 'Ads Reports', FileText],
+    ['budget_forecast', 'Budget & Forecast', DollarSign],
+  ]},
+  { group: 'Behavior Analytics', items: [
+    ['behavior', 'Behavior Analytics', Activity],
+  ]},
+  { group: 'Intelligence', items: [
+    ['strategy', 'Strategic Plan', Target],
+    ['scorecard', 'Scorecard', Award],
+    ['competitor_watch', 'Competitor Watch', Eye],
+    ['competitors', 'Competitors', Target],
+    ['competitor_map', 'Competitor Maps', Map],
+    ['aeo', 'AEO Research', Brain],
+    ['aeo_multi', 'Multi-Engine AEO', Sparkles],
+    ['brand_serp', 'Brand SERP', Shield],
+    ['backlinks', 'Backlinks', Link2],
+    ['backlink_opps', 'Link Opportunities', Target],
+    ['eeat', 'E-E-A-T', Award],
+    ['knowledge_graph', 'Knowledge Graph', GitBranch],
+    ['query_paths', 'Query Paths', GitBranch],
+  ]},
+  { group: 'Content', items: [
+    ['autopilot', 'Auto-Pilot', Sparkles],
+    ['briefs', 'PageIQ Writer', Zap],
+    ['hyperlocal', 'Hyperlocal Content', MapPin],
+    ['topical_map', 'Topical Map', Map],
+    ['content_refresh', 'Content Health', RefreshCw],
+    ['content_decay', 'Decay Prediction', AlertCircle],
+    ['semantic', 'KotoIQ Network', Brain],
+    ['context_aligner', 'Context Aligner', Target],
+    ['passage_opt', 'Passage Optimizer', FileText],
+    ['plagiarism', 'Plagiarism Check', Shield],
+    ['watermark', 'Watermark Remover', Eraser],
+    ['calendar', 'Content Calendar', Clock],
+  ]},
+  { group: 'Technical', items: [
+    ['activity', 'Activity', Clock],
+    ['audit', 'SEO Audit', Shield],
+    ['on_page', 'On-Page Audit', FileText],
+    ['technical_deep', 'Technical Deep', Activity],
+    ['gsc_audit', 'GSC Deep Audit', BarChart2],
+    ['bing_audit', 'Bing Audit', Search],
+    ['schema', 'Schema Markup', Code],
+    ['internal_links', 'Internal Links', Link2],
+    ['sitemap_crawler', 'Sitemap Crawler', Layers],
+    ['jobs', 'Background Jobs', Clock],
+  ]},
+  { group: 'Local & Reviews', items: [
+    ['gmb', 'Google Business', MapPin],
+    ['gmb_images', 'GMB Images', ImageIcon],
+    ['rank_grid', 'Rank Grid Pro', Grid],
+    ['reviews', 'Reviews', Star],
+  ]},
+  { group: 'Builder', items: [
+    ['builder', 'Template Builder', Layers],
+  ]},
+  { group: 'Agent', items: [
+    ['agent_queue', 'Agent Queue', Zap],
+    ['agent_goals', 'Agent Goals', Target],
+  ]},
+  { group: 'Reports & Tools', items: [
+    ['reports', 'Reports', FileText, 'Generate and view SEO reports'],
+    ['roi', 'ROI Projections', DollarSign, 'Revenue and ROI forecasting'],
+    ['visitors', 'Visitors', Eye, 'Website visitor intelligence'],
+    ['utm', 'UTM Builder', Link2, 'Create tracked campaign URLs'],
+    ['upwork', 'Upwork Tool', Briefcase, 'Upwork proposal helper'],
+    ['bulk_ops', 'Bulk Operations', Layers, 'Batch operations across keywords'],
+    ['integrations', 'Integrations', Link2, 'Typeform, Jotform, Google Forms'],
+    ['connect', 'Connect APIs', Plug, 'Connect Google, Meta, LinkedIn, Hotjar, Clarity'],
+  ]},
+]
+
+const ALL_SIDEBAR_ITEMS_FLAT = KOTOIQ_NAV_GROUPS.flatMap(g => g.items.map(([key, label, Icon, desc]) => [key, label, Icon, desc, g.group]))
+
 export default function KotoIQPage() {
   const { agencyId } = useAuth()
   const navigate = useNavigate()
@@ -434,6 +531,30 @@ export default function KotoIQPage() {
   const [collapsedGroups, setCollapsedGroups] = useState({})
   const toggleGroup = (g) => setCollapsedGroups(prev => ({ ...prev, [g]: !prev[g] }))
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [allToolsOpen, setAllToolsOpen] = useState(false)
+  const [cmdOpen, setCmdOpen] = useState(false)
+  const [cmdQuery, setCmdQuery] = useState('')
+  const [recentTabs, setRecentTabs] = useState(() => {
+    if (typeof window === 'undefined') return []
+    try { return JSON.parse(localStorage.getItem('kotoiq_recent_tabs') || '[]') } catch { return [] }
+  })
+  const pushRecent = useCallback((key) => {
+    if (!key || ['dashboard', 'keywords', 'ranks', 'connect', 'reports'].includes(key)) return
+    setRecentTabs(prev => {
+      const next = [key, ...prev.filter(k => k !== key)].slice(0, 5)
+      try { localStorage.setItem('kotoiq_recent_tabs', JSON.stringify(next)) } catch {}
+      return next
+    })
+  }, [])
+  useEffect(() => { if (tab) pushRecent(tab) }, [tab, pushRecent])
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setCmdOpen(o => !o) }
+      if (e.key === 'Escape' && cmdOpen) setCmdOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [cmdOpen])
   const scrollRef = useRef(null)
   const scrollPositions = useRef({})
 
@@ -1062,130 +1183,133 @@ export default function KotoIQPage() {
         {/* ── Main content area with sidebar nav ────────────────── */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-          {/* ── Left sidebar nav (categorized) ──────────────────── */}
+          {/* ── Left sidebar nav (Cal-AI redesign) ──────────────────── */}
           {clientId && (
-            <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #e5e7eb', background: '#fafafa', overflowY: 'auto', padding: '16px 0' }}>
-              {[
-                { group: 'AI', items: [
-                  ['ask', 'Ask KotoIQ', Brain, 'Ask AI questions about this client\'s SEO'],
-                ]},
-                { group: 'Overview', items: [
-                  ['dashboard', 'Dashboard', BarChart2, 'Keyword overview, quick wins, and AI visibility score'],
-                  ['keywords', 'Keywords', Search, 'All discovered and tracked keywords'],
-                  ['ranks', 'Rankings', TrendingUp, 'Google ranking positions from Search Console'],
-                  ['topical_authority', 'Authority Score', Award, 'Domain authority and topical relevance analysis'],
-                ]},
-                { group: 'Ads Intelligence', items: [
-                  ['ads_overview', 'Ads Overview', BarChart2],
-                  ['ads_search_terms', 'Search Terms', Search],
-                  ['ads_wasted_spend', 'Wasted Spend', DollarSign],
-                  ['ads_anomalies', 'Anomalies', AlertCircle],
-                  ['ads_intent_gaps', 'Intent Gaps', Target],
-                  ['ads_ad_builder', 'Ad Builder', Zap],
-                  ['ads_recommendations', 'Recommendations', CheckCircle],
-                  ['ads_reports', 'Ads Reports', FileText],
-                  ['budget_forecast', 'Budget & Forecast', DollarSign],
-                ]},
-                { group: 'Behavior Analytics', items: [
-                  ['behavior', 'Behavior Analytics', Activity],
-                ]},
-                { group: 'Intelligence', items: [
-                  ['strategy', 'Strategic Plan', Target],
-                  ['scorecard', 'Scorecard', Award],
-                  ['competitor_watch', 'Competitor Watch', Eye],
-                  ['competitors', 'Competitors', Target],
-                  ['competitor_map', 'Competitor Maps', Map],
-                  ['aeo', 'AEO Research', Brain],
-                  ['aeo_multi', 'Multi-Engine AEO', Sparkles],
-                  ['brand_serp', 'Brand SERP', Shield],
-                  ['backlinks', 'Backlinks', Link2],
-                  ['backlink_opps', 'Link Opportunities', Target],
-                  ['eeat', 'E-E-A-T', Award],
-                  ['knowledge_graph', 'Knowledge Graph', GitBranch],
-                  ['query_paths', 'Query Paths', GitBranch],
-                ]},
-                { group: 'Content', items: [
-                  ['autopilot', 'Auto-Pilot', Sparkles],
-                  ['briefs', 'PageIQ Writer', Zap],
-                  ['hyperlocal', 'Hyperlocal Content', MapPin],
-                  ['topical_map', 'Topical Map', Map],
-                  ['content_refresh', 'Content Health', RefreshCw],
-                  ['content_decay', 'Decay Prediction', AlertCircle],
-                  ['semantic', 'KotoIQ Network', Brain],
-                  ['context_aligner', 'Context Aligner', Target],
-                  ['passage_opt', 'Passage Optimizer', FileText],
-                  ['plagiarism', 'Plagiarism Check', Shield],
-                  ['watermark', 'Watermark Remover', Eraser],
-                  ['calendar', 'Content Calendar', Clock],
-                ]},
-                { group: 'Technical', items: [
-                  ['activity', 'Activity', Clock],
-                  ['audit', 'SEO Audit', Shield],
-                  ['on_page', 'On-Page Audit', FileText],
-                  ['technical_deep', 'Technical Deep', Activity],
-                  ['gsc_audit', 'GSC Deep Audit', BarChart2],
-                  ['bing_audit', 'Bing Audit', Search],
-                  ['schema', 'Schema Markup', Code],
-                  ['internal_links', 'Internal Links', Link2],
-                  ['sitemap_crawler', 'Sitemap Crawler', Layers],
-                  ['jobs', 'Background Jobs', Clock],
-                ]},
-                { group: 'Local & Reviews', items: [
-                  ['gmb', 'Google Business', MapPin],
-                  ['gmb_images', 'GMB Images', ImageIcon],
-                  ['rank_grid', 'Rank Grid Pro', Grid],
-                  ['reviews', 'Reviews', Star],
-                ]},
-                { group: 'Builder', items: [
-                  ['builder', 'Template Builder', Layers],
-                ]},
-                { group: 'Agent', items: [
-                  ['agent_queue', 'Agent Queue', Zap],
-                  ['agent_goals', 'Agent Goals', Target],
-                ]},
-                { group: 'Reports & Tools', items: [
-                  ['reports', 'Reports', BarChart2, 'Generate and view SEO reports'],
-                  ['roi', 'ROI Projections', DollarSign, 'Revenue and ROI forecasting'],
-                  ['visitors', 'Visitors', Eye, 'Website visitor intelligence'],
-                  ['utm', 'UTM Builder', Link2, 'Create tracked campaign URLs'],
-                  ['upwork', 'Upwork Tool', Briefcase, 'Upwork proposal helper'],
-                  ['bulk_ops', 'Bulk Operations', Layers, 'Batch operations across keywords'],
-                  ['integrations', 'Integrations', Link2, 'Typeform, Jotform, Google Forms'],
-                  ['connect', 'Connect APIs', Settings, 'Connect Google, Meta, LinkedIn, Hotjar, Clarity'],
-                ]},
-              ].map(section => {
+            <div style={{ width: 220, flexShrink: 0, borderRight: '1px solid #ececef', background: '#ffffff', overflowY: 'auto', padding: '12px 0', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+              {/* Pinned primary jobs — the 5 things you actually do */}
+              <div style={{ padding: '0 12px', marginBottom: 8 }}>
+                {[
+                  ['dashboard', 'Dashboard', LayoutDashboard],
+                  ['keywords', 'Keywords', Search],
+                  ['ranks', 'Rankings', TrendingUp],
+                  ['reports', 'Reports', FileText],
+                  ['connect', 'Connect APIs', Plug],
+                ].map(([key, label, Icon]) => {
+                  const active = tab === key
+                  return (
+                    <button key={key} onClick={() => setTab(key)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                        padding: '9px 12px', borderRadius: 10, border: 'none',
+                        background: active ? '#f1f1f6' : 'transparent', cursor: 'pointer',
+                        fontSize: 14, fontWeight: active ? 600 : 500,
+                        color: active ? '#0a0a0a' : '#1f1f22', marginBottom: 2,
+                        transition: 'background 120ms ease',
+                      }}
+                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#f9f9fb' }}
+                      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
+                      <Icon size={16} strokeWidth={1.75} color={active ? '#0a0a0a' : '#6b6b70'} />
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* ⌘K command palette trigger */}
+              <div style={{ padding: '0 12px', marginBottom: 16 }}>
+                <button onClick={() => setCmdOpen(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                    padding: '8px 12px', borderRadius: 10, border: '1px solid #ececef',
+                    background: '#f9f9fb', cursor: 'pointer',
+                    fontSize: 13, color: '#6b6b70', transition: 'all 120ms ease',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#f1f1f6' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#f9f9fb' }}>
+                  <Search size={14} strokeWidth={1.75} />
+                  <span style={{ flex: 1, textAlign: 'left' }}>Search tools…</span>
+                  <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 5, background: '#fff', border: '1px solid #ececef', color: '#a1a1a6', fontFamily: 'ui-monospace, SFMono-Regular, monospace' }}>⌘K</span>
+                </button>
+              </div>
+
+              {/* Recently used */}
+              {recentTabs.length > 0 && (
+                <div style={{ padding: '0 12px', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', padding: '0 4px 6px' }}>
+                    <History size={11} strokeWidth={2} /> Recent
+                  </div>
+                  {recentTabs.map(key => {
+                    const allItems = ALL_SIDEBAR_ITEMS_FLAT
+                    const found = allItems.find(([k]) => k === key)
+                    if (!found) return null
+                    const [, label, Icon] = found
+                    const active = tab === key
+                    return (
+                      <button key={key} onClick={() => setTab(key)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                          padding: '7px 12px', borderRadius: 10, border: 'none',
+                          background: active ? '#f1f1f6' : 'transparent', cursor: 'pointer',
+                          fontSize: 13, fontWeight: active ? 600 : 500,
+                          color: active ? '#0a0a0a' : '#1f1f22', marginBottom: 1,
+                          transition: 'background 120ms ease',
+                        }}
+                        onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#f9f9fb' }}
+                        onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
+                        <Icon size={14} strokeWidth={1.75} color={active ? '#0a0a0a' : '#6b6b70'} />
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* All Tools disclosure — the 55 deep tools, hidden by default */}
+              <div style={{ padding: '0 12px' }}>
+                <button onClick={() => setAllToolsOpen(o => !o)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+                    padding: '8px 4px', border: 'none', background: 'transparent', cursor: 'pointer',
+                    fontSize: 11, fontWeight: 600, color: '#6b6b70',
+                    textTransform: 'uppercase', letterSpacing: '.06em',
+                  }}>
+                  <ChevronDown size={12} strokeWidth={2} style={{ transform: allToolsOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 150ms ease' }} />
+                  All Tools
+                </button>
+              </div>
+
+              {allToolsOpen && KOTOIQ_NAV_GROUPS.filter(s => s.items.some(([k]) => !KOTOIQ_PINNED_KEYS.includes(k))).map(section => {
                 const isCollapsed = collapsedGroups[section.group]
                 const hasActiveTab = section.items.some(([key]) => tab === key)
                 return (
-                <div key={section.group} style={{ marginBottom: 4 }}>
+                <div key={section.group} style={{ marginLeft: 12, marginRight: 12, marginBottom: 2 }}>
                   <button
                     onClick={() => toggleGroup(section.group)}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
-                      padding: '8px 20px', border: 'none', background: 'transparent', cursor: 'pointer',
-                      borderLeft: hasActiveTab ? `3px solid ${T}` : '3px solid transparent',
+                      padding: '6px 8px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 800, color: hasActiveTab ? T : '#1f2937', textTransform: 'uppercase', letterSpacing: '.04em', fontFamily: FH }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: hasActiveTab ? '#0a0a0a' : '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em' }}>
                       {section.group}
                     </span>
-                    <ChevronDown size={12} color="#9ca3af" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform .15s' }} />
+                    <ChevronDown size={11} strokeWidth={2} color="#a1a1a6" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 150ms ease' }} />
                   </button>
-                  {!isCollapsed && section.items.map(([key, label, Icon, desc]) => (
+                  {!isCollapsed && section.items.filter(([k]) => !KOTOIQ_PINNED_KEYS.includes(k)).map(([key, label, Icon, desc]) => (
                     <button key={key} onClick={() => setTab(key)}
                       title={desc || ''}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                        padding: '6px 20px 6px 28px', border: 'none', background: tab === key ? '#fff' : 'transparent',
-                        borderRight: tab === key ? `3px solid ${T}` : '3px solid transparent',
-                        cursor: 'pointer', fontSize: 12.5, fontWeight: tab === key ? 700 : 500,
-                        color: tab === key ? BLK : '#374151', fontFamily: FB,
-                        transition: 'all .1s',
+                        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                        padding: '7px 12px 7px 20px', borderRadius: 8, border: 'none',
+                        background: tab === key ? '#f1f1f6' : 'transparent',
+                        cursor: 'pointer', fontSize: 13, fontWeight: tab === key ? 600 : 500,
+                        color: tab === key ? '#0a0a0a' : '#1f1f22',
+                        transition: 'background 120ms ease',
                       }}
-                      onMouseEnter={e => { if (tab !== key) e.currentTarget.style.background = '#f3f4f6' }}
+                      onMouseEnter={e => { if (tab !== key) e.currentTarget.style.background = '#f9f9fb' }}
                       onMouseLeave={e => { if (tab !== key) e.currentTarget.style.background = 'transparent' }}
                     >
-                      <Icon size={13} color={tab === key ? T : '#9ca3af'} />
+                      <Icon size={14} strokeWidth={1.75} color={tab === key ? '#0a0a0a' : '#6b6b70'} />
                       {label}
                     </button>
                   ))}
@@ -4803,6 +4927,67 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         clients={clients}
         onRequestNewClient={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
       />
+
+      {/* ⌘K Command Palette — fuzzy search across all 60 tools */}
+      {cmdOpen && (
+        <div onClick={() => setCmdOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(10,10,10,.45)', backdropFilter: 'blur(6px)',
+            zIndex: 9999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+            paddingTop: '12vh', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+          }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{
+              width: 560, maxWidth: '92vw', background: '#fff', borderRadius: 14,
+              boxShadow: '0 20px 60px rgba(0,0,0,0.18)', overflow: 'hidden',
+              border: '1px solid #ececef',
+            }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', borderBottom: '1px solid #ececef' }}>
+              <Search size={16} strokeWidth={1.75} color="#6b6b70" />
+              <input autoFocus value={cmdQuery} onChange={e => setCmdQuery(e.target.value)}
+                placeholder="Search 60 tools…"
+                style={{
+                  flex: 1, border: 'none', outline: 'none', fontSize: 16,
+                  color: '#0a0a0a', fontFamily: 'inherit', background: 'transparent',
+                }} />
+              <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 5, background: '#f1f1f6', color: '#a1a1a6', fontFamily: 'ui-monospace, SFMono-Regular, monospace' }}>esc</span>
+            </div>
+            <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '6px 0' }}>
+              {(() => {
+                const q = cmdQuery.trim().toLowerCase()
+                const matches = ALL_SIDEBAR_ITEMS_FLAT.filter(([key, label, , desc]) => {
+                  if (!q) return true
+                  return label.toLowerCase().includes(q) || (desc || '').toLowerCase().includes(q) || key.toLowerCase().includes(q)
+                }).slice(0, 30)
+                if (matches.length === 0) return (
+                  <div style={{ padding: '40px 20px', textAlign: 'center', color: '#a1a1a6', fontSize: 14 }}>
+                    No tools match "{cmdQuery}"
+                  </div>
+                )
+                return matches.map(([key, label, Icon, desc, group]) => (
+                  <button key={key} onClick={() => { setTab(key); setCmdOpen(false); setCmdQuery('') }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                      padding: '10px 18px', border: 'none', background: 'transparent', cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f9f9fb'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon size={14} strokeWidth={1.75} color="#0a0a0a" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#0a0a0a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+                      {desc && <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>}
+                    </div>
+                    <span style={{ fontSize: 11, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.04em', flexShrink: 0 }}>{group}</span>
+                  </button>
+                ))
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </div>
   )
