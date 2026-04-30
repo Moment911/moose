@@ -79,7 +79,7 @@ function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel =
       {onRerun && (
         <button onClick={onRerun} disabled={running} style={{
           display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 6,
-          border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600,
+          border: '1px solid #ececef', background: '#fff', fontSize: 11, fontWeight: 600,
           cursor: running ? 'wait' : 'pointer', color: '#1f1f22', opacity: running ? 0.5 : 1,
         }}>
           {running ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={11} />}
@@ -207,7 +207,7 @@ function ScoreRing({ score, grade, size = 160 }) {
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={radius} stroke="#f3f4f6" strokeWidth="12" fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke="#f1f1f6" strokeWidth="12" fill="none" />
         <circle cx={size / 2} cy={size / 2} r={radius} stroke={color} strokeWidth="12" fill="none"
           strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset .8s ease' }} />
@@ -1178,7 +1178,7 @@ export default function KotoIQPage() {
     setSyncing(false)
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
   const d = dashboard
 
   // Auth guard — must be logged into an agency
@@ -1207,15 +1207,15 @@ export default function KotoIQPage() {
           aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
           style={{
             position: 'absolute', top: 12, left: 8, zIndex: 20,
-            width: 28, height: 28, borderRadius: 6, border: '1px solid #e5e7eb',
+            width: 28, height: 28, borderRadius: 6, border: '1px solid #ececef',
             background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 1px 3px rgba(0,0,0,.08)',
           }}>
-          {sidebarCollapsed ? <ChevronDown size={14} color="#6b7280" style={{ transform: 'rotate(-90deg)' }} /> : <ChevronDown size={14} color="#6b7280" style={{ transform: 'rotate(90deg)' }} />}
+          {sidebarCollapsed ? <ChevronDown size={14} color="#6b6b70" style={{ transform: 'rotate(-90deg)' }} /> : <ChevronDown size={14} color="#6b6b70" style={{ transform: 'rotate(90deg)' }} />}
         </button>
 
         {/* ── Fixed Header ─────────────────────────────────────── */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+        <div style={{ background: '#fff', borderBottom: '1px solid #ececef', flexShrink: 0 }}>
           {/* Top bar: logo + client selector + actions */}
           <div style={{ padding: '16px 40px', display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
@@ -1227,7 +1227,7 @@ export default function KotoIQPage() {
 
             {/* Client selector — prominent */}
             <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
-              style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#8e8e93', maxWidth: 400 }}>
+              style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: '1px solid #ececef', fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#8e8e93', maxWidth: 400 }}>
               <option value="">Select a client...</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -1315,13 +1315,13 @@ export default function KotoIQPage() {
                 <button onClick={() => {
                   const c = clients.find(x => x.id === clientId)
                   if (c) { setEditingClient(c); setClientForm({ name: c.name || '', website: c.website || '', primary_service: c.primary_service || '', location: '' }); setShowClientModal(true) }
-                }} style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Edit Client" aria-label="Edit client">
-                  <Edit2 size={14} color="#6b7280" />
+                }} style={{ padding: '8px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', cursor: 'pointer' }} title="Edit Client" aria-label="Edit client">
+                  <Edit2 size={14} color="#6b6b70" />
                 </button>
               )}
               <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
-                style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Add Client" aria-label="Add client">
-                <Plus size={14} color="#6b7280" />
+                style={{ padding: '8px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', cursor: 'pointer' }} title="Add Client" aria-label="Add client">
+                <Plus size={14} color="#6b6b70" />
               </button>
             </div>
           </div>
@@ -1487,11 +1487,11 @@ export default function KotoIQPage() {
                 <a href="https://chrome.google.com/webstore" target="_blank" rel="noopener noreferrer"
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                    marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1.5px solid #e5e7eb`,
+                    marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1.5px solid #ececef`,
                     background: '#fff', color: BLK, textDecoration: 'none',
                     fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer',
                   }}>
-                  <Globe size={14} color="#374151" />
+                  <Globe size={14} color="#1f1f22" />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 800, color: BLK }}>Chrome Extension</div>
                     <div style={{ fontSize: 10, fontWeight: 500, color: '#1f1f22', marginTop: 1 }}>Analyze any page</div>
@@ -1602,16 +1602,16 @@ export default function KotoIQPage() {
 
             // ── Compact re-run bar (when data exists) ──
             if (hasData) return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', background: '#fff', borderRadius: 12, border: '1px solid #ececef', marginBottom: 20 }}>
                 <Sparkles size={18} color="#0a0a0a" />
                 <div style={{ flex: 1 }}>
                   <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Re-run All Audits</span>
                   <span style={{ fontSize: 12, color: '#6b6b70', marginLeft: 8 }}>12 tools in 3 waves — ~$0.50</span>
                 </div>
-                <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Zap size={12} /> Quick Scan
                 </button>
-                <button onClick={runDeepEnrich} disabled={enriching || syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button onClick={runDeepEnrich} disabled={enriching || syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Shield size={12} /> Deep Audit
                 </button>
                 <button onClick={runAllAudits} disabled={syncing || enriching || !readyForAll}
@@ -1744,7 +1744,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     win.document.close()
                     win.print()
                   })
-              }} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              }} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Download size={14} /> Export PDF
               </button>
             )}
@@ -1780,7 +1780,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               {portfolio?.clients?.length > 0 ? (
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                    <tr style={{ borderBottom: '2px solid #ececef' }}>
                       {['Client', 'Keywords', 'Top 3', 'Top 10', 'Avg Opp', 'Ads Spend', 'Cannibals', 'Actions', 'Last Sync', ''].map(h => (
                         <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Client' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
@@ -1788,7 +1788,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   </thead>
                   <tbody>
                     {portfolio.clients.map((c, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer' }}
+                      <tr key={i} style={{ borderBottom: '1px solid #f1f1f6', cursor: 'pointer' }}
                         onClick={() => { setClientId(c.id); setTab('dashboard') }}
                         onMouseEnter={e => e.currentTarget.style.background = '#f9f9fb'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
@@ -1810,7 +1810,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <td style={{ textAlign: 'center', fontSize: 12, color: '#1f2937' }}>{c.last_sync ? new Date(c.last_sync).toLocaleDateString() : 'Never'}</td>
                         <td style={{ textAlign: 'center' }}>
                           <button onClick={e => { e.stopPropagation(); setClientId(c.id); setTab('dashboard') }}
-                            style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', color: T }}>Open</button>
+                            style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', color: T }}>Open</button>
                         </td>
                       </tr>
                     ))}
@@ -2275,15 +2275,15 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
               {/* Pagination */}
               {kwTotal > KW_LIMIT && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f1f1f6' }}>
                   <div style={{ fontSize: 12, color: '#1f1f22' }}>
                     Showing {kwPage * KW_LIMIT + 1}–{Math.min((kwPage + 1) * KW_LIMIT, kwTotal)} of {kwTotal}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => setKwPage(p => Math.max(0, p - 1))} disabled={kwPage === 0}
-                      style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: kwPage === 0 ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, opacity: kwPage === 0 ? .4 : 1 }}>Previous</button>
+                      style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', cursor: kwPage === 0 ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, opacity: kwPage === 0 ? .4 : 1 }}>Previous</button>
                     <button onClick={() => setKwPage(p => p + 1)} disabled={(kwPage + 1) * KW_LIMIT >= kwTotal}
-                      style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: (kwPage + 1) * KW_LIMIT >= kwTotal ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, opacity: (kwPage + 1) * KW_LIMIT >= kwTotal ? .4 : 1 }}>Next</button>
+                      style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', cursor: (kwPage + 1) * KW_LIMIT >= kwTotal ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, opacity: (kwPage + 1) * KW_LIMIT >= kwTotal ? .4 : 1 }}>Next</button>
                   </div>
                 </div>
               )}
@@ -2355,12 +2355,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#1f1f22', marginBottom: 6 }}>Target Keyword</div>
                   <input value={briefKeyword} onChange={e => setBriefKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && generateBrief()}
-                    placeholder="e.g. emergency plumber boca raton" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+                    placeholder="e.g. emergency plumber boca raton" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef', fontSize: 14, outline: 'none' }} />
                 </div>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#1f1f22', marginBottom: 6 }}>Page Type</div>
                   <select value={briefPageType} onChange={e => setBriefPageType(e.target.value)}
-                    style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, background: '#fff', cursor: 'pointer' }}>
+                    style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef', fontSize: 13, background: '#fff', cursor: 'pointer' }}>
                     <option value="service_page">Service Page</option>
                     <option value="location_page">Location Page</option>
                     <option value="blog_post">Blog Post</option>
@@ -2407,7 +2407,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         setActiveBrief(prev => ({ ...prev, status: newStatus }))
                         loadBriefs()
                         toast.success(`Brief marked as ${newStatus}`)
-                      }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>
+                      }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 11, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>
                         <option value="draft">Draft</option>
                         <option value="approved">Approved</option>
                         <option value="in_progress">In Progress</option>
@@ -2446,7 +2446,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ].filter(Boolean).join('\n')
                       navigator.clipboard.writeText(text)
                       toast.success('Brief copied to clipboard!')
-                    }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Download size={12} /> Copy
                     </button>
                     {/* Print/PDF */}
@@ -2455,24 +2455,24 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       if (!el) return
                       const win = window.open('', '_blank')
                       if (!win) return
-                      win.document.write(`<html><head><title>Content Brief: ${activeBrief.h1}</title><style>body{font-family:system-ui;padding:40px;max-width:800px;margin:0 auto;color:#111}h1{font-size:22px}h2{font-size:16px;color:#666;margin-top:24px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border:1px solid #ddd;text-align:left;font-size:13px}.tag{display:inline-block;padding:2px 8px;border-radius:4px;background:#f3f4f6;font-size:11px;margin:2px}</style></head><body>${el.innerHTML}</body></html>`)
+                      win.document.write(`<html><head><title>Content Brief: ${activeBrief.h1}</title><style>body{font-family:system-ui;padding:40px;max-width:800px;margin:0 auto;color:#111}h1{font-size:22px}h2{font-size:16px;color:#666;margin-top:24px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border:1px solid #ddd;text-align:left;font-size:13px}.tag{display:inline-block;padding:2px 8px;border-radius:4px;background:#f1f1f6;font-size:11px;margin:2px}</style></head><body>${el.innerHTML}</body></html>`)
                       win.document.close()
                       win.print()
-                    }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Download size={12} /> Print/PDF
                     </button>
-                    <button onClick={() => setActiveBrief(null)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Close</button>
+                    <button onClick={() => setActiveBrief(null)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Close</button>
                   </div>
                 </div>
 
                 {/* Title + Meta */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-                  <div style={{ padding: 16, borderRadius: 10, background: '#f9f9fb', border: '1px solid #e5e7eb' }}>
+                  <div style={{ padding: 16, borderRadius: 10, background: '#f9f9fb', border: '1px solid #ececef' }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Title Tag</div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{activeBrief.title_tag}</div>
                     <div style={{ fontSize: 12, color: activeBrief.title_tag?.length <= 60 ? GRN : R, marginTop: 4 }}>{activeBrief.title_tag?.length || 0}/60 chars</div>
                   </div>
-                  <div style={{ padding: 16, borderRadius: 10, background: '#f9f9fb', border: '1px solid #e5e7eb' }}>
+                  <div style={{ padding: 16, borderRadius: 10, background: '#f9f9fb', border: '1px solid #ececef' }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Meta Description</div>
                     <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.5 }}>{activeBrief.meta_description}</div>
                     <div style={{ fontSize: 12, color: activeBrief.meta_description?.length <= 155 ? GRN : R, marginTop: 4 }}>{activeBrief.meta_description?.length || 0}/155 chars</div>
@@ -2496,7 +2496,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div style={{ marginBottom: 20 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>Content Outline</div>
                     {activeBrief.outline.map((section, i) => (
-                      <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #e5e7eb', marginBottom: 8, borderLeft: `3px solid ${T}` }}>
+                      <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #ececef', marginBottom: 8, borderLeft: `3px solid ${T}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>H2: {section.h2}</div>
                           <span style={{ fontSize: 11, color: '#1f2937' }}>~{section.word_count_target} words</span>
@@ -2567,7 +2567,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 </div>
 
                 {/* Action buttons: Write Page + Generate Schema */}
-                <div style={{ display: 'flex', gap: 10, marginTop: 20, paddingTop: 20, borderTop: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', gap: 10, marginTop: 20, paddingTop: 20, borderTop: '1px solid #ececef' }}>
                   <button onClick={async () => {
                     setWritingPage(true); setFullPageContent(null)
                     toast.loading('Writing full page content...', { id: 'write' })
@@ -2604,19 +2604,19 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                 {/* Full page content output */}
                 {fullPageContent && (
-                  <div style={{ marginTop: 16, padding: '20px 24px', borderRadius: 12, background: '#f9f9fb', border: '1px solid #e5e7eb' }}>
+                  <div style={{ marginTop: 16, padding: '20px 24px', borderRadius: 12, background: '#f9f9fb', border: '1px solid #ececef' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK }}>Full Page Content — {fullPageContent.word_count} words</div>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button onClick={() => { navigator.clipboard.writeText(fullPageContent.plain_text); toast.success('Plain text copied!') }}
-                          style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy Text</button>
+                          style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy Text</button>
                         <button onClick={() => { navigator.clipboard.writeText(fullPageContent.content_html + '\n\n' + fullPageContent.faq_html); toast.success('HTML copied!') }}
                           style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy HTML</button>
                       </div>
                     </div>
                     <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.8, maxHeight: 500, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: fullPageContent.content_html + (fullPageContent.faq_html ? '<hr style="margin:24px 0"/>' + fullPageContent.faq_html : '') }} />
                     {fullPageContent.topicality_score && (
-                      <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: '#fff', border: '1px solid #ececef', display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 800, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em' }}>Topicality Score</div>
                         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: (fullPageContent.topicality_score.score || 0) >= 80 ? GRN : (fullPageContent.topicality_score.score || 0) >= 60 ? AMB : R }}>
                           {fullPageContent.topicality_score.score || '—'}/100
@@ -2653,7 +2653,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div key={b.id || i} role="button" tabIndex={0}
                       onClick={() => openBrief(b)}
                       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBrief(b) } }}
-                      style={{ padding: '14px 18px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #e5e7eb', cursor: 'pointer', transition: 'background .15s', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                      style={{ padding: '14px 18px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #ececef', cursor: 'pointer', transition: 'background .15s', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f1f1f6'} onMouseLeave={e => e.currentTarget.style.background = '#f9f9fb'}>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{b.target_keyword}</div>
@@ -2776,7 +2776,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={card}>
                       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                          <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                          <tr style={{ borderBottom: '2px solid #ececef' }}>
                             {['Keyword', 'Position', 'Change', 'Previous', 'Clicks', 'Impressions', 'Opp Score', 'Category'].map(h => (
                               <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
@@ -2787,7 +2787,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             const cfg = CAT_CONFIG[kw.category] || { color: '#1f1f22', icon: '•' }
                             const changeColor = kw.change > 0 ? GRN : kw.change < 0 ? '#e9695c' : '#8e8e93'
                             return (
-                              <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                              <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                                 <td style={{ padding: '10px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
                                 <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 900, color: kw.current_position <= 3 ? GRN : kw.current_position <= 10 ? '#5aa0ff' : kw.current_position <= 20 ? AMB : R }}>
                                   #{Math.round(kw.current_position * 10) / 10}
@@ -2826,7 +2826,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <ArrowUpRight size={16} /> Biggest Improvers (7d)
                         </div>
                         {rankData.improved.slice(0, 5).map((kw, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #f3f4f6' : 'none' }}>
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #f1f1f6' : 'none' }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: BLK, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{ fontSize: 11, color: '#1f2937' }}>#{Math.round(kw.previous_position)}</span>
@@ -2844,7 +2844,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <ArrowDownRight size={16} /> Biggest Declines (7d)
                         </div>
                         {rankData.declined.slice(0, 5).map((kw, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #f3f4f6' : 'none' }}>
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #f1f1f6' : 'none' }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: BLK, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{ fontSize: 11, color: '#1f2937' }}>#{Math.round(kw.previous_position)}</span>
@@ -2899,7 +2899,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       {enrichment.tools_run.length} Tools Ran · {enrichment.enriched_at ? new Date(enrichment.enriched_at).toLocaleDateString() : ''}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {enrichment.tools_run.map((t, i) => <span key={i} style={{ padding: '3px 10px', borderRadius: 5, background: '#fff', border: '1px solid #e5e7eb', fontSize: 12, color: '#1f1f22' }}>{t}</span>)}
+                      {enrichment.tools_run.map((t, i) => <span key={i} style={{ padding: '3px 10px', borderRadius: 5, background: '#fff', border: '1px solid #ececef', fontSize: 12, color: '#1f1f22' }}>{t}</span>)}
                     </div>
                   </div>
                 )}
@@ -2916,7 +2916,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     const numScore = typeof score === 'number' ? score : 0
                     const color = numScore >= 70 ? GRN : numScore >= 40 ? AMB : numScore > 0 ? '#e9695c' : '#d1d5db'
                     return (
-                      <div key={label} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px', textAlign: 'center' }}>
+                      <div key={label} style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px', textAlign: 'center' }}>
                         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 32, fontWeight: 900, color, lineHeight: 1 }}>{grade || '—'}</div>
                         <div style={{ fontSize: 11, color: '#1f2937', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
                         {typeof score === 'number' && <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>{score}/100</div>}
@@ -3077,7 +3077,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', marginBottom: 8 }}>Content Calendar</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                           {enrichment.content_gap.content_calendar.slice(0, 8).map((item, i) => (
-                            <div key={i} style={{ padding: '10px', borderRadius: 8, background: '#f9f9fb', border: '1px solid #e5e7eb', borderTop: `2px solid ${T}` }}>
+                            <div key={i} style={{ padding: '10px', borderRadius: 8, background: '#f9f9fb', border: '1px solid #ececef', borderTop: `2px solid ${T}` }}>
                               <div style={{ fontSize: 11, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase' }}>Week {item.week}</div>
                               <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginTop: 4 }}>{item.title}</div>
                               <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>{item.type} · "{item.keyword}"</div>
@@ -3132,7 +3132,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     {enrichment.competitor_intel.competitors?.length > 0 && (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8, marginBottom: 12 }}>
                         {enrichment.competitor_intel.competitors.map((c, i) => (
-                          <div key={i} style={{ padding: 12, borderRadius: 8, background: '#f9f9fb', border: '1px solid #e5e7eb' }}>
+                          <div key={i} style={{ padding: 12, borderRadius: 8, background: '#f9f9fb', border: '1px solid #ececef' }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{c.name}</div>
                             <div style={{ fontSize: 20, fontWeight: 900, color: T, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{c.score}/100</div>
                             <div style={{ fontSize: 11, color: '#1f1f22' }}>{c.rating}★ · {c.reviews} reviews</div>
@@ -3486,7 +3486,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                          <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                          <tr style={{ borderBottom: '2px solid #ececef' }}>
                             {['Competitor', 'Shared KWs', 'Organic KWs', 'Est. Traffic', 'Est. Traffic Value', 'Relevance', ''].map(h => (
                               <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Competitor' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
@@ -3494,7 +3494,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         </thead>
                         <tbody>
                           {compLandscape.competitors.map((comp, i) => (
-                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selectedCompDomain === comp.domain ? '#f9f9fb' : 'transparent' }}
+                            <tr key={i} style={{ borderBottom: '1px solid #f1f1f6', cursor: 'pointer', background: selectedCompDomain === comp.domain ? '#f9f9fb' : 'transparent' }}
                               onClick={async () => {
                                 setSelectedCompDomain(comp.domain)
                                 setCompDomainLoading(true)
@@ -3516,7 +3516,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   <div style={{ height: '100%', borderRadius: 3, background: comp.competitor_relevance > 0.5 ? '#e9695c' : comp.competitor_relevance > 0.2 ? AMB : GRN, width: `${Math.min(comp.competitor_relevance * 100, 100)}%` }} />
                                 </div>
                               </td>
-                              <td style={{ textAlign: 'center' }}><ChevronDown size={14} color="#9ca3af" /></td>
+                              <td style={{ textAlign: 'center' }}><ChevronDown size={14} color="#8e8e93" /></td>
                             </tr>
                           ))}
                         </tbody>
@@ -3526,7 +3526,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                   {/* Selected competitor detail — keyword comparison */}
                   {selectedCompDomain && (
-                    <div style={{ marginTop: 16, padding: '16px 20px', background: '#f9f9fb', borderRadius: 12, border: '1px solid #e5e7eb' }}>
+                    <div style={{ marginTop: 16, padding: '16px 20px', background: '#f9f9fb', borderRadius: 12, border: '1px solid #ececef' }}>
                       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
                         {compLandscape.domain} vs {selectedCompDomain} — Shared Keywords
                       </div>
@@ -3535,7 +3535,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <div style={{ overflowX: 'auto' }}>
                           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
-                              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                              <tr style={{ borderBottom: '2px solid #ececef' }}>
                                 {['Keyword', 'Volume', 'CPC', 'Your Pos', 'Their Pos', 'Gap'].map(h => (
                                   <th key={h} style={{ padding: '6px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                                 ))}
@@ -3545,7 +3545,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               {(compDomainKws.intersection || []).slice(0, 30).map((kw, i) => {
                                 const gap = (kw.domain1_position || 99) - (kw.domain2_position || 99)
                                 return (
-                                  <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                  <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                                     <td style={{ padding: '8px 10px', fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</td>
                                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{(kw.search_volume || 0).toLocaleString()}</td>
                                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>${(kw.cpc || 0).toFixed(2)}</td>
@@ -3609,7 +3609,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <div style={{ marginBottom: 16 }}>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Priority Targets — They Outrank You ({losing.length})</div>
                                 {losing.slice(0, 8).map((kw, i) => (
-                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
                                     <div style={{ flex: 1 }}>
                                       <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</div>
                                       <div style={{ fontSize: 11, color: '#1f2937' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
@@ -3629,7 +3629,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Untapped Keywords — They Rank, You Don't ({gaps.length})</div>
                                 {gaps.map((kw, i) => (
-                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
                                     <div style={{ flex: 1 }}>
                                       <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</div>
                                       <div style={{ fontSize: 11, color: '#1f2937' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
@@ -3676,7 +3676,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div style={{ display: 'flex', gap: 12 }}>
                 <input value={compKeyword} onChange={e => setCompKeyword(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && compKeyword) { setCompLoading(true); fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'analyze_competitors', client_id: clientId, keyword: compKeyword }) }).then(r => r.json()).then(res => { setCompAnalysis(res); setCompLoading(false) }).catch(() => setCompLoading(false)) } }}
-                  placeholder="e.g. emergency plumber boca raton" style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+                  placeholder="e.g. emergency plumber boca raton" style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef', fontSize: 14, outline: 'none' }} />
                 <button onClick={() => { if (!compKeyword) return; setCompLoading(true); fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'analyze_competitors', client_id: clientId, keyword: compKeyword }) }).then(r => r.json()).then(res => { setCompAnalysis(res); setCompLoading(false) }).catch(() => setCompLoading(false)) }}
                   disabled={compLoading || !compKeyword}
                   style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: compLoading || !compKeyword ? '#ececef' : R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: compLoading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -3709,7 +3709,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 800 }}>
                         <thead>
-                          <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                          <tr style={{ borderBottom: '2px solid #ececef' }}>
                             {['Page', 'Words', 'H2s', 'H3s', 'Schema', 'FAQ', 'Images', 'Int. Links', 'DA', 'PA', 'KW in Title', 'KW in H1'].map(h => (
                               <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
@@ -3718,7 +3718,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <tbody>
                           {compAnalysis.analyses.map((a, i) => (
                             <React.Fragment key={i}>
-                            <tr style={{ borderBottom: expandedCompIdx === i ? 'none' : '1px solid #f3f4f6', background: a.is_client ? '#f9f9fb' : 'transparent', cursor: 'pointer' }}
+                            <tr style={{ borderBottom: expandedCompIdx === i ? 'none' : '1px solid #f1f1f6', background: a.is_client ? '#f9f9fb' : 'transparent', cursor: 'pointer' }}
                               onClick={() => setExpandedCompIdx(expandedCompIdx === i ? null : i)}
                               onMouseEnter={e => { if (!a.is_client) e.currentTarget.style.background = '#f9f9fb' }}
                               onMouseLeave={e => { if (!a.is_client) e.currentTarget.style.background = a.is_client ? '#f9f9fb' : 'transparent' }}>
@@ -3726,7 +3726,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                   {a.is_client && <span style={{ color: T }}>★</span>}
                                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.rank > 0 ? `#${a.rank} ` : ''}{a.name}</span>
-                                  <ChevronDown size={12} color="#9ca3af" style={{ marginLeft: 'auto', transition: 'transform .2s', transform: expandedCompIdx === i ? 'rotate(180deg)' : 'none' }} />
+                                  <ChevronDown size={12} color="#8e8e93" style={{ marginLeft: 'auto', transition: 'transform .2s', transform: expandedCompIdx === i ? 'rotate(180deg)' : 'none' }} />
                                 </div>
                               </td>
                               <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>{a.word_count?.toLocaleString()}</td>
@@ -3747,7 +3747,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <td style={{ textAlign: 'center', color: a.keyword_in_h1 ? GRN : R, fontSize: 14 }}>{a.keyword_in_h1 ? '✓' : '✕'}</td>
                             </tr>
                             {expandedCompIdx === i && (
-                              <tr style={{ borderBottom: '1px solid #e5e7eb', background: '#f9f9fb' }}>
+                              <tr style={{ borderBottom: '1px solid #ececef', background: '#f9f9fb' }}>
                                 <td colSpan={12} style={{ padding: '16px 20px' }}>
                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                     <div>
@@ -3831,7 +3831,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {compAnalysis.gap_analysis.priority_actions.map((a, i) => {
                           const impColor = { high: R, medium: AMB, low: GRN }[a.impact] || '#6b6b70'
                           return (
-                            <div key={i} style={{ padding: '12px 16px', borderRadius: 8, background: '#f9f9fb', border: '1px solid #e5e7eb', borderLeft: `3px solid ${impColor}`, marginBottom: 6 }}>
+                            <div key={i} style={{ padding: '12px 16px', borderRadius: 8, background: '#f9f9fb', border: '1px solid #ececef', borderLeft: `3px solid ${impColor}`, marginBottom: 6 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                                 <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: impColor + '15', color: impColor, textTransform: 'uppercase' }}>{a.impact}</span>
                                 <span style={{ fontSize: 11, color: '#1f2937' }}>{a.effort}</span>
@@ -3915,12 +3915,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Avg Job Value ($)</label>
                     <input type="number" min="0" placeholder="e.g. 500" value={roiJobValue} onChange={e => setRoiJobValue(e.target.value)}
-                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
+                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #ececef', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Customer LTV ($)</label>
                     <input type="number" min="0" placeholder="e.g. 5000" value={roiLtv} onChange={e => setRoiLtv(e.target.value)}
-                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
+                      style={{ width: 160, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #ececef', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
                   </div>
                 </div>
                 <button onClick={async () => {
@@ -3961,7 +3961,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ['Monthly Leads', roiData.current_state?.estimated_monthly_leads, AMB],
                       ['Monthly Revenue', roiData.current_state?.estimated_monthly_revenue, '#6b6b70'],
                     ].map(([l, v, c]) => (
-                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
                         <span style={{ fontSize: 13, color: '#1f1f22' }}>{l}</span>
                         <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</span>
                       </div>
@@ -3974,7 +3974,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ['Monthly Leads', roiData.projected_state?.estimated_monthly_leads, GRN],
                       ['Monthly Revenue', roiData.projected_state?.estimated_monthly_revenue, GRN],
                     ].map(([l, v, c]) => (
-                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
                         <span style={{ fontSize: 13, color: '#1f1f22' }}>{l}</span>
                         <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</span>
                       </div>
@@ -3991,7 +3991,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ['Add\'l Monthly Revenue', roiData.total_opportunity.additional_monthly_revenue, GRN],
                       ['Annual Impact', roiData.total_opportunity.annual_revenue_impact, R],
                     ].map(([l, v, c]) => (
-                      <div key={l} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px', textAlign: 'center' }}>
+                      <div key={l} style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px', textAlign: 'center' }}>
                         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 24, fontWeight: 900, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') || l.includes('Impact') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</div>
                         <div style={{ fontSize: 12, color: '#1f2937', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{l}</div>
                       </div>
@@ -4005,7 +4005,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Improvement Breakdown</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                        <tr style={{ borderBottom: '2px solid #ececef' }}>
                           {['Action', 'Category', 'Traffic Gain', 'Add\'l Clicks', 'Revenue', 'Effort', 'Confidence'].map(h => (
                             <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Action' ? 'left' : 'center' }}>{h}</th>
                           ))}
@@ -4013,7 +4013,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       </thead>
                       <tbody>
                         {roiData.improvements.map((imp, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                             <td style={{ padding: '10px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 250 }}>{imp.action}</td>
                             <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: T }}>{imp.category}</span></td>
                             <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: GRN }}>+{imp.traffic_gain_pct}%</td>
@@ -4039,12 +4039,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Avg Job Value ($)</label>
                     <input type="number" min="0" placeholder="e.g. 500" value={roiJobValue} onChange={e => setRoiJobValue(e.target.value)}
-                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
+                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #ececef', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Customer LTV ($)</label>
                     <input type="number" min="0" placeholder="e.g. 5000" value={roiLtv} onChange={e => setRoiLtv(e.target.value)}
-                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
+                      style={{ width: 140, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #ececef', fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
                   </div>
                   <button onClick={async () => {
                     setRoiLoading(true)
@@ -4189,11 +4189,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Copy All</button>
                           </div>
                           {batchReviews.map((br, i) => (
-                            <div key={i} style={{ padding: '12px 14px', borderRadius: 8, background: '#fff', border: '1px solid #e5e7eb', marginBottom: 6, borderLeft: `3px solid ${br.original_rating >= 4 ? GRN : br.original_rating >= 3 ? AMB : R}` }}>
+                            <div key={i} style={{ padding: '12px 14px', borderRadius: 8, background: '#fff', border: '1px solid #ececef', marginBottom: 6, borderLeft: `3px solid ${br.original_rating >= 4 ? GRN : br.original_rating >= 3 ? AMB : R}` }}>
                               <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', marginBottom: 4 }}>{br.reviewer || br.original_author} — {'★'.repeat(br.original_rating || br.rating)}</div>
                               <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6 }}>{br.response}</div>
                               <button onClick={() => { navigator.clipboard.writeText(br.response); toast.success('Copied!') }}
-                                style={{ marginTop: 6, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Copy</button>
+                                style={{ marginTop: 6, padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Copy</button>
                             </div>
                           ))}
                         </div>
@@ -4202,7 +4202,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       {g.recent_reviews.map((rev, i) => {
                         const isActive = draftingReview === rev
                         return (
-                          <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #e5e7eb', marginBottom: 8, borderLeft: `3px solid ${rev.rating >= 4 ? GRN : rev.rating >= 3 ? AMB : R}` }}>
+                          <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #ececef', marginBottom: 8, borderLeft: `3px solid ${rev.rating >= 4 ? GRN : rev.rating >= 3 ? AMB : R}` }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                               <div>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{rev.author}</span>
@@ -4221,12 +4221,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <div style={{ marginTop: 12, padding: '12px 16px', borderRadius: 8, background: '#f9f9fb', border: `1px solid #ececef` }}>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI-Drafted Response</div>
                                 <textarea value={reviewDraft} onChange={e => setReviewDraft(e.target.value)}
-                                  style={{ width: '100%', minHeight: 100, padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }} />
+                                  style={{ width: '100%', minHeight: 100, padding: 10, borderRadius: 8, border: '1px solid #ececef', fontSize: 13, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }} />
                                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                                   <button onClick={() => { navigator.clipboard.writeText(reviewDraft); toast.success('Copied!') }}
                                     style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy to Clipboard</button>
                                   <button onClick={() => { setDraftingReview(null); setReviewDraft('') }}
-                                    style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Dismiss</button>
+                                    style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Dismiss</button>
                                 </div>
                               </div>
                             )}
@@ -4269,7 +4269,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           const schedDate = post.scheduled_date ? new Date(post.scheduled_date) : new Date(Date.now() + i * 7 * 86400000)
 
                           return (
-                            <div key={i} style={{ padding: '20px 24px', borderRadius: 14, background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${color}` }}>
+                            <div key={i} style={{ padding: '20px 24px', borderRadius: 14, background: '#fff', border: '1px solid #ececef', borderLeft: `4px solid ${color}` }}>
                               {/* Header */}
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4288,7 +4288,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                 {/* Image area */}
                                 <div style={{ width: 160, flexShrink: 0 }}>
                                   {post._imageUrl ? (
-                                    <img src={post._imageUrl} alt="" style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 10, border: '1px solid #e5e7eb' }} />
+                                    <img src={post._imageUrl} alt="" style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 10, border: '1px solid #ececef' }} />
                                   ) : (
                                     <div style={{ width: 160, height: 120, borderRadius: 10, background: '#f1f1f6', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
                                       <Eye size={20} color="#d1d5db" />
@@ -4310,7 +4310,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                         toast.success('Image found!')
                                       } else { toast.error('No images found for this topic') }
                                     } catch { toast.error('Image search failed') }
-                                  }} style={{ width: '100%', marginTop: 6, padding: '5px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#1f1f22' }}>
+                                  }} style={{ width: '100%', marginTop: 6, padding: '5px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#1f1f22' }}>
                                     Find Image
                                   </button>
                                 </div>
@@ -4321,7 +4321,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                     const updated = [...gmbPosts]
                                     updated[i] = { ...updated[i], _editText: e.target.value }
                                     setGmbPosts(updated)
-                                  }} rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", lineHeight: 1.6, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+                                  }} rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", lineHeight: 1.6, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
                                     <div style={{ display: 'flex', gap: 6 }}>
                                       <span style={{ fontSize: 11, fontWeight: 700, color }}>{post.cta}</span>
@@ -4329,7 +4329,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                     </div>
                                     <div style={{ display: 'flex', gap: 6 }}>
                                       <button onClick={() => { navigator.clipboard.writeText(post._editText || post.text); toast.success('Post text copied to clipboard!') }}
-                                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#1f1f22' }}>Copy Text</button>
+                                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#1f1f22' }}>Copy Text</button>
                                       <button onClick={() => {
                                         const updated = [...gmbPosts]
                                         updated[i] = { ...updated[i], _approved: !updated[i]._approved }
@@ -4442,7 +4442,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           const typeColors = { offer: R, tips: T, team: GRN, seasonal: AMB }
                           const color = typeColors[post?.type] || '#6b6b70'
                           return (
-                            <div key={week} style={{ padding: '16px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #e5e7eb', borderTop: `3px solid ${color}` }}>
+                            <div key={week} style={{ padding: '16px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #ececef', borderTop: `3px solid ${color}` }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                                 <span style={{ fontSize: 12, fontWeight: 800, color, textTransform: 'uppercase' }}>Week {week + 1}</span>
                                 <span style={{ fontSize: 12, color: '#1f2937' }}>{weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
@@ -4491,11 +4491,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             <div>
                               <label style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Keyword</label>
                               <input value={gridKw} onChange={e => setGridKw(e.target.value)} placeholder="e.g. water damage restoration"
-                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, boxSizing: 'border-box' }} />
                               {keywords.length > 0 && !gridKw && (
                                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
                                   {keywords.filter(k => k.intent === 'transactional' || k.intent === 'commercial' || k.kp_monthly_volume > 100).slice(0, 6).map((k, i) => (
-                                    <button key={i} onClick={() => setGridKw(k.keyword)} style={{ padding: '3px 8px', borderRadius: 12, fontSize: 12, fontWeight: 600, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: T }}>{k.keyword}</button>
+                                    <button key={i} onClick={() => setGridKw(k.keyword)} style={{ padding: '3px 8px', borderRadius: 12, fontSize: 12, fontWeight: 600, border: '1px solid #ececef', background: '#fff', cursor: 'pointer', color: T }}>{k.keyword}</button>
                                   ))}
                                 </div>
                               )}
@@ -4503,7 +4503,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             <div>
                               <label style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Business Name</label>
                               <input value={gridBiz} onChange={e => setGridBiz(e.target.value)} placeholder={g.name}
-                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, boxSizing: 'border-box' }} />
                             </div>
                             <div style={{ gridColumn: 'span 2' }}>
                               <label style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>City / Address (we'll find the coordinates)</label>
@@ -4525,7 +4525,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                     } catch { toast.error('Geocoding failed') }
                                     setGeocoding(false)
                                   }}
-                                  style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+                                  style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 14, boxSizing: 'border-box' }} />
                                 <button onClick={async () => {
                                   if (!gridCity.trim()) { toast.error('Enter a city or address'); return }
                                   setGeocoding(true)
@@ -4541,7 +4541,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   } catch { toast.error('Geocoding failed') }
                                   setGeocoding(false)
                                 }} disabled={geocoding} style={{
-                                  padding: '10px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                                  padding: '10px 18px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
                                   fontSize: 13, fontWeight: 700, cursor: geocoding ? 'wait' : 'pointer', color: BLK, whiteSpace: 'nowrap',
                                   display: 'flex', alignItems: 'center', gap: 6,
                                 }}>
@@ -4603,7 +4603,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           {!gridResult && (
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, maxWidth: 400, margin: '0 auto 16px' }}>
                               {Array.from({ length: 25 }).map((_, i) => (
-                                <div key={i} style={{ aspectRatio: '1', borderRadius: 8, background: '#f1f1f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#1f2937', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800 }}>
+                                <div key={i} style={{ aspectRatio: '1', borderRadius: 8, background: '#f1f1f6', border: '2px solid #ececef', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#1f2937', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800 }}>
                                   {i === 12 ? '📍' : '·'}
                                 </div>
                               ))}
@@ -4639,7 +4639,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             <div style={{ fontSize: 14, color: '#1f1f22', marginBottom: 20 }}>
               Real-time visitor tracking, browser fingerprinting, and behavioral analysis for your client's website.
             </div>
-            <div style={{ padding: '20px 24px', background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb' }}>
+            <div style={{ padding: '20px 24px', background: '#fff', borderRadius: 14, border: '1px solid #ececef' }}>
               <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7 }}>
                 <strong>To get started:</strong> Install the tracking pixel on the client's website. The pixel tracks visitors, identifies companies via IP lookup, and builds behavioral profiles automatically.
               </div>
@@ -4660,7 +4660,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Connect Data Sources</div>
               {connections.some(c => c.connected) && (
                 <button onClick={() => runValidation()} disabled={validatingAll}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: BLK, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: validatingAll ? 'default' : 'pointer', opacity: validatingAll ? 0.6 : 1 }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: '1px solid #ececef', background: '#fff', color: BLK, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: validatingAll ? 'default' : 'pointer', opacity: validatingAll ? 0.6 : 1 }}>
                   {validatingAll ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={14} />}
                   {validatingAll ? 'Validating...' : 'Validate All'}
                 </button>
@@ -4683,7 +4683,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   defaultValue={clients.find(c => c.id === clientId)?.sitemap_url || ''}
                   placeholder="https://example.com/sitemap.xml"
                   id="sitemap-input"
-                  style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid #ececef', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
                 <button onClick={async () => {
                   const url = document.getElementById('sitemap-input')?.value
                   if (!url) return
@@ -4770,7 +4770,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: badge.bg, color: badge.color, whiteSpace: 'nowrap' }}>{badge.label}</span>
                         {isConnected && !isValidating && !svc.comingSoon && (
                           <button onClick={() => runValidation(svc.key)} disabled={validatingAll}
-                            style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
+                            style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
                             Test
                           </button>
                         )}
@@ -4780,7 +4780,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             toast.success(`${svc.label} disconnected`)
                             setValidationResults(prev => { const n = { ...prev }; delete n[svc.key]; return n })
                             loadConnections()
-                          }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#8e8e93', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
+                          }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', color: '#8e8e93', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
                             Disconnect
                           </button>
                         )}
@@ -4815,7 +4815,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {metaValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
                       {metaBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: metaBadge.bg, color: metaBadge.color }}>{metaBadge.label}</span>}
-                      {metaConn && !metaValidating && <button onClick={() => runValidation('meta')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                      {metaConn && !metaValidating && <button onClick={() => runValidation('meta')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
                       {!metaConn && (
                         <button onClick={() => {
                           const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID || process.env.META_APP_ID || ''
@@ -4854,7 +4854,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {liValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
                       {liBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: liBadge.bg, color: liBadge.color }}>{liBadge.label}</span>}
-                      {liConn && !liValidating && <button onClick={() => runValidation('linkedin')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                      {liConn && !liValidating && <button onClick={() => runValidation('linkedin')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
                       {!liConn && (
                         <button onClick={() => {
                           const liClientId = process.env.NEXT_PUBLIC_LINKEDIN_CLIENT_ID || process.env.LINKEDIN_CLIENT_ID || ''
@@ -4893,7 +4893,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {hjValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
                       {hjBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: hjBadge.bg, color: hjBadge.color }}>{hjBadge.label}</span>}
-                      {hjConn && !hjValidating && <button onClick={() => runValidation('hotjar')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                      {hjConn && !hjValidating && <button onClick={() => runValidation('hotjar')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
                     </div>
                   </div>
                   <div style={{ fontSize: 13, color: '#6b6b70', marginBottom: 12 }}>Session recordings, heatmaps, rage clicks, and scroll depth data.</div>
@@ -4901,9 +4901,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {hjVr?.last_synced && <div style={{ marginBottom: 8, fontSize: 10, color: '#8e8e93' }}>Last synced: {timeAgo(hjVr.last_synced)}</div>}
                   <div style={{ display: 'flex', gap: 10 }}>
                     <input placeholder="Hotjar API Token" id="hotjar-token" defaultValue={connections.find(c => c.provider === 'hotjar')?.access_token || ''}
-                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13 }} />
                     <input placeholder="Site ID" id="hotjar-site-id" defaultValue={connections.find(c => c.provider === 'hotjar')?.account_id || ''}
-                      style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                      style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13 }} />
                     <button onClick={async () => {
                       const token = document.getElementById('hotjar-token')?.value
                       const siteId = document.getElementById('hotjar-site-id')?.value
@@ -4939,7 +4939,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {clValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
                       {clBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: clBadge.bg, color: clBadge.color }}>{clBadge.label}</span>}
-                      {clConn && !clValidating && <button onClick={() => runValidation('clarity')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                      {clConn && !clValidating && <button onClick={() => runValidation('clarity')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
                     </div>
                   </div>
                   <div style={{ fontSize: 13, color: '#6b6b70', marginBottom: 12 }}>Free behavior analytics — rage clicks, dead clicks, scroll depth, and quick backs.</div>
@@ -4947,9 +4947,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {clVr?.last_synced && <div style={{ marginBottom: 8, fontSize: 10, color: '#8e8e93' }}>Last synced: {timeAgo(clVr.last_synced)}</div>}
                   <div style={{ display: 'flex', gap: 10 }}>
                     <input placeholder="Clarity API Key" id="clarity-key" defaultValue={connections.find(c => c.provider === 'clarity')?.access_token || ''}
-                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13 }} />
                     <input placeholder="Project ID" id="clarity-project-id" defaultValue={connections.find(c => c.provider === 'clarity')?.account_id || ''}
-                      style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                      style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13 }} />
                     <button onClick={async () => {
                       const key = document.getElementById('clarity-key')?.value
                       const projectId = document.getElementById('clarity-project-id')?.value
@@ -4984,16 +4984,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <div style={{ fontSize: 12, color: '#6b6b70', marginBottom: 8 }}>No verified GSC sites found — enter the URL manually:</div>
                       <input placeholder="https://rdcrestoration.com/ or sc-domain:rdcrestoration.com"
                         onChange={e => setSelectedGsc(e.target.value.trim())}
-                        style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                     </div>
                   ) : (
                     <>
                       <input value={gscSearch} onChange={e => setGscSearch(e.target.value)} placeholder={`Search ${gscSites.length} sites...`}
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, marginBottom: 6, outline: 'none', boxSizing: 'border-box' }} />
-                      <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 12, marginBottom: 6, outline: 'none', boxSizing: 'border-box' }} />
+                      <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #ececef', borderRadius: 8 }}>
                         {gscSites.filter(s => !gscSearch || s.siteUrl.toLowerCase().includes(gscSearch.toLowerCase())).map(s => (
                           <div key={s.siteUrl} onClick={() => setSelectedGsc(s.siteUrl)}
-                            style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGsc === s.siteUrl ? 700 : 400, background: selectedGsc === s.siteUrl ? '#eff6ff' : '#fff', borderBottom: '1px solid #f3f4f6', borderLeft: selectedGsc === s.siteUrl ? '3px solid #4285F4' : '3px solid transparent', color: selectedGsc === s.siteUrl ? '#4285F4' : BLK }}>
+                            style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGsc === s.siteUrl ? 700 : 400, background: selectedGsc === s.siteUrl ? '#eff6ff' : '#fff', borderBottom: '1px solid #f1f1f6', borderLeft: selectedGsc === s.siteUrl ? '3px solid #4285F4' : '3px solid transparent', color: selectedGsc === s.siteUrl ? '#4285F4' : BLK }}>
                             {s.siteUrl.replace('sc-domain:', '★ ').replace('https://', '').replace(/\/$/, '')}
                           </div>
                         ))}
@@ -5012,13 +5012,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   ) : (
                     <>
                       <input value={ga4Search} onChange={e => setGa4Search(e.target.value)} placeholder={`Search ${ga4Properties.length} properties...`}
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, marginBottom: 6, outline: 'none', boxSizing: 'border-box' }} />
-                      <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 12, marginBottom: 6, outline: 'none', boxSizing: 'border-box' }} />
+                      <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #ececef', borderRadius: 8 }}>
                         {ga4Properties.filter(p => !ga4Search || p.displayName.toLowerCase().includes(ga4Search.toLowerCase())).map(p => {
                           const propId = p.name.replace('properties/', '')
                           return (
                             <div key={p.name} onClick={() => setSelectedGa4(propId)}
-                              style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGa4 === propId ? 700 : 400, background: selectedGa4 === propId ? '#fef3c7' : '#fff', borderBottom: '1px solid #f3f4f6', borderLeft: selectedGa4 === propId ? '3px solid #F4B400' : '3px solid transparent', color: selectedGa4 === propId ? '#d97706' : BLK }}>
+                              style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGa4 === propId ? 700 : 400, background: selectedGa4 === propId ? '#fef3c7' : '#fff', borderBottom: '1px solid #f1f1f6', borderLeft: selectedGa4 === propId ? '3px solid #F4B400' : '3px solid transparent', color: selectedGa4 === propId ? '#d97706' : BLK }}>
                               {p.displayName} <span style={{ fontSize: 12, color: '#1f2937', marginLeft: 6 }}>{propId} · {p.account}</span>
                             </div>
                           )
@@ -5169,7 +5169,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 { title: 'Entity Coverage', desc: 'Core entities in your niche — coverage vs competitors', icon: Brain, color: '#7c3aed', source: 'AI + DFS' },
                 { title: 'Monthly Summary', desc: 'Auto-generated performance report across all metrics', icon: FileText, color: BLK, source: 'All' },
               ].map((report, i) => (
-                <div key={i} style={{ padding: '18px 20px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', transition: 'all .15s' }}
+                <div key={i} style={{ padding: '18px 20px', borderRadius: 12, border: '1px solid #ececef', background: '#fff', cursor: 'pointer', transition: 'all .15s' }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = report.color; e.currentTarget.style.boxShadow = `0 4px 16px ${report.color}10` }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = '#ececef'; e.currentTarget.style.boxShadow = 'none' }}
                   onClick={() => toast('Report coming soon — data sources need to be connected first')}>
@@ -5204,23 +5204,23 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 6, display: 'block' }}>Business Name *</label>
                 <input value={clientForm.name} onChange={e => setClientForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="e.g. Sunrise Plumbing" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+                  placeholder="e.g. Sunrise Plumbing" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef', fontSize: 14, outline: 'none' }} />
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 6, display: 'block' }}>Website URL</label>
                 <input value={clientForm.website} onChange={e => setClientForm(f => ({ ...f, website: e.target.value }))}
-                  placeholder="e.g. https://sunriseplumbing.com" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+                  placeholder="e.g. https://sunriseplumbing.com" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef', fontSize: 14, outline: 'none' }} />
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 6, display: 'block' }}>Industry / Primary Service</label>
                 <input value={clientForm.primary_service} onChange={e => setClientForm(f => ({ ...f, primary_service: e.target.value }))}
-                  placeholder="e.g. Plumbing, HVAC, Dental, Law" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+                  placeholder="e.g. Plumbing, HVAC, Dental, Law" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef', fontSize: 14, outline: 'none' }} />
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
               <button onClick={() => { setShowClientModal(false); setEditingClient(null) }}
-                style={{ padding: '10px 20px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                style={{ padding: '10px 20px', borderRadius: 10, border: '1px solid #ececef', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
               <button onClick={saveClient} disabled={savingClient || !clientForm.name}
                 style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: savingClient || !clientForm.name ? '#ececef' : T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: savingClient ? 'wait' : 'pointer' }}>
                 {savingClient ? 'Saving...' : editingClient ? 'Save Changes' : 'Add Client'}
@@ -5350,7 +5350,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
     setLoading(false)
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
   const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
   const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
   const FB = "'Raleway','Helvetica Neue',sans-serif"
@@ -5369,7 +5369,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
           <input value={query} onChange={e => setQuery(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') runResearch() }}
             placeholder="Enter a keyword or phrase to research..."
-            style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600, outline: 'none' }} />
+            style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1.5px solid #ececef', fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600, outline: 'none' }} />
           <button onClick={runResearch} disabled={loading || !query.trim()}
             style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: loading ? '#ececef' : BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
             {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={16} />}
@@ -5383,7 +5383,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {suggestedSearches.map((s, i) => (
                 <button key={i} onClick={() => { setQuery(s); }} style={{
-                  padding: '6px 14px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff',
+                  padding: '6px 14px', borderRadius: 20, border: '1px solid #ececef', background: '#fff',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer', color: BLK, transition: 'all .12s',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = T; e.currentTarget.style.color = T }}
@@ -5401,7 +5401,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
       {result && !loading && (
         <>
           {/* AI Overview */}
-          <div style={{ ...card, borderLeft: result.ai_overview ? `4px solid ${T}` : '4px solid #e5e7eb' }}>
+          <div style={{ ...card, borderLeft: result.ai_overview ? `4px solid ${T}` : '4px solid #ececef' }}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Brain size={16} color="#0a0a0a" />
               {result.ai_overview ? 'AI Overview Present' : 'No AI Overview for This Query'}
@@ -5480,9 +5480,9 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Suggested New Pages to Create</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {(result.gap_analysis?.suggested_pages || result.related_searches || []).map((page, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #ececef' }}>
                     <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{page}</div>
-                    <button onClick={() => setQuery(page)} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: T }}>Research This</button>
+                    <button onClick={() => setQuery(page)} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: T }}>Research This</button>
                   </div>
                 ))}
               </div>
@@ -5497,7 +5497,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
                 {result.people_also_ask.map((q, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: '#f9f9fb', borderRadius: 8 }}>
                     <span style={{ fontSize: 13, color: '#1f1f22' }}>{q}</span>
-                    <button onClick={() => setQuery(q)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer', color: T }}>Research</button>
+                    <button onClick={() => setQuery(q)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 12, cursor: 'pointer', color: T }}>Research</button>
                   </div>
                 ))}
               </div>
@@ -5509,7 +5509,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
             <div style={card}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Top 10 Organic Results</div>
               {result.top_results.map((r, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < result.top_results.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < result.top_results.length - 1 ? '1px solid #f1f1f6' : 'none' }}>
                   <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 900, color: r.position <= 3 ? GRN : r.position <= 10 ? AMB : R, minWidth: 30, textAlign: 'center' }}>#{r.position}</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{r.title}</div>
@@ -5535,7 +5535,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Related Searches ({result.related_searches.length})</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {result.related_searches.map((s, i) => (
-                  <button key={i} onClick={() => setQuery(s)} style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: BLK }}>
+                  <button key={i} onClick={() => setQuery(s)} style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: BLK }}>
                     {s}
                   </button>
                 ))}
@@ -5570,7 +5570,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
   const paidKws = kws.filter(k => k.ads_spend_cents > 0 || k.ads_clicks > 0)
   const organicPaidOverlap = kws.filter(k => (k.sc_position || k.position) && (k.ads_spend_cents > 0))
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
 
   if (kws.length === 0) {
     return (
@@ -5633,7 +5633,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginBottom: 8 }}>Keywords with AI Overview</div>
             {aiOverviewKws.slice(0, 10).map((kw, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f1f6' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
                 <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: (kw.sc_position || kw.position) <= 10 ? GRN : AMB }}>#{kw.sc_position || kw.position || '—'}</span>
               </div>
@@ -5649,7 +5649,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
           <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 12 }}>Keywords where you rank organically AND pay for ads. Consider reducing bids on keywords where organic rank is strong.</div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+              <tr style={{ borderBottom: '2px solid #ececef' }}>
                 {['Keyword', 'Organic Pos', 'Ad Spend', 'Ad CPC', 'Volume', 'Action'].map(h => (
                   <th key={h} style={{ padding: '8px 10px', fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                 ))}
@@ -5659,7 +5659,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
               {organicPaidOverlap.slice(0, 15).map((kw, i) => {
                 const pos = kw.sc_position || kw.position || 99
                 return (
-                  <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                     <td style={{ padding: '8px 10px', fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</td>
                     <td style={{ textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: pos <= 3 ? GRN : pos <= 10 ? '#5aa0ff' : AMB }}>#{pos}</td>
                     <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>${((kw.ads_spend_cents || 0) / 100).toFixed(0)}</td>
@@ -5682,7 +5682,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
       <div style={card}>
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Opportunities by Score</div>
         {kws.filter(k => k.opportunity_score > 0).sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0)).slice(0, 15).map((kw, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 900, color: T, minWidth: 36 }}>{Math.round(kw.opportunity_score)}</span>
             <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#f1f1f6', overflow: 'hidden' }}>
               <div style={{ width: `${kw.opportunity_score}%`, height: '100%', borderRadius: 3, background: kw.opportunity_score >= 70 ? GRN : kw.opportunity_score >= 40 ? AMB : '#d1d5db' }} />
@@ -5737,7 +5737,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
         <div style={card}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Featured Snippet Opportunities</div>
           {kws.filter(k => k.featured_snippet).slice(0, 10).map((kw, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <span style={{ fontSize: 12, color: '#1f2937' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
@@ -5802,7 +5802,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
         <div style={card}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Local Pack Keywords ({kws.filter(k => k.local_pack).length})</div>
           {kws.filter(k => k.local_pack).slice(0, 10).map((kw, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f1f6' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
               <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: GRN + '12', color: GRN }}>Local Pack</span>
             </div>
@@ -5820,7 +5820,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
           <div style={card}>
             <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Pages by Keyword Count</div>
             {pages.map((p, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
                 <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 900, color: T, minWidth: 30 }}>{p.count}</span>
                 <div style={{ flex: 1, fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {p.url?.replace(/https?:\/\/[^/]+/, '') || '/'}
@@ -5851,7 +5851,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
   const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
   const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
   const FB = "'Raleway','Helvetica Neue',sans-serif"
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
 
   const buildUrl = () => {
     if (!baseUrl) return ''
@@ -5893,7 +5893,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {presets.map(p => (
             <button key={p.label} onClick={() => { setSource(p.source); setMedium(p.medium); setCampaign(p.campaign) }}
-              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e5e7eb', background: source === p.source && medium === p.medium ? '#f1f1f6' : '#fff', color: source === p.source && medium === p.medium ? '#5aa0ff' : '#6b6b70', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .12s' }}>
+              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #ececef', background: source === p.source && medium === p.medium ? '#f1f1f6' : '#fff', color: source === p.source && medium === p.medium ? '#5aa0ff' : '#6b6b70', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .12s' }}>
               {p.label}
             </button>
           ))}
@@ -5910,7 +5910,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
             </label>
             <input value={baseUrl} onChange={e => setBaseUrl(e.target.value)}
               placeholder="https://example.com/services/plumbing"
-              style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+              style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid #ececef', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div>
@@ -5919,7 +5919,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
               </label>
               <input value={source} onChange={e => setSource(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
                 placeholder="google, facebook, newsletter"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
@@ -5927,7 +5927,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
               </label>
               <input value={medium} onChange={e => setMedium(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
                 placeholder="cpc, email, social, organic"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
@@ -5935,7 +5935,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
               </label>
               <input value={campaign} onChange={e => setCampaign(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
                 placeholder="spring_promo, brand_awareness"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
@@ -5943,7 +5943,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
               </label>
               <input value={content} onChange={e => setContent(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
                 placeholder="banner_top, sidebar, cta_button"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
           </div>
           <div>
@@ -5952,7 +5952,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
             </label>
             <input value={term} onChange={e => setTerm(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
               placeholder="emergency_plumber, water_damage"
-              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
         </div>
       </div>
@@ -5987,13 +5987,13 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
         <div style={card}>
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Recently Generated ({history.length})</div>
           {history.map((h, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < history.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < history.length - 1 ? '1px solid #f1f1f6' : 'none' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.url}</div>
                 <div style={{ fontSize: 11, color: '#1f2937', marginTop: 2 }}>{h.source} / {h.medium} / {h.campaign}</div>
               </div>
               <button onClick={() => { navigator.clipboard.writeText(h.url); toast.success('Copied!') }}
-                style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#1f1f22', flexShrink: 0 }}>Copy</button>
+                style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#1f1f22', flexShrink: 0 }}>Copy</button>
             </div>
           ))}
         </div>

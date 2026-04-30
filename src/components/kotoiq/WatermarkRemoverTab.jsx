@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 export default function WatermarkRemoverTab({ clientId, agencyId }) {
   const [content, setContent] = useState('')
@@ -47,7 +47,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
           Strip hidden AI fingerprints, homoglyphs, and telltale phrases.
         </div>
         <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Paste your AI-generated content..." rows={10} style={{
-          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+          width: '100%', padding: '12px 14px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           resize: 'vertical', marginBottom: 10, boxSizing: 'border-box',
         }} />
         <div style={{ marginBottom: 10 }}>
@@ -85,7 +85,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
               {data.cleaned_content}
             </div>
             <button onClick={() => { navigator.clipboard.writeText(data.cleaned_content); toast.success('Copied') }} style={{
-              marginTop: 10, padding: '8px 16px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff',
+              marginTop: 10, padding: '8px 16px', borderRadius: 6, border: '1px solid #ececef', background: '#fff',
               fontSize: 12, fontWeight: 700, color: BLK, cursor: 'pointer',
             }}>Copy cleaned text</button>
           </div>
@@ -108,14 +108,14 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Diff</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {data.rewrites.slice(0, 20).map((r, i) => (
-                  <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+                  <div key={i} style={{ border: '1px solid #ececef', borderRadius: 8, overflow: 'hidden' }}>
                     <div style={{ padding: '8px 12px', background: '#f9f9fb', fontSize: 12, color: R, textDecoration: 'line-through' }}>
                       {r.before}
                     </div>
                     <div style={{ padding: '8px 12px', background: GRN + '08', fontSize: 12, color: GRN }}>
                       {r.after}
                     </div>
-                    {r.reason && <div style={{ padding: '6px 12px', fontSize: 11, color: '#1f1f22', borderTop: '1px solid #f3f4f6' }}>{r.reason}</div>}
+                    {r.reason && <div style={{ padding: '6px 12px', fontSize: 11, color: '#1f1f22', borderTop: '1px solid #f1f1f6' }}>{r.reason}</div>}
                   </div>
                 ))}
               </div>
@@ -131,7 +131,7 @@ export default function WatermarkRemoverTab({ clientId, agencyId }) {
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #ececef' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>

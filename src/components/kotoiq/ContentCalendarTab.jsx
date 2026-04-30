@@ -104,7 +104,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
     } catch (e) { toast.error('Update failed') }
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px' }
 
   const filteredItems = items.filter(it => {
     if (statusFilter && it.status !== statusFilter) return false
@@ -149,7 +149,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
               Build Calendar
             </button>
             <button onClick={runMomentum} disabled={calcMomentum} style={{
-              padding: '12px 28px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: BLK,
+              padding: '12px 28px', borderRadius: 10, border: '1px solid #ececef', background: '#fff', color: BLK,
               fontSize: 14, fontWeight: 700, cursor: calcMomentum ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8,
             }}>
               {calcMomentum ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={16} />}
@@ -195,14 +195,14 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={buildCalendar} disabled={building} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8,
-            border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: building ? 'wait' : 'pointer', color: BLK,
+            border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, cursor: building ? 'wait' : 'pointer', color: BLK,
           }}>
             {building ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Calendar size={13} />}
             Rebuild Calendar
           </button>
           <button onClick={runMomentum} disabled={calcMomentum} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8,
-            border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: calcMomentum ? 'wait' : 'pointer', color: BLK,
+            border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, cursor: calcMomentum ? 'wait' : 'pointer', color: BLK,
           }}>
             {calcMomentum ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={13} />}
             Momentum
@@ -297,7 +297,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
         </div>
         <div style={{ width: 1, background: '#ececef', margin: '0 4px' }} />
         <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{
-          padding: '5px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 600, color: '#1f1f22', background: '#fff',
+          padding: '5px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 11, fontWeight: 600, color: '#1f1f22', background: '#fff',
         }}>
           <option value="">All types</option>
           {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -308,7 +308,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
       <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #e5e7eb', background: GRY }}>
+            <tr style={{ borderBottom: '1px solid #ececef', background: GRY }}>
               <th style={{ padding: '10px 16px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Title</th>
               <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Keyword</th>
               <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 11, color: '#1f2937', textTransform: 'uppercase' }}>Type</th>
@@ -326,11 +326,11 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
               const sc = STATUS_CONFIG[item.status] || STATUS_CONFIG.planned
               const isEditing = editingId === item.id
               return (
-                <tr key={item.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                <tr key={item.id} style={{ borderBottom: '1px solid #f1f1f6' }}>
                   <td style={{ padding: '10px 16px', fontWeight: 600, color: BLK, maxWidth: 250 }}>
                     {isEditing ? (
                       <input value={editValues.title ?? item.title} onChange={e => setEditValues(v => ({ ...v, title: e.target.value }))}
-                        style={{ width: '100%', padding: '4px 8px', borderRadius: 4, border: '1px solid #e5e7eb', fontSize: 12 }} />
+                        style={{ width: '100%', padding: '4px 8px', borderRadius: 4, border: '1px solid #ececef', fontSize: 12 }} />
                     ) : (
                       <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
                     )}
@@ -341,7 +341,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                     {isEditing ? (
                       <select value={editValues.content_type ?? item.content_type} onChange={e => setEditValues(v => ({ ...v, content_type: e.target.value }))}
-                        style={{ padding: '3px 6px', borderRadius: 4, border: '1px solid #e5e7eb', fontSize: 11 }}>
+                        style={{ padding: '3px 6px', borderRadius: 4, border: '1px solid #ececef', fontSize: 11 }}>
                         {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
                     ) : (
@@ -353,7 +353,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                     {isEditing ? (
                       <select value={editValues.status ?? item.status} onChange={e => setEditValues(v => ({ ...v, status: e.target.value }))}
-                        style={{ padding: '3px 6px', borderRadius: 4, border: '1px solid #e5e7eb', fontSize: 11 }}>
+                        style={{ padding: '3px 6px', borderRadius: 4, border: '1px solid #ececef', fontSize: 11 }}>
                         {Object.keys(STATUS_CONFIG).map(k => <option key={k} value={k}>{STATUS_CONFIG[k].label}</option>)}
                       </select>
                     ) : (
@@ -365,7 +365,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                   <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, color: '#1f1f22' }}>
                     {isEditing ? (
                       <input type="date" value={(editValues.planned_date ?? item.planned_date) || ''} onChange={e => setEditValues(v => ({ ...v, planned_date: e.target.value }))}
-                        style={{ padding: '3px 6px', borderRadius: 4, border: '1px solid #e5e7eb', fontSize: 11 }} />
+                        style={{ padding: '3px 6px', borderRadius: 4, border: '1px solid #ececef', fontSize: 11 }} />
                     ) : (
                       item.planned_date ? new Date(item.planned_date + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'
                     )}
@@ -373,7 +373,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                   <td style={{ padding: '10px 12px', fontSize: 12, color: '#1f1f22' }}>
                     {isEditing ? (
                       <input value={(editValues.assigned_to ?? item.assigned_to) || ''} onChange={e => setEditValues(v => ({ ...v, assigned_to: e.target.value }))}
-                        placeholder="Name" style={{ width: 80, padding: '4px 6px', borderRadius: 4, border: '1px solid #e5e7eb', fontSize: 11 }} />
+                        placeholder="Name" style={{ width: 80, padding: '4px 6px', borderRadius: 4, border: '1px solid #ececef', fontSize: 11 }} />
                     ) : (
                       item.assigned_to || '—'
                     )}
@@ -385,7 +385,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                           padding: '3px 8px', borderRadius: 4, border: 'none', background: GRN, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                         }}>Save</button>
                         <button onClick={() => { setEditingId(null); setEditValues({}) }} style={{
-                          padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#1f1f22',
+                          padding: '3px 8px', borderRadius: 4, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#1f1f22',
                         }}>X</button>
                       </div>
                     ) : (

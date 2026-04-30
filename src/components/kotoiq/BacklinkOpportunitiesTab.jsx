@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const TYPE_META = {
   competitor_common: { label: 'Competitor Common Links', color: T },
@@ -110,7 +110,7 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
                   const key = `${type}-${i}`
                   const isExp = expanded[key]
                   return (
-                    <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
+                    <div key={i} style={{ border: '1px solid #ececef', borderRadius: 10, overflow: 'hidden' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#fafafb', cursor: 'pointer' }}
                            onClick={() => setExpanded(s => ({ ...s, [key]: !isExp }))}>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -127,10 +127,10 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
                           background: (o.priority === 'high' ? '#e9695c' : o.priority === 'medium' ? AMB : '#8e8e93') + '14',
                           color: o.priority === 'high' ? '#e9695c' : o.priority === 'medium' ? AMB : '#8e8e93',
                         }}>{o.priority || 'low'}</span>
-                        {isExp ? <ChevronUp size={14} color="#6b7280" /> : <ChevronDown size={14} color="#6b7280" />}
+                        {isExp ? <ChevronUp size={14} color="#6b6b70" /> : <ChevronDown size={14} color="#6b6b70" />}
                       </div>
                       {isExp && (
-                        <div style={{ padding: 14, borderTop: '1px solid #e5e7eb', background: '#fff' }}>
+                        <div style={{ padding: 14, borderTop: '1px solid #ececef', background: '#fff' }}>
                           {o.target_url && (
                             <div style={{ fontSize: 11, marginBottom: 10 }}>
                               <a href={o.target_url} target="_blank" rel="noopener noreferrer" style={{ color: T, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -145,7 +145,7 @@ export default function BacklinkOpportunitiesTab({ clientId, agencyId }) {
                                 {o.outreach_template}
                               </pre>
                               <button onClick={() => { navigator.clipboard.writeText(o.outreach_template); toast.success('Template copied') }} style={{
-                                marginTop: 8, padding: '6px 14px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff',
+                                marginTop: 8, padding: '6px 14px', borderRadius: 6, border: '1px solid #ececef', background: '#fff',
                                 fontSize: 11, fontWeight: 700, color: BLK, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4,
                               }}>
                                 <Zap size={11} /> Copy Template

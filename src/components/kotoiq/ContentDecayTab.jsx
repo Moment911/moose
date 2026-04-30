@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 function riskColor(r) {
   if (r === 'high' || r === 'critical') return R
@@ -138,7 +138,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                <tr style={{ borderBottom: '2px solid #ececef' }}>
                   <th style={{ textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>URL</th>
                   <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Now</th>
                   <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>30d</th>
@@ -154,7 +154,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
                   const pos30 = Number(u.predicted_30d || 0)
                   const trend = pos30 > posNow // higher = worse
                   return (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selected?.url === u.url ? '#f9f9fb' : 'transparent' }}
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6', cursor: 'pointer', background: selected?.url === u.url ? '#f9f9fb' : 'transparent' }}
                         onClick={() => setSelected(u)}>
                       <td style={{ padding: '10px 8px', color: T, maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.url}</td>
                       <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700 }}>{posNow || '—'}</td>
@@ -168,7 +168,7 @@ export default function ContentDecayTab({ clientId, agencyId }) {
                       </td>
                       <td style={{ padding: '10px 8px', textAlign: 'right' }}>
                         <button onClick={(e) => { e.stopPropagation(); runOne(u.url) }} disabled={runningOne === u.url} style={{
-                          padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff',
+                          padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff',
                           fontSize: 11, fontWeight: 600, color: '#1f2937', cursor: 'pointer',
                         }}>
                           {runningOne === u.url ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : 'Predict'}

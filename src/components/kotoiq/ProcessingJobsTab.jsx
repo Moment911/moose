@@ -6,7 +6,7 @@ import {
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const STATUS_FILTERS = [
   { key: 'all', label: 'All' },
@@ -112,7 +112,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Live visibility into long-running processing jobs across every engine.</div>
         </div>
         <button onClick={load} disabled={loading} style={{
-          padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+          padding: '8px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
           fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 4,
         }}>
@@ -154,7 +154,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
               const isOpen = expanded === j.id
               return (
                 <div key={j.id || i} style={{
-                  border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', background: '#fff',
+                  border: '1px solid #ececef', borderRadius: 10, overflow: 'hidden', background: '#fff',
                 }}>
                   <button
                     onClick={() => setExpanded(isOpen ? null : j.id)}
@@ -192,14 +192,14 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                     </div>
 
                     <div style={{ width: 24, display: 'flex', justifyContent: 'center' }}>
-                      {isOpen ? <ChevronUp size={16} color="#6b7280" /> : <ChevronDown size={16} color="#6b7280" />}
+                      {isOpen ? <ChevronUp size={16} color="#6b6b70" /> : <ChevronDown size={16} color="#6b6b70" />}
                     </div>
 
                     <span style={{ display: 'none' }}>{tick}</span>
                   </button>
 
                   {isOpen && (
-                    <div style={{ padding: '12px 14px', background: '#fafafb', borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ padding: '12px 14px', background: '#fafafb', borderTop: '1px solid #ececef' }}>
                       {j.metadata && Object.keys(j.metadata).length > 0 && (
                         <div style={{ marginBottom: 10 }}>
                           <div style={{ fontSize: 11, fontWeight: 800, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Metadata</div>

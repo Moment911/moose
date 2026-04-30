@@ -116,7 +116,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
             return (
               <button key={op.key} onClick={() => setOperation(op.key)} style={{
                 textAlign: 'left', padding: '16px', borderRadius: 12, cursor: 'pointer',
-                border: active ? `2px solid ${op.color}` : '1px solid #e5e7eb',
+                border: active ? `2px solid ${op.color}` : '1px solid #ececef',
                 background: active ? op.color + '0d' : '#fff',
                 transition: 'all .1s',
               }}>
@@ -141,7 +141,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
           </div>
         </div>
         <div style={{
-          maxHeight: 280, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 12,
+          maxHeight: 280, overflowY: 'auto', border: '1px solid #ececef', borderRadius: 12,
           background: '#fff', padding: 8,
         }}>
           {clients.length === 0 ? (
@@ -188,7 +188,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
 
       {/* Progress panel */}
       {status && (
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Layers size={16} color="#0a0a0a" /> Progress
@@ -216,7 +216,7 @@ export default function BulkOperationsTab({ agencyId, clients = [] }) {
               const summary = Object.entries(c.result_summary || {}).map(([k, v]) => `${k}: ${v}`).join(' · ')
               return (
                 <div key={i} style={{
-                  padding: '10px 12px', borderRadius: 10, border: '1px solid #e5e7eb',
+                  padding: '10px 12px', borderRadius: 10, border: '1px solid #ececef',
                   background: c.status === 'complete' ? '#f0fdf4' : c.status === 'failed' ? '#fef2f2' : '#fff',
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}>
@@ -249,6 +249,6 @@ const sectionLabel = {
   textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10,
 }
 const miniBtn = {
-  padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb',
+  padding: '5px 10px', borderRadius: 8, border: '1px solid #ececef',
   background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', color: BLK,
 }

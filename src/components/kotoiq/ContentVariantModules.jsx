@@ -4,7 +4,7 @@ import { LayoutGrid, Loader2, Sparkles, Copy, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const MODULES = [
   { id: 'intro', label: 'Introduction', desc: 'Opening headline + value proposition', icon: '📝' },
@@ -85,7 +85,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
       <div style={{ marginBottom: 14 }}>
         <input value={keyword} onChange={e => setKeyword(e.target.value)}
           placeholder="Target keyword (optional — e.g. emergency plumber boca raton)"
-          style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none' }} />
+          style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, outline: 'none' }} />
       </div>
 
       <div style={{ fontSize: 13, color: '#1f1f22', marginBottom: 14, lineHeight: 1.6 }}>
@@ -115,13 +115,13 @@ export default function ContentVariantModules({ clientId, agencyId }) {
               </div>
 
               {expanded === mod.id && hasResult && (
-                <div style={{ padding: '14px 18px', background: '#f9f9fb', borderRadius: '0 0 10px 10px', border: '1px solid #e5e7eb', borderTop: 'none', marginTop: -2 }}>
+                <div style={{ padding: '14px 18px', background: '#f9f9fb', borderRadius: '0 0 10px 10px', border: '1px solid #ececef', borderTop: 'none', marginTop: -2 }}>
                   {(hasResult.variants || []).map((v, vi) => (
-                    <div key={vi} style={{ marginBottom: 12, padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', position: 'relative' }}>
+                    <div key={vi} style={{ marginBottom: 12, padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #ececef', position: 'relative' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: T, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Variant {vi + 1}</span>
                         <button onClick={() => copyToClipboard(v.content || v)}
-                          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b6b70' }}>
+                          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, border: '1px solid #ececef', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b6b70' }}>
                           <Copy size={10} /> Copy
                         </button>
                       </div>

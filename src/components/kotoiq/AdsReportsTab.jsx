@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 function dateStr(daysOffset) {
   const d = new Date(); d.setDate(d.getDate() + daysOffset)
@@ -58,11 +58,11 @@ export default function AdsReportsTab({ clientId, agencyId }) {
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button onClick={() => setTab('summary')}
-          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'summary' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'summary' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'summary' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'summary' ? `2px solid ${T}` : '1px solid #ececef', background: tab === 'summary' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'summary' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
           Weekly Summary
         </button>
         <button onClick={() => setTab('comparison')}
-          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'comparison' ? `2px solid ${T}` : '1px solid #e5e7eb', background: tab === 'comparison' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'comparison' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'comparison' ? `2px solid ${T}` : '1px solid #ececef', background: tab === 'comparison' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'comparison' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
           Period Comparison
         </button>
       </div>
@@ -107,7 +107,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
         <div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
             <select value={compRange} onChange={e => setCompRange(e.target.value)}
-              style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+              style={{ padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
               <option value="week">Week-over-Week</option>
               <option value="month">Month-over-Month</option>
             </select>
@@ -122,7 +122,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
             <div style={{ ...card, borderLeft: `4px solid ${T}` }}>
               <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", whiteSpace: 'pre-wrap' }}>{comparison.narrative.narrative_md}</div>
               {comparison.narrative.key_takeaways?.length > 0 && (
-                <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
+                <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #ececef' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: T, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 8 }}>KEY TAKEAWAYS</div>
                   {comparison.narrative.key_takeaways.map((t, i) => <div key={i} style={{ fontSize: 13, marginBottom: 6, paddingLeft: 12, borderLeft: `2px solid ${T}` }}>{t}</div>)}
                 </div>
@@ -135,7 +135,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Campaign Deltas</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Campaign', 'Cost Δ', 'Conv Δ', 'CPA Δ', 'Flag'].map(h => (
                       <th key={h} style={{ textAlign: h === 'Campaign' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
@@ -143,7 +143,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {comparison.deltas.map((d, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 600 }}>{d.name}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: d.delta_pct?.cost > 0 ? '#e9695c' : GRN }}>{d.delta_pct?.cost > 0 ? '+' : ''}{(d.delta_pct?.cost || 0).toFixed(1)}%</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: d.delta_pct?.conversions > 0 ? GRN : R }}>{d.delta_pct?.conversions > 0 ? '+' : ''}{(d.delta_pct?.conversions || 0).toFixed(1)}%</td>

@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const SEVERITY_STYLES = {
   critical: { color: R, bg: '#f1f1f6', icon: AlertCircle, label: 'Critical' },
@@ -198,10 +198,10 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
             <input value={domainInput} onChange={e => setDomainInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addDomain() } }}
               placeholder="competitor.com" style={{
-                flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+                flex: 1, padding: '9px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }} />
             <button onClick={addDomain} style={{
-              padding: '9px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+              padding: '9px 16px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
               fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', gap: 4,
             }}>
               <Plus size={13} /> Add
@@ -217,14 +217,14 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
               Send email notifications
             </label>
             <input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@agency.com" disabled={!emailEnabled} style={{
-              width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box',
+              width: '100%', padding: '9px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box',
               opacity: emailEnabled ? 1 : 0.5,
             }} />
           </div>
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Slack Webhook (optional)</div>
             <input value={slackWebhook} onChange={e => setSlackWebhook(e.target.value)} placeholder="https://hooks.slack.com/services/..." style={{
-              width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box',
+              width: '100%', padding: '9px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box',
               marginTop: 26,
             }} />
           </div>
@@ -234,7 +234,7 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Frequency:</span>
             <select value={frequency} onChange={e => setFrequency(e.target.value)} style={{
-              padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontWeight: 600, background: '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontWeight: 600, background: '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             }}>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
@@ -286,11 +286,11 @@ export default function CompetitorWatchTab({ clientId, agencyId }) {
             <Bell size={16} color="#0a0a0a" /> Event Feed
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, alignItems: 'center' }}>
-            <Filter size={12} color="#6b7280" />
+            <Filter size={12} color="#6b6b70" />
             {[['all', 'All'], ['critical', 'Critical'], ['unread', 'Unread']].map(([val, lbl]) => (
               <button key={val} onClick={() => setFilter(val)} style={{
                 padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
-                border: filter === val ? `1.5px solid ${T}` : '1.5px solid #e5e7eb',
+                border: filter === val ? `1.5px solid ${T}` : '1.5px solid #ececef',
                 background: filter === val ? '#f1f1f6' : '#fff',
                 color: filter === val ? '#5aa0ff' : '#1f1f22', cursor: 'pointer',
               }}>{lbl}</button>

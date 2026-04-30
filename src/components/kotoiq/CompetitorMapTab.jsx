@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) {
   const [url, setUrl] = useState('')
@@ -50,7 +50,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://competitor.com" style={{
-            flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+            flex: 1, padding: '10px 14px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           }} />
           <button onClick={run} disabled={running} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
@@ -145,7 +145,7 @@ export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) 
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #ececef' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>

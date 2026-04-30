@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px', marginBottom: 16 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '24px 28px', marginBottom: 16 }
 
 function ScoreRing({ score, size = 80, color }) {
   const r = (size - 8) / 2, c = 2 * Math.PI * r
@@ -15,7 +15,7 @@ function ScoreRing({ score, size = 80, color }) {
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#f3f4f6" strokeWidth={5} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#f1f1f6" strokeWidth={5} />
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={col} strokeWidth={5}
           strokeDasharray={c} strokeDashoffset={c * (1 - s / 100)} strokeLinecap="round"
           transform={`rotate(-90 ${size/2} ${size/2})`} style={{ transition: 'stroke-dashoffset 1s' }} />
@@ -218,7 +218,7 @@ export default function MasterReport({ clientId, agencyId, onSwitchTab }) {
             <div style={{ marginBottom: 10 }}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, color: '#6b6b70', marginBottom: 6 }}>Cluster Breakdown</div>
               {auth.clusters.slice(0, 8).map((cl, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #f3f4f6', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13 }}>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #f1f1f6', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13 }}>
                   <span style={{ color: '#1f1f22' }}>{cl.name || cl.cluster}</span>
                   <span style={{ fontWeight: 700, color: (cl.score ?? 0) >= 60 ? GRN : AMB }}>{cl.score ?? cl.coverage ?? '—'}%</span>
                 </div>

@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 export default function UpworkChecklistTab({ clientId, agencyId }) {
   const [jobDesc, setJobDesc] = useState('')
@@ -87,7 +87,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
           Validate a freelance posting before you pitch. Generates a custom cover letter, red flags, win probability, and pricing.
         </div>
         <textarea value={jobDesc} onChange={e => setJobDesc(e.target.value)} placeholder="Paste the Upwork job description..." rows={8} style={{
-          width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+          width: '100%', padding: '12px 14px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           resize: 'vertical', marginBottom: 10, boxSizing: 'border-box',
         }} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
@@ -224,7 +224,7 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
                 <div style={card}>
                   <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>FAQ</div>
                   {pkg.faq.map((f, i) => (
-                    <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                    <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f1f6' }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>{f.q}</div>
                       <div style={{ fontSize: 12, color: '#1f2937', lineHeight: 1.5 }}>{f.a}</div>
                     </div>
@@ -255,15 +255,15 @@ export default function UpworkChecklistTab({ clientId, agencyId }) {
   )
 }
 
-const inp = { padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box' }
+const inp = { padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box' }
 const btnStyle = {
   display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 6,
-  border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, color: BLK, cursor: 'pointer',
+  border: '1px solid #ececef', background: '#fff', fontSize: 11, fontWeight: 700, color: BLK, cursor: 'pointer',
 }
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #ececef' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>

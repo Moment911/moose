@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 export default function AdsIntentGapsTab({ clientId, agencyId }) {
   const [data, setData] = useState(null)
@@ -63,7 +63,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Recommended New Keywords</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Keyword', 'Intent', 'Match', 'Est. Clicks/mo', 'Est. CPC', 'Priority', 'Status'].map(h => (
                       <th key={h} style={{ textAlign: h === 'Keyword' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
@@ -71,7 +71,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {recs.map((r, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 600 }}>{r.keyword}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
                         <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: r.intent === 'transactional' ? '#dcfce7' : r.intent === 'commercial' ? '#fef9c3' : '#f1f1f6', color: r.intent === 'transactional' ? GRN : r.intent === 'commercial' ? AMB : '#6b6b70' }}>{r.intent}</span>
@@ -98,7 +98,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Uncovered GSC Queries</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Query', 'GSC Impressions', 'GSC Clicks', 'Avg Position', 'Ads Coverage'].map(h => (
                       <th key={h} style={{ textAlign: h === 'Query' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
@@ -106,7 +106,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {gaps.slice(0, 50).map((g, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 500 }}>{g.query}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{(g.gsc_impressions || 0).toLocaleString()}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{g.gsc_clicks || 0}</td>

@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 // Resource allocation bar
 function AllocBar({ label, pct, color }) {
@@ -41,7 +41,7 @@ function PriorityCard({ title, items, color, icon: Icon, fieldMap, empty }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {items.slice(0, 8).map((it, i) => (
-            <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #f3f4f6' }}>
+            <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: '#f9f9fb', border: '1px solid #f1f1f6' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 4 }}>{it.cluster || it.topic || '—'}</div>
               {fieldMap.map(([key, label, style]) => it[key] ? (
                 <div key={key} style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.5, marginTop: 3, ...style }}>
@@ -125,7 +125,7 @@ export default function StrategyTab({ clientId, agencyId }) {
           </div>
         </div>
         <select value={timeframe} onChange={e => setTimeframe(e.target.value)} style={{
-          padding: '9px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", background: '#fff',
+          padding: '9px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", background: '#fff',
         }}>
           <option value="1_month">1 Month</option>
           <option value="3_month">3 Month</option>
@@ -184,7 +184,7 @@ export default function StrategyTab({ clientId, agencyId }) {
             <PriorityCard
               title="Abandon"
               items={abandon}
-              color="#6b7280"
+              color="#6b6b70"
               icon={XIcon}
               empty="Nothing to abandon."
               fieldMap={[

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const GRID_COLORS = [
   { max: 3,  color: '#16a34a', label: '1-3' },
@@ -147,7 +147,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                    <tr style={{ borderBottom: '2px solid #ececef' }}>
                       <th style={{ textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Business</th>
                       <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Appearances</th>
                       <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Avg Rank</th>
@@ -155,7 +155,7 @@ export default function RankGridProTab({ clientId, agencyId }) {
                   </thead>
                   <tbody>
                     {data.top_competitors.slice(0, 10).map((c, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                         <td style={{ padding: '8px', color: BLK, fontWeight: 600 }}>{c.name}</td>
                         <td style={{ padding: '8px', textAlign: 'center' }}>{c.appearances}</td>
                         <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: c.avg_rank <= 3 ? GRN : c.avg_rank <= 10 ? AMB : R }}>
@@ -176,11 +176,11 @@ export default function RankGridProTab({ clientId, agencyId }) {
   )
 }
 
-const inp = { padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box' }
+const inp = { padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box' }
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #ececef' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 26, fontWeight: 900, color }}>{value}</div>
     </div>

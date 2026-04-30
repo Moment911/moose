@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const ALERT_TYPES = [
   ['ranking_changes', 'Ranking Changes'],
@@ -98,7 +98,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
             {state.connected ? (
               <><CheckCircle size={12} color={GRN} /><span style={{ fontSize: 12, fontWeight: 700, color: GRN }}>Connected</span></>
             ) : (
-              <><XCircle size={12} color="#9ca3af" /><span style={{ fontSize: 12, fontWeight: 700, color: '#6b6b70' }}>Not Connected</span></>
+              <><XCircle size={12} color="#8e8e93" /><span style={{ fontSize: 12, fontWeight: 700, color: '#6b6b70' }}>Not Connected</span></>
             )}
           </div>
         </div>
@@ -109,7 +109,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
         <input value={state.webhook_url} onChange={e => setState({ ...state, webhook_url: e.target.value })}
           placeholder={type === 'slack' ? 'https://hooks.slack.com/services/...' : 'https://outlook.office.com/webhook/...'}
           style={{
-            width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8,
+            width: '100%', padding: '9px 12px', border: '1px solid #ececef', borderRadius: 8,
             fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box',
           }} />
       </div>
@@ -137,7 +137,7 @@ function IntegrationCard({ type, label, icon: Icon, color, state, setState, clie
         </button>
         <button onClick={testMessage} disabled={testing || !state.connected} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 8,
-          border: '1px solid #e5e7eb', background: '#fff', color: '#1f1f22', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+          border: '1px solid #ececef', background: '#fff', color: '#1f1f22', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           cursor: testing ? 'wait' : (state.connected ? 'pointer' : 'not-allowed'), opacity: testing || !state.connected ? 0.6 : 1,
         }}>
           {testing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={12} />}

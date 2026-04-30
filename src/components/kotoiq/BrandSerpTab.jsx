@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 function ScoreRing({ score, size = 100 }) {
   const color = score >= 70 ? GRN : score >= 40 ? AMB : R
@@ -19,7 +19,7 @@ function ScoreRing({ score, size = 100 }) {
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={6} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f1f6" strokeWidth={6} />
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={6}
           strokeDasharray={circumference} strokeDashoffset={offset}
           strokeLinecap="round" transform={`rotate(-90 ${size / 2} ${size / 2})`}
@@ -143,7 +143,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
             {data && (
               <button onClick={loadStrategy} disabled={strategyLoading} style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
-                border: '1px solid #e5e7eb', background: '#fff', color: BLK, fontSize: 13, fontWeight: 600,
+                border: '1px solid #ececef', background: '#fff', color: BLK, fontSize: 13, fontWeight: 600,
                 fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: strategyLoading ? 'wait' : 'pointer',
               }}>
                 {strategyLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
@@ -248,7 +248,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                       textDecoration: 'none', transition: 'filter 0.15s',
                     }} onMouseEnter={e => e.currentTarget.style.filter = 'brightness(0.96)'} onMouseLeave={e => e.currentTarget.style.filter = 'none'}>
                       <div style={{ flex: 1, fontSize: 13, color: BLK }}>{q.question}</div>
-                      <ExternalLink size={12} color="#9ca3af" style={{ flexShrink: 0 }} />
+                      <ExternalLink size={12} color="#8e8e93" style={{ flexShrink: 0 }} />
                       <span style={{
                         fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
                         background: sentimentColor(q.sentiment) + '20', color: sentimentColor(q.sentiment),
@@ -276,7 +276,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                 }} onMouseEnter={e => e.currentTarget.style.filter = 'brightness(0.97)'} onMouseLeave={e => e.currentTarget.style.filter = 'none'}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: BLK, flex: 1 }}>{nr.title}</div>
-                    <ExternalLink size={12} color="#9ca3af" style={{ flexShrink: 0 }} />
+                    <ExternalLink size={12} color="#8e8e93" style={{ flexShrink: 0 }} />
                   </div>
                   <div style={{ fontSize: 11, color: T, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nr.url}</div>
                   <div style={{ fontSize: 12, color: R }}>{nr.reason}</div>
@@ -385,7 +385,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                       <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 10 }}>Priority Actions</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {strategy.priority_actions.map((a, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: '#f9f9fb', border: '1px solid #e5e7eb' }}>
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: '#f9f9fb', border: '1px solid #ececef' }}>
                             <div style={{ flex: 1, fontSize: 12, color: BLK }}>{a.action}</div>
                             <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
                               background: a.impact === 'high' ? GRN + '15' : a.impact === 'medium' ? AMB + '15' : '#f1f1f6',

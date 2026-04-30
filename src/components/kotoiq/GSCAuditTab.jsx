@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 function ScoreRing({ score, size = 100 }) {
   const color = score >= 70 ? GRN : score >= 40 ? AMB : R
@@ -18,7 +18,7 @@ function ScoreRing({ score, size = 100 }) {
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={6} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f1f6" strokeWidth={6} />
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={6}
           strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
           transform={`rotate(-90 ${size / 2} ${size / 2})`} />
@@ -33,7 +33,7 @@ function ScoreRing({ score, size = 100 }) {
 
 function StatCard({ label, value, icon: Icon, color, sub }) {
   return (
-    <div style={{ background: '#f9f9fb', borderRadius: 12, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 12, padding: '14px 18px', border: '1px solid #ececef' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <Icon size={14} color={color} />
         <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
@@ -307,7 +307,7 @@ function IssueTable({ title, color, Icon, items, columns }) {
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
-            <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+            <tr style={{ borderBottom: '2px solid #ececef' }}>
               {columns.map(c => (
                 <th key={c} style={{ textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>{c.replace(/_/g, ' ')}</th>
               ))}
@@ -315,7 +315,7 @@ function IssueTable({ title, color, Icon, items, columns }) {
           </thead>
           <tbody>
             {items.slice(0, 20).map((it, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                 {columns.map(c => (
                   <td key={c} style={{ padding: '8px', color: c === 'url' ? '#5aa0ff' : '#4b5563', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {Array.isArray(it[c]) ? it[c].join(', ') : String(it[c] ?? '—')}

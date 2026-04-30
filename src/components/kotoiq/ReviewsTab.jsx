@@ -94,7 +94,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
     setCreatingCampaign(false)
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px' }
 
   // ── Empty state ──
   if (!loading && !data) {
@@ -151,7 +151,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={analyze} disabled={analyzing} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8,
-            border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: analyzing ? 'wait' : 'pointer', color: BLK,
+            border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, cursor: analyzing ? 'wait' : 'pointer', color: BLK,
           }}>
             {analyzing ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={13} />}
             Re-analyze
@@ -224,11 +224,11 @@ export default function ReviewsTab({ clientId, agencyId }) {
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 12 }}>Sentiment by Topic</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
             {sentimentTopics.map((topic, i) => (
-              <div key={i} style={{ padding: '14px 16px', borderRadius: 10, border: '1px solid #e5e7eb', cursor: 'pointer' }}
+              <div key={i} style={{ padding: '14px 16px', borderRadius: 10, border: '1px solid #ececef', cursor: 'pointer' }}
                 onClick={() => setExpandedTopic(expandedTopic === i ? null : i)}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK }}>{topic.topic}</div>
-                  {expandedTopic === i ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
+                  {expandedTopic === i ? <ChevronUp size={14} color="#8e8e93" /> : <ChevronDown size={14} color="#8e8e93" />}
                 </div>
                 {/* Sentiment bar */}
                 <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 6 }}>
@@ -243,7 +243,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
                 </div>
                 {/* Expanded quotes */}
                 {expandedTopic === i && topic.sample_quotes?.length > 0 && (
-                  <div style={{ marginTop: 10, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+                  <div style={{ marginTop: 10, borderTop: '1px solid #f1f1f6', paddingTop: 10 }}>
                     {topic.sample_quotes.map((q, qi) => (
                       <div key={qi} style={{ fontSize: 12, color: '#1f1f22', fontStyle: 'italic', marginBottom: 4, lineHeight: 1.5 }}>
                         "{q}"
@@ -301,13 +301,13 @@ export default function ReviewsTab({ clientId, agencyId }) {
 
         {/* Campaign creation form */}
         {showCampaignForm && (
-          <div style={{ padding: '16px 20px', borderRadius: 10, border: '1px solid #e5e7eb', marginBottom: 16, background: GRY }}>
+          <div style={{ padding: '16px 20px', borderRadius: 10, border: '1px solid #ececef', marginBottom: 16, background: GRY }}>
             <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
               <input value={campaignName} onChange={e => setCampaignName(e.target.value)}
                 placeholder="Campaign name (e.g. Q2 Review Push)"
-                style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }} />
+                style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }} />
               <input type="number" value={campaignTarget} onChange={e => setCampaignTarget(parseInt(e.target.value) || 10)}
-                min={1} max={100} style={{ width: 80, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: 'center' }} />
+                min={1} max={100} style={{ width: 80, padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: 'center' }} />
               <span style={{ fontSize: 12, color: '#1f1f22', alignSelf: 'center' }}>target</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -319,7 +319,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
                 Create Campaign
               </button>
               <button onClick={() => { setShowCampaignForm(false); setCampaignName('') }} style={{
-                padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                padding: '8px 18px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
                 fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#1f1f22',
               }}>Cancel</button>
             </div>
@@ -336,7 +336,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
           const pct = camp.target_count > 0 ? Math.round((camp.collected_count / camp.target_count) * 100) : 0
           const statusColor = camp.status === 'active' ? GRN : camp.status === 'completed' ? '#5aa0ff' : camp.status === 'paused' ? AMB : '#6b6b70'
           return (
-            <div key={camp.id} style={{ padding: '14px 16px', borderRadius: 10, border: '1px solid #e5e7eb', marginBottom: 8 }}>
+            <div key={camp.id} style={{ padding: '14px 16px', borderRadius: 10, border: '1px solid #ececef', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: BLK }}>{camp.name}</div>

@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const TYPE_CONFIG = {
   topical:     { color: T,        label: 'Topical',     icon: Layers,    explanation: 'These queries share a common topic or theme. Users searching these terms are exploring a subject area broadly.', actions: ['Create a pillar page covering the core topic, then link supporting articles for each sub-query.', 'Add FAQ sections to existing pages that directly answer the related queries.', 'Build internal links between pages that cover queries in this cluster.'] },
@@ -204,7 +204,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                 const cfg = TYPE_CONFIG[cluster.cluster_type]
                 if (!cfg?.explanation) return null
                 return (
-                  <div style={{ marginTop: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
+                  <div style={{ marginTop: 10, padding: '8px 12px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f1f1f6' }}>
                     <div style={{ fontSize: 11, color: '#1f1f22', lineHeight: 1.5 }}>{cfg.explanation}</div>
                   </div>
                 )
@@ -224,7 +224,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
 
               {/* Expanded: Next/Prev queries + gap actions */}
               {expanded && (
-                <div style={{ marginTop: 14, borderTop: '1px solid #f3f4f6', paddingTop: 12 }}>
+                <div style={{ marginTop: 14, borderTop: '1px solid #f1f1f6', paddingTop: 12 }}>
                   {/* Session depth */}
                   <div style={{ fontSize: 11, color: '#1f2937', marginBottom: 8 }}>
                     Avg session depth: <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: BLK }}>{cluster.avg_session_depth || '—'}</span> queries
@@ -281,7 +281,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                     const cfg = TYPE_CONFIG[cluster.cluster_type]
                     if (!cfg?.actions) return null
                     return (
-                      <div style={{ marginTop: 12, padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
+                      <div style={{ marginTop: 12, padding: '10px 14px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f1f1f6' }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: BLK, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
                           <Zap size={10} color="#0a0a0a" /> What to do
                         </div>

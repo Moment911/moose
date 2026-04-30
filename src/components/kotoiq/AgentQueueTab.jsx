@@ -7,7 +7,7 @@ import {
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const CAPTAIN_BADGE = {
   content: { label: 'Content', color: '#3b82f6', bg: '#eff6ff', icon: FileText },
@@ -103,7 +103,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
         </div>
         <button onClick={loadActions} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
-          border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600,
+          border: '1px solid #ececef', background: '#fff', fontSize: 13, fontWeight: 600,
           cursor: 'pointer', color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
         }}>
           <RefreshCw size={14} /> Refresh
@@ -183,7 +183,7 @@ export default function AgentQueueTab({ clientId, agencyId }) {
                 disabled={isProcessing}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
-                  border: '1px solid #e5e7eb', background: '#fff', color: '#6b6b70', fontSize: 13,
+                  border: '1px solid #ececef', background: '#fff', color: '#6b6b70', fontSize: 13,
                   fontWeight: 600, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               >
@@ -211,13 +211,13 @@ export default function AgentQueueTab({ clientId, agencyId }) {
               placeholder="Optional reason…"
               rows={3}
               style={{
-                width: '100%', borderRadius: 8, border: '1px solid #e5e7eb', padding: '10px 12px',
+                width: '100%', borderRadius: 8, border: '1px solid #ececef', padding: '10px 12px',
                 fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", resize: 'vertical', marginBottom: 14,
               }}
             />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setRejectModal(null)} style={{
-                padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                padding: '8px 16px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
                 fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b6b70',
               }}>Cancel</button>
               <button onClick={handleReject} style={{

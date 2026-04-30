@@ -16,7 +16,7 @@ function ScoreRing({ score, label, size = 80, color }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <svg width={size} height={size} viewBox="0 0 80 80">
-        <circle cx="40" cy="40" r="32" fill="none" stroke="#f3f4f6" strokeWidth="6" />
+        <circle cx="40" cy="40" r="32" fill="none" stroke="#f1f1f6" strokeWidth="6" />
         <circle cx="40" cy="40" r="32" fill="none" stroke={c} strokeWidth="6"
           strokeDasharray={circumference} strokeDashoffset={offset}
           strokeLinecap="round" transform="rotate(-90 40 40)"
@@ -104,7 +104,7 @@ export default function SemanticTab({ clientId, agencyId }) {
     setRunning(false)
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
   const titleStyle = { fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }
   const a = analysis || {}
   const ngrams = a.site_ngrams || {}
@@ -152,7 +152,7 @@ export default function SemanticTab({ clientId, agencyId }) {
             <ScoreRing score={a.overall_score || 0} label="Overall" size={100} />
             <ScoreRing score={a.contextual_flow_score || 0} label="Flow" />
             <ScoreRing score={a.contextual_consistency_score || 0} label="Consistency" />
-            <div style={{ flex: 1, borderLeft: '1px solid #e5e7eb', paddingLeft: 24, marginLeft: 8 }}>
+            <div style={{ flex: 1, borderLeft: '1px solid #ececef', paddingLeft: 24, marginLeft: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>QUICK SUMMARY</div>
               <div style={{ fontSize: 13, color: BLK, lineHeight: 1.6 }}>
                 {a.overall_score >= 70 ? 'Good KotoIQ structure. Content topics are well-organized and internally linked.' :
@@ -227,7 +227,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               {!ngrams.trigrams?.length && !ngrams.bigrams?.length && (
                 <div style={{ color: '#1f2937', fontSize: 12, padding: 20, textAlign: 'center' }}>No N-gram data</div>
               )}
-              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f1f1f6', paddingTop: 10 }}>
                 These are the most-repeated multi-word phrases across your site. They reveal your topical focus areas. If your core services are missing, you need more content about them. If irrelevant phrases dominate, you may have off-topic content diluting your signal.
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                 <WordList title="Verbs" items={a.top_predicates} icon={Zap} color={GRN} />
                 <WordList title="Adjectives" items={a.top_adjectives} icon={Eye} color={AMB} />
               </div>
-              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f1f1f6', paddingTop: 10 }}>
                 Your vocabulary profile shows the language identity of your site. Nouns reflect your topics, verbs show what actions you emphasize, and adjectives reveal your tone. Compare these against your target keywords — if there is a mismatch, your content may not align with what customers search for.
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               ) : (
                 <div style={{ color: '#1f2937', fontSize: 12, padding: 20, textAlign: 'center' }}>No heading patterns</div>
               )}
-              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 12, lineHeight: 1.5, borderTop: '1px solid #f1f1f6', paddingTop: 10 }}>
                 Heading patterns reveal how your pages are structured. Repetitive patterns (e.g. every page uses the same H2s) can signal template-driven content that Google may see as low-value. Vary your headings to match each page's unique topic.
               </div>
             </div>
@@ -334,7 +334,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               {(a.thin_content_pages || []).length > 0 ? (
                 <div style={{ maxHeight: 280, overflowY: 'auto' }}>
                   {a.thin_content_pages.map((p, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f1f6' }}>
                       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#0e7490', textDecoration: 'none' }} title={p.url}>
                           {p.title || p.url}
@@ -349,7 +349,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No thin content pages detected
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f1f1f6', paddingTop: 8 }}>
                 Pages under 300 words rarely rank. Either expand them with useful detail or merge them into a related, stronger page.
               </div>
             </div>
@@ -363,7 +363,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               {(a.context_dilution_pages || []).length > 0 ? (
                 <div style={{ maxHeight: 280, overflowY: 'auto' }}>
                   {a.context_dilution_pages.map((p, i) => (
-                    <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                    <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
                       <div style={{ fontSize: 11, fontWeight: 600, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title || p.url}</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 4 }}>
                         {(p.topics || []).map((t, j) => (
@@ -379,7 +379,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No diluted pages detected
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f1f1f6', paddingTop: 8 }}>
                 Pages covering 4+ unrelated topics confuse search engines about what the page is really about. Split into focused pages, each targeting one topic cluster.
               </div>
             </div>
@@ -393,7 +393,7 @@ export default function SemanticTab({ clientId, agencyId }) {
               {(a.orphan_contexts || []).length > 0 ? (
                 <div style={{ maxHeight: 280, overflowY: 'auto' }}>
                   {a.orphan_contexts.map((o, i) => (
-                    <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                    <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f1f1f6' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{o.topic}</div>
                       <div style={{ fontSize: 12, color: '#1f1f22', marginTop: 2 }}>
                         Mentioned on: <span style={{ color: '#0e7490' }}>{o.mentioned_on}</span>
@@ -409,7 +409,7 @@ export default function SemanticTab({ clientId, agencyId }) {
                   <CheckCircle size={14} /> No orphan contexts detected
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 10, lineHeight: 1.5, borderTop: '1px solid #f1f1f6', paddingTop: 8 }}>
                 Topics mentioned but never given their own page or internal links. Create a dedicated page for each orphan topic and link to it from the pages that mention it.
               </div>
             </div>

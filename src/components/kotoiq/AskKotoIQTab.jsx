@@ -272,11 +272,11 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
   }, [send])
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 180px)', gap: 0, background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 180px)', gap: 0, background: '#fff', borderRadius: 14, border: '1px solid #ececef', overflow: 'hidden' }}>
 
       {/* ── Conversation list sidebar ────────────────────────────── */}
-      <div style={{ width: 260, flexShrink: 0, borderRight: '1px solid #e5e7eb', background: GRY, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: 14, borderBottom: '1px solid #e5e7eb' }}>
+      <div style={{ width: 260, flexShrink: 0, borderRight: '1px solid #ececef', background: GRY, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: 14, borderBottom: '1px solid #ececef' }}>
           <button onClick={newConversation}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -304,7 +304,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               onMouseEnter={e => { if (convId !== c.id) e.currentTarget.style.background = '#f1f1f6' }}
               onMouseLeave={e => { if (convId !== c.id) e.currentTarget.style.background = 'transparent' }}
             >
-              <MessageSquare size={13} color="#9ca3af" style={{ marginTop: 3, flexShrink: 0 }} />
+              <MessageSquare size={13} color="#8e8e93" style={{ marginTop: 3, flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {c.title || 'Untitled'}
@@ -326,7 +326,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
         {/* Header */}
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #ececef', display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Brain size={18} color="#0a0a0a" />
           </div>
@@ -400,13 +400,13 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
         </div>
 
         {/* Input area */}
-        <div style={{ borderTop: '1px solid #e5e7eb', padding: '12px 20px', background: '#fff' }}>
+        <div style={{ borderTop: '1px solid #ececef', padding: '12px 20px', background: '#fff' }}>
           {messages.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
               {QUICK_PROMPTS.slice(0, 4).map((p, i) => (
                 <button key={i} onClick={() => send(p.text)} disabled={sending}
                   style={{
-                    padding: '5px 11px', borderRadius: 16, border: '1px solid #e5e7eb', background: '#fff',
+                    padding: '5px 11px', borderRadius: 16, border: '1px solid #ececef', background: '#fff',
                     color: '#4b5563', fontSize: 11, fontWeight: 600, cursor: sending ? 'wait' : 'pointer',
                     opacity: sending ? 0.5 : 1, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                   }}>
@@ -416,7 +416,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, border: '1px solid #e5e7eb', borderRadius: 12, padding: '8px 10px 8px 14px', background: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, border: '1px solid #ececef', borderRadius: 12, padding: '8px 10px 8px 14px', background: '#fff' }}>
             <textarea
               ref={textareaRef}
               value={input}
@@ -474,7 +474,7 @@ function MessageBubble({ message, onActionClick }) {
           <div>{renderMarkdown(message.content)}</div>
 
           {dataUsed.length > 0 && (
-            <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb', display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+            <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #ececef', display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 4 }}>
                 <FileText size={10} style={{ verticalAlign: '-1px', marginRight: 3 }} />
                 Used:
@@ -483,7 +483,7 @@ function MessageBubble({ message, onActionClick }) {
                 <span key={i} style={{
                   fontSize: 10, padding: '2px 7px', borderRadius: 10,
                   background: '#fff', color: '#4b5563', fontWeight: 600,
-                  border: '1px solid #e5e7eb',
+                  border: '1px solid #ececef',
                 }}>
                   {d}
                 </span>

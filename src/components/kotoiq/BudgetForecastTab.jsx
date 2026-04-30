@@ -3,11 +3,17 @@ import { useState, useEffect } from 'react'
 import { DollarSign, Loader2, TrendingUp, AlertTriangle, CheckCircle, Zap } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { GRN, AMB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
-const PACING_COLORS = { on_track: GRN, over_pace: AMB, under_pace: T, critical: R }
+// Cal-AI chart palette — calm, semantic.
+const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const INK = '#0a0a0a'
+const RED = '#e9695c'
+const BLUE = '#5aa0ff'
+
+const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14, fontFamily: SF }
+const PACING_COLORS = { on_track: GRN, over_pace: AMB, under_pace: BLUE, critical: RED }
 const PACING_LABELS = { on_track: 'On Track', over_pace: 'Over Pacing', under_pace: 'Under Pacing', critical: 'Critical' }
 
 function fmt(n) { return n >= 1000 ? `$${(n / 1000).toFixed(1)}K` : `$${(n || 0).toFixed(2)}` }
@@ -60,7 +66,7 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Budget & Forecast</div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <select value={horizon} onChange={e => setHorizon(Number(e.target.value))}
-            style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+            style={{ padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             <option value={30}>30 days</option>
             <option value={60}>60 days</option>
             <option value={90}>90 days</option>
@@ -99,8 +105,8 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
                 <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: BLK }}>{fmt(forecast.total_projected)}</div>
               </div>
               <div style={{ ...card, flex: 1, minWidth: 150 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>Daily Average</div>
-                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: T }}>{fmt(forecast.daily_avg_total)}</div>
+                <div style={{ fontSize: 11, fontWeight: 500, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Daily Average</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: INK, letterSpacing: '-0.5px', lineHeight: 1.05 }}>{fmt(forecast.daily_avg_total)}</div>
               </div>
               <div style={{ ...card, flex: 1, minWidth: 150 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4 }}>Pacing</div>
@@ -122,13 +128,19 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16 }}>Daily Spend Trend</div>
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={trend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                  <XAxis dataKey="date" fontSize={11} tickFormatter={d => d?.slice(5)} />
-                  <YAxis fontSize={11} tickFormatter={v => `$${v}`} />
-                  <Tooltip formatter={(v) => [`$${Number(v).toFixed(2)}`, '']} labelFormatter={l => l} />
-                  <Area type="monotone" dataKey="ad_spend" stackId="1" stroke={T} fill={T} fillOpacity={0.3} name="Ad Spend" />
-                  <Area type="monotone" dataKey="ai_cost" stackId="1" stroke={AMB} fill={AMB} fillOpacity={0.3} name="AI Costs" />
-                  <Area type="monotone" dataKey="api_cost" stackId="1" stroke={GRN} fill={GRN} fillOpacity={0.3} name="API Costs" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f6" vertical={false} />
+                  <XAxis dataKey="date" fontSize={11} stroke="#8e8e93" tickFormatter={d => d?.slice(5)} axisLine={false} tickLine={false} />
+                  <YAxis fontSize={11} stroke="#8e8e93" tickFormatter={v => `$${v}`} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    formatter={(v) => [`$${Number(v).toFixed(2)}`, '']}
+                    labelFormatter={l => l}
+                    contentStyle={{ background: '#fff', border: '1px solid #ececef', borderRadius: 10, fontSize: 12, fontFamily: SF, padding: '8px 12px' }}
+                    itemStyle={{ color: INK, padding: 0 }}
+                    labelStyle={{ color: '#8e8e93', fontWeight: 500, marginBottom: 4 }}
+                  />
+                  <Area type="monotone" dataKey="ad_spend"  stackId="1" stroke={INK}    fill={INK}    fillOpacity={0.85} name="Ad Spend" />
+                  <Area type="monotone" dataKey="ai_cost"   stackId="1" stroke="#1f1f22" fill="#1f1f22" fillOpacity={0.55} name="AI Costs" />
+                  <Area type="monotone" dataKey="api_cost"  stackId="1" stroke="#8e8e93" fill="#8e8e93" fillOpacity={0.35} name="API Costs" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -140,7 +152,7 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Cost Breakdown</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Category', 'Daily Avg', `${horizon}d Projected`].map(h => (
                       <th key={h} style={{ textAlign: h === 'Category' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
@@ -148,17 +160,17 @@ export default function BudgetForecastTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {[
-                    { name: 'Ad Spend (all platforms)', daily: forecast.daily_avg_ad_spend, projected: forecast.ad_spend_projected, color: T },
-                    { name: 'AI / LLM Costs', daily: forecast.daily_avg_ai_cost, projected: forecast.ai_cost_projected, color: AMB },
-                    { name: 'API / Token Costs', daily: forecast.daily_avg_api_cost, projected: forecast.api_cost_projected, color: GRN },
+                    { name: 'Ad Spend (all platforms)', daily: forecast.daily_avg_ad_spend, projected: forecast.ad_spend_projected, color: INK },
+                    { name: 'AI / LLM Costs', daily: forecast.daily_avg_ai_cost, projected: forecast.ai_cost_projected, color: '#1f1f22' },
+                    { name: 'API / Token Costs', daily: forecast.daily_avg_api_cost, projected: forecast.api_cost_projected, color: '#8e8e93' },
                   ].map((row, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 600 }}><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: row.color, marginRight: 8 }} />{row.name}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{fmt(row.daily)}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', fontWeight: 700 }}>{fmt(row.projected)}</td>
                     </tr>
                   ))}
-                  <tr style={{ borderTop: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderTop: '2px solid #ececef' }}>
                     <td style={{ padding: '10px 6px', fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Total</td>
                     <td style={{ padding: '10px 6px', textAlign: 'right', fontWeight: 800 }}>{fmt(forecast.daily_avg_total)}</td>
                     <td style={{ padding: '10px 6px', textAlign: 'right', fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{fmt(forecast.total_projected)}</td>

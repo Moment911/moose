@@ -258,7 +258,7 @@ export default function CampaignComposerTab({ agencyId }) {
     setStep(s => Math.min(s + 1, 5))
   }
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px' }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '24px' }
 
   return (
     <div>
@@ -290,7 +290,7 @@ export default function CampaignComposerTab({ agencyId }) {
                   <button key={tpl.id} onClick={() => setSelectedTemplate(tpl)} style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '14px 18px', borderRadius: 10,
-                    border: active ? `2px solid ${BLK}` : '1px solid #e5e7eb',
+                    border: active ? `2px solid ${BLK}` : '1px solid #ececef',
                     background: active ? '#f9f9fb' : '#fff',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                     transition: 'all .15s',
@@ -338,7 +338,7 @@ export default function CampaignComposerTab({ agencyId }) {
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
             <button onClick={() => setInputMode('paste')} style={{
               padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600,
-              border: inputMode === 'paste' ? `1px solid ${BLK}` : '1px solid #e5e7eb',
+              border: inputMode === 'paste' ? `1px solid ${BLK}` : '1px solid #ececef',
               background: inputMode === 'paste' ? '#f9f9fb' : '#fff',
               color: BLK, cursor: 'pointer',
             }}>
@@ -346,7 +346,7 @@ export default function CampaignComposerTab({ agencyId }) {
             </button>
             <button onClick={() => setInputMode('file')} style={{
               padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600,
-              border: inputMode === 'file' ? `1px solid ${BLK}` : '1px solid #e5e7eb',
+              border: inputMode === 'file' ? `1px solid ${BLK}` : '1px solid #ececef',
               background: inputMode === 'file' ? '#f9f9fb' : '#fff',
               color: BLK, cursor: 'pointer',
             }}>
@@ -367,7 +367,7 @@ export default function CampaignComposerTab({ agencyId }) {
             placeholder={`city,service,phone\nMiami,Plumbing,305-555-0100\nTampa,HVAC,813-555-0200\nOrlando,Roofing,407-555-0300`}
             style={{
               width: '100%', minHeight: 180, padding: '14px 16px',
-              borderRadius: 10, border: '1px solid #e5e7eb',
+              borderRadius: 10, border: '1px solid #ececef',
               fontSize: 13, fontFamily: 'monospace', lineHeight: 1.6,
               resize: 'vertical', outline: 'none',
             }}
@@ -381,7 +381,7 @@ export default function CampaignComposerTab({ agencyId }) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
             <button onClick={() => setStep(1)} style={{
-              padding: '10px 24px', borderRadius: 8, border: '1px solid #e5e7eb',
+              padding: '10px 24px', borderRadius: 8, border: '1px solid #ececef',
               background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
@@ -421,19 +421,19 @@ export default function CampaignComposerTab({ agencyId }) {
           </div>
 
           {/* Preview table */}
-          <div style={{ overflowX: 'auto', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+          <div style={{ overflowX: 'auto', borderRadius: 10, border: '1px solid #ececef' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#f9f9fb' }}>
-                  <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>#</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #ececef' }}>#</th>
                   {seedHeaders.map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, color: BLK, fontSize: 12, borderBottom: '1px solid #ececef' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {(previewRows.length > 0 ? previewRows : seedRows.slice(0, 3)).map((row, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                     <td style={{ padding: '10px 14px', color: '#8e8e93', fontWeight: 600 }}>{i + 1}</td>
                     {seedHeaders.map(h => (
                       <td key={h} style={{ padding: '10px 14px', color: '#1f1f22' }}>{row[h] || ''}</td>
@@ -446,7 +446,7 @@ export default function CampaignComposerTab({ agencyId }) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
             <button onClick={() => setStep(2)} style={{
-              padding: '10px 24px', borderRadius: 8, border: '1px solid #e5e7eb',
+              padding: '10px 24px', borderRadius: 8, border: '1px solid #ececef',
               background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
@@ -477,7 +477,7 @@ export default function CampaignComposerTab({ agencyId }) {
                 <button key={opt.key} onClick={() => setCadence(opt.key)} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '14px 18px', borderRadius: 10,
-                  border: active ? `2px solid ${BLK}` : '1px solid #e5e7eb',
+                  border: active ? `2px solid ${BLK}` : '1px solid #ececef',
                   background: active ? '#f9f9fb' : '#fff',
                   cursor: 'pointer', textAlign: 'left', width: '100%',
                   transition: 'all .15s',
@@ -505,7 +505,7 @@ export default function CampaignComposerTab({ agencyId }) {
               <input type="number" min={1} max={100} value={perDayCap}
                 onChange={e => setPerDayCap(Number(e.target.value) || 1)}
                 style={{
-                  padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb',
+                  padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef',
                   fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600, width: 120, outline: 'none',
                 }}
               />
@@ -519,7 +519,7 @@ export default function CampaignComposerTab({ agencyId }) {
             </label>
             <input type="datetime-local" value={startAt} onChange={e => setStartAt(e.target.value)}
               style={{
-                padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb',
+                padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef',
                 fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", width: 240, outline: 'none',
               }}
             />
@@ -527,7 +527,7 @@ export default function CampaignComposerTab({ agencyId }) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
             <button onClick={() => setStep(3)} style={{
-              padding: '10px 24px', borderRadius: 8, border: '1px solid #e5e7eb',
+              padding: '10px 24px', borderRadius: 8, border: '1px solid #ececef',
               background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>
@@ -595,7 +595,7 @@ export default function CampaignComposerTab({ agencyId }) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
             <button onClick={() => setStep(4)} disabled={creating} style={{
-              padding: '10px 24px', borderRadius: 8, border: '1px solid #e5e7eb',
+              padding: '10px 24px', borderRadius: 8, border: '1px solid #ececef',
               background: '#fff', color: BLK, fontSize: 14, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             }}>

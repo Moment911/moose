@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 export default function BingAuditTab({ clientId, agencyId }) {
   const [apiKey, setApiKey] = useState('')
@@ -52,9 +52,9 @@ export default function BingAuditTab({ clientId, agencyId }) {
           Pull Bing rankings + compare to Google. Most sites underperform on Bing — find the gaps.
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-          <Key size={14} color="#6b7280" />
+          <Key size={14} color="#6b6b70" />
           <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="Bing Webmaster Tools API key" style={{
-            flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+            flex: 1, padding: '10px 14px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           }} />
         </div>
         <button onClick={run} disabled={running} style={{
@@ -82,7 +82,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                    <tr style={{ borderBottom: '2px solid #ececef' }}>
                       <th style={{ textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Query</th>
                       <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Impr.</th>
                       <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Clicks</th>
@@ -91,7 +91,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
                   </thead>
                   <tbody>
                     {data.top_queries.slice(0, 30).map((q, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                         <td style={{ padding: '8px', color: BLK }}>{q.query}</td>
                         <td style={{ padding: '8px', textAlign: 'center', color: '#1f1f22' }}>{fmtN(q.impressions)}</td>
                         <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: GRN }}>{fmtN(q.clicks)}</td>
@@ -112,7 +112,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                    <tr style={{ borderBottom: '2px solid #ececef' }}>
                       <th style={{ textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Query</th>
                       <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Google Pos</th>
                       <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Bing Pos</th>
@@ -123,7 +123,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
                     {data.google_vs_bing_discrepancies.slice(0, 20).map((d, i) => {
                       const gap = Number(d.bing_position || 0) - Number(d.google_position || 0)
                       return (
-                        <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                           <td style={{ padding: '8px', color: BLK }}>{d.query}</td>
                           <td style={{ padding: '8px', textAlign: 'center' }}>{d.google_position?.toFixed(1) || '—'}</td>
                           <td style={{ padding: '8px', textAlign: 'center' }}>{d.bing_position?.toFixed(1) || '—'}</td>
@@ -148,7 +148,7 @@ export default function BingAuditTab({ clientId, agencyId }) {
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #e5e7eb' }}>
+    <div style={{ background: '#f9f9fb', borderRadius: 10, padding: '14px 18px', border: '1px solid #ececef' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color }}>{value}</div>
     </div>

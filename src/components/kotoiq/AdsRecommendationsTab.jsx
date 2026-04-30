@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const TYPES = [
   { id: 'negatives', label: 'Negative Keywords', table: 'kotoiq_ads_rec_negatives' },
@@ -66,13 +66,13 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {TYPES.map(t => (
           <button key={t.id} onClick={() => setType(t.id)}
-            style={{ padding: '8px 16px', borderRadius: 8, border: type === t.id ? `2px solid ${T}` : '1px solid #e5e7eb', background: type === t.id ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: type === t.id ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
+            style={{ padding: '8px 16px', borderRadius: 8, border: type === t.id ? `2px solid ${T}` : '1px solid #ececef', background: type === t.id ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: type === t.id ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
             {t.label}
           </button>
         ))}
         <div style={{ flex: 1 }} />
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+          style={{ padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>

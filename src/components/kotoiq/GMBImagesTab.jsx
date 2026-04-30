@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 async function pngToJpeg(dataUrl, quality = 0.95) {
   const img = new window.Image()
@@ -244,7 +244,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
               <img src={uploadDataUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: 180, borderRadius: 6 }} />
             ) : (
               <>
-                <ImageIcon size={32} color="#9ca3af" style={{ marginBottom: 6 }} />
+                <ImageIcon size={32} color="#8e8e93" style={{ marginBottom: 6 }} />
                 <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>Drop image here or click to browse</div>
                 <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 4 }}>PNG auto-converted to JPEG for EXIF</div>
               </>
@@ -252,10 +252,10 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
             <input ref={fileInputRef} type="file" accept="image/*" onChange={e => handleFile(e.target.files?.[0])} style={{ display: 'none' }} />
           </div>
           <input value={uploadKeywords} onChange={e => setUploadKeywords(e.target.value)} placeholder="Keywords (comma-separated)" style={{
-            width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 8, boxSizing: 'border-box',
+            width: '100%', padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 8, boxSizing: 'border-box',
           }} />
           <input value={uploadCaption} onChange={e => setUploadCaption(e.target.value)} placeholder="Caption" style={{
-            width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 10, boxSizing: 'border-box',
+            width: '100%', padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 10, boxSizing: 'border-box',
           }} />
           <button onClick={doGeoTag} disabled={uploading || !uploadDataUrl} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 8,
@@ -273,19 +273,19 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
             <Sparkles size={16} color="#0a0a0a" /> Generate with AI
           </div>
           <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe the image (e.g. friendly dentist office interior with natural light)" rows={4} style={{
-            width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+            width: '100%', padding: '10px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             resize: 'vertical', marginBottom: 8, boxSizing: 'border-box',
           }} />
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <select value={style} onChange={e => setStyle(e.target.value)} style={{
-              flex: 1, padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              flex: 1, padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             }}>
               <option value="photo">Photo</option>
               <option value="illustration">Illustration</option>
               <option value="flat">Flat</option>
             </select>
             <select value={gbpCategory} onChange={e => setGbpCategory(e.target.value)} style={{
-              flex: 1, padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              flex: 1, padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
             }}>
               <option value="ADDITIONAL">Additional</option>
               <option value="EXTERIOR">Exterior</option>
@@ -325,7 +325,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
           <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Preview</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
-              <img src={preview.dataUrl} alt="Generated" style={{ width: '100%', borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              <img src={preview.dataUrl} alt="Generated" style={{ width: '100%', borderRadius: 10, border: '1px solid #ececef' }} />
             </div>
             <div>
               {preview.metadata && (
@@ -370,7 +370,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                <tr style={{ borderBottom: '2px solid #ececef' }}>
                   <th style={{ textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Image</th>
                   <th style={{ textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Caption</th>
                   <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Source</th>
@@ -380,7 +380,7 @@ export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
               </thead>
               <tbody>
                 {images.slice(0, 20).map(img => (
-                  <tr key={img.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <tr key={img.id} style={{ borderBottom: '1px solid #f1f1f6' }}>
                     <td style={{ padding: '8px' }}>
                       {img.public_url && <img src={img.public_url} alt="" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }} />}
                     </td>
@@ -418,7 +418,7 @@ function MetaRow({ icon: Icon, label, value }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{ width: 28, height: 28, borderRadius: 6, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Icon size={13} color="#6b7280" />
+        <Icon size={13} color="#6b6b70" />
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
@@ -431,6 +431,6 @@ function MetaRow({ icon: Icon, label, value }) {
 function btn(bg, color) {
   return {
     display: 'inline-flex', alignItems: 'center', gap: 4, padding: '7px 12px', borderRadius: 6,
-    border: '1px solid #e5e7eb', background: bg, fontSize: 11, fontWeight: 700, color, cursor: 'pointer',
+    border: '1px solid #ececef', background: bg, fontSize: 11, fontWeight: 700, color, cursor: 'pointer',
   }
 }

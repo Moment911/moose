@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
   const [gridScans, setGridScans] = useState([])
@@ -227,7 +227,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Neighborhoods Identified</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
                 {result.neighborhoods_identified.map((n, i) => (
-                  <div key={i} style={{ padding: '12px 14px', background: '#f9f9fb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+                  <div key={i} style={{ padding: '12px 14px', background: '#f9f9fb', borderRadius: 10, border: '1px solid #ececef' }}>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>{n.name}</div>
                     <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 4 }}>
                       {n.weak_points} weak point{n.weak_points === 1 ? '' : 's'}
@@ -247,7 +247,7 @@ export default function HyperlocalTab({ clientId, agencyId, onSwitchTab }) {
                 {result.briefs_created.map((b, i) => (
                   <div key={b.brief_id || i} style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                    background: '#f9f9fb', borderRadius: 10, border: '1px solid #e5e7eb',
+                    background: '#f9f9fb', borderRadius: 10, border: '1px solid #ececef',
                   }}>
                     <FileText size={16} color="#0a0a0a" />
                     <div style={{ flex: 1 }}>

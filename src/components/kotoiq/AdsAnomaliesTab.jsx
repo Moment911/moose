@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 const SEVERITY = { critical: { bg: '#fef2f2', color: R }, warn: { bg: '#fef9c3', color: AMB }, info: { bg: '#eff6ff', color: T } }
 
 export default function AdsAnomaliesTab({ clientId, agencyId }) {
@@ -82,7 +82,7 @@ export default function AdsAnomaliesTab({ clientId, agencyId }) {
                   </div>
                 </div>
                 {isExpanded && (
-                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #ececef' }}>
                     <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{a.explanation_md}</div>
                     {a.contributors?.length > 0 && (
                       <div style={{ marginBottom: 12 }}>

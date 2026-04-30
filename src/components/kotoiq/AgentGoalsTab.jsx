@@ -7,7 +7,7 @@ import {
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const STATUS_BADGE = {
   active: { label: 'Active', color: GRN, bg: GRN + '18' },
@@ -158,7 +158,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={loadGoals} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
-            border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600,
+            border: '1px solid #ececef', background: '#fff', fontSize: 13, fontWeight: 600,
             cursor: 'pointer', color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           }}>
             <RefreshCw size={14} /> Refresh
@@ -232,7 +232,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                 onClick={() => isExpanded ? setSelectedGoal(null) : loadRuns(g.id)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 8,
-                  border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600,
+                  border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 600,
                   cursor: 'pointer', color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               >
@@ -242,7 +242,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
 
             {/* Expanded runs list */}
             {isExpanded && (
-              <div style={{ marginTop: 14, borderTop: '1px solid #f3f4f6', paddingTop: 14 }}>
+              <div style={{ marginTop: 14, borderTop: '1px solid #f1f1f6', paddingTop: 14 }}>
                 {runsLoading && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} color="#0a0a0a" />
@@ -257,7 +257,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                   return (
                     <div key={r.id} style={{
                       display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
-                      borderBottom: '1px solid #f9fafb', fontSize: 12,
+                      borderBottom: '1px solid #f9f9fb', fontSize: 12,
                     }}>
                       <div style={{ color: rs.color, fontWeight: 700, minWidth: 120 }}>
                         {rs.label}
@@ -300,7 +300,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
             <div style={{ marginBottom: 14 }}>
               <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Goal Type</label>
               <select value={newGoalType} onChange={e => setNewGoalType(e.target.value)} style={{
-                width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb',
+                width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef',
                 fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", background: '#fff',
               }}>
                 <option value="close_topical_gap">Close Topical Gap</option>
@@ -319,7 +319,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                 onChange={e => setNewTopics(e.target.value)}
                 placeholder="e.g. digital marketing, SEO strategy"
                 style={{
-                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb',
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef',
                   fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               />
@@ -330,13 +330,13 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Max Actions</label>
                 <input type="number" value={newBudgetActions} onChange={e => setNewBudgetActions(parseInt(e.target.value) || 5)} style={{
-                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }} />
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#1f1f22', display: 'block', marginBottom: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Budget ($)</label>
                 <input type="number" step="0.10" value={newBudgetUsd} onChange={e => setNewBudgetUsd(parseFloat(e.target.value) || 1)} style={{
-                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }} />
               </div>
             </div>
@@ -357,7 +357,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
                 onChange={e => setNewScheduleCron(e.target.value)}
                 placeholder="e.g. 0 6 * * * (daily at 6am UTC)"
                 style={{
-                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb',
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ececef',
                   fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 }}
               />
@@ -366,7 +366,7 @@ export default function AgentGoalsTab({ clientId, agencyId }) {
             {/* Buttons */}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowNewGoal(false)} style={{
-                padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                padding: '8px 18px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
                 fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
               }}>Cancel</button>
               <button onClick={createGoal} disabled={creating} style={{

@@ -21,7 +21,7 @@ const STATUS_CONFIG = {
 const CONTENT_TYPE_COLORS = {
   pillar:     { color: '#7c3aed', bg: '#7c3aed14' },
   cluster:    { color: T, bg: '#f1f1f6' },
-  support:    { color: '#1f1f22', bg: '#6b728014' },
+  support:    { color: '#1f1f22', bg: '#6b6b7014' },
   faq:        { color: AMB, bg: '#f1f1f6' },
   comparison: { color: R, bg: '#f1f1f6' },
 }
@@ -37,7 +37,7 @@ function ScoreCircle({ score, size = 64, strokeWidth = 5 }) {
   const offset = circumference - (score / 100) * circumference
   return (
     <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e5e7eb" strokeWidth={strokeWidth} />
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#ececef" strokeWidth={strokeWidth} />
       <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth}
         strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
       <text x={size / 2} y={size / 2} textAnchor="middle" dominantBaseline="central"
@@ -53,7 +53,7 @@ function ScoreCircle({ score, size = 64, strokeWidth = 5 }) {
 function ScoreBadge({ score, label, icon: Icon }) {
   const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? '#e9695c' : '#d1d5db'
   return (
-    <div style={{ textAlign: 'center', padding: '8px 16px', background: '#fff', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+    <div style={{ textAlign: 'center', padding: '8px 16px', background: '#fff', borderRadius: 10, border: '1px solid #ececef' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 4 }}>
         {Icon && <Icon size={12} color={color} />}
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color, lineHeight: 1 }}>{score || '--'}</div>
@@ -78,7 +78,7 @@ function StatusBadge({ status }) {
 // ── Content Type Pill ───────────────────────────────────────────
 
 function ContentTypePill({ type }) {
-  const cfg = CONTENT_TYPE_COLORS[type] || { color: '#1f1f22', bg: '#6b728014' }
+  const cfg = CONTENT_TYPE_COLORS[type] || { color: '#1f1f22', bg: '#6b6b7014' }
   return (
     <span style={{ padding: '2px 8px', borderRadius: 10, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, textTransform: 'capitalize' }}>
       {type}
@@ -119,7 +119,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px',
+      background: '#fff', borderRadius: 12, border: '1px solid #ececef', padding: '16px 18px',
       transition: 'box-shadow 0.15s', cursor: 'default',
       borderLeft: `4px solid ${STATUS_CONFIG[node.status]?.color || '#ececef'}`,
     }}
@@ -180,7 +180,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
           {node.attributes.slice(0, expanded ? 20 : 4).map((attr, i) => (
             <span key={i} style={{
               padding: '1px 6px', borderRadius: 6, background: '#f1f1f6', fontSize: 12, color: '#1f1f22',
-              fontWeight: 500, border: '1px solid #e5e7eb',
+              fontWeight: 500, border: '1px solid #ececef',
             }}>
               {Array.isArray(attr) ? attr.join(': ') : attr}
             </span>
@@ -200,7 +200,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
 
       {/* Expanded details */}
       {expanded && (
-        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
+        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f1f1f6' }}>
           {/* Micro contexts */}
           {node.micro_contexts && node.micro_contexts.length > 0 && (
             <div style={{ marginBottom: 8 }}>
@@ -445,7 +445,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
   const coreFiltered = filteredNodes.filter(n => n.section === 'core')
   const outerFiltered = filteredNodes.filter(n => n.section === 'outer')
 
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
 
   // ── Empty state ──────────────────────────────────────────────
 
@@ -528,7 +528,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={analyzeCoverage} disabled={analyzing}
             style={{
-              padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+              padding: '8px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
               fontSize: 12, fontWeight: 700, cursor: analyzing ? 'wait' : 'pointer', color: T,
               display: 'flex', alignItems: 'center', gap: 4, opacity: analyzing ? 0.5 : 1,
             }}>
@@ -596,7 +596,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
               setEditingIdentity(true)
             }
           }} style={{
-            display: 'flex', alignItems: 'center', gap: 3, background: 'none', border: '1px solid #e5e7eb',
+            display: 'flex', alignItems: 'center', gap: 3, background: 'none', border: '1px solid #ececef',
             borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#1f1f22',
           }}>
             {editingIdentity ? <X size={10} /> : <Edit2 size={10} />}
@@ -624,17 +624,17 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Entity</div>
               <input value={identityForm.central_entity} onChange={e => setIdentityForm(p => ({ ...p, central_entity: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #ececef', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700 }} />
             </div>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Source Context</div>
               <textarea value={identityForm.source_context} onChange={e => setIdentityForm(p => ({ ...p, source_context: e.target.value }))}
-                rows={2} style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, resize: 'vertical' }} />
+                rows={2} style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #ececef', fontSize: 12, resize: 'vertical' }} />
             </div>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Search Intent</div>
               <textarea value={identityForm.central_search_intent} onChange={e => setIdentityForm(p => ({ ...p, central_search_intent: e.target.value }))}
-                rows={2} style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, resize: 'vertical' }} />
+                rows={2} style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #ececef', fontSize: 12, resize: 'vertical' }} />
             </div>
           </div>
         )}
@@ -642,7 +642,7 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
 
       {/* Filter bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        <Filter size={14} color="#9ca3af" />
+        <Filter size={14} color="#8e8e93" />
         {[
           ['all', 'All', null],
           ['core', 'Core', stats.core_count],
@@ -665,15 +665,15 @@ export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
 
         {/* Search */}
         <div style={{ position: 'relative' }}>
-          <Search size={12} color="#9ca3af" style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={12} color="#8e8e93" style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)' }} />
           <input value={searchQ} onChange={e => setSearchQ(e.target.value)}
             placeholder="Search nodes..."
-            style={{ padding: '6px 10px 6px 26px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 11, width: 160 }} />
+            style={{ padding: '6px 10px 6px 26px', borderRadius: 8, border: '1px solid #ececef', fontSize: 11, width: 160 }} />
         </div>
 
         {/* Sort */}
         <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-          style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 600, background: '#fff', cursor: 'pointer' }}>
+          style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #ececef', fontSize: 11, fontWeight: 600, background: '#fff', cursor: 'pointer' }}>
           <option value="priority">Sort: Priority</option>
           <option value="volume">Sort: Volume</option>
           <option value="relevance">Sort: Relevance</option>

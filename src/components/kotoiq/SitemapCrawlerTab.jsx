@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 const PAGE_SIZE = 100
 
 export default function SitemapCrawlerTab({ clientId, agencyId }) {
@@ -233,7 +233,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
               <option value="url">Sort: URL</option>
             </select>
             <button onClick={exportCSV} disabled={!urls.length} style={{
-              padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+              padding: '8px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
               fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer',
               opacity: urls.length ? 1 : 0.5, display: 'flex', alignItems: 'center', gap: 4,
             }}><Download size={12} /> Export CSV</button>
@@ -250,7 +250,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     <th style={th}>URL</th>
                     <th style={th}>Lastmod</th>
                     <th style={{ ...th, textAlign: 'center' }}>Priority</th>
@@ -260,7 +260,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {urls.map((u, i) => (
-                    <tr key={u.id || i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={u.id || i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '8px', wordBreak: 'break-all' }}>
                         <a href={u.url} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'none' }}>{u.url}</a>
                       </td>
@@ -328,7 +328,7 @@ export default function SitemapCrawlerTab({ clientId, agencyId }) {
 
 const input = { width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, outline: 'none', background: '#fff' }
 const th = { textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }
-const pageBtn = { display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer' }
+const pageBtn = { display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer' }
 
 function Field({ label, children }) {
   return (

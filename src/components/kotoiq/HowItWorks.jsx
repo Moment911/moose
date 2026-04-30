@@ -487,7 +487,7 @@ export default function HowItWorks({ tool, compact = false }) {
         <span>How this works & what the output means</span>
         {!expanded && info.layman && <span style={{ fontSize: 12, fontWeight: 500, color: '#1f2937', marginLeft: 4 }}>— click to learn</span>}
         <div style={{ marginLeft: 'auto' }}>
-          {expanded ? <ChevronUp size={16} color="#374151" /> : <ChevronDown size={16} color="#374151" />}
+          {expanded ? <ChevronUp size={16} color="#1f1f22" /> : <ChevronDown size={16} color="#1f1f22" />}
         </div>
       </button>
 
@@ -504,7 +504,7 @@ export default function HowItWorks({ tool, compact = false }) {
             </div>
 
             {/* Toggle */}
-            <div style={{ display: 'flex', gap: 0, marginBottom: 10, background: '#fff', borderRadius: 8, padding: 3, border: '1px solid #e5e7eb', width: 'fit-content' }}>
+            <div style={{ display: 'flex', gap: 0, marginBottom: 10, background: '#fff', borderRadius: 8, padding: 3, border: '1px solid #ececef', width: 'fit-content' }}>
               <button onClick={() => setMethodView('layman')} style={{
                 padding: '6px 14px', borderRadius: 6, border: 'none',
                 background: methodView === 'layman' ? BLK : 'transparent',
@@ -527,7 +527,7 @@ export default function HowItWorks({ tool, compact = false }) {
 
             <div style={{
               fontSize: 13, lineHeight: 1.65, color: '#111827', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
-              padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb',
+              padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #ececef',
             }}>
               {info[methodView]}
             </div>
@@ -567,7 +567,7 @@ export default function HowItWorks({ tool, compact = false }) {
               </div>
 
               {/* Toggle */}
-              <div style={{ display: 'flex', gap: 0, marginBottom: 10, background: '#fff', borderRadius: 8, padding: 3, border: '1px solid #e5e7eb', width: 'fit-content' }}>
+              <div style={{ display: 'flex', gap: 0, marginBottom: 10, background: '#fff', borderRadius: 8, padding: 3, border: '1px solid #ececef', width: 'fit-content' }}>
                 <button onClick={() => setOutputView('layman')} style={{
                   padding: '6px 14px', borderRadius: 6, border: 'none',
                   background: outputView === 'layman' ? BLK : 'transparent',
@@ -591,7 +591,7 @@ export default function HowItWorks({ tool, compact = false }) {
               <div style={{
                 fontSize: 13, lineHeight: 1.65, color: '#111827', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                 padding: '12px 14px', background: '#fff', borderRadius: 8,
-                border: '1px solid #e5e7eb',
+                border: '1px solid #ececef',
               }}>
                 {renderMarkdown(outputView === 'layman' ? info.output_layman : info.output_technical)}
               </div>

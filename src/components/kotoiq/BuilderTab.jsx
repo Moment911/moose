@@ -172,7 +172,7 @@ export default function BuilderTab({ clientId, agencyId }) {
   return (
     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
       {/* Tab bar */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid #e5e7eb', paddingBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid #ececef', paddingBottom: 12 }}>
         <TabButton active={view === 'templates'} onClick={() => setView('templates')}>Templates</TabButton>
         <TabButton active={view === 'ingest'} onClick={() => setView('ingest')}>Ingest New</TabButton>
         {view === 'slots' && <TabButton active>Slot Editor</TabButton>}
@@ -499,17 +499,17 @@ const btnStyle = {
 const btnSmStyle = {
   display: 'inline-flex', alignItems: 'center', gap: 4,
   padding: '5px 12px', fontSize: 13, fontWeight: 500,
-  background: '#f1f1f6', color: '#111', border: '1px solid #e5e7eb',
+  background: '#f1f1f6', color: '#111', border: '1px solid #ececef',
   borderRadius: 6, cursor: 'pointer',
 }
 
 const cardStyle = {
   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  padding: '12px 16px', border: '1px solid #e5e7eb', borderRadius: 8,
+  padding: '12px 16px', border: '1px solid #ececef', borderRadius: 8,
   cursor: 'pointer', background: '#fff',
 }
 
 const inlineInputStyle = {
-  fontSize: 14, padding: '4px 8px', border: '1px solid #e5e7eb',
+  fontSize: 14, padding: '4px 8px', border: '1px solid #ececef',
   borderRadius: 4, outline: 'none', fontFamily: 'inherit',
 }

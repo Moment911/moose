@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const FORMATS = [
   { key: 'wikidata', label: 'Wikidata QuickStatements' },
@@ -162,7 +162,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK, marginBottom: 12 }}>Entity Properties</div>
               <div style={{ maxHeight: 500, overflowY: 'auto' }}>
                 {(result.entity_properties || []).map((p, i) => (
-                  <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
+                  <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f1f1f6', fontSize: 12 }}>
                     <div style={{ fontWeight: 700, color: BLK, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.04em' }}>{p.name || p.property || p.p_code || p.predicate || '—'}</div>
                     <div style={{ color: '#1f1f22', wordBreak: 'break-word', marginTop: 2 }}>{String(p.value ?? p.label ?? '').slice(0, 200)}</div>
                     {p.source && <div style={{ color: '#8e8e93', fontSize: 10, marginTop: 2 }}>{p.source}</div>}
@@ -177,7 +177,7 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>Generated {FORMATS.find(f => f.key === format)?.label}</div>
                 <button onClick={copyAll} style={{
-                  padding: '5px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff',
+                  padding: '5px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff',
                   fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                 }}><Copy size={11} /> Copy</button>
               </div>
@@ -212,11 +212,11 @@ export default function KnowledgeGraphTab({ clientId, agencyId }) {
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={copyAll} style={{
-                    padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                    padding: '6px 12px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
                     fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                   }}><Copy size={12} /> Copy All</button>
                   <button onClick={download} style={{
-                    padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                    padding: '6px 12px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
                     fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                   }}><Download size={12} /> Download</button>
                 </div>

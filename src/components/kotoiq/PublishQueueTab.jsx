@@ -195,7 +195,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
           return (
             <div key={campaign.id} style={{
               background: '#fff',
-              border: '1px solid #e5e7eb',
+              border: '1px solid #ececef',
               borderRadius: 12,
               overflow: 'hidden',
             }}>
@@ -212,8 +212,8 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
               >
                 {/* Expand chevron */}
                 {isExpanded
-                  ? <ChevronDown size={16} color="#9ca3af" />
-                  : <ChevronRight size={16} color="#9ca3af" />
+                  ? <ChevronDown size={16} color="#8e8e93" />
+                  : <ChevronRight size={16} color="#8e8e93" />
                 }
 
                 {/* Name */}
@@ -289,7 +289,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
               {/* Expanded: variant list */}
               {isExpanded && (
                 <div style={{
-                  borderTop: '1px solid #f3f4f6',
+                  borderTop: '1px solid #f1f1f6',
                   padding: '0 18px 14px',
                 }}>
                   {loading[campaign.id] ? (
@@ -305,7 +305,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                       {/* Summary counts */}
                       <div style={{
                         display: 'flex', gap: 16, padding: '12px 0 8px',
-                        borderBottom: '1px solid #f3f4f6', marginBottom: 8,
+                        borderBottom: '1px solid #f1f1f6', marginBottom: 8,
                       }}>
                         {Object.entries(data.counts || {}).map(([status, count]) => {
                           if (!count) return null
@@ -330,7 +330,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                         return (
                           <div key={variant.id} style={{
                             display: 'flex', alignItems: 'center', gap: 10,
-                            padding: '8px 0', borderBottom: '1px solid #f9fafb',
+                            padding: '8px 0', borderBottom: '1px solid #f9f9fb',
                             fontSize: 13,
                           }}>
                             {/* Status icon */}
@@ -393,7 +393,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
                                 style={{
                                   display: 'flex', alignItems: 'center', gap: 4,
                                   padding: '4px 10px', borderRadius: 8,
-                                  border: '1px solid #e5e7eb', background: '#fff',
+                                  border: '1px solid #ececef', background: '#fff',
                                   fontSize: 11, fontWeight: 600, color: '#6b6b70',
                                   cursor: 'pointer', flexShrink: 0,
                                   opacity: loading[`retry-${variant.id}`] ? 0.5 : 1,
@@ -450,7 +450,7 @@ function ActionButton({ icon: Icon, label, color, loading: isLoading, onClick })
       style={{
         display: 'flex', alignItems: 'center', gap: 5,
         padding: '6px 12px', borderRadius: 8,
-        border: '1px solid #e5e7eb', background: '#fff',
+        border: '1px solid #ececef', background: '#fff',
         fontSize: 12, fontWeight: 600, color,
         cursor: isLoading ? 'not-allowed' : 'pointer',
         opacity: isLoading ? 0.5 : 1,

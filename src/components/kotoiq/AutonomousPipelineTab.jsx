@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const PIPELINE_STEPS = [
   { key: 'query_gap_analysis', label: 'Query Gap Analysis' },
@@ -47,7 +47,7 @@ function ScoreBadge({ score, label }) {
   const s = Number(score || 0)
   const color = s >= 85 ? GRN : s >= 60 ? AMB : s > 0 ? '#e9695c' : '#d1d5db'
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 14px', textAlign: 'center', minWidth: 96 }}>
+    <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 10, padding: '10px 14px', textAlign: 'center', minWidth: 96 }}>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color }}>{s || '—'}</div>
       <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700, color: '#1f1f22', marginTop: 2 }}>{label}</div>
     </div>
@@ -193,7 +193,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
                 borderRadius: 8, background: s.status === 'running' ? '#f9f9fb' : '#f9f9fb',
                 border: `1px solid ${s.status === 'completed' ? GRN + '30' : s.status === 'failed' ? R + '30' : '#ececef'}`,
               }}>
-                <span style={{ flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: '#fff', border: '1px solid #e5e7eb', color: BLK, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                <span style={{ flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: '#fff', border: '1px solid #ececef', color: BLK, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                 <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: BLK }}>{s.label}</div>
                 {s.duration_ms ? <span style={{ fontSize: 11, color: '#6b6b70' }}>{s.duration_ms}ms</span> : null}
                 <StatusBadge status={s.status || 'pending'} />
@@ -239,7 +239,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
                     }}>Published ↗</a>
                   )}
                   <button onClick={downloadHTML} style={{
-                    padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                    padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
                     fontSize: 12, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                   }}><Download size={12} /> Download HTML</button>
                 </div>
@@ -248,7 +248,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
                 title="content preview"
                 srcDoc={result.content_html}
                 sandbox="allow-same-origin"
-                style={{ width: '100%', height: 500, border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff' }}
+                style={{ width: '100%', height: 500, border: '1px solid #ececef', borderRadius: 8, background: '#fff' }}
               />
             </div>
           )}
@@ -263,7 +263,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
                 {schemaOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 Schema JSON-LD ({result.schema_json_ld.length})
                 <button onClick={e => { e.stopPropagation(); copyToClipboard(JSON.stringify(result.schema_json_ld, null, 2), 'Schema') }} style={{
-                  marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                  marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
                   fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                 }}><Copy size={11} /> Copy Schema</button>
               </button>
@@ -286,7 +286,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             <Clock size={16} color="#0a0a0a" /> Pipeline History
           </div>
           <button onClick={loadHistory} disabled={historyLoading} style={{
-            padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+            padding: '6px 12px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
             fontSize: 11, fontWeight: 700, color: '#1f1f22', cursor: 'pointer',
           }}>{historyLoading ? 'Loading...' : 'Refresh'}</button>
         </div>
@@ -299,7 +299,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                <tr style={{ borderBottom: '2px solid #ececef' }}>
                   <th style={{ textAlign: 'left', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Keyword</th>
                   <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Status</th>
                   <th style={{ textAlign: 'center', padding: '8px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Human</th>
@@ -309,7 +309,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
               </thead>
               <tbody>
                 {history.slice(0, 20).map((r, i) => (
-                  <tr key={r.id || i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <tr key={r.id || i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                     <td style={{ padding: '10px 8px', color: BLK, fontWeight: 600 }}>{r.keyword}</td>
                     <td style={{ padding: '10px 8px', textAlign: 'center' }}><StatusBadge status={r.status} /></td>
                     <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700 }}>{r.human_score ?? '—'}</td>

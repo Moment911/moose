@@ -202,7 +202,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
               >
                 {connected
                   ? <Wifi size={14} color={GRN} />
-                  : <WifiOff size={14} color="#9ca3af" />
+                  : <WifiOff size={14} color="#8e8e93" />
                 }
                 {src.label}
                 {!connected && (
@@ -273,7 +273,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                 {kw}
                 <Trash2
                   size={12}
-                  color="#9ca3af"
+                  color="#8e8e93"
                   style={{ cursor: 'pointer' }}
                   onClick={() => removeKeyword(kw)}
                 />
@@ -324,7 +324,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
           >
             {autoPublish
               ? <ToggleRight size={28} color={GRN} />
-              : <ToggleLeft size={28} color="#9ca3af" />
+              : <ToggleLeft size={28} color="#8e8e93" />
             }
           </div>
           <span style={{ fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
@@ -460,7 +460,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {expanded ? <ChevronDown size={14} color="#6b7280" /> : <ChevronRight size={14} color="#6b7280" />}
+                    {expanded ? <ChevronDown size={14} color="#6b6b70" /> : <ChevronRight size={14} color="#6b6b70" />}
                     <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
                       Stage {stage.stage}: {stage.stage_name}
                     </span>
@@ -491,7 +491,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                         key={i}
                         style={{
                           display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-                          padding: '4px 0', borderTop: i > 0 ? '1px solid #f3f4f6' : 'none',
+                          padding: '4px 0', borderTop: i > 0 ? '1px solid #f1f1f6' : 'none',
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -531,7 +531,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                 key={stat.label}
                 style={{
                   padding: '14px 20px', borderRadius: 10,
-                  border: '1px solid #e5e7eb', flex: '1 1 140px',
+                  border: '1px solid #ececef', flex: '1 1 140px',
                   textAlign: 'center',
                 }}
               >

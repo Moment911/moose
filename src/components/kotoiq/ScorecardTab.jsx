@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 // Metric rows to display in the comparison table
 const METRIC_ROWS = [
@@ -115,7 +115,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input value={compInput} onChange={e => setCompInput(e.target.value)} placeholder="competitor1.com, competitor2.com, competitor3.com (optional — autodetects)" style={{
-            flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", minWidth: 0,
+            flex: 1, padding: '10px 14px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", minWidth: 0,
           }} />
           <button onClick={generate} disabled={running || !clientId} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 22px', borderRadius: 8,
@@ -151,7 +151,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Metric</th>
                     <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: T, textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>Client</th>
                     {competitors.map((c, i) => (
@@ -169,7 +169,7 @@ export default function ScorecardTab({ clientId, agencyId }) {
                     const compBest = compVals.length ? (isLowerBetter ? Math.min(...compVals) : Math.max(...compVals)) : null
                     const clientCell = cellColor(clientVal, compBest, isLowerBetter)
                     return (
-                      <tr key={row.key} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <tr key={row.key} style={{ borderBottom: '1px solid #f1f1f6' }}>
                         <td style={{ padding: '10px 12px', fontWeight: 600, color: '#1f2937' }}>{row.label}</td>
                         <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, background: clientCell.bg, color: clientCell.color }}>{fmtVal(clientVal)}</td>
                         {competitors.map((c, i) => {

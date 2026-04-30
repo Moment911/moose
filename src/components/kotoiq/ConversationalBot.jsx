@@ -652,9 +652,9 @@ export default function ConversationalBot({
     : { position: 'fixed', bottom: 24, right: 24, width: PANEL_WIDTH, height: 'min(640px, calc(100vh - 48px))', zIndex: 9999, borderRadius: 16, overflow: 'hidden' }
 
   return (
-    <div style={{ ...panelStyle, background: '#fff', border: '1px solid #e5e7eb', boxShadow: '0 20px 50px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ ...panelStyle, background: '#fff', border: '1px solid #ececef', boxShadow: '0 20px 50px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10, background: BLK, color: '#fff' }}>
+      <div style={{ padding: '14px 16px', borderBottom: '1px solid #ececef', display: 'flex', alignItems: 'center', gap: 10, background: BLK, color: '#fff' }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Brain size={18} color="#fff" />
         </div>
@@ -750,12 +750,12 @@ export default function ConversationalBot({
               <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {SUGGESTED_PROMPTS.map(p => (
                   <button key={p.label} onClick={() => send(p.label)}
-                    style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', gap: 10, transition: 'all .12s' }}
+                    style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13, color: BLK, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", display: 'flex', alignItems: 'center', gap: 10, transition: 'all .12s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = T; e.currentTarget.style.background = '#f0fdfe' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = '#ececef'; e.currentTarget.style.background = '#fff' }}>
                     <p.icon size={14} color="#0a0a0a" />
                     <span style={{ flex: 1 }}>{p.label}</span>
-                    <ChevronRight size={14} color="#9ca3af" />
+                    <ChevronRight size={14} color="#8e8e93" />
                   </button>
                 ))}
               </div>
@@ -785,7 +785,7 @@ export default function ConversationalBot({
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: "#0a0a0a", display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Brain size={15} color="#fff" />
               </div>
-              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '10px 14px' }}>
+              <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 14, padding: '10px 14px' }}>
                 <span style={{ display: 'inline-flex', gap: 4 }}>
                   <Dot delay={0} /><Dot delay={0.15} /><Dot delay={0.3} />
                 </span>
@@ -799,7 +799,7 @@ export default function ConversationalBot({
           Plan 07-08: ClarificationCard renders its own answer textarea +
           three actions; the chat composer would be redundant here. */}
       {!showHistory && mode !== 'clarifications' && (
-        <div style={{ padding: 12, borderTop: '1px solid #e5e7eb', background: '#fff' }}>
+        <div style={{ padding: 12, borderTop: '1px solid #ececef', background: '#fff' }}>
           {pendingFile && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#f0fdfe', border: `1px solid ${T}`, borderRadius: 8, marginBottom: 8, fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, maxWidth: '100%' }}>
               <Paperclip size={12} color="#0a0a0a" />
@@ -835,7 +835,7 @@ export default function ConversationalBot({
               onKeyDown={onKeyDown}
               placeholder="Describe what you want to do…"
               rows={1}
-              style={{ flex: 1, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, resize: 'none', outline: 'none', maxHeight: 140, lineHeight: 1.4 }}
+              style={{ flex: 1, padding: '10px 12px', border: '1px solid #ececef', borderRadius: 10, fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, resize: 'none', outline: 'none', maxHeight: 140, lineHeight: 1.4 }}
               onFocus={e => e.currentTarget.style.borderColor = T}
               onBlur={e => e.currentTarget.style.borderColor = '#ececef'}
             />
@@ -1113,14 +1113,14 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
                   </div>
                 )}
               </div>
-              <ChevronRight size={14} color="#9ca3af" />
+              <ChevronRight size={14} color="#8e8e93" />
             </button>
           ))}
         </div>
       )}
-      <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderBottom: '1px solid #f3f4f6' }}>
-          <Search size={13} color="#9ca3af" />
+      <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #ececef', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderBottom: '1px solid #f1f1f6' }}>
+          <Search size={13} color="#8e8e93" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -1136,7 +1136,7 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
           )}
           {filtered.map(c => (
             <button key={c.id} onClick={() => onPick(c)} type="button"
-              style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", borderBottom: '1px solid #f9fafb' }}
+              style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", borderBottom: '1px solid #f9f9fb' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f1f1f6'}
               onMouseLeave={e => e.currentTarget.style.background = suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent'}>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -1153,7 +1153,7 @@ function ClientPicker({ suggestions, clients, onPick, onNew }) {
           ))}
         </div>
         <button onClick={onNew} type="button"
-          style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, padding: '10px 12px', border: 'none', borderTop: '1px solid #e5e7eb', background: '#fafafb', cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, color: T }}
+          style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, padding: '10px 12px', border: 'none', borderTop: '1px solid #ececef', background: '#fafafb', cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, color: T }}
           onMouseEnter={e => e.currentTarget.style.background = '#f0fdfe'}
           onMouseLeave={e => e.currentTarget.style.background = '#fafafb'}>
           <Plus size={14} /> New Client

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 function StatCard({ label, value, sub, icon: Icon, color }) {
   return (
@@ -122,7 +122,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Campaigns</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Campaign', 'Status', 'Spend', 'Clicks', 'Conv', 'CPA'].map(h => (
                       <th key={h} style={{ textAlign: h === 'Campaign' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
@@ -130,7 +130,7 @@ export default function AdsOverviewTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {data.campaigns.map((c, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 600 }}>{c.name}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
                         <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: c.status === 'ENABLED' ? '#dcfce7' : '#f1f1f6', color: c.status === 'ENABLED' ? GRN : '#6b6b70' }}>{c.status}</span>

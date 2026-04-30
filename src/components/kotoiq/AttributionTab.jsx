@@ -154,7 +154,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
         <KpiCard icon={<Phone size={16} />} label="Calls" value={kpis.call_count} color="#0a0a0a" />
         <KpiCard icon={<BarChart3 size={16} />} label="Rank" value={kpis.rank ?? '--'} sub={kpis.rank_keyword} color="#6366f1" />
         <KpiCard icon={<ArrowUpRight size={16} />} label="Est. Revenue" value={kpis.estimated_revenue ? `$${kpis.estimated_revenue.toLocaleString()}` : '--'} color="#16a34a" />
-        <KpiCard icon={<Clock size={16} />} label="Days Live" value={daysSincePublish ?? '--'} color="#6b7280" />
+        <KpiCard icon={<Clock size={16} />} label="Days Live" value={daysSincePublish ?? '--'} color="#6b6b70" />
       </div>
 
       {/* ── CWV Section ──────────────────────────────────────────────── */}
@@ -205,7 +205,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
               const val = cwv[key]
               const grade = cwvGrade(key, val)
               return (
-                <div key={key} style={{ textAlign: 'center', padding: '12px 8px', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+                <div key={key} style={{ textAlign: 'center', padding: '12px 8px', borderRadius: 10, border: '1px solid #ececef' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
                     {meta.label}
                   </div>
@@ -242,7 +242,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
         {kpis.attributed_calls.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {kpis.attributed_calls.map((call, i) => (
-              <div key={call.inbound_call_id || i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fafafb' }}>
+              <div key={call.inbound_call_id || i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fafafb' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Phone size={14} style={{ color: '#6b6b70' }} />
                   <div>
@@ -341,7 +341,7 @@ function DeviceToggle({ active, onClick, children }) {
 const card = {
   background: '#fff',
   borderRadius: 14,
-  border: '1px solid #e5e7eb',
+  border: '1px solid #ececef',
   padding: '20px 22px',
   marginBottom: 0,
 }
@@ -366,7 +366,7 @@ const actionBtn = {
   fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
   padding: '8px 16px',
   borderRadius: 10,
-  border: '1px solid #e5e7eb',
+  border: '1px solid #ececef',
   background: '#fff',
   color: BLK,
   cursor: 'pointer',

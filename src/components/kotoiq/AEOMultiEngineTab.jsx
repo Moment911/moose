@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const ENGINE_LIST = [
   { key: 'google_ai_overview', label: 'Google AI Overview', Icon: Search,        color: '#4285F4' },
@@ -25,7 +25,7 @@ function ScoreRing({ score, size = 72, color }) {
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={5} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f1f6" strokeWidth={5} />
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={col} strokeWidth={5}
           strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
@@ -94,11 +94,11 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
           Score your content for citation potential across Google AI Overview, Perplexity, ChatGPT Search, Claude, and Copilot.
         </div>
         <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Target keyword (e.g. best running shoes)" style={{
-          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+          width: '100%', padding: '10px 14px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           marginBottom: 10, boxSizing: 'border-box',
         }} />
         <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Paste your page content here..." rows={8} style={{
-          width: '100%', padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+          width: '100%', padding: '10px 14px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
           resize: 'vertical', marginBottom: 10, boxSizing: 'border-box',
         }} />
         <button onClick={run} disabled={running} style={{
@@ -134,7 +134,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
               const e = data.engines?.[engine.key] || {}
               const Icon = engine.Icon
               return (
-                <div key={engine.key} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 20px' }}>
+                <div key={engine.key} style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                     <div style={{ width: 34, height: 34, borderRadius: 8, background: engine.color + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Icon size={18} color={engine.color} />
@@ -149,7 +149,7 @@ export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm })
                     </div>
                   </div>
                   {e.factors?.length > 0 && (
-                    <div style={{ marginTop: 12, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+                    <div style={{ marginTop: 12, borderTop: '1px solid #f1f1f6', paddingTop: 10 }}>
                       {e.factors.slice(0, 6).map((f, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#1f2937', marginBottom: 4 }}>
                           {f.pass ? <CheckCircle size={11} color={GRN} /> : <XCircle size={11} color="#0a0a0a" />}

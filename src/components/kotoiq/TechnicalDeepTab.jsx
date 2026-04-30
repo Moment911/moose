@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const CWV_THRESHOLDS = {
   lcp: { good: 2500, poor: 4000, unit: 'ms', label: 'LCP' },
@@ -34,7 +34,7 @@ function ScoreRing({ score, size = 80, strokeWidth = 6, color }) {
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={strokeWidth} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f1f6" strokeWidth={strokeWidth} />
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={c} strokeWidth={strokeWidth}
           strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset .8s ease' }} />
@@ -231,7 +231,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
                 {(d.canonical_issues || []).length} issues found across sampled pages
               </div>
               {expandCanonical && (d.canonical_issues || []).slice(0, 15).map((issue, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f9fafb', fontSize: 12 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f9f9fb', fontSize: 12 }}>
                   <IssueBadge type={issue.issue} />
                   <span style={{ color: '#1f1f22', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(issue.url)}</span>
                 </div>
@@ -265,7 +265,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
                 {(d.mobile_mismatches || []).length} pages missing viewport meta
               </div>
               {expandMobile && (d.mobile_mismatches || []).slice(0, 15).map((m, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f9fafb', fontSize: 12 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f9f9fb', fontSize: 12 }}>
                   <IssueBadge type={m.issue} />
                   <span style={{ color: '#1f1f22', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(m.url)}</span>
                 </div>
@@ -383,9 +383,9 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           )}
         </div>
         {expandSitemap && (d.sitemap_issues || []).length > 0 && (
-          <div style={{ marginTop: 12, borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
+          <div style={{ marginTop: 12, borderTop: '1px solid #f1f1f6', paddingTop: 10 }}>
             {(d.sitemap_issues || []).map((issue, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 12, color: '#1f1f22', borderBottom: '1px solid #f9fafb' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 12, color: '#1f1f22', borderBottom: '1px solid #f9f9fb' }}>
                 <AlertTriangle size={12} color={AMB} />
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(issue.url, 50)}</span>
                 <span style={{ fontSize: 11, color: '#1f2937' }}>{issue.issue}</span>

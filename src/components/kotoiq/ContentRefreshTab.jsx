@@ -142,7 +142,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
   }
 
   const s = summary || {}
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
   const titleStyle = { fontSize: 15, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }
 
   // ── Freshness distribution bar widths ──
@@ -194,7 +194,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
               { label: 'Stale', value: s.stale || 0, icon: AlertTriangle, color: '#f97316' },
               { label: 'Critical', value: s.critical || 0, icon: AlertTriangle, color: R },
             ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '14px 16px' }}>
+              <div key={label} style={{ background: '#fff', borderRadius: 12, border: '1px solid #ececef', padding: '14px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <div style={{ width: 28, height: 28, borderRadius: 7, background: color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={14} color={color} />
@@ -249,7 +249,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
           <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
               <thead>
-                <tr style={{ background: '#f9f9fb', borderBottom: '1px solid #e5e7eb' }}>
+                <tr style={{ background: '#f9f9fb', borderBottom: '1px solid #ececef' }}>
                   <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
                     <input type="checkbox" onChange={e => { if (e.target.checked) setSelectedUrls(new Set(filtered.map(r => r.url))); else setSelectedUrls(new Set()) }} checked={selectedUrls.size === filtered.length && filtered.length > 0} />
                   </th>
@@ -265,7 +265,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   const fColor = FRESHNESS_COLORS[item.freshness_status] || '#6b6b70'
                   const pColor = PRIORITY_COLORS[item.refresh_priority] || '#6b6b70'
                   return (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: selectedUrls.has(item.url) ? '#f9f9fb' : 'transparent' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6', background: selectedUrls.has(item.url) ? '#f9f9fb' : 'transparent' }}>
                       <td style={{ padding: '8px 12px' }}>
                         <input type="checkbox" checked={selectedUrls.has(item.url)} onChange={() => toggleUrl(item.url)} />
                       </td>
@@ -321,7 +321,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             )}
 
             {plans.map((plan, i) => (
-              <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 10, overflow: 'hidden' }}>
+              <div key={i} style={{ border: '1px solid #ececef', borderRadius: 10, marginBottom: 10, overflow: 'hidden' }}>
                 <div onClick={() => setExpandedPlan(expandedPlan === i ? null : i)}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer', background: '#f9f9fb' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -331,16 +331,16 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {plan.priority && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: (PRIORITY_COLORS[plan.priority] || '#6b6b70') + '15', color: PRIORITY_COLORS[plan.priority] || '#6b6b70', textTransform: 'uppercase' }}>{plan.priority}</span>}
                     {plan.estimated_hours && <span style={{ fontSize: 11, color: '#1f1f22', fontWeight: 600 }}>{plan.estimated_hours}h est.</span>}
-                    {expandedPlan === i ? <ChevronUp size={14} color="#6b7280" /> : <ChevronDown size={14} color="#6b7280" />}
+                    {expandedPlan === i ? <ChevronUp size={14} color="#6b6b70" /> : <ChevronDown size={14} color="#6b6b70" />}
                   </div>
                 </div>
                 {expandedPlan === i && (
-                  <div style={{ padding: '16px 20px', borderTop: '1px solid #e5e7eb' }}>
+                  <div style={{ padding: '16px 20px', borderTop: '1px solid #ececef' }}>
                     {plan.sections_to_update?.length > 0 && (
                       <div style={{ marginBottom: 14 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#1f1f22', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Sections to Update</div>
                         {plan.sections_to_update.map((sec, j) => (
-                          <div key={j} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12, color: BLK }}>
+                          <div key={j} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: '1px solid #f1f1f6', fontSize: 12, color: BLK }}>
                             <span style={{ fontWeight: 700, minWidth: 80, color: T }}>{sec.action}</span>
                             <span style={{ fontWeight: 600 }}>{sec.section}:</span>
                             <span style={{ color: '#1f1f22' }}>{sec.details}</span>

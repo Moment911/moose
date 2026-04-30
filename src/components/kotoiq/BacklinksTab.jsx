@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 function ScoreRing({ score, size = 100 }) {
   const color = score >= 70 ? GRN : score >= 40 ? AMB : R
@@ -18,7 +18,7 @@ function ScoreRing({ score, size = 100 }) {
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={6} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f1f6" strokeWidth={6} />
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={6}
           strokeDasharray={circumference} strokeDashoffset={offset}
           strokeLinecap="round" transform={`rotate(-90 ${size / 2} ${size / 2})`}
@@ -334,7 +334,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
-                      <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                      <tr style={{ borderBottom: '2px solid #ececef' }}>
                         <th style={{ textAlign: 'left', padding: '8px', fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Domain</th>
                         <th style={{ textAlign: 'center', padding: '8px', fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>DA</th>
                         <th style={{ textAlign: 'center', padding: '8px', fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase' }}>Ref. Domains</th>
@@ -344,7 +344,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                     </thead>
                     <tbody>
                       {/* Client row first */}
-                      <tr style={{ borderBottom: '1px solid #e5e7eb', background: '#f9f9fb' }}>
+                      <tr style={{ borderBottom: '1px solid #ececef', background: '#f9f9fb' }}>
                         <td style={{ padding: '10px 8px', fontWeight: 700, color: T }}>You</td>
                         <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700, color: BLK }}>{data.domain_authority}</td>
                         <td style={{ padding: '10px 8px', textAlign: 'center', color: BLK }}>{fmtN(data.total_referring_domains)}</td>
@@ -352,7 +352,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
                         <td style={{ padding: '10px 8px', textAlign: 'center', color: data.spam_score <= 5 ? GRN : R }}>{data.spam_score}%</td>
                       </tr>
                       {data.competitor_comparison.map((c, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                           <td style={{ padding: '10px 8px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><a href={`https://${c.domain}`} target="_blank" rel="noopener noreferrer" style={{ color: BLK, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>{c.domain} <ExternalLink size={10} /></a></td>
                           <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700, color: c.domain_authority > data.domain_authority ? '#e9695c' : GRN }}>{c.domain_authority}</td>
                           <td style={{ padding: '10px 8px', textAlign: 'center', color: '#1f1f22' }}>{fmtN(c.referring_domains)}</td>

@@ -26,7 +26,7 @@ function ScoreCircle({ score, size = 72 }) {
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e5e7eb" strokeWidth={4} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#ececef" strokeWidth={4} />
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={4}
           strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
@@ -41,7 +41,7 @@ function ScoreCircle({ score, size = 72 }) {
 
 function StatBox({ label, value, icon: Icon, color }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '14px 16px', flex: 1, minWidth: 120 }}>
+    <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #ececef', padding: '14px 16px', flex: 1, minWidth: 120 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         <div style={{ width: 26, height: 26, borderRadius: 6, background: (color || T) + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={13} color={color || T} />
@@ -57,8 +57,8 @@ function IssueCard({ title, icon, color, items, renderItem, emptyMsg, descriptio
   const [expanded, setExpanded] = useState(false)
   const shown = expanded ? items : items.slice(0, 5)
   return (
-    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-      <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: items.length > 0 ? '1px solid #f3f4f6' : 'none' }}>
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', overflow: 'hidden' }}>
+      <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: items.length > 0 ? '1px solid #f1f1f6' : 'none' }}>
         <span style={{ fontSize: 16 }}>{icon}</span>
         <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: BLK }}>{title}</span>
         <span style={{
@@ -78,7 +78,7 @@ function IssueCard({ title, icon, color, items, renderItem, emptyMsg, descriptio
       {items.length > 0 && (
         <div style={{ padding: '8px 0' }}>
           {shown.map((item, i) => (
-            <div key={i} style={{ padding: '6px 18px', fontSize: 12, color: '#1f1f22', borderBottom: i < shown.length - 1 ? '1px solid #f9fafb' : 'none' }}>
+            <div key={i} style={{ padding: '6px 18px', fontSize: 12, color: '#1f1f22', borderBottom: i < shown.length - 1 ? '1px solid #f9f9fb' : 'none' }}>
               {renderItem(item, i)}
             </div>
           ))}
@@ -260,7 +260,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       {/* Score Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 24, background: '#fff', borderRadius: 16,
-        border: '1px solid #e5e7eb', padding: '20px 28px', marginBottom: 20,
+        border: '1px solid #ececef', padding: '20px 28px', marginBottom: 20,
       }}>
         <ScoreCircle score={a.overall_score || 0} />
         <div style={{ flex: 1 }}>
@@ -272,7 +272,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
           </p>
         </div>
         <button onClick={runScan} disabled={scanning} style={{
-          padding: '10px 20px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+          padding: '10px 20px', borderRadius: 8, border: '1px solid #ececef', background: '#fff',
           fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 12, cursor: scanning ? 'wait' : 'pointer',
           display: 'flex', alignItems: 'center', gap: 6, color: '#1f1f22',
         }}>
@@ -379,7 +379,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
       {/* Link Equity Flow */}
       {topEquity.length > 0 && (
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <BarChart2 size={15} color="#0a0a0a" />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Link Equity Distribution</span>
@@ -416,13 +416,13 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
       {/* Quality Node Suggestions */}
       {qualityNodes.length > 0 && (
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Zap size={15} color={GRN} />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Quality Node Suggestions</span>
             <span style={{ fontSize: 11, color: '#1f2937', marginLeft: 4 }}>High-traffic pages that should be linked from homepage</span>
           </div>
-          <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #f3f4f6' }}>
+          <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #f1f1f6' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#f9f9fb' }}>
@@ -435,7 +435,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
               </thead>
               <tbody>
                 {qualityNodes.map((node, i) => (
-                  <tr key={i} style={{ borderTop: '1px solid #f3f4f6' }}>
+                  <tr key={i} style={{ borderTop: '1px solid #f1f1f6' }}>
                     <td style={{ padding: '8px 12px', fontWeight: 500, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       <a href={node.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1f1f22', textDecoration: 'none' }}
                         onMouseEnter={e => e.currentTarget.style.color = T} onMouseLeave={e => e.currentTarget.style.color = '#1f1f22'}
@@ -463,7 +463,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
       )}
 
       {/* Breadcrumb Coverage */}
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
+      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <ArrowRight size={15} color="#0a0a0a" />
           <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>Breadcrumb Coverage</span>
@@ -508,7 +508,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
       {/* AI Recommendations */}
       {recommendations.length > 0 && (
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 22px', marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Eye size={15} color="#0a0a0a" />
             <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK }}>AI Recommendations</span>
@@ -556,7 +556,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                     Should link TO ({suggestions.should_link_to.length})
                   </div>
                   {suggestions.should_link_to.map((s, i) => (
-                    <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
+                    <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f1f1f6', fontSize: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <ArrowRight size={11} color={GRN} />
                         <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: '#1f1f22', textDecoration: 'none' }}
@@ -575,7 +575,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                     Should receive links FROM ({suggestions.should_receive_links_from.length})
                   </div>
                   {suggestions.should_receive_links_from.map((s, i) => (
-                    <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
+                    <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f1f1f6', fontSize: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <ArrowRight size={11} color="#0a0a0a" style={{ transform: 'rotate(180deg)' }} />
                         <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: '#1f1f22', textDecoration: 'none' }}
@@ -594,7 +594,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                     Anchor Text Improvements ({suggestions.anchor_improvements.length})
                   </div>
                   {suggestions.anchor_improvements.map((s, i) => (
-                    <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
+                    <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f1f1f6', fontSize: 12 }}>
                       <span style={{ color: R, textDecoration: 'line-through' }}>"{s.current_anchor}"</span>
                       <span style={{ margin: '0 6px', color: '#1f2937' }}>{'->'}</span>
                       <span style={{ color: GRN, fontWeight: 600 }}>"{s.suggested_anchor}"</span>

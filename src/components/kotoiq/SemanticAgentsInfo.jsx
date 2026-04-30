@@ -64,7 +64,7 @@ export default function SemanticAgentsInfo() {
     <div style={{
       marginTop: 24,
       borderRadius: 14,
-      border: '1px solid #e5e7eb',
+      border: '1px solid #ececef',
       background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 50%, #faf5ff 100%)',
       overflow: 'hidden',
     }}>
@@ -104,8 +104,8 @@ export default function SemanticAgentsInfo() {
           </div>
         </div>
         {expanded
-          ? <ChevronUp size={16} color="#9ca3af" />
-          : <ChevronDown size={16} color="#9ca3af" />
+          ? <ChevronUp size={16} color="#8e8e93" />
+          : <ChevronDown size={16} color="#8e8e93" />
         }
       </button>
 
@@ -126,7 +126,7 @@ export default function SemanticAgentsInfo() {
                     padding: '14px 16px',
                     borderRadius: 12,
                     background: '#fff',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid #ececef',
                     display: 'flex',
                     gap: 12,
                     alignItems: 'flex-start',

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 export default function AdsWastedSpendTab({ clientId, agencyId }) {
   const [data, setData] = useState(null)
@@ -80,7 +80,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Search Term', 'Match', 'Scope', 'Savings/mo', 'Status', ''].map(h => (
                       <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
@@ -88,7 +88,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {recs.map((r, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 500 }}>{r.search_term}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>
                         <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: '#f1f1f6' }}>{r.proposed_match_type}</span>
@@ -120,7 +120,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>All Wasted Search Terms</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Search Term', 'Cost', 'Clicks', 'First Seen', 'Last Seen'].map(h => (
                       <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
@@ -128,7 +128,7 @@ export default function AdsWastedSpendTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {candidates.slice(0, 50).map((c, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 500 }}>{c.search_term}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: R, fontWeight: 700 }}>${(c.cost_usd || 0).toFixed(2)}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{c.clicks || 0}</td>

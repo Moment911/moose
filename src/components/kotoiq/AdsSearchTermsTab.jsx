@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 export default function AdsSearchTermsTab({ clientId, agencyId }) {
   const [terms, setTerms] = useState([])
@@ -36,12 +36,12 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
         <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Search Terms Explorer</div>
         <div style={{ display: 'flex', gap: 8 }}>
           <div style={{ position: 'relative' }}>
-            <Search size={14} color="#9ca3af" style={{ position: 'absolute', left: 10, top: 10 }} />
+            <Search size={14} color="#8e8e93" style={{ position: 'absolute', left: 10, top: 10 }} />
             <input value={filter} onChange={e => setFilter(e.target.value)} placeholder="Filter terms..."
-              style={{ paddingLeft: 30, padding: '8px 12px 8px 30px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", width: 200 }} />
+              style={{ paddingLeft: 30, padding: '8px 12px 8px 30px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", width: 200 }} />
           </div>
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-            style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+            style={{ padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             <option value="cost">Sort by Cost</option>
             <option value="clicks">Sort by Clicks</option>
             <option value="impressions">Sort by Impressions</option>
@@ -58,7 +58,7 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
           <div style={{ fontSize: 12, color: '#6b6b70', marginBottom: 12 }}>{filtered.length} search terms</div>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+              <tr style={{ borderBottom: '2px solid #ececef' }}>
                 {['Search Term', 'Impressions', 'Clicks', 'Cost', 'Conv', 'Status'].map(h => (
                   <th key={h} style={{ textAlign: h === 'Search Term' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                 ))}
@@ -66,7 +66,7 @@ export default function AdsSearchTermsTab({ clientId, agencyId }) {
             </thead>
             <tbody>
               {filtered.slice(0, 100).map((t, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                   <td style={{ padding: '10px 6px', fontWeight: 500, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.search_term}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right' }}>{(t.impressions || 0).toLocaleString()}</td>
                   <td style={{ padding: '10px 6px', textAlign: 'right' }}>{(t.clicks || 0).toLocaleString()}</td>

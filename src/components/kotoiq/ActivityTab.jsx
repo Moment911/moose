@@ -6,7 +6,7 @@ import {
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, FH, FB } from '../../lib/theme'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 20px', marginBottom: 12 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '18px 20px', marginBottom: 12 }
 
 const REVERTIBLE_TABLES = new Set([
   'kotoiq_content_briefs',
@@ -259,7 +259,7 @@ export default function ActivityTab({ clientId, agencyId, onSwitchTab }) {
                     disabled={!canView}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6,
-                      border: '1px solid #e5e7eb', background: '#fff',
+                      border: '1px solid #ececef', background: '#fff',
                       fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
                       color: canView ? BLK : '#8e8e93',
                       cursor: canView ? 'pointer' : 'not-allowed', opacity: canView ? 1 : 0.5,

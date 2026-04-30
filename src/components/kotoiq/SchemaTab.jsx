@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const SCHEMA_DESCRIPTIONS = {
   LocalBusiness: 'Tells search engines your business name, address, phone, and hours',
@@ -48,7 +48,7 @@ function ScoreRing({ score, label, color, size = 64 }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={6} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f1f6" strokeWidth={6} />
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={6}
           strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset .6s ease' }} />
@@ -61,7 +61,7 @@ function ScoreRing({ score, label, color, size = 64 }) {
 
 function StatBox({ label, value, color, sub }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px', textAlign: 'center' }}>
+    <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #ececef', padding: '16px 18px', textAlign: 'center' }}>
       <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
       <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2937', textTransform: 'uppercase', marginTop: 4, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>{label}</div>
       {sub && <div style={{ fontSize: 11, color: '#1f1f22', marginTop: 2 }}>{sub}</div>}
@@ -72,7 +72,7 @@ function StatBox({ label, value, color, sub }) {
 function CopyButton({ text }) {
   return (
     <button onClick={() => { navigator.clipboard.writeText(text); toast.success('Copied to clipboard') }}
-      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#1f1f22' }}>
+      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#1f1f22' }}>
       <Copy size={11} /> Copy
     </button>
   )
@@ -204,7 +204,7 @@ export default function SchemaTab({ clientId, agencyId }) {
           <StatBox label="Semantic HTML" value={audit.semantic_html_score || 0} color={audit.semantic_html_score >= 70 ? GRN : AMB} sub="/100" />
         </div>
         <button onClick={runAudit} disabled={running}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#1f1f22', whiteSpace: 'nowrap' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 600, cursor: running ? 'wait' : 'pointer', color: '#1f1f22', whiteSpace: 'nowrap' }}>
           {running ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Rerun
         </button>
       </div>
@@ -244,7 +244,7 @@ export default function SchemaTab({ clientId, agencyId }) {
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+              <tr style={{ borderBottom: '2px solid #ececef' }}>
                 {['URL', 'Recommended Schema', 'CTR Lift', ''].map(h => (
                   <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", textAlign: h === 'URL' ? 'left' : 'center' }}>{h}</th>
                 ))}
@@ -252,7 +252,7 @@ export default function SchemaTab({ clientId, agencyId }) {
             </thead>
             <tbody>
               {eligible.slice(0, 20).map((opp, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                   <td style={{ padding: '10px', fontSize: 12, color: BLK, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <a href={opp.url} target="_blank" rel="noopener noreferrer" style={{ color: T, textDecoration: 'none' }}>{opp.url.replace(/^https?:\/\/[^/]+/, '')}</a>
                   </td>
@@ -264,7 +264,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                     <button
                       onClick={() => generateForUrl(opp.url, opp.recommended_type)}
                       disabled={generatingUrl === opp.url}
-                      style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', color: T }}>
+                      style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', color: T }}>
                       {generatingUrl === opp.url ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : 'Generate'}
                     </button>
                   </td>
@@ -283,7 +283,7 @@ export default function SchemaTab({ clientId, agencyId }) {
               <AlertTriangle size={16} color="#0a0a0a" /> Schema Errors
               <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f1f1f6', color: R }}>{schemaErrors.length}</span>
             </div>
-            {expandedErrors ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
+            {expandedErrors ? <ChevronUp size={14} color="#8e8e93" /> : <ChevronDown size={14} color="#8e8e93" />}
           </div>
           {expandedErrors && (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -318,7 +318,7 @@ export default function SchemaTab({ clientId, agencyId }) {
               const htmlStr = `<script type="application/ld+json">\n${jsonStr}\n</script>`
 
               return (
-                <div key={i} style={{ borderRadius: 10, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                <div key={i} style={{ borderRadius: 10, border: '1px solid #ececef', overflow: 'hidden' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#fafafb', cursor: 'pointer' }} onClick={() => setExpandedSchema(expanded ? null : i)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: T + '10', color: T }}>{gen.type}</span>
@@ -326,7 +326,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <CopyButton text={htmlStr} />
-                      {expanded ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
+                      {expanded ? <ChevronUp size={14} color="#8e8e93" /> : <ChevronDown size={14} color="#8e8e93" />}
                     </div>
                   </div>
                   {expanded && (
@@ -355,7 +355,7 @@ export default function SchemaTab({ clientId, agencyId }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: audit.semantic_html_score >= 70 ? GRN : AMB }}>{audit.semantic_html_score}/100</div>
-              {expandedSemantic ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
+              {expandedSemantic ? <ChevronUp size={14} color="#8e8e93" /> : <ChevronDown size={14} color="#8e8e93" />}
             </div>
           </div>
           {expandedSemantic && (

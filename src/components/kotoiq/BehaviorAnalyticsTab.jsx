@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
-const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
+const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 function fmt(n) { return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n || 0) }
 
@@ -106,7 +106,7 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
               <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Top Pages by Sessions</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Page URL', 'Sessions', 'Rage Clicks', 'Dead Clicks', 'Scroll %'].map(h => (
                       <th key={h} style={{ textAlign: h === 'Page URL' ? 'left' : 'right', padding: '8px 6px', fontWeight: 700, color: '#6b6b70', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
                     ))}
@@ -114,7 +114,7 @@ export default function BehaviorAnalyticsTab({ clientId, agencyId }) {
                 </thead>
                 <tbody>
                   {topPages.map((p, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                       <td style={{ padding: '10px 6px', fontWeight: 500, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.page_url}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right' }}>{fmt(p.sessions)}</td>
                       <td style={{ padding: '10px 6px', textAlign: 'right', color: p.rage_clicks > 10 ? '#e9695c' : BLK }}>{p.rage_clicks}</td>
