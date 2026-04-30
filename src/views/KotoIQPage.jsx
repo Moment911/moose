@@ -214,8 +214,57 @@ function Sparkline({ points, color, width = 220, height = 44 }) {
   )
 }
 
+// Reusable Cal-AI empty state for tabs without data — points back to the
+// dashboard wizard so setup happens in one place, not per-tab.
+function NoDataYet({ icon: Icon, title, hint, onSetup, onSync, hasGoogle = false, syncing = false }) {
+  const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+  return (
+    <div style={{
+      background: '#fff', borderRadius: 18, border: '1px solid #ececef',
+      padding: '48px 28px', textAlign: 'center', fontFamily: SF,
+    }}>
+      {Icon && (
+        <div style={{
+          width: 56, height: 56, borderRadius: 16, background: '#f1f1f6',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+        }}>
+          <Icon size={26} strokeWidth={1.5} color="#0a0a0a" />
+        </div>
+      )}
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.3px', marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 14, color: '#6b6b70', maxWidth: 420, margin: '0 auto 22px', lineHeight: 1.5 }}>{hint}</div>
+      <div style={{ display: 'inline-flex', gap: 8 }}>
+        {hasGoogle && onSync && (
+          <button onClick={onSync} disabled={syncing}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '10px 20px', borderRadius: 10, border: '1px solid #ececef',
+              background: '#fff', color: '#0a0a0a', fontSize: 13, fontWeight: 600,
+              cursor: syncing ? 'wait' : 'pointer', fontFamily: 'inherit',
+            }}
+            onMouseEnter={e => { if (!syncing) e.currentTarget.style.background = '#f9f9fb' }}
+            onMouseLeave={e => e.currentTarget.style.background = '#fff' }>
+            {syncing ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={13} strokeWidth={1.75} />}
+            {syncing ? 'Syncing…' : 'Run Sync'}
+          </button>
+        )}
+        <button onClick={onSetup}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '10px 20px', borderRadius: 10, border: 'none',
+            background: '#0a0a0a', color: '#fff', fontSize: 13, fontWeight: 600,
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+          <LayoutDashboard size={13} strokeWidth={1.75} />
+          Go to Setup
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function AiVisibilityHero({ data, history, loading, onRefresh }) {
-  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '22px 26px', marginBottom: 16 }
+  const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
   const score = data?.ai_visibility_score || 0
   const grade = data?.grade || '—'
   const color = gradeColor(grade)
@@ -231,59 +280,59 @@ function AiVisibilityHero({ data, history, loading, onRefresh }) {
     { key: 'aeo', label: 'AEO', value: components.aeo?.score },
   ]
   return (
-    <div style={{ ...card, background: `linear-gradient(135deg, ${color}06 0%, #ffffff 55%)`, borderColor: color + '30' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Target size={18} color={color} />
-          </div>
-          <div>
-            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: BLK, letterSpacing: '-.01em' }}>AI Visibility Score</div>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Unified across Topical Authority, Brand SERP, E-E-A-T, and AEO</div>
-          </div>
+    <div style={{
+      background: '#ffffff', borderRadius: 18, border: '1px solid #ececef',
+      padding: '24px 28px', marginBottom: 16, fontFamily: SF,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.3px' }}>AI Visibility Score</div>
+          <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 2 }}>Topical Authority · Brand SERP · E-E-A-T · AEO</div>
         </div>
         <button onClick={onRefresh} disabled={loading} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
-          border: `1px solid ${color}`, background: '#fff', color, fontSize: 12, fontWeight: 700, fontFamily: FH,
-          cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.6 : 1,
-        }}>
-          {loading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
-          {loading ? 'Calculating…' : 'Refresh Score'}
+          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+          border: '1px solid #ececef', background: '#fff', color: '#0a0a0a',
+          fontSize: 13, fontWeight: 600, fontFamily: SF,
+          cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.55 : 1,
+        }}
+          onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#f9f9fb' }}
+          onMouseLeave={e => e.currentTarget.style.background = '#fff' }>
+          {loading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={13} strokeWidth={1.75} />}
+          {loading ? 'Calculating…' : 'Refresh'}
         </button>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 24, alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 28, alignItems: 'center' }}>
         <ScoreRing score={score} grade={grade} size={160} />
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 20,
-              background: trendDir === 'up' ? GRN + '15' : trendDir === 'down' ? R + '15' : '#f3f4f6',
-              color: trendDir === 'up' ? GRN : trendDir === 'down' ? R : '#6b7280',
-              fontSize: 12, fontWeight: 800, fontFamily: FH,
+              display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999,
+              background: trendDir === 'up' ? '#16a34a14' : trendDir === 'down' ? '#e9695c14' : '#f1f1f6',
+              color: trendDir === 'up' ? '#16a34a' : trendDir === 'down' ? '#e9695c' : '#6b6b70',
+              fontSize: 12, fontWeight: 600, fontFamily: SF,
             }}>
-              {trendDir === 'up' ? <ArrowUpRight size={12} /> : trendDir === 'down' ? <ArrowDownRight size={12} /> : <span style={{ fontSize: 14 }}>●</span>}
+              {trendDir === 'up' ? <ArrowUpRight size={12} strokeWidth={2} /> : trendDir === 'down' ? <ArrowDownRight size={12} strokeWidth={2} /> : <span style={{ width: 6, height: 6, borderRadius: 999, background: '#a1a1a6' }} />}
               {trendDir === 'flat' ? 'flat' : `${trendPct > 0 ? '+' : ''}${trendPct}%`} vs 30d
             </div>
             <div style={{ flex: 1 }}>
-              <Sparkline points={sparkPoints} color={color} />
+              <Sparkline points={sparkPoints} color={'#0a0a0a'} />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: focus.length > 0 ? 14 : 0 }}>
             {subScores.map(sub => {
               const v = Number(sub.value || 0)
-              const subColor = v >= 75 ? GRN : v >= 50 ? T : v >= 30 ? AMB : R
               return (
-                <div key={sub.key} style={{ padding: '10px 12px', borderRadius: 10, background: '#fff', border: `1px solid ${subColor}30` }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>{sub.label}</div>
-                  <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: subColor, lineHeight: 1 }}>{Math.round(v)}</div>
+                <div key={sub.key} style={{ padding: '12px 14px', borderRadius: 12, background: '#f9f9fb' }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{sub.label}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: '#0a0a0a', lineHeight: 1, letterSpacing: '-0.4px' }}>{Math.round(v)}</div>
                 </div>
               )
             })}
           </div>
           {focus.length > 0 && (
-            <div style={{ padding: '10px 14px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>What to focus on</div>
-              <div style={{ fontSize: 13, color: BLK, fontWeight: 600 }}>{focus.join(' • ')}</div>
+            <div style={{ padding: '12px 14px', borderRadius: 12, background: '#f9f9fb' }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>Focus on</div>
+              <div style={{ fontSize: 14, color: '#0a0a0a', fontWeight: 500, lineHeight: 1.5 }}>{focus.join(' · ')}</div>
             </div>
           )}
         </div>
@@ -534,6 +583,7 @@ export default function KotoIQPage() {
   const [allToolsOpen, setAllToolsOpen] = useState(false)
   const [cmdOpen, setCmdOpen] = useState(false)
   const [cmdQuery, setCmdQuery] = useState('')
+  const [actionMenuOpen, setActionMenuOpen] = useState(false)
   const [recentTabs, setRecentTabs] = useState(() => {
     if (typeof window === 'undefined') return []
     try { return JSON.parse(localStorage.getItem('kotoiq_recent_tabs') || '[]') } catch { return [] }
@@ -1139,27 +1189,82 @@ export default function KotoIQPage() {
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
 
-            {/* Quick actions — always visible */}
-            {clientId && (
-              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add website first'); return }; runQuickScan() }}
-                  disabled={syncing || enriching}
-                  title="Discover keywords from website content using AI — no Google account needed"
-                  style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${R}30`, background: '#fff', fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4, opacity: syncing ? 0.5 : 1 }}>
-                  {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Scan
-                </button>
-                <button onClick={runDeepEnrich} disabled={enriching || syncing}
-                  title="Run deep technical SEO audit — E-E-A-T, schema, internal links, on-page analysis"
-                  style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${AMB}30`, background: '#fff', fontSize: 12, fontWeight: 700, cursor: enriching ? 'wait' : 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4, opacity: enriching ? 0.5 : 1 }}>
-                  {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />} Audit
-                </button>
-                <button onClick={runSync} disabled={syncing}
-                  title="Pull real data from connected Google accounts — Search Console rankings, GA4 traffic, Ads spend"
-                  style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: syncing ? '#e5e7eb' : BLK, fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Sync
-                </button>
-              </div>
-            )}
+            {/* Update split button — primary action picks the smart default
+                 (Sync if Google connected, else Quick Scan); chevron exposes
+                 all three explicit options for advanced users. */}
+            {clientId && (() => {
+              const hasGoogle = connections.some(x => x.connected && ['search_console', 'analytics', 'ads', 'gmb'].includes(x.provider))
+              const busy = syncing || enriching
+              const primaryAction = hasGoogle ? runSync : () => {
+                const c = clients.find(x => x.id === clientId)
+                if (!c?.website) { toast.error('Add a website URL first'); return }
+                runQuickScan()
+              }
+              const primaryLabel = busy ? (syncing ? 'Updating…' : 'Auditing…') : (hasGoogle ? 'Update' : 'Scan')
+              return (
+                <div style={{ position: 'relative', flexShrink: 0, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif" }}>
+                  <div style={{ display: 'flex', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,.04)' }}>
+                    <button onClick={primaryAction} disabled={busy}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '9px 16px', border: 'none',
+                        background: busy ? '#a1a1a6' : '#0a0a0a',
+                        color: '#fff', fontSize: 13, fontWeight: 600,
+                        cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit',
+                      }}>
+                      {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} strokeWidth={1.75} />}
+                      {primaryLabel}
+                    </button>
+                    <button onClick={() => setActionMenuOpen(o => !o)}
+                      aria-label="More actions"
+                      style={{
+                        padding: '9px 10px', border: 'none', borderLeft: '1px solid rgba(255,255,255,.18)',
+                        background: busy ? '#a1a1a6' : '#0a0a0a',
+                        color: '#fff', cursor: 'pointer',
+                      }}>
+                      <ChevronDown size={14} strokeWidth={2} style={{ transform: actionMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 150ms ease' }} />
+                    </button>
+                  </div>
+                  {actionMenuOpen && (
+                    <>
+                      <div onClick={() => setActionMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                      <div style={{
+                        position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 41,
+                        width: 280, background: '#fff', borderRadius: 14,
+                        border: '1px solid #ececef',
+                        boxShadow: '0 8px 32px rgba(0,0,0,.12)',
+                        overflow: 'hidden',
+                      }}>
+                        {[
+                          { label: 'Quick Scan', desc: 'AI-powered keyword discovery from your site. No Google needed.', icon: Zap, run: () => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add a website URL first'); setActionMenuOpen(false); return }; runQuickScan(); setActionMenuOpen(false) } },
+                          { label: 'Audit', desc: 'Deep technical SEO — E-E-A-T, schema, internal links, on-page.', icon: Shield, run: () => { runDeepEnrich(); setActionMenuOpen(false) } },
+                          { label: 'Sync', desc: 'Pull real data from connected Google accounts.', icon: RefreshCw, run: () => { runSync(); setActionMenuOpen(false) }, disabled: !hasGoogle, hint: hasGoogle ? null : 'Connect Google first' },
+                        ].map(opt => (
+                          <button key={opt.label} onClick={opt.disabled ? undefined : opt.run} disabled={opt.disabled}
+                            style={{
+                              display: 'flex', alignItems: 'flex-start', gap: 12, width: '100%',
+                              padding: '12px 16px', border: 'none', background: 'transparent',
+                              cursor: opt.disabled ? 'not-allowed' : 'pointer',
+                              textAlign: 'left', opacity: opt.disabled ? 0.5 : 1,
+                              fontFamily: 'inherit',
+                            }}
+                            onMouseEnter={e => { if (!opt.disabled) e.currentTarget.style.background = '#f9f9fb' }}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#f1f1f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <opt.icon size={14} strokeWidth={1.75} color="#0a0a0a" />
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 14, fontWeight: 600, color: '#0a0a0a' }}>{opt.label}</div>
+                              <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 1, lineHeight: 1.4 }}>{opt.hint || opt.desc}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Settings */}
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -2468,33 +2573,15 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {rankLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!rankLoading && !rankData?.total_tracked && (
-              <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
-                <TrendingUp size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
-                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No ranking data yet</div>
-                <div style={{ fontSize: 14, color: '#374151', marginBottom: 12 }}>
-                  Rankings require real position data from Google Search Console.
-                </div>
-                <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 24, maxWidth: 500, margin: '0 auto 24px' }}>
-                  <strong>Step 1:</strong> Connect Search Console in the <span style={{ color: T, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setTab('connect')}>Connect</span> tab.{' '}
-                  <strong>Step 2:</strong> Click <strong>Sync</strong> to pull ranking data.{' '}
-                  <strong>Step 3:</strong> Rankings will appear here automatically.
-                </div>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                  <button onClick={() => setTab('connect')}
-                    style={{ padding: '10px 24px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: BLK, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                    <Shield size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Connect Google
-                  </button>
-                  <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add a website URL first'); return }; runQuickScan() }}
-                    disabled={syncing} title="Discover keywords from website content using AI"
-                    style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                    <Zap size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Scan Keywords
-                  </button>
-                  <button onClick={runSync} disabled={syncing} title="Pull real ranking data from connected Google accounts"
-                    style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                    <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Sync Rankings
-                  </button>
-                </div>
-              </div>
+              <NoDataYet
+                icon={TrendingUp}
+                title="No ranking data yet"
+                hint="Rankings come from Google Search Console after a sync. Run setup on the dashboard, then come back."
+                onSetup={() => setTab('dashboard')}
+                onSync={runSync}
+                hasGoogle={connections.some(x => x.connected && ['search_console', 'analytics'].includes(x.provider))}
+                syncing={syncing}
+              />
             )}
 
             {!rankLoading && rankData?.total_tracked > 0 && (
