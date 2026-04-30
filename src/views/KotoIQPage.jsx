@@ -2026,32 +2026,36 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                 {/* Top opportunities */}
                 {d.top_opportunities?.length > 0 && (
-                  <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Zap size={18} color={T} /> Top Opportunities
+                  <div style={{
+                    background: '#fff', borderRadius: 18, border: '1px solid #ececef',
+                    padding: '22px 24px', marginBottom: 16,
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif",
+                  }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.3px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Zap size={16} strokeWidth={1.75} color="#0a0a0a" /> Top Opportunities
                     </div>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                        <tr style={{ borderBottom: '1px solid #ececef' }}>
                           {['Keyword', 'Opp', 'Rank', 'Position', 'Volume', 'Ads $', 'Conv', 'Category', 'Intent'].map(h => (
-                            <th key={h} style={{ padding: '8px 10px', fontSize: 12, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                            <th key={h} style={{ padding: '10px 10px', fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {d.top_opportunities.map((kw, i) => {
-                          const cfg = CAT_CONFIG[kw.category] || { color: '#374151', label: kw.category }
+                          const cfg = CAT_CONFIG[kw.category] || { label: kw.category }
                           return (
-                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                              <td style={{ padding: '10px', fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH, maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
+                            <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
+                              <td style={{ padding: '12px 10px', fontSize: 14, fontWeight: 500, color: '#0a0a0a', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
                               <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="Opp" /></td>
                               <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.rank_propensity} label="Rank" /></td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: kw.sc_position <= 3 ? GRN : kw.sc_position <= 10 ? AMB : kw.sc_position ? R : '#d1d5db' }}>{kw.sc_position ? `#${Math.round(kw.sc_position)}` : '—'}</td>
-                              <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.volume ? fmtN(kw.volume) : '—'}</td>
-                              <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.ads_spend ? fmt$(kw.ads_spend) : '—'}</td>
-                              <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.ads_conversions || '—'}</td>
-                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 20, background: cfg.color + '15', color: cfg.color }}>{cfg.label}</span></td>
-                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280' }}>{kw.intent}</span></td>
+                              <td style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: kw.sc_position ? '#0a0a0a' : '#a1a1a6' }}>{kw.sc_position ? `#${Math.round(kw.sc_position)}` : '—'}</td>
+                              <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.volume ? fmtN(kw.volume) : '—'}</td>
+                              <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_spend ? fmt$(kw.ads_spend) : '—'}</td>
+                              <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_conversions || '—'}</td>
+                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 500, padding: '3px 9px', borderRadius: 999, background: '#f1f1f6', color: '#6b6b70' }}>{cfg.label}</span></td>
+                              <td style={{ textAlign: 'center', fontSize: 12, fontWeight: 500, color: '#6b6b70', textTransform: 'capitalize' }}>{kw.intent || '—'}</td>
                             </tr>
                           )
                         })}
@@ -2062,25 +2066,48 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                 {/* AI Recommendations */}
                 {d.recommendations?.length > 0 && (
-                  <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Brain size={18} color={T} /> AI Recommendations
+                  <div style={{
+                    background: '#fff', borderRadius: 18, border: '1px solid #ececef',
+                    padding: '22px 24px', marginBottom: 16,
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif",
+                  }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.3px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Brain size={16} strokeWidth={1.75} color="#0a0a0a" /> AI Recommendations
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       {d.recommendations.map((rec, i) => {
-                        const pColor = rec.priority === 'critical' ? R : rec.priority === 'high' ? AMB : rec.priority === 'medium' ? T : '#6b7280'
+                        const pSeverity = rec.priority === 'critical' || rec.priority === 'high'
                         return (
-                          <div key={i} style={{ padding: '16px 20px', borderRadius: 12, background: '#f9fafb', border: '1px solid #e5e7eb', borderLeft: `4px solid ${pColor}` }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                              <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: pColor + '15', color: pColor, textTransform: 'uppercase' }}>{rec.priority}</span>
-                              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#f3f4f6', color: '#374151' }}>{rec.type?.replace(/_/g, ' ')}</span>
-                              {rec.effort && <span style={{ fontSize: 12, color: '#1f2937' }}>{rec.effort.replace(/_/g, ' ')}</span>}
+                          <div key={i} style={{
+                            padding: '16px 20px', borderRadius: 14,
+                            background: '#f9f9fb', border: '1px solid transparent',
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+                              <span style={{
+                                fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999,
+                                background: pSeverity ? '#0a0a0a' : '#f1f1f6',
+                                color: pSeverity ? '#fff' : '#6b6b70',
+                                textTransform: 'capitalize',
+                              }}>{rec.priority}</span>
+                              <span style={{
+                                fontSize: 11, fontWeight: 500, padding: '2px 10px', borderRadius: 999,
+                                background: '#fff', color: '#6b6b70', border: '1px solid #ececef',
+                                textTransform: 'capitalize',
+                              }}>{rec.type?.replace(/_/g, ' ')}</span>
+                              {rec.effort && (
+                                <span style={{ fontSize: 11, color: '#a1a1a6', textTransform: 'capitalize' }}>
+                                  · {rec.effort.replace(/_/g, ' ')}
+                                </span>
+                              )}
                             </div>
-                            <div style={{ fontSize: 15, fontWeight: 800, color: BLK, fontFamily: FH, marginBottom: 4 }}>{rec.title}</div>
-                            <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{rec.detail}</div>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: '#0a0a0a', marginBottom: 4 }}>{rec.title}</div>
+                            <div style={{ fontSize: 13, color: '#1f1f22', lineHeight: 1.55 }}>{rec.detail}</div>
                             {rec.estimated_impact && (
-                              <div style={{ fontSize: 12, color: GRN, fontWeight: 700, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <ArrowUpRight size={12} /> {rec.estimated_impact}
+                              <div style={{
+                                fontSize: 12, color: '#16a34a', fontWeight: 600,
+                                marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 4,
+                              }}>
+                                <ArrowUpRight size={12} strokeWidth={2} /> {rec.estimated_impact}
                               </div>
                             )}
                           </div>
@@ -2095,11 +2122,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         )}
 
         {/* ══ KEYWORDS TAB ══ */}
-        {clientId && tab === 'keywords' && (
-          <>
+        {clientId && tab === 'keywords' && (() => {
+          const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+          return (
+          <div style={{ fontFamily: SF }}>
             {/* Header with actions */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Keyword Explorer ({kwTotal} keywords)</div>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.4px' }}>Keywords</div>
+                <div style={{ fontSize: 13, color: '#6b6b70', marginTop: 2 }}>{kwTotal} keywords tracked across all sources</div>
+              </div>
               <SectionActions
                 onRerun={() => { const c = clients.find(x => x.id === clientId); if (c?.website) runQuickScan(); else toast.error('Add a website URL first') }}
                 onDelete={async () => {
@@ -2113,15 +2145,28 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               />
             </div>
             {/* Filters */}
-            <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              background: '#fff', borderRadius: 16, border: '1px solid #ececef',
+              padding: '16px 18px', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 12,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ position: 'relative', flex: 1 }}>
-                  <Search size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+                  <Search size={14} strokeWidth={1.75} color="#a1a1a6" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
                   <input value={searchQ} onChange={e => { setSearchQ(e.target.value); setKwPage(0) }}
-                    placeholder="Search keywords..." style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none' }} />
+                    placeholder="Search keywords…"
+                    style={{
+                      width: '100%', padding: '10px 14px 10px 36px',
+                      borderRadius: 10, border: '1px solid #ececef',
+                      fontSize: 14, outline: 'none', background: '#f9f9fb',
+                      fontFamily: SF, color: '#0a0a0a', boxSizing: 'border-box',
+                    }} />
                 </div>
                 <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                  style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 12, fontWeight: 600, background: '#fff', cursor: 'pointer' }}>
+                  style={{
+                    padding: '10px 14px', borderRadius: 10, border: '1px solid #ececef',
+                    fontSize: 13, fontWeight: 500, background: '#fff', cursor: 'pointer',
+                    fontFamily: SF, color: '#0a0a0a',
+                  }}>
                   <option value="opportunity_score">Sort: Opportunity</option>
                   <option value="rank_propensity">Sort: Rank Propensity</option>
                   <option value="sc_avg_position">Sort: Position</option>
@@ -2131,55 +2176,80 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <option value="ads_conversions">Sort: Conversions</option>
                 </select>
                 <button onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
-                  style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }}>
-                  {sortDir === 'desc' ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                  title={sortDir === 'desc' ? 'Descending' : 'Ascending'}
+                  style={{
+                    padding: '10px 12px', borderRadius: 10, border: '1px solid #ececef',
+                    background: '#fff', cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                  {sortDir === 'desc' ? <ChevronDown size={15} strokeWidth={1.75} color="#0a0a0a" /> : <ChevronUp size={15} strokeWidth={1.75} color="#0a0a0a" />}
                 </button>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <CategoryPill cat="" count={kwTotal} active={!catFilter} onClick={() => { setCatFilter(''); setKwPage(0) }} />
-                {Object.keys(CAT_CONFIG).map(cat => (
-                  <CategoryPill key={cat} cat={cat} count={dashboard?.categories?.[cat] || 0} active={catFilter === cat} onClick={() => { setCatFilter(catFilter === cat ? '' : cat); setKwPage(0) }} />
-                ))}
+                {[['', 'All', kwTotal], ...Object.keys(CAT_CONFIG).map(cat => [cat, CAT_CONFIG[cat]?.label || cat, dashboard?.categories?.[cat] || 0])].map(([cat, label, count]) => {
+                  const active = catFilter === cat
+                  return (
+                    <button key={String(cat) || 'all'}
+                      onClick={() => { setCatFilter(active ? '' : String(cat)); setKwPage(0) }}
+                      style={{
+                        padding: '6px 12px', borderRadius: 999, border: 'none',
+                        background: active ? '#0a0a0a' : '#f1f1f6',
+                        color: active ? '#fff' : '#1f1f22',
+                        fontSize: 12, fontWeight: 500, fontFamily: SF, cursor: 'pointer',
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        transition: 'background 120ms ease',
+                      }}>
+                      {label} <span style={{ opacity: 0.65, fontWeight: 500 }}>{count}</span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
             {/* Keywords table */}
-            <div style={card}>
+            <div style={{
+              background: '#fff', borderRadius: 16, border: '1px solid #ececef',
+              padding: '8px 8px 16px',
+            }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: '1px solid #ececef' }}>
                     {['Keyword', 'Opp', 'Rank P.', 'Position', 'SC Clicks', 'Volume', 'Ads $', 'Conv', 'CPC', 'QS', 'Cat', 'Intent', ''].map(h => (
-                      <th key={h} style={{ padding: '8px 8px', fontSize: 11, fontWeight: 800, color: '#1f2937', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                      <th key={h} style={{ padding: '12px 10px', fontSize: 11, fontWeight: 500, color: '#a1a1a6', textTransform: 'uppercase', letterSpacing: '.06em', textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {keywords.map((kw, i) => {
-                    const cfg = CAT_CONFIG[kw.category] || { color: '#374151', label: kw.category, icon: '•' }
+                    const cfg = CAT_CONFIG[kw.category] || { label: kw.category }
                     return (
-                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background .1s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                      <tr key={i} style={{ borderBottom: '1px solid #f1f1f6', transition: 'background 120ms ease' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f9f9fb'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <td style={{ padding: '10px 8px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
+                        <td style={{ padding: '12px 10px', fontSize: 14, fontWeight: 500, color: '#0a0a0a', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
                         <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="" /></td>
                         <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.rank_propensity} label="" /></td>
-                        <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 13, fontWeight: 800, color: kw.sc_avg_position && kw.sc_avg_position <= 3 ? GRN : kw.sc_avg_position && kw.sc_avg_position <= 10 ? AMB : kw.sc_avg_position ? R : '#d1d5db' }}>
+                        <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, color: kw.sc_avg_position ? '#0a0a0a' : '#a1a1a6' }}>
                           {kw.sc_avg_position ? `#${Math.round(kw.sc_avg_position * 10) / 10}` : '—'}
                         </td>
-                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.sc_clicks || '—'}</td>
-                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.kp_monthly_volume || '—'}</td>
-                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.ads_cost_cents ? fmt$(Math.round(kw.ads_cost_cents / 100)) : '—'}</td>
-                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.ads_conversions || '—'}</td>
-                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.ads_cpc_cents ? `$${(kw.ads_cpc_cents / 100).toFixed(2)}` : '—'}</td>
-                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH, color: kw.ads_quality_score >= 7 ? GRN : kw.ads_quality_score >= 5 ? AMB : kw.ads_quality_score ? R : '#d1d5db' }}>{kw.ads_quality_score || '—'}</td>
-                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
-                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280', textTransform: 'uppercase' }}>{kw.intent?.slice(0, 4)}</span></td>
+                        <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.sc_clicks || '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.kp_monthly_volume || '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_cost_cents ? fmt$(Math.round(kw.ads_cost_cents / 100)) : '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_conversions || '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_cpc_cents ? `$${(kw.ads_cpc_cents / 100).toFixed(2)}` : '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 500, color: kw.ads_quality_score ? '#0a0a0a' : '#a1a1a6' }}>{kw.ads_quality_score || '—'}</td>
+                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 500, padding: '3px 9px', borderRadius: 999, background: '#f1f1f6', color: '#6b6b70' }}>{cfg.label}</span></td>
+                        <td style={{ textAlign: 'center', fontSize: 11, fontWeight: 500, color: '#6b6b70', textTransform: 'capitalize' }}>{kw.intent?.slice(0, 4) || '—'}</td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                             <button title="Generate Brief" onClick={() => { setBriefKeyword(kw.keyword); setTab('briefs') }}
-                              style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Zap size={10} color={T} /></button>
+                              style={{ width: 26, height: 26, borderRadius: 8, border: '1px solid #ececef', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Zap size={11} strokeWidth={1.75} color="#0a0a0a" />
+                            </button>
                             <button title="Analyze Competitors" onClick={() => { setCompKeyword(kw.keyword); setTab('competitors') }}
-                              style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Target size={10} color={R} /></button>
+                              style={{ width: 26, height: 26, borderRadius: 8, border: '1px solid #ececef', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Target size={11} strokeWidth={1.75} color="#0a0a0a" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -2212,8 +2282,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {/* Content Variant Modules — KP System */}
             <ContentVariantModules clientId={clientId} agencyId={agencyId} />
-          </>
-        )}
+          </div>
+          )
+        })()}
 
         {/* ══ MASTER REPORT TAB ══ */}
         {clientId && tab === 'master_report' && (
