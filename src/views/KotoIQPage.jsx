@@ -4924,12 +4924,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {/* ── Microsoft Clarity ─────────────────────────────────── */}
             {(() => {
               const clConn = connections.find(c => c.provider === 'clarity' && c.connected)
-              const clVr = validationResults.clarity
-              const clValidating = validatingAll || validatingProvider === 'clarity'
-              const clBadge = clValidating
-                ? { label: 'Validating...', bg: '#FEF3C7', color: '#D97706' }
-                : clVr ? clVr.valid ? { label: 'Verified', bg: GRN + '15', color: GRN } : { label: 'Error', bg: '#FEE2E2', color: '#DC2626' }
-                : clConn ? { label: 'Connected', bg: GRN + '15', color: GRN } : null
+              const clBadge = clConn ? { label: 'Connected', bg: GRN + '15', color: GRN } : null
               return (
                 <div style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -4937,28 +4932,31 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <span style={{ fontSize: 20 }}>🔬</span> Microsoft Clarity
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {clValidating && <Loader2 size={14} color="#D97706" style={{ animation: 'spin 1s linear infinite' }} />}
                       {clBadge && <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: clBadge.bg, color: clBadge.color }}>{clBadge.label}</span>}
-                      {clConn && !clValidating && <button onClick={() => runValidation('clarity')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #ececef', background: '#fff', color: '#6b6b70', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Test</button>}
+                      {clConn && (
+                        <a href={`https://clarity.microsoft.com/projects/${clConn.account_id}/dashboard`} target="_blank" rel="noopener noreferrer"
+                          style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #5B2D8E30', background: '#fff', color: '#5B2D8E', fontSize: 10, fontWeight: 600, cursor: 'pointer', textDecoration: 'none' }}>
+                          Open Dashboard
+                        </a>
+                      )}
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: '#6b6b70', marginBottom: 12 }}>Free behavior analytics — rage clicks, dead clicks, scroll depth, and quick backs.</div>
-                  {clVr && !clVr.valid && !clValidating && <div style={{ marginBottom: 8, fontSize: 11, color: '#DC2626', background: '#FEF2F2', padding: '6px 10px', borderRadius: 6 }}>{clVr.error}</div>}
-                  {clVr?.last_synced && <div style={{ marginBottom: 8, fontSize: 10, color: '#8e8e93' }}>Last synced: {timeAgo(clVr.last_synced)}</div>}
+                  <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>Free behavior analytics by Microsoft — heatmaps, session recordings, rage clicks, scroll depth.</div>
+                  <div style={{ fontSize: 12, color: '#374151', marginBottom: 12, background: '#f3f0ff', padding: '8px 12px', borderRadius: 8, lineHeight: 1.5 }}>
+                    Just add your Clarity Project ID below. We'll link directly to your dashboard, heatmaps, and recordings. No API key needed — Clarity is free.
+                  </div>
                   <div style={{ display: 'flex', gap: 10 }}>
-                    <input placeholder="Clarity API Key" id="clarity-key" defaultValue={connections.find(c => c.provider === 'clarity')?.access_token || ''}
-                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13 }} />
-                    <input placeholder="Project ID" id="clarity-project-id" defaultValue={connections.find(c => c.provider === 'clarity')?.account_id || ''}
-                      style={{ width: 120, padding: '10px 12px', borderRadius: 8, border: '1px solid #ececef', fontSize: 13 }} />
+                    <input placeholder="Clarity Project ID (e.g. abc123def)" id="clarity-project-id"
+                      defaultValue={connections.find(c => c.provider === 'clarity')?.account_id || ''}
+                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
                     <button onClick={async () => {
-                      const key = document.getElementById('clarity-key')?.value
-                      const projectId = document.getElementById('clarity-project-id')?.value
-                      if (!key || !projectId) { toast.error('Enter both API key and Project ID'); return }
+                      const projectId = document.getElementById('clarity-project-id')?.value?.trim()
+                      if (!projectId) { toast.error('Enter your Clarity Project ID'); return }
                       await supabase.from('seo_connections').upsert({
-                        client_id: clientId, provider: 'clarity', access_token: key, account_id: projectId, connected: true, updated_at: new Date().toISOString(),
+                        client_id: clientId, provider: 'clarity', account_id: projectId, connected: true, updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
-                      toast.success('Clarity connected'); loadConnections()
-                      setTimeout(() => runValidation('clarity'), 500)
+                      toast.success('Clarity connected — check Behavior Analytics tab for quick links')
+                      loadConnections()
                     }} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#5B2D8E', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                       Save
                     </button>
