@@ -101,6 +101,23 @@ export const CLIENT_QA_FIELDS: QAField[] = [
   // ── Adaptive: Local B2C ──
   { key: 'seasonality', question: 'Do you have a peak season or slow season?', label: 'Seasonality', section: 'Local Business', priority: 4, pass: 'adaptive' },
   { key: 'repeat_customer_pct', question: 'What percentage of revenue comes from repeat customers vs new?', label: 'Repeat Customer %', section: 'Local Business', priority: 4, pass: 'adaptive' },
+
+  // ── Web Form: Business Profile ──
+  { key: 'business_description', question: 'Describe your business in 2-3 sentences for marketing materials', label: 'Business Description', section: 'In Their Own Words', priority: 2, pass: 'web' },
+  { key: 'ideal_customer_desc', question: 'Describe your ideal customer in detail — who are they, what problems do they have, how do they find you?', label: 'Ideal Customer (Detailed)', section: 'Services & Products', priority: 2, pass: 'web' },
+
+  // ── Web Form: Brand ──
+  { key: 'brand_tone', question: 'Select the words that best describe your brand tone', label: 'Brand Tone', section: 'Brand & Positioning', priority: 2, pass: 'web' },
+  { key: 'brand_primary_color', question: 'What is your primary brand color?', label: 'Primary Color', section: 'Brand & Positioning', priority: 3, pass: 'web' },
+  { key: 'brand_accent_color', question: 'What is your accent/secondary brand color?', label: 'Accent Color', section: 'Brand & Positioning', priority: 3, pass: 'web' },
+
+  // ── Web Form: Competitors (rich) ──
+  { key: 'competitors', question: 'Who are your main competitors? Include their strengths and weaknesses.', label: 'Competitors (Detailed)', section: 'Competition', priority: 2, pass: 'web' },
+
+  // ── Web Form: Classification ──
+  { key: 'growth_scope', question: 'What is your geographic growth scope?', label: 'Growth Scope', section: 'Business Information', priority: 3, pass: 'web' },
+  { key: 'business_type', question: 'What type of business are you?', label: 'Business Type', section: 'Business Information', priority: 3, pass: 'web' },
+  { key: 'primary_channel', question: 'Is your business primarily B2B, B2C, or both?', label: 'Primary Channel', section: 'Business Information', priority: 2, pass: 'web' },
 ]
 
 // Quick lookup by field key
@@ -134,7 +151,18 @@ export function buildClientQA(client: Record<string, any>): Array<{
     let value = client?.[field.key] ?? answers?.[field.key]
     if (value === null || value === undefined || value === '') continue
     if (Array.isArray(value)) {
-      value = value.map(v => typeof v === 'object' ? (v?.name || v?.label || v?.value || JSON.stringify(v)) : String(v)).filter(Boolean).join(', ')
+      // Rich competitor objects: format as "Name — Strengths: ... / Weaknesses: ..."
+      if (value[0] && typeof value[0] === 'object' && ('strengths' in value[0] || 'weaknesses' in value[0])) {
+        value = value.map(v => {
+          const parts = [v.name || 'Unknown']
+          if (v.url) parts[0] += ` (${v.url})`
+          if (v.strengths) parts.push(`Strengths: ${v.strengths}`)
+          if (v.weaknesses) parts.push(`Weaknesses: ${v.weaknesses}`)
+          return parts.join('\n')
+        }).join('\n\n')
+      } else {
+        value = value.map(v => typeof v === 'object' ? (v?.name || v?.label || v?.value || JSON.stringify(v)) : String(v)).filter(Boolean).join(', ')
+      }
     } else if (typeof value === 'object') {
       value = Object.entries(value).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join(', ')
     } else {
@@ -158,7 +186,7 @@ export function buildClientQA(client: Record<string, any>): Array<{
 
   // Also capture any extra answers not in the canonical list
   const knownKeys = new Set(CLIENT_QA_FIELDS.map(f => f.key))
-  const excluded = new Set(['_last_autosave', '_autosave_count', 'form_step', 'current_step', 'step', 'completed', 'submitted', 'token', 'agency_id', 'client_id', 'id', 'created_at', 'updated_at'])
+  const excluded = new Set(['_last_autosave', '_autosave_count', 'form_step', 'current_step', 'step', 'completed', 'submitted', 'token', 'agency_id', 'client_id', 'id', 'created_at', 'updated_at', 'persona_approved', 'persona_loading', 'persona_notes', 'persona_result', 'legal_address_same', 'billing_same_as_legal', 'contacts_billing', 'contacts_emergency', 'contacts_marketing', 'contacts_technical'])
   for (const [k, v] of Object.entries(answers)) {
     if (knownKeys.has(k) || excluded.has(k) || k.startsWith('_')) continue
     if (v === null || v === undefined || v === '' || v === false) continue
