@@ -943,6 +943,52 @@ Return ONLY valid JSON array:
     return NextResponse.json({ success: true })
   }
 
+  // ── CLIENT Q&A — queryable snapshot of all onboarding answers ───────
+  if (action === 'sync_client_qa') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { buildClientQA } = await import('@/lib/clientQA')
+    const { data: client } = await s.from('clients').select('*').eq('id', client_id).single()
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+    const qa = buildClientQA(client)
+    // Upsert all Q&A pairs
+    for (const item of qa) {
+      await s.from('kotoiq_client_qa').upsert({
+        client_id, field_key: item.field_key, question: item.question,
+        answer: item.answer, label: item.label, section: item.section,
+        priority: item.priority, source: item.source || null,
+        answered_at: item.answered_at || null, updated_at: new Date().toISOString(),
+      }, { onConflict: 'client_id,field_key' })
+    }
+    return NextResponse.json({ success: true, synced: qa.length })
+  }
+
+  if (action === 'get_client_qa') {
+    const { client_id, section } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    let query = s.from('kotoiq_client_qa').select('*').eq('client_id', client_id).order('priority').order('section')
+    if (section) query = query.eq('section', section)
+    const { data } = await query
+    if (!data?.length) {
+      // Auto-sync if empty — build from client record on first access
+      const { buildClientQA } = await import('@/lib/clientQA')
+      const { data: client } = await s.from('clients').select('*').eq('id', client_id).single()
+      if (client) {
+        const qa = buildClientQA(client)
+        for (const item of qa) {
+          await s.from('kotoiq_client_qa').upsert({
+            client_id, field_key: item.field_key, question: item.question,
+            answer: item.answer, label: item.label, section: item.section,
+            priority: item.priority, source: item.source || null,
+            answered_at: item.answered_at || null, updated_at: new Date().toISOString(),
+          }, { onConflict: 'client_id,field_key' })
+        }
+        return NextResponse.json({ data: qa })
+      }
+    }
+    return NextResponse.json({ data: data || [] })
+  }
+
   // ── GET SYNC HISTORY ──────────────────────────────────────────────────
   if (action === 'sync_history') {
     const { client_id } = body
