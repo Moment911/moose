@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS kotoiq_client_qa (
   label         text NOT NULL,
   section       text NOT NULL,           -- 'Owner & Contact', 'Services & Products', etc.
   priority      smallint DEFAULT 3,      -- 1=must get, 2=important, 3=nice, 4=adaptive, 5=extra
-  source        text,                    -- 'voice', 'web', or null
+  pass          text,                    -- 'voice', 'web', or 'adaptive' — which onboarding pass asks this
+  source        text,                    -- 'voice', 'web', or null — how this specific answer was collected
   answered_at   timestamptz,
   created_at    timestamptz DEFAULT now(),
   updated_at    timestamptz DEFAULT now(),

@@ -494,7 +494,7 @@ export async function POST(req: NextRequest) {
               sb.from('kotoiq_client_qa').upsert({
                 client_id, field_key: item.field_key, question: item.question,
                 answer: item.answer, label: item.label, section: item.section,
-                priority: item.priority, source: item.source || null,
+                priority: item.priority, pass: item.pass || null, source: item.source || null,
                 answered_at: item.answered_at || null, updated_at: new Date().toISOString(),
               }, { onConflict: 'client_id,field_key' }).then(() => {}, () => {})
             }
