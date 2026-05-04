@@ -10,7 +10,8 @@ import {
   ArrowLeft, Trash2, ExternalLink, Phone, Mail, Globe, Building, FileText,
   Star, BarChart2, Activity, Brain, Copy, Check, Loader2, RefreshCw,
   ChevronRight, Shield, Zap, TrendingUp, Clock, Users, MessageSquare,
-  Search, Edit2, X, Key, Eye, EyeOff, Palette, PhoneIncoming, Save, Settings
+  Search, Edit2, X, Key, Eye, EyeOff, Palette, PhoneIncoming, Save, Settings,
+  Download, Printer
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import FrontDeskCards from '../components/FrontDeskCards'
@@ -111,6 +112,7 @@ export default function ClientDetailPage() {
   const [healthScore, setHealthScore] = useState(null)
   const [onboardingLink, setOnboardingLink] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
+  const [showOnboardingDoc, setShowOnboardingDoc] = useState(false)
   const [showAccessGuideModal, setShowAccessGuideModal] = useState(false)
   const [accessGuideEmail, setAccessGuideEmail] = useState('')
   const [sendingAccessGuide, setSendingAccessGuide] = useState(false)
@@ -819,12 +821,29 @@ export default function ClientDetailPage() {
                 {autosaveCount > 0 && <span>· {autosaveCount}x autosaves</span>}
               </div>
             </div>
-            {isInProgress && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: T, fontFamily: FB, fontWeight: 600 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: T, display: 'inline-block', animation: 'onboarding-pulse-dot 1.2s ease-in-out infinite' }} />
-                Answers updating live
-              </div>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {isInProgress && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: T, fontFamily: FB, fontWeight: 600 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: T, display: 'inline-block', animation: 'onboarding-pulse-dot 1.2s ease-in-out infinite' }} />
+                  Answers updating live
+                </div>
+              )}
+              <button onClick={() => setShowOnboardingDoc(!showOnboardingDoc)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: showOnboardingDoc ? BLK : '#fff', color: showOnboardingDoc ? '#fff' : BLK, fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                <FileText size={13} /> {showOnboardingDoc ? 'Card View' : 'Full Document'}
+              </button>
+              <button onClick={() => {
+                const docEl = document.getElementById('onboarding-doc-print')
+                if (!docEl) { setShowOnboardingDoc(true); setTimeout(() => { const el = document.getElementById('onboarding-doc-print'); if (el) { const w = window.open('', '_blank'); w.document.write('<html><head><title>Onboarding — ' + (client?.name || '') + '</title><style>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#1a1a1a;line-height:1.6}h1{font-size:24px;margin-bottom:4px}h2{font-size:16px;color:#6b7280;margin-top:28px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;text-transform:uppercase;letter-spacing:.05em}p{margin:0 0 4px}.field-label{font-size:12px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.05em;margin-top:14px}.field-value{font-size:14px;color:#1a1a1a;white-space:pre-wrap}.meta{font-size:11px;color:#9ca3af;margin-top:2px;font-style:italic}@media print{body{margin:20px}}</style></head><body>' + el.innerHTML + '</body></html>'); w.document.close(); w.print() } }, 300); return }
+                const w = window.open('', '_blank')
+                w.document.write('<html><head><title>Onboarding — ' + (client?.name || '') + '</title><style>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#1a1a1a;line-height:1.6}h1{font-size:24px;margin-bottom:4px}h2{font-size:16px;color:#6b7280;margin-top:28px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;text-transform:uppercase;letter-spacing:.05em}p{margin:0 0 4px}.field-label{font-size:12px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.05em;margin-top:14px}.field-value{font-size:14px;color:#1a1a1a;white-space:pre-wrap}.meta{font-size:11px;color:#9ca3af;margin-top:2px;font-style:italic}@media print{body{margin:20px}}</style></head><body>' + docEl.innerHTML + '</body></html>')
+                w.document.close()
+                w.print()
+              }}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', color: BLK, fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                <Printer size={13} /> Print / Save PDF
+              </button>
+            </div>
           </div>
 
           {/* Progress bar — out of ~22 known display fields */}
@@ -838,7 +857,120 @@ export default function ClientDetailPage() {
             }} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
+          {/* Full Document View */}
+          {showOnboardingDoc && (() => {
+            const sections = [
+              { title: 'In Their Own Words', fields: [{ key: 'welcome_statement', label: 'Welcome Statement' }] },
+              { title: 'Owner & Contact', fields: [
+                { key: 'owner_name', label: 'Owner Name' }, { key: 'owner_title', label: 'Title' },
+                { key: 'owner_phone', label: 'Phone' }, { key: 'owner_email', label: 'Email' },
+                { key: 'email', label: 'Business Email' }, { key: 'phone', label: 'Business Phone' },
+              ]},
+              { title: 'Business Information', fields: [
+                { key: 'industry', label: 'Industry' }, { key: 'year_founded', label: 'Year Founded' },
+                { key: 'num_employees', label: 'Team Size' }, { key: 'address', label: 'Address' },
+                { key: 'city', label: 'City' }, { key: 'state', label: 'State' },
+                { key: 'website', label: 'Website' }, { key: 'service_area', label: 'Service Area' },
+              ]},
+              { title: 'Services & Products', fields: [
+                { key: 'primary_service', label: 'Primary Service' }, { key: 'secondary_services', label: 'Other Services' },
+                { key: 'target_customer', label: 'Ideal Customer' }, { key: 'avg_deal_size', label: 'Avg Deal Size' },
+              ]},
+              { title: 'Marketing & Growth', fields: [
+                { key: 'marketing_budget', label: 'Marketing Budget' }, { key: 'marketing_channels', label: 'Current Channels' },
+                { key: 'crm_used', label: 'CRM Used' }, { key: 'hosting_provider', label: 'Website Host' },
+                { key: 'referral_sources', label: 'Referral Sources' },
+              ]},
+              { title: 'Brand & Positioning', fields: [
+                { key: 'unique_selling_prop', label: 'Unique Selling Proposition' },
+                { key: 'brand_voice', label: 'Brand Voice' }, { key: 'tagline', label: 'Tagline' },
+              ]},
+              { title: 'Competition', fields: [
+                { key: 'competitor_1', label: 'Competitor 1' }, { key: 'competitor_2', label: 'Competitor 2' },
+                { key: 'competitor_3', label: 'Competitor 3' },
+              ]},
+              { title: 'Reviews & Reputation', fields: [
+                { key: 'review_platforms', label: 'Review Platforms' },
+                { key: 'review_rating', label: 'Rating' }, { key: 'review_count', label: 'Review Count' },
+              ]},
+              { title: 'Goals & Notes', fields: [
+                { key: 'notes', label: 'Goals / Notes' },
+              ]},
+            ]
+            const allDisplayedKeys = new Set(sections.flatMap(s => s.fields.map(f => f.key)))
+            const extraInDoc = extraAnswers.filter(([k]) => !allDisplayedKeys.has(k))
+            return (
+              <div id="onboarding-doc-print" style={{ background: '#fff', borderRadius: 12, border: '1px solid #ececef', padding: '32px 36px', marginBottom: 14 }}>
+                <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK, margin: '0 0 4px' }}>
+                  Onboarding Summary
+                </h1>
+                <p style={{ fontSize: 14, color: '#6b7280', margin: '0 0 4px' }}>
+                  {client?.name} {isComplete ? '(Complete)' : '(In Progress)'}
+                </p>
+                <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 24px' }}>
+                  {totalAnswered} fields captured
+                  {client?.onboarding_completed_at && ` · Completed ${new Date(client.onboarding_completed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
+                </p>
+                {sections.map(section => {
+                  const sectionFields = section.fields.filter(f => {
+                    const v = displayClient?.[f.key] || rawAnswers?.[f.key]
+                    return v !== null && v !== undefined && v !== ''
+                  })
+                  if (sectionFields.length === 0) return null
+                  return (
+                    <div key={section.title}>
+                      <h2 style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#6b7280', marginTop: 24, marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #ececef', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                        {section.title}
+                      </h2>
+                      {sectionFields.map(f => {
+                        const val = formatValue(displayClient?.[f.key] || rawAnswers?.[f.key])
+                        if (!val) return null
+                        const attr = attribution?.[f.key]
+                        return (
+                          <div key={f.key} style={{ marginBottom: 14 }}>
+                            <div className="field-label" style={{ fontSize: 11, fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.05em' }}>{f.label}</div>
+                            <div className="field-value" style={{ fontSize: 14, color: BLK, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{val}</div>
+                            {attr?.submitted_by && (
+                              <div className="meta" style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', marginTop: 2 }}>
+                                Submitted by {attr.submitted_by}{attr.channel ? ` via ${attr.channel}` : ''}{attr.submitted_at ? ` on ${new Date(attr.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+                {extraInDoc.length > 0 && (
+                  <div>
+                    <h2 style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: T, marginTop: 24, marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid ${T}30`, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                      Additional Answers
+                    </h2>
+                    {extraInDoc.map(([k, v]) => {
+                      const display = formatValue(v)
+                      if (!display) return null
+                      const prettyKey = k.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+                      const attr = attribution?.[k]
+                      return (
+                        <div key={k} style={{ marginBottom: 14 }}>
+                          <div className="field-label" style={{ fontSize: 11, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.05em' }}>{prettyKey}</div>
+                          <div className="field-value" style={{ fontSize: 14, color: BLK, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{display}</div>
+                          {attr?.submitted_by && (
+                            <div className="meta" style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', marginTop: 2 }}>
+                              Submitted by {attr.submitted_by}{attr.channel ? ` via ${attr.channel}` : ''}{attr.submitted_at ? ` on ${new Date(attr.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+
+          {/* Card Grid View */}
+          <div style={{ display: showOnboardingDoc ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
             {filledFields.map(({ key, label }) => {
               const display = formatValue(displayClient?.[key])
               if (!display || display.includes('[object')) return null
