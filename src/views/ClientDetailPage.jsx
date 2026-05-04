@@ -859,110 +859,101 @@ export default function ClientDetailPage() {
 
           {/* Full Document View */}
           {showOnboardingDoc && (() => {
-            const sections = [
-              { title: 'In Their Own Words', fields: [{ key: 'welcome_statement', label: 'Welcome Statement' }] },
-              { title: 'Owner & Contact', fields: [
-                { key: 'owner_name', label: 'Owner Name' }, { key: 'owner_title', label: 'Title' },
-                { key: 'owner_phone', label: 'Phone' }, { key: 'owner_email', label: 'Email' },
-                { key: 'email', label: 'Business Email' }, { key: 'phone', label: 'Business Phone' },
-              ]},
-              { title: 'Business Information', fields: [
-                { key: 'industry', label: 'Industry' }, { key: 'year_founded', label: 'Year Founded' },
-                { key: 'num_employees', label: 'Team Size' }, { key: 'address', label: 'Address' },
-                { key: 'city', label: 'City' }, { key: 'state', label: 'State' },
-                { key: 'website', label: 'Website' }, { key: 'service_area', label: 'Service Area' },
-              ]},
-              { title: 'Services & Products', fields: [
-                { key: 'primary_service', label: 'Primary Service' }, { key: 'secondary_services', label: 'Other Services' },
-                { key: 'target_customer', label: 'Ideal Customer' }, { key: 'avg_deal_size', label: 'Avg Deal Size' },
-              ]},
-              { title: 'Marketing & Growth', fields: [
-                { key: 'marketing_budget', label: 'Marketing Budget' }, { key: 'marketing_channels', label: 'Current Channels' },
-                { key: 'crm_used', label: 'CRM Used' }, { key: 'hosting_provider', label: 'Website Host' },
-                { key: 'referral_sources', label: 'Referral Sources' },
-              ]},
-              { title: 'Brand & Positioning', fields: [
-                { key: 'unique_selling_prop', label: 'Unique Selling Proposition' },
-                { key: 'brand_voice', label: 'Brand Voice' }, { key: 'tagline', label: 'Tagline' },
-              ]},
-              { title: 'Competition', fields: [
-                { key: 'competitor_1', label: 'Competitor 1' }, { key: 'competitor_2', label: 'Competitor 2' },
-                { key: 'competitor_3', label: 'Competitor 3' },
-              ]},
-              { title: 'Reviews & Reputation', fields: [
-                { key: 'review_platforms', label: 'Review Platforms' },
-                { key: 'review_rating', label: 'Rating' }, { key: 'review_count', label: 'Review Count' },
-              ]},
-              { title: 'Goals & Notes', fields: [
-                { key: 'notes', label: 'Goals / Notes' },
-              ]},
-            ]
-            const allDisplayedKeys = new Set(sections.flatMap(s => s.fields.map(f => f.key)))
-            const extraInDoc = extraAnswers.filter(([k]) => !allDisplayedKeys.has(k))
+            // Import the Q&A mapping to get actual questions
+            const { CLIENT_QA_FIELDS, QA_BY_KEY } = require('../lib/clientQA')
+            // Build all Q&A pairs — answered fields only
+            const allQA = []
+            for (const field of CLIENT_QA_FIELDS) {
+              const val = formatValue(displayClient?.[field.key] || rawAnswers?.[field.key])
+              if (!val) continue
+              allQA.push({ ...field, answer: val, attr: attribution?.[field.key] })
+            }
+            // Extra answers not in canonical list
+            const knownKeys = new Set(CLIENT_QA_FIELDS.map(f => f.key))
+            for (const [k, v] of extraAnswers) {
+              if (knownKeys.has(k)) continue
+              const display = formatValue(v)
+              if (!display) continue
+              const prettyKey = k.replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+              allQA.push({ key: k, question: prettyKey + '?', label: prettyKey, section: 'Additional', priority: 5, pass: 'web', answer: display, attr: attribution?.[k] })
+            }
+            // Group by pass
+            const voiceQA = allQA.filter(q => q.pass === 'voice')
+            const webQA = allQA.filter(q => q.pass === 'web')
+            const adaptiveQA = allQA.filter(q => q.pass === 'adaptive')
+            const extraQA = allQA.filter(q => !q.pass || q.priority === 5)
+            // Group by section within each pass
+            const groupBySection = (items) => {
+              const groups = {}
+              for (const item of items) {
+                if (!groups[item.section]) groups[item.section] = []
+                groups[item.section].push(item)
+              }
+              return Object.entries(groups)
+            }
+            const passLabel = { voice: 'Pass 1: Voice Interview', web: 'Pass 2: Web Form', adaptive: 'Pass 3: AI-Adaptive Questions' }
+            const passDesc = { voice: '23 priority questions asked by AI agent during phone interview', web: 'Additional detail fields collected via online form', adaptive: 'Classification-specific questions generated based on business type' }
+            const passColor = { voice: '#0ea5e9', web: '#8b5cf6', adaptive: '#f59e0b' }
+            const renderQAItem = (item, i) => (
+              <div key={item.key + i} style={{ marginBottom: 20, paddingLeft: 16, borderLeft: '3px solid #ececef' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280', marginBottom: 4, fontStyle: 'italic' }}>
+                  Q: {item.question}
+                </div>
+                <div style={{ fontSize: 14, color: BLK, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                  {item.answer}
+                </div>
+                {item.attr?.submitted_by && (
+                  <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', marginTop: 4 }}>
+                    Submitted by {item.attr.submitted_by}{item.attr.channel ? ` via ${item.attr.channel}` : ''}{item.attr.submitted_at ? ` on ${new Date(item.attr.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
+                  </div>
+                )}
+              </div>
+            )
             return (
               <div id="onboarding-doc-print" style={{ background: '#fff', borderRadius: 12, border: '1px solid #ececef', padding: '32px 36px', marginBottom: 14 }}>
-                <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK, margin: '0 0 4px' }}>
-                  Onboarding Summary
+                <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK, margin: '0 0 4px' }}>
+                  Onboarding Document
                 </h1>
                 <p style={{ fontSize: 14, color: '#6b7280', margin: '0 0 4px' }}>
                   {client?.name} {isComplete ? '(Complete)' : '(In Progress)'}
                 </p>
-                <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 24px' }}>
-                  {totalAnswered} fields captured
+                <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 8px' }}>
+                  {allQA.length} questions answered
                   {client?.onboarding_completed_at && ` · Completed ${new Date(client.onboarding_completed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
                 </p>
-                {sections.map(section => {
-                  const sectionFields = section.fields.filter(f => {
-                    const v = displayClient?.[f.key] || rawAnswers?.[f.key]
-                    return v !== null && v !== undefined && v !== ''
-                  })
-                  if (sectionFields.length === 0) return null
+                <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+                  {[['voice', voiceQA], ['web', webQA], ['adaptive', adaptiveQA]].map(([pass, items]) => (
+                    <div key={pass} style={{ padding: '8px 14px', borderRadius: 8, background: passColor[pass] + '10', border: `1px solid ${passColor[pass]}30`, fontSize: 12, fontWeight: 700, color: passColor[pass] }}>
+                      {passLabel[pass]}: {items.length} answered
+                    </div>
+                  ))}
+                </div>
+                {[['voice', voiceQA], ['web', webQA], ['adaptive', adaptiveQA]].map(([pass, items]) => {
+                  if (items.length === 0) return null
                   return (
-                    <div key={section.title}>
-                      <h2 style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#6b7280', marginTop: 24, marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #ececef', textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                        {section.title}
-                      </h2>
-                      {sectionFields.map(f => {
-                        const val = formatValue(displayClient?.[f.key] || rawAnswers?.[f.key])
-                        if (!val) return null
-                        const attr = attribution?.[f.key]
-                        return (
-                          <div key={f.key} style={{ marginBottom: 14 }}>
-                            <div className="field-label" style={{ fontSize: 11, fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.05em' }}>{f.label}</div>
-                            <div className="field-value" style={{ fontSize: 14, color: BLK, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{val}</div>
-                            {attr?.submitted_by && (
-                              <div className="meta" style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', marginTop: 2 }}>
-                                Submitted by {attr.submitted_by}{attr.channel ? ` via ${attr.channel}` : ''}{attr.submitted_at ? ` on ${new Date(attr.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
+                    <div key={pass} style={{ marginBottom: 32 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                        <div style={{ width: 4, height: 24, borderRadius: 2, background: passColor[pass] }} />
+                        <h2 style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: BLK, margin: 0 }}>
+                          {passLabel[pass]}
+                        </h2>
+                      </div>
+                      <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, marginBottom: 16 }}>{passDesc[pass]}</p>
+                      {groupBySection(items).map(([section, sectionItems]) => (
+                        <div key={section}>
+                          <h3 style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: '#6b7280', marginTop: 16, marginBottom: 10, paddingBottom: 4, borderBottom: '1px solid #ececef', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                            {section}
+                          </h3>
+                          {sectionItems.map((item, i) => renderQAItem(item, i))}
+                        </div>
+                      ))}
                     </div>
                   )
                 })}
-                {extraInDoc.length > 0 && (
-                  <div>
-                    <h2 style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: T, marginTop: 24, marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid ${T}30`, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                      Additional Answers
-                    </h2>
-                    {extraInDoc.map(([k, v]) => {
-                      const display = formatValue(v)
-                      if (!display) return null
-                      const prettyKey = k.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-                      const attr = attribution?.[k]
-                      return (
-                        <div key={k} style={{ marginBottom: 14 }}>
-                          <div className="field-label" style={{ fontSize: 11, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.05em' }}>{prettyKey}</div>
-                          <div className="field-value" style={{ fontSize: 14, color: BLK, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{display}</div>
-                          {attr?.submitted_by && (
-                            <div className="meta" style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', marginTop: 2 }}>
-                              Submitted by {attr.submitted_by}{attr.channel ? ` via ${attr.channel}` : ''}{attr.submitted_at ? ` on ${new Date(attr.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
+                {extraQA.length > 0 && (
+                  <div style={{ marginBottom: 32 }}>
+                    <h2 style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: T, marginBottom: 12 }}>Additional Answers</h2>
+                    {extraQA.map((item, i) => renderQAItem(item, i))}
                   </div>
                 )}
               </div>
