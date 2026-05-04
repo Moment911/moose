@@ -113,6 +113,9 @@ export default function ClientDetailPage() {
   const [onboardingLink, setOnboardingLink] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
   const [showOnboardingDoc, setShowOnboardingDoc] = useState(false)
+  const [persona, setPersona] = useState(null)
+  const [personaLoading, setPersonaLoading] = useState(false)
+  const [personaLoaded, setPersonaLoaded] = useState(false)
   const [showAccessGuideModal, setShowAccessGuideModal] = useState(false)
   const [accessGuideEmail, setAccessGuideEmail] = useState('')
   const [sendingAccessGuide, setSendingAccessGuide] = useState(false)
@@ -1451,6 +1454,123 @@ export default function ClientDetailPage() {
             </div>
           </div>
         )}
+
+        {/* ── Buyer Persona Section ── */}
+        {(() => {
+          const generatePersona = async () => {
+            setPersonaLoading(true)
+            try {
+              const answers = client?.onboarding_answers || {}
+              const ctx = {
+                business: client?.name,
+                industry: client?.industry || answers?.industry,
+                city: client?.city || answers?.city,
+                state: client?.state || answers?.state,
+                products: client?.primary_service || answers?.primary_service,
+                ideal_customer: answers?.ideal_customer_desc || client?.target_customer,
+                pain_points: answers?.customer_pain_points,
+                competitors: answers?.competitors,
+                why_choose: client?.unique_selling_prop || answers?.why_choose_you,
+                brand_tone: answers?.brand_tone,
+                target_industries: answers?.target_industries,
+                target_company_size: answers?.target_company_size,
+                decision_maker_titles: answers?.decision_maker_titles,
+                sales_process: answers?.sales_process,
+                avg_deal_size: client?.avg_deal_size || answers?.avg_deal_size,
+                business_description: answers?.business_description,
+              }
+              const ws = client?.welcome_statement || answers?.welcome_statement || ''
+              const res = await fetch('/api/onboarding/persona', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ctx, welcome_statement: ws }),
+              })
+              const { text, error } = await res.json()
+              if (error || !text) { toast.error(error || 'Persona generation failed'); setPersonaLoading(false); return }
+              const parsed = JSON.parse(text)
+              // Save to client_profiles — store source inside the persona jsonb
+              const personaWithMeta = { ...parsed, _generated_by: 'agency', _generated_at: new Date().toISOString() }
+              await supabase.from('client_profiles').upsert({
+                client_id: clientId, ai_persona: personaWithMeta, persona_approved: false,
+                updated_at: new Date().toISOString(),
+              }, { onConflict: 'client_id' })
+              setPersona({ ...parsed, source: 'agency' })
+              toast.success('Buyer persona generated')
+            } catch (e) { toast.error('Failed: ' + (e?.message || 'unknown error')) }
+            setPersonaLoading(false)
+          }
+
+          const listStyle = { margin: '6px 0 0', paddingLeft: 18, fontSize: 13, color: BLK, lineHeight: 1.6 }
+          const sectionHead = { fontFamily: FH, fontSize: 13, fontWeight: 800, color: '#6b7280', marginTop: 16, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.04em' }
+
+          return (
+            <div style={{ ...card, borderTop: `3px solid #8b5cf6` }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>
+                  Buyer Persona
+                </div>
+                <button onClick={generatePersona} disabled={personaLoading}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: personaLoading ? '#e5e7eb' : '#8b5cf6', color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: personaLoading ? 'wait' : 'pointer' }}>
+                  {personaLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Brain size={13} />}
+                  {persona ? 'Regenerate' : 'Generate Persona'}
+                </button>
+              </div>
+              {!persona && !personaLoading && (
+                <div style={{ fontSize: 13, color: '#6b7280', padding: '20px 0', textAlign: 'center' }}>
+                  Generate an AI buyer persona from this client's onboarding data. Uses their welcome statement, industry, ideal customer description, competitors, and all other answers as context.
+                </div>
+              )}
+              {personaLoading && (
+                <div style={{ textAlign: 'center', padding: 30 }}>
+                  <Loader2 size={24} color="#8b5cf6" style={{ animation: 'spin 1s linear infinite' }} />
+                  <div style={{ fontSize: 13, color: '#6b7280', marginTop: 8 }}>Building persona from onboarding data...</div>
+                </div>
+              )}
+              {persona && !personaLoading && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
+                    <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: '#8b5cf6' }}>{persona.persona_name}</div>
+                    <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700, background: persona.source === 'agency' ? '#8b5cf620' : '#0ea5e920', color: persona.source === 'agency' ? '#8b5cf6' : '#0ea5e9' }}>
+                      {persona.source === 'agency' ? 'Agency Generated' : 'Client Submitted'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 14, color: '#6b7280', fontStyle: 'italic', marginBottom: 12 }}>{persona.tagline}</div>
+
+                  {/* Demographics */}
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+                    {[
+                      persona.age_range && `Age: ${persona.age_range}`,
+                      persona.gender && `Gender: ${persona.gender}`,
+                      persona.income && `Income: ${persona.income}`,
+                      persona.education,
+                      persona.location_type,
+                    ].filter(Boolean).map((d, i) => (
+                      <span key={i} style={{ padding: '4px 10px', borderRadius: 6, background: '#f3f4f6', fontSize: 12, color: BLK }}>{d}</span>
+                    ))}
+                  </div>
+
+                  {persona.psychographic_summary && (
+                    <div style={{ fontSize: 14, color: BLK, lineHeight: 1.6, marginBottom: 12, padding: '12px 14px', background: '#faf5ff', borderRadius: 8, border: '1px solid #8b5cf620' }}>
+                      {persona.psychographic_summary}
+                    </div>
+                  )}
+
+                  {persona.triggers?.length > 0 && (<><div style={sectionHead}>Search Triggers</div><ul style={listStyle}>{persona.triggers.map((t, i) => <li key={i}>{t}</li>)}</ul></>)}
+                  {persona.fears?.length > 0 && (<><div style={sectionHead}>Fears & Objections</div><ul style={listStyle}>{persona.fears.map((t, i) => <li key={i}>{t}</li>)}</ul></>)}
+                  {persona.decision_factors?.length > 0 && (<><div style={sectionHead}>Decision Factors</div><ul style={listStyle}>{persona.decision_factors.map((t, i) => <li key={i}>{t}</li>)}</ul></>)}
+                  {persona.trust_signals?.length > 0 && (<><div style={sectionHead}>Trust Signals</div><ul style={listStyle}>{persona.trust_signals.map((t, i) => <li key={i}>{t}</li>)}</ul></>)}
+                  {persona.google_keywords?.length > 0 && (<><div style={sectionHead}>Google Keywords</div><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>{persona.google_keywords.map((k, i) => <span key={i} style={{ padding: '3px 10px', borderRadius: 20, background: '#eff6ff', border: '1px solid #3b82f620', fontSize: 12, color: '#1e40af' }}>{k}</span>)}</div></>)}
+                  {persona.ad_headline_angles?.length > 0 && (<><div style={sectionHead}>Ad Headline Angles</div><ul style={listStyle}>{persona.ad_headline_angles.map((t, i) => <li key={i}>{t}</li>)}</ul></>)}
+                  {persona.pain_point_hooks?.length > 0 && (<><div style={sectionHead}>Pain Point Hooks</div><ul style={listStyle}>{persona.pain_point_hooks.map((t, i) => <li key={i}>{t}</li>)}</ul></>)}
+                  {persona.best_channels?.length > 0 && (<><div style={sectionHead}>Best Marketing Channels</div><ol style={{ ...listStyle, listStyleType: 'decimal' }}>{persona.best_channels.map((t, i) => <li key={i}>{t}</li>)}</ol></>)}
+                  {persona.content_themes?.length > 0 && (<><div style={sectionHead}>Content Themes</div><ul style={listStyle}>{persona.content_themes.map((t, i) => <li key={i}>{t}</li>)}</ul></>)}
+                  {persona.do_not?.length > 0 && (<><div style={sectionHead}>Do NOT Do This</div><ul style={{ ...listStyle, color: '#dc2626' }}>{persona.do_not.map((t, i) => <li key={i}>{t}</li>)}</ul></>)}
+                  {persona.facebook_interests?.length > 0 && (<><div style={sectionHead}>Facebook Targeting Interests</div><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>{persona.facebook_interests.map((k, i) => <span key={i} style={{ padding: '3px 10px', borderRadius: 20, background: '#f0f9ff', border: '1px solid #0ea5e920', fontSize: 12, color: '#0369a1' }}>{k}</span>)}</div></>)}
+                  {persona.online_behavior && (<><div style={sectionHead}>Online Behavior</div><div style={{ fontSize: 13, color: BLK, lineHeight: 1.5, marginTop: 4 }}>{persona.online_behavior}</div></>)}
+                </div>
+              )}
+            </div>
+          )
+        })()}
       </div>
     )
   }
@@ -2728,6 +2848,14 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
   ]
 
   useEffect(() => { loadMembers() }, [clientId])
+  useEffect(() => {
+    if (!clientId) return
+    supabase.from('client_profiles').select('ai_persona, persona_approved, persona_notes').eq('client_id', clientId).maybeSingle()
+      .then(({ data }) => {
+        if (data?.ai_persona) setPersona({ ...data.ai_persona, approved: data.persona_approved, notes: data.persona_notes, source: data.ai_persona._generated_by === 'agency' ? 'agency' : 'client' })
+        setPersonaLoaded(true)
+      }).catch(() => setPersonaLoaded(true))
+  }, [clientId])
 
   async function loadMembers() {
     setLoading(true)
