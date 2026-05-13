@@ -120,6 +120,21 @@ function Divider() {
 // ═══════════════════════════════════════════════════════
 //  MAIN COMPONENT
 // ═══════════════════════════════════════════════════════
+
+// Normalize a free-text industry string to the slug the benchmarks API uses.
+function industryToSlug(s) {
+  if (!s) return 'other'
+  const lc = String(s).toLowerCase()
+  if (/hvac|plumb|roof|electric|home service|contractor/.test(lc)) return 'home_services'
+  if (/law|legal|attorney/.test(lc)) return 'legal'
+  if (/dental|dentist|medical|doctor|dermatology|chiropract/.test(lc)) return 'dental_medical'
+  if (/real estate|realtor|homes/.test(lc)) return 'real_estate'
+  if (/financ|insur|wealth|advisor/.test(lc)) return 'financial'
+  if (/saas|software|platform|b2b/.test(lc)) return 'b2b_saas'
+  if (/auto|car|dealer/.test(lc)) return 'auto'
+  return 'other'
+}
+
 export default function UnifiedCalculator({ reportData, reportInputs }) {
   const [activeTab, setActiveTab] = useState(0)
 
@@ -138,6 +153,49 @@ export default function UnifiedCalculator({ reportData, reportInputs }) {
     cvr: estCVR,
     adSpend: estAdSpend,
   })
+
+  // Track which fields the user has manually edited — we only overwrite
+  // unedited defaults from live benchmarks (don't clobber operator intent).
+  const [edited, setEdited] = useState({ cpc: false, cvr: false, closeRate: false })
+  const [liveBench, setLiveBench] = useState(null)
+
+  // Fetch DataForSEO industry CPC + Koto-network show/close once on mount.
+  // Only updates fields that (a) the user hasn't touched and (b) are still
+  // sitting at the hardcoded fallback (cpc=5, cvr=5, closeRate=30).
+  useEffect(() => {
+    const slug = industryToSlug(reportInputs?.industry || tsa.industry || reportData?.business_name)
+    if (!slug) return
+    let cancelled = false
+    fetch('/api/calculator/benchmarks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ industry: slug }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (cancelled || !j) return
+        setLiveBench(j)
+        setShared(prev => {
+          const next = { ...prev }
+          // CPC: only fill if not edited AND still at fallback ($5) AND no tsa value
+          if (!edited.cpc && !tsa.estimated_cpc && j.sources?.cpc_mid) {
+            next.cpc = Number(j.sources.cpc_mid.toFixed(2))
+          }
+          // close rate: only override fallback (30) when koto-network sample is present
+          if (!edited.closeRate && !tsa.estimated_close_rate && j.sources?.show_close === 'koto_network' && j.close_rate) {
+            next.closeRate = Math.round(j.close_rate * 100)
+          }
+          return next
+        })
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Wrap setters so manual edits flip the edited flag (prevents later
+  // benchmark fetches from overwriting operator-chosen values).
+  const trackEdit = useCallback((k) => setEdited(p => p[k] ? p : { ...p, [k]: true }), [])
 
   // ── Tab 1: Local SEO inputs (pre-filled from scan data) ──
   const estLeads = reportData?.metrics?.est_monthly_leads?.value || 50
@@ -163,7 +221,10 @@ export default function UnifiedCalculator({ reportData, reportInputs }) {
     reduction: 20,
   })
 
-  const upShared = useCallback((k, v) => setShared(p => ({ ...p, [k]: v })), [])
+  const upShared = useCallback((k, v) => {
+    trackEdit(k)
+    setShared(p => ({ ...p, [k]: v }))
+  }, [trackEdit])
   const upT1 = useCallback((k, v) => setT1(p => ({ ...p, [k]: v })), [])
   const upT2 = useCallback((k, v) => setT2(p => ({ ...p, [k]: v })), [])
   const upT3 = useCallback((k, v) => setT3(p => ({ ...p, [k]: v })), [])
