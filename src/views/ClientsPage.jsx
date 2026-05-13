@@ -69,7 +69,7 @@ function SortIcon({ field, sortKey, sortDir }) {
 export default function ClientsPage() {
   const navigate = useNavigate()
   const { agencyId, firstName, isSuperAdmin, isImpersonating, impersonatedAgency } = useAuth()
-  const { refreshClients } = useClient()
+  const { refreshClients, selectClient: setActiveClient } = useClient()
 
   // Filters persisted in sessionStorage so they survive navigation + refresh.
   const getSession = (k, fallback) => {
@@ -379,7 +379,7 @@ export default function ClientsPage() {
               const cfg = STATUS_COLORS[cl.status]||STATUS_COLORS.active
               return (
                 <MobileRow key={cl.id}
-                  onClick={()=>navigate(`/clients/${cl.id}`)}
+                  onClick={()=>{ setActiveClient(cl); navigate(`/clients/${cl.id}`) }}
                   borderBottom={i<filtered.length-1}
                   left={<div style={{ width:38, height:38, borderRadius:10, background:cfg.bg, flexShrink:0,
                     display:'flex', alignItems:'center', justifyContent:'center',
@@ -762,7 +762,7 @@ export default function ClientsPage() {
                       style={{ borderBottom: i < filtered.length-1 ? '1px solid #f3f4f6' : 'none', cursor:'pointer', transition:'background .1s' }}
                       onMouseEnter={e => { e.currentTarget.style.background='#fafafa' }}
                       onMouseLeave={e => { e.currentTarget.style.background='' }}
-                      onClick={() => navigate(`/clients/${client.id}`)}>
+                      onClick={() => { setActiveClient(client); navigate(`/clients/${client.id}`) }}>
 
                       {/* Select */}
                       <td style={{ padding:'14px 8px', width: 40 }} onClick={e => e.stopPropagation()}>
@@ -843,7 +843,7 @@ export default function ClientsPage() {
                       {/* Actions */}
                       <td style={{ padding:'14px 14px', position:'relative', overflow:'visible' }} onClick={e=>e.stopPropagation()}>
                         <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                          <button onClick={() => navigate(`/clients/${client.id}`)}
+                          <button onClick={() => { setActiveClient(client); navigate(`/clients/${client.id}`) }}
                             style={{ padding:'5px 10px', borderRadius:7, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:4 }}>
                             Open <ArrowRight size={11}/>
                           </button>

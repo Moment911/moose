@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useScrollRestoration } from '../hooks/useScrollRestoration'
 import { useAuth } from '../hooks/useAuth'
+import { useClient } from '../context/ClientContext'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { calculateHealthScore } from '../lib/clientHealthScore'
@@ -81,6 +82,12 @@ export default function ClientDetailPage() {
   const { clientId } = useParams()
   const navigate = useNavigate()
   const { agencyId, isSuperAdmin, isImpersonating } = useAuth()
+  const { selectClientById } = useClient()
+
+  // Sync sidebar active client when viewing a client detail page
+  useEffect(() => {
+    if (clientId) selectClientById(clientId)
+  }, [clientId, selectClientById])
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
 
   const [searchParams, setSearchParams] = useSearchParams()
