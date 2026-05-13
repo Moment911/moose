@@ -154,14 +154,14 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
       ['dashboard', 'dashboard', d => d && !d.empty && d.summary],
       ['get_topical_authority', 'authority', d => d?.data],
       ['get_latest_strategic_plan', 'strategy', d => d?.plan],
-      ['get_brand_serp', 'brand_serp', d => d?.data?.overall_score != null],
+      ['get_brand_serp', 'brand_serp', d => d?.data?.brand_serp_score != null || d?.data?.overall_score != null],
       ['get_backlink_profile', 'backlinks', d => d?.data?.overall_score != null],
       ['get_backlink_opportunities', 'link_opps', d => d?.opportunities?.length > 0],
-      ['get_eeat_audit', 'eeat', d => d?.audit?.overall_score != null],
+      ['get_eeat_audit', 'eeat', d => d?.audit?.overall_eeat_score != null || d?.audit?.overall_score != null],
       ['get_topical_map', 'topical_map', d => d?.map?.central_entity],
       ['get_schema_audit', 'schema', d => d?.audit?.overall_score != null],
       ['get_technical_deep', 'tech_deep', d => d?.overall_score != null],
-      ['get_gsc_audit', 'seo_audit', d => d?.audit?.health_score != null],
+      ['get_gsc_audit', 'seo_audit', d => d?.audit?.overall_health_score != null || d?.audit?.health_score != null],
       ['get_link_audit', 'int_links', d => d?.overall_score != null],
       ['get_content_calendar', 'calendar', d => d?.items?.length > 0],
       ['get_content_decay', 'decay', d => d?.urls?.length > 0],
@@ -185,10 +185,10 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
         const d = r.value
         if (id === 'keywords' && d.total) snips[id] = `${d.total} keywords tracked`
         if (id === 'backlinks' && d.data?.overall_score) snips[id] = `Score: ${d.data.overall_score}/100`
-        if (id === 'eeat' && d.audit?.overall_score) snips[id] = `${d.audit.grade || ''} — ${d.audit.overall_score}/100`
-        if (id === 'brand_serp' && d.data?.overall_score) snips[id] = `${d.data.overall_score}/100 brand control`
+        if (id === 'eeat' && (d.audit?.overall_eeat_score || d.audit?.overall_score)) snips[id] = `${d.audit.grade || ''} — ${d.audit.overall_eeat_score || d.audit.overall_score}/100`
+        if (id === 'brand_serp' && (d.data?.brand_serp_score || d.data?.overall_score)) snips[id] = `${d.data.brand_serp_score || d.data.overall_score}/100 brand control`
         if (id === 'schema' && d.audit?.overall_score) snips[id] = `${d.audit.coverage_pct || 0}% coverage`
-        if (id === 'seo_audit' && d.audit?.health_score) snips[id] = `Health: ${d.audit.health_score}/100`
+        if (id === 'seo_audit' && (d.audit?.overall_health_score || d.audit?.health_score)) snips[id] = `Health: ${d.audit.overall_health_score || d.audit.health_score}/100`
         if (id === 'authority' && d.data) snips[id] = `${d.data.authority_grade || ''} — ${d.data.authority_score || 0}/100`
         if (id === 'strategy' && d.plan) snips[id] = `${d.plan.attack_priorities?.length || 0} attack priorities`
         if (id === 'topical_map' && d.map) snips[id] = `${d.map.stats?.total || d.map.core_nodes?.length || 0} topics mapped`

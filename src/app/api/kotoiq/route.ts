@@ -5111,21 +5111,42 @@ Return ONLY valid JSON:
           }
         }
 
-        // Schema recommendations
-        const { data: schemaRow } = await s.from('kotoiq_schema_audit').select('recommendations, coverage_pct')
+        // Schema recommendations (generated from audit data — engine doesn't store recs)
+        const { data: schemaRow } = await s.from('kotoiq_schema_audit').select('coverage_pct, eligible_not_implemented, schema_errors, semantic_issues')
           .eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()
-        if (schemaRow?.recommendations?.length) {
-          for (const r of schemaRow.recommendations.slice(0, 3)) {
-            recs.push({ client_id, agency_id, type: 'schema_fix', priority: r.priority || 'high', title: r.title || r, detail: r.detail || r, estimated_impact: `Schema coverage: ${schemaRow.coverage_pct}%`, effort: 'quick_win', source: 'schema_audit' })
+        if (schemaRow) {
+          const cov = schemaRow.coverage_pct || 0
+          if (cov < 80) {
+            recs.push({ client_id, agency_id, type: 'schema_fix', priority: 'high', title: 'Increase schema markup coverage', detail: `Only ${cov}% of pages have structured data. Add LocalBusiness, Service, and FAQ schema to key service pages.`, estimated_impact: `Schema coverage: ${cov}%`, effort: 'quick_win', source: 'schema_audit' })
+          }
+          const eligible = schemaRow.eligible_not_implemented || []
+          if (eligible.length > 0) {
+            recs.push({ client_id, agency_id, type: 'schema_fix', priority: 'high', title: `Add schema to ${eligible.length} eligible pages`, detail: `${eligible.length} pages could benefit from structured data but currently have none.`, estimated_impact: 'Rich results in search', effort: 'quick_win', source: 'schema_audit' })
+          }
+          const errors = schemaRow.schema_errors || []
+          if (errors.length > 0) {
+            recs.push({ client_id, agency_id, type: 'schema_fix', priority: 'critical', title: `Fix ${errors.length} schema errors`, detail: `Schema validation errors found. Fix these to ensure rich results appear correctly.`, estimated_impact: 'Prevent rich result loss', effort: 'quick_win', source: 'schema_audit' })
           }
         }
 
-        // Brand SERP recommendations
-        const { data: brandRow } = await s.from('kotoiq_brand_serp').select('recommendations, overall_score')
+        // Brand SERP recommendations (generated from audit data — engine doesn't store recs)
+        const { data: brandRow } = await s.from('kotoiq_brand_serp').select('brand_serp_score, has_knowledge_panel, has_site_links, has_social, negative_results, owned_results, total_results')
           .eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()
-        if (brandRow?.recommendations?.length) {
-          for (const r of brandRow.recommendations.slice(0, 3)) {
-            recs.push({ client_id, agency_id, type: 'quick_win', priority: r.priority || 'medium', title: r.title || r, detail: r.detail || r, estimated_impact: `Brand SERP: ${brandRow.overall_score}/100`, effort: r.effort || 'moderate', source: 'brand_serp' })
+        if (brandRow) {
+          const score = brandRow.brand_serp_score || 0
+          if (!brandRow.has_knowledge_panel) {
+            recs.push({ client_id, agency_id, type: 'quick_win', priority: 'high', title: 'Claim Google Knowledge Panel', detail: 'No Knowledge Panel detected for your brand. Verify with Google, build structured data, and strengthen Wikipedia/Wikidata presence.', estimated_impact: `Brand SERP: ${score}/100`, effort: 'moderate', source: 'brand_serp' })
+          }
+          if (!brandRow.has_social) {
+            recs.push({ client_id, agency_id, type: 'quick_win', priority: 'medium', title: 'Add social profiles to brand SERP', detail: 'Social profiles not appearing in branded search. Ensure consistent NAP and linked social accounts.', estimated_impact: 'More owned results in branded search', effort: 'quick_win', source: 'brand_serp' })
+          }
+          const negCount = (brandRow.negative_results || []).length
+          if (negCount > 0) {
+            recs.push({ client_id, agency_id, type: 'quick_win', priority: 'critical', title: `Address ${negCount} negative brand results`, detail: 'Negative content appearing in branded search. Create positive content and build authoritative pages to push negatives down.', estimated_impact: 'Brand reputation protection', effort: 'moderate', source: 'brand_serp' })
+          }
+          const owned = brandRow.owned_results || 0
+          if (owned < 5) {
+            recs.push({ client_id, agency_id, type: 'quick_win', priority: 'medium', title: 'Increase owned brand SERP results', detail: `Only ${owned} of ${brandRow.total_results || 10} results are owned. Build more branded properties (social, directories, content) to dominate page 1.`, estimated_impact: `Brand SERP: ${score}/100`, effort: 'moderate', source: 'brand_serp' })
           }
         }
 
