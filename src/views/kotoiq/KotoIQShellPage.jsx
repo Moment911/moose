@@ -192,10 +192,10 @@ export default function KotoIQShellPage() {
 
               {/* Sub content */}
               <div style={{ padding: '24px 40px' }}>
-                {sub === 'factory' && <PageSuggestionsTab clientId={clientId} agencyId={agencyId} />}
-                {sub === 'builder' && <BuilderTab agencyId={agencyId} />}
-                {sub === 'composer' && <CampaignComposerTab agencyId={agencyId} />}
-                {sub === 'queue' && <PublishQueueTab agencyId={agencyId} />}
+                {sub === 'factory' && <PageSuggestionsTab key={clientId} clientId={clientId} agencyId={agencyId} />}
+                {sub === 'builder' && <BuilderTab key={clientId} agencyId={agencyId} />}
+                {sub === 'composer' && <CampaignComposerTab key={clientId} agencyId={agencyId} />}
+                {sub === 'queue' && <PublishQueueTab key={clientId} agencyId={agencyId} />}
               </div>
             </div>
           )}
@@ -222,8 +222,8 @@ export default function KotoIQShellPage() {
               </div>
 
               <div style={{ padding: '24px 40px' }}>
-                {sub === 'attribution' && <AttributionTab agencyId={agencyId} />}
-                {sub === 'decay' && <ContentDecayTab agencyId={agencyId} />}
+                {sub === 'attribution' && <AttributionTab key={clientId} agencyId={agencyId} />}
+                {sub === 'decay' && <ContentDecayTab key={clientId} agencyId={agencyId} />}
               </div>
             </div>
           )}
