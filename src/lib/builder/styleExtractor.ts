@@ -143,9 +143,10 @@ export async function extractFromHtml(
   let profile: StyleProfile
   try {
     // Extract JSON from response (may have markdown code fences)
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON found in response')
-    const parsed = JSON.parse(jsonMatch[0])
+    const fenceMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
+    const jsonStr = fenceMatch ? fenceMatch[1] : text.match(/\{[\s\S]*\}/)?.[0]
+    if (!jsonStr) throw new Error('No JSON found in response')
+    const parsed = JSON.parse(jsonStr)
 
     profile = {
       heading_pattern: parsed.heading_pattern || {},

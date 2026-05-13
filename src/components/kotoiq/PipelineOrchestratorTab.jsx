@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import toast from 'react-hot-toast'
 import { FH, FB, BLK, GRY, R, T, W, GRN, AMB, cardStyle, labelStyle, inputStyle, buttonPrimary, buttonSecondary, badgeStyle } from '../../lib/theme'
 import {
   Play, Square, CheckCircle2, XCircle, Loader2, Wifi, WifiOff,
@@ -67,7 +68,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
       .then(d => {
         if (d.runs) setPastRuns(d.runs)
       })
-      .catch(() => {})
+      .catch(() => { toast.error('Failed to load pipeline runs') })
   }, [clientId])
 
   // Poll for status
@@ -80,7 +81,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
     })
       .then(r => r.json())
       .then(d => {
-        if (d.run) {
+        if (d?.run) {
           setRun(d.run)
           if (d.run.status !== 'running') {
             setIsRunning(false)
@@ -89,7 +90,12 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
           }
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        // Stop polling on repeated failures
+        setIsRunning(false)
+        clearInterval(pollRef.current)
+        pollRef.current = null
+      })
   }, [runId])
 
   useEffect(() => {

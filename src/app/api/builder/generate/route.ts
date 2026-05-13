@@ -121,17 +121,18 @@ export async function POST(req: NextRequest) {
       case 'preview': {
         const {
           service, city, state, county,
-          wildcards, style_profile_id, mode, variant_count,
+          wildcards, style_profile_id, mode, variant_count, brief_id,
         } = body
 
         if (!service || !city || !state) {
           return NextResponse.json({ error: 'service, city, state required' }, { status: 400 })
         }
 
+        const db = getKotoIQDb(agency_id)
+
         // Load style profile if specified
         let styleProfile = null
         if (style_profile_id) {
-          const db = getKotoIQDb(agency_id)
           const { data: sp } = await db.from('kotoiq_style_profiles')
             .select('*')
             .eq('id', style_profile_id)
@@ -149,12 +150,36 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // Load content brief if specified
+        let brief = null
+        if (brief_id && client_id) {
+          const { data: briefRow } = await db.client
+            .from('kotoiq_content_briefs')
+            .select('outline, target_entities, information_gain, title_options, semantic_data')
+            .eq('id', brief_id)
+            .single()
+          if (briefRow) brief = briefRow
+        } else if (client_id) {
+          // Auto-match brief by keyword (service + city)
+          const keyword = `${service} ${city}`.toLowerCase()
+          const { data: briefRow } = await db.client
+            .from('kotoiq_content_briefs')
+            .select('outline, target_entities, information_gain, title_options, semantic_data')
+            .eq('client_id', client_id)
+            .ilike('target_keyword', `%${keyword}%`)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (briefRow) brief = briefRow
+        }
+
         const input: ContentGenerationInput = {
           service, city, state, county,
           wildcardValues: wildcards || {},
           styleProfile,
           variantCount: variant_count || 1,
           mode: mode || 'static', // preview defaults to static (show one version)
+          brief,
         }
 
         const page = await generatePage(input)

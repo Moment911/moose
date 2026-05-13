@@ -214,7 +214,7 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
   async function submitStyleExtraction() {
     if (!styleInput.trim()) { toast.error('Paste a URL or HTML code'); return }
     setLoading('extracting')
-    setShowStyleModal(false)
+    toast.loading('Extracting style profile...', { id: 'style-extract' })
     try {
       const isUrl = styleInput.trim().startsWith('http')
       const res = await fetch(API_STYLE, {
@@ -232,11 +232,12 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
       let data
       try { data = JSON.parse(text) } catch { throw new Error('Server returned invalid response') }
       if (data.error) throw new Error(data.error)
-      toast.success('Style profile extracted')
+      toast.success('Style profile extracted', { id: 'style-extract' })
       setStyleInput('')
+      setShowStyleModal(false)
       loadStyleProfiles()
     } catch (e) {
-      toast.error(e.message || 'Style extraction failed')
+      toast.error(e.message || 'Style extraction failed', { id: 'style-extract' })
     }
     setLoading('')
   }

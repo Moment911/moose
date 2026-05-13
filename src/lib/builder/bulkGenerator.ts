@@ -208,6 +208,7 @@ export async function runBulkGeneration(input: BulkGenerationInput): Promise<Bul
 
     if (result.error) {
       failed++
+      console.error(`[bulkGenerator] Page failed: ${suggestion.service} in ${suggestion.city} — ${result.error}`)
       await db.from('kotoiq_page_suggestions')
         .update({ status: 'suggested', updated_at: new Date().toISOString() }) // reset to suggested on failure
         .eq('id', suggestionId)

@@ -70,6 +70,9 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
     competitorSnapshots,
     gridScans,
     cities,
+    semanticAnalysis,
+    strategicPlan,
+    contentInventory,
   ] = await Promise.all([
     loadSitemapUrls(db, clientId),
     loadKeywords(db, clientId),
@@ -77,6 +80,9 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
     loadCompetitorSnapshots(db, clientId),
     loadGridScans(db, clientId),
     loadCities(state, counties),
+    loadSemanticAnalysis(db, clientId),
+    loadStrategicPlan(db, clientId),
+    loadContentInventory(db, clientId),
   ])
 
   // 2. Build existing page index (what pages the client already has)
@@ -87,6 +93,39 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
 
   // 4. Build competitor coverage map
   const competitorCoverageMap = buildCompetitorCoverageMap(competitorSnapshots)
+
+  // 4b. Build strategic priority sets (attack/defend/abandon from strategy engine)
+  const attackTopics = new Set<string>()
+  const abandonTopics = new Set<string>()
+  if (strategicPlan) {
+    for (const p of (strategicPlan.attack_priorities || [])) {
+      if (p.cluster || p.topic) attackTopics.add((p.cluster || p.topic).toLowerCase())
+    }
+    for (const a of (strategicPlan.abandon_list || [])) {
+      if (a.cluster || a.topic) abandonTopics.add((a.cluster || a.topic).toLowerCase())
+    }
+  }
+
+  // 4c. Build content inventory index (pages already ranking well)
+  const rankingPages = new Set<string>()
+  for (const page of contentInventory) {
+    if (page.url && page.sc_position && page.sc_position <= 20) {
+      const path = page.url.toLowerCase().replace(/https?:\/\/[^/]+/, '')
+      rankingPages.add(path)
+    }
+  }
+
+  // 4d. Semantic thin/orphan pages
+  const thinPages = new Set<string>()
+  const orphanContexts = new Set<string>()
+  if (semanticAnalysis) {
+    for (const p of (semanticAnalysis.thin_content_pages || [])) {
+      if (p.url) thinPages.add(p.url.toLowerCase())
+    }
+    for (const o of (semanticAnalysis.orphan_contexts || [])) {
+      if (o.topic || o.context) orphanContexts.add((o.topic || o.context).toLowerCase())
+    }
+  }
 
   // 5. Cross-reference: for each service x city combo, check if a page exists
   const suggestions: PageSuggestion[] = []
@@ -142,15 +181,37 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
         else if (kwData.difficulty < 50) priority += 5
       }
 
-      // Cap at 100
-      priority = Math.min(priority, 100)
+      // Boost/penalize from strategic plan
+      const serviceLower = service.toLowerCase()
+      if (attackTopics.size > 0) {
+        const isAttack = [...attackTopics].some(t => serviceLower.includes(t) || t.includes(serviceLower))
+        if (isAttack) priority += 15
+      }
+      if (abandonTopics.size > 0) {
+        const isAbandon = [...abandonTopics].some(t => serviceLower.includes(t) || t.includes(serviceLower))
+        if (isAbandon) priority -= 30
+      }
+
+      // Boost if semantic analysis found orphan context matching this service
+      if (orphanContexts.size > 0) {
+        const isOrphan = [...orphanContexts].some(t => serviceLower.includes(t) || t.includes(serviceLower))
+        if (isOrphan) priority += 10
+      }
+
+      // Cap at 0-100
+      priority = Math.max(0, Math.min(priority, 100))
+
+      // Skip abandoned topics
+      if (priority <= 0) continue
 
       // Build reason string
       const reasons: string[] = []
       if (kwData?.volume) reasons.push(`${kwData.volume.toLocaleString()} monthly searches`)
       if (competitors.length > 0) reasons.push(`${competitors.length} competitors ranking`)
       if (topicalGap) reasons.push('topical authority gap')
-      if (!kwData?.volume) reasons.push('no existing page for this service+city')
+      if ([...attackTopics].some(t => serviceLower.includes(t) || t.includes(serviceLower))) reasons.push('strategic attack priority')
+      if ([...orphanContexts].some(t => serviceLower.includes(t) || t.includes(serviceLower))) reasons.push('orphan topic needs coverage')
+      if (!kwData?.volume && reasons.length === 0) reasons.push('no existing page for this service+city')
 
       suggestions.push({
         service,
@@ -269,6 +330,37 @@ async function loadGridScans(db: ReturnType<typeof getKotoIQDb>, clientId: strin
     .select('keyword, avg_rank, grid_data')
     .order('scanned_at', { ascending: false })
     .limit(20)
+  return data || []
+}
+
+async function loadSemanticAnalysis(db: ReturnType<typeof getKotoIQDb>, clientId: string) {
+  const { data } = await db.client
+    .from('kotoiq_semantic_analysis')
+    .select('thin_content_pages, orphan_contexts, overall_score')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data || null
+}
+
+async function loadStrategicPlan(db: ReturnType<typeof getKotoIQDb>, clientId: string) {
+  const { data } = await db.client
+    .from('kotoiq_strategic_plans')
+    .select('attack_priorities, defend_priorities, abandon_list')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data || null
+}
+
+async function loadContentInventory(db: ReturnType<typeof getKotoIQDb>, clientId: string) {
+  const { data } = await db.client
+    .from('kotoiq_content_inventory')
+    .select('url, sc_position, sc_clicks, freshness_status, trajectory')
+    .eq('client_id', clientId)
+    .limit(1000)
   return data || []
 }
 

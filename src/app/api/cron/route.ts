@@ -95,10 +95,134 @@ export async function GET(req: NextRequest) {
       return Response.json({ success: true, job: 'monthly_recap', sent })
     }
 
+    if (job === 'check_gsc_indexation') {
+      const result = await checkGSCIndexation()
+      return Response.json({ success: true, job: 'check_gsc_indexation', ...result })
+    }
+
     return Response.json({ error: `Unknown job: ${job}` }, { status: 400 })
   } catch (error: any) {
     return Response.json({ error: error.message, job }, { status: 500 })
   }
+}
+
+// ── GSC Publish Watch — check indexation status for published pages ──
+async function checkGSCIndexation() {
+  const s = sb()
+
+  // Get all pending watches (pages published but not yet indexed)
+  const { data: watches } = await s.from('kotoiq_publish_watches')
+    .select('*')
+    .in('status', ['pending', 'submitted'])
+    .limit(50)
+
+  if (!watches?.length) return { checked: 0, indexed: 0, message: 'No pending watches' }
+
+  // Group watches by client to share GSC connections
+  const byClient: Record<string, typeof watches> = {}
+  for (const w of watches) {
+    if (!byClient[w.client_id]) byClient[w.client_id] = []
+    byClient[w.client_id].push(w)
+  }
+
+  let checked = 0, indexed = 0
+
+  for (const [clientId, clientWatches] of Object.entries(byClient)) {
+    // Find GSC connection for this client
+    const { data: conn } = await s.from('seo_connections')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('provider', 'search_console')
+      .limit(1)
+      .maybeSingle()
+
+    if (!conn?.access_token) {
+      // No GSC connection - mark watches as no_gsc
+      await s.from('kotoiq_publish_watches')
+        .update({ status: 'no_gsc', checked_at: new Date().toISOString() })
+        .in('id', clientWatches.map(w => w.id))
+      continue
+    }
+
+    // Refresh token if needed
+    let accessToken = conn.access_token
+    if (conn.refresh_token && conn.expires_at && new Date(conn.expires_at) < new Date()) {
+      try {
+        const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: conn.refresh_token,
+            client_id: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+            client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET || '',
+          }),
+        })
+        const tokenData = await tokenRes.json()
+        if (tokenData.access_token) {
+          accessToken = tokenData.access_token
+          await s.from('seo_connections').update({
+            access_token: accessToken,
+            expires_at: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000).toISOString(),
+          }).eq('id', conn.id)
+        }
+      } catch { /* use existing token */ }
+    }
+
+    const siteUrl = conn.site_url
+
+    for (const watch of clientWatches) {
+      try {
+        // Use GSC URL Inspection API
+        const inspectRes = await fetch('https://searchconsole.googleapis.com/v1/urlInspection/index:inspect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ inspectionUrl: watch.url, siteUrl }),
+          signal: AbortSignal.timeout(10000),
+        })
+
+        checked++
+
+        if (!inspectRes.ok) {
+          await s.from('kotoiq_publish_watches').update({
+            checked_at: new Date().toISOString(),
+            metadata: { ...(watch.metadata || {}), last_error: `GSC API ${inspectRes.status}` },
+          }).eq('id', watch.id)
+          continue
+        }
+
+        const result = await inspectRes.json()
+        const verdict = result.inspectionResult?.indexStatusResult?.verdict
+        const coverageState = result.inspectionResult?.indexStatusResult?.coverageState
+
+        const isIndexed = verdict === 'PASS' || coverageState === 'Submitted and indexed'
+        const isSubmitted = coverageState === 'Discovered - currently not indexed' || coverageState === 'Crawled - currently not indexed'
+
+        const newStatus = isIndexed ? 'indexed' : isSubmitted ? 'submitted' : 'pending'
+
+        await s.from('kotoiq_publish_watches').update({
+          status: newStatus,
+          checked_at: new Date().toISOString(),
+          indexed_at: isIndexed ? new Date().toISOString() : watch.indexed_at,
+          metadata: {
+            ...(watch.metadata || {}),
+            verdict,
+            coverage_state: coverageState,
+            last_crawl: result.inspectionResult?.indexStatusResult?.lastCrawlTime,
+          },
+        }).eq('id', watch.id)
+
+        if (isIndexed) indexed++
+      } catch (e: any) {
+        await s.from('kotoiq_publish_watches').update({
+          checked_at: new Date().toISOString(),
+          metadata: { ...(watch.metadata || {}), last_error: e.message },
+        }).eq('id', watch.id)
+      }
+    }
+  }
+
+  return { checked, indexed }
 }
 
 // ── Process automation rules ──

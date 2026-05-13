@@ -17,6 +17,7 @@
 
 import 'server-only'
 import Anthropic from '@anthropic-ai/sdk'
+import { logTokenUsage } from '@/lib/tokenTracker'
 import { pageBodySystemPrompt, extractFAQSchema, buildLocalBusinessSchema, buildServiceSchema } from './prompts'
 import { fillWildcards } from './wildcards'
 import { generateRankMathMeta, formatAsPostMeta } from './rankMathAdapter'
@@ -26,6 +27,17 @@ import type { StyleProfile } from './styleExtractor'
 import type { RankMathMeta } from './rankMathAdapter'
 
 // ── Types ──────────────────────────────────────────────────────────────────
+
+export interface BriefData {
+  outline?: Array<{ h2: string; h3s?: string[] }>
+  target_entities?: string[]
+  information_gain?: { gaps_in_current_content?: string[] }
+  title_options?: Array<{ method: string; title: string }>
+  semantic_data?: {
+    main_content_sections?: Array<{ heading: string; context_terms?: string[] }>
+    supplementary_sections?: Array<{ heading: string }>
+  }
+}
 
 export interface ContentGenerationInput {
   service: string
@@ -39,6 +51,8 @@ export interface ContentGenerationInput {
   variantCount?: number
   /** 'static' = bake one variant; 'rotation' = wrap in [koto_rotate] shortcodes */
   mode?: 'static' | 'rotation'
+  /** Content brief data from contentBriefEngine (if available) */
+  brief?: BriefData | null
 }
 
 export interface GeneratedPage {
@@ -82,11 +96,27 @@ export async function generatePage(input: ContentGenerationInput): Promise<Gener
     wildcardValues, styleProfile, sitemapUrls,
     variantCount = 3,
     mode = 'rotation',
+    brief,
   } = input
 
-  const client = new Anthropic()
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
-  // Build the system prompt with style profile
+  // Build the system prompt with style profile + brief context
+  let briefContext = ''
+  if (brief) {
+    const parts: string[] = []
+    if (brief.target_entities?.length) {
+      parts.push(`TARGET ENTITIES (weave naturally into content): ${brief.target_entities.join(', ')}`)
+    }
+    if (brief.information_gain?.gaps_in_current_content?.length) {
+      parts.push(`INFORMATION GAPS TO FILL (cover these — competitors miss them):\n${brief.information_gain.gaps_in_current_content.map(g => `- ${g}`).join('\n')}`)
+    }
+    if (brief.semantic_data?.main_content_sections?.length) {
+      parts.push(`SEMANTIC STRUCTURE:\n${brief.semantic_data.main_content_sections.map(s => `- ${s.heading}${s.context_terms?.length ? ` (terms: ${s.context_terms.join(', ')})` : ''}`).join('\n')}`)
+    }
+    if (parts.length) briefContext = '\n\n## Content Brief Intelligence\n' + parts.join('\n\n')
+  }
+
   const systemPrompt = pageBodySystemPrompt({
     service, city, state,
     styleProfile: styleProfile ? {
@@ -96,14 +126,22 @@ export async function generatePage(input: ContentGenerationInput): Promise<Gener
       content_density: styleProfile.content_density,
       word_count_target: styleProfile.word_count_target,
     } : undefined,
-  })
+  }) + briefContext
 
   // Prepare local facts for the prompt
   const localFacts = buildLocalFactsBlock(wildcardValues)
 
+  // Build section list — use brief outline if available, otherwise default
+  const sections = brief?.outline?.length
+    ? brief.outline.map((item, i) => ({
+        id: `brief_${i}`,
+        prompt: `Write a section with H2: "${item.h2}". ${item.h3s?.length ? `Include these subsections as H3s: ${item.h3s.join(', ')}.` : ''} Write 2-3 paragraphs of expert, locally-relevant content.`,
+      }))
+    : SECTION_TYPES
+
   // Generate variants for each section in parallel (grouped to manage API load)
   const sectionResults = await Promise.all(
-    SECTION_TYPES.map(section =>
+    sections.map(section =>
       generateSectionVariants(client, systemPrompt, section, {
         service, city, state, county,
         wildcardValues, localFacts,
@@ -208,7 +246,7 @@ export async function generatePage(input: ContentGenerationInput): Promise<Gener
 async function generateSectionVariants(
   client: Anthropic,
   systemPrompt: string,
-  section: typeof SECTION_TYPES[number],
+  section: { id: string; prompt: string },
   opts: {
     service: string
     city: string
@@ -242,6 +280,13 @@ Remember: sound like a local expert, not like AI. No filler phrases. Active voic
       messages: [{ role: 'user', content: userPrompt }],
     })
 
+    void logTokenUsage({
+      feature: 'page_factory_content',
+      model: 'claude-sonnet-4-6-20250514',
+      inputTokens: response.usage?.input_tokens || 0,
+      outputTokens: response.usage?.output_tokens || 0,
+    })
+
     const text = response.content[0]?.type === 'text' ? response.content[0].text : ''
 
     // Split variants
@@ -255,8 +300,8 @@ Remember: sound like a local expert, not like AI. No filler phrases. Active voic
     }
 
     return { id: section.id, variants }
-  } catch (error) {
-    // On API error, return a placeholder
+  } catch (error: any) {
+    console.error(`[contentEngine] Section "${section.id}" failed for ${service} in ${city}:`, error?.message || error)
     const placeholder = `<section><h2>${service} in ${city}</h2><p>Content generation failed for this section. Please regenerate.</p></section>`
     return { id: section.id, variants: [placeholder] }
   }
