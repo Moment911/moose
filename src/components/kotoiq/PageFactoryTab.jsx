@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Loader2, RefreshCw, ExternalLink, CheckCircle, AlertTriangle, Clock,
-  Layers, Target, Activity, Zap, TrendingUp,
+  Layers, Target, Activity, Zap, TrendingUp, Phone, MessageCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { BLK, GRN, AMB, R } from '../../lib/theme'
@@ -97,6 +97,7 @@ export default function PageFactoryTab({ clientId, agencyId }) {
   const [coverage, setCoverage] = useState([])
   const [pages, setPages] = useState([])
   const [topEarners, setTopEarners] = useState([])
+  const [callSeeds, setCallSeeds] = useState({ themes: [], intents: [], total_calls: 0 })
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
 
@@ -104,16 +105,18 @@ export default function PageFactoryTab({ clientId, agencyId }) {
     if (!clientId) return
     setLoading(true)
     try {
-      const [s, c, p, attr] = await Promise.all([
+      const [s, c, p, attr, seeds] = await Promise.all([
         api('get_page_factory_stats', { client_id: clientId }),
         api('get_page_factory_gap_coverage', { client_id: clientId }),
         api('get_page_factory_pages', { client_id: clientId, limit: 50 }),
         agencyId ? api('get_page_factory_attribution', { client_id: clientId, agency_id: agencyId, top_n: 5 }) : Promise.resolve({ pages: [] }),
+        api('get_call_content_seeds', { client_id: clientId, days: 90, limit: 30 }),
       ])
       setStats(s)
       setCoverage(c?.services || [])
       setPages(p?.pages || [])
       setTopEarners(attr?.pages || [])
+      setCallSeeds(seeds || { themes: [], intents: [], total_calls: 0 })
     } catch (e) {
       toast.error('Failed to load Page Factory data')
     } finally {

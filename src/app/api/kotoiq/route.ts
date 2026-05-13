@@ -5506,6 +5506,106 @@ Return ONLY valid JSON:
     }
   }
 
+  // ─── CALL CONTENT SEEDS: mine inbound calls for content opportunities ─
+  // Pulls the client's recent koto_inbound_calls + ai_summary + intent,
+  // aggregates by intent, and extracts top noun-phrase themes from
+  // transcripts. These become Page Factory content angles — callers tell
+  // you EXACTLY what content they need, in their own words.
+  if (action === 'get_call_content_seeds') {
+    const { client_id, days = 90, limit = 50 } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const sinceIso = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+    const { data: calls } = await s.from('koto_inbound_calls')
+      .select('id, intent, urgency, outcome, sentiment, ai_summary, transcript, created_at')
+      .eq('client_id', client_id)
+      .gte('created_at', sinceIso)
+      .order('created_at', { ascending: false })
+      .limit(500)
+
+    const callList = calls || []
+    if (callList.length === 0) {
+      return NextResponse.json({
+        themes: [],
+        intents: [],
+        total_calls: 0,
+        window_days: days,
+        note: 'No calls in window — answering service not running or no traffic yet.',
+      })
+    }
+
+    // 1) Intent rollup
+    const intentMap: Record<string, { count: number; urgent: number; converted: number }> = {}
+    for (const c of callList) {
+      const key = (c.intent || 'unclassified').toLowerCase()
+      const bucket = intentMap[key] || { count: 0, urgent: 0, converted: 0 }
+      bucket.count++
+      if (c.urgency === 'high' || c.urgency === 'critical') bucket.urgent++
+      if (c.outcome === 'booked' || c.outcome === 'sold' || c.outcome === 'converted') bucket.converted++
+      intentMap[key] = bucket
+    }
+    const intents = Object.entries(intentMap)
+      .map(([intent, stats]) => ({ intent, ...stats }))
+      .sort((a, b) => b.count - a.count)
+
+    // 2) Theme extraction — pull bigrams/trigrams from ai_summary + transcript.
+    //    Cheap + deterministic — no LLM call needed. Filters stopwords and
+    //    very short phrases. Tracks counts + a sample sentence per theme.
+    const STOPWORDS = new Set([
+      'the','a','an','and','or','but','is','are','was','were','be','been',
+      'i','you','he','she','it','we','they','this','that','those','these',
+      'have','has','had','do','does','did','will','would','can','could','should',
+      'on','in','to','of','for','with','at','by','from','as','about','into',
+      'my','your','his','her','its','our','their','me','him','us','them',
+      'yes','no','ok','hi','hello','um','uh','like','just','really','very',
+      'going','want','need','get','got','say','said','tell','tells','call','calls',
+      'today','now','then','time','one','two','three','first','last','also',
+      'what','when','where','who','how','why','which','there','here',
+      'mr','mrs','ms','sir','madam','please','thank','thanks','okay','alright',
+    ])
+    const themeCounts: Record<string, { count: number; sample: string }> = {}
+    const seenInThisCall = new Set<string>()
+    for (const c of callList) {
+      seenInThisCall.clear()
+      const text = `${c.ai_summary || ''} ${c.transcript || ''}`.toLowerCase()
+      if (!text.trim()) continue
+      const sentences = text.split(/[.!?\n]+/).map(s => s.trim()).filter(Boolean)
+      for (const sentence of sentences) {
+        const words = sentence.replace(/[^a-z0-9' ]/g, ' ').split(/\s+/).filter(Boolean)
+        // bigrams + trigrams
+        for (let i = 0; i < words.length - 1; i++) {
+          for (const n of [2, 3]) {
+            if (i + n > words.length) continue
+            const phrase = words.slice(i, i + n).join(' ')
+            const parts = phrase.split(' ')
+            if (parts.length < n) continue
+            if (parts.some(p => p.length < 3 || STOPWORDS.has(p))) continue
+            // de-dupe within a single call to avoid one rambling transcript dominating
+            if (seenInThisCall.has(phrase)) continue
+            seenInThisCall.add(phrase)
+            const bucket = themeCounts[phrase] || { count: 0, sample: sentence.slice(0, 140) }
+            bucket.count++
+            themeCounts[phrase] = bucket
+          }
+        }
+      }
+    }
+
+    const themes = Object.entries(themeCounts)
+      // require at least 2 distinct calls referencing the theme
+      .filter(([, v]) => v.count >= 2)
+      .map(([phrase, v]) => ({ phrase, mentioned_in_calls: v.count, sample: v.sample }))
+      .sort((a, b) => b.mentioned_in_calls - a.mentioned_in_calls)
+      .slice(0, limit)
+
+    return NextResponse.json({
+      themes,
+      intents,
+      total_calls: callList.length,
+      window_days: days,
+    })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 
