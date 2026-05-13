@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useClient } from '../context/ClientContext'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import {
@@ -699,16 +700,18 @@ export default function KotoIQPage() {
   }, [prefilledForm])
   const [keywords, setKeywords] = useState([])
   const [kwTotal, setKwTotal] = useState(0)
-  const initialClientId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('client') || '' : ''
-  const [clientId, setClientIdRaw] = useState(initialClientId)
+  // Client state from unified ClientContext (persists across tab switches)
+  const { clients: ctxClients, selectedClient, selectClientById, clientId: ctxClientId } = useClient()
+  const clients = ctxClients
+  const clientId = ctxClientId || ''
   const setClientId = useCallback((v) => {
-    setClientIdRaw(v)
+    selectClientById(v)
+    // Keep URL in sync for deep-linking / bookmarks
     const url = new URL(window.location.href)
     if (v) url.searchParams.set('client', v)
     else url.searchParams.delete('client')
     window.history.replaceState(null, '', url.toString())
-  }, [])
-  const [clients, setClients] = useState([])
+  }, [selectClientById])
   const [showClientModal, setShowClientModal] = useState(false)
   const [editingClient, setEditingClient] = useState(null) // null = add, object = edit
   const [clientForm, setClientForm] = useState({ name: '', website: '', primary_service: '', location: '' })
@@ -833,20 +836,22 @@ export default function KotoIQPage() {
     }
   }, [tab, loadConnections, runValidation])
 
-  // Load clients
-  const loadClients = useCallback(() => {
-    if (!agencyId) return
-    supabase.from('clients').select('id, name, website, primary_service, industry, status')
-      .eq('agency_id', agencyId).is('deleted_at', null).order('name')
-      .then(({ data }) => { if (Array.isArray(data)) setClients(data) })
-  }, [agencyId])
+  // Sync URL ?client= param to context on mount (deep-link support)
+  useEffect(() => {
+    const urlClientId = new URLSearchParams(window.location.search).get('client')
+    if (urlClientId && urlClientId !== ctxClientId) {
+      selectClientById(urlClientId)
+    }
+  }, []) // run once on mount
+
+  // Clients loaded from ClientContext (no local fetch needed)
+  const loadClients = useCallback(() => {}, []) // no-op, kept for compatibility with saveClient callback
 
   useEffect(() => {
-    loadClients()
     // Load portfolio overview
     if (agencyId) fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'portfolio', agency_id: agencyId }) })
       .then(r => r.json()).then(res => setPortfolio(res)).catch(() => {})
-  }, [agencyId, loadClients])
+  }, [agencyId])
 
   // Save client (add or edit)
   const saveClient = async () => {
