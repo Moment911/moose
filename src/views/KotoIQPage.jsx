@@ -5175,6 +5175,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         )}
 
+        </KotoIQDataProvider>
         </div>
       </div>
 
@@ -5291,8 +5292,6 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         </div>
       )}
-
-          </KotoIQDataProvider>
     </div>
     </div>
   )
