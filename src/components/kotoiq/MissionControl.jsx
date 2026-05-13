@@ -308,10 +308,10 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
 
   // Big score data for the 4 hero rings
   const heroScores = [
-    { label: 'SEO Health', value: snippets.seo_audit ? parseInt(snippets.seo_audit.match(/\d+/)?.[0] || '0') : (statuses.seo_audit === 'done' ? 72 : 0), color: T, icon: Search, sub: snippets.seo_audit || 'Not scanned' },
-    { label: 'Authority', value: snippets.authority ? parseInt(snippets.authority.match(/\d+/)?.[0] || '0') : (statuses.authority === 'done' ? 65 : 0), color: '#8b5cf6', icon: Award, sub: snippets.authority || 'Not audited' },
-    { label: 'E-E-A-T', value: snippets.eeat ? parseInt(snippets.eeat.match(/\d+/)?.[0] || '0') : (statuses.eeat === 'done' ? 78 : 0), color: AMB, icon: Shield, sub: snippets.eeat || 'Not audited' },
-    { label: 'Backlinks', value: snippets.backlinks ? parseInt(snippets.backlinks.match(/\d+/)?.[0] || '0') : (statuses.backlinks === 'done' ? 55 : 0), color: GRN, icon: Link2, sub: snippets.backlinks || 'Not analyzed' },
+    { label: 'SEO Health', value: snippets.seo_audit ? parseInt(snippets.seo_audit.match(/\d+/)?.[0] || '0') : 0, color: T, icon: Search, sub: snippets.seo_audit || (statuses.seo_audit === 'done' ? 'Scanned' : 'Not scanned') },
+    { label: 'Authority', value: snippets.authority ? parseInt(snippets.authority.match(/\d+/)?.[0] || '0') : 0, color: '#8b5cf6', icon: Award, sub: snippets.authority || (statuses.authority === 'done' ? 'Audited' : 'Not audited') },
+    { label: 'E-E-A-T', value: snippets.eeat ? parseInt(snippets.eeat.match(/\d+/)?.[0] || '0') : 0, color: AMB, icon: Shield, sub: snippets.eeat || (statuses.eeat === 'done' ? 'Audited' : 'Not audited') },
+    { label: 'Backlinks', value: snippets.backlinks ? parseInt(snippets.backlinks.match(/\d+/)?.[0] || '0') : 0, color: GRN, icon: Link2, sub: snippets.backlinks || (statuses.backlinks === 'done' ? 'Analyzed' : 'Not analyzed') },
   ]
 
   // AI Summary generation
