@@ -249,9 +249,9 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
           const wave = status.wave || 0
           setCurrentWave(wave)
 
-          const waveLabels = ['', 'Scanning website + competitors', 'Building maps + scoring', 'Strategic analysis']
+          const waveLabels = ['', 'Scanning website + competitors', 'Building maps + scoring', 'Strategic analysis', 'Synthesizing all data into recommendations']
           if (wave > 0 && wave <= 3) {
-            toast.loading(`Wave ${wave}/3 — ${waveLabels[wave]}...`, { id: 'runall' })
+            toast.loading(`Wave ${wave}/4 — ${waveLabels[wave]}...`, { id: 'runall' })
           }
 
           // Mark completed actions
@@ -380,7 +380,7 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
             onMouseDown={e => { if (hasWebsite && !runningAll) e.currentTarget.style.transform = 'scale(0.97)' }}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}>
             {runningAll ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={15} strokeWidth={2} />}
-            {runningAll ? `Wave ${currentWave}/3` : doneCount > 0 ? 'Re-deploy All' : 'Launch All Systems'}
+            {runningAll ? `Wave ${currentWave}/4` : doneCount > 0 ? 'Re-deploy All' : 'Launch All Systems'}
           </button>
         </div>
 

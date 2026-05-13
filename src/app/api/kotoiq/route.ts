@@ -5079,9 +5079,8 @@ Return ONLY valid JSON:
       const failed: string[] = []
 
       for (let w = 0; w < WAVES.length; w++) {
-        // Update progress
         await s.from('kotoiq_sync_log').update({
-          metadata: { wave: w + 1, total_waves: 3, completed_actions: completed, failed_actions: failed },
+          metadata: { wave: w + 1, total_waves: 4, completed_actions: completed, failed_actions: failed },
         }).eq('id', runId)
 
         const results = await Promise.allSettled(WAVES[w].map(fn => fn()))
@@ -5091,12 +5090,86 @@ Return ONLY valid JSON:
         }
       }
 
+      // Wave 4: Synthesize — mirror audit recommendations, regenerate scorecard + strategy
+      await s.from('kotoiq_sync_log').update({
+        metadata: { wave: 4, total_waves: 4, completed_actions: completed, failed_actions: failed },
+      }).eq('id', runId)
+
+      // Mirror recommendations from individual audit tables into kotoiq_recommendations
+      try {
+        // Clear old auto-generated recs
+        await s.from('kotoiq_recommendations').delete().eq('client_id', client_id).eq('status', 'pending')
+
+        const recs: any[] = []
+
+        // EEAT recommendations
+        const { data: eeatRow } = await s.from('kotoiq_eeat_audit').select('recommendations, overall_score')
+          .eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()
+        if (eeatRow?.recommendations?.length) {
+          for (const r of eeatRow.recommendations.slice(0, 5)) {
+            recs.push({ client_id, agency_id, type: 'quick_win', priority: r.priority || 'medium', title: r.title || r, detail: r.detail || r, estimated_impact: `E-E-A-T score: ${eeatRow.overall_score}/100`, effort: r.effort || 'moderate', source: 'eeat_audit' })
+          }
+        }
+
+        // Schema recommendations
+        const { data: schemaRow } = await s.from('kotoiq_schema_audit').select('recommendations, coverage_pct')
+          .eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()
+        if (schemaRow?.recommendations?.length) {
+          for (const r of schemaRow.recommendations.slice(0, 3)) {
+            recs.push({ client_id, agency_id, type: 'schema_fix', priority: r.priority || 'high', title: r.title || r, detail: r.detail || r, estimated_impact: `Schema coverage: ${schemaRow.coverage_pct}%`, effort: 'quick_win', source: 'schema_audit' })
+          }
+        }
+
+        // Brand SERP recommendations
+        const { data: brandRow } = await s.from('kotoiq_brand_serp').select('recommendations, overall_score')
+          .eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()
+        if (brandRow?.recommendations?.length) {
+          for (const r of brandRow.recommendations.slice(0, 3)) {
+            recs.push({ client_id, agency_id, type: 'quick_win', priority: r.priority || 'medium', title: r.title || r, detail: r.detail || r, estimated_impact: `Brand SERP: ${brandRow.overall_score}/100`, effort: r.effort || 'moderate', source: 'brand_serp' })
+          }
+        }
+
+        // Backlink recommendations
+        const { data: blRow } = await s.from('kotoiq_backlink_profile').select('recommendations, overall_score')
+          .eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()
+        if (blRow?.recommendations?.length) {
+          for (const r of blRow.recommendations.slice(0, 3)) {
+            recs.push({ client_id, agency_id, type: 'link_build', priority: r.priority || 'high', title: r.title || r, detail: r.detail || r, estimated_impact: `Backlink score: ${blRow.overall_score}/100`, effort: r.effort || 'moderate', source: 'backlink_audit' })
+          }
+        }
+
+        // Internal links recommendations
+        const { data: linkRow } = await s.from('kotoiq_link_audit').select('recommendations, overall_score')
+          .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+        if (linkRow?.recommendations?.length) {
+          for (const r of linkRow.recommendations.slice(0, 3)) {
+            recs.push({ client_id, agency_id, type: 'quick_win', priority: r.priority || 'medium', title: r.title || r, detail: r.detail || r, estimated_impact: `Internal links: ${linkRow.overall_score}/100`, effort: 'quick_win', source: 'link_audit' })
+          }
+        }
+
+        if (recs.length > 0) {
+          await s.from('kotoiq_recommendations').insert(recs)
+          completed.push('mirror_recommendations')
+        }
+      } catch (e) {
+        console.error('[run_all_audits] Failed to mirror recommendations:', e)
+        failed.push('mirror_recommendations')
+      }
+
+      // Re-run scorecard + strategy with all audit data now available
+      await Promise.allSettled([
+        callAction('generate_scorecard'),
+        callAction('generate_strategic_plan', { timeframe: '3_month' }),
+        callAction('generate_quick_win_queue'),
+      ])
+      completed.push('synthesize')
+
       // Mark complete
       await s.from('kotoiq_sync_log').update({
         status: 'complete',
         completed_at: new Date().toISOString(),
         records_synced: completed.length,
-        metadata: { wave: 3, total_waves: 3, completed_actions: completed, failed_actions: failed },
+        metadata: { wave: 4, total_waves: 4, completed_actions: completed, failed_actions: failed },
       }).eq('id', runId)
     }
 

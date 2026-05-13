@@ -50,6 +50,10 @@ async function gatherStrategicInputs(s: SB, client_id: string) {
     { data: latestEnrichment },
     { data: backlinkProfile },
     { data: contentInventory },
+    { data: eeatAudit },
+    { data: schemaAudit },
+    { data: brandSerp },
+    { data: scorecard },
   ] = await Promise.all([
     safeQuery(s.from('clients').select('id, name, website, primary_service, target_customer, industry').eq('id', client_id).maybeSingle()),
     safeQuery(s.from('kotoiq_topical_maps').select('*').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1)),
@@ -58,8 +62,12 @@ async function gatherStrategicInputs(s: SB, client_id: string) {
     safeQuery(s.from('kotoiq_keywords').select('keyword, fingerprint, kp_monthly_volume, sc_avg_position, sc_clicks, sc_impressions, opportunity_score, rank_propensity, competitor_domains, intent, category').eq('client_id', client_id).limit(2000)),
     safeQuery(s.from('kotoiq_snapshots').select('keyword_fingerprint, sc_position, sc_clicks, opportunity_score, created_at').eq('client_id', client_id).order('created_at', { ascending: false }).limit(4000)),
     safeQuery(s.from('kotoiq_sync_log').select('metadata, completed_at').eq('client_id', client_id).eq('source', 'deep_enrich').order('completed_at', { ascending: false }).limit(1).maybeSingle()),
-    safeQuery(s.from('kotoiq_backlink_profile').select('domain_authority, total_referring_domains, competitor_comparison').eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()),
+    safeQuery(s.from('kotoiq_backlink_profile').select('domain_authority, total_referring_domains, competitor_comparison, overall_score').eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()),
     safeQuery(s.from('kotoiq_content_inventory').select('url, trajectory, sc_position, sc_clicks, freshness_status, refresh_priority').eq('client_id', client_id).limit(500)),
+    safeQuery(s.from('kotoiq_eeat_audit').select('overall_score, experience_score, expertise_score, authority_score, trust_score, recommendations').eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()),
+    safeQuery(s.from('kotoiq_schema_audit').select('overall_score, coverage_pct, recommendations').eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()),
+    safeQuery(s.from('kotoiq_brand_serp').select('overall_score, recommendations').eq('client_id', client_id).order('scanned_at', { ascending: false }).limit(1).maybeSingle()),
+    safeQuery(s.from('kotoiq_scorecards').select('*').eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).maybeSingle()),
   ])
 
   return {
@@ -72,6 +80,13 @@ async function gatherStrategicInputs(s: SB, client_id: string) {
     enrichment: latestEnrichment?.metadata || null,
     backlinkProfile: backlinkProfile || null,
     contentInventory: contentInventory || [],
+    auditScores: {
+      eeat: eeatAudit || null,
+      schema: schemaAudit || null,
+      brandSerp: brandSerp || null,
+      backlinks: backlinkProfile?.overall_score || null,
+    },
+    scorecard: scorecard || null,
   }
 }
 
@@ -81,7 +96,7 @@ async function gatherStrategicInputs(s: SB, client_id: string) {
 // for a single completion.
 // ─────────────────────────────────────────────────────────────
 function summarizeInputs(inputs: Awaited<ReturnType<typeof gatherStrategicInputs>>) {
-  const { client, map, nodes, clusters, keywords, snapshots, enrichment, backlinkProfile, contentInventory } = inputs
+  const { client, map, nodes, clusters, keywords, snapshots, enrichment, backlinkProfile, contentInventory, auditScores, scorecard } = inputs
 
   // Competitor inventory — collapse competitor_domains per keyword
   const competitorFreq: Record<string, { count: number; value: number }> = {}
@@ -183,6 +198,21 @@ function summarizeInputs(inputs: Awaited<ReturnType<typeof gatherStrategicInputs
     domain_authority: clientDA,
     avg_competitor_da: avgCompetitorDA,
     da_gap: avgCompetitorDA ? avgCompetitorDA - clientDA : null,
+    // Audit scores — inform attack/defend priorities
+    audit_scores: {
+      eeat: auditScores?.eeat?.overall_score ?? null,
+      eeat_breakdown: auditScores?.eeat ? {
+        experience: auditScores.eeat.experience_score,
+        expertise: auditScores.eeat.expertise_score,
+        authority: auditScores.eeat.authority_score,
+        trust: auditScores.eeat.trust_score,
+      } : null,
+      schema_coverage: auditScores?.schema?.coverage_pct ?? null,
+      brand_serp: auditScores?.brandSerp?.overall_score ?? null,
+      backlinks: auditScores?.backlinks ?? null,
+    },
+    scorecard_position: scorecard?.overall_position || null,
+    scorecard_gaps: scorecard?.gaps || null,
   }
 }
 
