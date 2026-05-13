@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Loader2, RefreshCw, ExternalLink, CheckCircle, AlertTriangle, Clock,
-  Layers, Target, Activity, Zap, TrendingUp, Phone, MessageCircle,
+  Layers, Target, Activity, Zap, TrendingUp, Phone, MessageCircle, Star, HelpCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { BLK, GRN, AMB, R } from '../../lib/theme'
@@ -98,6 +98,7 @@ export default function PageFactoryTab({ clientId, agencyId }) {
   const [pages, setPages] = useState([])
   const [topEarners, setTopEarners] = useState([])
   const [callSeeds, setCallSeeds] = useState({ themes: [], intents: [], total_calls: 0 })
+  const [voiceThemes, setVoiceThemes] = useState({ question_themes: [], phrase_themes: [], compliment_themes: [], review_count: 0 })
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
 
@@ -105,18 +106,20 @@ export default function PageFactoryTab({ clientId, agencyId }) {
     if (!clientId) return
     setLoading(true)
     try {
-      const [s, c, p, attr, seeds] = await Promise.all([
+      const [s, c, p, attr, seeds, voice] = await Promise.all([
         api('get_page_factory_stats', { client_id: clientId }),
         api('get_page_factory_gap_coverage', { client_id: clientId }),
         api('get_page_factory_pages', { client_id: clientId, limit: 50 }),
         agencyId ? api('get_page_factory_attribution', { client_id: clientId, agency_id: agencyId, top_n: 5 }) : Promise.resolve({ pages: [] }),
         api('get_call_content_seeds', { client_id: clientId, days: 90, limit: 30 }),
+        api('get_customer_voice_themes', { client_id: clientId, limit: 20 }),
       ])
       setStats(s)
       setCoverage(c?.services || [])
       setPages(p?.pages || [])
       setTopEarners(attr?.pages || [])
       setCallSeeds(seeds || { themes: [], intents: [], total_calls: 0 })
+      setVoiceThemes(voice || { question_themes: [], phrase_themes: [], compliment_themes: [], review_count: 0 })
     } catch (e) {
       toast.error('Failed to load Page Factory data')
     } finally {
@@ -176,6 +179,70 @@ export default function PageFactoryTab({ clientId, agencyId }) {
         <KPIBox label="Attributed Calls" value={callsTotal} sub={pages.length ? `${pages.length} pages tracked` : 'no pages yet'} color={callsTotal > 0 ? R : BLK} />
         <KPIBox label="Est. Revenue" value={`$${revenueTotal.toLocaleString()}`} sub="$150 / call avg" color={revenueTotal > 0 ? GRN : BLK} />
       </div>
+
+      {/* Customer Voice — GBP review + Q&A mining */}
+      {voiceThemes.review_count > 0 && (voiceThemes.question_themes.length > 0 || voiceThemes.phrase_themes.length > 0 || voiceThemes.compliment_themes.length > 0) && (
+        <div style={card}>
+          <div style={{ fontFamily: SF, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Star size={16} color={R} /> Customer Voice
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b6b70', fontWeight: 600 }}>
+              {voiceThemes.review_count} reviews{voiceThemes.avg_rating ? ` · ${voiceThemes.avg_rating}★ avg` : ''}
+            </span>
+          </div>
+          <div style={{ fontFamily: SF, fontSize: 12, color: '#6b6b70', marginBottom: 14 }}>
+            Real customer language from GBP reviews. Use these in page H2s, FAQ blocks, and meta descriptions — they match search intent and AEO better than agency-written copy.
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+            {voiceThemes.question_themes.length > 0 && (
+              <div>
+                <div style={{ fontFamily: SF, fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <HelpCircle size={12} /> Questions Customers Ask
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {voiceThemes.question_themes.slice(0, 6).map((q, i) => (
+                    <div key={i} style={{ padding: '7px 10px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f1f1f6' }}>
+                      <div style={{ fontFamily: SF, fontSize: 12, color: BLK, lineHeight: 1.4 }}>{q.question}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {voiceThemes.compliment_themes.length > 0 && (
+              <div>
+                <div style={{ fontFamily: SF, fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Star size={12} color={GRN} /> Compliments (4–5★)
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {voiceThemes.compliment_themes.slice(0, 6).map((c, i) => (
+                    <div key={i} style={{ padding: '7px 10px', background: GRN + '08', borderRadius: 8, border: '1px solid ' + GRN + '20' }}>
+                      <div style={{ fontFamily: SF, fontSize: 12, fontWeight: 700, color: BLK }}>{c.phrase}</div>
+                      <div style={{ fontFamily: SF, fontSize: 10, color: '#6b6b70', marginTop: 2 }}>{c.mentioned_in}× reviews</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {voiceThemes.phrase_themes.length > 0 && (
+              <div>
+                <div style={{ fontFamily: SF, fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <MessageCircle size={12} /> Recurring Phrases
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {voiceThemes.phrase_themes.slice(0, 6).map((p, i) => (
+                    <div key={i} style={{ padding: '7px 10px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f1f1f6' }}>
+                      <div style={{ fontFamily: SF, fontSize: 12, fontWeight: 700, color: BLK }}>{p.phrase}</div>
+                      <div style={{ fontFamily: SF, fontSize: 10, color: '#6b6b70', marginTop: 2 }}>{p.mentioned_in}× reviews</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Top Earners (only when there are attributed calls) */}
       {topEarners.length > 0 && (

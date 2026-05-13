@@ -5606,6 +5606,129 @@ Return ONLY valid JSON:
     })
   }
 
+  // ─── CUSTOMER VOICE THEMES: mine GBP reviews + Q&A for content language ─
+  // Reviews and Q&A contain the exact words real customers use. For Page
+  // Factory + AEO, this is gold — FAQ items, section headings, and meta
+  // descriptions that mirror the customer's language match search intent
+  // far better than copy written from the inside of the business.
+  if (action === 'get_customer_voice_themes') {
+    const { client_id, limit = 30 } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // Pull most recent GBP audit from the latest intel report
+    const { data: reports } = await s.from('koto_intel_reports')
+      .select('report_data, created_at')
+      .eq('client_id', client_id)
+      .order('created_at', { ascending: false })
+      .limit(3)
+
+    type Review = { rating?: number; text?: string; time?: string; author?: string }
+    const reviewBag: Review[] = []
+    for (const r of (reports || [])) {
+      const gbp = (r as any).report_data?.gbp_audit
+      const recent = gbp?.recent_reviews || []
+      for (const rv of recent) reviewBag.push(rv)
+    }
+    // De-dupe by text+author
+    const seen = new Set<string>()
+    const reviews: Review[] = []
+    for (const rv of reviewBag) {
+      const key = `${rv.text?.slice(0, 80)}|${rv.author || ''}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      reviews.push(rv)
+    }
+
+    if (reviews.length === 0) {
+      return NextResponse.json({
+        question_themes: [],
+        phrase_themes: [],
+        compliment_themes: [],
+        review_count: 0,
+        note: 'No cached reviews — run gmb_health (or Launch All) to populate.',
+      })
+    }
+
+    const STOPWORDS = new Set([
+      'the','a','an','and','or','but','is','are','was','were','be','been','being',
+      'i','you','he','she','it','we','they','this','that','those','these',
+      'have','has','had','do','does','did','will','would','can','could','should',
+      'on','in','to','of','for','with','at','by','from','as','about','into','out',
+      'my','your','his','her','its','our','their','me','him','us','them',
+      'yes','no','ok','okay','very','really','just','also','too','so','then',
+      'really','very','quite','pretty','always','never',
+      'today','now','last','first','again','time','one','two','only',
+      'mr','mrs','ms','sir','madam','please','thank','thanks',
+    ])
+
+    // 1) QUESTION-LIKE themes — sentences with ?, or starting with how/what/why/when/can/does/is
+    const questionMap: Record<string, { count: number; sample: string }> = {}
+    // 2) PHRASE themes — recurring bi/trigrams from review text
+    const phraseMap: Record<string, { count: number; sample: string }> = {}
+    // 3) COMPLIMENT themes — 4-5 star reviews, what they praise
+    const complimentMap: Record<string, { count: number; sample: string }> = {}
+
+    for (const rv of reviews) {
+      const text = (rv.text || '').toLowerCase().trim()
+      if (!text) continue
+      const isPositive = (rv.rating || 0) >= 4
+      const sentences = text.split(/[.!?\n]+/).map(s => s.trim()).filter(Boolean)
+
+      for (const sentence of sentences) {
+        // Question detection
+        if (/\?$/.test(sentence) || /^(how|what|why|when|where|who|can|do|does|is|are|will|should|could)\b/.test(sentence)) {
+          const norm = sentence.replace(/[^a-z0-9' ?]/g, '').trim()
+          if (norm.length >= 10 && norm.length <= 140) {
+            const bucket = questionMap[norm] || { count: 0, sample: sentence }
+            bucket.count++
+            questionMap[norm] = bucket
+          }
+        }
+
+        // N-gram extraction
+        const words = sentence.replace(/[^a-z0-9' ]/g, ' ').split(/\s+/).filter(Boolean)
+        for (let i = 0; i < words.length - 1; i++) {
+          for (const n of [2, 3]) {
+            if (i + n > words.length) continue
+            const phrase = words.slice(i, i + n).join(' ')
+            const parts = phrase.split(' ')
+            if (parts.some(p => p.length < 3 || STOPWORDS.has(p))) continue
+            const target = isPositive ? complimentMap : phraseMap
+            const bucket = target[phrase] || { count: 0, sample: sentence.slice(0, 120) }
+            bucket.count++
+            target[phrase] = bucket
+          }
+        }
+      }
+    }
+
+    const question_themes = Object.entries(questionMap)
+      .filter(([, v]) => v.count >= 1)
+      .map(([question, v]) => ({ question, mentioned_in: v.count, sample: v.sample }))
+      .sort((a, b) => b.mentioned_in - a.mentioned_in)
+      .slice(0, limit)
+
+    const phrase_themes = Object.entries(phraseMap)
+      .filter(([, v]) => v.count >= 2)
+      .map(([phrase, v]) => ({ phrase, mentioned_in: v.count, sample: v.sample }))
+      .sort((a, b) => b.mentioned_in - a.mentioned_in)
+      .slice(0, limit)
+
+    const compliment_themes = Object.entries(complimentMap)
+      .filter(([, v]) => v.count >= 2)
+      .map(([phrase, v]) => ({ phrase, mentioned_in: v.count, sample: v.sample }))
+      .sort((a, b) => b.mentioned_in - a.mentioned_in)
+      .slice(0, limit)
+
+    return NextResponse.json({
+      question_themes,
+      phrase_themes,
+      compliment_themes,
+      review_count: reviews.length,
+      avg_rating: reviews.length ? +(reviews.reduce((a, r) => a + (r.rating || 0), 0) / reviews.length).toFixed(2) : null,
+    })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 
