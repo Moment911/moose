@@ -7,6 +7,7 @@ import {
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
+import { useKotoIQRefreshKey } from '../../context/KotoIQDataContext'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
@@ -57,6 +58,7 @@ function PriorityCard({ title, items, color, icon: Icon, fieldMap, empty }) {
 }
 
 export default function StrategyTab({ clientId, agencyId }) {
+  const refreshKey = useKotoIQRefreshKey()
   const [plan, setPlan] = useState(null)
   const [running, setRunning] = useState(false)
   const [timeframe, setTimeframe] = useState('3_month')
@@ -69,7 +71,7 @@ export default function StrategyTab({ clientId, agencyId }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'get_latest_strategic_plan', client_id: clientId }),
     }).then(r => r.json()).then(j => { if (j?.plan) setPlan(j.plan) }).catch(() => {})
-  }, [clientId])
+  }, [clientId, refreshKey])
 
   useEffect(() => {
     if (!clientId) return
@@ -78,7 +80,7 @@ export default function StrategyTab({ clientId, agencyId }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'get_page_factory_gap_coverage', client_id: clientId }),
     }).then(r => r.json()).then(j => { if (j?.services) setGapCoverage(j.services) }).catch(() => {})
-  }, [clientId])
+  }, [clientId, refreshKey])
 
   const generate = async () => {
     setRunning(true)

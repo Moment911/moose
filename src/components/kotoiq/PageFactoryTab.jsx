@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { BLK, GRN, AMB, R } from '../../lib/theme'
+import { useKotoIQRefreshKey } from '../../context/KotoIQDataContext'
 
 const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
@@ -91,6 +92,7 @@ function IndexedBadge({ indexed }) {
 }
 
 export default function PageFactoryTab({ clientId, agencyId }) {
+  const refreshKey = useKotoIQRefreshKey()
   const [stats, setStats] = useState(null)
   const [coverage, setCoverage] = useState([])
   const [pages, setPages] = useState([])
@@ -119,7 +121,7 @@ export default function PageFactoryTab({ clientId, agencyId }) {
     }
   }, [clientId, agencyId])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load() }, [load, refreshKey])
 
   const sync = async () => {
     setSyncing(true)

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { useKotoIQData } from '../../context/KotoIQDataContext'
 
 // ── Animated CSS ──
 const STYLE_TAG = `
@@ -124,6 +125,9 @@ function AnimatedScore({ value, color }) {
 const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 
 export default function MissionControl({ clientId, agencyId, clients, onSwitchTab, onEditClient, onRunQuickScan, onRunDeepEnrich, onRunSync, syncing, enriching }) {
+  // Surface a shared refresh signal — bumped when Launch All completes so
+  // every consumer of KotoIQDataContext can react.
+  const { bumpRefresh } = useKotoIQData()
   const [statuses, setStatuses] = useState({})
   const [snippets, setSnippets] = useState({})
   const [collapsed, setCollapsed] = useState({})
@@ -287,6 +291,8 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
               toast.error('Some audits failed — check individual tabs', { id: 'runall' })
             }
 
+            // Tell every KotoIQDataContext subscriber to refetch
+            bumpRefresh()
             await checkStatuses()
           }
         } catch { /* polling error, keep trying */ }

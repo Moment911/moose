@@ -50,6 +50,7 @@ import AskKotoIQTab from '../components/kotoiq/AskKotoIQTab'
 import StrategyTab from '../components/kotoiq/StrategyTab'
 import ScorecardTab from '../components/kotoiq/ScorecardTab'
 import PageFactoryTab from '../components/kotoiq/PageFactoryTab'
+import { KotoIQDataProvider } from '../context/KotoIQDataContext'
 import CompetitorWatchTab from '../components/kotoiq/CompetitorWatchTab'
 import IntegrationsTab from '../components/kotoiq/IntegrationsTab'
 import BulkOperationsTab from '../components/kotoiq/BulkOperationsTab'
@@ -1522,6 +1523,8 @@ export default function KotoIQPage() {
 
           {/* ── Scrollable Content ────────────────────────────────── */}
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
+
+          <KotoIQDataProvider clientId={clientId} agencyId={agencyId}>
 
           {/* ── MISSION CONTROL — always shows on dashboard tab ── */}
           {clientId && tab === 'dashboard' && (
@@ -5288,6 +5291,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         </div>
       )}
+
+          </KotoIQDataProvider>
     </div>
     </div>
   )
