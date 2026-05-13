@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import {
   Target, Shield, X as XIcon, Loader2, RefreshCw, Sparkles, Calendar,
-  CheckCircle, TrendingUp, Clock,
+  CheckCircle, TrendingUp, Clock, Layers,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -60,6 +60,7 @@ export default function StrategyTab({ clientId, agencyId }) {
   const [plan, setPlan] = useState(null)
   const [running, setRunning] = useState(false)
   const [timeframe, setTimeframe] = useState('3_month')
+  const [gapCoverage, setGapCoverage] = useState([])
 
   useEffect(() => {
     if (!clientId) return
@@ -68,6 +69,15 @@ export default function StrategyTab({ clientId, agencyId }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'get_latest_strategic_plan', client_id: clientId }),
     }).then(r => r.json()).then(j => { if (j?.plan) setPlan(j.plan) }).catch(() => {})
+  }, [clientId])
+
+  useEffect(() => {
+    if (!clientId) return
+    fetch('/api/kotoiq', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_page_factory_gap_coverage', client_id: clientId }),
+    }).then(r => r.json()).then(j => { if (j?.services) setGapCoverage(j.services) }).catch(() => {})
   }, [clientId])
 
   const generate = async () => {
@@ -192,6 +202,38 @@ export default function StrategyTab({ clientId, agencyId }) {
               ]}
             />
           </div>
+
+          {gapCoverage.length > 0 && (
+            <div style={card}>
+              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Layers size={16} color="#0a0a0a" /> Page Factory Gap Closure
+                <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b6b70', fontWeight: 600 }}>service × city pages built vs. opportunity</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {gapCoverage.slice(0, 6).map((svc, i) => {
+                  const closureColor = svc.closure_pct >= 70 ? GRN : svc.closure_pct >= 30 ? AMB : '#dc2626'
+                  return (
+                    <div key={i} style={{ padding: '8px 10px', background: '#f9f9fb', borderRadius: 8, border: '1px solid #f1f1f6' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 12, fontWeight: 700, color: BLK }}>{svc.service}</div>
+                        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 11, fontWeight: 700, color: closureColor }}>
+                          {svc.closure_pct}% · {svc.published}/{svc.total}
+                        </div>
+                      </div>
+                      <div style={{ height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{ width: `${svc.closure_pct}%`, height: '100%', background: closureColor, transition: 'width .3s' }} />
+                      </div>
+                    </div>
+                  )
+                })}
+                {gapCoverage.length > 6 && (
+                  <div style={{ fontSize: 11, color: '#6b6b70', fontStyle: 'italic', textAlign: 'center', marginTop: 4 }}>
+                    +{gapCoverage.length - 6} more services — see Page Factory tab for full breakdown
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {Object.keys(alloc).length > 0 && (
             <div style={card}>

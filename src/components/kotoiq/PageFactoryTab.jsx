@@ -94,6 +94,7 @@ export default function PageFactoryTab({ clientId, agencyId }) {
   const [stats, setStats] = useState(null)
   const [coverage, setCoverage] = useState([])
   const [pages, setPages] = useState([])
+  const [topEarners, setTopEarners] = useState([])
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
 
@@ -101,20 +102,22 @@ export default function PageFactoryTab({ clientId, agencyId }) {
     if (!clientId) return
     setLoading(true)
     try {
-      const [s, c, p] = await Promise.all([
+      const [s, c, p, attr] = await Promise.all([
         api('get_page_factory_stats', { client_id: clientId }),
         api('get_page_factory_gap_coverage', { client_id: clientId }),
         api('get_page_factory_pages', { client_id: clientId, limit: 50 }),
+        agencyId ? api('get_page_factory_attribution', { client_id: clientId, agency_id: agencyId, top_n: 5 }) : Promise.resolve({ pages: [] }),
       ])
       setStats(s)
       setCoverage(c?.services || [])
       setPages(p?.pages || [])
+      setTopEarners(attr?.pages || [])
     } catch (e) {
       toast.error('Failed to load Page Factory data')
     } finally {
       setLoading(false)
     }
-  }, [clientId])
+  }, [clientId, agencyId])
 
   useEffect(() => { load() }, [load])
 
@@ -168,6 +171,38 @@ export default function PageFactoryTab({ clientId, agencyId }) {
         <KPIBox label="Attributed Calls" value={callsTotal} sub={pages.length ? `${pages.length} pages tracked` : 'no pages yet'} color={callsTotal > 0 ? R : BLK} />
         <KPIBox label="Est. Revenue" value={`$${revenueTotal.toLocaleString()}`} sub="$150 / call avg" color={revenueTotal > 0 ? GRN : BLK} />
       </div>
+
+      {/* Top Earners (only when there are attributed calls) */}
+      {topEarners.length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: SF, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <TrendingUp size={16} color={R} /> Top Pages Driving Calls
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b6b70', fontWeight: 600 }}>via Page Factory attribution</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {topEarners.map((p, i) => (
+              <div key={p.publish_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: '#f9f9fb', borderRadius: 10, border: '1px solid #f1f1f6' }}>
+                <div style={{ fontFamily: SF, fontSize: 18, fontWeight: 800, color: '#94a3b8', minWidth: 28 }}>{i + 1}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ color: BLK, textDecoration: 'none', fontFamily: SF, fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ maxWidth: 420, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.url}</span>
+                    <ExternalLink size={11} color="#94a3b8" />
+                  </a>
+                  {p.rank_keyword && (
+                    <div style={{ fontFamily: SF, fontSize: 11, color: '#6b6b70', marginTop: 2 }}>
+                      Ranks #{p.rank ?? '—'} for "{p.rank_keyword}"
+                    </div>
+                  )}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: SF, fontSize: 16, fontWeight: 800, color: R }}>{p.call_count} {p.call_count === 1 ? 'call' : 'calls'}</div>
+                  {p.estimated_revenue && <div style={{ fontFamily: SF, fontSize: 11, color: GRN, fontWeight: 700 }}>${p.estimated_revenue.toLocaleString()} est.</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Pipeline Funnel */}
       <div style={card}>
