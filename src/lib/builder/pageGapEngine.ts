@@ -15,6 +15,7 @@
 import 'server-only'
 import { getKotoIQDb } from '../kotoiqDb'
 import { getKeywordCPCs } from '../dataforseo'
+import { fingerprintPage, aggregateFingerprints } from './competitorFingerprint'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
@@ -32,6 +33,8 @@ export interface PageSuggestion {
   keyword_difficulty: number | null
   competitor_count: number
   competitor_urls: string[]
+  /** Aggregated competitor benchmarks — used by PF generation prompt */
+  competitor_fingerprints?: ReturnType<typeof aggregateFingerprints>
 }
 
 export interface GapAnalysisInput {
@@ -55,6 +58,16 @@ export interface GapAnalysisInput {
   enrichWithLocalVolume?: boolean
   /** How many top suggestions to enrich (default 30). */
   enrichTopN?: number
+  /**
+   * If true, fetch top competitor URLs for the highest-priority gaps and
+   * extract page fingerprints (word count, headings, schema, FAQ, image
+   * counts). These become the benchmark Page Factory generation prompts
+   * write against. Network-heavy — defaults to true but only fingerprints
+   * the top fingerprintTopN gaps.
+   */
+  fingerprintCompetitors?: boolean
+  /** How many top suggestions to fingerprint competitors for (default 8). */
+  fingerprintTopN?: number
 }
 
 export interface GapAnalysisResult {
@@ -70,7 +83,11 @@ export interface GapAnalysisResult {
 // ── Core Engine ────────────────────────────────────────────────────────────
 
 export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnalysisResult> {
-  const { agencyId, clientId, services, state, counties, cityLimit = 100, enrichWithLocalVolume = true, enrichTopN = 30 } = input
+  const {
+    agencyId, clientId, services, state, counties, cityLimit = 100,
+    enrichWithLocalVolume = true, enrichTopN = 30,
+    fingerprintCompetitors = true, fingerprintTopN = 8,
+  } = input
   const db = getKotoIQDb(agencyId)
 
   // 1. Load existing intelligence data in parallel
@@ -312,6 +329,31 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
     suggestions.sort((a, b) => b.priority - a.priority)
   }
 
+  // ── Competitor fingerprinting for highest-priority gaps ──────────────
+  // After enrichment + sort, take the top N gaps and scrape their listed
+  // competitor URLs (up to 3 per gap) to capture the surface signals
+  // — word count, headings, schema, FAQ — that Page Factory needs to
+  // beat. Aggregated benchmark is attached to each suggestion so the
+  // generation prompt can read it directly.
+  let fingerprintedCount = 0
+  if (fingerprintCompetitors && suggestions.length > 0) {
+    const top = suggestions.slice(0, fingerprintTopN)
+    await Promise.allSettled(
+      top.map(async s => {
+        const urls = (s.competitor_urls || []).slice(0, 3)
+        if (urls.length === 0) return
+        const keyword = `${s.service} ${s.city}`
+        const fps = (await Promise.all(urls.map(u => fingerprintPage(u, keyword))))
+          .filter((f): f is NonNullable<typeof f> => f != null)
+        const agg = aggregateFingerprints(fps)
+        if (agg) {
+          s.competitor_fingerprints = agg
+          fingerprintedCount++
+        }
+      })
+    )
+  }
+
   return {
     suggestions,
     stats: {
@@ -320,6 +362,7 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
       existing_pages_found: existingPageIndex.size,
       gaps_found: suggestions.length,
       ...(enrichWithLocalVolume ? { local_volume_enriched: enrichedCount } : {}),
+      ...(fingerprintCompetitors ? { competitors_fingerprinted: fingerprintedCount } : {}),
     } as any,
   }
 }
@@ -355,6 +398,9 @@ export async function saveSuggestions(
       keyword_difficulty: s.keyword_difficulty,
       competitor_count: s.competitor_count,
       competitor_urls: s.competitor_urls,
+      // Persist the aggregated competitor benchmarks into metadata so PF
+      // generation reads them later without re-scraping.
+      metadata: s.competitor_fingerprints ? { competitor_fingerprints: s.competitor_fingerprints } : {},
       status: 'suggested',
     }))
 
