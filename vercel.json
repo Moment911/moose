@@ -35,6 +35,10 @@
     {
       "path": "/api/cron/agent-evaluator",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-launch-all",
+      "schedule": "0 5 * * 1"
     }
   ],
   "functions": {
@@ -102,6 +106,9 @@
       "maxDuration": 300
     },
     "src/app/api/cron/agent-evaluator/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/weekly-launch-all/route.ts": {
       "maxDuration": 300
     }
   }
