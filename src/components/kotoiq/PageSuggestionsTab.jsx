@@ -7,12 +7,15 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { FH, FB, BLK, T, R, GRN } from '../../lib/theme'
+import ClientSearchSelect from '../ClientSearchSelect'
 
 const API_GAPS = '/api/builder/gaps'
 const API_GEN = '/api/builder/generate'
 const API_STYLE = '/api/builder/style'
 
-export default function PageSuggestionsTab({ clientId, agencyId }) {
+export default function PageSuggestionsTab({ clientId: propClientId, agencyId }) {
+  const { clientId: authClientId } = useAuth()
+
   // ── State ───────────────────────────────────────────────────────
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState('')
@@ -22,6 +25,10 @@ export default function PageSuggestionsTab({ clientId, agencyId }) {
   const [filterService, setFilterService] = useState('')
   const [campaign, setCampaign] = useState(null)
   const [showPreview, setShowPreview] = useState(null)
+  const [pickedClient, setPickedClient] = useState(propClientId || authClientId || '')
+
+  // Resolved client ID: prop > auth context > user-picked
+  const clientId = propClientId || authClientId || pickedClient
 
   // Analysis inputs
   const [services, setServices] = useState('')
@@ -228,6 +235,33 @@ export default function PageSuggestionsTab({ clientId, agencyId }) {
   // ── Render ──────────────────────────────────────────────────────
   return (
     <div style={{ fontFamily: `${FH}, -apple-system, BlinkMacSystemFont, system-ui, sans-serif` }}>
+
+      {/* ── Client Picker ──────────────────────────────────────── */}
+      <div style={{
+        background: '#fff', borderRadius: 16, border: '1px solid #ececef',
+        padding: '12px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12,
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH, whiteSpace: 'nowrap' }}>Client:</span>
+        <ClientSearchSelect
+          value={clientId}
+          onChange={(id, client) => {
+            setPickedClient(id)
+            // Auto-fill business info from client record
+            if (client) {
+              if (client.name) setBusinessName(client.name)
+              if (client.city) setState(client.state || '')
+            }
+          }}
+          dark={false}
+          minWidth={280}
+          placeholder="Search clients..."
+        />
+        {clientId && (
+          <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>
+            ID: {clientId.slice(0, 8)}...
+          </span>
+        )}
+      </div>
 
       {/* ── Analysis Form ──────────────────────────────────────── */}
       <div style={{

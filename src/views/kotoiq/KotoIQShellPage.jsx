@@ -56,7 +56,7 @@ export default function KotoIQShellPage() {
     next.set('shell', v)
     // Clear sub when switching top-level
     next.delete('sub')
-    setSearchParams(next, { replace: true })
+    setSearchParams(next)
   }
 
   // Sub-tab for publish / tune / pipeline
@@ -69,7 +69,7 @@ export default function KotoIQShellPage() {
   const setSub = (v) => {
     const next = new URLSearchParams(searchParams)
     next.set('sub', v)
-    setSearchParams(next, { replace: true })
+    setSearchParams(next)
   }
 
   // Plan 07-08 — badge count for the "Needs Clarity" sub-tab.
