@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 import { useKotoIQRefreshKey } from '../../context/KotoIQDataContext'
+import FreshnessBadge from './FreshnessBadge'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
@@ -129,8 +130,9 @@ export default function StrategyTab({ clientId, agencyId }) {
 
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
-          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <Target size={20} color="#0a0a0a" /> Strategic Plan
+            <FreshnessBadge source="generate_strategic_plan" prefix="Plan" />
           </div>
           <div style={{ fontSize: 13, color: '#1f1f22', marginTop: 4 }}>
             AI-generated attack / defend / abandon priorities with weekly actions and resource allocation.

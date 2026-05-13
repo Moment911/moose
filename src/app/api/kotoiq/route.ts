@@ -5607,6 +5607,87 @@ Return ONLY valid JSON:
     })
   }
 
+  // ─── DATA FRESHNESS: when was each source last refreshed? ────────────
+  // Returns the most recent kotoiq_sync_log entry per source for a client,
+  // plus heuristic 'fresh' / 'aging' / 'stale' grading based on standard
+  // thresholds. Powers freshness badges across the dashboard so the user
+  // knows what to trust without clicking into each tab.
+  if (action === 'get_data_freshness') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // Pull latest 'complete' sync per source for this client
+    const { data: logs } = await s.from('kotoiq_sync_log')
+      .select('source, status, started_at, completed_at, records_synced')
+      .eq('client_id', client_id)
+      .order('started_at', { ascending: false })
+      .limit(500)
+
+    const latest = new Map<string, any>()
+    for (const r of (logs || [])) {
+      if (!latest.has(r.source)) latest.set(r.source, r)
+    }
+
+    // Map source → suggested staleness threshold (in days). These are
+    // the same thresholds documented in _knowledge/data-integrity-standard.md
+    const FRESH_DAYS: Record<string, number> = {
+      // Live / fast-moving signals
+      quick_scan: 7,
+      run_gsc_audit: 3,
+      gmb_health: 7,
+      run_all_audits: 7,
+      sync: 1,
+      // SEO research
+      generate_topical_map: 30,
+      generate_scorecard: 14,
+      build_content_inventory: 14,
+      analyze_backlinks: 30,
+      scan_internal_links: 14,
+      analyze_query_paths: 14,
+      // Strategy / synthesis
+      generate_strategic_plan: 14,
+      audit_topical_authority: 14,
+      build_content_calendar: 14,
+      roi_projections: 30,
+      // Slower-changing
+      audit_schema: 30,
+      audit_eeat: 30,
+      deep_enrich: 30,
+      analyze_semantic_network: 30,
+      scan_brand_serp: 14,
+      crawl_sitemaps: 7,
+      sync_page_factory: 7,
+    }
+
+    const now = Date.now()
+    const items = Array.from(latest.entries()).map(([source, row]) => {
+      const ts = row.completed_at || row.started_at
+      const ageDays = ts ? (now - new Date(ts).getTime()) / 86400000 : null
+      const threshold = FRESH_DAYS[source] || 14
+      let grade: 'fresh' | 'aging' | 'stale' | 'unknown' = 'unknown'
+      if (ageDays != null) {
+        if (ageDays < threshold * 0.7) grade = 'fresh'
+        else if (ageDays < threshold) grade = 'aging'
+        else grade = 'stale'
+      }
+      return {
+        source,
+        last_run_at: ts,
+        age_days: ageDays != null ? Math.round(ageDays * 10) / 10 : null,
+        status: row.status,
+        records_synced: row.records_synced,
+        threshold_days: threshold,
+        grade,
+      }
+    }).sort((a, b) => {
+      // Stale first, then aging, then fresh
+      const order = { stale: 0, aging: 1, fresh: 2, unknown: 3 }
+      return order[a.grade] - order[b.grade]
+    })
+
+    return NextResponse.json({ items, by_source: Object.fromEntries(items.map(i => [i.source, i])) })
+  }
+
   // ─── PAGE FACTORY PERFORMANCE FEEDBACK ────────────────────────────────
   // Reads back what published PF pages actually did in the wild → returns
   // refresh candidates (high imp / low CTR / rank slipped / never indexed),

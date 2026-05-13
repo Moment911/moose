@@ -35,6 +35,7 @@ const Ctx = createContext({
   pfStats: null,
   pfGapCoverage: [],
   strategicPlan: null,
+  freshness: {}, // { source_name: { age_days, grade, last_run_at, ... } }
   loading: false,
 })
 
@@ -57,6 +58,7 @@ export function KotoIQDataProvider({ clientId, agencyId, children }) {
   const [pfStats, setPfStats] = useState(null)
   const [pfGapCoverage, setPfGapCoverage] = useState([])
   const [strategicPlan, setStrategicPlan] = useState(null)
+  const [freshness, setFreshness] = useState({})
   const [loading, setLoading] = useState(false)
   const inFlight = useRef(false)
 
@@ -78,11 +80,13 @@ export function KotoIQDataProvider({ clientId, agencyId, children }) {
       kapi('get_page_factory_stats', { client_id: clientId }),
       kapi('get_page_factory_gap_coverage', { client_id: clientId }),
       kapi('get_latest_strategic_plan', { client_id: clientId }),
-    ]).then(([stats, coverage, plan]) => {
+      kapi('get_data_freshness', { client_id: clientId }),
+    ]).then(([stats, coverage, plan, fresh]) => {
       if (cancelled) return
       if (stats.status === 'fulfilled' && stats.value) setPfStats(stats.value)
       if (coverage.status === 'fulfilled' && coverage.value?.services) setPfGapCoverage(coverage.value.services)
       if (plan.status === 'fulfilled' && plan.value?.plan) setStrategicPlan(plan.value.plan)
+      if (fresh.status === 'fulfilled' && fresh.value?.by_source) setFreshness(fresh.value.by_source)
       setLoading(false)
       inFlight.current = false
     })
@@ -90,7 +94,7 @@ export function KotoIQDataProvider({ clientId, agencyId, children }) {
   }, [clientId, refreshKey])
 
   return (
-    <Ctx.Provider value={{ clientId, agencyId, refreshKey, bumpRefresh, pfStats, pfGapCoverage, strategicPlan, loading }}>
+    <Ctx.Provider value={{ clientId, agencyId, refreshKey, bumpRefresh, pfStats, pfGapCoverage, strategicPlan, freshness, loading }}>
       {children}
     </Ctx.Provider>
   )
@@ -108,4 +112,13 @@ export function useKotoIQData() {
  */
 export function useKotoIQRefreshKey() {
   return useContext(Ctx).refreshKey
+}
+
+/**
+ * Hook for the freshness map. Tabs can call useFreshness('quick_scan') to
+ * get { age_days, grade, last_run_at } for a specific source.
+ */
+export function useFreshness(source) {
+  const { freshness } = useContext(Ctx)
+  return freshness?.[source] || null
 }

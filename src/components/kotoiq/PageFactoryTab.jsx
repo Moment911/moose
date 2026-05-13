@@ -7,6 +7,7 @@ import {
 import toast from 'react-hot-toast'
 import { BLK, GRN, AMB, R } from '../../lib/theme'
 import { useKotoIQRefreshKey } from '../../context/KotoIQDataContext'
+import FreshnessBadge from './FreshnessBadge'
 
 const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
@@ -161,8 +162,9 @@ export default function PageFactoryTab({ clientId, agencyId }) {
       {/* Header */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
-          <div style={{ fontFamily: SF, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: SF, fontSize: 20, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <Layers size={20} color={R} /> Page Factory
+            <FreshnessBadge source="sync_page_factory" prefix="Gaps" />
           </div>
           <div style={{ fontFamily: SF, fontSize: 13, color: '#6b6b70', marginTop: 4 }}>
             Service × city gap intelligence, generated pages, and live attribution to calls.
