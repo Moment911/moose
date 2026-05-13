@@ -1138,9 +1138,14 @@ Return ONLY valid JSON array:
 
     // Fetch fresh GBP data if no recent report — use client name + city/state
     let gbpData = existingGBP
+    let gmbStatus: 'ok' | 'creds_missing' | 'no_match' | 'fetch_failed' = existingGBP ? 'ok' : 'no_match'
+    let gmbError: string | null = null
     if (!gbpData && client.name) {
       const apiKey = process.env.GOOGLE_PLACES_KEY || process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_API_KEY || ''
-      if (apiKey) {
+      if (!apiKey) {
+        gmbStatus = 'creds_missing'
+        gmbError = 'GOOGLE_PLACES_API_KEY (or GOOGLE_PLACES_KEY / GOOGLE_API_KEY) is not set in environment'
+      } else {
         try {
           const searchRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
             method: 'POST',
@@ -1182,9 +1187,14 @@ Return ONLY valid JSON array:
                 fails: checks.filter(c => !c.pass).map(c => ({ label: c.label, fix: c.fix, weight: c.weight })).sort((a, b) => b.weight - a.weight) },
             }
           }
-        } catch { /* skip */ }
+        } catch (e: any) {
+          gmbStatus = 'fetch_failed'
+          gmbError = e?.message || 'Google Places API request failed'
+        }
       }
     }
+
+    if (gbpData) gmbStatus = 'ok'
 
     // Get Moz data from latest report
     const mozData = latestReport?.report_data?.moz_data || null
@@ -1193,6 +1203,8 @@ Return ONLY valid JSON array:
       gbp: gbpData,
       moz: mozData,
       location,
+      status: gmbStatus,
+      error: gmbError,
       review_count_note: 'Review count from Google Places API — may differ from your GBP dashboard. Connect Google Business Profile for exact data.',
     })
   }
