@@ -60,16 +60,38 @@ const CONFIDENCE_COLORS = {
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-export default function AttributionTab({ publishId, siteId, agencyId }) {
+export default function AttributionTab({ publishId: initialPublishId, siteId, agencyId }) {
+  const [publishId, setPublishId] = useState(initialPublishId || null)
+  const [publishes, setPublishes] = useState([])
+  const [loadingList, setLoadingList] = useState(false)
   const [kpis, setKpis] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [fetchingCwv, setFetchingCwv] = useState(false)
   const [submittingIndexnow, setSubmittingIndexnow] = useState(false)
   const [deviceTab, setDeviceTab] = useState('mobile') // mobile-first default
 
+  // Load published pages list when no specific publish is selected
   useEffect(() => {
-    if (publishId) loadKpis()
+    if (!publishId && agencyId) loadPublishes()
+  }, [agencyId])
+
+  useEffect(() => {
+    if (publishId) { setLoading(true); loadKpis() }
   }, [publishId])
+
+  async function loadPublishes() {
+    setLoadingList(true)
+    try {
+      const res = await fetch(`/api/wp/builder/attribution`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list_publishes', agency_id: agencyId }),
+      })
+      const data = await res.json()
+      setPublishes(data.publishes || [])
+    } catch {}
+    setLoadingList(false)
+  }
 
   async function loadKpis() {
     setLoading(true)
@@ -102,6 +124,54 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
     setSubmittingIndexnow(false)
   }
 
+  // ── Published pages list (when no specific publish selected) ──────────
+  if (!publishId) {
+    if (loadingList) {
+      return (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
+          <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#8e8e93' }} />
+        </div>
+      )
+    }
+    return (
+      <div>
+        <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+          Published Pages
+        </div>
+        {publishes.length === 0 ? (
+          <div style={{ ...card, textAlign: 'center', padding: 40, color: '#6b6b70' }}>
+            <Info size={20} style={{ marginBottom: 8 }} />
+            <div style={{ fontSize: 14 }}>No published pages yet. Publish pages from the Page Factory or Publish Queue to see attribution data.</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {publishes.map(p => (
+              <div
+                key={p.id}
+                onClick={() => setPublishId(p.id)}
+                style={{
+                  ...card, cursor: 'pointer', display: 'flex', alignItems: 'center',
+                  justifyContent: 'space-between', transition: 'background .1s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{p.url || 'Untitled'}</div>
+                  <div style={{ fontSize: 12, color: '#6b6b70', marginTop: 2 }}>
+                    Published {p.published_at ? new Date(p.published_at).toLocaleDateString() : 'unknown'}
+                    {p.call_count > 0 && ` · ${p.call_count} calls`}
+                  </div>
+                </div>
+                <ArrowUpRight size={16} style={{ color: '#8e8e93' }} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
@@ -115,6 +185,7 @@ export default function AttributionTab({ publishId, siteId, agencyId }) {
       <div style={{ ...card, textAlign: 'center', padding: 40, color: '#6b6b70' }}>
         <Info size={20} style={{ marginBottom: 8 }} />
         <div style={{ fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>No attribution data found for this publish.</div>
+        <button onClick={() => setPublishId(null)} style={{ ...actionBtn, marginTop: 12 }}>Back to list</button>
       </div>
     )
   }

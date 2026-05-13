@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
         return handlePageKpis(body, agencyId)
       case 'campaign_kpis':
         return handleCampaignKpis(body, agencyId)
+      case 'list_publishes':
+        return handleListPublishes(body, agencyId)
       default:
         return NextResponse.json({ ok: false, error: `Unknown action: ${action}` }, { status: 400 })
     }
@@ -259,4 +261,18 @@ async function handleCampaignKpis(body: any, agencyId: string) {
   }
 
   return NextResponse.json({ ok: true, data: kpis })
+}
+
+// ── list_publishes ─────────────────────────────────────────────────────────
+
+async function handleListPublishes(body: any, agencyId: string) {
+  const db = getKotoIQDb(agencyId)
+
+  const { data: publishes } = await db.client
+    .from('kotoiq_publishes')
+    .select('id, url, published_at, wp_post_id, variant_id, site_id')
+    .order('published_at', { ascending: false })
+    .limit(100)
+
+  return NextResponse.json({ ok: true, publishes: publishes || [] })
 }
