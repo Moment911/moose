@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { FH, FB, BLK, T, R, GRN } from '../../lib/theme'
-// Client selection now handled by sidebar ClientContext
+import HtmlComposer from './HtmlComposer'
 
 const API_GAPS = '/api/builder/gaps'
 const API_GEN = '/api/builder/generate'
@@ -26,8 +26,22 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
   const [wpSites, setWpSites] = useState([])
   const [selectedSite, setSelectedSite] = useState('')
 
+  const [dataStatus, setDataStatus] = useState(null)
+  const [readiness, setReadiness] = useState(0)
+
   // Client ID comes from prop (which now comes from ClientContext via parent)
   const clientId = propClientId
+
+  // ── Load data status for selected client ────────────────────────
+  useEffect(() => {
+    if (!clientId || !agencyId) { setDataStatus(null); return }
+    fetch(`/api/builder/status?agency_id=${agencyId}&client_id=${clientId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d) { setDataStatus(d.status); setReadiness(d.readiness) }
+      })
+      .catch(() => {})
+  }, [clientId, agencyId])
 
   // Analysis inputs
   const [services, setServices] = useState('')
@@ -266,6 +280,42 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
           padding: 14, marginBottom: 16, fontSize: 13, color: '#92400e', fontWeight: 600,
         }}>
           Select a client from the sidebar to get started.
+        </div>
+      )}
+
+      {/* ── Data Status Indicators ──────────────────────────────── */}
+      {clientId && dataStatus && (
+        <div style={{
+          background: '#fff', borderRadius: 16, border: '1px solid #ececef',
+          padding: '14px 20px', marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>
+              Intelligence Readiness
+            </div>
+            <div style={{
+              fontSize: 12, fontWeight: 700, fontFamily: FH,
+              color: readiness >= 70 ? '#16a34a' : readiness >= 40 ? '#f59e0b' : '#dc2626',
+            }}>
+              {readiness}%
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <StatusPill ok={dataStatus.sitemap?.ready} label={`Sitemap${dataStatus.sitemap?.ready ? ` (${dataStatus.sitemap.urls} URLs)` : ''}`} />
+            <StatusPill ok={dataStatus.gsc?.ready} label="Search Console" />
+            <StatusPill ok={dataStatus.keywords?.ready} label={`Keywords${dataStatus.keywords?.ready ? ` (${dataStatus.keywords.count})` : ''}`} />
+            <StatusPill ok={dataStatus.topical_map?.ready} label={`Topical Map${dataStatus.topical_map?.ready ? ` (${dataStatus.topical_map.coverage}%)` : ''}`} />
+            <StatusPill ok={dataStatus.semantic?.ready} label={`Semantic${dataStatus.semantic?.ready ? ` (${dataStatus.semantic.score}/100)` : ''}`} />
+            <StatusPill ok={dataStatus.competitors?.ready} label={`Competitors${dataStatus.competitors?.ready ? ` (${dataStatus.competitors.domains})` : ''}`} />
+            <StatusPill ok={dataStatus.grid_scans?.ready} label="Grid Scans" />
+            <StatusPill ok={dataStatus.wp_sites?.ready} label="WordPress" />
+            <StatusPill ok={dataStatus.style_profiles?.ready} label="Style Profile" />
+          </div>
+          {readiness < 40 && (
+            <div style={{ fontSize: 12, color: '#92400e', marginTop: 8, fontFamily: FB }}>
+              Run KotoIQ Intel scans first for better gap analysis. Without data, suggestions are based on city coverage only.
+            </div>
+          )}
         </div>
       )}
 
@@ -544,50 +594,39 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
         </div>
       )}
 
-      {/* ── Preview Modal ──────────────────────────────────────── */}
+      {/* ── HTML Composer (replaces old preview modal) ──────────── */}
       {showPreview && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+        <HtmlComposer
+          html={showPreview.body_html}
+          title={showPreview.title}
+          onChange={() => {}}
+          onSave={(editedHtml) => {
+            // Update the preview data with edited HTML
+            setShowPreview(prev => prev ? { ...prev, body_html: editedHtml } : null)
+            toast.success('HTML updated')
           }}
-          onClick={() => setShowPreview(null)}
-        >
-          <div
-            style={{
-              width: '90vw', maxWidth: 900, maxHeight: '90vh', background: '#fff',
-              borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{
-              padding: '14px 20px', borderBottom: '1px solid #ececef',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700 }}>
-                {showPreview.title}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#6b7280' }}>
-                <span>{showPreview.word_count} words</span>
-                <span>{showPreview.variant_count} variants</span>
-                <button onClick={() => setShowPreview(null)} style={btnSmall}>Close</button>
-              </div>
-            </div>
-            <div
-              style={{
-                flex: 1, overflowY: 'auto', padding: '24px 32px',
-                fontFamily: FB, fontSize: 14, lineHeight: 1.8, color: '#374151',
-              }}
-              dangerouslySetInnerHTML={{ __html: showPreview.body_html }}
-            />
-          </div>
-        </div>
+          onClose={() => setShowPreview(null)}
+        />
       )}
     </div>
   )
 }
 
 // ── Status Badge ────────────────────────────────────────────────────────────
+
+function StatusPill({ ok, label }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: FH,
+      background: ok ? '#dcfce7' : '#f3f4f6',
+      color: ok ? '#166534' : '#9ca3af',
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: 3, background: ok ? '#16a34a' : '#d1d5db' }} />
+      {label}
+    </span>
+  )
+}
 
 function StatusBadge({ status }) {
   const configs = {
