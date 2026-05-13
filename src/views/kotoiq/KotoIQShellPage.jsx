@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { useClient } from '../../context/ClientContext'
 import { profileFetch } from '../../lib/kotoiqProfileFetch'
 import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
@@ -47,6 +48,7 @@ const PIPELINE_SUBS = [
 
 export default function KotoIQShellPage() {
   const { agencyId, user } = useAuth()
+  const { clientId } = useClient()
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Top-level shell tab from URL
@@ -189,7 +191,7 @@ export default function KotoIQShellPage() {
 
               {/* Sub content */}
               <div style={{ padding: '24px 40px' }}>
-                {sub === 'factory' && <PageSuggestionsTab clientId={searchParams.get('client')} agencyId={agencyId} />}
+                {sub === 'factory' && <PageSuggestionsTab clientId={clientId} agencyId={agencyId} />}
                 {sub === 'builder' && <BuilderTab agencyId={agencyId} />}
                 {sub === 'composer' && <CampaignComposerTab agencyId={agencyId} />}
                 {sub === 'queue' && <PublishQueueTab agencyId={agencyId} />}
@@ -252,11 +254,11 @@ export default function KotoIQShellPage() {
               {/* Sub content */}
               {sub === 'orchestrator' && (
                 <div style={{ padding: '40px' }}>
-                  <PipelineOrchestratorTab clientId={searchParams.get('client')} agencyId={agencyId} />
+                  <PipelineOrchestratorTab clientId={clientId} agencyId={agencyId} />
                 </div>
               )}
               {sub === 'clarity' && (
-                <ClarificationsTab agencyId={agencyId} clientId={searchParams.get('client')} />
+                <ClarificationsTab agencyId={agencyId} clientId={clientId} />
               )}
             </div>
           )}

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
+import { useClient } from '../context/ClientContext'
 import NewProjectModal from './NewProjectModal'
 import NotificationCenter from './NotificationCenter'
 import DarkModeToggle from './DarkModeToggle'
@@ -125,6 +126,7 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
 
 export default function Sidebar() {
   const { user, firstName, fullName, agencyId, agencyName, agency, loading: authLoading, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures, clientInfo, impersonateAgency, stopImpersonating } = useAuth()
+  const { selectedClient, selectClient, clients: ctxClients } = useClient()
   const navigate = useNavigate()
   const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -264,7 +266,7 @@ export default function Sidebar() {
               </div>
               <div style={{ overflowY: 'auto', flex: 1 }}>
                 {/* Koto Admin option */}
-                <button onClick={() => { stopImpersonating(); setWsOpen(false); setWsSearch(''); window.location.href = '/dashboard' }}
+                <button onClick={() => { stopImpersonating(); setWsOpen(false); setWsSearch(''); navigate('/dashboard') }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: 'none', borderBottom: '1px solid #f3f4f6', background: !isImpersonating ? '#f9fafb' : '#fff', cursor: 'pointer', textAlign: 'left' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                   onMouseLeave={e => e.currentTarget.style.background = !isImpersonating ? '#f9fafb' : '#fff'}>
@@ -280,7 +282,7 @@ export default function Sidebar() {
                 {wsAgencies.filter(a => !wsSearch || (a.name || a.brand_name || '').toLowerCase().includes(wsSearch.toLowerCase())).map(a => {
                   const isActive = agencyId === a.id
                   return (
-                    <button key={a.id} onClick={() => { impersonateAgency(a); setWsOpen(false); setWsSearch(''); window.location.href = '/clients' }}
+                    <button key={a.id} onClick={() => { impersonateAgency(a); setWsOpen(false); setWsSearch(''); navigate('/dashboard') }}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: 'none', borderBottom: '1px solid #f3f4f6', background: isActive ? '#f9fafb' : '#fff', cursor: 'pointer', textAlign: 'left' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                       onMouseLeave={e => e.currentTarget.style.background = isActive ? '#f9fafb' : '#fff'}>
@@ -322,6 +324,33 @@ export default function Sidebar() {
             )}
           </div>
         </div>
+
+        {/* Active client selector — persistent across all pages */}
+        {!showClientView && agencyId && ctxClients.length > 0 && (
+          <div style={{ padding: '4px 8px 6px', borderBottom: '1px solid #f3f4f6' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: '#9ca3af', padding: '0 4px 4px', fontFamily: 'inherit' }}>
+              Active Client
+            </div>
+            <select
+              value={selectedClient?.id || ''}
+              onChange={e => {
+                const c = ctxClients.find(cl => cl.id === e.target.value)
+                if (c) selectClient(c)
+              }}
+              style={{
+                width: '100%', padding: '6px 8px', borderRadius: 8,
+                border: '1px solid #e5e7eb', background: selectedClient ? '#f0fdf4' : '#fff',
+                fontSize: 12, fontWeight: 600, color: '#111',
+                cursor: 'pointer', outline: 'none', fontFamily: 'inherit',
+              }}
+            >
+              <option value="">Select client...</option>
+              {ctxClients.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Nav — scroll position persists across route changes */}
         <div ref={navScrollRef} onScroll={e => { try { sessionStorage.setItem('koto_sidebar_scroll', String(e.currentTarget.scrollTop)) } catch {} }} style={{flex:1,overflowY:'auto',padding:'4px 6px',

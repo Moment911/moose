@@ -63,8 +63,7 @@ export default function ImpersonationBar() {
     const agency = agencies.find(a => a.id === id)
     if (agency) {
       impersonateAgency?.({ id: agency.id, name: agency.brand_name || agency.name })
-      // Full page reload ensures ALL components re-mount with new agencyId
-      window.location.href = '/dashboard'
+      navigate('/dashboard')
     }
   }
 
@@ -74,7 +73,7 @@ export default function ImpersonationBar() {
     const client = clients.find(c => c.id === id)
     if (client) {
       impersonateClient?.({ id: client.id, name: client.name })
-      window.location.href = '/clients'
+      navigate('/clients')
     }
   }
 
@@ -84,7 +83,7 @@ export default function ImpersonationBar() {
       sessionStorage.removeItem('koto_view_as_agency')
       sessionStorage.removeItem('koto_view_as_client')
     } catch {}
-    window.location.href = '/dashboard'
+    navigate('/dashboard')
   }
 
   function exitToAgency() {
@@ -94,7 +93,7 @@ export default function ImpersonationBar() {
     if (impersonatedAgency) {
       impersonateAgency?.(impersonatedAgency)
     }
-    window.location.href = '/dashboard'
+    navigate('/dashboard')
   }
 
   const base = { fontSize: 12, fontFamily: FH, fontWeight: 600 }
