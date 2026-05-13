@@ -72,6 +72,8 @@ import { ingestHotjar } from '@/lib/ads/ingestHotjar'
 import { ingestClarity } from '@/lib/ads/ingestClarity'
 import { detectRelevantConnections } from '@/lib/ads/autoDetectRelevantConnections'
 import { autoTriggerSync } from '@/lib/ads/autoTriggerSync'
+import { analyzePageGaps, saveSuggestions } from '@/lib/builder/pageGapEngine'
+import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -5078,6 +5080,7 @@ Return ONLY valid JSON:
           () => callAction('build_content_inventory'),
           () => callAction('run_gsc_audit'),
           () => callAction('analyze_semantic_network'),
+          () => callAction('sync_page_factory'),
         ],
         [
           () => callAction('audit_topical_authority'),
@@ -5232,6 +5235,274 @@ Return ONLY valid JSON:
       failed_actions: data.metadata?.failed_actions || [],
       completed_at: data.completed_at,
     })
+  }
+
+  // ─── PAGE FACTORY: aggregated stats for KotoIQ dashboards ─────────────
+  if (action === 'get_page_factory_stats') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // Suggestion status counts
+    const { data: suggestions } = await s.from('kotoiq_page_suggestions')
+      .select('status').eq('client_id', client_id)
+    const statusCounts: Record<string, number> = {}
+    for (const r of (suggestions || [])) {
+      statusCounts[r.status] = (statusCounts[r.status] || 0) + 1
+    }
+
+    // Campaigns + variants + publishes for this client
+    const { data: campaigns } = await s.from('kotoiq_campaigns')
+      .select('id, name, status, created_at').eq('client_id', client_id).order('created_at', { ascending: false })
+
+    const campaignIds = (campaigns || []).map((c: any) => c.id)
+    let publishedLast7d = 0
+    let totalPublishes = 0
+    let totalVariants = 0
+    if (campaignIds.length > 0) {
+      const { data: variants } = await s.from('kotoiq_variants').select('id, status').in('campaign_id', campaignIds)
+      totalVariants = variants?.length || 0
+      const variantIds = (variants || []).map((v: any) => v.id)
+      if (variantIds.length > 0) {
+        const { data: publishes } = await s.from('kotoiq_publishes')
+          .select('id, published_at').in('variant_id', variantIds)
+        totalPublishes = publishes?.length || 0
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        publishedLast7d = (publishes || []).filter((p: any) => p.published_at && p.published_at >= sevenDaysAgo).length
+      }
+    }
+
+    return NextResponse.json({
+      suggestions: {
+        total: (suggestions || []).length,
+        by_status: statusCounts,
+      },
+      campaigns: {
+        total: (campaigns || []).length,
+        active: (campaigns || []).filter((c: any) => c.status === 'active').length,
+      },
+      variants: { total: totalVariants },
+      publishes: { total: totalPublishes, last_7_days: publishedLast7d },
+    })
+  }
+
+  // ─── PAGE FACTORY: paginated generated-pages list with KPIs ──────────
+  if (action === 'get_page_factory_pages') {
+    const { client_id, limit = 50, offset = 0, status } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // Get campaigns for this client
+    const { data: campaigns } = await s.from('kotoiq_campaigns')
+      .select('id, name').eq('client_id', client_id)
+    const campaignIds = (campaigns || []).map((c: any) => c.id)
+    const campaignNameMap = new Map<string, string>((campaigns || []).map((c: any) => [c.id, c.name]))
+
+    if (campaignIds.length === 0) {
+      return NextResponse.json({ pages: [], total: 0 })
+    }
+
+    // Get variants
+    const { data: variants } = await s.from('kotoiq_variants')
+      .select('id, campaign_id, status, page_title, suggestion_id').in('campaign_id', campaignIds)
+    const variantMap = new Map<string, any>((variants || []).map((v: any) => [v.id, v]))
+    const variantIds = (variants || []).map((v: any) => v.id)
+
+    if (variantIds.length === 0) {
+      return NextResponse.json({ pages: [], total: 0 })
+    }
+
+    // Get publishes
+    let pubQuery = s.from('kotoiq_publishes')
+      .select('id, variant_id, url, published_at, wp_post_id, gsc_pinged_at, indexnow_submitted_at, first_cwv_read_at', { count: 'exact' })
+      .in('variant_id', variantIds)
+      .order('published_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+    if (status) pubQuery = pubQuery.eq('status', status)
+    const { data: publishes, count } = await pubQuery
+
+    // Enrich with latest watch + CWV
+    const pubIds = (publishes || []).map((p: any) => p.id)
+    let watchMap = new Map<string, any>()
+    let cwvMap = new Map<string, any>()
+    let callCountMap = new Map<string, number>()
+    if (pubIds.length > 0) {
+      const { data: watches } = await s.from('kotoiq_publish_watches')
+        .select('publish_id, indexed, gsc_impressions, gsc_clicks, gsc_position, checked_at, check_type')
+        .in('publish_id', pubIds).order('checked_at', { ascending: false })
+      for (const w of (watches || [])) {
+        if (!watchMap.has(w.publish_id)) watchMap.set(w.publish_id, w)
+      }
+
+      const { data: cwvs } = await s.from('kotoiq_cwv_readings')
+        .select('publish_id, lcp_p75_ms, cls_p75, inp_p75_ms, fetched_at')
+        .in('publish_id', pubIds).order('fetched_at', { ascending: false })
+      for (const c of (cwvs || [])) {
+        if (!cwvMap.has(c.publish_id)) cwvMap.set(c.publish_id, c)
+      }
+
+      const { data: calls } = await s.from('kotoiq_call_attribution')
+        .select('publish_id').in('publish_id', pubIds)
+      for (const c of (calls || [])) {
+        callCountMap.set(c.publish_id, (callCountMap.get(c.publish_id) || 0) + 1)
+      }
+    }
+
+    const pages = (publishes || []).map((p: any) => {
+      const variant = variantMap.get(p.variant_id) || {}
+      const watch = watchMap.get(p.id) || null
+      const cwv = cwvMap.get(p.id) || null
+      const callCount = callCountMap.get(p.id) || 0
+      return {
+        publish_id: p.id,
+        url: p.url,
+        page_title: variant.page_title || null,
+        campaign_id: variant.campaign_id,
+        campaign_name: campaignNameMap.get(variant.campaign_id) || null,
+        published_at: p.published_at,
+        wp_post_id: p.wp_post_id,
+        indexed: watch?.indexed ?? null,
+        impressions: watch?.gsc_impressions ?? null,
+        clicks: watch?.gsc_clicks ?? null,
+        position: watch?.gsc_position ?? null,
+        last_checked_at: watch?.checked_at ?? null,
+        cwv: cwv ? { lcp_ms: cwv.lcp_p75_ms, cls: cwv.cls_p75, inp_ms: cwv.inp_p75_ms } : null,
+        call_count: callCount,
+        estimated_revenue: callCount > 0 ? callCount * 150 : null,
+      }
+    })
+
+    return NextResponse.json({ pages, total: count || 0 })
+  }
+
+  // ─── PAGE FACTORY: top pages driving calls (attribution view) ────────
+  if (action === 'get_page_factory_attribution') {
+    const { client_id, agency_id, top_n = 10 } = body
+    if (!client_id || !agency_id) return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+
+    // Get publishes for this client (via campaign → variant chain)
+    const { data: campaigns } = await s.from('kotoiq_campaigns').select('id').eq('client_id', client_id)
+    const campaignIds = (campaigns || []).map((c: any) => c.id)
+    if (campaignIds.length === 0) return NextResponse.json({ pages: [] })
+
+    const { data: variants } = await s.from('kotoiq_variants').select('id').in('campaign_id', campaignIds)
+    const variantIds = (variants || []).map((v: any) => v.id)
+    if (variantIds.length === 0) return NextResponse.json({ pages: [] })
+
+    const { data: publishes } = await s.from('kotoiq_publishes')
+      .select('id, url').in('variant_id', variantIds)
+    if (!publishes?.length) return NextResponse.json({ pages: [] })
+
+    // Run per-page KPIs through the shared rollup (agency-scoped)
+    const kpis: (PageKPIs | null)[] = await Promise.all(
+      publishes.map((p: any) => getPageKPIs(p.id, agency_id).catch(() => null))
+    )
+
+    const ranked = kpis
+      .filter((k: PageKPIs | null): k is PageKPIs => !!k && k.call_count > 0)
+      .sort((a: PageKPIs, b: PageKPIs) => b.call_count - a.call_count)
+      .slice(0, top_n)
+      .map((k: PageKPIs) => ({
+        publish_id: k.publish_id,
+        url: k.url,
+        published_at: k.published_at,
+        call_count: k.call_count,
+        estimated_revenue: k.estimated_revenue,
+        rank: k.rank,
+        rank_keyword: k.rank_keyword,
+      }))
+
+    return NextResponse.json({ pages: ranked })
+  }
+
+  // ─── PAGE FACTORY: gap closure breakdown per service ─────────────────
+  if (action === 'get_page_factory_gap_coverage') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: suggestions } = await s.from('kotoiq_page_suggestions')
+      .select('service, status, priority, city, state')
+      .eq('client_id', client_id)
+
+    // Bucket per service
+    const byService = new Map<string, { suggested: number; accepted: number; generating: number; built: number; published: number; dismissed: number; top_priority: number }>()
+    for (const r of (suggestions || [])) {
+      const svc = r.service || '(unspecified)'
+      const bucket = byService.get(svc) || { suggested: 0, accepted: 0, generating: 0, built: 0, published: 0, dismissed: 0, top_priority: 0 }
+      if (r.status && bucket[r.status as keyof typeof bucket] !== undefined) {
+        ;(bucket[r.status as keyof typeof bucket] as number) += 1
+      }
+      if ((r.priority || 0) > bucket.top_priority) bucket.top_priority = r.priority || 0
+      byService.set(svc, bucket)
+    }
+
+    const services = Array.from(byService.entries())
+      .map(([service, counts]) => {
+        const total = counts.suggested + counts.accepted + counts.generating + counts.built + counts.published
+        const closed = counts.built + counts.published
+        return {
+          service,
+          total,
+          closure_pct: total > 0 ? Math.round((closed / total) * 100) : 0,
+          ...counts,
+        }
+      })
+      .sort((a, b) => b.top_priority - a.top_priority)
+
+    return NextResponse.json({ services })
+  }
+
+  // ─── PAGE FACTORY: refresh gap analysis for a client ─────────────────
+  if (action === 'sync_page_factory') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // Look up client to derive services + state
+    const { data: client } = await s.from('clients').select('agency_id, primary_service, products_services, state, onboarding_answers').eq('id', client_id).single()
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+
+    const resolvedAgencyId = agency_id || client.agency_id
+    if (!resolvedAgencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+
+    // Derive services: prefer products_services array, fall back to primary_service or onboarding answer
+    let services: string[] = []
+    if (Array.isArray(client.products_services) && client.products_services.length) {
+      services = client.products_services.filter((x: any) => typeof x === 'string' && x.trim())
+    } else if (client.primary_service) {
+      services = [client.primary_service]
+    } else if (client.onboarding_answers?.primary_service) {
+      services = [client.onboarding_answers.primary_service]
+    } else if (client.onboarding_answers?.products_services) {
+      const ps = client.onboarding_answers.products_services
+      services = Array.isArray(ps) ? ps : String(ps).split(/,|\n/).map((x: string) => x.trim()).filter(Boolean)
+    }
+
+    if (services.length === 0) {
+      return NextResponse.json({ ok: false, error: 'No services configured for client — set primary_service or products_services', stats: null })
+    }
+
+    const state = client.state || client.onboarding_answers?.state || ''
+    if (!state) {
+      return NextResponse.json({ ok: false, error: 'Client state required for city lookup', stats: null })
+    }
+
+    try {
+      const result = await analyzePageGaps({
+        agencyId: resolvedAgencyId,
+        clientId: client_id,
+        services,
+        state,
+      })
+
+      const persisted = await saveSuggestions(resolvedAgencyId, client_id, result.suggestions)
+
+      return NextResponse.json({
+        ok: true,
+        stats: { ...result.stats, saved: persisted.saved },
+        services,
+        state,
+      })
+    } catch (e: any) {
+      return NextResponse.json({ ok: false, error: e?.message || 'sync failed' }, { status: 500 })
+    }
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
