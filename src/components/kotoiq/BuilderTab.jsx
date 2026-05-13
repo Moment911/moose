@@ -256,6 +256,17 @@ export default function BuilderTab({ clientId, agencyId }) {
                   >
                     {loading === 'pages' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'List Pages'}
                   </button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`Remove ${site.site_name || site.site_url}?`)) return
+                      await wpAction('delete', { site_id: site.id, agency_id: agencyId })
+                      toast.success('Site removed')
+                      loadSites()
+                    }}
+                    style={{ ...btnSmStyle, borderColor: '#fecaca', color: '#dc2626' }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
             ))}

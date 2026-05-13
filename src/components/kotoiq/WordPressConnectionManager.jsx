@@ -89,23 +89,23 @@ export default function WordPressConnectionManager({ agencyId }) {
   }
 
   async function disconnectSite(siteId, siteName) {
-    if (!confirm(`Disconnect ${siteName}? Published pages will remain on WordPress.`)) return
+    if (!confirm(`Delete ${siteName}? Published pages will remain on WordPress.`)) return
     try {
       const res = await fetch(API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'disconnect',
+          action: 'delete',
           agency_id: agencyId,
           site_id: siteId,
         }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
-      toast.success('Site disconnected')
+      toast.success('Site removed')
       loadSites()
     } catch (e) {
-      toast.error(e.message || 'Disconnect failed')
+      toast.error(e.message || 'Delete failed')
     }
   }
 
