@@ -43,6 +43,9 @@ const DIRECT_AGENCY_TABLES = new Set([
   'kotoiq_client_profile',      // Phase 7 — D-01..D-05
   'kotoiq_clarifications',      // Phase 7 — D-16
   'koto_agency_integrations',   // Phase 8 — D-02, D-32 (encrypted payload; Plan 03 ships vault)
+  'kotoiq_page_suggestions',    // Page Factory — gap intelligence output
+  'kotoiq_style_profiles',      // Page Factory — reference HTML style extraction
+  'kotoiq_publish_watches',     // Page Factory — GSC indexation monitoring
 ])
 
 /** Tables where agency_id is transitive (through a parent FK) */
