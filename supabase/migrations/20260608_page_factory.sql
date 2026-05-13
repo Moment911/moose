@@ -39,7 +39,7 @@ CREATE POLICY "agency_isolation_page_suggestions"
   FOR ALL
   USING (
     agency_id IN (
-      SELECT agency_id FROM users WHERE id = auth.uid()
+      SELECT agency_id FROM agency_members WHERE user_id = auth.uid()
     )
   );
 
@@ -74,7 +74,7 @@ CREATE POLICY "agency_isolation_style_profiles"
   FOR ALL
   USING (
     agency_id IN (
-      SELECT agency_id FROM users WHERE id = auth.uid()
+      SELECT agency_id FROM agency_members WHERE user_id = auth.uid()
     )
   );
 
@@ -106,6 +106,6 @@ CREATE POLICY "agency_isolation_publish_watches"
   FOR ALL
   USING (
     agency_id IN (
-      SELECT agency_id FROM users WHERE id = auth.uid()
+      SELECT agency_id FROM agency_members WHERE user_id = auth.uid()
     )
   );
