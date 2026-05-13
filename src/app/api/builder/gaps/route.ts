@@ -99,7 +99,12 @@ export async function POST(req: NextRequest) {
     }
   } catch (e: any) {
     console.error('[builder/gaps]', e)
-    return NextResponse.json({ error: e.message || 'Internal error' }, { status: 500 })
+    const msg = e.message || 'Internal error'
+    // If the error message contains HTML, it's likely an upstream API returning a page instead of JSON
+    const cleanMsg = msg.includes('<html>') || msg.includes('<!DOCTYPE')
+      ? 'Upstream API returned HTML instead of JSON. Census API may be temporarily unavailable.'
+      : msg
+    return NextResponse.json({ error: cleanMsg }, { status: 500 })
   }
 }
 

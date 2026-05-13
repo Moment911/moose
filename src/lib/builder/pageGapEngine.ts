@@ -276,24 +276,23 @@ async function loadCities(
   state: string,
   counties?: string[],
 ): Promise<Array<GeoPlace & { county?: string }>> {
-  // Get all cities/places for the state from Census API (cached)
-  const result = await getPlacesForState(state, { incorporatedOnly: true })
-  if (!result?.data) return []
+  try {
+    // Get all cities/places for the state from Census API (cached)
+    const result = await getPlacesForState(state, { incorporatedOnly: true })
+    if (!result?.data?.length) return []
 
-  let places = result.data
+    const places = result.data
 
-  // Filter by counties if specified
-  if (counties?.length) {
-    // For county filtering, we'd need the countyLookup — for now, return all
-    // and let the caller filter. Full county-based filtering can use
-    // getPlacesForCounties() from geoLookup.ts
-    // This is a simplification; proper implementation uses countyLookup.ts
+    return places.map(p => ({
+      ...p,
+      county: undefined, // populated by countyLookup in full implementation
+    }))
+  } catch (e) {
+    // Census API unavailable — return empty so gap engine still works
+    // with keyword/sitemap/competitor data only (no city-level expansion)
+    console.error('[pageGapEngine] Census API failed, continuing without city data:', e)
+    return []
   }
-
-  return places.map(p => ({
-    ...p,
-    county: undefined, // populated by countyLookup in full implementation
-  }))
 }
 
 // ── Index Builders ─────────────────────────────────────────────────────────

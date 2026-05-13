@@ -79,14 +79,16 @@ export default function PageSuggestionsTab({ clientId, agencyId }) {
         body: JSON.stringify({
           action: 'analyze',
           agency_id: agencyId,
-          client_id: clientId,
+          client_id: clientId || 'none',
           services: services.split(',').map(s => s.trim()).filter(Boolean),
           state: state.trim().toUpperCase(),
           counties: counties ? counties.split(',').map(c => c.trim()).filter(Boolean) : undefined,
           city_limit: 100,
         }),
       })
-      const data = await res.json()
+      const text = await res.text()
+      let data
+      try { data = JSON.parse(text) } catch { throw new Error('Server returned invalid response. Try again.') }
       if (data.error) throw new Error(data.error)
       setSuggestions(data.suggestions || [])
       toast.success(`Found ${data.stats?.gaps_found || 0} page opportunities`)
