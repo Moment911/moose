@@ -1,7 +1,22 @@
 import { supabase } from './supabase'
 
 // Refresh Google OAuth token
+//
+// Common failures + what they mean (Google's documented OAuth2 errors):
+//   - invalid_grant: refresh_token revoked/expired (user revoked access in
+//     their Google account, or password changed, or token aged out from
+//     6+ months of disuse). Only fix: user must reconnect.
+//   - invalid_client: GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET don't match
+//     the credentials the original token was issued against. Fix: check
+//     env vars, or user reconnects with the new client.
+//   - unauthorized_client: app's OAuth client was deleted/disabled in
+//     Google Cloud Console.
+//
+// On any failure we now WRITE the error into seo_connections so the UI
+// can render a clear "Reconnect Google" state instead of an empty hang.
 export async function refreshGoogleToken(connection) {
+  let errorCode = null
+  let errorDesc = null
   try {
     const res = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -13,16 +28,42 @@ export async function refreshGoogleToken(connection) {
         grant_type: 'refresh_token',
       }),
     })
-    const data = await res.json()
-    if (data.access_token) {
+    const data = await res.json().catch(() => ({}))
+    if (res.ok && data.access_token) {
       await supabase.from('seo_connections').update({
         access_token: data.access_token,
         token_expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
+        last_error: null,
+        last_error_at: null,
         updated_at: new Date().toISOString(),
       }).eq('id', connection.id)
+      return data.access_token
     }
-    return data.access_token
-  } catch (e) { console.error('Token refresh failed:', e); return null }
+    // Google returned an error body — capture it
+    errorCode = data.error || `http_${res.status}`
+    errorDesc = data.error_description || JSON.stringify(data).slice(0, 200)
+  } catch (e) {
+    errorCode = 'network'
+    errorDesc = String(e?.message || e).slice(0, 200)
+  }
+  // Persist the failure so the UI can surface a Reconnect CTA and so we
+  // stop hammering Google with a known-bad refresh_token on every page
+  // load. Mark the connection broken until the user reconnects.
+  try {
+    const updates = {
+      last_error: errorCode + (errorDesc ? `: ${errorDesc}` : ''),
+      last_error_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    // invalid_grant is terminal — the refresh token is dead, reconnect required
+    if (errorCode === 'invalid_grant') {
+      updates.connected = false
+      updates.needs_reconnect = true
+    }
+    await supabase.from('seo_connections').update(updates).eq('id', connection.id)
+  } catch { /* DB write failure shouldn't mask the original auth error */ }
+  console.error(`[seoService] Token refresh failed (${errorCode}):`, errorDesc)
+  return null
 }
 
 // Get valid access token for a connection
