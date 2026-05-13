@@ -58,7 +58,7 @@ const SECTIONS = [
     { id: 'topical_map', label: 'Topical Map', icon: Map, tab: 'topical_map', check: 'topical_map', runAction: 'generate_topical_map' },
     { id: 'content_health', label: 'Content Health', icon: RefreshCw, tab: 'content_refresh', check: 'content_inv', runAction: 'build_content_inventory' },
     { id: 'decay', label: 'Decay Prediction', icon: TrendingUp, tab: 'content_decay', check: 'decay', runAction: null },
-    { id: 'semantic', label: 'KotoIQ Network', icon: Brain, tab: 'semantic', check: null, runAction: null },
+    { id: 'semantic', label: 'KotoIQ Network', icon: Brain, tab: 'semantic', check: 'semantic', runAction: 'analyze_semantic_network' },
     { id: 'aligner', label: 'Context Aligner', icon: Target, tab: 'context_aligner', check: null, runAction: null },
     { id: 'passage', label: 'Passage Optimizer', icon: FileText, tab: 'passage_optimizer', check: null, runAction: null },
     { id: 'plagiarism', label: 'Plagiarism Check', icon: Shield, tab: 'plagiarism', check: null, runAction: null },
@@ -89,8 +89,8 @@ const SECTIONS = [
 ]
 
 const WAVE_ACTIONS = [
-  ['quick_scan', 'deep_enrich', 'audit_eeat', 'scan_brand_serp', 'analyze_backlinks', 'gmb_health', 'audit_schema', 'roi_projections'],
-  ['generate_topical_map', 'generate_scorecard', 'scan_internal_links', 'build_content_inventory', 'run_gsc_audit'],
+  ['quick_scan', 'deep_enrich', 'audit_eeat', 'scan_brand_serp', 'analyze_backlinks', 'gmb_health', 'audit_schema', 'roi_projections', 'crawl_sitemaps'],
+  ['generate_topical_map', 'generate_scorecard', 'scan_internal_links', 'build_content_inventory', 'run_gsc_audit', 'analyze_semantic_network'],
   ['audit_topical_authority', 'generate_strategic_plan', 'analyze_query_paths', 'build_content_calendar'],
 ]
 
@@ -154,14 +154,14 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
       ['dashboard', 'dashboard', d => d && !d.empty && d.summary],
       ['get_topical_authority', 'authority', d => d?.data],
       ['get_latest_strategic_plan', 'strategy', d => d?.plan],
-      ['get_brand_serp', 'brand_serp', d => d?.overall_score != null],
-      ['get_backlink_profile', 'backlinks', d => d?.overall_score != null],
+      ['get_brand_serp', 'brand_serp', d => d?.data?.overall_score != null],
+      ['get_backlink_profile', 'backlinks', d => d?.data?.overall_score != null],
       ['get_backlink_opportunities', 'link_opps', d => d?.opportunities?.length > 0],
-      ['get_eeat_audit', 'eeat', d => d?.overall_score != null],
-      ['get_topical_map', 'topical_map', d => d?.root_topic],
-      ['get_schema_audit', 'schema', d => d?.overall_score != null],
+      ['get_eeat_audit', 'eeat', d => d?.audit?.overall_score != null],
+      ['get_topical_map', 'topical_map', d => d?.map?.central_entity],
+      ['get_schema_audit', 'schema', d => d?.audit?.overall_score != null],
       ['get_technical_deep', 'tech_deep', d => d?.overall_score != null],
-      ['get_gsc_audit', 'seo_audit', d => d?.health_score != null],
+      ['get_gsc_audit', 'seo_audit', d => d?.audit?.health_score != null],
       ['get_link_audit', 'int_links', d => d?.overall_score != null],
       ['get_content_calendar', 'calendar', d => d?.items?.length > 0],
       ['get_content_decay', 'decay', d => d?.urls?.length > 0],
@@ -169,7 +169,9 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
       ['keywords', 'keywords', d => d?.keywords?.length > 0],
       ['get_bing_audit', 'bing', d => d?.data],
       ['get_query_clusters', 'query_paths', d => d?.clusters?.length > 0],
-      ['get_grid_scan_history', 'rank_grid', d => d?.scans?.length > 0],
+      ['get_grid_scan_history', 'rank_grid', d => d?.data?.length > 0],
+      ['get_sitemap_crawl_status', 'sitemap', d => d?.crawl?.status === 'complete'],
+      ['get_semantic_analysis', 'semantic', d => d?.analysis != null],
     ]
 
     const results = await Promise.allSettled(checks.map(([action]) => api(action)))
@@ -182,14 +184,14 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
         // Extract snippets for live display
         const d = r.value
         if (id === 'keywords' && d.total) snips[id] = `${d.total} keywords tracked`
-        if (id === 'backlinks' && d.overall_score) snips[id] = `Score: ${d.overall_score}/100`
-        if (id === 'eeat' && d.overall_score) snips[id] = `${d.grade || ''} — ${d.overall_score}/100`
-        if (id === 'brand_serp' && d.overall_score) snips[id] = `${d.overall_score}/100 brand control`
-        if (id === 'schema' && d.overall_score) snips[id] = `${d.coverage_pct || 0}% coverage`
-        if (id === 'seo_audit' && d.health_score) snips[id] = `Health: ${d.health_score}/100`
+        if (id === 'backlinks' && d.data?.overall_score) snips[id] = `Score: ${d.data.overall_score}/100`
+        if (id === 'eeat' && d.audit?.overall_score) snips[id] = `${d.audit.grade || ''} — ${d.audit.overall_score}/100`
+        if (id === 'brand_serp' && d.data?.overall_score) snips[id] = `${d.data.overall_score}/100 brand control`
+        if (id === 'schema' && d.audit?.overall_score) snips[id] = `${d.audit.coverage_pct || 0}% coverage`
+        if (id === 'seo_audit' && d.audit?.health_score) snips[id] = `Health: ${d.audit.health_score}/100`
         if (id === 'authority' && d.data) snips[id] = `${d.data.authority_grade || ''} — ${d.data.authority_score || 0}/100`
         if (id === 'strategy' && d.plan) snips[id] = `${d.plan.attack_priorities?.length || 0} attack priorities`
-        if (id === 'topical_map' && d.node_count) snips[id] = `${d.node_count} topics mapped`
+        if (id === 'topical_map' && d.map) snips[id] = `${d.map.stats?.total || d.map.core_nodes?.length || 0} topics mapped`
         if (id === 'tech_deep' && d.overall_score) snips[id] = `${d.overall_score}/100`
         if (id === 'int_links' && d.overall_score) snips[id] = `${d.overall_score}/100`
         if (id === 'gbp') snips[id] = d.gbp_score ? `${d.gbp_score}/100` : 'Data loaded'
