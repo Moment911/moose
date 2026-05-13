@@ -117,9 +117,9 @@ export default function KotoIQShellPage() {
     )
   }
 
-  // Intel tab renders the full KotoIQPage as-is
+  // Intel tab renders the full KotoIQPage — key forces remount on client change
   if (shell === 'intel') {
-    return <KotoIQPage />
+    return <KotoIQPage key={clientId} />
   }
 
   return (
