@@ -1,9 +1,9 @@
 export const R   = '#E6007E'
 export const T   = '#00C2CB'
-export const BLK = '#111111'
-export const GRY = '#F9F9F9'
+export const BLK = '#1A1A1A'
+export const GRY = '#F7F5F2'
 export const GRN = '#16a34a'
-export const AMB = '#f59e0b'
+export const AMB = '#D97706'
 export const W   = '#ffffff'
-export const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-export const FB  = "'Raleway','Helvetica Neue',sans-serif"
+export const FH  = "'Instrument Serif',Georgia,serif"
+export const FB  = "'DM Sans',-apple-system,sans-serif"

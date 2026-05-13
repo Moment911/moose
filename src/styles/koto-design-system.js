@@ -1,55 +1,66 @@
 // ══════════════════════════════════════════════════════════════════════════════
 // KOTO DESIGN SYSTEM — Single source of truth for all UI tokens
 // Import as: import { KOTO, colors, fonts, radius } from '../styles/koto-design-system'
+// See DESIGN.md for rationale and full specification.
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const KOTO = {
   colors: {
-    pageBg:     '#f2f2f0',
-    white:      '#ffffff',
-    black:      '#0a0a0a',
-    red:        '#ea2729',
-    redLight:   '#fef2f2',
-    redHover:   '#d42224',
-    teal:       '#5bc6d0',
-    tealLight:  '#f0fafb',
-    green:      '#16a34a',
-    greenLight: '#f0fdf4',
-    amber:      '#f59e0b',
-    amberLight: '#fffbeb',
+    pageBg:     '#F7F5F2',
+    white:      '#FFFFFF',
+    black:      '#1A1A1A',
+    accent:     '#E6007E',
+    accentLight:'rgba(230,0,126,0.07)',
+    accentHover:'#CC006E',
+    teal:       '#00C2CB',
+    tealLight:  'rgba(0,194,203,0.07)',
+    green:      '#16A34A',
+    greenLight: '#F0FDF4',
+    amber:      '#D97706',
+    amberLight: '#FFFBEB',
+    danger:     '#DC2626',
+    dangerLight:'#FEF2F2',
+    info:       '#2563EB',
+    infoLight:  '#EFF6FF',
+    gray50:     '#FAFAF8',
+    gray100:    '#F7F5F2',
+    gray200:    '#F0ECE8',
+    gray300:    '#E8E4E0',
+    gray400:    '#8A8580',
+    gray500:    '#6B6560',
+    gray600:    '#4A4545',
+    gray700:    '#3A3535',
+    gray800:    '#2A2525',
+    gray900:    '#1A1A1A',
+    border:     '#E8E4E0',
+    borderLight:'#F0ECE8',
+    // Legacy aliases (kept for compatibility)
+    red:        '#E6007E',
+    redLight:   'rgba(230,0,126,0.07)',
+    redHover:   '#CC006E',
     purple:     '#7c3aed',
-    gray50:     '#f9fafb',
-    gray100:    '#f3f4f6',
-    gray200:    '#e5e7eb',
-    gray300:    '#d1d5db',
-    gray400:    '#9ca3af',
-    gray500:    '#6b7280',
-    gray600:    '#4b5563',
-    gray700:    '#374151',
-    gray800:    '#1f2937',
-    gray900:    '#111827',
-    border:     '#e5e7eb',
-    borderLight:'#f3f4f6',
   },
   fonts: {
-    heading: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",
-    body:    "'Raleway','Helvetica Neue',sans-serif",
+    heading: "'Instrument Serif',Georgia,serif",
+    body:    "'DM Sans',-apple-system,sans-serif",
+    mono:    "'JetBrains Mono','SF Mono',monospace",
   },
   radius: {
-    sm: 6,
-    md: 8,
-    lg: 12,
-    xl: 16,
-    pill: 20,
-    full: 9999,
-  },
-  spacing: {
-    xs: 4,
     sm: 8,
     md: 12,
     lg: 16,
-    xl: 20,
-    xxl: 28,
+    xl: 16,
+    pill: 9999,
+    full: 9999,
+  },
+  spacing: {
+    '2xs': 4,
+    xs: 8,
+    sm: 12,
+    md: 16,
+    lg: 20,
+    xl: 24,
+    xxl: 32,
   },
 }
 
@@ -89,45 +100,46 @@ export const pageHeader = {
 
 export const pageTitle = {
   fontFamily: KOTO.fonts.heading,
-  fontSize: 18,
-  fontWeight: 800,
+  fontSize: 24,
+  fontWeight: 400,
   color: '#fff',
-  letterSpacing: '-.02em',
+  letterSpacing: '-.01em',
 }
 
 export const card = {
   background: KOTO.colors.white,
-  borderRadius: KOTO.radius.lg,
+  borderRadius: KOTO.radius.md,
   border: `1px solid ${KOTO.colors.border}`,
   padding: '20px',
+  boxShadow: '0 1px 3px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03)',
 }
 
 export const sectionLabel = {
-  fontFamily: KOTO.fonts.heading,
+  fontFamily: KOTO.fonts.body,
   fontSize: 11,
-  fontWeight: 700,
+  fontWeight: 600,
   color: KOTO.colors.gray400,
   textTransform: 'uppercase',
-  letterSpacing: '.08em',
+  letterSpacing: '.06em',
   marginBottom: 10,
 }
 
 export const bodyText = {
   fontFamily: KOTO.fonts.body,
   fontSize: 14,
-  color: KOTO.colors.gray700,
+  color: KOTO.colors.gray600,
   lineHeight: 1.6,
 }
 
 export const primaryButton = {
-  background: KOTO.colors.red,
+  background: KOTO.colors.accent,
   color: KOTO.colors.white,
   border: 'none',
-  borderRadius: KOTO.radius.md,
-  padding: '8px 16px',
-  fontSize: 13,
+  borderRadius: KOTO.radius.sm,
+  padding: '10px 20px',
+  fontSize: 14,
   fontWeight: 600,
-  fontFamily: KOTO.fonts.heading,
+  fontFamily: KOTO.fonts.body,
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
@@ -136,13 +148,13 @@ export const primaryButton = {
 
 export const secondaryButton = {
   background: KOTO.colors.white,
-  color: KOTO.colors.gray700,
+  color: KOTO.colors.gray900,
   border: `1px solid ${KOTO.colors.border}`,
-  borderRadius: KOTO.radius.md,
-  padding: '8px 16px',
-  fontSize: 13,
-  fontWeight: 600,
-  fontFamily: KOTO.fonts.heading,
+  borderRadius: KOTO.radius.sm,
+  padding: '10px 20px',
+  fontSize: 14,
+  fontWeight: 500,
+  fontFamily: KOTO.fonts.body,
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
@@ -151,10 +163,10 @@ export const secondaryButton = {
 
 export const inputField = {
   width: '100%',
-  padding: '8px 12px',
-  borderRadius: KOTO.radius.md,
+  padding: '10px 14px',
+  borderRadius: KOTO.radius.sm,
   border: `1px solid ${KOTO.colors.border}`,
-  fontSize: 13,
+  fontSize: 14,
   fontFamily: KOTO.fonts.body,
   outline: 'none',
   boxSizing: 'border-box',
@@ -164,7 +176,7 @@ export const inputField = {
 
 export const tableHeader = {
   background: KOTO.colors.gray50,
-  fontFamily: KOTO.fonts.heading,
+  fontFamily: KOTO.fonts.body,
   fontSize: 11,
   fontWeight: 700,
   color: KOTO.colors.gray400,
@@ -179,31 +191,32 @@ export const tableRow = {
 
 export const statCard = {
   background: KOTO.colors.white,
-  borderRadius: KOTO.radius.lg,
+  borderRadius: KOTO.radius.md,
   border: `1px solid ${KOTO.colors.border}`,
   padding: '18px 20px',
+  boxShadow: '0 1px 3px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03)',
 }
 
-export const badge = (color = KOTO.colors.red) => ({
-  fontSize: 10,
-  fontWeight: 700,
-  padding: '2px 8px',
+export const badge = (color = KOTO.colors.accent) => ({
+  fontSize: 11,
+  fontWeight: 600,
+  padding: '3px 10px',
   borderRadius: KOTO.radius.pill,
-  background: color + '18',
+  background: color + '12',
   color: color,
-  fontFamily: KOTO.fonts.heading,
+  fontFamily: KOTO.fonts.body,
 })
 
 export const navItemActive = {
-  background: KOTO.colors.redLight,
-  borderLeft: `3px solid ${KOTO.colors.red}`,
-  color: KOTO.colors.red,
-  fontWeight: 700,
+  background: KOTO.colors.accentLight,
+  borderLeft: `3px solid ${KOTO.colors.accent}`,
+  color: KOTO.colors.accent,
+  fontWeight: 600,
 }
 
 export const navItemInactive = {
   background: 'transparent',
   borderLeft: '3px solid transparent',
-  color: KOTO.colors.gray700,
-  fontWeight: 400,
+  color: KOTO.colors.gray600,
+  fontWeight: 500,
 }

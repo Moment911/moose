@@ -1,45 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&family=Raleway:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50:  #fef0f0;
-  --color-brand-100: #fdd8d8;
-  --color-brand-200: #faa8a9;
-  --color-brand-300: #f57475;
-  --color-brand-400: #ef4344;
-  --color-brand-500: #ea2729;
-  --color-brand-600: #c41e20;
-  --color-brand-700: #9e1719;
-  --color-brand-800: #7a1113;
-  --color-brand-900: #560c0d;
+  --color-brand-50:  rgba(230,0,126,0.04);
+  --color-brand-100: rgba(230,0,126,0.07);
+  --color-brand-200: rgba(230,0,126,0.12);
+  --color-brand-300: rgba(230,0,126,0.2);
+  --color-brand-400: #E6007E;
+  --color-brand-500: #E6007E;
+  --color-brand-600: #CC006E;
+  --color-brand-700: #B5005B;
+  --color-brand-800: #8E004A;
+  --color-brand-900: #660036;
 }
 
 :root {
   --red:    #E6007E;
-  --red-dk: #B5005B;
+  --red-dk: #CC006E;
   --teal:   #00C2CB;
-  --black:  #111111;
-  --off-black: #111111;
-  --bg:          #F9F9F9;
-  --surface:     #ffffff;
-  --surface-2:   #F5F5F5;
-  --border:      rgba(0,0,0,0.08);
-  --border-dark: rgba(0,0,0,0.14);
-  --text-primary:   #111111;
-  --text-secondary: #555555;
-  --text-muted:     #999999;
+  --black:  #1A1A1A;
+  --off-black: #1A1A1A;
+  --bg:          #F7F5F2;
+  --surface:     #FFFFFF;
+  --surface-2:   #FAFAF8;
+  --border:      #E8E4E0;
+  --border-dark: #D8D4D0;
+  --text-primary:   #1A1A1A;
+  --text-secondary: #4A4545;
+  --text-muted:     #8A8580;
 
-  /* Proxima Nova Bold for headings — falls back to Nunito Sans (near-identical) */
-  --font-display: 'Proxima Nova', 'Nunito Sans', 'Helvetica Neue', sans-serif;
-  /* Raleway for body */
-  --font-body:    'Raleway', 'Helvetica Neue', sans-serif;
-  --font-mono:    'Geist Mono', 'Fira Code', monospace;
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body:    'DM Sans', -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'SF Mono', monospace;
 
-  --radius-sm:  6px;
-  --radius-md:  10px;
+  --radius-sm:  8px;
+  --radius-md:  12px;
   --radius-lg:  16px;
-  --radius-xl:  24px;
-  --sidebar-w: 232px;
+  --radius-xl:  16px;
+  --sidebar-w: 240px;
   --header-h: 44px;
   --tabbar-h: 49px;
   --safe-top: env(safe-area-inset-top, 0px);

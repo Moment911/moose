@@ -1,51 +1,47 @@
-/* ── Koto Design System ──────────────────────────────────────────────────── */
-/* Colors hardcoded — no CSS vars for brand colors */
+/* ── Koto Design System CSS ──────────────────────────────────────────────── */
+/* See DESIGN.md for full specification and rationale. */
 
 /*
   Brand:
-    Red:    #E6007E
-    Cyan:   #00C2CB
+    Accent: #E6007E (pink — single accent, used sparingly)
+    Teal:   #00C2CB (data-positive metrics only)
 
-  Neutrals:
-    Black:  #111111
-    Gray-1: #333333
-    Gray-2: #555555
-    Gray-3: #999999
-    Gray-4: #AAAAAA
+  Neutrals (warm):
+    Black:  #1A1A1A
+    Gray-1: #4A4545
+    Gray-2: #6B6560
+    Gray-3: #8A8580
+    Gray-4: #E8E4E0
 
   Backgrounds:
     BG-0:   #FFFFFF
-    BG-1:   #F9F9F9
-    BG-2:   #F5F5F5
+    BG-1:   #F7F5F2 (warm linen)
+    BG-2:   #FAFAF8
 
-  Borders:
-    Light:  rgba(0,0,0,0.08)
-    Medium: rgba(0,0,0,0.14)
+  Borders (warm):
+    Default: #E8E4E0
+    Subtle:  #F0ECE8
 
   Semantic:
-    Red BG:   #FFF0F7
-    Red Text:  #B5005B
-    Cyan BG:  #F0FAFA
-    Cyan Text: #00878E
-    Green:    #16a34a
-    Green BG: #f0fdf4
-    Amber:    #d97706
-    Amber BG: #fffbeb
+    Success:  #16A34A / #F0FDF4
+    Warning:  #D97706 / #FFFBEB
+    Danger:   #DC2626 / #FEF2F2
+    Info:     #2563EB / #EFF6FF
 */
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-family: 'DM Sans', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Typography scale */
-.ds-title { font-size: 19px; font-weight: 500; color: #111111; letter-spacing: -0.01em; }
-.ds-subtitle { font-size: 12px; font-weight: 400; color: #999999; }
-.ds-body { font-size: 13px; font-weight: 400; color: #555555; line-height: 1.5; }
-.ds-caption { font-size: 12px; font-weight: 400; color: #999999; }
-.ds-label { font-size: 11px; font-weight: 500; color: #AAAAAA; text-transform: uppercase; letter-spacing: 0.06em; }
-.ds-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+.ds-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; color: #1A1A1A; letter-spacing: -0.01em; }
+.ds-subtitle { font-size: 13px; font-weight: 400; color: #8A8580; }
+.ds-body { font-size: 14px; font-weight: 400; color: #4A4545; line-height: 1.6; }
+.ds-caption { font-size: 12px; font-weight: 400; color: #8A8580; }
+.ds-label { font-size: 11px; font-weight: 600; color: #8A8580; text-transform: uppercase; letter-spacing: 0.06em; }
+.ds-mono { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 13px; }
 
 /* Animations */
 @keyframes ds-spin { to { transform: rotate(360deg); } }
