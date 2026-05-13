@@ -5015,6 +5015,119 @@ Return ONLY valid JSON:
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 
+  // ── RUN ALL AUDITS (fire-and-forget server-side) ──────────────────────────
+  if (action === 'run_all_audits') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients').select('website, primary_service').eq('id', client_id).single()
+    if (!client?.website) return NextResponse.json({ error: 'Client needs a website URL' }, { status: 400 })
+
+    // Create a sync log entry to track progress
+    const { data: syncLog } = await s.from('kotoiq_sync_log').insert({
+      client_id, source: 'run_all_audits', status: 'running',
+      metadata: { wave: 0, total_waves: 3, completed_actions: [], failed_actions: [], current_wave_actions: [] },
+    }).select('id').single()
+
+    const runId = syncLog?.id
+    if (!runId) return NextResponse.json({ error: 'Failed to create run tracker' }, { status: 500 })
+
+    // Fire-and-forget: run all waves in background
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+    const runBackground = async () => {
+      const callAction = async (act: string, extra: Record<string, any> = {}) => {
+        try {
+          const res = await fetch(`${appUrl}/api/kotoiq`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: act, client_id, agency_id, ...extra }),
+            signal: AbortSignal.timeout(120000),
+          })
+          return res.ok ? act : null
+        } catch { return null }
+      }
+
+      const WAVES = [
+        [
+          () => callAction('quick_scan', { website: client.website, industry: client.primary_service || '' }),
+          () => callAction('deep_enrich'),
+          () => callAction('audit_eeat'),
+          () => callAction('scan_brand_serp'),
+          () => callAction('analyze_backlinks'),
+          () => callAction('gmb_health'),
+          () => callAction('audit_schema'),
+          () => callAction('roi_projections'),
+          () => callAction('crawl_sitemaps'),
+        ],
+        [
+          () => callAction('generate_topical_map'),
+          () => callAction('generate_scorecard'),
+          () => callAction('scan_internal_links'),
+          () => callAction('build_content_inventory'),
+          () => callAction('run_gsc_audit'),
+          () => callAction('analyze_semantic_network'),
+        ],
+        [
+          () => callAction('audit_topical_authority'),
+          () => callAction('generate_strategic_plan', { timeframe: '3_month' }),
+          () => callAction('analyze_query_paths'),
+          () => callAction('build_content_calendar'),
+        ],
+      ]
+
+      const completed: string[] = []
+      const failed: string[] = []
+
+      for (let w = 0; w < WAVES.length; w++) {
+        // Update progress
+        await s.from('kotoiq_sync_log').update({
+          metadata: { wave: w + 1, total_waves: 3, completed_actions: completed, failed_actions: failed },
+        }).eq('id', runId)
+
+        const results = await Promise.allSettled(WAVES[w].map(fn => fn()))
+        for (const r of results) {
+          if (r.status === 'fulfilled' && r.value) completed.push(r.value)
+          else failed.push('unknown')
+        }
+      }
+
+      // Mark complete
+      await s.from('kotoiq_sync_log').update({
+        status: 'complete',
+        completed_at: new Date().toISOString(),
+        records_synced: completed.length,
+        metadata: { wave: 3, total_waves: 3, completed_actions: completed, failed_actions: failed },
+      }).eq('id', runId)
+    }
+
+    runBackground().catch(async (err) => {
+      console.error('[run_all_audits] Background run failed:', err)
+      await s.from('kotoiq_sync_log').update({
+        status: 'failed', completed_at: new Date().toISOString(),
+        error_message: err.message,
+      }).eq('id', runId)
+    })
+
+    return NextResponse.json({ ok: true, run_id: runId })
+  }
+
+  if (action === 'run_all_status') {
+    const { run_id } = body
+    if (!run_id) return NextResponse.json({ error: 'run_id required' }, { status: 400 })
+
+    const { data } = await s.from('kotoiq_sync_log').select('*').eq('id', run_id).single()
+    if (!data) return NextResponse.json({ error: 'Run not found' }, { status: 404 })
+
+    return NextResponse.json({
+      status: data.status,
+      wave: data.metadata?.wave || 0,
+      total_waves: data.metadata?.total_waves || 3,
+      completed_actions: data.metadata?.completed_actions || [],
+      failed_actions: data.metadata?.failed_actions || [],
+      completed_at: data.completed_at,
+    })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 

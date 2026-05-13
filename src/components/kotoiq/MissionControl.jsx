@@ -209,43 +209,100 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
   const allTools = SECTIONS.flatMap(s => s.tools)
   const checkableCount = allTools.filter(t => t.check).length
 
-  // ── Run All ──
+  // ── Run All (fire-and-forget on server, poll for progress) ──
+  const runAllRef = useRef(null)
+  const runIdRef = useRef(null)
+
   const runAll = async () => {
     if (!hasWebsite) { toast.error('Add a website URL first'); return }
     setRunningAll(true)
+    setCurrentWave(1)
+    toast.loading('Starting all audits...', { id: 'runall' })
 
-    for (let w = 0; w < WAVE_ACTIONS.length; w++) {
-      setCurrentWave(w + 1)
-      const waveLabel = ['Scanning website + competitors', 'Building maps + scoring', 'Strategic analysis'][w]
-      toast.loading(`Wave ${w + 1}/3 — ${waveLabel}...`, { id: 'runall' })
-
-      // Mark tools as running
-      const waveTools = new Set()
-      for (const action of WAVE_ACTIONS[w]) {
+    // Mark all tools with runActions as running
+    const allRunnable = new Set()
+    for (const wave of WAVE_ACTIONS) {
+      for (const action of wave) {
         const tool = allTools.find(t => t.runAction === action)
-        if (tool) waveTools.add(tool.id)
+        if (tool) allRunnable.add(tool.id)
       }
-      setRunningTools(prev => new Set([...prev, ...waveTools]))
-
-      await Promise.allSettled(WAVE_ACTIONS[w].map(a =>
-        api(a, a === 'quick_scan' ? { website: client.website, industry: client.primary_service || '' }
-          : a === 'generate_strategic_plan' ? { timeframe: '3_month' } : {})
-      ))
-
-      // Mark wave tools as done
-      setRunningTools(prev => { const n = new Set(prev); waveTools.forEach(id => n.delete(id)); return n })
-      setStatuses(prev => {
-        const n = { ...prev }
-        waveTools.forEach(id => { n[id] = 'done' })
-        return n
-      })
     }
+    setRunningTools(allRunnable)
 
-    toast.success('All audits complete! Refreshing data...', { id: 'runall' })
-    await checkStatuses()
-    setRunningAll(false)
-    setCurrentWave(null)
+    try {
+      const res = await api('run_all_audits')
+      if (!res?.ok || !res?.run_id) {
+        toast.error(res?.error || 'Failed to start audits', { id: 'runall' })
+        setRunningAll(false)
+        setRunningTools(new Set())
+        return
+      }
+
+      runIdRef.current = res.run_id
+
+      // Poll for progress every 5 seconds
+      const poll = setInterval(async () => {
+        try {
+          const status = await api('run_all_status', { run_id: runIdRef.current })
+          if (!status) return
+
+          const wave = status.wave || 0
+          setCurrentWave(wave)
+
+          const waveLabels = ['', 'Scanning website + competitors', 'Building maps + scoring', 'Strategic analysis']
+          if (wave > 0 && wave <= 3) {
+            toast.loading(`Wave ${wave}/3 — ${waveLabels[wave]}...`, { id: 'runall' })
+          }
+
+          // Mark completed actions
+          const completedActions = status.completed_actions || []
+          if (completedActions.length > 0) {
+            setStatuses(prev => {
+              const n = { ...prev }
+              for (const action of completedActions) {
+                const tool = allTools.find(t => t.runAction === action)
+                if (tool) {
+                  n[tool.id] = 'done'
+                  setRunningTools(prev => { const s = new Set(prev); s.delete(tool.id); return s })
+                }
+              }
+              return n
+            })
+          }
+
+          if (status.status === 'complete' || status.status === 'failed') {
+            clearInterval(poll)
+            runAllRef.current = null
+            runIdRef.current = null
+            setRunningTools(new Set())
+            setRunningAll(false)
+            setCurrentWave(null)
+
+            if (status.status === 'complete') {
+              toast.success(`All audits complete! ${completedActions.length} tools ran successfully.`, { id: 'runall' })
+            } else {
+              toast.error('Some audits failed — check individual tabs', { id: 'runall' })
+            }
+
+            await checkStatuses()
+          }
+        } catch { /* polling error, keep trying */ }
+      }, 5000)
+
+      runAllRef.current = poll
+    } catch {
+      toast.error('Failed to start audits', { id: 'runall' })
+      setRunningAll(false)
+      setRunningTools(new Set())
+    }
   }
+
+  // Resume polling on mount if there's an active run
+  useEffect(() => {
+    return () => {
+      if (runAllRef.current) clearInterval(runAllRef.current)
+    }
+  }, [])
 
   const toggleSection = (title) => setCollapsed(p => ({ ...p, [title]: !p[title] }))
 
