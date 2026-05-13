@@ -16,6 +16,7 @@ import 'server-only'
 import { getKotoIQDb } from '../kotoiqDb'
 import { getKeywordCPCs } from '../dataforseo'
 import { fingerprintPage, aggregateFingerprints } from './competitorFingerprint'
+import { getPriorityBoostMap } from './perfFeedback'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
@@ -115,6 +116,12 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
 
   // 2. Build existing page index (what pages the client already has)
   const existingPageIndex = buildExistingPageIndex(sitemapUrls)
+
+  // 2b. Pull performance feedback — service+city combos where an
+  //     existing PF page drove calls. Adjacent gaps get a priority
+  //     boost. Closes the loop from publish → real-world conversion →
+  //     next round of gap scoring.
+  const perfBoosts = await getPriorityBoostMap(agencyId, clientId)
 
   // 3. Build keyword volume map
   const keywordVolumeMap = buildKeywordVolumeMap(keywords)
@@ -224,6 +231,24 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
       if (orphanContexts.size > 0) {
         const isOrphan = [...orphanContexts].some(t => serviceLower.includes(t) || t.includes(serviceLower))
         if (isOrphan) priority += 10
+      }
+
+      // Performance feedback boost — existing PF page in this service+city
+      // (or a nearby city for the same service) is already driving calls.
+      // That's a strong signal the topic converts; lean into it.
+      const perfKey = `${service.toLowerCase()}|${cityName.toLowerCase()}`
+      const perfBoost = perfBoosts.get(perfKey)
+      if (perfBoost) {
+        priority += perfBoost
+      } else {
+        // Service-level boost — any city with this service has a winning
+        // page → bump everything in that service by a smaller amount.
+        for (const [key, boost] of perfBoosts.entries()) {
+          if (key.startsWith(`${service.toLowerCase()}|`)) {
+            priority += Math.floor(boost / 3)
+            break
+          }
+        }
       }
 
       // Cap at 0-100

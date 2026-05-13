@@ -74,6 +74,7 @@ import { detectRelevantConnections } from '@/lib/ads/autoDetectRelevantConnectio
 import { autoTriggerSync } from '@/lib/ads/autoTriggerSync'
 import { analyzePageGaps, saveSuggestions } from '@/lib/builder/pageGapEngine'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
+import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -5604,6 +5605,31 @@ Return ONLY valid JSON:
       total_calls: callList.length,
       window_days: days,
     })
+  }
+
+  // ─── PAGE FACTORY PERFORMANCE FEEDBACK ────────────────────────────────
+  // Reads back what published PF pages actually did in the wild → returns
+  // refresh candidates (high imp / low CTR / rank slipped / never indexed),
+  // priority boost hints (service+city combos that converted), and
+  // underperformer flags (low impressions after 30d).
+  if (action === 'get_page_factory_performance') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // Look up agency_id from client if not provided
+    let resolvedAgencyId = agency_id
+    if (!resolvedAgencyId) {
+      const { data: client } = await s.from('clients').select('agency_id').eq('id', client_id).single()
+      resolvedAgencyId = client?.agency_id
+    }
+    if (!resolvedAgencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+
+    try {
+      const result = await analyzePerfFeedback(resolvedAgencyId, client_id)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e?.message || 'analysis failed' }, { status: 500 })
+    }
   }
 
   // ─── CUSTOMER VOICE THEMES: mine GBP reviews + Q&A for content language ─

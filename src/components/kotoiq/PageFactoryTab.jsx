@@ -99,6 +99,7 @@ export default function PageFactoryTab({ clientId, agencyId }) {
   const [topEarners, setTopEarners] = useState([])
   const [callSeeds, setCallSeeds] = useState({ themes: [], intents: [], total_calls: 0 })
   const [voiceThemes, setVoiceThemes] = useState({ question_themes: [], phrase_themes: [], compliment_themes: [], review_count: 0 })
+  const [perfFeedback, setPerfFeedback] = useState({ refresh_candidates: [], priority_boosts: [], underperformers: [], scanned_pages: 0 })
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
 
@@ -106,13 +107,14 @@ export default function PageFactoryTab({ clientId, agencyId }) {
     if (!clientId) return
     setLoading(true)
     try {
-      const [s, c, p, attr, seeds, voice] = await Promise.all([
+      const [s, c, p, attr, seeds, voice, perf] = await Promise.all([
         api('get_page_factory_stats', { client_id: clientId }),
         api('get_page_factory_gap_coverage', { client_id: clientId }),
         api('get_page_factory_pages', { client_id: clientId, limit: 50 }),
         agencyId ? api('get_page_factory_attribution', { client_id: clientId, agency_id: agencyId, top_n: 5 }) : Promise.resolve({ pages: [] }),
         api('get_call_content_seeds', { client_id: clientId, days: 90, limit: 30 }),
         api('get_customer_voice_themes', { client_id: clientId, limit: 20 }),
+        agencyId ? api('get_page_factory_performance', { client_id: clientId, agency_id: agencyId }) : Promise.resolve({ refresh_candidates: [], priority_boosts: [], underperformers: [], scanned_pages: 0 }),
       ])
       setStats(s)
       setCoverage(c?.services || [])
@@ -120,6 +122,7 @@ export default function PageFactoryTab({ clientId, agencyId }) {
       setTopEarners(attr?.pages || [])
       setCallSeeds(seeds || { themes: [], intents: [], total_calls: 0 })
       setVoiceThemes(voice || { question_themes: [], phrase_themes: [], compliment_themes: [], review_count: 0 })
+      setPerfFeedback(perf || { refresh_candidates: [], priority_boosts: [], underperformers: [], scanned_pages: 0 })
     } catch (e) {
       toast.error('Failed to load Page Factory data')
     } finally {
@@ -179,6 +182,66 @@ export default function PageFactoryTab({ clientId, agencyId }) {
         <KPIBox label="Attributed Calls" value={callsTotal} sub={pages.length ? `${pages.length} pages tracked` : 'no pages yet'} color={callsTotal > 0 ? R : BLK} />
         <KPIBox label="Est. Revenue" value={`$${revenueTotal.toLocaleString()}`} sub="$150 / call avg" color={revenueTotal > 0 ? GRN : BLK} />
       </div>
+
+      {/* Performance Feedback — refresh candidates + priority boosts */}
+      {perfFeedback.scanned_pages > 0 && (perfFeedback.refresh_candidates.length > 0 || perfFeedback.priority_boosts.length > 0 || perfFeedback.underperformers.length > 0) && (
+        <div style={card}>
+          <div style={{ fontFamily: SF, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <RefreshCw size={16} color={R} /> Performance Feedback
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b6b70', fontWeight: 600 }}>{perfFeedback.scanned_pages} pages scanned</span>
+          </div>
+          <div style={{ fontFamily: SF, fontSize: 12, color: '#6b6b70', marginBottom: 14 }}>
+            Page Factory closing the loop — pages with low CTR get flagged for rewrite, pages driving calls boost adjacent gaps in the next sync.
+          </div>
+
+          {perfFeedback.refresh_candidates.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontFamily: SF, fontSize: 11, fontWeight: 700, color: AMB, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertTriangle size={12} /> Needs Refresh ({perfFeedback.refresh_candidates.length})
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {perfFeedback.refresh_candidates.slice(0, 5).map((r, i) => (
+                  <div key={i} style={{ padding: '8px 10px', background: '#fffbeb', borderRadius: 8, border: '1px solid #fde68a' }}>
+                    <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: SF, fontSize: 12, fontWeight: 700, color: BLK, textDecoration: 'none' }}>{r.url}</a>
+                    <div style={{ fontFamily: SF, fontSize: 11, color: '#92400e', marginTop: 2 }}>{r.recommendation}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {perfFeedback.priority_boosts.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontFamily: SF, fontSize: 11, fontWeight: 700, color: GRN, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <TrendingUp size={12} /> Winners (will boost next sync)
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {perfFeedback.priority_boosts.slice(0, 8).map((b, i) => (
+                  <div key={i} style={{ padding: '6px 10px', background: GRN + '12', border: '1px solid ' + GRN + '40', borderRadius: 8, fontSize: 12, fontFamily: SF }}>
+                    <span style={{ fontWeight: 700, color: BLK }}>{b.service}</span>
+                    <span style={{ color: '#6b6b70', marginLeft: 4 }}>· {b.city}</span>
+                    <span style={{ color: GRN, fontWeight: 700, marginLeft: 6 }}>{b.attributed_calls} call{b.attributed_calls === 1 ? '' : 's'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {perfFeedback.underperformers.length > 0 && (
+            <div>
+              <div style={{ fontFamily: SF, fontSize: 11, fontWeight: 700, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Underperformers ({perfFeedback.underperformers.length})</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {perfFeedback.underperformers.slice(0, 3).map((u, i) => (
+                  <div key={i} style={{ fontFamily: SF, fontSize: 11, color: '#6b6b70' }}>
+                    <a href={u.url} target="_blank" rel="noopener noreferrer" style={{ color: BLK, textDecoration: 'none', fontWeight: 600 }}>{u.url}</a>
+                    <span style={{ marginLeft: 6 }}>— {u.reason}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Customer Voice — GBP review + Q&A mining */}
       {voiceThemes.review_count > 0 && (voiceThemes.question_themes.length > 0 || voiceThemes.phrase_themes.length > 0 || voiceThemes.compliment_themes.length > 0) && (
