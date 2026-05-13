@@ -14,8 +14,8 @@
 
 import 'server-only'
 import { getKotoIQDb } from '../kotoiqDb'
-import { getPlacesForState, getCountiesForState } from '../geoLookup'
-import type { GeoPlace } from '../geoLookup'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -272,25 +272,47 @@ async function loadGridScans(db: ReturnType<typeof getKotoIQDb>, clientId: strin
   return data || []
 }
 
+interface GeoCity {
+  name: string
+  county: string
+  state: string
+  zips: string[]
+  lat?: number
+  lng?: number
+}
+
 async function loadCities(
   state: string,
   counties?: string[],
-): Promise<Array<GeoPlace & { county?: string }>> {
+): Promise<GeoCity[]> {
   try {
-    // Get all cities/places for the state from Census API (cached)
-    const result = await getPlacesForState(state, { incorporatedOnly: true })
-    if (!result?.data?.length) return []
+    // Load from local geo JSON files (public/geo/{state}.json)
+    // 42K ZIPs, 30K cities, 3.1K counties — no external API needed
+    const filePath = join(process.cwd(), 'public', 'geo', `${state.toLowerCase()}.json`)
+    const raw = readFileSync(filePath, 'utf-8')
+    const data = JSON.parse(raw) as {
+      counties: string[]
+      cities: Array<{ n: string; c: string; z: string[]; lat: number; lng: number }>
+    }
 
-    const places = result.data
+    let cities = data.cities || []
 
-    return places.map(p => ({
-      ...p,
-      county: undefined, // populated by countyLookup in full implementation
+    // Filter by counties if specified
+    if (counties?.length) {
+      const countySet = new Set(counties.map(c => c.toLowerCase()))
+      cities = cities.filter(c => countySet.has(c.c.toLowerCase()))
+    }
+
+    return cities.map(c => ({
+      name: c.n,
+      county: c.c,
+      state: state.toUpperCase(),
+      zips: c.z || [],
+      lat: c.lat,
+      lng: c.lng,
     }))
   } catch (e) {
-    // Census API unavailable — return empty so gap engine still works
-    // with keyword/sitemap/competitor data only (no city-level expansion)
-    console.error('[pageGapEngine] Census API failed, continuing without city data:', e)
+    console.error(`[pageGapEngine] Failed to load geo data for ${state}:`, e)
     return []
   }
 }
