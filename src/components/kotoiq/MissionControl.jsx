@@ -53,6 +53,7 @@ const SECTIONS = [
   ]},
   { title: 'Content', icon: FileText, tools: [
     { id: 'autopilot', label: 'Auto-Pilot', icon: Zap, tab: 'autonomous_pipeline', check: null, runAction: null },
+    { id: 'page_factory', label: 'Page Factory', icon: Layers, tab: 'page_factory', check: 'page_factory', runAction: 'sync_page_factory' },
     { id: 'briefs', label: 'PageIQ Writer', icon: FileText, tab: 'briefs', check: 'briefs', runAction: null },
     { id: 'hyperlocal', label: 'Hyperlocal Content', icon: Map, tab: 'hyperlocal', check: null, runAction: null },
     { id: 'topical_map', label: 'Topical Map', icon: Map, tab: 'topical_map', check: 'topical_map', runAction: 'generate_topical_map' },
@@ -90,7 +91,7 @@ const SECTIONS = [
 
 const WAVE_ACTIONS = [
   ['quick_scan', 'deep_enrich', 'audit_eeat', 'scan_brand_serp', 'analyze_backlinks', 'gmb_health', 'audit_schema', 'roi_projections', 'crawl_sitemaps'],
-  ['generate_topical_map', 'generate_scorecard', 'scan_internal_links', 'build_content_inventory', 'run_gsc_audit', 'analyze_semantic_network'],
+  ['generate_topical_map', 'generate_scorecard', 'scan_internal_links', 'build_content_inventory', 'run_gsc_audit', 'analyze_semantic_network', 'sync_page_factory'],
   ['audit_topical_authority', 'generate_strategic_plan', 'analyze_query_paths', 'build_content_calendar'],
 ]
 

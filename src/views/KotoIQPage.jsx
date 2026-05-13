@@ -49,6 +49,7 @@ import CompetitorMapTab from '../components/kotoiq/CompetitorMapTab'
 import AskKotoIQTab from '../components/kotoiq/AskKotoIQTab'
 import StrategyTab from '../components/kotoiq/StrategyTab'
 import ScorecardTab from '../components/kotoiq/ScorecardTab'
+import PageFactoryTab from '../components/kotoiq/PageFactoryTab'
 import CompetitorWatchTab from '../components/kotoiq/CompetitorWatchTab'
 import IntegrationsTab from '../components/kotoiq/IntegrationsTab'
 import BulkOperationsTab from '../components/kotoiq/BulkOperationsTab'
@@ -3345,6 +3346,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ NEW: STRATEGY / SCORECARD / COMPETITOR WATCH / INTEGRATIONS ══ */}
         {clientId && tab === 'strategy' && <StrategyTab clientId={clientId} agencyId={agencyId} />}
         {clientId && tab === 'scorecard' && <ScorecardTab clientId={clientId} agencyId={agencyId} />}
+        {clientId && tab === 'page_factory' && <PageFactoryTab clientId={clientId} agencyId={agencyId} />}
         {clientId && tab === 'competitor_watch' && <CompetitorWatchTab clientId={clientId} agencyId={agencyId} />}
         {clientId && tab === 'integrations' && <IntegrationsTab clientId={clientId} agencyId={agencyId} />}
 
