@@ -41,17 +41,25 @@ export default function PageSuggestionsTab({ clientId, agencyId }) {
   }, [clientId, agencyId])
 
   async function loadSuggestions() {
+    if (!clientId || !agencyId) return
     try {
       const res = await fetch(`${API_GAPS}?agency_id=${agencyId}&client_id=${clientId}`)
-      const data = await res.json()
+      if (!res.ok) return
+      const text = await res.text()
+      if (!text.startsWith('{') && !text.startsWith('[')) return // HTML error page
+      const data = JSON.parse(text)
       setSuggestions(data.suggestions || [])
     } catch {}
   }
 
   async function loadStyleProfiles() {
+    if (!clientId || !agencyId) return
     try {
       const res = await fetch(`${API_STYLE}?agency_id=${agencyId}&client_id=${clientId}`)
-      const data = await res.json()
+      if (!res.ok) return
+      const text = await res.text()
+      if (!text.startsWith('{') && !text.startsWith('[')) return
+      const data = JSON.parse(text)
       setStyleProfiles(data.profiles || [])
       if (data.profiles?.length) setSelectedStyle(data.profiles[0].id)
     } catch {}
