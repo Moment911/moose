@@ -23,6 +23,8 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
   const [filterService, setFilterService] = useState('')
   const [campaign, setCampaign] = useState(null)
   const [showPreview, setShowPreview] = useState(null)
+  const [wpSites, setWpSites] = useState([])
+  const [selectedSite, setSelectedSite] = useState('')
 
   // Client ID comes from prop (which now comes from ClientContext via parent)
   const clientId = propClientId
@@ -35,6 +37,19 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
   // Shared wildcards (business info)
   const [businessName, setBusinessName] = useState('')
   const [phone, setPhone] = useState('')
+
+  // ── Load connected WordPress sites ──────────────────────────────
+  useEffect(() => {
+    if (!agencyId) return
+    fetch(`/api/wp?agency_id=${agencyId}`)
+      .then(r => r.ok ? r.json() : { sites: [] })
+      .then(d => {
+        const sites = (d.sites || []).filter(s => s.connected)
+        setWpSites(sites)
+        if (sites.length === 1) setSelectedSite(sites[0].id)
+      })
+      .catch(() => {})
+  }, [agencyId])
 
   // ── Load existing suggestions + style profiles on mount ──────
   useEffect(() => {
@@ -119,6 +134,7 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
           client_id: clientId,
           suggestion_ids: [...selected],
           style_profile_id: selectedStyle || undefined,
+          site_id: selectedSite || undefined,
           shared_wildcards: {
             '{business_name}': businessName,
             '{phone}': phone,
@@ -175,25 +191,35 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
     setLoading('')
   }
 
-  // ── Extract style from URL ──────────────────────────────────────
-  async function extractStyle() {
-    const url = prompt('Enter a URL from the client\'s existing website:')
-    if (!url) return
+  // ── Extract style (URL or pasted HTML/code) ─────────────────────
+  const [showStyleModal, setShowStyleModal] = useState(false)
+  const [styleInput, setStyleInput] = useState('')
+
+  function extractStyle() { setShowStyleModal(true) }
+
+  async function submitStyleExtraction() {
+    if (!styleInput.trim()) { toast.error('Paste a URL or HTML code'); return }
     setLoading('extracting')
+    setShowStyleModal(false)
     try {
+      const isUrl = styleInput.trim().startsWith('http')
       const res = await fetch(API_STYLE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'extract_url',
+          action: isUrl ? 'extract_url' : 'extract_html',
           agency_id: agencyId,
           client_id: clientId,
-          url,
+          ...(isUrl ? { url: styleInput.trim() } : { html: styleInput }),
+          name: isUrl ? `From ${styleInput.trim().replace(/https?:\/\//, '').split('/')[0]}` : 'From pasted code',
         }),
       })
-      const data = await res.json()
+      const text = await res.text()
+      let data
+      try { data = JSON.parse(text) } catch { throw new Error('Server returned invalid response') }
       if (data.error) throw new Error(data.error)
       toast.success('Style profile extracted')
+      setStyleInput('')
       loadStyleProfiles()
     } catch (e) {
       toast.error(e.message || 'Style extraction failed')
@@ -299,11 +325,26 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           marginBottom: 16, gap: 10, flexWrap: 'wrap',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {/* WP Site selector */}
+            {wpSites.length > 0 && (
+              <select
+                value={selectedSite}
+                onChange={e => setSelectedSite(e.target.value)}
+                style={{ ...inputStyle, width: 200, background: selectedSite ? '#f0fdf4' : '#fff' }}
+              >
+                <option value="">Publish to...</option>
+                {wpSites.map(s => (
+                  <option key={s.id} value={s.id}>{s.site_name || s.site_url}</option>
+                ))}
+              </select>
+            )}
+
+            {/* Style profile selector */}
             <select
               value={selectedStyle}
               onChange={e => setSelectedStyle(e.target.value)}
-              style={{ ...inputStyle, width: 200 }}
+              style={{ ...inputStyle, width: 180 }}
             >
               <option value="">No style profile</option>
               {styleProfiles.map(p => (
@@ -447,6 +488,58 @@ export default function PageSuggestionsTab({ clientId: propClientId, agencyId })
           <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No page suggestions yet</div>
           <div style={{ fontSize: 13 }}>
             Enter the client's services and state above, then click "Find Gaps" to identify page opportunities.
+          </div>
+        </div>
+      )}
+
+      {/* ── Style Extraction Modal ─────────────────────────────── */}
+      {showStyleModal && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          onClick={() => setShowStyleModal(false)}
+        >
+          <div
+            style={{
+              width: '90vw', maxWidth: 650, background: '#fff',
+              borderRadius: 16, overflow: 'hidden',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{
+              padding: '16px 20px', borderBottom: '1px solid #ececef',
+              fontSize: 15, fontWeight: 700, fontFamily: FH,
+            }}>
+              Extract Style Profile
+            </div>
+            <div style={{ padding: 20 }}>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, fontFamily: FB }}>
+                Paste a URL to scan the page, or paste raw HTML/code from the client's site.
+                The AI will extract heading patterns, section structure, tone, and content density.
+              </div>
+              <textarea
+                value={styleInput}
+                onChange={e => setStyleInput(e.target.value)}
+                placeholder={"Paste a URL (https://example.com/services)\n\nOR paste raw HTML code:\n<section>\n  <h2>Our Services</h2>\n  <p>We provide...</p>\n</section>"}
+                style={{
+                  width: '100%', minHeight: 200, padding: 14, borderRadius: 10,
+                  border: '1px solid #ececef', fontSize: 13, fontFamily: 'monospace',
+                  resize: 'vertical', outline: 'none', lineHeight: 1.6,
+                }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
+                <button onClick={() => setShowStyleModal(false)} style={btnSecondary}>Cancel</button>
+                <button
+                  onClick={submitStyleExtraction}
+                  disabled={!styleInput.trim() || loading === 'extracting'}
+                  style={btnPrimary}
+                >
+                  {loading === 'extracting' ? 'Extracting...' : 'Extract Style'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

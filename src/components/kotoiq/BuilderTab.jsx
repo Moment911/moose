@@ -194,8 +194,8 @@ export default function BuilderTab({ clientId, agencyId }) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {templates.map(t => (
-                <div key={t.id} style={cardStyle} onClick={() => openSlotEditor(t.id)}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div key={t.id} style={cardStyle}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, cursor: 'pointer' }} onClick={() => openSlotEditor(t.id)}>
                     <Layers size={20} style={{ color: '#6366f1' }} />
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 15 }}>{t.source_title || 'Untitled'}</div>
@@ -204,7 +204,22 @@ export default function BuilderTab({ clientId, agencyId }) {
                       </div>
                     </div>
                   </div>
-                  <ChevronRight size={18} style={{ color: '#8e8e93' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        if (!confirm(`Delete template "${t.source_title}"?`)) return
+                        const siteId = selectedSite?.id || sites.find(s => s.connected)?.id
+                        await wpAction('delete_template', { site_id: siteId, agency_id: agencyId, template_id: t.id })
+                        toast.success('Template deleted')
+                        loadTemplates()
+                      }}
+                      style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #fecaca', background: '#fff', cursor: 'pointer', color: '#dc2626', fontSize: 12 }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <ChevronRight size={18} style={{ color: '#8e8e93', cursor: 'pointer' }} onClick={() => openSlotEditor(t.id)} />
+                  </div>
                 </div>
               ))}
             </div>

@@ -618,6 +618,15 @@ Rules:
       return NextResponse.json({ ok: true, slots: updatedSlots, slot_count: count })
     }
 
+    if (action === 'delete_template') {
+      const { template_id } = body
+      if (!template_id) return NextResponse.json({ error: 'template_id required' }, { status: 400 })
+      // Delete slots first, then template
+      await sb.from('kotoiq_template_slots').delete().eq('template_id', template_id)
+      await sb.from('kotoiq_templates').delete().eq('id', template_id)
+      return NextResponse.json({ ok: true })
+    }
+
     if (action === 'get_template') {
       // Fetch template + its slots
       const { template_id } = body
