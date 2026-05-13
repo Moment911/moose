@@ -195,7 +195,7 @@ export async function runBulkGeneration(input: BulkGenerationInput): Promise<Bul
         await db.from('kotoiq_campaigns')
           .update({ published_variants: done, metadata: { ...campaignRow.metadata, progress: `${done}/${total}` } })
           .eq('id', campaignId)
-          .catch(() => {}) // non-critical
+          .then(() => {}, () => {}) // non-critical progress update
       },
     },
   )
