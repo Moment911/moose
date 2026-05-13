@@ -5607,6 +5607,73 @@ Return ONLY valid JSON:
     })
   }
 
+  // ─── DATA COMPLETENESS: what % of expected KotoIQ data does this client have? ──
+  // Spot-check across the major kotoiq_* tables. Returns a weighted score
+  // plus a per-source breakdown so the user can see at a glance which
+  // pieces are missing. Drives the 'Data Health' tile in MissionControl.
+  if (action === 'get_data_completeness') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // Each source: table, expected_rows (min for "populated"), weight, label.
+    // Weights sum to 100 — relative importance for the rollup score.
+    const SOURCES: Array<{ table: string; label: string; weight: number; min: number; tab?: string }> = [
+      { table: 'kotoiq_keywords',          label: 'Keywords',           weight: 12, min: 5,  tab: 'keywords' },
+      { table: 'kotoiq_backlink_profile',  label: 'Backlinks',          weight: 8,  min: 1,  tab: 'backlinks' },
+      { table: 'kotoiq_eeat_audit',        label: 'E-E-A-T audit',      weight: 6,  min: 1,  tab: 'eeat' },
+      { table: 'kotoiq_brand_serp',        label: 'Brand SERP',         weight: 6,  min: 1,  tab: 'brand_serp' },
+      { table: 'kotoiq_schema_audit',      label: 'Schema audit',       weight: 6,  min: 1,  tab: 'schema' },
+      { table: 'kotoiq_topical_maps',      label: 'Topical map',        weight: 10, min: 1,  tab: 'topical_map' },
+      { table: 'kotoiq_content_inventory', label: 'Content inventory',  weight: 8,  min: 1,  tab: 'content_refresh' },
+      { table: 'kotoiq_semantic_analysis', label: 'Semantic network',   weight: 6,  min: 1,  tab: 'semantic' },
+      { table: 'kotoiq_link_audit',        label: 'Internal links',     weight: 6,  min: 1,  tab: 'internal_links' },
+      { table: 'kotoiq_strategic_plans',   label: 'Strategic plan',     weight: 10, min: 1,  tab: 'strategy' },
+      { table: 'kotoiq_gsc_audit',         label: 'GSC audit',          weight: 5,  min: 1,  tab: 'gsc_audit' },
+      { table: 'kotoiq_sitemap_crawls',    label: 'Sitemap',            weight: 4,  min: 1,  tab: 'sitemap' },
+      { table: 'kotoiq_page_suggestions',  label: 'Page Factory gaps',  weight: 8,  min: 5,  tab: 'page_factory' },
+      { table: 'koto_intel_reports',       label: 'GBP audit',          weight: 5,  min: 1 },
+    ]
+
+    const items = await Promise.all(SOURCES.map(async (src) => {
+      try {
+        const { count } = await s.from(src.table)
+          .select('id', { count: 'exact', head: true })
+          .eq('client_id', client_id)
+        const populated = (count || 0) >= src.min
+        return {
+          source: src.table,
+          label: src.label,
+          weight: src.weight,
+          count: count || 0,
+          required: src.min,
+          populated,
+          tab: src.tab || null,
+        }
+      } catch {
+        return {
+          source: src.table,
+          label: src.label,
+          weight: src.weight,
+          count: 0,
+          required: src.min,
+          populated: false,
+          tab: src.tab || null,
+        }
+      }
+    }))
+
+    const totalWeight = items.reduce((a, i) => a + i.weight, 0)
+    const earnedWeight = items.filter(i => i.populated).reduce((a, i) => a + i.weight, 0)
+    const completeness_pct = totalWeight > 0 ? Math.round((earnedWeight / totalWeight) * 100) : 0
+
+    return NextResponse.json({
+      completeness_pct,
+      populated: items.filter(i => i.populated).length,
+      total: items.length,
+      items: items.sort((a, b) => Number(a.populated) - Number(b.populated)), // missing first
+    })
+  }
+
   // ─── DATA FRESHNESS: when was each source last refreshed? ────────────
   // Returns the most recent kotoiq_sync_log entry per source for a client,
   // plus heuristic 'fresh' / 'aging' / 'stale' grading based on standard

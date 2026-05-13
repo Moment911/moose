@@ -10,6 +10,7 @@ import {
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 import { useKotoIQData } from '../../context/KotoIQDataContext'
+import DataHealthPanel from './DataHealthPanel'
 
 // ── Animated CSS ──
 const STYLE_TAG = `
@@ -351,6 +352,9 @@ export default function MissionControl({ clientId, agencyId, clients, onSwitchTa
 
   return (
     <div style={{ marginBottom: 24 }}>
+      {/* ── Data Health summary — one-glance completeness rollup ── */}
+      <DataHealthPanel clientId={clientId} onSwitchTab={onSwitchTab} />
+
       {/* ── Hero — Cal-AI white panel with title + launch button ── */}
       <div style={{
         background: '#ffffff', borderRadius: 20, padding: '28px 32px 24px',
