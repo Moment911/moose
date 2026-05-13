@@ -14,6 +14,7 @@ import AttributionTab from '../../components/kotoiq/AttributionTab'
 import ContentDecayTab from '../../components/kotoiq/ContentDecayTab'
 import PipelineOrchestratorTab from '../../components/kotoiq/PipelineOrchestratorTab'
 import ClarificationsTab from '../../components/kotoiq/launch/ClarificationsTab'
+import PageSuggestionsTab from '../../components/kotoiq/PageSuggestionsTab'
 
 // ── Shell tabs ──────────────────────────────────────────────────────────────
 const SHELL_TABS = [
@@ -26,6 +27,7 @@ const SHELL_TABS = [
 
 // ── Publish sub-tabs ────────────────────────────────────────────────────────
 const PUBLISH_SUBS = [
+  { key: 'factory',   label: 'Page Factory' },
   { key: 'builder',   label: 'Templates' },
   { key: 'composer',  label: 'Campaign Composer' },
   { key: 'queue',     label: 'Publish Queue' },
@@ -60,7 +62,7 @@ export default function KotoIQShellPage() {
   // Sub-tab for publish / tune / pipeline
   const sub =
     searchParams.get('sub') ||
-    (shell === 'publish' ? 'builder'
+    (shell === 'publish' ? 'factory'
       : shell === 'tune' ? 'attribution'
       : shell === 'pipeline' ? 'orchestrator'
       : '')
@@ -187,6 +189,7 @@ export default function KotoIQShellPage() {
 
               {/* Sub content */}
               <div style={{ padding: '24px 40px' }}>
+                {sub === 'factory' && <PageSuggestionsTab clientId={searchParams.get('client')} agencyId={agencyId} />}
                 {sub === 'builder' && <BuilderTab agencyId={agencyId} />}
                 {sub === 'composer' && <CampaignComposerTab agencyId={agencyId} />}
                 {sub === 'queue' && <PublishQueueTab agencyId={agencyId} />}

@@ -497,6 +497,24 @@ function koto_builder_clone_page($request) {
         update_post_meta($new_id, 'koto_idempotency_key', $params['idempotency_key']);
     }
 
+    // ── Page Factory: write RankMath SEO meta ──────────────────────────
+    if (!empty($params['post_meta']) && is_array($params['post_meta'])) {
+        foreach ($params['post_meta'] as $meta_key => $meta_value) {
+            // Only allow rank_math_ prefixed and _koto_ prefixed meta
+            if (strpos($meta_key, 'rank_math_') === 0 || strpos($meta_key, '_koto_') === 0) {
+                update_post_meta($new_id, $meta_key, sanitize_text_field($meta_value));
+            }
+        }
+    }
+
+    // ── Page Factory: write content with [koto_rotate] shortcodes ──────
+    if (!empty($params['body_html'])) {
+        wp_update_post([
+            'ID'           => $new_id,
+            'post_content' => wp_kses_post($params['body_html']),
+        ]);
+    }
+
     // Force CSS regen on the clone
     koto_force_css_regen($new_id);
 
@@ -554,3 +572,128 @@ function koto_get_service_user_id() {
     // Fallback to current user
     return get_current_user_id() ?: 1;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Page Factory: Content Rotation Shortcode System
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// [koto_rotate cache="7d" section="intro"]
+//   variant 1 HTML|||KOTO_VARIANT|||variant 2 HTML|||KOTO_VARIANT|||variant 3 HTML
+// [/koto_rotate]
+//
+// Picks one variant per page load, caches the selection per post for N days.
+// Google sees the page "updating" when the cache expires and a new variant loads.
+// ═══════════════════════════════════════════════════════════════════════════
+
+add_shortcode('koto_rotate', 'koto_rotate_shortcode');
+
+function koto_rotate_shortcode($atts, $content = '') {
+    $atts = shortcode_atts([
+        'cache'   => '7d',    // cache duration: 7d, 24h, 30d, 0 for no cache
+        'section' => '',      // section identifier for cache key uniqueness
+        'pin'     => '',      // force a specific variant number (1-indexed) for testing
+    ], $atts, 'koto_rotate');
+
+    if (empty($content)) return '';
+
+    // Split variants by the separator
+    $variants = explode('|||KOTO_VARIANT|||', $content);
+    $variants = array_map('trim', $variants);
+    $variants = array_filter($variants, function($v) { return !empty($v); });
+    $variants = array_values($variants);
+
+    if (empty($variants)) return '';
+    if (count($variants) === 1) return do_shortcode($variants[0]);
+
+    // If pinned (for testing), use that variant
+    if (!empty($atts['pin'])) {
+        $pin_index = max(0, (int) $atts['pin'] - 1);
+        $chosen = $variants[$pin_index % count($variants)];
+        return do_shortcode($chosen);
+    }
+
+    // Cache key based on post ID + section
+    $post_id = get_the_ID();
+    $section = sanitize_key($atts['section'] ?: 'default');
+    $cache_key = "koto_rotate_{$post_id}_{$section}";
+
+    // Check cache
+    $cached_index = get_transient($cache_key);
+    if ($cached_index !== false && isset($variants[(int) $cached_index])) {
+        return do_shortcode($variants[(int) $cached_index]);
+    }
+
+    // Pick a random variant
+    $chosen_index = array_rand($variants);
+
+    // Cache the selection
+    $cache_seconds = koto_parse_cache_duration($atts['cache']);
+    if ($cache_seconds > 0) {
+        set_transient($cache_key, $chosen_index, $cache_seconds);
+    }
+
+    return do_shortcode($variants[$chosen_index]);
+}
+
+/**
+ * Parse cache duration string to seconds.
+ * Supports: 7d, 24h, 30d, 1h, 0 (no cache)
+ */
+function koto_parse_cache_duration($str) {
+    $str = trim(strtolower($str));
+    if ($str === '0' || $str === 'none') return 0;
+
+    if (preg_match('/^(\d+)d$/', $str, $m)) return (int) $m[1] * DAY_IN_SECONDS;
+    if (preg_match('/^(\d+)h$/', $str, $m)) return (int) $m[1] * HOUR_IN_SECONDS;
+    if (preg_match('/^(\d+)m$/', $str, $m)) return (int) $m[1] * MINUTE_IN_SECONDS;
+    if (preg_match('/^(\d+)$/', $str, $m)) return (int) $m[1]; // raw seconds
+
+    return 7 * DAY_IN_SECONDS; // default: 7 days
+}
+
+/**
+ * Admin helper: list all koto_rotate transients for a post (for debugging).
+ * Call via: /wp-json/koto/v1/builder/rotation-cache/{post_id}
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('koto/v1', '/builder/rotation-cache/(?P<id>\d+)', [
+        'methods'  => 'GET',
+        'callback' => function ($request) {
+            global $wpdb;
+            $post_id = (int) $request['id'];
+            $prefix = "_transient_koto_rotate_{$post_id}_";
+            $results = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s",
+                    $prefix . '%'
+                )
+            );
+            $cache = [];
+            foreach ($results as $row) {
+                $section = str_replace("_transient_koto_rotate_{$post_id}_", '', $row->option_name);
+                $cache[$section] = (int) $row->option_value;
+            }
+            return rest_ensure_response(['post_id' => $post_id, 'cached_selections' => $cache]);
+        },
+        'permission_callback' => 'koto_verify_bearer_and_license',
+    ]);
+
+    // DELETE: clear rotation cache for a post
+    register_rest_route('koto/v1', '/builder/rotation-cache/(?P<id>\d+)', [
+        'methods'  => 'DELETE',
+        'callback' => function ($request) {
+            global $wpdb;
+            $post_id = (int) $request['id'];
+            $prefix = "_transient_koto_rotate_{$post_id}_";
+            $wpdb->query(
+                $wpdb->prepare(
+                    "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+                    $prefix . '%',
+                    '_transient_timeout_' . "koto_rotate_{$post_id}_" . '%'
+                )
+            );
+            return rest_ensure_response(['ok' => true, 'post_id' => $post_id]);
+        },
+        'permission_callback' => 'koto_verify_bearer_and_license',
+    ]);
+});
