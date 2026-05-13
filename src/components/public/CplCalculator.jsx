@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { ArrowRight, Calculator, TrendingUp, Mail } from 'lucide-react'
 import { R, T, BLK, GRN, W, FH, FB } from '../../lib/theme'
 
@@ -49,7 +49,42 @@ export default function CplCalculator() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const industry = INDUSTRIES.find(i => i.id === industryId) || INDUSTRIES[0]
+  // Live benchmark overrides keyed by industry id — populated from
+  // /api/calculator/benchmarks (DataForSEO CPC + Koto network aggregates).
+  // Falls back to the hardcoded INDUSTRIES table on failure.
+  const [liveBenchmarks, setLiveBenchmarks] = useState({})
+
+  useEffect(() => {
+    let cancelled = false
+    if (liveBenchmarks[industryId]) return
+    fetch('/api/calculator/benchmarks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ industry: industryId }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (cancelled || !j || j.error) return
+        setLiveBenchmarks(prev => ({ ...prev, [industryId]: j }))
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [industryId])
+
+  const baseIndustry = INDUSTRIES.find(i => i.id === industryId) || INDUSTRIES[0]
+  const live = liveBenchmarks[industryId]
+  // Live overlay — fall back to hardcoded values for any missing field
+  const industry = live ? {
+    ...baseIndustry,
+    cpl_low: live.cpl_low ?? baseIndustry.cpl_low,
+    cpl_high: live.cpl_high ?? baseIndustry.cpl_high,
+    show_rate: live.show_rate ?? baseIndustry.show_rate,
+    close_rate: live.close_rate ?? baseIndustry.close_rate,
+  } : baseIndustry
+
+  const cpcSourceLabel = live?.sources?.cpc === 'dataforseo'
+    ? `Live CPC: $${(live.sources.cpc_mid || 0).toFixed(2)} (Google Ads via DataForSEO)`
+    : null
 
   const results = useMemo(() => {
     const industryCplMid = (industry.cpl_low + industry.cpl_high) / 2
@@ -195,8 +230,15 @@ export default function CplCalculator() {
               style={{ width: '100%', accentColor: R, marginBottom: 8 }} />
 
             <div style={{ fontSize: 11, color: FAINT, fontFamily: FB, marginTop: 14, lineHeight: 1.55 }}>
-              Benchmarks drawn from public industry demand-gen reports 2023–2025.
-              Your real numbers vary — this is a directional estimate, not a promise.
+              {cpcSourceLabel ? (
+                <>
+                  <span style={{ color: GRN, fontWeight: 700 }}>● </span>
+                  {cpcSourceLabel}. Your real numbers vary — this is a directional estimate, not a promise.
+                </>
+              ) : (
+                <>Benchmarks drawn from public industry demand-gen reports 2023–2025.
+                Your real numbers vary — this is a directional estimate, not a promise.</>
+              )}
             </div>
           </div>
 

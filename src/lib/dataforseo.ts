@@ -462,6 +462,43 @@ export async function getDomainRankedKeywords(domain: string, location: string =
 }
 
 // ─────────────────────────────────────────────────────────────
+// Search Volume + CPC for a list of keywords (Google Ads source)
+// Used by the public calculator to replace hardcoded industry CPCs.
+// ─────────────────────────────────────────────────────────────
+
+export interface KeywordCPC {
+  keyword: string
+  search_volume: number
+  cpc: number
+  competition: number | null
+  low_top_of_page_bid: number | null
+  high_top_of_page_bid: number | null
+}
+
+export async function getKeywordCPCs(
+  keywords: string[],
+  location: string = 'United States',
+): Promise<KeywordCPC[]> {
+  if (!keywords.length) return []
+  // Google Ads search_volume endpoint returns CPC + volume for a list of keywords
+  const data = await dfsPost('/keywords_data/google_ads/search_volume/live', [{
+    keywords: keywords.slice(0, 100),
+    location_name: location,
+    language_name: 'English',
+  }])
+
+  const items = data?.tasks?.[0]?.result || []
+  return items.map((item: any) => ({
+    keyword: item.keyword || '',
+    search_volume: item.search_volume || 0,
+    cpc: item.cpc || 0,
+    competition: item.competition ?? null,
+    low_top_of_page_bid: item.low_top_of_page_bid ?? null,
+    high_top_of_page_bid: item.high_top_of_page_bid ?? null,
+  }))
+}
+
+// ─────────────────────────────────────────────────────────────
 // Domain vs Domain — keyword intersection comparison
 // ─────────────────────────────────────────────────────────────
 
