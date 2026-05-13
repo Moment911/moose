@@ -33,7 +33,6 @@ const SECTIONS = [
   { title: 'Dashboard', icon: BarChart2, tools: [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart2, tab: 'dashboard', check: 'summary', runAction: null },
     { id: 'keywords', label: 'Keywords', icon: Search, tab: 'keywords', check: 'keywords', runAction: 'quick_scan', needs: ['website'] },
-    { id: 'rankings', label: 'Rankings', icon: TrendingUp, tab: 'rank_tracker', check: 'rankings', runAction: null },
     { id: 'authority', label: 'Authority Score', icon: Award, tab: 'topical_authority', check: 'authority', runAction: 'audit_topical_authority' },
   ]},
   { title: 'Intelligence', icon: Brain, tools: [
@@ -84,7 +83,7 @@ const SECTIONS = [
   ]},
   { title: 'Reports & Tools', icon: BarChart2, tools: [
     { id: 'roi', label: 'ROI Projections', icon: BarChart2, tab: 'roi', check: null, runAction: 'roi_projections' },
-    { id: 'bulk', label: 'Bulk Operations', icon: Layers, tab: 'bulk', check: null, runAction: null },
+    { id: 'bulk', label: 'Bulk Operations', icon: Layers, tab: 'bulk_ops', check: null, runAction: null },
     { id: 'connect', label: 'Connect APIs', icon: Settings, tab: 'connect', check: null, runAction: null },
   ]},
 ]
