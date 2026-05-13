@@ -16,6 +16,7 @@ import ContentDecayTab from '../../components/kotoiq/ContentDecayTab'
 import PipelineOrchestratorTab from '../../components/kotoiq/PipelineOrchestratorTab'
 import ClarificationsTab from '../../components/kotoiq/launch/ClarificationsTab'
 import PageSuggestionsTab from '../../components/kotoiq/PageSuggestionsTab'
+import WordPressConnectionManager from '../../components/kotoiq/WordPressConnectionManager'
 
 // ── Shell tabs ──────────────────────────────────────────────────────────────
 const SHELL_TABS = [
@@ -266,25 +267,15 @@ export default function KotoIQShellPage() {
           {/* ── Settings ─────────────────────────────────────────── */}
           {shell === 'settings' && (
             <div style={{ padding: '40px' }}>
-              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Settings</div>
-              <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 32 }}>Manage site connections, API keys, and cadence defaults.</div>
+              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Settings & Connections</div>
+              <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Manage WordPress connections, API keys, and publishing defaults.</div>
+
+              {/* WordPress Connection Manager (full component) */}
+              <div style={{ marginBottom: 32 }}>
+                <WordPressConnectionManager agencyId={agencyId} />
+              </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-                {/* Site Connections */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px' }}>
-                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>Site Connections</div>
-                  <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
-                    Connect WordPress sites for template ingest and publishing. Managed via the Publish &gt; Templates tab.
-                  </div>
-                  <button onClick={() => { setShell('publish'); setSub('builder') }} style={{
-                    marginTop: 16, padding: '8px 16px', borderRadius: 8,
-                    border: '1px solid #e5e7eb', background: '#fff',
-                    fontSize: 13, fontWeight: 600, cursor: 'pointer', color: BLK,
-                  }}>
-                    Go to Templates
-                  </button>
-                </div>
-
                 {/* API Keys */}
                 <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px' }}>
                   <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>API Keys</div>
