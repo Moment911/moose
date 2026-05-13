@@ -1612,18 +1612,12 @@ export default function KotoIQPage() {
                 <Sparkles size={18} color="#0a0a0a" />
                 <div style={{ flex: 1 }}>
                   <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 14, fontWeight: 800, color: BLK }}>Re-run All Audits</span>
-                  <span style={{ fontSize: 12, color: '#6b6b70', marginLeft: 8 }}>12 tools in 3 waves — ~$0.50</span>
+                  <span style={{ fontSize: 12, color: '#6b6b70', marginLeft: 8 }}>17 tools across 3 waves — ~$0.60</span>
                 </div>
-                <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Zap size={12} /> Quick Scan
-                </button>
-                <button onClick={runDeepEnrich} disabled={enriching || syncing} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #ececef', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Shield size={12} /> Deep Audit
-                </button>
                 <button onClick={runAllAudits} disabled={syncing || enriching || !readyForAll}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
-                  {syncing ? 'Running...' : 'Run All'}
+                  style={{ padding: '10px 22px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
+                  {syncing ? 'Running…' : 'Run All'}
                 </button>
               </div>
             )
@@ -1671,52 +1665,36 @@ export default function KotoIQPage() {
                   </div>
                 </div>
 
-                {/* ── Individual scan cards ─────────────────────────── */}
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Or run individually</div>
+                {/* ── What's included (info, not actions — everything fires via Run All above) ─ */}
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>What runs</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-                  {/* Quick Scan */}
-                  <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForQuick ? '#ececef' : R + '30'}`, padding: '20px 22px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <Zap size={18} color="#0a0a0a" />
-                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Quick Scan</div>
-                      <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: '#6b6b70' }}>No OAuth</span>
+                  <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '16px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <Zap size={16} color="#0a0a0a" />
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>Wave 1 · Discovery</div>
                     </div>
-                    <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>AI keyword extraction, competitor discovery, Moz DA</div>
-                    <div style={{ fontSize: 11, color: '#6b6b70', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b>, <span style={{ color: hasIndustry ? GRN : '#8e8e93' }}>Industry (optional)</span></div>
-                    <button onClick={() => { if (!hasWebsite) { toast.error('Add a website URL first'); return }; runQuickScan() }} disabled={syncing || enriching || !readyForQuick}
-                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: syncing || !readyForQuick ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                      {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Run
-                    </button>
+                    <div style={{ fontSize: 11, color: '#6b6b70', lineHeight: 1.6 }}>Keywords, competitors, Moz DA, PageSpeed/CWV, schema, brand SERP, backlinks, GBP, Google data pull (if connected)</div>
                   </div>
-                  {/* Deep Audit */}
-                  <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForDeep ? '#ececef' : R + '30'}`, padding: '20px 22px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <Shield size={18} color={AMB} />
-                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Deep Audit</div>
-                      <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: '#6b6b70' }}>11 tools</span>
+                  <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '16px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <Shield size={16} color={AMB} />
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>Wave 2 · Analysis</div>
                     </div>
-                    <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>PageSpeed, CWV, SSL, schema, tech stack, domain signals</div>
-                    <div style={{ fontSize: 11, color: '#6b6b70', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b></div>
-                    <button onClick={runDeepEnrich} disabled={enriching || syncing || !readyForDeep}
-                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: AMB, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: enriching || !readyForDeep ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                      {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />} Run
-                    </button>
+                    <div style={{ fontSize: 11, color: '#6b6b70', lineHeight: 1.6 }}>Topical map, scorecard, internal links, content inventory, GSC audit, semantic network, Page Factory gaps</div>
                   </div>
-                  {/* Full Sync */}
-                  <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${readyForFull ? '#ececef' : AMB + '30'}`, padding: '20px 22px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <RefreshCw size={18} color="#0a0a0a" />
-                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Full Sync</div>
-                      <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f1f6', color: T }}>OAuth</span>
+                  <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '16px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <Sparkles size={16} color={T} />
+                      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 13, fontWeight: 800, color: BLK }}>Wave 3 · Strategy</div>
                     </div>
-                    <div style={{ fontSize: 12, color: '#1f1f22', lineHeight: 1.6, marginBottom: 12 }}>Search Console, Google Ads, GA4, Keyword Planner</div>
-                    <div style={{ fontSize: 11, color: '#6b6b70', marginBottom: 10 }}>Needs: <b style={{ color: hasWebsite ? GRN : R }}>Website</b> + <b style={{ color: hasConnections ? GRN : R }}>Google OAuth</b></div>
-                    <button onClick={runSync} disabled={syncing || !readyForFull}
-                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: readyForFull ? '#5aa0ff' : '#ececef', color: readyForFull ? '#fff' : '#8e8e93', fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: readyForFull ? 'pointer' : 'not-allowed', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                      {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} {readyForFull ? 'Run' : 'Connect Google First'}
-                    </button>
+                    <div style={{ fontSize: 11, color: '#6b6b70', lineHeight: 1.6 }}>Topical authority audit, strategic plan, query paths, content calendar</div>
                   </div>
                 </div>
+                {!hasConnections && (
+                  <div style={{ marginTop: 12, padding: '10px 14px', background: '#fefce8', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: '#92400e', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+                    Tip: Connect Google (Search Console, Ads, GA4) under <button onClick={() => setTab('connect')} style={{ border: 'none', background: 'transparent', textDecoration: 'underline', color: '#92400e', cursor: 'pointer', padding: 0, fontFamily: 'inherit', fontWeight: 700 }}>Connect APIs</button> to enrich Wave 1 with your real traffic + spend data.
+                  </div>
+                )}
               </div>
             )
           })()}

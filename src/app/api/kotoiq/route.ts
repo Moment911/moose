@@ -5064,6 +5064,7 @@ Return ONLY valid JSON:
       const WAVES = [
         [
           () => callAction('quick_scan', { website: client.website, industry: client.primary_service || '' }),
+          () => callAction('sync'),
           () => callAction('deep_enrich'),
           () => callAction('audit_eeat'),
           () => callAction('scan_brand_serp'),

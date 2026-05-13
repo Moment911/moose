@@ -90,8 +90,11 @@ const SECTIONS = [
 ]
 
 const WAVE_ACTIONS = [
-  ['quick_scan', 'deep_enrich', 'audit_eeat', 'scan_brand_serp', 'analyze_backlinks', 'gmb_health', 'audit_schema', 'roi_projections', 'crawl_sitemaps'],
+  // Wave 1: independent data pulls (Google data + cheap audits)
+  ['quick_scan', 'sync', 'deep_enrich', 'audit_eeat', 'scan_brand_serp', 'analyze_backlinks', 'gmb_health', 'audit_schema', 'roi_projections', 'crawl_sitemaps'],
+  // Wave 2: depend on wave 1 outputs
   ['generate_topical_map', 'generate_scorecard', 'scan_internal_links', 'build_content_inventory', 'run_gsc_audit', 'analyze_semantic_network', 'sync_page_factory'],
+  // Wave 3: synthesis layer
   ['audit_topical_authority', 'generate_strategic_plan', 'analyze_query_paths', 'build_content_calendar'],
 ]
 
