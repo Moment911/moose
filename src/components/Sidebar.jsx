@@ -335,7 +335,11 @@ export default function Sidebar() {
               value={selectedClient?.id || ''}
               onChange={e => {
                 const c = ctxClients.find(cl => cl.id === e.target.value)
-                if (c) selectClient(c)
+                if (c) {
+                  selectClient(c)
+                  // Navigate to client detail if on /clients list, otherwise stay on current page
+                  if (path === '/clients') navigate(`/clients/${c.id}`)
+                }
               }}
               style={{
                 width: '100%', padding: '6px 8px', borderRadius: 8,
