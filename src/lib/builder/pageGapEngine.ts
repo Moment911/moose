@@ -14,6 +14,7 @@
 
 import 'server-only'
 import { getKotoIQDb } from '../kotoiqDb'
+import { getKeywordCPCs } from '../dataforseo'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
@@ -44,6 +45,16 @@ export interface GapAnalysisInput {
   counties?: string[]
   /** Optional: limit number of cities (default 100) */
   cityLimit?: number
+  /**
+   * If true, enrich the top-N suggestions with real per-city Google Ads
+   * search volume + CPC from DataForSEO. Replaces the national volume
+   * from kotoiq_keywords with city-specific data so priority scoring
+   * reflects local demand. Defaults to true; pass false to skip the
+   * extra API calls during dev / tests.
+   */
+  enrichWithLocalVolume?: boolean
+  /** How many top suggestions to enrich (default 30). */
+  enrichTopN?: number
 }
 
 export interface GapAnalysisResult {
@@ -59,7 +70,7 @@ export interface GapAnalysisResult {
 // ── Core Engine ────────────────────────────────────────────────────────────
 
 export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnalysisResult> {
-  const { agencyId, clientId, services, state, counties, cityLimit = 100 } = input
+  const { agencyId, clientId, services, state, counties, cityLimit = 100, enrichWithLocalVolume = true, enrichTopN = 30 } = input
   const db = getKotoIQDb(agencyId)
 
   // 1. Load existing intelligence data in parallel
@@ -232,6 +243,75 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
   // Sort by priority descending
   suggestions.sort((a, b) => b.priority - a.priority)
 
+  // ── Local volume enrichment (DataForSEO per-city CPC + volume) ────────
+  // The initial scoring uses national keyword volume from kotoiq_keywords.
+  // For the top-N gaps, query DataForSEO with the city's location_name so
+  // we get the REAL local demand signal — a "plumber Phoenix" national
+  // volume of 5k often masks a per-city volume of 200, and vice versa.
+  let enrichedCount = 0
+  if (enrichWithLocalVolume && suggestions.length > 0) {
+    const top = suggestions.slice(0, enrichTopN)
+    // Group by city so we can batch the DataForSEO calls (one call per city
+    // with all its candidate keywords, up to 100 per call).
+    const byCity = new Map<string, PageSuggestion[]>()
+    for (const s of top) {
+      const cityKey = `${s.city}|${s.state}`
+      if (!byCity.has(cityKey)) byCity.set(cityKey, [])
+      byCity.get(cityKey)!.push(s)
+    }
+
+    await Promise.allSettled(
+      Array.from(byCity.entries()).map(async ([cityKey, batch]) => {
+        const [cityName, st] = cityKey.split('|')
+        const keywords = batch.map(s => `${s.service} ${cityName}`)
+        const locationName = `${cityName},${st},United States`
+        try {
+          const rows = await getKeywordCPCs(keywords, locationName)
+          // Map back by lowercase keyword for matching
+          const byKw = new Map<string, { cpc: number; volume: number }>()
+          for (const r of rows) {
+            byKw.set(r.keyword.toLowerCase(), { cpc: r.cpc, volume: r.search_volume })
+          }
+          for (const s of batch) {
+            const key = `${s.service} ${cityName}`.toLowerCase()
+            const live = byKw.get(key)
+            if (live && live.volume >= 0) {
+              s.search_volume = live.volume
+              // Re-score priority with local volume:
+              //   base 30 (preserved logic) + volume boost + comp + topical + strategy ...
+              //   simpler: rescale the volume contribution
+              const oldVolBoost =
+                (s.search_volume == null ? 0 :
+                  (s.search_volume > 1000 ? 30 :
+                  (s.search_volume > 500 ? 20 :
+                  (s.search_volume > 100 ? 10 : 0))))
+              // Apply a single re-priority pass using local volume signal —
+              // keep priority bounded [0, 100].
+              let newPriority = s.priority
+              if (live.volume === 0) {
+                newPriority = Math.max(0, newPriority - 15) // nobody actually searches there
+              } else if (live.volume > 500) {
+                newPriority = Math.min(100, newPriority + 8) // confirmed local demand
+              }
+              s.priority = newPriority
+              // Surface the source in reason so it's visible in the UI
+              if (live.volume > 0 && !s.reason.includes('local')) {
+                s.reason = `${live.volume.toLocaleString()} local searches/mo · ${s.reason}`
+              }
+              enrichedCount++
+            }
+          }
+        } catch {
+          // Swallow — DataForSEO failures shouldn't break gap analysis.
+          // Suggestions retain their national-volume scores.
+        }
+      })
+    )
+
+    // Re-sort after enrichment
+    suggestions.sort((a, b) => b.priority - a.priority)
+  }
+
   return {
     suggestions,
     stats: {
@@ -239,7 +319,8 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
       services_checked: services.length,
       existing_pages_found: existingPageIndex.size,
       gaps_found: suggestions.length,
-    },
+      ...(enrichWithLocalVolume ? { local_volume_enriched: enrichedCount } : {}),
+    } as any,
   }
 }
 
