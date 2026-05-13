@@ -24,8 +24,11 @@ export default function ClientSearchSelect({
   const [loaded,  setLoaded]  = useState(false)
 
   useEffect(() => {
+    if (!agencyId) return
     supabase.from('clients')
       .select('id,name,industry,sic_code,city,state,website,google_place_id')
+      .eq('agency_id', agencyId)
+      .is('deleted_at', null)
       .order('name')
       .then(({ data }) => { setClients(data || []); setLoaded(true) })
   }, [agencyId])
