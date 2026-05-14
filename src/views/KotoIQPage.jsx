@@ -5024,25 +5024,53 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   setOauthStep('saving')
                   const { access_token, refresh_token, expires_in, scope } = oauthTokens
                   const expiresAt = new Date(Date.now() + (expires_in || 3600) * 1000).toISOString()
+
+                  // ── REFRESH TOKEN PRESERVATION ───────────────────────────
+                  // Google doesn't always re-issue a refresh_token on reconnect
+                  // (even with prompt=consent — when the app was previously
+                  // authorized, sometimes only access_token comes back). If
+                  // we blindly write refresh_token=null, we wipe out the
+                  // working refresh_token from a prior connect, breaking
+                  // every future refresh. Pull existing refresh_tokens from
+                  // any of this client's google providers and reuse them.
+                  let effectiveRefreshToken = refresh_token
+                  if (!effectiveRefreshToken) {
+                    const { data: existing } = await supabase.from('seo_connections')
+                      .select('provider, refresh_token')
+                      .eq('client_id', clientId)
+                      .in('provider', ['search_console', 'analytics', 'gmb', 'ads'])
+                    const found = (existing || []).find(r => r.refresh_token)
+                    if (found?.refresh_token) {
+                      effectiveRefreshToken = found.refresh_token
+                      console.log('[OAuth] Reusing existing refresh_token — Google did not issue a new one this reconnect')
+                    }
+                  }
+
                   try {
                     if (selectedGsc) {
                       await supabase.from('seo_connections').upsert({
-                        client_id: clientId, provider: 'search_console', access_token, refresh_token: refresh_token || null,
-                        token_expires_at: expiresAt, scope, account_id: selectedGsc, connected: true, updated_at: new Date().toISOString(),
+                        client_id: clientId, provider: 'search_console', access_token, refresh_token: effectiveRefreshToken || null,
+                        token_expires_at: expiresAt, scope, account_id: selectedGsc, connected: true,
+                        last_error: null, last_error_at: null, needs_reconnect: false,
+                        updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
                     }
                     if (selectedGa4) {
                       await supabase.from('seo_connections').upsert({
-                        client_id: clientId, provider: 'analytics', access_token, refresh_token: refresh_token || null,
-                        token_expires_at: expiresAt, scope, property_id: selectedGa4, connected: true, updated_at: new Date().toISOString(),
+                        client_id: clientId, provider: 'analytics', access_token, refresh_token: effectiveRefreshToken || null,
+                        token_expires_at: expiresAt, scope, property_id: selectedGa4, connected: true,
+                        last_error: null, last_error_at: null, needs_reconnect: false,
+                        updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
                     }
                     // Auto-save GBP + Ads if scope includes them
                     const missingScopes = []
                     if (scope?.includes('business.manage')) {
                       await supabase.from('seo_connections').upsert({
-                        client_id: clientId, provider: 'gmb', access_token, refresh_token: refresh_token || null,
-                        token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
+                        client_id: clientId, provider: 'gmb', access_token, refresh_token: effectiveRefreshToken || null,
+                        token_expires_at: expiresAt, scope, connected: true,
+                        last_error: null, last_error_at: null, needs_reconnect: false,
+                        updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
                     } else {
                       missingScopes.push('Business Profile')
@@ -5050,8 +5078,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     // Only save ads connection if adwords scope was granted
                     if (scope?.includes('adwords')) {
                       await supabase.from('seo_connections').upsert({
-                        client_id: clientId, provider: 'ads', access_token, refresh_token: refresh_token || null,
-                        token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
+                        client_id: clientId, provider: 'ads', access_token, refresh_token: effectiveRefreshToken || null,
+                        token_expires_at: expiresAt, scope, connected: true,
+                        last_error: null, last_error_at: null, needs_reconnect: false,
+                        updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
                     }
                     await loadConnections()
