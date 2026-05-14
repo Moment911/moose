@@ -256,8 +256,17 @@ export default function SEOConnectPage() {
         }, { onConflict: 'client_id,provider' })
       }
 
+      // Track scopes Google actually granted (it can strip sensitive scopes
+      // like business.manage on the consent screen — silently). We tell the
+      // user explicitly which providers connected vs. were stripped.
+      const grantedGmb = !!(scope && scope.includes('business.manage'))
+      const grantedAds = !!(scope && scope.includes('adwords'))
+      const strippedScopes = []
+      if (!grantedGmb) strippedScopes.push('Google Business Profile')
+      if (!grantedAds) strippedScopes.push('Google Ads')
+
       // Auto-save GBP connection if the token has business.manage scope
-      if (scope && scope.includes('business.manage')) {
+      if (grantedGmb) {
         await supabase.from('seo_connections').upsert({
           client_id:       clientId,
           provider:        'gmb',
@@ -271,7 +280,7 @@ export default function SEOConnectPage() {
       }
 
       // Auto-save Google Ads connection if the token has adwords scope
-      if (scope && scope.includes('adwords')) {
+      if (grantedAds) {
         await supabase.from('seo_connections').upsert({
           client_id:       clientId,
           provider:        'ads',
@@ -286,7 +295,15 @@ export default function SEOConnectPage() {
 
       await loadConnections()
       setTempTokens(null)
-      toast.success('Google accounts connected!')
+      if (strippedScopes.length > 0) {
+        // Long-lived toast so the user can read what to do.
+        toast(
+          `Connected ${selectedGsc ? 'Search Console' : ''}${selectedGsc && selectedGa4 ? ' + ' : ''}${selectedGa4 ? 'Analytics' : ''}${grantedAds ? ' + Ads' : ''}${grantedGmb ? ' + GBP' : ''}.\n\nNot connected: ${strippedScopes.join(', ')}.\n\nGoogle strips sensitive scopes on the consent screen — on the next "Choose what to share" step, make sure ${strippedScopes.length === 1 ? strippedScopes[0] : 'all four boxes are'} checked. Click Reconnect to try again.`,
+          { duration: 12000, icon: '⚠️' }
+        )
+      } else {
+        toast.success('Google accounts connected!')
+      }
 
       // If launched from KotoIQ, redirect back with client preserved
       if (returnTo) {
@@ -484,6 +501,21 @@ export default function SEOConnectPage() {
                               cursor:'pointer', fontFamily:FH }}>
                             Disconnect
                           </button>
+                        </div>
+                      ) : hasAnyConnection && (svc.key === 'gmb' || svc.key === 'ads') ? (
+                        // GMB and Ads use sensitive scopes (business.manage, adwords)
+                        // that Google can silently strip from the consent screen
+                        // even when GSC/GA4 succeed. Tell the user why and how
+                        // to recover instead of just "Not connected".
+                        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
+                          <span style={{ fontSize:12, fontWeight:700, padding:'4px 10px',
+                            borderRadius:20, background:'#fef3c7', color:'#92400e', fontFamily:FH,
+                            display:'flex', alignItems:'center', gap:4 }}>
+                            <AlertTriangle size={11}/> Scope not granted
+                          </span>
+                          <span style={{ fontSize:10, color:'#92400e', fontFamily:FB, maxWidth:180, textAlign:'right', lineHeight:1.3 }}>
+                            Click Reconnect, then check the {svc.key === 'gmb' ? 'Business Profile' : 'Ads'} box on Google's consent screen
+                          </span>
                         </div>
                       ) : (
                         <span style={{ fontSize:12, fontWeight:600, padding:'4px 10px',
