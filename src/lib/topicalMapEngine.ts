@@ -739,7 +739,7 @@ Return ONLY valid JSON:
 }`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 4000,
     system: 'You are a Semantic SEO content analyst. Match website pages to topical map nodes. Return ONLY valid JSON.',
     messages: [{ role: 'user', content: analysisPrompt }],
@@ -747,7 +747,7 @@ Return ONLY valid JSON:
 
   void logTokenUsage({
     feature: 'kotoiq_topical_coverage',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: body.agency_id || null,

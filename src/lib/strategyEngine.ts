@@ -19,7 +19,7 @@ import { blendThreeAIs } from '@/lib/multiAiBlender'
 type SB = any
 type AI = Anthropic
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 export interface StrategicPlanBody {
   client_id: string

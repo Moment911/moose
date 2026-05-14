@@ -208,14 +208,14 @@ Output ONLY valid JSON, no markdown fences:
 }`
 
     const briefMsg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 6000,
       system: 'You are KotoIQ content strategist applying Semantic SEO principles. Return ONLY valid JSON. No markdown.',
       messages: [{ role: 'user', content: briefPrompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_pipeline_brief',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: briefMsg.usage?.input_tokens || 0,
       outputTokens: briefMsg.usage?.output_tokens || 0,
       agencyId: agency_id || undefined,
@@ -330,14 +330,14 @@ Return content in this exact format:
 [same content as plain text, no HTML tags]`
 
     const writeMsg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 8000,
       system: 'You are an expert SEO content writer. Write complete, publishable page content.',
       messages: [{ role: 'user', content: writePrompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_pipeline_write',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: writeMsg.usage?.input_tokens || 0,
       outputTokens: writeMsg.usage?.output_tokens || 0,
       agencyId: agency_id || undefined,
@@ -521,14 +521,14 @@ Return ONLY a valid JSON array of schema objects, no markdown fences:
 ]`
 
     const schemaMsg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 3000,
       system: 'Generate production-ready JSON-LD schema. Return ONLY a valid JSON array.',
       messages: [{ role: 'user', content: schemaPrompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_pipeline_schema',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: schemaMsg.usage?.input_tokens || 0,
       outputTokens: schemaMsg.usage?.output_tokens || 0,
       agencyId: agency_id || undefined,

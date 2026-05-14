@@ -80,7 +80,7 @@ async function generateAIInsights(place: any, competitors: any[], scoreData: any
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514', max_tokens: 900,
+      model: 'claude-sonnet-4-6', max_tokens: 900,
       messages: [{ role: 'user', content:
         `You are a local SEO expert auditing a Google Business Profile.
 

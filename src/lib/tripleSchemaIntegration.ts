@@ -18,7 +18,7 @@ import { runTripleGenerator } from '@/lib/semanticAgentsTier3'
 type SB = any
 type AI = Anthropic
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 export interface Triple {
   subject: string

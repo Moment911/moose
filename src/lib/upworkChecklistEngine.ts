@@ -96,14 +96,14 @@ RULES
 - For ${jt} jobs: ${jt === 'hourly' ? 'suggest an hourly-equivalent in pricing_strategy' : 'give a fixed quote'} and scope hours realistically.`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 4000,
     messages: [{ role: 'user', content: prompt }],
   })
 
   void logTokenUsage({
     feature: 'kotoiq_upwork_analyze',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: agency_id,
@@ -217,14 +217,14 @@ RULES
 - FAQ answers each ≤3 sentences.`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 4000,
     messages: [{ role: 'user', content: prompt }],
   })
 
   void logTokenUsage({
     feature: 'kotoiq_upwork_package',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: agency_id,

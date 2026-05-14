@@ -20,7 +20,7 @@ import { blendThreeAIs } from '@/lib/multiAiBlender'
 
 type AI = any
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 const DEFAULT_MAX_TOKENS = 3000
 
 // ── Types ────────────────────────────────────────────────────

@@ -49,13 +49,13 @@ Rules:
 Return ONLY the enhanced prompt, no preamble.`
 
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 500,
       messages: [{ role: 'user', content: enhancePrompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_gmb_image_enhance',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId: params.agencyId,
@@ -122,13 +122,13 @@ Return ONLY valid JSON:
 }`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 500,
     messages: [{ role: 'user', content: prompt }],
   })
   void logTokenUsage({
     feature: 'kotoiq_gmb_image_caption',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: params.agencyId,

@@ -151,7 +151,7 @@ async function checkIntegrations(): Promise<HealthCheck[]> {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 5, messages: [{ role: 'user', content: 'ping' }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 5, messages: [{ role: 'user', content: 'ping' }] }),
         signal: AbortSignal.timeout(10000),
       })
       checks.push({ name: 'Integration: Claude AI', category: 'integration', status: res.ok ? 'pass' : 'warn', detail: res.ok ? 'API responding' : `HTTP ${res.status}`, auto_fixable: false, checked_at: new Date().toISOString() })

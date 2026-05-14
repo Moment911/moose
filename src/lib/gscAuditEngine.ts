@@ -395,13 +395,13 @@ Return JSON array of 6-10 recommendations, each shaped:
 Return ONLY a JSON array, no markdown, no commentary.`
 
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 2500,
       messages: [{ role: 'user', content: prompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_gsc_audit',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId: agency_id,

@@ -10,7 +10,7 @@ function sb() {
   )
 }
 
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514'
+const CLAUDE_MODEL = 'claude-sonnet-4-6'
 const DEFAULT_AGENCY = '00000000-0000-0000-0000-000000000099'
 
 function settled<T>(p: PromiseLike<T> | Promise<T>, fallback: T): Promise<T> {

@@ -10,7 +10,7 @@ function sb() {
 }
 
 const DEFAULT_AGENCY = '00000000-0000-0000-0000-000000000099'
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514'
+const CLAUDE_MODEL = 'claude-sonnet-4-6'
 
 function rangeStartDate(range: string | null): Date | null {
   if (!range || range === 'all') return null

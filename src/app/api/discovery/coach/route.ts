@@ -20,7 +20,7 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 // ─────────────────────────────────────────────────────────────
 
 const FAST_MODEL = 'claude-haiku-4-5-20251001'
-const SLOW_MODEL = 'claude-sonnet-4-20250514'
+const SLOW_MODEL = 'claude-sonnet-4-6'
 
 function getSupabase() {
   return createClient(

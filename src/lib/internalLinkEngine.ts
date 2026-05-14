@@ -609,7 +609,7 @@ export async function scanInternalLinks(s: SB, ai: AI, body: any) {
     }
 
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 2000,
       system: 'You are KotoIQ Internal Link Analyst. Given audit data, provide specific, actionable recommendations to improve internal linking. Return ONLY a JSON array of strings, each a specific recommendation.',
       messages: [{
@@ -620,7 +620,7 @@ export async function scanInternalLinks(s: SB, ai: AI, body: any) {
 
     void logTokenUsage({
       feature: 'kotoiq_internal_links',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
     })
@@ -742,7 +742,7 @@ Return ONLY valid JSON:
 
   try {
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 2500,
       system: 'You are KotoIQ Internal Link Strategist. Suggest specific internal linking improvements based on topical relevance and SEO value. Return ONLY valid JSON.',
       messages: [{ role: 'user', content: prompt }],
@@ -750,7 +750,7 @@ Return ONLY valid JSON:
 
     void logTokenUsage({
       feature: 'kotoiq_internal_links',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
     })

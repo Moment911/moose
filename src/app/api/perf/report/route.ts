@@ -101,7 +101,7 @@ ${(recs||[]).filter((r:any)=>r.priority==='high').length > 0 ? 'High priority op
 Be specific, confident, and concise. Focus on performance vs prior period and top opportunity.`
 
   const summaryMsg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514', max_tokens: 300,
+    model: 'claude-sonnet-4-6', max_tokens: 300,
     messages: [{ role:'user', content: summaryPrompt }],
     system: 'Write a professional marketing performance summary. 3 sentences max. No markdown.'
   })

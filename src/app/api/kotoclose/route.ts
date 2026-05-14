@@ -306,7 +306,7 @@ export async function POST(req: NextRequest) {
         try {
           const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST', headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: `You are configuring an AI cold calling brain for the ${industry_name} industry (SIC: ${sic_code}, NAICS: ${naics_code}). Generate a complete JSON config: {"persona_name":"","voice_tone":"","opening_script":"","optin_bridge":"","callback_bridge":"","pain_points":["5 strings"],"objections":["4 strings"],"qa_bank":[{"stage":"Connect|Discovery|Problem|Consequence|Solution|Close","question":"","coaching_note":""}],"data_signals":["5 strings"]}. Return ONLY valid JSON.` }] }),
+            body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content: `You are configuring an AI cold calling brain for the ${industry_name} industry (SIC: ${sic_code}, NAICS: ${naics_code}). Generate a complete JSON config: {"persona_name":"","voice_tone":"","opening_script":"","optin_bridge":"","callback_bridge":"","pain_points":["5 strings"],"objections":["4 strings"],"qa_bank":[{"stage":"Connect|Discovery|Problem|Consequence|Solution|Close","question":"","coaching_note":""}],"data_signals":["5 strings"]}. Return ONLY valid JSON.` }] }),
             signal: AbortSignal.timeout(15000),
           })
           if (res.ok) {

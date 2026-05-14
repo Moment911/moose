@@ -481,7 +481,7 @@ export async function buildContentInventory(s: SupabaseClient, ai: Anthropic, bo
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 4000,
         system: `You are an SEO content strategist. For each page, provide specific refresh recommendations.
 Return ONLY valid JSON: an array of objects, each with "url" and "recommendations" (object with keys: "add" (array of things to add), "update" (array of things to update), "restructure" (array of structural changes), "estimated_hours" (number), "priority_reason" (string)).`,
@@ -490,7 +490,7 @@ Return ONLY valid JSON: an array of objects, each with "url" and "recommendation
 
       void logTokenUsage({
         feature: 'kotoiq_content_refresh',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: msg.usage?.input_tokens || 0,
         outputTokens: msg.usage?.output_tokens || 0,
       })
@@ -638,7 +638,7 @@ export async function getRefreshPlan(s: SupabaseClient, ai: Anthropic, body: any
 
   try {
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 6000,
       system: `You are an expert SEO content strategist creating detailed refresh plans.
 For each page, provide a comprehensive plan. Return ONLY valid JSON: an array of objects with:
@@ -659,7 +659,7 @@ For each page, provide a comprehensive plan. Return ONLY valid JSON: an array of
 
     void logTokenUsage({
       feature: 'kotoiq_content_refresh',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
     })

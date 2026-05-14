@@ -17,7 +17,7 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 
 type AI = any
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 // ── Result Types ─────────────────────────────────────────────
 

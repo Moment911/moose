@@ -248,7 +248,7 @@ export async function generateScorecard(
 
   try {
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1200,
       messages: [{
         role: 'user',
@@ -276,7 +276,7 @@ Return ONLY valid JSON with:
     const text = (msg.content[0] as any)?.text || ''
     await logTokenUsage({
       feature: 'scorecard_generation',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage.input_tokens,
       outputTokens: msg.usage.output_tokens,
       agencyId: agency_id,

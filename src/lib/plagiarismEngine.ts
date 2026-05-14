@@ -161,7 +161,7 @@ ${sample}
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1200,
         system: 'You are a forensic AI-content analyst. Return ONLY valid JSON.',
         messages: [{ role: 'user', content: prompt }],
@@ -169,7 +169,7 @@ ${sample}
 
       void logTokenUsage({
         feature: 'kotoiq_plagiarism_ai_detection',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: msg.usage?.input_tokens || 0,
         outputTokens: msg.usage?.output_tokens || 0,
         agencyId: agency_id || null,

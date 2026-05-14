@@ -15,7 +15,7 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 type SB = any
 type AI = Anthropic
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 export type ExportFormat = 'wikidata' | 'json_ld' | 'rdf_turtle'
 

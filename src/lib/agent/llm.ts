@@ -15,7 +15,7 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 // Used by the Strategist for planning prompts.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 const MAX_TOKENS = 4096
 const TIMEOUT_MS = 60_000
 

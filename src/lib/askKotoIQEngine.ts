@@ -77,13 +77,13 @@ Question: "${message}"
 Reply with only the category name.`
 
     const msg = await ai.messages.create({
-      model: 'claude-haiku-4-20250514',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 20,
       messages: [{ role: 'user', content: prompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_chat_classify',
-      model: 'claude-haiku-4-20250514',
+      model: 'claude-haiku-4-5-20251001',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId,
@@ -263,14 +263,14 @@ Omit the ACTIONS block if no concrete follow-up actions apply.`
 
   // 4. Call Claude
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 2000,
     system: systemPrompt,
     messages: messages as any,
   })
   void logTokenUsage({
     feature: 'kotoiq_chat',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: agency_id,

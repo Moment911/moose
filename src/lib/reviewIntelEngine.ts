@@ -129,7 +129,7 @@ export async function analyzeReviews(s: SupabaseClient, ai: Anthropic, body: any
   if (reviewTexts.length > 0) {
     try {
       const sentimentRes = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 2000,
         messages: [{
           role: 'user',
@@ -163,7 +163,7 @@ ${reviewTexts.join('\n')}`
 
       logTokenUsage({
         feature: 'kotoiq_review_intelligence',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: sentimentRes.usage?.input_tokens || 0,
         outputTokens: sentimentRes.usage?.output_tokens || 0,
       })
@@ -174,7 +174,7 @@ ${reviewTexts.join('\n')}`
     // No reviews — use Claude to generate a framework for what to expect
     try {
       const frameworkRes = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1000,
         messages: [{
           role: 'user',
@@ -200,7 +200,7 @@ List 4-6 topics that are typical for this industry.`
 
       logTokenUsage({
         feature: 'kotoiq_review_intelligence',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: frameworkRes.usage?.input_tokens || 0,
         outputTokens: frameworkRes.usage?.output_tokens || 0,
       })
@@ -276,7 +276,7 @@ export async function createReviewCampaign(s: SupabaseClient, ai: Anthropic, bod
 
   try {
     const templateRes = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1500,
       messages: [{
         role: 'user',
@@ -302,7 +302,7 @@ Guidelines: No corporate speak. Sound human. Mention specifics about the industr
 
     logTokenUsage({
       feature: 'kotoiq_review_campaign',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: templateRes.usage?.input_tokens || 0,
       outputTokens: templateRes.usage?.output_tokens || 0,
     })

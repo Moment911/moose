@@ -621,7 +621,7 @@ Return ONLY the script text, no markdown or JSON.`
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] }),
       })
       const data = await res.json()
       return NextResponse.json({ script: data.content?.[0]?.text || '' })
@@ -634,7 +634,7 @@ Return ONLY the script text, no markdown or JSON.`
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [{ role: 'user', content: `Score this sales call script on 5 dimensions (1-10 each). Return JSON only: {"naturalness":N,"clarity":N,"empathy":N,"compliance":N,"effectiveness":N,"overall":N,"feedback":"brief feedback"}\n\nScript:\n${script_text}` }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 500, messages: [{ role: 'user', content: `Score this sales call script on 5 dimensions (1-10 each). Return JSON only: {"naturalness":N,"clarity":N,"empathy":N,"compliance":N,"effectiveness":N,"overall":N,"feedback":"brief feedback"}\n\nScript:\n${script_text}` }] }),
       })
       const data = await res.json()
       try { return NextResponse.json(JSON.parse(data.content?.[0]?.text || '{}')) } catch { return NextResponse.json({ overall: 5, feedback: 'Could not parse score' }) }
@@ -647,7 +647,7 @@ Return ONLY the script text, no markdown or JSON.`
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: `Improve this sales call script to be more natural, empathetic, and TCPA compliant. Return ONLY the improved script text.\n\nOriginal:\n${script_text}` }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content: `Improve this sales call script to be more natural, empathetic, and TCPA compliant. Return ONLY the improved script text.\n\nOriginal:\n${script_text}` }] }),
       })
       const data = await res.json()
       return NextResponse.json({ improved: data.content?.[0]?.text || '' })
@@ -660,7 +660,7 @@ Return ONLY the script text, no markdown or JSON.`
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: `Analyze this phone sales script for TCPA compliance issues. Return JSON: {"score":N,"lines":[{"line":N,"text":"...","status":"ok|warning|violation","issue":"...","fix":"..."}],"summary":"..."}\n\nScript:\n${script_text}` }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: `Analyze this phone sales script for TCPA compliance issues. Return JSON: {"score":N,"lines":[{"line":N,"text":"...","status":"ok|warning|violation","issue":"...","fix":"..."}],"summary":"..."}\n\nScript:\n${script_text}` }] }),
       })
       const data = await res.json()
       try { return NextResponse.json(JSON.parse(data.content?.[0]?.text || '{}')) } catch { return NextResponse.json({ score: 50, lines: [], summary: 'Could not parse' }) }
@@ -693,7 +693,7 @@ Return ONLY the script text, no markdown or JSON.`
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: `Analyze these ${calls.length} sales call transcripts and provide insights. Return JSON: {"what_works":["..."],"what_fails":["..."],"best_times":{"morning":N,"afternoon":N,"evening":N},"recommendations":["..."],"script_scores":{"intro":N,"discovery":N,"value_prop":N,"objection":N,"close":N}}\n\n${sample}` }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content: `Analyze these ${calls.length} sales call transcripts and provide insights. Return JSON: {"what_works":["..."],"what_fails":["..."],"best_times":{"morning":N,"afternoon":N,"evening":N},"recommendations":["..."],"script_scores":{"intro":N,"discovery":N,"value_prop":N,"objection":N,"close":N}}\n\n${sample}` }] }),
       })
       const data = await res.json()
       let insights: any = {}
@@ -956,7 +956,7 @@ Return ONLY the script text, no markdown or JSON.`
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': AKEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 600, messages: [{ role: 'user', content: prompt }] }),
       })
       const data = await res.json()
       let profile = {}
@@ -983,7 +983,7 @@ Return JSON only: {"criteria":[{"name":"Opening","score":N,"well":"...","improve
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': AKEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] }),
       })
       const data = await res.json()
       let coaching = {}

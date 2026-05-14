@@ -117,13 +117,13 @@ Return JSON: { "subject": "...", "body": "...", "notes": "1-sentence strategy hi
 Return ONLY JSON, no markdown.`
 
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 600,
       messages: [{ role: 'user', content: prompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_backlink_opportunity_outreach',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId: agency_id,
@@ -352,13 +352,13 @@ Each angle should reference real publication types (not fake domains). Return JS
 
 Return ONLY a JSON array.`
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 800,
       messages: [{ role: 'user', content: prompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_backlink_opportunity_angles',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId: agency_id,

@@ -282,7 +282,7 @@ export async function runCompetitorWatchCheck(
           let summary = ''
           try {
             const msg = await ai.messages.create({
-              model: 'claude-sonnet-4-20250514',
+              model: 'claude-sonnet-4-6',
               max_tokens: 600,
               messages: [{
                 role: 'user',
@@ -292,7 +292,7 @@ export async function runCompetitorWatchCheck(
             summary = (msg.content[0] as any)?.text || ''
             await logTokenUsage({
               feature: 'competitor_watch_summary',
-              model: 'claude-sonnet-4-20250514',
+              model: 'claude-sonnet-4-6',
               inputTokens: msg.usage.input_tokens,
               outputTokens: msg.usage.output_tokens,
               agencyId: agency_id,

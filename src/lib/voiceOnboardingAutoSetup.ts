@@ -147,14 +147,14 @@ Return ONLY valid JSON array, no markdown:
 [{"keyword": "exact phrase", "intent": "transactional|commercial|informational", "estimated_volume": 100, "estimated_difficulty": "low|medium|high", "priority": "high|medium|low"}]`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 3000,
     system: 'Extract SEO keywords. Return ONLY valid JSON array.',
     messages: [{ role: 'user', content: prompt }],
   })
   void logTokenUsage({
     feature: 'kotoiq_auto_setup_quick_scan',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: input.agency_id || undefined,
@@ -417,14 +417,14 @@ Output ONLY valid JSON, no markdown:
 }`
 
         const msg = await ai.messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 3000,
           system: 'Return ONLY valid JSON. No markdown.',
           messages: [{ role: 'user', content: briefPrompt }],
         })
         void logTokenUsage({
           feature: 'kotoiq_auto_setup_brief',
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           inputTokens: msg.usage?.input_tokens || 0,
           outputTokens: msg.usage?.output_tokens || 0,
           agencyId: agency_id || undefined,
@@ -559,14 +559,14 @@ Return ONLY valid JSON:
 }`
 
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1500,
       system: 'Return ONLY valid JSON.',
       messages: [{ role: 'user', content: strategyPrompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_auto_setup_strategy',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId: agency_id || undefined,

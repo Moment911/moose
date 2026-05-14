@@ -111,13 +111,13 @@ Return ONLY valid JSON, no markdown.`
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }],
       })
       void logTokenUsage({
         feature: 'kotoiq_brand_serp',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: msg.usage?.input_tokens || 0,
         outputTokens: msg.usage?.output_tokens || 0,
         agencyId: agency_id,
@@ -264,13 +264,13 @@ Generate a JSON strategy with:
 Return ONLY valid JSON, no markdown.`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 2500,
     messages: [{ role: 'user', content: prompt }],
   })
   void logTokenUsage({
     feature: 'kotoiq_brand_serp',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: agency_id,

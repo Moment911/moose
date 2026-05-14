@@ -95,7 +95,7 @@ export async function runQueryGapAnalyzer(
     : ''
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 3000,
     system: `You are a semantic SEO query network analyst. Your task is to deconstruct the query space around a target keyword and identify strategic gaps.
 
@@ -126,7 +126,7 @@ Identify the complete query network, critical context signifiers, competitor gap
 
   void logTokenUsage({
     feature: 'kotoiq_semantic_agent_query_gap',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: params.agencyId,
@@ -155,7 +155,7 @@ export async function runFrameAnalyzer(
     : ''
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 3000,
     system: `You are a frame semantics analyst specializing in search engine content evaluation.
 
@@ -197,7 +197,7 @@ Identify every frame element, classify by importance, assess competitor coverage
 
   void logTokenUsage({
     feature: 'kotoiq_semantic_agent_frame',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: params.agencyId,
@@ -218,7 +218,7 @@ export async function runSemanticRoleLabeler(
   },
 ): Promise<RoleLabelResult> {
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 3000,
     system: `You are a semantic role labeling specialist for SEO content optimization.
 
@@ -275,7 +275,7 @@ For each sentence: identify the agent-patient structure, determine if the primar
 
   void logTokenUsage({
     feature: 'kotoiq_semantic_agent_role_labeler',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: params.agencyId,
@@ -306,7 +306,7 @@ export async function runNamedEntitySuggester(
     : ''
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 3000,
     system: `You are a named entity strategist for semantic SEO content optimization.
 
@@ -357,7 +357,7 @@ Identify which named entities should appear in this content to maximize topical 
 
   void logTokenUsage({
     feature: 'kotoiq_semantic_agent_entity',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: params.agencyId,

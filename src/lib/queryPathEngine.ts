@@ -122,7 +122,7 @@ Rules:
 Return ONLY valid JSON array of cluster objects, no markdown fences.`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 4096,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -133,7 +133,7 @@ Return ONLY valid JSON array of cluster objects, no markdown fences.`
   try {
     await logTokenUsage({
       feature: 'kotoiq_query_paths',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId: body.agency_id || undefined,

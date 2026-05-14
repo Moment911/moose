@@ -76,7 +76,7 @@ async function generateResponse(reviewText: string, rating: number, businessName
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514', max_tokens: 280,
+      model: 'claude-sonnet-4-6', max_tokens: 280,
       messages: [{ role: 'user', content:
         `Write a ${tone} response to this ${rating}-star Google review for ${businessName}.\n\nReview: "${reviewText}"\n\nWrite a natural, specific 2-3 sentence response. Don't be generic. Sign off with just the business name. Return only the response text, no quotes.`
       }]

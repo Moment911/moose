@@ -1369,7 +1369,7 @@ Rules:
 - Include at least 3 stats about the local market or geographic area`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 8000,
     system: 'You are KotoIntel, an elite marketing intelligence analyst. You have access to REAL data from multiple verified APIs. Return ONLY valid JSON. No markdown, no explanation. When real data is available (GSC, GA4, Ads, Moz, CrUX), ALWAYS use it instead of estimating.',
     messages: [{ role: 'user', content: prompt }],
@@ -1377,7 +1377,7 @@ Rules:
 
   void logTokenUsage({
     feature: 'koto_intel_report',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: agencyId || null,
@@ -1616,7 +1616,7 @@ export async function POST(req: NextRequest) {
     if (!existing) return NextResponse.json({ error: 'Report not found' }, { status: 404 })
 
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1500,
       system: 'You are KotoIntel budget optimizer. Return ONLY valid JSON.',
       messages: [{
@@ -1646,7 +1646,7 @@ Return JSON:
 
     void logTokenUsage({
       feature: 'koto_intel_budget_recalc',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
     })

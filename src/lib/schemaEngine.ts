@@ -388,7 +388,7 @@ Return ONLY a valid JSON array:
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 4000,
         system: 'Generate production-ready JSON-LD schema markup. Return ONLY valid JSON array.',
         messages: [{ role: 'user', content: genPrompt }],
@@ -396,7 +396,7 @@ Return ONLY a valid JSON array:
 
       void logTokenUsage({
         feature: 'kotoiq_schema',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: msg.usage?.input_tokens || 0,
         outputTokens: msg.usage?.output_tokens || 0,
         agencyId: body.agency_id || null,
@@ -523,7 +523,7 @@ Return ONLY the JSON-LD object (not wrapped in array):
 {"@context": "https://schema.org", "@type": "${schema_type}", ...}`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 2000,
     system: 'Generate production-ready JSON-LD schema. Return ONLY valid JSON.',
     messages: [{ role: 'user', content: prompt }],
@@ -531,7 +531,7 @@ Return ONLY the JSON-LD object (not wrapped in array):
 
   void logTokenUsage({
     feature: 'kotoiq_schema',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     inputTokens: msg.usage?.input_tokens || 0,
     outputTokens: msg.usage?.output_tokens || 0,
     agencyId: body.agency_id || null,

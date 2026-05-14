@@ -413,7 +413,7 @@ Rules:
 CHECKS:
 ${summary}`
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 900,
       system: 'You are an on-page SEO editor. Return ONLY valid JSON.',
       messages: [{ role: 'user', content: prompt }],
@@ -421,7 +421,7 @@ ${summary}`
 
     void logTokenUsage({
       feature: 'kotoiq_on_page',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId: agency_id || null,

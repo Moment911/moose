@@ -349,14 +349,14 @@ Output ONLY valid JSON, no markdown fences:
 }`
 
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 3500,
         system: 'You are a local SEO strategist. Return ONLY valid JSON. No markdown.',
         messages: [{ role: 'user', content: hyperlocalPrompt }],
       })
       void logTokenUsage({
         feature: 'kotoiq_hyperlocal_brief',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: msg.usage?.input_tokens || 0,
         outputTokens: msg.usage?.output_tokens || 0,
         agencyId: agency_id || undefined,

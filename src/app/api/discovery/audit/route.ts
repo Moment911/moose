@@ -9,7 +9,7 @@ function sb() {
   )
 }
 
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514'
+const CLAUDE_MODEL = 'claude-sonnet-4-6'
 
 function parseJson(text: string): any {
   if (!text) return null

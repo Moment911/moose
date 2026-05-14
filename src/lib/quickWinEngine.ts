@@ -284,7 +284,7 @@ export async function generateQuickWinQueue(
   if (top25.length > 0) {
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 2500,
         system: 'You are an SEO strategist. You receive a list of candidate action items and must re-rank them by true business impact, tightening titles and how_to_do_it copy. Return ONLY valid JSON — an array of {index, title, how_to_do_it, priority_rank} where index matches the input item\'s position. Keep all items — just re-rank and tighten text.',
         messages: [{
@@ -294,7 +294,7 @@ export async function generateQuickWinQueue(
       })
       void logTokenUsage({
         feature: 'kotoiq_quick_win_queue',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: msg.usage?.input_tokens || 0,
         outputTokens: msg.usage?.output_tokens || 0,
         agencyId: agency_id,

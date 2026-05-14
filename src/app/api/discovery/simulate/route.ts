@@ -19,7 +19,7 @@ import { createClient } from '@supabase/supabase-js'
 // with real AI-generated content — no manual data entry required.
 // ─────────────────────────────────────────────────────────────
 
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514'
+const CLAUDE_MODEL = 'claude-sonnet-4-6'
 
 function getSupabase() {
   return createClient(

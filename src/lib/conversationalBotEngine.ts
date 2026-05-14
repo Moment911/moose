@@ -9,7 +9,7 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type Anthropic from '@anthropic-ai/sdk'
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 interface BotMessage {
   role: 'user' | 'assistant'

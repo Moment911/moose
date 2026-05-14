@@ -67,7 +67,7 @@ export default function DevApiDebug() {
           'anthropic-version': '2023-06-01',
           'anthropic-dangerous-direct-browser-access': 'true'
         },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 50, messages: [{ role: 'user', content: 'Say hello in 5 words' }] })
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 50, messages: [{ role: 'user', content: 'Say hello in 5 words' }] })
       })
       const data = await res.json()
       setTests(t => ({ ...t, claude: res.ok ? `OK - "${data.content?.[0]?.text}"` : `Error ${res.status}: ${data.error?.message || 'Unknown'}` }))

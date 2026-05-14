@@ -361,13 +361,13 @@ Return a JSON array of 5-8 prioritized recommendations shaped:
 Return ONLY a JSON array, no markdown.`
 
     const msg = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }],
     })
     void logTokenUsage({
       feature: 'kotoiq_bing_audit',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: msg.usage?.input_tokens || 0,
       outputTokens: msg.usage?.output_tokens || 0,
       agencyId: agency_id,

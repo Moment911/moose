@@ -191,7 +191,7 @@ Return a JSON array with one object per finding IN THE SAME ORDER:
 Only return the JSON array. No markdown.`
 
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 2000,
     messages: [{ role:'user', content:prompt }],
     system: 'You are a Google Ads expert. Add human-readable explanations to pre-proven findings. Return only raw JSON array.',

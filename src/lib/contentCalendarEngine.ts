@@ -98,7 +98,7 @@ Return JSON only:
 
   try {
     const res = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 3000,
       messages: [{ role: 'user', content: prompt }],
     })
@@ -112,7 +112,7 @@ Return JSON only:
 
     logTokenUsage({
       feature: 'kotoiq_content_calendar',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: res.usage?.input_tokens || 0,
       outputTokens: res.usage?.output_tokens || 0,
     })
@@ -321,7 +321,7 @@ export async function calculateMomentum(s: SupabaseClient, ai: Anthropic, body: 
       .limit(10)
 
     const res = await ai.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 800,
       messages: [{
         role: 'user',
@@ -355,7 +355,7 @@ Focus on actionable velocity advice following the KotoIQ VDM framework: if you c
 
     logTokenUsage({
       feature: 'kotoiq_publishing_momentum',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       inputTokens: res.usage?.input_tokens || 0,
       outputTokens: res.usage?.output_tokens || 0,
     })

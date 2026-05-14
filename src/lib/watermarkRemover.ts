@@ -261,7 +261,7 @@ ${flagged.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 2500,
         system: 'You are a copy editor. Return ONLY valid JSON.',
         messages: [{ role: 'user', content: rewritePrompt }],
@@ -269,7 +269,7 @@ ${flagged.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
 
       void logTokenUsage({
         feature: 'kotoiq_watermark_remover',
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         inputTokens: msg.usage?.input_tokens || 0,
         outputTokens: msg.usage?.output_tokens || 0,
         agencyId: body.agency_id || null,

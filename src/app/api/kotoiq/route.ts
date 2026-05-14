@@ -628,12 +628,12 @@ Return ONLY valid JSON array:
 }]`
 
           const msg = await ai.messages.create({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-6',
             max_tokens: 2000,
             system: 'You are KotoIQ. Return ONLY valid JSON array. No markdown.',
             messages: [{ role: 'user', content: recPrompt }],
           })
-          void logTokenUsage({ feature: 'kotoiq_recommendations', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+          void logTokenUsage({ feature: 'kotoiq_recommendations', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
 
           const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
           const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
@@ -780,11 +780,11 @@ Return ONLY valid JSON array:
 [{"keyword": "exact keyword phrase", "intent": "transactional|commercial|informational", "estimated_volume": number, "estimated_difficulty": "low|medium|high", "priority": "high|medium|low"}]`
 
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        model: 'claude-sonnet-4-6', max_tokens: 3000,
         system: 'Extract SEO keywords. Return ONLY valid JSON array.',
         messages: [{ role: 'user', content: extractPrompt }],
       })
-      void logTokenUsage({ feature: 'kotoiq_quick_scan', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+      void logTokenUsage({ feature: 'kotoiq_quick_scan', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
 
       const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
       const extracted = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
@@ -813,11 +813,11 @@ Return ONLY valid JSON array:
       let aiRecs: any[] = []
       try {
         const recMsg = await ai.messages.create({
-          model: 'claude-sonnet-4-20250514', max_tokens: 1500,
+          model: 'claude-sonnet-4-6', max_tokens: 1500,
           system: 'Return ONLY valid JSON array.',
           messages: [{ role: 'user', content: `Generate 5 SEO recommendations for ${normalizedUrl} (${industry}, ${location}). DA: ${clientDA}. ${ukfRecords.length} keywords identified. Competitors: ${competitors.map((c: any) => c.name).join(', ')}.\n\nReturn JSON array: [{"type":"new_content|link_build|quick_win|schema_fix|gbp_action","priority":"critical|high|medium","title":"short title","detail":"2 sentences","estimated_impact":"description","effort":"quick_win|moderate|major_project"}]` }],
         })
-        void logTokenUsage({ feature: 'kotoiq_quick_scan_recs', model: 'claude-sonnet-4-20250514', inputTokens: recMsg.usage?.input_tokens || 0, outputTokens: recMsg.usage?.output_tokens || 0, agencyId: agency_id })
+        void logTokenUsage({ feature: 'kotoiq_quick_scan_recs', model: 'claude-sonnet-4-6', inputTokens: recMsg.usage?.input_tokens || 0, outputTokens: recMsg.usage?.output_tokens || 0, agencyId: agency_id })
         aiRecs = JSON.parse((recMsg.content[0].type === 'text' ? recMsg.content[0].text : '[]').replace(/```json?\n?/g, '').replace(/```/g, '').trim())
         if (aiRecs.length > 0) {
           try {
@@ -1237,11 +1237,11 @@ Return ONLY the response text, no JSON wrapper, no quotes around it.`
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514', max_tokens: 500,
+        model: 'claude-sonnet-4-6', max_tokens: 500,
         system: 'Write a professional Google review response. Return ONLY the response text.',
         messages: [{ role: 'user', content: prompt }],
       })
-      void logTokenUsage({ feature: 'kotoiq_review_response', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+      void logTokenUsage({ feature: 'kotoiq_review_response', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
       const response = msg.content[0].type === 'text' ? msg.content[0].text.trim() : ''
       return NextResponse.json({ response })
     } catch (e: any) {
@@ -1292,11 +1292,11 @@ Return ONLY valid JSON array:
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514', max_tokens: 1500,
+        model: 'claude-sonnet-4-6', max_tokens: 1500,
         system: 'Generate GBP posts. Return ONLY valid JSON array.',
         messages: [{ role: 'user', content: prompt }],
       })
-      void logTokenUsage({ feature: 'kotoiq_gbp_posts', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+      void logTokenUsage({ feature: 'kotoiq_gbp_posts', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
       const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
       const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
       return NextResponse.json({ posts: JSON.parse(cleaned) })
@@ -1416,11 +1416,11 @@ Return ONLY valid JSON:
 }`
 
         const msg = await ai.messages.create({
-          model: 'claude-sonnet-4-20250514', max_tokens: 2000,
+          model: 'claude-sonnet-4-6', max_tokens: 2000,
           system: 'You are KotoIQ competitive analyst. Return ONLY valid JSON.',
           messages: [{ role: 'user', content: gapPrompt }],
         })
-        void logTokenUsage({ feature: 'kotoiq_competitor_analysis', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+        void logTokenUsage({ feature: 'kotoiq_competitor_analysis', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
         const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
         gapAnalysis = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
       } catch { /* skip AI analysis */ }
@@ -2041,11 +2041,11 @@ Return the content in this format:
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514', max_tokens: 8000,
+        model: 'claude-sonnet-4-6', max_tokens: 8000,
         system: 'You are an expert SEO content writer. Write complete, publishable page content.',
         messages: [{ role: 'user', content: writePrompt }],
       })
-      void logTokenUsage({ feature: 'kotoiq_full_page_write', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+      void logTokenUsage({ feature: 'kotoiq_full_page_write', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
 
       const raw = msg.content[0].type === 'text' ? msg.content[0].text : ''
       const sections: Record<string, string> = {}
@@ -2217,11 +2217,11 @@ Return ONLY valid JSON array of schema objects (each one goes in its own <script
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        model: 'claude-sonnet-4-6', max_tokens: 3000,
         system: 'Generate production-ready JSON-LD schema. Return ONLY valid JSON array.',
         messages: [{ role: 'user', content: schemaPrompt }],
       })
-      void logTokenUsage({ feature: 'kotoiq_schema_gen', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+      void logTokenUsage({ feature: 'kotoiq_schema_gen', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
 
       const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
       const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
@@ -2272,11 +2272,11 @@ Return ONLY valid JSON array:
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514', max_tokens: 4000,
+        model: 'claude-sonnet-4-6', max_tokens: 4000,
         system: 'Write Google review responses. Return ONLY valid JSON array.',
         messages: [{ role: 'user', content: batchPrompt }],
       })
-      void logTokenUsage({ feature: 'kotoiq_batch_reviews', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+      void logTokenUsage({ feature: 'kotoiq_batch_reviews', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
 
       const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
       const responses = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
@@ -2363,11 +2363,11 @@ Return ONLY valid JSON:
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        model: 'claude-sonnet-4-6', max_tokens: 3000,
         system: 'Calculate realistic SEO ROI projections. Return ONLY valid JSON.',
         messages: [{ role: 'user', content: roiPrompt }],
       })
-      void logTokenUsage({ feature: 'kotoiq_roi_projections', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+      void logTokenUsage({ feature: 'kotoiq_roi_projections', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
 
       const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
       const projections = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
@@ -2767,7 +2767,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
         runNamedEntitySuggester(ai, { keyword, industry: client?.primary_service || '', business_name: client?.name || '', location: client?.industry || '' }),
       ])
 
-      void logTokenUsage({ feature: 'kotoiq_semantic_agents', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
+      void logTokenUsage({ feature: 'kotoiq_semantic_agents', model: 'claude-sonnet-4-6', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
 
       return NextResponse.json({ query_gap: queryGap, frame_analysis: frameAnalysis, entity_suggestions: entitySuggestions })
     } catch (e: any) {
@@ -2789,7 +2789,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
       const scored = await runTopicalityScorer(ai, { content: (filtered as any)?.cleaned_content || cleanedContent, keyword })
 
-      void logTokenUsage({ feature: 'kotoiq_content_polish', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
+      void logTokenUsage({ feature: 'kotoiq_content_polish', model: 'claude-sonnet-4-6', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
 
       return NextResponse.json({
         cleaned_content: (filtered as any)?.cleaned_content || cleanedContent,
@@ -2809,7 +2809,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
     try {
       const result = await runSemanticRoleLabeler(ai, { sentences, keyword, primary_entity })
 
-      void logTokenUsage({ feature: 'kotoiq_semantic_role', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
+      void logTokenUsage({ feature: 'kotoiq_semantic_role', model: 'claude-sonnet-4-6', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
 
       return NextResponse.json(result)
     } catch (e: any) {
@@ -2834,7 +2834,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
         location: client?.industry || '',
       })
 
-      void logTokenUsage({ feature: 'kotoiq_safe_answer', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
+      void logTokenUsage({ feature: 'kotoiq_safe_answer', model: 'claude-sonnet-4-6', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
 
       return NextResponse.json(result)
     } catch (e: any) {
@@ -4581,7 +4581,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
     try {
       const msg = await ai.messages.create({
-        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        model: 'claude-sonnet-4-6', max_tokens: 3000,
         system: `You are an expert SEO content writer. Generate ${count} distinct content variants for a page section module. Each variant must be unique in angle, tone, or structure while covering the same topic. Write in natural, human language — no AI slop.`,
         messages: [{ role: 'user', content: `Generate ${count} content variants for the "${module_label}" section.
 
@@ -4598,7 +4598,7 @@ PURPOSE: ${module_desc}
 Return ONLY valid JSON:
 { "variants": ["variant 1 content (200-400 words, HTML formatting allowed)", "variant 2 content ..."] }` }],
       })
-      void logTokenUsage({ feature: 'kotoiq_content_variant', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+      void logTokenUsage({ feature: 'kotoiq_content_variant', model: 'claude-sonnet-4-6', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
 
       const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
       const parsed = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
