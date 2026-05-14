@@ -51,7 +51,8 @@ import StrategyTab from '../components/kotoiq/StrategyTab'
 import ScorecardTab from '../components/kotoiq/ScorecardTab'
 import PageFactoryTab from '../components/kotoiq/PageFactoryTab'
 import { KotoIQDataProvider } from '../context/KotoIQDataContext'
-import DashboardLayout from '../components/kotoiq/dashboard/DashboardLayout'
+import KotoIQShell from '../components/kotoiq/dashboard/KotoIQShell'
+import CenterPane from '../components/kotoiq/dashboard/CenterPane'
 import CompetitorWatchTab from '../components/kotoiq/CompetitorWatchTab'
 import IntegrationsTab from '../components/kotoiq/IntegrationsTab'
 import BulkOperationsTab from '../components/kotoiq/BulkOperationsTab'
@@ -1523,24 +1524,33 @@ export default function KotoIQPage() {
           )}
 
           {/* ── Scrollable Content ────────────────────────────────── */}
-          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
+          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 0 }}>
 
           <KotoIQDataProvider clientId={clientId} agencyId={agencyId}>
 
-          {/* ── DASHBOARD — Variant C: 3-pane layout (SideNav + CenterPane + Inspector) ─
-                Replaces the legacy MissionControl/SECTIONS tile grid. Breaks
-                out of the parent scrollable's padding via negative margins so
-                the 3 panes can each manage their own padding. */}
+          {/* ── KotoIQ Shell (Phase 2) — wraps every tab with persistent SideNav
+                on the left and contextual Inspector on the right. Tab content
+                renders in the shell's main slot. */}
+          <KotoIQShell
+            clientId={clientId}
+            agencyId={agencyId}
+            clients={clients}
+            currentTab={tab}
+            onSwitchTab={setTab}
+          >
+
+          {/* Dashboard renders CenterPane directly (CenterPane brings its own
+                padding). Every other tab gets the legacy 28/40/48 padding
+                wrapper so existing components keep their expected layout. */}
+          <div style={tab === 'dashboard' ? { padding: 0 } : { padding: '28px 40px 48px' }}>
+
           {clientId && tab === 'dashboard' && (
-            <div style={{ margin: '-28px -40px -48px', minHeight: 'calc(100vh - 80px)' }}>
-              <DashboardLayout
-                clientId={clientId}
-                agencyId={agencyId}
-                clients={clients}
-                currentTab={tab}
-                onSwitchTab={setTab}
-              />
-            </div>
+            <CenterPane
+              clientId={clientId}
+              agencyId={agencyId}
+              clientName={(clients.find(c => c.id === clientId) || {}).name || ''}
+              onSwitchTab={setTab}
+            />
           )}
 
           {/* ── LEGACY LAUNCH PAD (hidden — replaced by MissionControl) ── */}
@@ -5206,6 +5216,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         )}
 
+          </div>
+          </KotoIQShell>
         </KotoIQDataProvider>
         </div>
       </div>
