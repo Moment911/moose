@@ -20,12 +20,22 @@ export async function GET(req: NextRequest) {
   // /seo/connect runs its own client-side OAuth + property picker. To keep a
   // single Google-registered redirect URI for the whole app, that page now
   // points its OAuth `redirect_uri` at this callback. Its state is a
-  // JSON-stringified `{clientId, ts}` (starts with `{`), distinct from the
-  // base64url-encoded GBP state. Detect and bounce back to the page with
-  // params intact — page handles token exchange + storage.
-  if (state.trimStart().startsWith('{')) {
+  // JSON-stringified `{clientId, ts}` (page double-URL-encodes it via
+  // encodeURIComponent + URLSearchParams), distinct from the base64url-
+  // encoded GBP state. Detect and bounce back to the page with params
+  // intact — page handles token exchange + storage.
+  //
+  // searchParams.get() decodes once, so an originally double-encoded JSON
+  // state arrives here as `%7B%22clientId%22...`. Decode once more before
+  // checking for the leading `{`. base64url state never contains `%`, so
+  // decode is safe and idempotent there.
+  let stateProbe = state
+  try { stateProbe = decodeURIComponent(state) } catch { /* ignore */ }
+  if (stateProbe.trimStart().startsWith('{')) {
     const dest = new URL('/seo/connect', url.origin)
     dest.searchParams.set('code', code)
+    // Forward the original (single-decoded) state so the page's existing
+    // `JSON.parse(decodeURIComponent(state))` keeps working unchanged.
     dest.searchParams.set('state', state)
     return NextResponse.redirect(dest)
   }
