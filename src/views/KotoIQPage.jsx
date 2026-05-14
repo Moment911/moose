@@ -51,6 +51,7 @@ import StrategyTab from '../components/kotoiq/StrategyTab'
 import ScorecardTab from '../components/kotoiq/ScorecardTab'
 import PageFactoryTab from '../components/kotoiq/PageFactoryTab'
 import { KotoIQDataProvider } from '../context/KotoIQDataContext'
+import DashboardLayout from '../components/kotoiq/dashboard/DashboardLayout'
 import CompetitorWatchTab from '../components/kotoiq/CompetitorWatchTab'
 import IntegrationsTab from '../components/kotoiq/IntegrationsTab'
 import BulkOperationsTab from '../components/kotoiq/BulkOperationsTab'
@@ -1526,20 +1527,20 @@ export default function KotoIQPage() {
 
           <KotoIQDataProvider clientId={clientId} agencyId={agencyId}>
 
-          {/* ── MISSION CONTROL — always shows on dashboard tab ── */}
+          {/* ── DASHBOARD — Variant C: 3-pane layout (SideNav + CenterPane + Inspector) ─
+                Replaces the legacy MissionControl/SECTIONS tile grid. Breaks
+                out of the parent scrollable's padding via negative margins so
+                the 3 panes can each manage their own padding. */}
           {clientId && tab === 'dashboard' && (
-            <MissionControl
-              clientId={clientId}
-              agencyId={agencyId}
-              clients={clients}
-              onSwitchTab={setTab}
-              onEditClient={(c) => { setEditingClient(c); setClientForm({ name: c?.name || '', website: c?.website || '', primary_service: c?.primary_service || '', location: '' }); setShowClientModal(true) }}
-              onRunQuickScan={runQuickScan}
-              onRunDeepEnrich={runDeepEnrich}
-              onRunSync={runSync}
-              syncing={syncing}
-              enriching={enriching}
-            />
+            <div style={{ margin: '-28px -40px -48px', minHeight: 'calc(100vh - 80px)' }}>
+              <DashboardLayout
+                clientId={clientId}
+                agencyId={agencyId}
+                clients={clients}
+                currentTab={tab}
+                onSwitchTab={setTab}
+              />
+            </div>
           )}
 
           {/* ── LEGACY LAUNCH PAD (hidden — replaced by MissionControl) ── */}
