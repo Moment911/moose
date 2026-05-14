@@ -76,6 +76,79 @@ import BudgetForecastTab from '../components/kotoiq/BudgetForecastTab'
 import BehaviorAnalyticsTab from '../components/kotoiq/BehaviorAnalyticsTab'
 import AgentQueueTab from '../components/kotoiq/AgentQueueTab'
 import AgentGoalsTab from '../components/kotoiq/AgentGoalsTab'
+import { getKeywordDataQuality, getBatchDataQuality } from '../lib/kotoiqDataQuality'
+
+// ── Data Quality indicator + banner ──────────────────────────────────────────
+// When computeOpportunityScore runs with mostly placeholder inputs, the score
+// looks meaningful but is mostly a function of the formula's defaults. These
+// surfaces let users see when that's happening and click straight to the fix.
+function DataQualityCell({ kw, score }) {
+  const q = getKeywordDataQuality(kw)
+  // Low quality → don't show the fake score; show "—" with a hover hint instead
+  if (q.hasInsufficientData) {
+    const missingLabels = q.missing.map(m => m.label).join(' · ')
+    return (
+      <span
+        title={`Score withheld — too many missing inputs (${q.pctReal}% real). Needs: ${missingLabels}.`}
+        style={{ fontSize: 12, color: '#c2410c', fontWeight: 600, cursor: 'help' }}
+      >—</span>
+    )
+  }
+  if (q.quality === 'medium') {
+    return (
+      <span title={`Partial data (${q.pctReal}% real inputs). Score is directional.`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <ScoreBadge score={score} label="" />
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d97706' }} />
+      </span>
+    )
+  }
+  return <ScoreBadge score={score} label="" />
+}
+
+function DataQualityBanner({ keywords, navigate }) {
+  const batch = getBatchDataQuality(keywords)
+  if (!batch || batch.lowQualityPct < 50) return null
+  return (
+    <div style={{
+      background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '12px 16px',
+      marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8,
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+    }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#9a3412' }}>
+        ⚠ {batch.lowQualityRows} of {batch.totalRows} rows are scoring on placeholder data
+      </div>
+      <div style={{ fontSize: 12, color: '#7c2d12', lineHeight: 1.5 }}>
+        These scores are mostly the formula's defaults, not real-world signal. Fix the missing inputs below to make them meaningful.
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+        {batch.topMissing.slice(0, 4).map(m => (
+          <div key={m.field} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+            padding: '8px 12px', background: '#fff', borderRadius: 8, border: '1px solid #fed7aa',
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#1f1f22' }}>
+                {m.label} <span style={{ color: '#8e8e93', fontWeight: 500 }}>missing on {m.rowsMissing} rows</span>
+              </div>
+              <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 2 }}>
+                {m.fixDetail}
+              </div>
+            </div>
+            <button
+              onClick={() => navigate(m.fixUrl)}
+              style={{
+                padding: '6px 12px', borderRadius: 6, border: '1px solid #fb923c', background: '#fff7ed',
+                fontSize: 11, fontWeight: 700, color: '#9a3412', cursor: 'pointer', whiteSpace: 'nowrap',
+              }}
+            >
+              {m.fixLabel} →
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -2051,6 +2124,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ fontSize: 18, fontWeight: 700, color: '#0a0a0a', letterSpacing: '-0.3px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Zap size={16} strokeWidth={1.75} color="#0a0a0a" /> Top Opportunities
                     </div>
+                    <DataQualityBanner keywords={d.top_opportunities} navigate={navigate} />
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid #ececef' }}>
@@ -2065,8 +2139,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           return (
                             <tr key={i} style={{ borderBottom: '1px solid #f1f1f6' }}>
                               <td style={{ padding: '12px 10px', fontSize: 14, fontWeight: 500, color: '#0a0a0a', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
-                              <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="Opp" /></td>
-                              <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.rank_propensity} label="Rank" /></td>
+                              <td style={{ textAlign: 'center' }}><DataQualityCell kw={kw} score={kw.opportunity_score} /></td>
+                              <td style={{ textAlign: 'center' }}><DataQualityCell kw={kw} score={kw.rank_propensity} /></td>
                               <td style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: kw.sc_position ? '#0a0a0a' : '#8e8e93' }}>{kw.sc_position ? `#${Math.round(kw.sc_position)}` : '—'}</td>
                               <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.volume ? fmtN(kw.volume) : '—'}</td>
                               <td style={{ textAlign: 'center', fontSize: 13, color: '#1f1f22' }}>{kw.ads_spend ? fmt$(kw.ads_spend) : '—'}</td>
@@ -2161,6 +2235,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 running={syncing}
               />
             </div>
+            <DataQualityBanner keywords={keywords} navigate={navigate} />
             {/* Filters */}
             <div style={{
               background: '#fff', borderRadius: 16, border: '1px solid #ececef',
@@ -2245,8 +2320,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         onMouseEnter={e => e.currentTarget.style.background = '#f9f9fb'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <td style={{ padding: '12px 10px', fontSize: 14, fontWeight: 500, color: '#0a0a0a', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
-                        <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="" /></td>
-                        <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.rank_propensity} label="" /></td>
+                        <td style={{ textAlign: 'center' }}><DataQualityCell kw={kw} score={kw.opportunity_score} /></td>
+                        <td style={{ textAlign: 'center' }}><DataQualityCell kw={kw} score={kw.rank_propensity} /></td>
                         <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, color: kw.sc_avg_position ? '#0a0a0a' : '#8e8e93' }}>
                           {kw.sc_avg_position ? `#${Math.round(kw.sc_avg_position * 10) / 10}` : '—'}
                         </td>
