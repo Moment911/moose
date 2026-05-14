@@ -53,6 +53,11 @@ export async function GET(req: NextRequest) {
   })
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+  // /api/kotoiq POST now requires auth — pass our CRON_SECRET as the trusted
+  // internal-caller marker so the auth gate lets us through.
+  const internalAuth: Record<string, string> = process.env.CRON_SECRET
+    ? { Authorization: `Bearer ${process.env.CRON_SECRET}` }
+    : {}
   const triggered: string[] = []
   const skipped: { client_id: string; reason: string }[] = []
 
@@ -62,7 +67,7 @@ export async function GET(req: NextRequest) {
       // and processes waves in a background promise. So we can iterate fast.
       const res = await fetch(`${appUrl}/api/kotoiq`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...internalAuth },
         body: JSON.stringify({
           action: 'run_all_audits',
           client_id: c.id,

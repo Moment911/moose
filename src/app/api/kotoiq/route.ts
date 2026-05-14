@@ -75,6 +75,7 @@ import { autoTriggerSync } from '@/lib/ads/autoTriggerSync'
 import { analyzePageGaps, saveSuggestions } from '@/lib/builder/pageGapEngine'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
+import { verifySession } from '@/lib/apiAuth'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -376,6 +377,41 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { action } = body
   const s = sb()
+
+  // ── AUTH: Require a verified session OR a trusted internal/cron caller. ──
+  // Internal callers (run_all_audits wave runner, weekly-launch-all cron)
+  // pass Authorization: Bearer ${CRON_SECRET}. Everyone else must be a
+  // logged-in user; their agency_id is taken from the session, never the
+  // body. Non-super-admins additionally must own body.client_id.
+  const authHeader = req.headers.get('authorization')
+  const cronSecret = process.env.CRON_SECRET
+  const isInternal = !!cronSecret && authHeader === `Bearer ${cronSecret}`
+
+  if (!isInternal) {
+    const ctx = await verifySession(req, body)
+    if (!ctx.verified) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    // Source-of-truth agency_id — overwrites whatever the client sent.
+    // Super-admin impersonation already handled inside verifySession via
+    // x-koto-agency-id header.
+    body.agency_id = ctx.agencyId
+
+    // Agency-ownership check: a logged-in user cannot operate on a client
+    // outside their agency. Super-admins are exempt — they can act on any
+    // agency they have impersonated.
+    if (body.client_id && !ctx.isSuperAdmin) {
+      const { data: ownerRow } = await s.from('clients')
+        .select('agency_id, deleted_at').eq('id', body.client_id).maybeSingle()
+      if (!ownerRow || ownerRow.deleted_at) {
+        return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+      }
+      if (ownerRow.agency_id !== ctx.agencyId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+  }
+  // ── END AUTH ──────────────────────────────────────────────────────────
 
   // ── VALIDATE_CONNECTIONS: Probe each connected provider's API to confirm
   // tokens still work and surface last-synced timestamp. Read-only.
@@ -5049,12 +5085,17 @@ Return ONLY valid JSON:
 
     // Fire-and-forget: run all waves in background
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+    // CRON_SECRET-authed internal call — the POST handler's auth gate
+    // bypasses session checks for this header (see /api/kotoiq POST top).
+    const internalAuth: Record<string, string> = process.env.CRON_SECRET
+      ? { Authorization: `Bearer ${process.env.CRON_SECRET}` }
+      : {}
     const runBackground = async () => {
       const callAction = async (act: string, extra: Record<string, any> = {}) => {
         try {
           const res = await fetch(`${appUrl}/api/kotoiq`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...internalAuth },
             body: JSON.stringify({ action: act, client_id, agency_id, ...extra }),
             signal: AbortSignal.timeout(120000),
           })
