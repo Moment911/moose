@@ -30,6 +30,33 @@ function percentile(value: number, nums: number[]): number {
   return Math.round((below / clean.length) * 100)
 }
 
+// Compute a percentile lookup table for a distribution. Returns the value at
+// p5, p10, p15, …, p95. This lets us answer "where does this client rank?"
+// without keeping every client's individual score in published benchmarks
+// (which would let anyone re-identify competitors via side channels).
+function percentileBuckets(nums: number[]): Record<string, number> {
+  const clean = nums.filter(n => typeof n === 'number' && !isNaN(n) && isFinite(n)).sort((a, b) => a - b)
+  if (clean.length === 0) return {}
+  const buckets: Record<string, number> = {}
+  for (let p = 5; p <= 95; p += 5) {
+    const idx = Math.min(clean.length - 1, Math.floor((p / 100) * clean.length))
+    buckets[`p${p}`] = Number(clean[idx].toFixed(2))
+  }
+  return buckets
+}
+
+// Reverse lookup: given a client value and a bucket table, return what
+// percentile the client sits at. Linear search over a fixed 19-entry table.
+function percentileFromBuckets(value: number, buckets: Record<string, number>): number {
+  if (!buckets || Object.keys(buckets).length === 0) return 0
+  let highestPctBelow = 0
+  for (let p = 5; p <= 95; p += 5) {
+    const cutoff = buckets[`p${p}`]
+    if (cutoff != null && value >= cutoff) highestPctBelow = p
+  }
+  return highestPctBelow
+}
+
 function normalizeIndustry(s: string | null): string {
   if (!s) return 'other'
   return String(s).toLowerCase().trim().slice(0, 60) || 'other'
@@ -118,14 +145,18 @@ export async function calculateIndustryBenchmarks(s: SupabaseClient, _ai?: Anthr
       median_da: Number(median(das).toFixed(2)),
       median_backlink_count: Math.round(median(blCounts)),
       benchmarks_json: {
-        raw: {
-          authority_scores: authScores,
-          eeat_scores: eeatScores,
-          refresh_days: refreshDays,
-          publishing_velocity: publishVelocity,
-          schema_coverages: schemaCoverages,
-          das,
-          backlink_counts: blCounts,
+        // Per-metric percentile lookup tables (p5..p95 in 5pt buckets) replace
+        // the prior `raw` arrays. This preserves percentile rankings for
+        // clients while preventing competitor deanonymization via the raw
+        // distribution. 19 values per metric instead of N samples.
+        percentile_buckets: {
+          authority_scores: percentileBuckets(authScores),
+          eeat_scores: percentileBuckets(eeatScores),
+          refresh_days: percentileBuckets(refreshDays),
+          publishing_velocity: percentileBuckets(publishVelocity),
+          schema_coverages: percentileBuckets(schemaCoverages),
+          das: percentileBuckets(das),
+          backlink_counts: percentileBuckets(blCounts),
         },
         computed_at: new Date().toISOString(),
       },
@@ -204,17 +235,26 @@ export async function getBenchmarkForClient(
     backlink_count: Number(bl.data?.total_backlinks) || 0,
   }
 
-  // Percentile rankings using distribution stored in benchmarks_json.raw
-  const raw = (benchmark.benchmarks_json as any)?.raw || {}
+  // Percentile rankings — prefer the new percentile_buckets shape; fall back
+  // to raw arrays for benchmark rows written before the privacy fix landed.
+  // Old rows roll over on the next calculateIndustryBenchmarks() run.
+  const meta = (benchmark.benchmarks_json as any) || {}
+  const buckets = meta.percentile_buckets
+  const raw = meta.raw // legacy
+  const pct = (clientValue: number, metricKey: string): number => {
+    if (buckets?.[metricKey]) return percentileFromBuckets(clientValue, buckets[metricKey])
+    if (raw?.[metricKey]) return percentile(clientValue, raw[metricKey])
+    return 0
+  }
   const percentiles = {
-    authority_score: percentile(clientMetrics.authority_score, raw.authority_scores || []),
-    eeat_score: percentile(clientMetrics.eeat_score, raw.eeat_scores || []),
+    authority_score: pct(clientMetrics.authority_score, 'authority_scores'),
+    eeat_score: pct(clientMetrics.eeat_score, 'eeat_scores'),
     // Lower refresh_days is better — invert
-    content_freshness: 100 - percentile(clientMetrics.content_refresh_days, raw.refresh_days || []),
-    publishing_velocity: percentile(clientMetrics.publishing_velocity, raw.publishing_velocity || []),
-    schema_coverage: percentile(clientMetrics.schema_coverage_pct, raw.schema_coverages || []),
-    domain_authority: percentile(clientMetrics.domain_authority, raw.das || []),
-    backlink_count: percentile(clientMetrics.backlink_count, raw.backlink_counts || []),
+    content_freshness: 100 - pct(clientMetrics.content_refresh_days, 'refresh_days'),
+    publishing_velocity: pct(clientMetrics.publishing_velocity, 'publishing_velocity'),
+    schema_coverage: pct(clientMetrics.schema_coverage_pct, 'schema_coverages'),
+    domain_authority: pct(clientMetrics.domain_authority, 'das'),
+    backlink_count: pct(clientMetrics.backlink_count, 'backlink_counts'),
   }
 
   return {
