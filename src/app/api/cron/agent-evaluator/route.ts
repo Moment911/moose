@@ -59,7 +59,8 @@ function cronMatchesNow(scheduleCron: string | null): boolean {
 export async function GET(req: NextRequest) {
   // Auth — same pattern as /api/cron/competitor-watch
   const auth = req.headers.get('authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}` && process.env.NODE_ENV === 'production') {
+  const secret = process.env.CRON_SECRET
+  if (secret && auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
