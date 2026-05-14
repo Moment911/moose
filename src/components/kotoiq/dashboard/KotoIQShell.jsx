@@ -164,34 +164,54 @@ export default function KotoIQShell({ clientId, agencyId, clients, currentTab, o
         />
       )}
 
+      {navOpen && (
+        <button
+          onClick={() => setNavOpen(false)}
+          style={S.collapseHandleLeft}
+          title="Collapse navigation"
+        >
+          ‹
+        </button>
+      )}
+
+      {!navOpen && (
+        <button
+          onClick={() => setNavOpen(true)}
+          style={S.expandHandleLeft}
+          title="Show navigation"
+        >
+          ›
+        </button>
+      )}
+
       <main style={S.main}>
         {children}
       </main>
 
-      {showInspector && inspectorOpen && !veryNarrow && (
+      {showInspector && inspectorOpen && (
+        <button
+          onClick={() => setInspectorOpen(false)}
+          style={S.collapseHandleRight}
+          title="Collapse inspector"
+        >
+          ›
+        </button>
+      )}
+
+      {showInspector && inspectorOpen && (
         <Inspector
           clientId={clientId}
           onSwitchTab={onSwitchTab}
         />
       )}
 
-      {showInspector && narrowScreen && !veryNarrow && (
+      {showInspector && !inspectorOpen && (
         <button
-          onClick={() => setInspectorOpen(o => !o)}
-          style={S.toggleInspector}
-          title={inspectorOpen ? 'Hide Inspector' : 'Show Inspector'}
+          onClick={() => setInspectorOpen(true)}
+          style={S.expandHandleRight}
+          title="Show inspector"
         >
-          {inspectorOpen ? '›' : '‹'}
-        </button>
-      )}
-
-      {veryNarrow && (
-        <button
-          onClick={() => setNavOpen(o => !o)}
-          style={S.toggleNav}
-          title={navOpen ? 'Hide Nav' : 'Show Nav'}
-        >
-          ☰
+          ‹
         </button>
       )}
 
@@ -210,37 +230,81 @@ const S = {
   },
   main: {
     flex: 1,
-    minWidth: 0, // Allow children to shrink properly inside flex
+    minWidth: 0,
     overflowY: 'auto',
     height: '100%',
     background: '#FCFCFA',
   },
-  toggleInspector: {
-    position: 'fixed',
-    right: 8,
-    top: 80,
-    width: 28, height: 28,
+  // Collapse handle anchored INSIDE the rail container (floats on the inner edge)
+  collapseHandleLeft: {
+    position: 'absolute',
+    right: -10, top: 20,
+    width: 20, height: 20,
     borderRadius: '50%',
     border: '1px solid #E8E6E1',
     background: '#FFFFFF',
     color: '#6B6B70',
-    fontSize: 14,
+    fontSize: 12,
+    fontWeight: 600,
     cursor: 'pointer',
-    boxShadow: '0 2px 4px rgba(0,0,0,.08)',
-    zIndex: 5,
+    boxShadow: '0 1px 3px rgba(0,0,0,.06)',
+    zIndex: 6,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
   },
-  toggleNav: {
-    position: 'fixed',
-    left: 8,
-    top: 80,
-    width: 32, height: 32,
+  collapseHandleRight: {
+    position: 'absolute',
+    left: -10, top: 20,
+    width: 20, height: 20,
     borderRadius: '50%',
     border: '1px solid #E8E6E1',
     background: '#FFFFFF',
-    color: '#0A0A0A',
-    fontSize: 14,
+    color: '#6B6B70',
+    fontSize: 12,
+    fontWeight: 600,
     cursor: 'pointer',
-    boxShadow: '0 2px 4px rgba(0,0,0,.08)',
-    zIndex: 5,
+    boxShadow: '0 1px 3px rgba(0,0,0,.06)',
+    zIndex: 6,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+  },
+  // Expand handle when rail is collapsed — thin vertical bar at the edge
+  expandHandleLeft: {
+    width: 16,
+    flexShrink: 0,
+    background: '#F5F4F2',
+    borderRight: '1px solid #E8E6E1',
+    color: '#6B6B70',
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: 'pointer',
+    border: 'none',
+    padding: 0,
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingTop: 22,
+    fontFamily: SF,
+  },
+  expandHandleRight: {
+    width: 16,
+    flexShrink: 0,
+    background: '#F5F4F2',
+    borderLeft: '1px solid #E8E6E1',
+    color: '#6B6B70',
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: 'pointer',
+    border: 'none',
+    padding: 0,
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingTop: 22,
+    fontFamily: SF,
   },
 }

@@ -1241,10 +1241,11 @@ export default function KotoIQPage() {
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
 
-            {/* Update split button — primary action picks the smart default
-                 (Sync if Google connected, else Quick Scan); chevron exposes
-                 all three explicit options for advanced users. */}
-            {clientId && (() => {
+            {/* Update split button — LEGACY (replaced by Launch All in SideNav).
+                 Disabled under `false &&` so the header is cleaner; the new shell
+                 owns the primary scan/sync action. Safe to delete in a follow-up
+                 commit once the new shell is proven in prod. */}
+            {false && clientId && (() => {
               const hasGoogle = connections.some(x => x.connected && ['search_console', 'analytics', 'ads', 'gmb'].includes(x.provider))
               const busy = syncing || enriching
               const primaryAction = hasGoogle ? runSync : () => {
@@ -1340,8 +1341,11 @@ export default function KotoIQPage() {
         {/* ── Main content area with sidebar nav ────────────────── */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-          {/* ── Left sidebar nav (Cal-AI redesign) ──────────────────── */}
-          {clientId && (
+          {/* ── Left sidebar nav (LEGACY — replaced by KotoIQShell SideNav).
+                Kept under `false &&` so the JSX structure stays valid and the
+                old code is preserved for reference / fallback. Safe to delete
+                in a follow-up commit once the new shell is proven in prod. */}
+          {false && clientId && (
             <div style={{ width: 220, flexShrink: 0, borderRight: '1px solid #ececef', background: '#ffffff', overflowY: 'auto', padding: '12px 0', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
               {/* Pinned primary jobs — the 5 things you actually do */}
               <div style={{ padding: '0 12px', marginBottom: 8 }}>
