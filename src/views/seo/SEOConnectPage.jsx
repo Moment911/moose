@@ -87,12 +87,19 @@ export default function SEOConnectPage() {
     setConnections(data || [])
   }
 
+  // Single shared OAuth redirect URI — all Google flows in this app land at
+  // the GBP-OAuth callback, which 302-passthroughs JSON-state (this page's
+  // flow) back here while still handling base64url-state (the dedicated GBP
+  // agency-OAuth flow) inline. That way GCP only needs ONE redirect URI
+  // registered: /api/kotoiq/profile/oauth_gbp/callback.
+  const OAUTH_REDIRECT_PATH = '/api/kotoiq/profile/oauth_gbp/callback'
+
   async function startGoogleOAuth() {
     if (!selectedClient) { toast.error('Select a client first'); return }
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim()
     if (!clientId) { toast.error('NEXT_PUBLIC_GOOGLE_CLIENT_ID not configured'); return }
 
-    const redirectUri = window.location.origin + '/seo/connect'
+    const redirectUri = window.location.origin + OAUTH_REDIRECT_PATH
     const state = encodeURIComponent(JSON.stringify({ clientId: selectedClient, ts: Date.now() }))
     const params = new URLSearchParams({
       client_id: clientId, redirect_uri: redirectUri, response_type: 'code',
@@ -105,7 +112,8 @@ export default function SEOConnectPage() {
     setConnecting(true)
     toast.loading('Exchanging tokens…', { id: 'oauth' })
     try {
-      const redirectUri = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim() + '/seo/connect'
+      // Token exchange MUST send the same redirect_uri Google saw at consent.
+      const redirectUri = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim() + OAUTH_REDIRECT_PATH
       const res    = await fetch('/api/seo/google-exchange', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

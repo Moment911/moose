@@ -9,16 +9,31 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  const session = await verifySession(req, {})
-  if (!session.verified || !session.agencyId) {
-    return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
-  }
-
   const url = new URL(req.url)
   const code = url.searchParams.get('code')
   const state = url.searchParams.get('state')
   if (!code || !state) {
     return NextResponse.json({ error: 'missing_code_or_state' }, { status: 400 })
+  }
+
+  // ── PASSTHROUGH: SEOConnectPage flow ───────────────────────────────────
+  // /seo/connect runs its own client-side OAuth + property picker. To keep a
+  // single Google-registered redirect URI for the whole app, that page now
+  // points its OAuth `redirect_uri` at this callback. Its state is a
+  // JSON-stringified `{clientId, ts}` (starts with `{`), distinct from the
+  // base64url-encoded GBP state. Detect and bounce back to the page with
+  // params intact — page handles token exchange + storage.
+  if (state.trimStart().startsWith('{')) {
+    const dest = new URL('/seo/connect', url.origin)
+    dest.searchParams.set('code', code)
+    dest.searchParams.set('state', state)
+    return NextResponse.redirect(dest)
+  }
+  // ── END PASSTHROUGH ────────────────────────────────────────────────────
+
+  const session = await verifySession(req, {})
+  if (!session.verified || !session.agencyId) {
+    return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
   }
 
   const cookieStore = await cookies()
