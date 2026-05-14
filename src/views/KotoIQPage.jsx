@@ -1541,6 +1541,7 @@ export default function KotoIQPage() {
             clients={clients}
             currentTab={tab}
             onSwitchTab={setTab}
+            onSwitchClient={(id) => setClientId(id)}
           >
 
           {/* Dashboard renders CenterPane directly (CenterPane brings its own
@@ -5267,17 +5268,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         </div>
       )}
-      {/* Conversational Bot — global overlay across all KotoIQ tabs */}
-      <ConversationalBot
-        clientId={clientId}
-        clientName={clients.find(c => c.id === clientId)?.name || ''}
-        agencyId={agencyId}
-        currentTab={tab}
-        onSwitchTab={handleBotSwitchTab}
-        onSwitchClient={(id) => setClientId(id)}
-        clients={clients}
-        onRequestNewClient={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
-      />
+      {/* Conversational Bot — REMOVED from floating overlay. The Ask KotoIQ
+          experience is now an explicit tab opened from the SideNav ('Ask
+          KotoIQ' under Overview). Keeping the import live in case we want
+          to revive the floating widget behind a feature flag. */}
 
       {/* ⌘K Command Palette — fuzzy search across all 60 tools */}
       {cmdOpen && (

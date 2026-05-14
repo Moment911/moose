@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback, useRef } from 'react'
 import toast from 'react-hot-toast'
+import { PanelLeftClose, PanelLeft, PanelRightClose, PanelRight } from 'lucide-react'
 import SideNav from './SideNav'
 import Inspector from './Inspector'
 import { useKotoIQData } from '../../../context/KotoIQDataContext'
@@ -52,7 +53,7 @@ const INSPECTOR_TABS = new Set([
   'roi',
 ])
 
-export default function KotoIQShell({ clientId, agencyId, clients, currentTab, onSwitchTab, children }) {
+export default function KotoIQShell({ clientId, agencyId, clients, currentTab, onSwitchTab, onSwitchClient, children }) {
   const { bumpRefresh, freshness } = useKotoIQData()
   const [launching, setLaunching] = useState(false)
   const pollRef = useRef(null)
@@ -150,37 +151,39 @@ export default function KotoIQShell({ clientId, agencyId, clients, currentTab, o
   return (
     <div style={S.shell}>
 
-      {navOpen && (
-        <SideNav
-          currentTab={currentTab}
-          onSwitchTab={(t) => {
-            onSwitchTab && onSwitchTab(t)
-            if (veryNarrow) setNavOpen(false)
-          }}
-          clientName={clientName}
-          onLaunchAll={launchAll}
-          launching={launching}
-          lastSyncedAgo={lastSyncedAgo}
-        />
-      )}
-
-      {navOpen && (
-        <button
-          onClick={() => setNavOpen(false)}
-          style={S.collapseHandleLeft}
-          title="Collapse navigation"
-        >
-          ‹
-        </button>
-      )}
-
-      {!navOpen && (
+      {navOpen ? (
+        <div style={S.railLeftWrap}>
+          <SideNav
+            currentTab={currentTab}
+            onSwitchTab={(t) => {
+              onSwitchTab && onSwitchTab(t)
+              if (veryNarrow) setNavOpen(false)
+            }}
+            clientName={clientName}
+            clients={clients}
+            clientId={clientId}
+            onSwitchClient={onSwitchClient}
+            onLaunchAll={launchAll}
+            launching={launching}
+            lastSyncedAgo={lastSyncedAgo}
+          />
+          <button
+            onClick={() => setNavOpen(false)}
+            style={S.toggleIconLeft}
+            title="Hide sidebar"
+            aria-label="Hide sidebar"
+          >
+            <PanelLeftClose size={15} strokeWidth={1.75} color="#6B6B70" />
+          </button>
+        </div>
+      ) : (
         <button
           onClick={() => setNavOpen(true)}
-          style={S.expandHandleLeft}
-          title="Show navigation"
+          style={S.collapsedStripLeft}
+          title="Show sidebar"
+          aria-label="Show sidebar"
         >
-          ›
+          <PanelLeft size={15} strokeWidth={1.75} color="#6B6B70" />
         </button>
       )}
 
@@ -188,32 +191,31 @@ export default function KotoIQShell({ clientId, agencyId, clients, currentTab, o
         {children}
       </main>
 
-      {showInspector && inspectorOpen && (
-        <button
-          onClick={() => setInspectorOpen(false)}
-          style={S.collapseHandleRight}
-          title="Collapse inspector"
-        >
-          ›
-        </button>
-      )}
-
-      {showInspector && inspectorOpen && (
-        <Inspector
-          clientId={clientId}
-          onSwitchTab={onSwitchTab}
-        />
-      )}
-
-      {showInspector && !inspectorOpen && (
+      {showInspector && (inspectorOpen ? (
+        <div style={S.railRightWrap}>
+          <button
+            onClick={() => setInspectorOpen(false)}
+            style={S.toggleIconRight}
+            title="Hide inspector"
+            aria-label="Hide inspector"
+          >
+            <PanelRightClose size={15} strokeWidth={1.75} color="#6B6B70" />
+          </button>
+          <Inspector
+            clientId={clientId}
+            onSwitchTab={onSwitchTab}
+          />
+        </div>
+      ) : (
         <button
           onClick={() => setInspectorOpen(true)}
-          style={S.expandHandleRight}
+          style={S.collapsedStripRight}
           title="Show inspector"
+          aria-label="Show inspector"
         >
-          ‹
+          <PanelRight size={15} strokeWidth={1.75} color="#6B6B70" />
         </button>
-      )}
+      ))}
 
     </div>
   )
@@ -235,76 +237,76 @@ const S = {
     height: '100%',
     background: '#FCFCFA',
   },
-  // Collapse handle anchored INSIDE the rail container (floats on the inner edge)
-  collapseHandleLeft: {
+  // Wraps the SideNav so we can position the toggle icon inside the rail
+  railLeftWrap: {
+    position: 'relative',
+    display: 'flex',
+    flexShrink: 0,
+    height: '100%',
+  },
+  railRightWrap: {
+    position: 'relative',
+    display: 'flex',
+    flexShrink: 0,
+    height: '100%',
+  },
+  // Subtle sidebar-toggle icon button anchored top-right of left rail
+  toggleIconLeft: {
     position: 'absolute',
-    right: -10, top: 20,
-    width: 20, height: 20,
-    borderRadius: '50%',
-    border: '1px solid #E8E6E1',
-    background: '#FFFFFF',
-    color: '#6B6B70',
-    fontSize: 12,
-    fontWeight: 600,
+    top: 14,
+    right: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    border: 'none',
+    background: 'transparent',
     cursor: 'pointer',
-    boxShadow: '0 1px 3px rgba(0,0,0,.06)',
-    zIndex: 6,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 0,
-  },
-  collapseHandleRight: {
-    position: 'absolute',
-    left: -10, top: 20,
-    width: 20, height: 20,
-    borderRadius: '50%',
-    border: '1px solid #E8E6E1',
-    background: '#FFFFFF',
-    color: '#6B6B70',
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: 'pointer',
-    boxShadow: '0 1px 3px rgba(0,0,0,.06)',
     zIndex: 6,
+  },
+  // Subtle sidebar-toggle icon button anchored top-left of right rail
+  toggleIconRight: {
+    position: 'absolute',
+    top: 22,
+    left: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 0,
+    zIndex: 6,
   },
-  // Expand handle when rail is collapsed — thin vertical bar at the edge
-  expandHandleLeft: {
-    width: 16,
+  // Collapsed-state thin strip — full height, subtle, click anywhere to expand
+  collapsedStripLeft: {
+    width: 28,
     flexShrink: 0,
     background: '#F5F4F2',
     borderRight: '1px solid #E8E6E1',
-    color: '#6B6B70',
-    fontSize: 14,
-    fontWeight: 700,
     cursor: 'pointer',
     border: 'none',
-    padding: 0,
+    padding: '14px 0 0',
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    paddingTop: 22,
-    fontFamily: SF,
   },
-  expandHandleRight: {
-    width: 16,
+  collapsedStripRight: {
+    width: 28,
     flexShrink: 0,
     background: '#F5F4F2',
     borderLeft: '1px solid #E8E6E1',
-    color: '#6B6B70',
-    fontSize: 14,
-    fontWeight: 700,
     cursor: 'pointer',
     border: 'none',
-    padding: 0,
+    padding: '22px 0 0',
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    paddingTop: 22,
-    fontFamily: SF,
   },
 }

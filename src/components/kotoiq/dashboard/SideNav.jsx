@@ -5,6 +5,7 @@ import {
   Target, Shield, Eye, Globe, Map, Brain, Sparkles, Link2,
   GitBranch, Layers, FileText, Zap, RefreshCw, Calendar,
   Activity, Code, Star, ImageIcon, Grid, Settings, DollarSign,
+  MessageCircle, Check,
 } from 'lucide-react'
 import { useKotoIQData } from '../../../context/KotoIQDataContext'
 
@@ -24,6 +25,7 @@ const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 
 const NAV_GROUPS = [
   { label: 'Overview', items: [
     { id: 'dashboard',         label: 'Dashboard',         tab: 'dashboard',         icon: BarChart2 },
+    { id: 'ask',               label: 'Ask KotoIQ',        tab: 'ask',               icon: MessageCircle },
     { id: 'keywords',          label: 'Keywords',          tab: 'keywords',          icon: Search },
     { id: 'authority',         label: 'Authority Score',   tab: 'topical_authority', icon: Award },
   ]},
@@ -77,15 +79,18 @@ export default function SideNav({
   currentTab = 'dashboard',
   onSwitchTab,
   clientName,
+  clients = [],
+  clientId,
+  onSwitchClient,
   onLaunchAll,
   launching,
   lastSyncedAgo,
 }) {
-  // Sections collapsed/expanded state — by default first 3 are open
   const [collapsed, setCollapsed] = useState({
     'Local & Reviews': true,
     'Reports & Tools': false,
   })
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const toggle = (label) => setCollapsed(p => ({ ...p, [label]: !p[label] }))
 
@@ -93,10 +98,44 @@ export default function SideNav({
     <aside style={S.aside}>
       <div style={S.brand}>KotoIQ</div>
 
-      <button type="button" style={S.clientPicker} title={clientName || 'No client selected'}>
-        <span style={S.clientName}>{clientName || 'Select client'}</span>
-        <ChevronDown size={12} color="#9CA3AF" />
-      </button>
+      {/* Client picker — clicking opens a dropdown of all clients for this agency */}
+      <div style={{ position: 'relative' }}>
+        <button
+          type="button"
+          style={S.clientPicker}
+          onClick={() => setPickerOpen(o => !o)}
+          title={clientName || 'No client selected'}
+        >
+          <span style={S.clientName}>{clientName || 'Select client'}</span>
+          <ChevronDown size={12} color="#9CA3AF" style={{ transform: pickerOpen ? 'rotate(180deg)' : 'none', transition: 'transform 120ms' }} />
+        </button>
+        {pickerOpen && (
+          <>
+            <div onClick={() => setPickerOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+            <div style={S.pickerMenu}>
+              {(clients || []).length === 0 && (
+                <div style={{ padding: '10px 14px', fontSize: 12, color: '#9CA3AF' }}>No clients</div>
+              )}
+              {(clients || []).map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => {
+                    onSwitchClient && onSwitchClient(c.id)
+                    setPickerOpen(false)
+                  }}
+                  style={{
+                    ...S.pickerItem,
+                    ...(c.id === clientId ? S.pickerItemActive : null),
+                  }}
+                >
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name || 'Untitled'}</span>
+                  {c.id === clientId && <Check size={12} color="#0E7C7B" />}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
       <button type="button" onClick={onLaunchAll} disabled={launching} style={{
         ...S.launchBtn,
@@ -209,6 +248,41 @@ const S = {
     justifyContent: 'space-between',
     marginBottom: 10,
     textAlign: 'left',
+  },
+  pickerMenu: {
+    position: 'absolute',
+    top: '100%',
+    left: 0, right: 0,
+    marginTop: 4,
+    background: 'white',
+    border: '1px solid ' + COLORS.rule,
+    borderRadius: 8,
+    boxShadow: '0 8px 24px rgba(0,0,0,.10)',
+    maxHeight: 320,
+    overflowY: 'auto',
+    zIndex: 41,
+    padding: 4,
+  },
+  pickerItem: {
+    width: '100%',
+    background: 'transparent',
+    border: 'none',
+    padding: '8px 10px',
+    fontSize: 13,
+    fontWeight: 500,
+    color: COLORS.text,
+    fontFamily: SF,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 6,
+    textAlign: 'left',
+  },
+  pickerItemActive: {
+    background: COLORS.tealBg,
+    color: COLORS.teal,
+    fontWeight: 600,
   },
   clientName: {
     overflow: 'hidden',

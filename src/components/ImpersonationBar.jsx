@@ -163,17 +163,10 @@ export default function ImpersonationBar() {
               </select>
             </>
           )}
-          {viewingAgency && clients.length > 0 && (
-            <>
-              <span style={{ opacity: .5, whiteSpace: 'nowrap' }}>View client:</span>
-              <select onChange={handleClientSelect} value="" style={selectStyle}>
-                <option value="" style={{ color: '#111' }}>Select client...</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.name}</option>
-                ))}
-              </select>
-            </>
-          )}
+          {/* "View client" dropdown removed — each app section (KotoIQ
+              SideNav, Clients page, Onboarding dashboard) now provides
+              its own context-appropriate client switcher, making this
+              top-bar selector redundant. */}
         </div>
 
         {/* Right — Exit buttons */}
