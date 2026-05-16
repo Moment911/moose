@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   Activity, Loader2, RefreshCw, Filter, ExternalLink,
   AlertCircle, TrendingUp, TrendingDown, Globe, DollarSign,
-  Youtube, Megaphone, Mail, Sparkles, Eye, Clock, ChevronDown, ChevronUp,
+  Play, Megaphone, Mail, Sparkles, Eye, Clock, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import HowItWorks from './HowItWorks'
 
@@ -28,7 +28,7 @@ const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)'
 const SOURCE_META = {
   page_change: { label: 'Page change', color: PINK,      Icon: Globe },
   pricing:     { label: 'Pricing',     color: WARNING,   Icon: DollarSign },
-  youtube:     { label: 'YouTube',     color: '#FF0000', Icon: Youtube },
+  youtube:     { label: 'YouTube',     color: '#FF0000', Icon: Play },
   ad:          { label: 'Ad',          color: INFO,      Icon: Megaphone },
   email:       { label: 'Newsletter',  color: TEAL,      Icon: Mail },
   aeo:         { label: 'AEO',         color: '#a78bfa', Icon: Sparkles },

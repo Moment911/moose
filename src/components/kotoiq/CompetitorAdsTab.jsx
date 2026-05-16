@@ -2,8 +2,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
   Megaphone, Loader2, RefreshCw, Search, Filter, ExternalLink,
-  Image as ImageIcon, Calendar, DollarSign, Facebook, Instagram,
-  MessageCircle, Globe, Plus,
+  Image as ImageIcon, Calendar, DollarSign,
+  MessageCircle, Globe, Plus, Camera, Users as Network,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import HowItWorks from './HowItWorks'
@@ -25,10 +25,10 @@ const INFO = '#2563EB'
 const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)'
 
 const PLATFORM_META = {
-  facebook:           { label: 'Facebook',    color: '#1877F2', Icon: Facebook },
-  instagram:          { label: 'Instagram',   color: '#E1306C', Icon: Instagram },
+  facebook:           { label: 'Facebook',    color: '#1877F2', Icon: Globe },
+  instagram:          { label: 'Instagram',   color: '#E1306C', Icon: Camera },
   messenger:          { label: 'Messenger',   color: '#00B2FF', Icon: MessageCircle },
-  audience_network:   { label: 'Audience Net', color: '#7B8A9C', Icon: Globe },
+  audience_network:   { label: 'Audience Net', color: '#7B8A9C', Icon: Network },
   threads:            { label: 'Threads',     color: INK,        Icon: Globe },
 }
 

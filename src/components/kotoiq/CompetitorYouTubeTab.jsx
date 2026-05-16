@@ -1,9 +1,11 @@
 "use client"
 import { useState, useEffect, useMemo } from 'react'
 import {
-  Youtube, Loader2, RefreshCw, Plus, ExternalLink, Eye,
+  Loader2, RefreshCw, Plus, ExternalLink, Eye,
   ThumbsUp, MessageCircle, Calendar, Users, Play, Zap,
 } from 'lucide-react'
+// lucide-react doesn't export Youtube in this version — use Play as the channel icon
+const Youtube = Play
 import toast from 'react-hot-toast'
 import HowItWorks from './HowItWorks'
 

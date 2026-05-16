@@ -10,8 +10,10 @@ import {
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
   Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings,
   Map, Code, Award, GitBranch, Eraser, Grid, Sparkles, Briefcase, Image as ImageIcon,
-  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Youtube, Mail,
+  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Play, Mail,
 } from 'lucide-react'
+// Alias: lucide-react doesn't export Youtube in this version
+const Youtube = Play
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
