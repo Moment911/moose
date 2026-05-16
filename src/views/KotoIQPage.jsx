@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import { useNavigate } from 'react-router-dom'
