@@ -45,7 +45,7 @@ export const FM = "'JetBrains Mono', 'SF Mono', Menlo, monospace"
 export const koto = {
   // Color
   navy: BLK,
-  navyDeep: '#13104a',          // dark mode page bg
+  navyDeep: '#15113a',          // dark mode page bg (matches Unified Marketing style guide)
   pink: R,
   pinkHover: '#a8155a',
   pinkSoft: 'rgba(203, 28, 107, 0.08)',
