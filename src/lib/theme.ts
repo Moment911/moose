@@ -2,7 +2,7 @@
 // Import this instead of redeclaring R, T, BLK, etc. in every file.
 
 // Brand colors
-export const R   = '#E6007E'   // Koto Pink — primary accent
+export const R   = '#cb1c6b'   // Koto Pink — primary accent
 export const T   = '#00C2CB'   // Koto Teal — secondary accent
 export const BLK = '#111111'   // Near-black for text
 export const GRY = '#f9fafb'   // Light gray background

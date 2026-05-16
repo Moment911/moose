@@ -844,9 +844,9 @@ export default function ClientDetailPage() {
               </button>
               <button onClick={() => {
                 const docEl = document.getElementById('onboarding-doc-print')
-                if (!docEl) { setShowOnboardingDoc(true); setTimeout(() => { const el = document.getElementById('onboarding-doc-print'); if (el) { const w = window.open('', '_blank'); w.document.write('<html><head><title>Onboarding — ' + (client?.name || '') + '</title><style>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#1a1a1a;line-height:1.6}h1{font-size:24px;margin-bottom:4px}h2{font-size:16px;color:#6b7280;margin-top:28px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;text-transform:uppercase;letter-spacing:.05em}p{margin:0 0 4px}.field-label{font-size:12px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.05em;margin-top:14px}.field-value{font-size:14px;color:#1a1a1a;white-space:pre-wrap}.meta{font-size:11px;color:#9ca3af;margin-top:2px;font-style:italic}@media print{body{margin:20px}}</style></head><body>' + el.innerHTML + '</body></html>'); w.document.close(); w.print() } }, 300); return }
+                if (!docEl) { setShowOnboardingDoc(true); setTimeout(() => { const el = document.getElementById('onboarding-doc-print'); if (el) { const w = window.open('', '_blank'); w.document.write('<html><head><title>Onboarding — ' + (client?.name || '') + '</title><style>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#201b51;line-height:1.6}h1{font-size:24px;margin-bottom:4px}h2{font-size:16px;color:#6b7280;margin-top:28px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;text-transform:uppercase;letter-spacing:.05em}p{margin:0 0 4px}.field-label{font-size:12px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.05em;margin-top:14px}.field-value{font-size:14px;color:#201b51;white-space:pre-wrap}.meta{font-size:11px;color:#9ca3af;margin-top:2px;font-style:italic}@media print{body{margin:20px}}</style></head><body>' + el.innerHTML + '</body></html>'); w.document.close(); w.print() } }, 300); return }
                 const w = window.open('', '_blank')
-                w.document.write('<html><head><title>Onboarding — ' + (client?.name || '') + '</title><style>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#1a1a1a;line-height:1.6}h1{font-size:24px;margin-bottom:4px}h2{font-size:16px;color:#6b7280;margin-top:28px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;text-transform:uppercase;letter-spacing:.05em}p{margin:0 0 4px}.field-label{font-size:12px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.05em;margin-top:14px}.field-value{font-size:14px;color:#1a1a1a;white-space:pre-wrap}.meta{font-size:11px;color:#9ca3af;margin-top:2px;font-style:italic}@media print{body{margin:20px}}</style></head><body>' + docEl.innerHTML + '</body></html>')
+                w.document.write('<html><head><title>Onboarding — ' + (client?.name || '') + '</title><style>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#201b51;line-height:1.6}h1{font-size:24px;margin-bottom:4px}h2{font-size:16px;color:#6b7280;margin-top:28px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;text-transform:uppercase;letter-spacing:.05em}p{margin:0 0 4px}.field-label{font-size:12px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.05em;margin-top:14px}.field-value{font-size:14px;color:#201b51;white-space:pre-wrap}.meta{font-size:11px;color:#9ca3af;margin-top:2px;font-style:italic}@media print{body{margin:20px}}</style></head><body>' + docEl.innerHTML + '</body></html>')
                 w.document.close()
                 w.print()
               }}
@@ -2700,7 +2700,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
               onClick={handleSendEmail}
               disabled={sending || !client?.email}
               title={!client?.email ? 'Client has no email on file' : 'Send onboarding email'}
-              style={{ padding: '7px 14px', background: client?.email ? '#E6007E' : '#f3f4f6', color: client?.email ? '#fff' : '#9ca3af', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: client?.email ? 'pointer' : 'not-allowed' }}>
+              style={{ padding: '7px 14px', background: client?.email ? '#cb1c6b' : '#f3f4f6', color: client?.email ? '#fff' : '#9ca3af', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: client?.email ? 'pointer' : 'not-allowed' }}>
               {sending ? '⏳ Sending…' : '✉️ Send Email'}
             </button>
           </div>
@@ -2753,7 +2753,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
               }}>🔗 Copy Onboarding Link</button>
             ) : (
               <button onClick={generateOnboardingLink} disabled={generatingLink} style={{
-                padding: '8px 16px', background: '#E6007E', color: '#fff',
+                padding: '8px 16px', background: '#cb1c6b', color: '#fff',
                 border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
               }}>{generatingLink ? '⏳ Generating...' : '🔗 Generate Onboarding Link'}</button>
             )}

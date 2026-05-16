@@ -41,7 +41,7 @@ import { useAuth } from '../../hooks/useAuth'
 import AIThinkingBox from '../../components/AIThinkingBox'
 import toast, { Toaster } from 'react-hot-toast'
 
-const RED   = '#E6007E'
+const RED   = '#cb1c6b'
 const TEAL  = '#00C2CB'
 const BLACK = '#0a0a0a'
 

@@ -5,14 +5,14 @@ import { Search, Compass, ArrowUpRight, Users, Filter, X } from 'lucide-react'
 // ─── Koto Design tokens (DESIGN.md) ─────────────────────────
 const DISPLAY = "'Instrument Serif', Georgia, 'Times New Roman', serif"
 const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-const INK     = '#1A1A1A'
-const DIM     = '#4A4545'
-const MID     = '#8A8580'
-const HAIR    = '#E8E4E0'
+const INK     = '#201b51'
+const DIM     = '#4a4674'
+const MID     = '#6b6789'
+const HAIR    = '#e8e6ef'
 const SUBHAIR = '#F0ECE8'
-const SOFT    = '#FAFAF8'
-const PINK    = '#E6007E'
-const PINK_LIGHT = 'rgba(230, 0, 126, 0.07)'
+const SOFT    = '#f5f3ee'
+const PINK    = '#cb1c6b'
+const PINK_LIGHT = 'rgba(203, 28, 107, 0.07)'
 const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)'
 
 // ─── Feature catalog: what / when / who, keyed by nav item key ──

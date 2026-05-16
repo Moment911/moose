@@ -310,7 +310,7 @@ export default function PerfDashboard() {
             {label:'Spend',    value:'$'+Math.round(totSpend).toLocaleString()},
             {label:'Clicks',   value:totClicks.toLocaleString()},
             {label:'Conv',     value:totConv.toFixed(0)},
-            {label:'Avg ROAS', value:avgROAS.toFixed(1)+'x', color:avgROAS>=3?'#16a34a':avgROAS>=1.5?'#f59e0b':'#E6007E'},
+            {label:'Avg ROAS', value:avgROAS.toFixed(1)+'x', color:avgROAS>=3?'#16a34a':avgROAS>=1.5?'#f59e0b':'#cb1c6b'},
           ]}/>
 
           <MobileTabs tabs={MOBILE_TABS} active={mTab} onChange={setMTab}/>
@@ -342,7 +342,7 @@ export default function PerfDashboard() {
                   <MobileRow title={cam.name}
                     subtitle={`${cam.status||'—'} · Budget $${Math.round(cam.budget_amount||0)}/day`}
                     left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,background:cam.status==='ENABLED'?'#16a34a':'#9a9a96'}}/>}
-                    badge={<span style={{fontSize:11,fontWeight:800,color:cam.roas>=3?'#16a34a':cam.roas>=1?'#f59e0b':'#E6007E',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{(cam.roas||0).toFixed(1)}x</span>}
+                    badge={<span style={{fontSize:11,fontWeight:800,color:cam.roas>=3?'#16a34a':cam.roas>=1?'#f59e0b':'#cb1c6b',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{(cam.roas||0).toFixed(1)}x</span>}
                     borderBottom={false}/>
                 </MobileCard>
               ))}
@@ -354,7 +354,7 @@ export default function PerfDashboard() {
               {fRecs.length===0
                 ? <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No pending recommendations</div>
                 : fRecs.map(r=>(
-                <MobileCard key={r.id} style={{padding:'14px',borderLeft:`3px solid ${r.priority==='high'?'#E6007E':r.priority==='medium'?'#f59e0b':'#9a9a96'}`}}>
+                <MobileCard key={r.id} style={{padding:'14px',borderLeft:`3px solid ${r.priority==='high'?'#cb1c6b':r.priority==='medium'?'#f59e0b':'#9a9a96'}`}}>
                   <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:4}}>{r.title}</div>
                   <p style={{fontSize:13,color:'#5a5a58',margin:'0 0 10px',lineHeight:1.5}}>{r.description}</p>
                   <div style={{display:'flex',gap:6}}>

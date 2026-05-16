@@ -19,7 +19,7 @@ export default function KotoCloseLayout({ children }: { children: React.ReactNod
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#F7F7F6' }}>
-      <div style={{ width: 24, height: 24, border: '2px solid #f0f0ef', borderTopColor: '#E6007E', borderRadius: '50%', animation: 'kcspin 0.8s linear infinite' }} />
+      <div style={{ width: 24, height: 24, border: '2px solid #f0f0ef', borderTopColor: '#cb1c6b', borderRadius: '50%', animation: 'kcspin 0.8s linear infinite' }} />
       <style>{`@keyframes kcspin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )

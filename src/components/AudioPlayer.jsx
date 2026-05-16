@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Play, Pause, Download, Volume2 } from 'lucide-react'
 
-const R   = '#E6007E'
+const R   = '#cb1c6b'
 const T = '#00C2CB'
 
 function formatTime(sec) {

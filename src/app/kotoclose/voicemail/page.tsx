@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 
-const KC = { acc:'#E6007E',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif" }
+const KC = { acc:'#cb1c6b',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif" }
 
 export default function VoicemailPage() {
   const [vms, setVms] = useState<any[]>([])
@@ -96,7 +96,7 @@ export default function VoicemailPage() {
           <div style={{ background:KC.bg, borderRadius:8, padding:12 }}>
             <div style={{ fontSize:11, fontWeight:600, color:KC.text, marginBottom:8 }}>Deploy To</div>
             <div style={{ display:'flex', gap:8, marginBottom:8 }}>
-              <button style={{ flex:1, padding:8, borderRadius:6, fontWeight:600, fontSize:11, cursor:'pointer', background:KC.accTint, border:'0.5px solid rgba(230,0,126,0.3)', color:KC.acc }}>Send as RVM</button>
+              <button style={{ flex:1, padding:8, borderRadius:6, fontWeight:600, fontSize:11, cursor:'pointer', background:KC.accTint, border:'0.5px solid rgba(203, 28, 107,0.3)', color:KC.acc }}>Send as RVM</button>
               <button style={{ flex:1, padding:8, borderRadius:6, fontWeight:600, fontSize:11, cursor:'pointer', background:KC.blueTint, border:'0.5px solid rgba(74,78,255,0.3)', color:KC.blue }}>Push to GHL</button>
             </div>
             <select style={{ width:'100%', background:KC.white, border:`0.5px solid ${KC.borderMd}`, borderRadius:6, padding:'7px 10px', fontSize:12, cursor:'pointer' }}>
@@ -122,7 +122,7 @@ export default function VoicemailPage() {
             <div style={{ fontSize:10, color:'#999', marginBottom:6 }}>{vm.duration_sec?`${vm.duration_sec}s`:'--'} &middot; {vm.created_at?new Date(vm.created_at).toLocaleDateString():''}</div>
             <div style={{ display:'flex', gap:4 }}>
               <button style={{ background:KC.white, border:`0.5px solid ${KC.borderMd}`, borderRadius:4, padding:'3px 8px', fontSize:10, cursor:'pointer' }}>Play</button>
-              <button style={{ background:KC.accTint, border:'0.5px solid rgba(230,0,126,0.3)', color:KC.acc, borderRadius:4, padding:'3px 8px', fontSize:10, cursor:'pointer' }}>RVM</button>
+              <button style={{ background:KC.accTint, border:'0.5px solid rgba(203, 28, 107,0.3)', color:KC.acc, borderRadius:4, padding:'3px 8px', fontSize:10, cursor:'pointer' }}>RVM</button>
               <button style={{ background:KC.blueTint, border:'0.5px solid rgba(74,78,255,0.3)', color:KC.blue, borderRadius:4, padding:'3px 8px', fontSize:10, cursor:'pointer' }}>GHL</button>
               <button onClick={()=>deleteVM(vm.id)} style={{ background:'none', border:'none', color:'#991b1b', fontSize:10, cursor:'pointer', marginLeft:'auto' }}>Delete</button>
             </div>

@@ -17,7 +17,7 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileCard, MobileButton } from '../../components/mobile/MobilePage'
 
-const RED   = '#E6007E'
+const RED   = '#cb1c6b'
 const TEAL  = '#00C2CB'
 const BLACK = '#0a0a0a'
 
@@ -477,7 +477,7 @@ export default function DeskTicketPage() {
 
   /* ─── MOBILE ─── */
   if (isMobile) {
-    const PRI = {urgent:{color:'#E6007E'},high:{color:'#f59e0b'},normal:{color:'#9a9a96'},low:{color:'#d0d0cc'}}
+    const PRI = {urgent:{color:'#cb1c6b'},high:{color:'#f59e0b'},normal:{color:'#9a9a96'},low:{color:'#d0d0cc'}}
     const priColor = PRI[ticket?.priority]?.color||'#9a9a96'
     return (
       <MobilePage padded={false}>
@@ -519,7 +519,7 @@ export default function DeskTicketPage() {
                 {replies.map((r,i)=>(
                   <div key={r.id} style={{paddingBottom:i<replies.length-1?12:0,marginBottom:i<replies.length-1?12:0,borderBottom:i<replies.length-1?'1px solid #f2f2f0':'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                      <div style={{width:28,height:28,borderRadius:'50%',background:r.author_type==='agent'?'#E6007E':'#F9F9F9',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:r.author_type==='agent'?'#fff':'#5a5a58',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                      <div style={{width:28,height:28,borderRadius:'50%',background:r.author_type==='agent'?'#cb1c6b':'#F9F9F9',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:r.author_type==='agent'?'#fff':'#5a5a58',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
                         {(r.author_name||'?')[0].toUpperCase()}
                       </div>
                       <div>
@@ -539,7 +539,7 @@ export default function DeskTicketPage() {
               <textarea value={mReplyText} onChange={e=>setMReplyText(e.target.value)}
                 placeholder="Type your reply…" rows={3}
                 style={{width:'100%',border:'1px solid #ececea',borderRadius:10,padding:'10px 12px',fontSize:16,outline:'none',resize:'none',boxSizing:'border-box',fontFamily:"'Raleway',sans-serif",color:'#0a0a0a'}}
-                onFocus={e=>e.target.style.borderColor='#E6007E'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+                onFocus={e=>e.target.style.borderColor='#cb1c6b'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
               <div style={{display:'flex',gap:8,marginTop:10}}>
                 <MobileButton label={mReplySending?'Sending…':'Send Reply'} disabled={!mReplyText.trim()||mReplySending}
                   onPress={async()=>{

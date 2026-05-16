@@ -15,7 +15,7 @@ import { callClaude } from '../lib/ai'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL   = '#00C2CB'
 
 const SECTIONS = [
@@ -166,7 +166,7 @@ export default function PlatformAdminPage() {
   const [ipTerms, setIpTerms]               = useState('')
 
   // Agency branding
-  const [brand, setBrand] = useState({ name:'', color:'#E6007E', logo_url:'', domain:'' })
+  const [brand, setBrand] = useState({ name:'', color:'#cb1c6b', logo_url:'', domain:'' })
 
   // Platform keys
   const [keys, setKeys] = useState({ anthropic:'', google_places:'', google_client_id:'' })

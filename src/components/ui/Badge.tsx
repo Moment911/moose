@@ -16,7 +16,7 @@ const VARIANTS: Record<BadgeVariant, { bg: string; text: string }> = {
   danger:  { bg: '#fef2f2', text: '#b91c1c' },
   info:    { bg: '#eff6ff', text: '#1d4ed8' },
   neutral: { bg: '#f3f4f6', text: '#6b7280' },
-  pink:    { bg: '#E6007E15', text: '#E6007E' },
+  pink:    { bg: '#cb1c6b15', text: '#cb1c6b' },
   teal:    { bg: '#00C2CB15', text: '#00C2CB' },
   purple:  { bg: '#7c3aed15', text: '#7c3aed' },
 }

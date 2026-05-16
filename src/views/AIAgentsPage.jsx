@@ -13,7 +13,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL = '#00C2CB'
 
 // ── Agent definitions ─────────────────────────────────────────────────────────

@@ -32,7 +32,7 @@ export default function RequireAuth({ children }) {
           display:'flex', alignItems:'center', justifyContent:'center',
           background:'#F9F9F9',
         }}>
-          <Loader2 size={32} color='#E6007E' style={{ animation:'spin 1s linear infinite' }}/>
+          <Loader2 size={32} color='#cb1c6b' style={{ animation:'spin 1s linear infinite' }}/>
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}

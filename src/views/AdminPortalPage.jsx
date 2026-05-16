@@ -14,7 +14,7 @@ import { useAuth } from '../hooks/useAuth'
 import { format, formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL   = '#00C2CB'
 
 export default function AdminPortalPage() {

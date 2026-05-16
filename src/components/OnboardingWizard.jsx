@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 
-const R   = '#E6007E'
+const R   = '#cb1c6b'
 const T = '#00C2CB'
 const BLK = '#111111'
 const GRY = '#F9F9F9'

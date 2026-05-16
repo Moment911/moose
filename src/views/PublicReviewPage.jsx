@@ -101,7 +101,7 @@ export default function PublicReviewPage() {
   const [activeBubble, setActiveBubble] = useState(null)
   const [bubblePos, setBubblePos] = useState({ x: 0, y: 0 })
   const [tool, setTool] = useState('pin')
-  const [color, setColor] = useState('#E6007E')
+  const [color, setColor] = useState('#cb1c6b')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   // Name is scoped strictly to the PROJECT the reviewer is looking at.
@@ -640,7 +640,7 @@ export default function PublicReviewPage() {
           Koto pink for primary CTA, teal as accent, grayscale for
           everything else. No orange, no amber, no green.           */}
       {(() => {
-        const BRAND = project?.brand_color || '#E6007E'
+        const BRAND = project?.brand_color || '#cb1c6b'
         return (
       <div className="bg-white border-b border-gray-200 px-3 md:px-5 py-2.5 flex items-center gap-3 flex-shrink-0">
         {/* Brand + project label. Default projects show the real Koto
@@ -763,7 +763,7 @@ export default function PublicReviewPage() {
           and height controls. One row, one place. Mobile collapses to
           the floating tool palette (preserved below).                */}
       {!roundsExhausted && (() => {
-        const BRAND = project?.brand_color || '#E6007E'
+        const BRAND = project?.brand_color || '#cb1c6b'
         const TOOLS = [
           { key: 'select', icon: MousePointer2, label: 'Select (V)' },
           { key: 'pin',    icon: Pin,           label: 'Pin (C)' },
@@ -909,7 +909,7 @@ export default function PublicReviewPage() {
       })()}
 
       {roundsExhausted && (
-        <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: project?.brand_color || '#E6007E' }}>
+        <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: project?.brand_color || '#cb1c6b' }}>
           <span>All {maxRounds} revision round{maxRounds !== 1 ? 's' : ''} complete</span>
           <a href="https://www.hellokoto.com/contact" target="_blank" rel="noreferrer" className="bg-white text-gray-900 font-semibold text-sm px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Contact Us</a>
           <a href="https://www.hellokoto.com/pricing" target="_blank" rel="noreferrer" className="bg-white/20 text-white font-medium text-sm px-4 py-1.5 rounded-lg hover:bg-white/30 transition-colors">View Pricing</a>
@@ -1152,7 +1152,7 @@ export default function PublicReviewPage() {
         <div className="text-white py-3 px-6 flex items-center justify-center gap-4 flex-shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.12)] flex-wrap"
           style={{ background: '#111111' }}>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: (project?.brand_color || '#E6007E') + '33' }}>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: (project?.brand_color || '#cb1c6b') + '33' }}>
               <Send size={12} />
             </div>
             <span className="text-sm font-medium">
@@ -1168,7 +1168,7 @@ export default function PublicReviewPage() {
               </button>
             )}
             <button onClick={() => setShowSubmitModal(true)}
-              style={{ background: project?.brand_color || '#E6007E' }}
+              style={{ background: project?.brand_color || '#cb1c6b' }}
               className="text-white font-bold text-sm px-6 py-2 rounded-xl hover:brightness-110 transition-all shadow-lg">
               Submit round →
             </button>

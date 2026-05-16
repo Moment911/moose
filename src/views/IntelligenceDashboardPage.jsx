@@ -117,7 +117,7 @@ export default function IntelligenceDashboardPage() {
         {/* Header */}
         <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <div style={{ width:40, height:40, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <div style={{ width:40, height:40, borderRadius:10, background: '#cb1c6b', display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Brain size={20} color={W} />
             </div>
             <div>

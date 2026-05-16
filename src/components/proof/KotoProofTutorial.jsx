@@ -7,7 +7,7 @@ const STEPS = [
     title: 'Welcome to KotoProof',
     description: 'KotoProof is your design review and annotation tool. Upload files, leave feedback, track revisions, and get client approvals — all in one place.',
     icon: Eye,
-    color: '#E6007E',
+    color: '#cb1c6b',
   },
   {
     title: 'Navigate Files',
@@ -25,7 +25,7 @@ const STEPS = [
     title: 'Comment Pin (C)',
     description: 'Click anywhere on the design to drop a pin and leave a comment. This is the most common way to give feedback.',
     icon: Pin,
-    color: '#E6007E',
+    color: '#cb1c6b',
   },
   {
     title: 'Draw Shapes (A, O, R, F)',
@@ -96,7 +96,7 @@ export function KotoProofOnboarding({ onComplete }) {
       <div style={{ background: '#fff', borderRadius: 20, padding: 0, maxWidth: 480, width: '90%', boxShadow: '0 30px 80px rgba(0,0,0,.3)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
         {/* Progress bar */}
         <div style={{ height: 4, background: '#f3f4f6' }}>
-          <div style={{ height: 4, background: '#E6007E', width: `${((step + 1) / STEPS.length) * 100}%`, transition: 'width .3s ease', borderRadius: 2 }} />
+          <div style={{ height: 4, background: '#cb1c6b', width: `${((step + 1) / STEPS.length) * 100}%`, transition: 'width .3s ease', borderRadius: 2 }} />
         </div>
 
         <div style={{ padding: '32px 32px 24px' }}>
@@ -112,7 +112,7 @@ export function KotoProofOnboarding({ onComplete }) {
           {/* Step counter */}
           <div style={{ display: 'flex', gap: 6, marginTop: 20 }}>
             {STEPS.map((_, i) => (
-              <div key={i} style={{ width: i === step ? 24 : 8, height: 8, borderRadius: 4, background: i === step ? '#E6007E' : i < step ? '#E6007E40' : '#e5e7eb', transition: 'all .3s', cursor: 'pointer' }} onClick={() => setStep(i)} />
+              <div key={i} style={{ width: i === step ? 24 : 8, height: 8, borderRadius: 4, background: i === step ? '#cb1c6b' : i < step ? '#cb1c6b40' : '#e5e7eb', transition: 'all .3s', cursor: 'pointer' }} onClick={() => setStep(i)} />
             ))}
           </div>
         </div>
@@ -128,7 +128,7 @@ export function KotoProofOnboarding({ onComplete }) {
                 Back
               </button>
             )}
-            <button onClick={() => isLast ? finish() : setStep(step + 1)} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#E6007E', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => isLast ? finish() : setStep(step + 1)} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#cb1c6b', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               {isLast ? 'Get Started' : 'Next'}
             </button>
           </div>
@@ -216,7 +216,7 @@ export function KotoProofHelp({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {section.steps.map((step, i) => (
                   <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#E6007E15', color: '#E6007E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{i + 1}</div>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#cb1c6b15', color: '#cb1c6b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{i + 1}</div>
                     <span style={{ fontSize: 14, color: '#374151', lineHeight: 1.5 }}>{step}</span>
                   </div>
                 ))}

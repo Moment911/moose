@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react'
 
-const COLORS = ['#E6007E', '#185FA5', '#3B6D11', '#A32D2D', '#7C3ABF', '#0E7490']
+const COLORS = ['#cb1c6b', '#185FA5', '#3B6D11', '#A32D2D', '#7C3ABF', '#0E7490']
 
 const TOOL_CURSOR = {
   select: 'default',
@@ -198,7 +198,7 @@ export default function AnnotationCanvas({
     // Status-based colors: resolved = green, in-progress = amber, open = red/original
     const isResolved = ann.resolved || ann.status === 'completed'
     const isInProgress = ann.status === 'in_progress' || ann.status === 'updated'
-    const c = isResolved ? '#16a34a' : isInProgress ? '#f59e0b' : ann.source === 'agency' ? '#7c3aed' : ann.source === 'client' ? '#E6007E' : (ann.color || COLORS[0])
+    const c = isResolved ? '#16a34a' : isInProgress ? '#f59e0b' : ann.source === 'agency' ? '#7c3aed' : ann.source === 'client' ? '#cb1c6b' : (ann.color || COLORS[0])
     const strokeW = isSelected ? 4 : 3
     const opacity = isSelected ? 1 : isHovered ? 0.9 : 0.75
 

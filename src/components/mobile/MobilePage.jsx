@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 const BG  = '#F9F9F9'
 const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB  = "'Raleway','Helvetica Neue',sans-serif"
-const R   = '#E6007E'
+const R   = '#cb1c6b'
 
 export { MobilePage }
 export default function MobilePage({ children, background = BG, padded = true }) {
@@ -254,7 +254,7 @@ export function MobileActionBar({ children }) {
 
 // Primary mobile button
 export function MobileButton({ label, icon: Icon, onPress, secondary, disabled }) {
-  const R   = '#E6007E'
+  const R   = '#cb1c6b'
   return (
     <button onClick={onPress} disabled={disabled}
       style={{

@@ -1,7 +1,7 @@
 "use client"
 
 export default function StatCard({ label, value, sub, delta, accent }) {
-  const accentColor = accent === 'red' ? '#E6007E' : accent === 'cyan' ? '#00C2CB' : accent === 'green' ? '#16a34a' : accent === 'amber' ? '#d97706' : '#111111'
+  const accentColor = accent === 'red' ? '#cb1c6b' : accent === 'cyan' ? '#00C2CB' : accent === 'green' ? '#16a34a' : accent === 'amber' ? '#d97706' : '#111111'
   return (
     <div style={{
       flex: 1, minWidth: 140, padding: '16px 18px', background: '#FFFFFF',

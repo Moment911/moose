@@ -36,7 +36,7 @@ export async function buildCogReportPdf(opts: CogReportPdfArgs): Promise<Buffer>
   doc.on('data', (c: Buffer) => chunks.push(c))
   const finished = new Promise<Buffer>((resolve) => doc.on('end', () => resolve(Buffer.concat(chunks))))
 
-  const PINK = '#E6007E'
+  const PINK = '#cb1c6b'
   const INK = '#111111'
   const MUTE = '#6b7280'
 

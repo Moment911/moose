@@ -24,7 +24,7 @@ import AIThinkingBox from '../../components/AIThinkingBox'
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    DESIGN SYSTEM — Apple-grade enterprise design language
-   Brand: #E6007E (accent), #00C2CB (teal), Proxima Nova / Raleway
+   Brand: #cb1c6b (accent), #00C2CB (teal), Proxima Nova / Raleway
    ═══════════════════════════════════════════════════════════════════════════════ */
 import { R as ACCENT, T as TEAL, FH, FB } from '../../lib/theme'
 
@@ -34,7 +34,7 @@ const CSS = `
   @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .4 } }
   @keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
   .scout-card { transition: all .2s cubic-bezier(.4,0,.2,1); }
-  .scout-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,.08); border-color: rgba(230,0,126,.15) !important; }
+  .scout-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,.08); border-color: rgba(203, 28, 107,.15) !important; }
   .scout-fade-in { animation: fadeIn .4s ease both; }
   .scout-btn { transition: all .15s ease; }
   .scout-btn:hover { transform: translateY(-1px); }

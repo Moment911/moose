@@ -555,7 +555,7 @@ export default function QAKnowledgePage() {
                 placeholder="Ask anything about your clients or services…" rows={3}
                 style={{width:'100%',border:'none',outline:'none',fontSize:16,resize:'none',fontFamily:"'Raleway',sans-serif",color:'#0a0a0a',boxSizing:'border-box'}}/>
               <button onClick={handleAsk} disabled={!askQ.trim()||askLoading}
-                style={{width:'100%',padding:'12px',borderRadius:10,border:'none',background:'#E6007E',color:'#fff',fontSize:15,fontWeight:700,cursor:askLoading||!askQ.trim()?'not-allowed':'pointer',opacity:askLoading||!askQ.trim()?0.6:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginTop:10}}>
+                style={{width:'100%',padding:'12px',borderRadius:10,border:'none',background:'#cb1c6b',color:'#fff',fontSize:15,fontWeight:700,cursor:askLoading||!askQ.trim()?'not-allowed':'pointer',opacity:askLoading||!askQ.trim()?0.6:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginTop:10}}>
                 {askLoading?'Thinking…':'Ask AI'}
               </button>
             </div>

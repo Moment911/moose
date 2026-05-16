@@ -3,23 +3,23 @@
 
 /*
   Brand:
-    Accent: #E6007E (pink — single accent, used sparingly)
+    Accent: #cb1c6b (pink — single accent, used sparingly)
     Teal:   #00C2CB (data-positive metrics only)
 
   Neutrals (warm):
-    Black:  #1A1A1A
-    Gray-1: #4A4545
+    Black:  #201b51
+    Gray-1: #4a4674
     Gray-2: #6B6560
-    Gray-3: #8A8580
-    Gray-4: #E8E4E0
+    Gray-3: #6b6789
+    Gray-4: #e8e6ef
 
   Backgrounds:
     BG-0:   #FFFFFF
-    BG-1:   #F7F5F2 (warm linen)
-    BG-2:   #FAFAF8
+    BG-1:   #faf9f6 (warm linen)
+    BG-2:   #f5f3ee
 
   Borders (warm):
-    Default: #E8E4E0
+    Default: #e8e6ef
     Subtle:  #F0ECE8
 
   Semantic:
@@ -36,11 +36,11 @@ body {
 }
 
 /* Typography scale */
-.ds-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; color: #1A1A1A; letter-spacing: -0.01em; }
-.ds-subtitle { font-size: 13px; font-weight: 400; color: #8A8580; }
-.ds-body { font-size: 14px; font-weight: 400; color: #4A4545; line-height: 1.6; }
-.ds-caption { font-size: 12px; font-weight: 400; color: #8A8580; }
-.ds-label { font-size: 11px; font-weight: 600; color: #8A8580; text-transform: uppercase; letter-spacing: 0.06em; }
+.ds-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; color: #201b51; letter-spacing: -0.01em; }
+.ds-subtitle { font-size: 13px; font-weight: 400; color: #6b6789; }
+.ds-body { font-size: 14px; font-weight: 400; color: #4a4674; line-height: 1.6; }
+.ds-caption { font-size: 12px; font-weight: 400; color: #6b6789; }
+.ds-label { font-size: 11px; font-weight: 600; color: #6b6789; text-transform: uppercase; letter-spacing: 0.06em; }
 .ds-mono { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 13px; }
 
 /* Animations */

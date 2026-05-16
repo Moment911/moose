@@ -22,7 +22,7 @@ const PRIORITIES = [
   { key: 'none', label: 'None', color: '#d1d5db' },
   { key: 'low', label: 'Low', color: '#3b82f6' },
   { key: 'medium', label: 'Medium', color: '#f59e0b' },
-  { key: 'high', label: 'High', color: '#E6007E' },
+  { key: 'high', label: 'High', color: '#cb1c6b' },
   { key: 'urgent', label: 'Urgent', color: '#dc2626' },
 ]
 
@@ -73,7 +73,7 @@ export default function TaskDetailPage() {
   }
 
   function renderMentions(text) {
-    return text.replace(/@(\w+)/g, '<span style="color:#E6007E;font-weight:600">@$1</span>')
+    return text.replace(/@(\w+)/g, '<span style="color:#cb1c6b;font-weight:600">@$1</span>')
   }
 
   async function handleAddComment() {

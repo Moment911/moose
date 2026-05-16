@@ -779,7 +779,7 @@ Return ONLY the script text, no markdown or JSON.`
 
       const alert = score >= 85 ? 'transfer' : score >= 70 ? 'closer' : null
       const label = score >= 85 ? 'OFFER TRANSFER' : score >= 70 ? 'ALERT CLOSER' : score >= 40 ? 'Engaged' : 'Cold'
-      const color = score >= 85 ? '#E6007E' : score >= 70 ? '#f59e0b' : score >= 40 ? '#00C2CB' : '#6b7280'
+      const color = score >= 85 ? '#cb1c6b' : score >= 70 ? '#f59e0b' : score >= 40 ? '#00C2CB' : '#6b7280'
 
       return NextResponse.json({
         score, alert, label, color,

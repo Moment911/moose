@@ -14,15 +14,15 @@ import HowItWorks from './HowItWorks'
 const DISPLAY = "'Instrument Serif', Georgia, 'Times New Roman', serif"
 const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
-const INK     = '#1A1A1A'
-const DIM     = '#4A4545'
-const MID     = '#8A8580'
-const HAIR    = '#E8E4E0'
+const INK     = '#201b51'
+const DIM     = '#4a4674'
+const MID     = '#6b6789'
+const HAIR    = '#e8e6ef'
 const SUBHAIR = '#F0ECE8'
-const SOFT    = '#FAFAF8'
+const SOFT    = '#f5f3ee'
 
-const PINK       = '#E6007E'
-const PINK_LIGHT = 'rgba(230, 0, 126, 0.07)'
+const PINK       = '#cb1c6b'
+const PINK_LIGHT = 'rgba(203, 28, 107, 0.07)'
 const TEAL       = '#00C2CB'
 const SUCCESS    = '#16A34A'
 const WARNING    = '#D97706'

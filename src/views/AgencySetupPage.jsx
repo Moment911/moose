@@ -11,7 +11,7 @@ import {
 import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL = '#00C2CB'
 
 // ── All connection steps ──────────────────────────────────────────────────────

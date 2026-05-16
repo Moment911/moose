@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 
-const KC = { acc:'#E6007E',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff' }
+const KC = { acc:'#cb1c6b',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff' }
 
 const FILTERS = [
   { key:'all',label:'All' },{ key:'completed',label:'Completed' },{ key:'voicemail',label:'Voicemail' },
@@ -88,7 +88,7 @@ export default function CallsPage() {
                     {c.ghl_synced&&<span style={{ fontSize:9, fontWeight:700, background:'#f0fdf4', color:'#16a34a', padding:'2px 6px', borderRadius:4, border:'0.5px solid rgba(22,163,74,0.25)' }}>GHL &#10003;</span>}
                   </td>
                   <td style={{ padding:'9px 10px', whiteSpace:'nowrap' }}>
-                    <button style={{ background:KC.accTint, border:'0.5px solid rgba(230,0,126,0.3)', color:KC.acc, borderRadius:5, padding:'3px 8px', fontSize:10, cursor:'pointer', marginRight:3 }}>VM</button>
+                    <button style={{ background:KC.accTint, border:'0.5px solid rgba(203, 28, 107,0.3)', color:KC.acc, borderRadius:5, padding:'3px 8px', fontSize:10, cursor:'pointer', marginRight:3 }}>VM</button>
                     <button style={{ background:KC.blueTint, border:'0.5px solid rgba(74,78,255,0.3)', color:KC.blue, borderRadius:5, padding:'3px 8px', fontSize:10, cursor:'pointer', marginRight:3 }}>SMS</button>
                     <button style={{ background:'white', border:`0.5px solid ${KC.borderMd}`, borderRadius:5, padding:'3px 8px', fontSize:10, cursor:'pointer' }}>Callback</button>
                   </td>

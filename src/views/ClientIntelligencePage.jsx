@@ -145,7 +145,7 @@ export default function ClientIntelligencePage() {
         <div style={{ background: W, padding: '28px 36px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-              <div style={{ width:42, height:42, borderRadius:12, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ width:42, height:42, borderRadius:12, background: '#cb1c6b', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Brain size={22} color={W} />
               </div>
               <div>

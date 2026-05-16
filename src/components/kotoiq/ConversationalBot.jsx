@@ -594,7 +594,7 @@ export default function ConversationalBot({
           ) : null}
           <style>{`
             @keyframes kotoiqBotPulse { 0%,100% { box-shadow: 0 6px 20px rgba(0,194,203,0.45); } 50% { box-shadow: 0 6px 30px rgba(0,194,203,0.85); } }
-            @keyframes kotoOrbPinkPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(230,0,126,0); } 50% { box-shadow: 0 0 0 12px rgba(230,0,126,0.25); } }
+            @keyframes kotoOrbPinkPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(203, 28, 107,0); } 50% { box-shadow: 0 0 0 12px rgba(203, 28, 107,0.25); } }
           `}</style>
         </button>
       )
@@ -641,7 +641,7 @@ export default function ConversationalBot({
         </div>
         <style>{`
           @keyframes kotoiqSidePulse { 0%,100% { box-shadow: -4px 0 14px rgba(0,0,0,0.18); } 50% { box-shadow: -4px 0 22px rgba(0,194,203,0.75); } }
-          @keyframes kotoOrbPinkPulse { 0%,100% { box-shadow: -4px 0 14px rgba(0,0,0,0.18); } 50% { box-shadow: 0 0 0 12px rgba(230,0,126,0.25); } }
+          @keyframes kotoOrbPinkPulse { 0%,100% { box-shadow: -4px 0 14px rgba(0,0,0,0.18); } 50% { box-shadow: 0 0 0 12px rgba(203, 28, 107,0.25); } }
         `}</style>
       </button>
     )

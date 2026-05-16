@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { DollarSign, Plus, Search, Filter, Download, CreditCard, FileText, Clock, Check, X, ChevronRight, TrendingUp, AlertCircle } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL = '#00C2CB'
 
 const MOCK_INVOICES = [

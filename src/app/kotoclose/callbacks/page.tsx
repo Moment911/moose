@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const KC = { acc:'#E6007E',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif",fb:"'Raleway',sans-serif" }
+const KC = { acc:'#cb1c6b',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif",fb:"'Raleway',sans-serif" }
 
 export default function CallbacksPage() {
   const [callbacks, setCallbacks] = useState<any[]>([])

@@ -198,8 +198,8 @@ export default function ProofCanvasPage() {
               <button key={t.key} onClick={() => { setTool(t.key); setPlayMode(false) }}
                 style={{
                   padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: tool === t.key && !playMode ? '#E6007E15' : '#f3f4f6',
-                  color: tool === t.key && !playMode ? '#E6007E' : '#374151',
+                  background: tool === t.key && !playMode ? '#cb1c6b15' : '#f3f4f6',
+                  color: tool === t.key && !playMode ? '#cb1c6b' : '#374151',
                   fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5,
                 }}>
                 <t.icon size={14} /> {t.label}
@@ -304,10 +304,10 @@ export default function ProofCanvasPage() {
                   return (
                     <g key={conn.id} style={{ pointerEvents: 'auto', cursor: 'pointer' }} onClick={() => removeConnection(conn.id)}>
                       <path d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
-                        fill="none" stroke="#E6007E" strokeWidth={2} strokeDasharray="6,4" />
-                      <circle cx={x2} cy={y2} r={4} fill="#E6007E" />
+                        fill="none" stroke="#cb1c6b" strokeWidth={2} strokeDasharray="6,4" />
+                      <circle cx={x2} cy={y2} r={4} fill="#cb1c6b" />
                       <text x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 8}
-                        textAnchor="middle" fill="#E6007E" fontSize={10} fontWeight="600"
+                        textAnchor="middle" fill="#cb1c6b" fontSize={10} fontWeight="600"
                         style={{ cursor: 'pointer', pointerEvents: 'auto' }}
                         onClick={e => {
                           e.stopPropagation()
@@ -326,7 +326,7 @@ export default function ProofCanvasPage() {
                   <line x1={cards.find(c => c.id === connecting.fromId)?.x + CARD_W / 2 || 0}
                     y1={(cards.find(c => c.id === connecting.fromId)?.y || 0) + CARD_H}
                     x2={connecting.mouseX} y2={connecting.mouseY}
-                    stroke="#E6007E" strokeWidth={2} strokeDasharray="4,4" />
+                    stroke="#cb1c6b" strokeWidth={2} strokeDasharray="4,4" />
                 )}
               </g>
             </svg>
@@ -349,8 +349,8 @@ export default function ProofCanvasPage() {
                       position: 'absolute', left: card.x, top: card.y,
                       width: card.w, height: card.h,
                       background: '#fff', borderRadius: 12,
-                      border: isSelected ? '2px solid #E6007E' : isActivePlay ? '2px solid #16a34a' : '1px solid #e5e7eb',
-                      boxShadow: isSelected ? '0 4px 20px rgba(230,0,126,.15)' : '0 2px 8px rgba(0,0,0,.06)',
+                      border: isSelected ? '2px solid #cb1c6b' : isActivePlay ? '2px solid #16a34a' : '1px solid #e5e7eb',
+                      boxShadow: isSelected ? '0 4px 20px rgba(203, 28, 107,.15)' : '0 2px 8px rgba(0,0,0,.06)',
                       cursor: playMode ? 'pointer' : tool === 'connect' ? 'crosshair' : 'grab',
                       overflow: 'hidden', userSelect: 'none',
                     }}>
@@ -412,8 +412,8 @@ export default function ProofCanvasPage() {
                       <rect key={c.id}
                         x={(c.x - minX) * scale} y={(c.y - minY) * scale}
                         width={c.w * scale} height={c.h * scale}
-                        fill={selectedCard === c.id ? '#E6007E' : '#e5e7eb'}
-                        stroke={selectedCard === c.id ? '#E6007E' : '#d1d5db'}
+                        fill={selectedCard === c.id ? '#cb1c6b' : '#e5e7eb'}
+                        stroke={selectedCard === c.id ? '#cb1c6b' : '#d1d5db'}
                         strokeWidth={0.5} rx={1} />
                     ))}
                     {connections.map(conn => {
@@ -423,7 +423,7 @@ export default function ProofCanvasPage() {
                       return <line key={conn.id}
                         x1={(from.x + from.w/2 - minX) * scale} y1={(from.y + from.h - minY) * scale}
                         x2={(to.x + to.w/2 - minX) * scale} y2={(to.y - minY) * scale}
-                        stroke="#E6007E" strokeWidth={0.5} />
+                        stroke="#cb1c6b" strokeWidth={0.5} />
                     })}
                     {/* Viewport rectangle */}
                     <rect
@@ -431,7 +431,7 @@ export default function ProofCanvasPage() {
                       y={(-pan.y / zoom - minY) * scale}
                       width={(canvasRef.current?.clientWidth || 800) / zoom * scale}
                       height={(canvasRef.current?.clientHeight || 600) / zoom * scale}
-                      fill="none" stroke="#E6007E" strokeWidth={1} strokeDasharray="3,2" rx={1} />
+                      fill="none" stroke="#cb1c6b" strokeWidth={1} strokeDasharray="3,2" rx={1} />
                   </svg>
                 )
               })()}

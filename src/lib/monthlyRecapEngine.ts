@@ -116,7 +116,7 @@ export async function generateMonthlyRecap(clientId: string, agencyId: string, m
   } catch { /* use empty */ }
 
   // Build HTML email
-  const brandColor = client.brand_kit?.colors?.primary || agency.brand_color || '#E6007E'
+  const brandColor = client.brand_kit?.colors?.primary || agency.brand_color || '#cb1c6b'
   const html = buildRecapEmail(recapData, brandColor, agency.brand_logo_url)
 
   // Send email

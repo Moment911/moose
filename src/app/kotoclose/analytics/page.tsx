@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const KC = { acc:'#E6007E',blue:'#4A4EFF',green:'#16a34a',text:'#111',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif" }
+const KC = { acc:'#cb1c6b',blue:'#4A4EFF',green:'#16a34a',text:'#111',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif" }
 
 export default function AnalyticsPage() {
   const [weekly, setWeekly] = useState<any[]>([])
@@ -82,13 +82,13 @@ export default function AnalyticsPage() {
           {days.map((d,di)=>(
             <>{[<div key={`l${di}`} style={{ fontSize:9, color:'#999', display:'flex', alignItems:'center' }}>{d}</div>]}
             {heatData[di].map((v,hi)=>(
-              <div key={`${di}-${hi}`} style={{ height:14, borderRadius:2, background:`rgba(230,0,126,${0.08+v*0.77})` }} title={`${d} ${hours[hi]}:00 — ${Math.round(v*100)}%`} />
+              <div key={`${di}-${hi}`} style={{ height:14, borderRadius:2, background:`rgba(203, 28, 107,${0.08+v*0.77})` }} title={`${d} ${hours[hi]}:00 — ${Math.round(v*100)}%`} />
             ))}</>
           ))}
         </div>
         <div style={{ display:'flex', gap:4, alignItems:'center', marginTop:8, fontSize:9, color:'#999' }}>
           <span>Low</span>
-          {[0.1,0.3,0.5,0.7,0.9].map(v=><div key={v} style={{ width:20, height:8, borderRadius:2, background:`rgba(230,0,126,${v})` }} />)}
+          {[0.1,0.3,0.5,0.7,0.9].map(v=><div key={v} style={{ width:20, height:8, borderRadius:2, background:`rgba(203, 28, 107,${v})` }} />)}
           <span>High</span>
         </div>
       </div>

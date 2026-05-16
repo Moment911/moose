@@ -5,7 +5,7 @@ import { R, T, BLK, FH } from '../../lib/theme'
 // ── Koto brand overrides (replaces Unified Marketing navy/pink) ──
 const NAVY = '#111827'
 const NAVY_DEEP = '#0a0e1a'
-const PINK = R          // #E6007E
+const PINK = R          // #cb1c6b
 const PINK_DARK = '#c4006b'
 const TEAL = T          // #00C2CB
 const OFF_WHITE = '#f9fafb'

@@ -7,7 +7,7 @@ import {
   Shield, TrendingUp, Users, Mail, Clock
 } from 'lucide-react'
 
-const RED   = '#E6007E'
+const RED   = '#cb1c6b'
 const BLACK = '#0a0a0a'
 const WHITE = '#ffffff'
 const GRAY  = '#6b7280'

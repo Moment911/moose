@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const RED  = '#E6007E'
+const RED  = '#cb1c6b'
 const TEAL = '#00C2CB'
 const BLK = '#111111'
 const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"

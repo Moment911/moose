@@ -233,11 +233,11 @@ export default function ProjectReviewPage() {
 
   const clientName = project?.clients?.name || ''
   const clientLogo = project?.clients?.logo_url
-  // Koto primary brand is pink #E6007E. White-labeled tenants override via
+  // Koto primary brand is pink #cb1c6b. White-labeled tenants override via
   // project.brand_color. The teal default on this page was an older
   // pick that left the landing feeling un-Koto — pink matches
   // hellokoto.com + the rest of the product.
-  const brandColor = project?.brand_color || '#E6007E'
+  const brandColor = project?.brand_color || '#cb1c6b'
   const brandName = project?.brand_name || 'Koto'
 
   return (
@@ -513,10 +513,10 @@ export default function ProjectReviewPage() {
         {/* Powered-by footer — quiet Koto attribution on the landing */}
         <div style={{ textAlign: 'center', marginTop: 32, paddingTop: 20, borderTop: '1px solid #f3f4f6', fontSize: 12, color: '#9ca3af' }}>
           {project?.brand_name && project.brand_name !== 'Koto' ? (
-            <span>Powered by <a href="https://hellokoto.com" target="_blank" rel="noreferrer" style={{ color: '#E6007E', fontWeight: 700, textDecoration: 'none' }}>Koto</a></span>
+            <span>Powered by <a href="https://hellokoto.com" target="_blank" rel="noreferrer" style={{ color: '#cb1c6b', fontWeight: 700, textDecoration: 'none' }}>Koto</a></span>
           ) : (
             <span>
-              <a href="https://hellokoto.com" target="_blank" rel="noreferrer" style={{ color: '#E6007E', fontWeight: 700, textDecoration: 'none' }}>Koto</a>
+              <a href="https://hellokoto.com" target="_blank" rel="noreferrer" style={{ color: '#cb1c6b', fontWeight: 700, textDecoration: 'none' }}>Koto</a>
               {' · '}
               <a href="https://hellokoto.com/services/crm" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>CRM</a>
               {' · '}

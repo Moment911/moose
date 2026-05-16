@@ -49,7 +49,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
   const [slackUrl, setSlackUrl] = useState(project.slack_webhook_url || '')
   const [slackChannel, setSlackChannel] = useState(project.slack_channel_url || '')
   const [brandName, setBrandName] = useState(project.brand_name || '')
-  const [brandColor, setBrandColor] = useState(project.brand_color || '#E6007E')
+  const [brandColor, setBrandColor] = useState(project.brand_color || '#cb1c6b')
   const [brandLogo, setBrandLogo] = useState(project.brand_logo || '')
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)

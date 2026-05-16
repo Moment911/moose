@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, Play, Square, Check, Loader2, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 
-const R = "#E6007E", T = "#00C2CB", BLK = "#0a0a0a", GRN = "#16a34a", AMB = "#f59e0b", PURP = "#7c3aed";
+const R = "#cb1c6b", T = "#00C2CB", BLK = "#0a0a0a", GRN = "#16a34a", AMB = "#f59e0b", PURP = "#7c3aed";
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif";
 const FB = "'Raleway','Helvetica Neue',sans-serif";
 
@@ -120,7 +120,7 @@ export default function VoiceSelector({ selectedVoiceId, onSelect, showFilters =
     return (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 10, padding: 8 }}>
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} style={{ height: 72, borderRadius: 10, background: "#1a1a1a", animation: "pulse 1.5s infinite" }} />
+          <div key={i} style={{ height: 72, borderRadius: 10, background: "#201b51", animation: "pulse 1.5s infinite" }} />
         ))}
         <style>{`@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}`}</style>
       </div>
@@ -171,7 +171,7 @@ export default function VoiceSelector({ selectedVoiceId, onSelect, showFilters =
             {providerOpen && (
               <div style={{
                 position: "absolute", top: "100%", left: 0, marginTop: 4,
-                background: "#1a1a1a", border: "1px solid #333", borderRadius: 8,
+                background: "#201b51", border: "1px solid #333", borderRadius: 8,
                 zIndex: 50, minWidth: 140, overflow: "hidden",
               }}>
                 {providers.map((p) => (

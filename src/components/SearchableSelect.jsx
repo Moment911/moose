@@ -62,12 +62,12 @@ export default function SearchableSelect({
     ? [...new Set(filtered.map(o => o.group || ''))]
     : null
 
-  const BG     = dark ? '#1a1a1a' : '#fff'
+  const BG     = dark ? '#201b51' : '#fff'
   const BORDER = dark ? '#2a2a2a' : '#e5e7eb'
   const TEXT   = dark ? '#fff'    : '#111'
   const MUTED  = dark ? '#666'    : '#9ca3af'
   const HOVER  = dark ? '#252525' : '#f9fafb'
-  const ACCENT = '#E6007E'
+  const ACCENT = '#cb1c6b'
 
   return (
     <div ref={wrapRef} style={{ position:'relative', ...style }}>

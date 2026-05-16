@@ -367,7 +367,7 @@ export default function QAIntelligencePage() {
         {/* ── Dark Header ──────────────────────────────────────── */}
         <div style={{ background: W, padding: '36px 40px 28px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 8 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#E6007E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#cb1c6b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Brain size={22} color={W} />
             </div>
             <div style={{ flex: 1 }}>

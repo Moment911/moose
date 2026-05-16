@@ -8,7 +8,7 @@ import {
 import { signOut } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
-const R   = '#E6007E'
+const R   = '#cb1c6b'
 const T  = '#00C2CB'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"

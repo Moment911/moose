@@ -297,14 +297,14 @@ export default function KotoProofPage() {
     const summary = round.summary || []
     const html = `<html><head><title>Round ${round.round_number} - ${project?.name}</title><style>
       body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#333;line-height:1.5}
-      h1{color:#231f20;border-bottom:3px solid #E6007E;padding-bottom:12px}
+      h1{color:#231f20;border-bottom:3px solid #cb1c6b;padding-bottom:12px}
       h2{color:#231f20;margin-top:24px} .meta{color:#666;font-size:13px;margin-bottom:24px}
       table{width:100%;border-collapse:collapse;margin-top:8px} th,td{text-align:left;padding:8px 12px;border-bottom:1px solid #eee;font-size:13px}
       th{background:#f9f9f9;font-weight:600;color:#231f20} .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
       .open{background:#fef3c7;color:#92400e} .resolved{background:#d1fae5;color:#065f46}
       @media print{body{margin:20px}}
     </style></head><body>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><div style="width:40px;height:40px;background:#E6007E;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:18px">M</div><div><div style="font-size:18px;font-weight:700;color:#231f20">Koto</div><div style="font-size:12px;color:#666">Design Review Report</div></div></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><div style="width:40px;height:40px;background:#cb1c6b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:18px">M</div><div><div style="font-size:18px;font-weight:700;color:#231f20">Koto</div><div style="font-size:12px;color:#666">Design Review Report</div></div></div>
     <h1>Round ${round.round_number} Feedback</h1>
     <div class="meta"><strong>Project:</strong> ${project?.name || ''}<br/><strong>Submitted by:</strong> ${round.submitted_by}<br/><strong>Date:</strong> ${round.submitted_at ? new Date(round.submitted_at).toLocaleDateString() : ''}<br/><strong>Comments:</strong> ${round.comment_count} across ${round.file_count} files</div>
     ${summary.map(g => `<h2>${g.fileName}</h2><table><thead><tr><th>Type</th><th>Comment</th><th>Author</th></tr></thead><tbody>${(g.comments||[]).map(c => `<tr><td>${c.type}</td><td>${c.text}</td><td>${c.author}</td></tr>`).join('')}</tbody></table>`).join('')}
@@ -354,9 +354,9 @@ export default function KotoProofPage() {
               {!isClient && <button onClick={() => setShowUpload(v => !v)} className="btn-primary text-sm"><Plus size={12} /> Upload</button>}
               {!isClient && <button onClick={() => setShowAccess(true)} className="btn-secondary text-sm"><Settings size={12} /> Access</button>}
               <button onClick={handleSendEmail} disabled={emailSending || totalOpen === 0} className="btn-secondary text-sm"><Send size={12} />{emailSending ? '…' : 'Email'}</button>
-              <button onClick={() => setShowAISummary(true)} disabled={allAnnotations.length === 0} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Wand2 size={12} /> AI</button>
+              <button onClick={() => setShowAISummary(true)} disabled={allAnnotations.length === 0} className="btn-secondary text-sm" style={{ borderColor: '#cb1c6b', color: '#cb1c6b' }}><Wand2 size={12} /> AI</button>
               <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary text-sm"><Grid3X3 size={12} /> Canvas</button>
-              <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={12} /> Email</button>
+              <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary text-sm" style={{ borderColor: '#cb1c6b', color: '#cb1c6b' }}><Mail size={12} /> Email</button>
               <button onClick={() => navigate(`/esign/${resolvedProjectId}`)} className="btn-secondary text-sm" style={{ borderColor: '#7c3aed', color: '#7c3aed' }}><Pen size={12} /> Sign</button>
             </div>
           </div>
@@ -418,7 +418,7 @@ export default function KotoProofPage() {
                       <div style={{ height: 4, borderRadius: 999, background: '#fff', marginTop: 6, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
                         <div style={{
                           height: '100%', width: `${pct}%`,
-                          background: allApproved ? '#16a34a' : '#E6007E',
+                          background: allApproved ? '#16a34a' : '#cb1c6b',
                           transition: 'width .3s ease',
                         }} />
                       </div>
@@ -477,7 +477,7 @@ export default function KotoProofPage() {
                   {canvases.map(canvas => (
                     <div key={canvas.id} className="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow cursor-pointer group"
                       onClick={() => navigate(`/project/${resolvedProjectId}/canvas/${canvas.id}`)}
-                      style={{ borderLeft: '3px solid #E6007E' }}>
+                      style={{ borderLeft: '3px solid #cb1c6b' }}>
                       <div className="w-16 h-16 rounded-lg bg-brand-50 flex-shrink-0 flex items-center justify-center border border-brand-200">
                         <PenLine size={24} className="text-brand-500" />
                       </div>
@@ -519,7 +519,7 @@ export default function KotoProofPage() {
                   {emails.map(email => (
                     <div key={email.id} className="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow cursor-pointer group"
                       onClick={() => navigate(`/project/${resolvedProjectId}/email/${email.id}`)}
-                      style={{ borderLeft: '3px solid #E6007E' }}>
+                      style={{ borderLeft: '3px solid #cb1c6b' }}>
                       <div className="w-16 h-16 rounded-lg bg-brand-50 flex-shrink-0 flex items-center justify-center border border-brand-200">
                         <Mail size={24} className="text-brand-500" />
                       </div>
@@ -551,7 +551,7 @@ export default function KotoProofPage() {
                 <div className="text-center py-12"><FileImage size={40} className="text-gray-600 mx-auto mb-3" /><p className="text-gray-700 text-sm mb-4">Get started by creating something.</p>
                   <div className="flex items-center justify-center gap-3">
                     <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary"><Grid3X3 size={15} /> Canvas</button>
-                    <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={15} /> Email Designer</button>
+                    <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary" style={{ borderColor: '#cb1c6b', color: '#cb1c6b' }}><Mail size={15} /> Email Designer</button>
                     <button onClick={() => setShowUpload(true)} className="btn-primary"><Plus size={15} /> Upload File</button>
                   </div>
                 </div>
@@ -633,7 +633,7 @@ export default function KotoProofPage() {
                           }}
                           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur() } }}
                           style={{ fontSize: 11, color: '#374151', fontWeight: 600, lineHeight: 1.2, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text', padding: '2px 4px', borderRadius: 4, outline: 'none', border: '1px solid transparent' }}
-                          onFocus={e => { e.currentTarget.style.borderColor = '#E6007E'; e.currentTarget.style.whiteSpace = 'normal' }}
+                          onFocus={e => { e.currentTarget.style.borderColor = '#cb1c6b'; e.currentTarget.style.whiteSpace = 'normal' }}
                           onBlurCapture={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.whiteSpace = 'nowrap' }}
                         >
                           {file.name?.replace(/\.[^.]+$/, '')}

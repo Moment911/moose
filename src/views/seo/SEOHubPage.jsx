@@ -1275,7 +1275,7 @@ Return ONLY valid JSON (no markdown):
                             Automatically find up to 10 nearby competitors, score them head-to-head, and get an AI strategic action plan.
                           </div>
                           <button onClick={()=>navigate('/seo/competitor-intel')}
-                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:'#E6007E', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:'#cb1c6b', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                             Open Competitor Intel →
                           </button>
                         </div>

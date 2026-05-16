@@ -10,7 +10,7 @@ import PublicFooter from '../components/public/PublicFooter'
 import { usePageMeta } from '../lib/usePageMeta'
 
 /* ─── Tokens (match MarketingSitePage) ─── */
-const R    = '#E6007E'
+const R    = '#cb1c6b'
 const T    = '#00C2CB'
 const INK  = '#111111'
 const MUTED  = '#6b7280'

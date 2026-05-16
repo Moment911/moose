@@ -87,7 +87,7 @@ export default function OnboardingGuidePage() {
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px', fontFamily: '-apple-system, sans-serif', color: '#111' }}>
       {/* Header */}
       <div style={{ marginBottom: 48 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#E6007E', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Koto Platform</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#cb1c6b', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Koto Platform</div>
         <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-.03em', margin: '0 0 12px' }}>Onboarding Guide</h1>
         <p style={{ fontSize: 17, color: '#6b7280', lineHeight: 1.7, maxWidth: 600 }}>
           Complete reference for the Koto onboarding questionnaire, voice AI flow, and data collection process.
@@ -101,7 +101,7 @@ export default function OnboardingGuidePage() {
         <div style={{ display: 'grid', gap: 12 }}>
           {FLOW.map(f => (
             <div key={f.step} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E6007E', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{f.step}</div>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#cb1c6b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{f.step}</div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{f.title}</div>
                 <div style={{ fontSize: 14, color: '#6b7280' }}>{f.desc}</div>
@@ -117,7 +117,7 @@ export default function OnboardingGuidePage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {STEPS.map((s, i) => (
             <div key={s.id} style={{ padding: '14px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#E6007E', marginBottom: 4 }}>Step {i + 1}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#cb1c6b', marginBottom: 4 }}>Step {i + 1}</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 2 }}>{s.label}</div>
               <div style={{ fontSize: 13, color: '#6b7280' }}>{s.desc}</div>
             </div>
@@ -161,7 +161,7 @@ export default function OnboardingGuidePage() {
         <div style={{ display: 'grid', gap: 8 }}>
           {VOICE_RULES.map((rule, i) => (
             <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 14px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: '#E6007E', minWidth: 24 }}>{i + 1}.</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: '#cb1c6b', minWidth: 24 }}>{i + 1}.</span>
               <span style={{ fontSize: 14, color: '#111' }}>{rule}</span>
             </div>
           ))}

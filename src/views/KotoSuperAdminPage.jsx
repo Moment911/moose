@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const RED   = '#E6007E'
+const RED   = '#cb1c6b'
 const TEAL  = '#00C2CB'
 const BLK = '#111111'
 const GREEN = '#16a34a'
@@ -254,7 +254,7 @@ export default function KotoSuperAdminPage() {
       </div>
 
       {/* MRR stats */}
-      <div style={{ background:'#111', borderBottom:'1px solid #1a1a1a', padding:'16px 32px', display:'flex', gap:32 }}>
+      <div style={{ background:'#111', borderBottom:'1px solid #201b51', padding:'16px 32px', display:'flex', gap:32 }}>
         {[
           { label:'Total Agencies',  value: stats.total_agencies, color:'#fff' },
           { label:'Active',          value: stats.active,          color:'#4ade80' },
@@ -272,7 +272,7 @@ export default function KotoSuperAdminPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ background:'#111', borderBottom:'1px solid #1a1a1a', padding:'0 32px', display:'flex', gap:0 }}>
+      <div style={{ background:'#111', borderBottom:'1px solid #201b51', padding:'0 32px', display:'flex', gap:0 }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             style={{ padding:'12px 20px', border:'none', background:'transparent',
@@ -306,7 +306,7 @@ export default function KotoSuperAdminPage() {
               {loading ? (
                 <div style={{ textAlign:'center', padding:60 }}><Loader2 size={28} color={RED} style={{animation:'spin 1s linear infinite'}}/></div>
               ) : filtered.length === 0 ? (
-                <div style={{ background:'#111', borderRadius:16, border:'1px solid #1a1a1a', padding:'60px 24px', textAlign:'center' }}>
+                <div style={{ background:'#111', borderRadius:16, border:'1px solid #201b51', padding:'60px 24px', textAlign:'center' }}>
                   <Building2 size={40} color="#333" style={{ margin:'0 auto 16px', display:'block' }}/>
                   <div style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:'#fff', marginBottom:8 }}>
                     {search ? 'No agencies match your search' : 'No agencies yet'}
@@ -329,7 +329,7 @@ export default function KotoSuperAdminPage() {
                 const isExpanded = selected === ag.id
 
                 return (
-                  <div key={ag.id} style={{ background:'#111', borderRadius:14, border:`1px solid ${isExpanded ? RED+'40' : '#1a1a1a'}`, overflow:'hidden', transition:'border-color .15s' }}>
+                  <div key={ag.id} style={{ background:'#111', borderRadius:14, border:`1px solid ${isExpanded ? RED+'40' : '#201b51'}`, overflow:'hidden', transition:'border-color .15s' }}>
                     <div onClick={() => setSelected(isExpanded ? null : ag.id)}
                       style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 20px', cursor:'pointer' }}
                       onMouseEnter={e => e.currentTarget.style.background='#161616'}
@@ -366,17 +366,17 @@ export default function KotoSuperAdminPage() {
                     </div>
 
                     {isExpanded && (
-                      <div style={{ borderTop:'1px solid #1a1a1a', padding:'16px 20px', background:'#0d0d0d' }}>
+                      <div style={{ borderTop:'1px solid #201b51', padding:'16px 20px', background:'#0d0d0d' }}>
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:16 }}>
-                          <div style={{ background:'#111', borderRadius:10, padding:'12px 14px', border:'1px solid #1a1a1a' }}>
+                          <div style={{ background:'#111', borderRadius:10, padding:'12px 14px', border:'1px solid #201b51' }}>
                             <div style={{ fontSize:11, color:'#555', fontFamily:FH, marginBottom:4 }}>AGENCY ID</div>
                             <code style={{ fontSize:11, color:'#888', fontFamily:'monospace', wordBreak:'break-all' }}>{ag.id}</code>
                           </div>
-                          <div style={{ background:'#111', borderRadius:10, padding:'12px 14px', border:'1px solid #1a1a1a' }}>
+                          <div style={{ background:'#111', borderRadius:10, padding:'12px 14px', border:'1px solid #201b51' }}>
                             <div style={{ fontSize:11, color:'#555', fontFamily:FH, marginBottom:4 }}>CREATED</div>
                             <div style={{ fontSize:13, color:'#ccc', fontFamily:FB }}>{ag.created_at ? new Date(ag.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '—'}</div>
                           </div>
-                          <div style={{ background:'#111', borderRadius:10, padding:'12px 14px', border:'1px solid #1a1a1a' }}>
+                          <div style={{ background:'#111', borderRadius:10, padding:'12px 14px', border:'1px solid #201b51' }}>
                             <div style={{ fontSize:11, color:'#555', fontFamily:FH, marginBottom:4 }}>CLIENTS</div>
                             <div style={{ fontSize:18, fontWeight:900, color:'#fff', fontFamily:FH }}>{agClients.length} <span style={{ fontSize:12, color:'#555', fontWeight:400 }}>/ {ag.max_clients || 25} max</span></div>
                           </div>
@@ -393,9 +393,9 @@ export default function KotoSuperAdminPage() {
                                     impersonateClient({ id: cl.id, name: cl.name })
                                     navigate('/clients/' + cl.id)
                                   }}
-                                  style={{ fontSize:12, padding:'5px 12px', borderRadius:20, background:'#1a1a1a', color:'#ccc', fontFamily:FB, border:'1px solid #333', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}
+                                  style={{ fontSize:12, padding:'5px 12px', borderRadius:20, background:'#201b51', color:'#ccc', fontFamily:FB, border:'1px solid #333', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}
                                   onMouseEnter={e=>{e.currentTarget.style.background='#f59e0b20';e.currentTarget.style.borderColor='#f59e0b';e.currentTarget.style.color='#f59e0b'}}
-                                  onMouseLeave={e=>{e.currentTarget.style.background='#1a1a1a';e.currentTarget.style.borderColor='#333';e.currentTarget.style.color='#ccc'}}>
+                                  onMouseLeave={e=>{e.currentTarget.style.background='#201b51';e.currentTarget.style.borderColor='#333';e.currentTarget.style.color='#ccc'}}>
                                   👁 {cl.name}
                                 </button>
                               ))}
@@ -440,8 +440,8 @@ export default function KotoSuperAdminPage() {
 
         {/* ALL CLIENTS TAB */}
         {tab === 'clients' && (
-          <div style={{ background:'#111', borderRadius:16, border:'1px solid #1a1a1a', overflow:'hidden' }}>
-            <div style={{ padding:'14px 20px', borderBottom:'1px solid #1a1a1a', display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ background:'#111', borderRadius:16, border:'1px solid #201b51', overflow:'hidden' }}>
+            <div style={{ padding:'14px 20px', borderBottom:'1px solid #201b51', display:'flex', alignItems:'center', gap:12 }}>
               <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:'#fff' }}>All clients across all agencies</div>
               <span style={{ fontSize:12, color:'#555', fontFamily:FB }}>scoped by agency_id</span>
             </div>
@@ -457,7 +457,7 @@ export default function KotoSuperAdminPage() {
                 {clients.map((cl, i) => {
                   const ag = agencies.find(a => a.id === cl.agency_id)
                   return (
-                    <tr key={cl.id} style={{ borderTop:'1px solid #1a1a1a' }}>
+                    <tr key={cl.id} style={{ borderTop:'1px solid #201b51' }}>
                       <td style={{ padding:'11px 16px', fontFamily:FH, fontSize:14, fontWeight:600, color:'#fff' }}>{cl.name}</td>
                       <td style={{ padding:'11px 16px' }}>
                         {ag ? (
@@ -492,7 +492,7 @@ export default function KotoSuperAdminPage() {
               { label:'Avg Clients/Agency', value:agencies.length ? Math.round(clients.length/agencies.length) : 0, sub:'per agency', color:TEAL, icon:BarChart2 },
               { label:'Team Seats Used', value:stats.total_members, sub:'across all agencies', color:'#fff', icon:Users },
             ].map((m,i) => (
-              <div key={i} style={{ background:'#111', borderRadius:16, border:'1px solid #1a1a1a', padding:'24px 22px' }}>
+              <div key={i} style={{ background:'#111', borderRadius:16, border:'1px solid #201b51', padding:'24px 22px' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
                   <m.icon size={18} color={m.color}/>
                   <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em' }}>{m.label}</div>
@@ -509,7 +509,7 @@ export default function KotoSuperAdminPage() {
           <div>
 
             {/* Signup page meta */}
-            <div style={{ background:'#111', borderRadius:16, border:'1px solid #1a1a1a', padding:'20px 24px', marginBottom:20 }}>
+            <div style={{ background:'#111', borderRadius:16, border:'1px solid #201b51', padding:'20px 24px', marginBottom:20 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
                 <div>
                   <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:'#fff', marginBottom:3 }}>Signup Page Copy</div>
@@ -556,7 +556,7 @@ export default function KotoSuperAdminPage() {
             {/* Plan cards editor */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:20 }}>
               {plans.map(plan => (
-                <div key={plan.id} style={{ background:'#111', borderRadius:16, border:`1px solid ${editingPlan===plan.id ? RED+'60' : '#1a1a1a'}`, padding:'18px 20px', transition:'border-color .15s' }}>
+                <div key={plan.id} style={{ background:'#111', borderRadius:16, border:`1px solid ${editingPlan===plan.id ? RED+'60' : '#201b51'}`, padding:'18px 20px', transition:'border-color .15s' }}>
 
                   {/* Plan header */}
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
@@ -765,7 +765,7 @@ export default function KotoSuperAdminPage() {
 
             {/* Coupon list */}
             {coupons.length === 0 && couponsLoaded ? (
-              <div style={{ background:'#111', borderRadius:16, border:'1px solid #1a1a1a', padding:'60px 24px', textAlign:'center' }}>
+              <div style={{ background:'#111', borderRadius:16, border:'1px solid #201b51', padding:'60px 24px', textAlign:'center' }}>
                 <Tag size={36} color="#333" style={{ margin:'0 auto 14px', display:'block' }}/>
                 <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:'#fff', marginBottom:6 }}>No coupons yet</div>
                 <div style={{ fontSize:13, color:'#555', fontFamily:FB }}>Create your first coupon to offer discounts at signup</div>
@@ -777,12 +777,12 @@ export default function KotoSuperAdminPage() {
                   const expired = coupon.valid_until && new Date(coupon.valid_until) < new Date()
                   const maxed = coupon.max_uses && uses >= coupon.max_uses
                   return (
-                    <div key={coupon.id} style={{ background:'#111', borderRadius:14, border:`1px solid ${coupon.active && !expired && !maxed ? '#1a1a1a' : '#333'}`, padding:'16px 20px', display:'flex', alignItems:'center', gap:14 }}>
+                    <div key={coupon.id} style={{ background:'#111', borderRadius:14, border:`1px solid ${coupon.active && !expired && !maxed ? '#201b51' : '#333'}`, padding:'16px 20px', display:'flex', alignItems:'center', gap:14 }}>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
                           <code style={{ fontFamily:'monospace', fontSize:16, fontWeight:900, color: coupon.active?'#fff':'#555', letterSpacing:'.1em' }}>{coupon.code}</code>
                           <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, fontFamily:FH,
-                            background: !coupon.active?'#1a1a1a':expired||maxed?'#1a1a1a':GREEN+'20',
+                            background: !coupon.active?'#201b51':expired||maxed?'#201b51':GREEN+'20',
                             color: !coupon.active?'#555':expired||maxed?'#555':GREEN }}>
                             {!coupon.active?'Disabled':expired?'Expired':maxed?'Maxed out':'Active'}
                           </span>
@@ -862,7 +862,7 @@ export default function KotoSuperAdminPage() {
                       <button onClick={async()=>{
                         setMpRequests(p=>p.filter(r=>r.id!==req.id))
                       }}
-                        style={{ padding:'6px 12px', borderRadius:8, border:'1px solid #fecaca', background:'#fef2f2', color:'#E6007E', fontSize:12, cursor:'pointer' }}>
+                        style={{ padding:'6px 12px', borderRadius:8, border:'1px solid #fecaca', background:'#fef2f2', color:'#cb1c6b', fontSize:12, cursor:'pointer' }}>
                         Deny
                       </button>
                     </div>

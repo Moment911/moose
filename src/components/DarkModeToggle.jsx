@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b';
+const R   = '#cb1c6b', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b';
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif";
 const FB = "'Raleway','Helvetica Neue',sans-serif";
 
@@ -20,7 +20,7 @@ const LIGHT_VARS = {
 
 const DARK_VARS = {
   '--bg-primary': '#0a0a0a',
-  '--bg-secondary': '#1a1a1a',
+  '--bg-secondary': '#201b51',
   '--bg-card': '#111111',
   '--text-primary': '#F9F9F9',
   '--text-secondary': '#9ca3af',
@@ -85,7 +85,7 @@ export default function DarkModeToggle() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: dark ? '#1a1a1a' : GRY,
+        background: dark ? '#201b51' : GRY,
         transition: 'all 300ms ease',
         padding: 0,
         flexShrink: 0,
@@ -95,7 +95,7 @@ export default function DarkModeToggle() {
         e.currentTarget.style.transform = 'scale(1.1)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.background = dark ? '#1a1a1a' : GRY;
+        e.currentTarget.style.background = dark ? '#201b51' : GRY;
         e.currentTarget.style.transform = 'scale(1)';
       }}
     >

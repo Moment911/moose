@@ -29,7 +29,7 @@ function StepIcon({ name, size=14, color }) {
   return I ? <I size={size} color={color}/> : null
 }
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ADAPTIVE CONTEXT ENGINE
@@ -1958,7 +1958,7 @@ export default function OnboardingPage() {
 
           {/* Agency welcome banner */}
           <div style={{ background: '#ffffff', borderRadius:16, padding:'28px 32px', marginBottom:40, display:'flex', alignItems:'center', gap:20 }}>
-            <div style={{ width:52, height:52, borderRadius:14, background:'#E6007E', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:22, fontWeight:900, color:'#fff' }}>
+            <div style={{ width:52, height:52, borderRadius:14, background:'#cb1c6b', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:22, fontWeight:900, color:'#fff' }}>
               {(tokenData?.clients?.name || 'K')[0].toUpperCase()}
             </div>
             <div>

@@ -81,7 +81,7 @@ export default function FileReviewPage() {
   const [fileActivity, setFileActivity] = useState([])
 
   const [tool, setTool] = useState('select')
-  const [color, setColor] = useState('#E6007E')
+  const [color, setColor] = useState('#cb1c6b')
   const [zoom, setZoom] = useState(1)
 
   // Natural dimensions — set from image.naturalWidth/Height for images,
@@ -435,7 +435,7 @@ export default function FileReviewPage() {
         .section-title { font-size: 16px; font-weight: 700; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 16px; }
         .ann { padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
         .ann-header { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
-        .ann-num { width: 24px; height: 24px; border-radius: 50%; background: #E6007E; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+        .ann-num { width: 24px; height: 24px; border-radius: 50%; background: #cb1c6b; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
         .ann-num.resolved { background: #16a34a; }
         .ann-type { font-size: 11px; text-transform: uppercase; color: #9ca3af; font-weight: 600; }
         .ann-text { font-size: 14px; margin: 4px 0; }
@@ -555,7 +555,7 @@ export default function FileReviewPage() {
             }}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur() } }}
             style={{ color: '#111', fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text', padding: '2px 6px', borderRadius: 6, border: '1px solid transparent', outline: 'none', maxWidth: 300 }}
-            onFocus={e => { e.currentTarget.style.borderColor = '#E6007E'; e.currentTarget.style.background = '#fdf2f8' }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#cb1c6b'; e.currentTarget.style.background = '#fdf2f8' }}
             onBlurCapture={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent' }}
           >{file.name}</div>
 
@@ -695,7 +695,7 @@ export default function FileReviewPage() {
               onClick={() => setIframeWidth(p.width)}
               style={{
                 padding: '3px 10px', borderRadius: 6,
-                background: iframeWidth === p.width ? '#E6007E' : '#fff',
+                background: iframeWidth === p.width ? '#cb1c6b' : '#fff',
                 color: iframeWidth === p.width ? '#fff' : '#6b7280',
                 border: '1px solid #e5e7eb',
                 fontSize: 11, fontWeight: 700, cursor: 'pointer',
@@ -775,7 +775,7 @@ export default function FileReviewPage() {
                     onClick={() => navigate(`/project/${projectId}/review/${f.id}`)}
                     style={{
                       cursor: 'pointer', borderRadius: 6, overflow: 'hidden',
-                      border: isActive ? '2px solid #E6007E' : '2px solid transparent',
+                      border: isActive ? '2px solid #cb1c6b' : '2px solid transparent',
                       opacity: isActive ? 1 : 0.6, transition: 'all .15s',
                     }}
                     onMouseEnter={e => { if (!isActive) e.currentTarget.style.opacity = '0.9' }}
@@ -874,8 +874,8 @@ export default function FileReviewPage() {
               )}
               {(isAdobe || isDesignFile) && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: contentWidth, height: 400, background: '#f9fafb', borderRadius: 12, gap: 16 }}>
-                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#E6007E15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FileText size={32} color="#E6007E" />
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#cb1c6b15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FileText size={32} color="#cb1c6b" />
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>{file.name}</div>
                   <div style={{ fontSize: 14, color: '#6b7280', maxWidth: 400, textAlign: 'center' }}>
@@ -1072,7 +1072,7 @@ export default function FileReviewPage() {
               <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Activity</div>
               {fileActivity.map(a => (
                 <div key={a.id} style={{ display: 'flex', gap: 8, padding: '6px 0', fontSize: 12, color: '#6b7280' }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: a.action === 'approved' ? '#16a34a' : a.action === 'commented' ? '#E6007E' : '#d1d5db', marginTop: 5, flexShrink: 0 }} />
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: a.action === 'approved' ? '#16a34a' : a.action === 'commented' ? '#cb1c6b' : '#d1d5db', marginTop: 5, flexShrink: 0 }} />
                   <div>
                     <span style={{ fontWeight: 600, color: '#374151' }}>{a.actor_name || 'Someone'}</span>
                     {' '}{a.detail || a.action}

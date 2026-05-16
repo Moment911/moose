@@ -335,7 +335,7 @@ const WASH_C    = '#fafbfc';
 /* ─── Molecule / particle network — canvas-driven "constellation" backdrop ─── */
 function ParticleNetwork({
   count = 42, maxDist = 140, speed = 0.35,
-  color1 = '#E6007E', color2 = '#00C2CB',
+  color1 = '#cb1c6b', color2 = '#00C2CB',
   lineColor = '230, 0, 126', // RGB tuple used in rgba()
   style = {},
 }) {

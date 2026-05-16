@@ -24,7 +24,7 @@ import toast from 'react-hot-toast'
 import { pick } from '../lib/kotoClientPick'
 
 const TEAL = '#00C2CB'
-const PINK = '#E6007E'
+const PINK = '#cb1c6b'
 
 const SERVICE_OPTIONS = [
   'SEO',

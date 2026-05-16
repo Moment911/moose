@@ -1328,7 +1328,7 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
                         return (
                           <div key={`${d}-${h}`} style={{
                             width:'100%', aspectRatio:'1', borderRadius: 3,
-                            background: count === 0 ? '#f3f4f6' : `rgba(230, 0, 126, ${0.15 + intensity * 0.7})`,
+                            background: count === 0 ? '#f3f4f6' : `rgba(203, 28, 107, ${0.15 + intensity * 0.7})`,
                           }} title={`${day} ${h}:00 — ${count} visit${count !== 1 ? 's' : ''}`} />
                         )
                       })}
@@ -1355,7 +1355,7 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
                   return (
                     <div key={i} style={{
                       aspectRatio: '2/1',
-                      background: count === 0 ? '#fafafa' : `rgba(230, 0, 126, ${0.1 + intensity * 0.75})`,
+                      background: count === 0 ? '#fafafa' : `rgba(203, 28, 107, ${0.1 + intensity * 0.75})`,
                       transition: 'background .2s',
                     }} title={`${count} click${count !== 1 ? 's' : ''}`} />
                   )

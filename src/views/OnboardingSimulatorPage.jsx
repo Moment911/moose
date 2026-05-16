@@ -20,7 +20,7 @@ const C = {
   border: '#e5e7eb',
   teal: '#00C2CB',
   tealSoft: '#E6FCFD',
-  red: '#E6007E',
+  red: '#cb1c6b',
   green: '#10b981',
   greenSoft: '#ecfdf5',
   amber: '#f59e0b',

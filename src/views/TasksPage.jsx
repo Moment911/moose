@@ -32,7 +32,7 @@ const PRIORITIES = [
   { key: 'none', label: 'None', color: '#d1d5db' },
   { key: 'low', label: 'Low', color: '#3b82f6' },
   { key: 'medium', label: 'Medium', color: '#f59e0b' },
-  { key: 'high', label: 'High', color: '#E6007E' },
+  { key: 'high', label: 'High', color: '#cb1c6b' },
   { key: 'urgent', label: 'Urgent', color: '#dc2626' },
 ]
 
@@ -167,13 +167,13 @@ export default function TasksPage() {
     const filteredTasks = tasks
       .filter(t => mStatus==='all' || t.status===mStatus)
       .filter(t => !mSearch || t.title?.toLowerCase().includes(mSearch.toLowerCase()))
-    const priColor = p => ({high:'#E6007E',medium:'#f59e0b',low:'#9a9a96'})[p]||'#9a9a96'
+    const priColor = p => ({high:'#cb1c6b',medium:'#f59e0b',low:'#9a9a96'})[p]||'#9a9a96'
 
     return (
       <MobilePage padded={false}>
         <MobilePageHeader title="Tasks" subtitle={`${tasks.length} total`}
           action={<button onClick={()=>setMShowAdd(true)}
-            style={{width:38,height:38,borderRadius:11,background:'#E6007E',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent',minHeight:44}}>
+            style={{width:38,height:38,borderRadius:11,background:'#cb1c6b',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent',minHeight:44}}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>}/>
 
@@ -186,7 +186,7 @@ export default function TasksPage() {
                 placeholder="Task title..." autoFocus
                 style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1.5px solid #e5e7eb',fontSize:16,outline:'none',fontFamily:"'Raleway','Helvetica Neue',sans-serif",minHeight:44}}/>
               <button onClick={()=>{handleAddTask();setMShowAdd(false)}}
-                style={{padding:'10px 18px',borderRadius:10,border:'none',background:'#E6007E',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',minHeight:44,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Add</button>
+                style={{padding:'10px 18px',borderRadius:10,border:'none',background:'#cb1c6b',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',minHeight:44,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Add</button>
               <button onClick={()=>setMShowAdd(false)}
                 style={{padding:'10px',borderRadius:10,border:'1px solid #e5e7eb',background:'#fff',color:'#9ca3af',cursor:'pointer',minHeight:44,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
             </div>

@@ -113,7 +113,7 @@ export default function ScholarshipsPage() {
     <TrainerPortalShell>
       <div style={{ background: '#f1f1f6', minHeight: '100vh' }}>
         {/* Dark header */}
-        <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)', padding: '28px 40px 24px' }}>
+        <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #201b51 100%)', padding: '28px 40px 24px' }}>
           <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-.5px' }}>
             Baseball Scholarships
           </h1>

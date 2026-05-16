@@ -31,9 +31,9 @@ export default function AnnotationToolbar({ tool, setTool, color, setColor, onUn
               style={{
                 width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: 'none', cursor: 'pointer', transition: 'all .15s',
-                background: isActive ? (t.color || '#E6007E') + '20' : 'transparent',
-                color: isActive ? (t.color || '#E6007E') : '#9ca3af',
-                outline: isActive ? `2px solid ${t.color || '#E6007E'}40` : 'none',
+                background: isActive ? (t.color || '#cb1c6b') + '20' : 'transparent',
+                color: isActive ? (t.color || '#cb1c6b') : '#9ca3af',
+                outline: isActive ? `2px solid ${t.color || '#cb1c6b'}40` : 'none',
               }}>
               <Icon size={20} />
             </button>

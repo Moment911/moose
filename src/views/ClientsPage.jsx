@@ -309,7 +309,7 @@ export default function ClientsPage() {
               </p>
             </div>
             <button onClick={()=>{setEditingId(null);setForm({name:'',email:'',phone:'',website:'',industry:'',status:'active'});setShowAdd(true)}}
-              style={{ width:40, height:40, borderRadius:12, background:'#E6007E', border:'none', color:'#fff', fontSize:22, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', WebkitTapHighlightColor:'transparent' }}>
+              style={{ width:40, height:40, borderRadius:12, background:'#cb1c6b', border:'none', color:'#fff', fontSize:22, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', WebkitTapHighlightColor:'transparent' }}>
               <Plus size={20}/>
             </button>
           </div>
@@ -323,8 +323,8 @@ export default function ClientsPage() {
           {statuses.map(s=>(
             <button key={s} onClick={()=>setStatusFilter(s)}
               style={{ flexShrink:0, padding:'0 16px', height:42, border:'none',
-                borderBottom:`2.5px solid ${statusFilter===s?'#E6007E':'transparent'}`,
-                background:'transparent', color:statusFilter===s?'#E6007E':'#9ca3af',
+                borderBottom:`2.5px solid ${statusFilter===s?'#cb1c6b':'transparent'}`,
+                background:'transparent', color:statusFilter===s?'#cb1c6b':'#9ca3af',
                 fontSize:14, fontWeight:statusFilter===s?700:500, cursor:'pointer',
                 fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", whiteSpace:'nowrap' }}>
               {s.charAt(0).toUpperCase()+s.slice(1)}
@@ -334,7 +334,7 @@ export default function ClientsPage() {
 
         {/* Add/Edit form */}
         {showAdd && (
-          <div style={{ margin:'12px 16px', background:'#fff', borderRadius:14, border:'2px solid #E6007E', padding:'16px' }}>
+          <div style={{ margin:'12px 16px', background:'#fff', borderRadius:14, border:'2px solid #cb1c6b', padding:'16px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
               <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:16, fontWeight:800, color:'#111' }}>
                 {editingId ? 'Edit Client' : 'New Client'}
@@ -348,7 +348,7 @@ export default function ClientsPage() {
                 <label style={{ fontSize:13, fontWeight:700, color:'#111', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={e=>setF(f.key,e.target.value)} placeholder={f.placeholder}
                   style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #e5e7eb', fontSize:16, outline:'none', color:'#111', boxSizing:'border-box' }}
-                  onFocus={e=>e.target.style.borderColor='#E6007E'} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                  onFocus={e=>e.target.style.borderColor='#cb1c6b'} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
               </div>
             ))}
             <div style={{ marginBottom:12 }}>

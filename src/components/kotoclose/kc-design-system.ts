@@ -1,6 +1,6 @@
 export const KC = {
   colors: {
-    acc: '#E6007E',       // Koto magenta — primary accent
+    acc: '#cb1c6b',       // Koto magenta — primary accent
     accTint: '#FFF0F7',
     accMid: '#B5005B',
     blue: '#4A4EFF',      // Secondary blue

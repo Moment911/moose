@@ -64,8 +64,8 @@ function AgencyPicker({ onSelect }) {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
         <div style={{ maxWidth: 520, width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#E6007E15', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <Building2 size={28} color="#E6007E" />
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#cb1c6b15', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Building2 size={28} color="#cb1c6b" />
             </div>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: '#111', margin: '0 0 8px', fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif" }}>
               Select an Agency
@@ -107,8 +107,8 @@ function AgencyPicker({ onSelect }) {
                 {agency.logo_url ? (
                   <img src={agency.logo_url} alt="" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'contain', background: '#f3f4f6' }} />
                 ) : (
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E6007E15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Building2 size={18} color="#E6007E" />
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#cb1c6b15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Building2 size={18} color="#cb1c6b" />
                   </div>
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>

@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     const defaultHtml = `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;">
   <div style="text-align:center;margin-bottom:24px;">
-    <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:#E6007E;border-radius:14px;margin-bottom:12px;">
+    <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:#cb1c6b;border-radius:14px;margin-bottom:12px;">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
     </div>
     <h1 style="margin:0;font-size:24px;font-weight:800;color:#111;">Welcome to HelloKoto</h1>
@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
     </div>
   </div>
   <div style="text-align:center;">
-    <a href="https://hellokoto.com" target="_blank" style="display:inline-block;background:#E6007E;color:#fff;padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;">Visit hellokoto.com →</a>
+    <a href="https://hellokoto.com" target="_blank" style="display:inline-block;background:#cb1c6b;color:#fff;padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;">Visit hellokoto.com →</a>
   </div>
   <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:16px;">Powered by Koto · AI Marketing Platform for Agencies</p>
 </div>`
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
 
       const systemPrompt = `You are a world-class HTML/CSS designer. You create beautiful, modern HTML layouts for a WordPress plugin welcome page.
 
-The brand is "HelloKoto" — an AI-powered marketing platform for agencies. Brand color is #E6007E (pink/magenta). Secondary color is #00C2CB (teal).
+The brand is "HelloKoto" — an AI-powered marketing platform for agencies. Brand color is #cb1c6b (pink/magenta). Secondary color is #00C2CB (teal).
 
 Rules:
 - Output ONLY the HTML. No markdown, no code fences, no explanation.

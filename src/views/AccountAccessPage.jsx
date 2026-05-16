@@ -11,7 +11,7 @@ import { ACCESS_SECTIONS, PRIORITY_CONFIG, STATUS_CONFIG, TYPE_CONFIG } from '..
 import { formatDistanceToNow, format } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL = '#00C2CB'
 const INP = { width:'100%', padding:'8px 11px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', background:'#fff', boxSizing:'border-box', color:'#111' }
 

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 
-const KC = { acc:'#E6007E',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif" }
+const KC = { acc:'#cb1c6b',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif" }
 
 const PREBUILT = [
   {id:'hvac',name:'HVAC',sic:'1711',naics:'238220',cat:'Trades',score:94,color:'#0ea5e9'},
@@ -27,7 +27,7 @@ const DEFAULT_QA = [
   {stage:'Close',q:'Does this feel like what you are looking for? Why?',note:'Commitment question'},
 ]
 
-const STAGE_C: Record<string,{bg:string;c:string}> = { Connect:{bg:'#f0fdf4',c:'#16a34a'},Discovery:{bg:'#EEF0FF',c:'#4A4EFF'},Problem:{bg:'#FFF0F7',c:'#E6007E'},Consequence:{bg:'#fef2f2',c:'#991b1b'},Solution:{bg:'#faf5ff',c:'#7c3aed'},Close:{bg:'#fffbeb',c:'#92400e'} }
+const STAGE_C: Record<string,{bg:string;c:string}> = { Connect:{bg:'#f0fdf4',c:'#16a34a'},Discovery:{bg:'#EEF0FF',c:'#4A4EFF'},Problem:{bg:'#FFF0F7',c:'#cb1c6b'},Consequence:{bg:'#fef2f2',c:'#991b1b'},Solution:{bg:'#faf5ff',c:'#7c3aed'},Close:{bg:'#fffbeb',c:'#92400e'} }
 
 export default function IndustryPage() {
   const [industries] = useState(PREBUILT)
@@ -68,7 +68,7 @@ export default function IndustryPage() {
           {Object.entries(grouped).map(([cat,items])=>(<div key={cat}>
             <div style={{fontSize:9,fontWeight:700,letterSpacing:'0.9px',textTransform:'uppercase',color:'#999',padding:'10px 8px 4px'}}>{cat}</div>
             {items.map(ind=>{const a=sel?.id===ind.id;return(
-              <div key={ind.id} onClick={()=>pick(ind)} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 10px',borderLeft:a?`2px solid ${KC.acc}`:'2px solid transparent',borderRadius:a?'0 6px 6px 0':'6px',background:a?'rgba(230,0,126,0.06)':'transparent',cursor:'pointer',marginBottom:1}}>
+              <div key={ind.id} onClick={()=>pick(ind)} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 10px',borderLeft:a?`2px solid ${KC.acc}`:'2px solid transparent',borderRadius:a?'0 6px 6px 0':'6px',background:a?'rgba(203, 28, 107,0.06)':'transparent',cursor:'pointer',marginBottom:1}}>
                 <div style={{width:28,height:28,borderRadius:7,background:ind.color+'15',color:ind.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,flexShrink:0}}>{ind.name[0]}</div>
                 <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:500,color:a?KC.acc:KC.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ind.name}</div><div style={{fontSize:10,color:'#999'}}>SIC {ind.sic}</div></div>
                 <span style={{fontSize:9,fontWeight:700,padding:'1px 6px',borderRadius:10,background:ind.score>0?KC.greenTint:KC.blueTint,color:ind.score>0?KC.green:KC.blue}}>{ind.score>0?'Built':'AI-Gen'}</span>
@@ -95,7 +95,7 @@ export default function IndustryPage() {
               {sel.score===0?(<div style={{background:'rgba(74,78,255,0.04)',border:'1px solid rgba(74,78,255,0.2)',borderRadius:10,padding:16,marginBottom:14}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}><span style={{width:8,height:8,borderRadius:'50%',background:KC.blue,animation:'kcpulse 1.5s infinite'}}/><span style={{fontSize:13,fontWeight:700}}>Building {sel.name} AI Brain</span></div>
                 <div style={{fontSize:11,color:'#999',marginBottom:8}}>Generating industry-aware config...</div>
-                <div style={{background:'rgba(0,0,0,0.06)',borderRadius:4,height:6,overflow:'hidden',marginBottom:6}}><div style={{background:'linear-gradient(90deg,#4A4EFF,#E6007E)',borderRadius:4,height:'100%',width:`${buildPct}%`,transition:'width 0.5s'}}/></div>
+                <div style={{background:'rgba(0,0,0,0.06)',borderRadius:4,height:6,overflow:'hidden',marginBottom:6}}><div style={{background:'linear-gradient(90deg,#4A4EFF,#cb1c6b)',borderRadius:4,height:'100%',width:`${buildPct}%`,transition:'width 0.5s'}}/></div>
                 <div style={{fontSize:10,color:'#999',marginBottom:10}}>{buildStatus||'Click Build to start'}</div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:10}}>{[{l:'Docs',v:Math.round(buildPct*1.2)},{l:'Patterns',v:Math.round(buildPct*8.9)},{l:'IQ',v:Math.round(buildPct*0.79)}].map(s=>(<div key={s.l} style={{background:KC.white,borderRadius:7,padding:8,textAlign:'center'}}><div style={{fontSize:16,fontWeight:700,color:KC.blue,fontFamily:KC.fd}}>{s.v}</div><div style={{fontSize:9,color:'#999'}}>{s.l}</div></div>))}</div>
                 {!building&&<button onClick={startBuild} style={{background:KC.blue,color:'white',border:'none',borderRadius:6,padding:'8px 18px',fontSize:12,fontWeight:600,cursor:'pointer',width:'100%'}}>Build Brain</button>}
@@ -107,7 +107,7 @@ export default function IndustryPage() {
               </div>
               <div style={{background:KC.white,border:`0.5px solid ${KC.borderMd}`,borderRadius:10,padding:14,marginBottom:10}}>
                 <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.6px',color:'#999',marginBottom:8}}>Pain Points</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:4}}>{pains.map((p,i)=>(<span key={i} style={{background:KC.accTint,color:KC.acc,border:'0.5px solid rgba(230,0,126,0.2)',borderRadius:20,padding:'4px 10px',fontSize:10,fontWeight:600,display:'inline-flex',gap:5,cursor:'pointer'}}>{p}<span onClick={()=>setPains(ps=>ps.filter((_,j)=>j!==i))} style={{opacity:0.5}}>&times;</span></span>))}<span onClick={()=>setPains(ps=>[...ps,'New pain'])} style={{background:'white',border:'1px dashed rgba(0,0,0,0.15)',color:'#999',borderRadius:20,padding:'4px 10px',fontSize:10,cursor:'pointer'}}>+ Add</span></div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:4}}>{pains.map((p,i)=>(<span key={i} style={{background:KC.accTint,color:KC.acc,border:'0.5px solid rgba(203, 28, 107,0.2)',borderRadius:20,padding:'4px 10px',fontSize:10,fontWeight:600,display:'inline-flex',gap:5,cursor:'pointer'}}>{p}<span onClick={()=>setPains(ps=>ps.filter((_,j)=>j!==i))} style={{opacity:0.5}}>&times;</span></span>))}<span onClick={()=>setPains(ps=>[...ps,'New pain'])} style={{background:'white',border:'1px dashed rgba(0,0,0,0.15)',color:'#999',borderRadius:20,padding:'4px 10px',fontSize:10,cursor:'pointer'}}>+ Add</span></div>
               </div>
               <div style={{background:KC.white,border:`0.5px solid ${KC.borderMd}`,borderRadius:10,padding:14,marginBottom:10}}>
                 <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.6px',color:'#999',marginBottom:8}}>Objections</div>

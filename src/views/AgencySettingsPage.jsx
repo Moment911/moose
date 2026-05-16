@@ -454,7 +454,7 @@ export default function AgencySettingsPage() {
                 style={{...INP,flex:1,fontFamily:'monospace'}}/>
             </div>
             <div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>
-              {['#E6007E','#00C2CB','#0a0a0a','#7c3aed','#2563eb','#16a34a','#d97706','#db2777'].map(col=>(
+              {['#cb1c6b','#00C2CB','#0a0a0a','#7c3aed','#2563eb','#16a34a','#d97706','#db2777'].map(col=>(
                 <button key={col} onClick={()=>setAgency(a=>({...a,brand_color:col}))}
                   style={{width:26,height:26,borderRadius:6,background:col,border:agency.brand_color===col?'3px solid #fff':agency.brand_color===col?'3px solid #333':'2px solid transparent',
                   boxShadow:agency.brand_color===col?'0 0 0 2px '+col:'none',cursor:'pointer',outline:'none'}}/>
@@ -1076,7 +1076,7 @@ export default function AgencySettingsPage() {
                       <MobileRow key={s.key}
                         onClick={()=>setSection(s.key)}
                         borderBottom={i<items.length-1}
-                        left={<div style={{width:36,height:36,borderRadius:10,background:section===s.key?'#E6007E':'#f9fafb',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        left={<div style={{width:36,height:36,borderRadius:10,background:section===s.key?'#cb1c6b':'#f9fafb',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                           <I size={16} color={section===s.key?'#fff':'#374151'}/>
                         </div>}
                         title={s.label}/>

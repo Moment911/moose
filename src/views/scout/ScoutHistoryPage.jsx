@@ -15,7 +15,7 @@ import { callClaude } from '../../lib/ai'
 import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const RED  = '#E6007E'
+const RED  = '#cb1c6b'
 const TEAL = '#00C2CB'
 
 const TEMP_COLOR = { hot:'#ef4444', warm:'#f59e0b', lukewarm:TEAL, cold:'#6b7280' }

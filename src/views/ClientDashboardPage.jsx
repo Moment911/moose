@@ -14,11 +14,11 @@ import { emailTicketCreated } from '../lib/deskEmail'
 import { formatDistanceToNow, differenceInDays, format } from 'date-fns'
 import toast, { Toaster } from 'react-hot-toast'
 
-const RED  = '#E6007E'
+const RED  = '#cb1c6b'
 const TEAL = '#00C2CB'
 
 const TYPE_ICONS = { website: Globe, mobile: Smartphone, brand: Palette, email: Mail, print: Printer, social: Film, presentation: BarChart2, other: Folder }
-function TypeIcon({ type, size = 20 }) { const I = TYPE_ICONS[type] || Folder; return <I size={size} strokeWidth={1.5} style={{color:'#E6007E'}}/> }
+function TypeIcon({ type, size = 20 }) { const I = TYPE_ICONS[type] || Folder; return <I size={size} strokeWidth={1.5} style={{color:'#cb1c6b'}}/> }
 
 const STATUS_CFG = {
   new:         { label:'New',         color:'#8b5cf6', bg:'#f5f3ff' },

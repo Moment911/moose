@@ -23,7 +23,7 @@ import toast from 'react-hot-toast'
 const STALE_CLIENT_DAYS = 7
 
 const TEAL = '#00C2CB'
-const PINK = '#E6007E'
+const PINK = '#cb1c6b'
 
 export default function ProofListPage() {
   const navigate = useNavigate()

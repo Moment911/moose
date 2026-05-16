@@ -13,7 +13,7 @@ export default function VersionCompare({ fileA, fileB, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.9)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', background: '#1a1a1a', borderBottom: '1px solid #333', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', background: '#201b51', borderBottom: '1px solid #333', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>Compare Versions</span>
           <span style={{ color: '#9ca3af', fontSize: 13 }}>v{fileA?.version_number || 1} vs v{fileB?.version_number || 2}</span>
@@ -22,7 +22,7 @@ export default function VersionCompare({ fileA, fileB, onClose }) {
           {MODES.map(m => (
             <button key={m} onClick={() => setMode(m)} style={{
               padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: mode === m ? '#E6007E' : '#333', color: '#fff', fontSize: 13, fontWeight: 600,
+              background: mode === m ? '#cb1c6b' : '#333', color: '#fff', fontSize: 13, fontWeight: 600,
               textTransform: 'capitalize',
             }}>{m.replace('-', ' ')}</button>
           ))}
@@ -50,7 +50,7 @@ export default function VersionCompare({ fileA, fileB, onClose }) {
             <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: `${sliderPos}%`, overflow: 'hidden' }}>
               <img src={fileA.url} alt="v1" style={{ maxWidth: 'none', width: `${100 / sliderPos * 100}%`, maxHeight: '100%', display: 'block' }} />
             </div>
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${sliderPos}%`, width: 3, background: '#E6007E', cursor: 'ew-resize', zIndex: 10 }}
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${sliderPos}%`, width: 3, background: '#cb1c6b', cursor: 'ew-resize', zIndex: 10 }}
               onMouseDown={e => {
                 const container = e.currentTarget.parentElement
                 const rect = container.getBoundingClientRect()

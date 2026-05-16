@@ -7,16 +7,16 @@
    ============================================ */
 
 :root {
-  --brand: #E6007E;
-  --brand-light: rgba(230,0,126,0.07);
-  --gray-1: #1A1A1A;
-  --gray-2: #4A4545;
-  --gray-3: #8A8580;
-  --gray-4: #8A8580;
-  --gray-5: #E8E4E0;
+  --brand: #cb1c6b;
+  --brand-light: rgba(203, 28, 107,0.07);
+  --gray-1: #201b51;
+  --gray-2: #4a4674;
+  --gray-3: #6b6789;
+  --gray-4: #6b6789;
+  --gray-5: #e8e6ef;
   --gray-6: #F0ECE8;
-  --gray-7: #F7F5F2;
-  --border: #E8E4E0;
+  --gray-7: #faf9f6;
+  --border: #e8e6ef;
   --header-h: 44px;
   --tabbar-h: 49px;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -142,8 +142,8 @@
 .ann-marker { position: absolute; width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg) translate(-50%,-50%); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.25); z-index: 20; transition: transform 0.15s, box-shadow 0.15s; }
 .ann-marker:hover, .ann-marker.active { box-shadow: 0 4px 16px rgba(0,0,0,0.35); transform: rotate(-45deg) translate(-50%,-50%) scale(1.15); }
 .ann-marker span { transform: rotate(45deg); color: white; font-size: 13px; font-weight: 600; line-height: 1; }
-.ann-tooltip { position: absolute; background: #1a1a1a; color: white; font-size: 13px; padding: 6px 10px; border-radius: 6px; z-index: 20; pointer-events: none; max-width: 220px; white-space: normal; }
-.ann-tooltip::before { content: ''; position: absolute; bottom: -4px; left: 12px; width: 8px; height: 8px; background: #1a1a1a; transform: rotate(45deg); }
+.ann-tooltip { position: absolute; background: #201b51; color: white; font-size: 13px; padding: 6px 10px; border-radius: 6px; z-index: 20; pointer-events: none; max-width: 220px; white-space: normal; }
+.ann-tooltip::before { content: ''; position: absolute; bottom: -4px; left: 12px; width: 8px; height: 8px; background: #201b51; transform: rotate(45deg); }
 
 /* === PREVENT HORIZONTAL PAGE SCROLL ON MOBILE === */
 @media (max-width: 767px) {

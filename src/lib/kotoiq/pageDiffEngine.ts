@@ -319,7 +319,7 @@ async function fireAlert(s: SupabaseClient, page: any, c: ClassifiedChange, _age
 
   const channels = watch?.alert_channels || {}
   const title = `Competitor change: ${page.competitor_domain}${page.page_type ? ` (${page.page_type})` : ''}`
-  const severityColor = c.severity === 'high' ? '#DC2626' : c.severity === 'low' ? '#8A8580' : '#E6007E'
+  const severityColor = c.severity === 'high' ? '#DC2626' : c.severity === 'low' ? '#6b6789' : '#cb1c6b'
   const alertParams = {
     title,
     body: c.summary,

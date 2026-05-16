@@ -30,7 +30,7 @@ export default function BenchmarksPage() {
 
         {/* ── Dark gradient header ──────────────────────────────────────── */}
         <div style={{
-          background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%)',
+          background: 'linear-gradient(180deg, #0a0a0a 0%, #201b51 100%)',
           padding: '48px 40px 32px',
           borderBottom: '1px solid #2a2a2a',
         }}>
@@ -165,7 +165,7 @@ export default function BenchmarksPage() {
             <div style={{
               marginTop: 20,
               padding: '18px 22px',
-              background: '#1a1a1a',
+              background: '#201b51',
               border: '1px solid #2a2a2a',
               borderRadius: 12,
               borderLeft: `3px solid ${T_RED}`,
@@ -196,7 +196,7 @@ export default function BenchmarksPage() {
           <div style={{
             marginTop: 20,
             padding: '16px 22px',
-            background: '#1a1a1a',
+            background: '#201b51',
             border: '1px solid #2a2a2a',
             borderRadius: 12,
             display: 'flex',

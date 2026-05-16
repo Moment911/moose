@@ -10,7 +10,7 @@ const ADDR = 'Boca Raton, Florida, United States'
 const EMAIL = 'legal@hellokoto.com'
 const DATE = 'April 29, 2026'
 
-const RED  = '#E6007E'
+const RED  = '#cb1c6b'
 const BLK = '#111111'
 const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB   = "'Raleway','Georgia',serif"

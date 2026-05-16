@@ -6,7 +6,7 @@ import { hexToRgb, rgbToHex, rgbToCmyk, cmykToHex, hsvToRgb, rgbToHsv } from '..
 // Koto-first swatch palette: pink + teal lead, followed by supporting
 // tones the client portal already uses. Dropped the amber (#f59e0b) that
 // was showing up as an off-brand swatch on the public review surface.
-const PRESETS = ['#E6007E', '#00C2CB', '#231f20', '#185FA5', '#3B6D11', '#7C3ABF', '#dc2626', '#ffffff', '#f5f5f5', '#000000']
+const PRESETS = ['#cb1c6b', '#00C2CB', '#231f20', '#185FA5', '#3B6D11', '#7C3ABF', '#dc2626', '#ffffff', '#f5f5f5', '#000000']
 
 export default function ColorPicker({ value = '#000000', onChange, label, mode = 'field', presets = PRESETS }) {
   const [open, setOpen] = useState(false)

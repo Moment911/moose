@@ -3,9 +3,9 @@
 const STYLES = {
   primary:  { background: '#111111', color: '#FFFFFF', border: 'none' },
   ghost:    { background: 'transparent', color: '#555555', border: '1px solid rgba(0,0,0,0.14)' },
-  red:      { background: '#E6007E', color: '#FFFFFF', border: 'none' },
+  red:      { background: '#cb1c6b', color: '#FFFFFF', border: 'none' },
   cyan:     { background: '#00C2CB', color: '#FFFFFF', border: 'none' },
-  danger:   { background: '#FFF0F7', color: '#B5005B', border: '1px solid rgba(230,0,126,0.15)' },
+  danger:   { background: '#FFF0F7', color: '#B5005B', border: '1px solid rgba(203, 28, 107,0.15)' },
 }
 
 export default function Button({ children, variant = 'primary', small, disabled, onClick, style: sx }) {

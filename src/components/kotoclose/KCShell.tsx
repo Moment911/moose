@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { KCAccess } from '@/lib/kotoclose-auth'
 
 const KC = {
-  acc: '#E6007E', accTint: '#FFF0F7', accMid: '#B5005B',
+  acc: '#cb1c6b', accTint: '#FFF0F7', accMid: '#B5005B',
   blue: '#4A4EFF', blueTint: '#EEF0FF', green: '#16a34a', greenTint: '#f0fdf4',
   text: '#111111', secondary: '#555555', tertiary: '#999999',
   border: 'rgba(0,0,0,0.08)', borderMd: 'rgba(0,0,0,0.13)',
@@ -71,7 +71,7 @@ export default function KCShell({ children, access }: { children: React.ReactNod
         {badge !== undefined && (
           <span style={{
             marginLeft: 'auto', fontSize: 10, fontWeight: 600, borderRadius: 10, padding: '1px 6px',
-            background: active ? 'rgba(230,0,126,0.12)' : 'rgba(0,0,0,0.06)', color: active ? KC.acc : badgeColor || KC.tertiary,
+            background: active ? 'rgba(203, 28, 107,0.12)' : 'rgba(0,0,0,0.06)', color: active ? KC.acc : badgeColor || KC.tertiary,
           }}>{badge}</span>
         )}
       </div>
@@ -125,7 +125,7 @@ export default function KCShell({ children, access }: { children: React.ReactNod
           {access.isSuperAdmin && (
             <>
               <Section label="Admin" />
-              <NavItem href="/platform-admin" label="KotoClose Admin" icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E6007E" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>} />
+              <NavItem href="/platform-admin" label="KotoClose Admin" icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cb1c6b" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>} />
             </>
           )}
         </div>
@@ -150,7 +150,7 @@ export default function KCShell({ children, access }: { children: React.ReactNod
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: 11, color: '#999', fontVariantNumeric: 'tabular-nums' }}>{clock}</span>
-            <div style={{ display: 'flex', gap: 6, padding: '5px 10px', background: KC.accTint, border: '0.5px solid rgba(230,0,126,0.2)', borderRadius: 6, fontSize: 11, color: KC.acc, fontWeight: 500, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 6, padding: '5px 10px', background: KC.accTint, border: '0.5px solid rgba(203, 28, 107,0.2)', borderRadius: 6, fontSize: 11, color: KC.acc, fontWeight: 500, alignItems: 'center' }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#16a34a', animation: 'kcpulse 1.5s infinite' }} />
               Active Campaign
             </div>

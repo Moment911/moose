@@ -2,8 +2,8 @@
 export default function LucyLogo({ size = 'md', showText = true, white = false }) {
   const sizes = { sm: { icon: 28, text: 16 }, md: { icon: 36, text: 20 }, lg: { icon: 48, text: 28 } }
   const s = sizes[size] || sizes.md
-  const color = white ? '#ffffff' : '#E6007E'
-  const textColor = white ? '#ffffff' : '#1a1a1a'
+  const color = white ? '#ffffff' : '#cb1c6b'
+  const textColor = white ? '#ffffff' : '#201b51'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <svg width={s.icon} height={s.icon} viewBox="0 0 40 40" fill="none">

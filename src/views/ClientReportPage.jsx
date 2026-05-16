@@ -21,7 +21,7 @@ const C = {
   teal: '#00C2CB',
   tealSoft: '#E6FCFD',
   tealDark: '#0E7490',
-  red: '#E6007E',
+  red: '#cb1c6b',
   redSoft: '#FEE2E2',
   green: '#16A34A',
   greenSoft: '#F0FDF4',

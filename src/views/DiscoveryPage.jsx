@@ -1647,7 +1647,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
             <HeaderBtn
               onClick={eng.audit_data ? () => navigate(`/discovery/audit/${id}`) : generateAudit}
               disabled={busyAudit}
-              color="#E6007E"
+              color="#cb1c6b"
               icon={busyAudit ? Loader2 : Zap}
               label={busyAudit ? 'Generating…' : (eng.audit_data ? 'View Audit' : 'Generate Audit')}
               spinning={busyAudit}

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 
 // Color palette — keep in sync with /lib/theme.ts
-const R   = '#E6007E'
+const R   = '#cb1c6b'
 const T   = '#00C2CB'
 const BLK = '#111111'
 const AMB = '#f59e0b'

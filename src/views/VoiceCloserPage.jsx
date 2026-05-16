@@ -154,7 +154,7 @@ function AppointmentCard({ appt, lead, onAction, expanded, onToggle }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
             width: 40, height: 40, borderRadius: 10,
-            background: '#E6007E',
+            background: '#cb1c6b',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
             <Phone size={18} color={W} />
@@ -445,7 +445,7 @@ export default function VoiceCloserPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: '#E6007E',
+              background: '#cb1c6b',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               <Target size={18} color={W} />

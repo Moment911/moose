@@ -7,33 +7,33 @@ export const colors = {
   // Backgrounds
   bg: {
     primary: '#FFFFFF',         // Cards, modals, content areas
-    secondary: '#F7F5F2',       // Page background (warm linen)
-    tertiary: '#FAFAF8',        // Table headers, subtle sections
+    secondary: '#faf9f6',       // Page background (warm linen)
+    tertiary: '#f5f3ee',        // Table headers, subtle sections
     canvas: '#F2EFEC',          // Hover states
   },
 
   // Borders
   border: {
-    default: '#E8E4E0',         // Cards, inputs, dividers (warm)
+    default: '#e8e6ef',         // Cards, inputs, dividers (warm)
     subtle: '#F0ECE8',          // Table row separators
-    focus: '#E6007E',           // Focus rings on inputs
+    focus: '#cb1c6b',           // Focus rings on inputs
   },
 
   // Text
   text: {
-    primary: '#1A1A1A',         // Headings, important text
-    secondary: '#4A4545',       // Body text, descriptions (warm)
-    tertiary: '#8A8580',        // Labels, captions, placeholders
-    muted: '#8A8580',           // Alias for tertiary
+    primary: '#201b51',         // Headings, important text
+    secondary: '#4a4674',       // Body text, descriptions (warm)
+    tertiary: '#6b6789',        // Labels, captions, placeholders
+    muted: '#6b6789',           // Alias for tertiary
     inverse: '#FFFFFF',         // Text on dark/colored backgrounds
   },
 
   // Brand
   brand: {
-    pink: '#E6007E',            // Primary accent — buttons, active states, links
-    pinkHover: '#CC006E',       // Hover state for pink
-    pinkLight: 'rgba(230,0,126,0.07)',  // Light pink tint for backgrounds
-    pinkLighter: 'rgba(230,0,126,0.04)', // Subtle hover tint
+    pink: '#cb1c6b',            // Primary accent — buttons, active states, links
+    pinkHover: '#a8155a',       // Hover state for pink
+    pinkLight: 'rgba(203, 28, 107,0.07)',  // Light pink tint for backgrounds
+    pinkLighter: 'rgba(203, 28, 107,0.04)', // Subtle hover tint
     teal: '#00C2CB',            // Data-positive metrics ONLY
     tealLight: 'rgba(0,194,203,0.07)',
   },
@@ -62,7 +62,7 @@ export const colors = {
 
   // Annotation status
   annotation: {
-    open: '#E6007E',
+    open: '#cb1c6b',
     inProgress: '#D97706',
     resolved: '#16A34A',
     measure: '#6366F1',
@@ -81,7 +81,7 @@ export const colors = {
     border: '#2A2725',
     borderSubtle: '#1F1D1B',
     accent: '#F0288E',
-    accentHover: '#E6007E',
+    accentHover: '#cb1c6b',
   },
 } as const
 

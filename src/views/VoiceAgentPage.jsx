@@ -1536,7 +1536,7 @@ export default function VoiceAgentPage() {
         {/* Header */}
         <div style={{ background:W, padding:'16px 28px', borderBottom:'1px solid rgba(0,0,0,0.08)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <div style={{ width:36, height:36, borderRadius:10, background: '#cb1c6b', display:'flex', alignItems:'center', justifyContent:'center' }}>
               <PhoneCall size={18} color={W} />
             </div>
             <div>

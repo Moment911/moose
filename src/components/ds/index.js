@@ -8,7 +8,7 @@ export { default as DataTable } from './DataTable'
 
 // Design system color constants
 export const DS = {
-  red: '#E6007E',
+  red: '#cb1c6b',
   cyan: '#00C2CB',
   black: '#111111',
   gray1: '#333333',

@@ -73,8 +73,8 @@ export default function RealTimeCostMeter() {
     onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
     onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
     title="Open Expense Intelligence">
-      <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#E6007E20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Zap size={13} color="#E6007E" />
+      <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#cb1c6b20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Zap size={13} color="#cb1c6b" />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
         <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Today</div>

@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
 const TAG_COLORS = [
-  '#E6007E', '#ec4899', '#00C2CB', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#6b7280', '#1a1a1a',
+  '#cb1c6b', '#ec4899', '#00C2CB', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#6b7280', '#201b51',
   '#fca5a5', '#f9a8d4', '#fdba74', '#fde047', '#86efac', '#99f6e4', '#93c5fd', '#c4b5fd', '#d1d5db', '#f5f5f5',
 ]
 

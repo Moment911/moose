@@ -17,7 +17,7 @@ const C = {
   mutedDark: '#374151',
   border: '#e5e7eb',
   borderMd: '#d1d5db',
-  red: '#E6007E',
+  red: '#cb1c6b',
   redSoft: '#FEE2E2',
   amber: '#D97706',
   amberSoft: '#FFFBEB',

@@ -10,17 +10,17 @@ import toast from 'react-hot-toast'
 // ─── Koto Design tokens (DESIGN.md) ─────────────────────────
 const DISPLAY = "'Instrument Serif', Georgia, 'Times New Roman', serif"
 const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-const INK = '#1A1A1A'
-const DIM = '#4A4545'
-const MID = '#8A8580'
-const HAIR = '#E8E4E0'
+const INK = '#201b51'
+const DIM = '#4a4674'
+const MID = '#6b6789'
+const HAIR = '#e8e6ef'
 const SUBHAIR = '#F0ECE8'
-const SOFT = '#FAFAF8'
-const PAGE = '#F7F5F2'
-const PINK = '#E6007E'
-const PINK_HOVER = '#CC006E'
-const PINK_LIGHT = 'rgba(230, 0, 126, 0.07)'
-const PINK_PULSE = 'rgba(230, 0, 126, 0.4)'
+const SOFT = '#f5f3ee'
+const PAGE = '#faf9f6'
+const PINK = '#cb1c6b'
+const PINK_HOVER = '#a8155a'
+const PINK_LIGHT = 'rgba(203, 28, 107, 0.07)'
+const PINK_PULSE = 'rgba(203, 28, 107, 0.4)'
 const TEAL = '#00C2CB'
 const SUCCESS = '#16A34A'
 const WARNING = '#D97706'
@@ -65,8 +65,8 @@ const ghostButton = { display: 'inline-flex', alignItems: 'center', gap: 6, padd
 const ANIMATIONS_CSS = `
 @keyframes koto-pulse {
   0%   { box-shadow: 0 0 0 0 ${PINK_PULSE}; }
-  70%  { box-shadow: 0 0 0 12px rgba(230,0,126,0); }
-  100% { box-shadow: 0 0 0 0 rgba(230,0,126,0); }
+  70%  { box-shadow: 0 0 0 12px rgba(203, 28, 107,0); }
+  100% { box-shadow: 0 0 0 0 rgba(203, 28, 107,0); }
 }
 @keyframes koto-slide-in {
   from { opacity: 0; transform: translateY(8px); }

@@ -182,7 +182,7 @@ export default function DeskReportsPage() {
   // By category
   const byCat = {}
   filtered.forEach(t=>{ const c=t.ai_category||t.category||'general'; byCat[c]=(byCat[c]||0)+1 })
-  const catColors = ['#E6007E','#00C2CB','#7c3aed','#f59e0b','#16a34a','#3b82f6','#ec4899','#14b8a6']
+  const catColors = ['#cb1c6b','#00C2CB','#7c3aed','#f59e0b','#16a34a','#3b82f6','#ec4899','#14b8a6']
   const catData = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,8)
     .map(([k,v],i)=>({label:k,value:v,color:catColors[i%catColors.length]}))
 
@@ -257,8 +257,8 @@ export default function DeskReportsPage() {
           {[{key:'7d',label:'7 days'},{key:'30d',label:'30 days'},{key:'90d',label:'90 days'},{key:'all',label:'All time'}].map(r=>(
             <button key={r.key} onClick={()=>setRange(r.key)}
               style={{flexShrink:0,padding:'0 16px',height:42,border:'none',
-                borderBottom:`2.5px solid ${range===r.key?'#E6007E':'transparent'}`,
-                background:'transparent',color:range===r.key?'#E6007E':'#9a9a96',
+                borderBottom:`2.5px solid ${range===r.key?'#cb1c6b':'transparent'}`,
+                background:'transparent',color:range===r.key?'#cb1c6b':'#9a9a96',
                 fontSize:14,fontWeight:range===r.key?700:500,cursor:'pointer',
                 fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
               {r.label}
@@ -284,7 +284,7 @@ export default function DeskReportsPage() {
                 <div key={cat} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
                   <div style={{fontSize:13,color:'#5a5a58',flex:1,fontFamily:"'Raleway',sans-serif",textTransform:'capitalize'}}>{cat}</div>
                   <div style={{height:6,flex:2,background:'#F9F9F9',borderRadius:3,overflow:'hidden'}}>
-                    <div style={{height:'100%',width:`${Math.round(cnt/t.length*100)}%`,background:'#E6007E',borderRadius:3}}/>
+                    <div style={{height:'100%',width:`${Math.round(cnt/t.length*100)}%`,background:'#cb1c6b',borderRadius:3}}/>
                   </div>
                   <div style={{fontSize:13,fontWeight:700,color:'#0a0a0a',minWidth:24,textAlign:'right',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{cnt}</div>
                 </div>

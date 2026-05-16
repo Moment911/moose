@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase'
 import { callClaude } from '../lib/ai'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL = '#00C2CB'
 
 function Pill({ text, color=ACCENT }) {

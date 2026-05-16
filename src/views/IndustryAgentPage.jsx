@@ -76,7 +76,7 @@ export default function IndustryAgentPage() {
         {/* Header */}
         <div style={{ background: W, padding: '20px 32px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: '#E6007E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: '#cb1c6b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Globe size={20} color={W} />
             </div>
             <div>

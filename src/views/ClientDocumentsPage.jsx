@@ -11,7 +11,7 @@ import { supabase, uploadFile, deleteStorageFile } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL = '#00C2CB'
 
 // ── Default system categories ────────────────────────────────────────────────

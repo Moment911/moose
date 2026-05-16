@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 // Palette tuned to Koto brand — pink + teal first, then supporting
 // tones. No orange/amber (used to be #f59e0b — showed up as an off-brand
 // blip for certain reviewer names on the public review page).
-const AVATAR_COLORS = ['#E6007E', '#00C2CB', '#185FA5', '#7C3ABF', '#3B6D11', '#ec4899', '#0E7490', '#59c6d0']
+const AVATAR_COLORS = ['#cb1c6b', '#00C2CB', '#185FA5', '#7C3ABF', '#3B6D11', '#ec4899', '#0E7490', '#59c6d0']
 
 function getInitials(name) { return (name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() }
 function getAvatarColor(name) { let hash = 0; for (const c of (name || '')) hash = c.charCodeAt(0) + ((hash << 5) - hash); return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] }

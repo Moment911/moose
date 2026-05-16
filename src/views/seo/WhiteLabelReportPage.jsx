@@ -22,7 +22,7 @@ const ALL_SECTIONS=[
 ]
 
 const BRANDING_DEFAULTS={
-  agency_name:'', agency_logo:'', primary_color:'#E6007E',
+  agency_name:'', agency_logo:'', primary_color:'#cb1c6b',
   footer_text:'Confidential — prepared exclusively for {client_name}',
   show_powered_by:true
 }

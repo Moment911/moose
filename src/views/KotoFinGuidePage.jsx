@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 
 const S = {
-  page: { background: '#fff', minHeight: '100vh', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#1a1a1a' },
+  page: { background: '#fff', minHeight: '100vh', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#201b51' },
   hero: { padding: '80px 24px 60px', textAlign: 'center', maxWidth: 800, margin: '0 auto' },
   heroTitle: { fontSize: 42, fontWeight: 700, letterSpacing: -1.5, marginBottom: 12, lineHeight: 1.1 },
   heroPro: { color: '#3b82f6', fontSize: 16, fontWeight: 600, background: 'rgba(59,130,246,0.08)', padding: '4px 12px', borderRadius: 6, marginLeft: 8, verticalAlign: 'middle' },

@@ -753,7 +753,7 @@ export default function ReviewsPage() {
           {label:'Total',   value:reviews.length},
           {label:'Avg ★',  value:avg},
           {label:'5 Star',  value:reviews.filter(r=>r.star_rating===5).length, color:'#16a34a'},
-          {label:'1-2 Star',value:reviews.filter(r=>r.star_rating<=2).length,  color:'#E6007E'},
+          {label:'1-2 Star',value:reviews.filter(r=>r.star_rating<=2).length,  color:'#cb1c6b'},
         ]}/>}
 
         {/* Client picker */}
@@ -785,7 +785,7 @@ export default function ReviewsPage() {
               </button>
               {googleReviews.length>0 && (
                 <button onClick={()=>setGoogleTab('reviews')}
-                  style={{ padding:'5px 12px', borderRadius:8, border:'none', background:googleTab==='reviews'?'#E6007E':'#f3f4f6', color:googleTab==='reviews'?'#fff':'#374151', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                  style={{ padding:'5px 12px', borderRadius:8, border:'none', background:googleTab==='reviews'?'#cb1c6b':'#f3f4f6', color:googleTab==='reviews'?'#fff':'#374151', fontSize:12, fontWeight:700, cursor:'pointer' }}>
                   Reviews {googleReviews.length}
                 </button>
               )}
@@ -814,7 +814,7 @@ export default function ReviewsPage() {
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                   {googleSearchResults.map((biz,i) => (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:GRY, cursor:'pointer' }}
-                      onMouseEnter={e=>e.currentTarget.style.borderColor='#E6007E'}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor='#cb1c6b'}
                       onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
                       {biz.photo && <img src={biz.photo} alt="" style={{ width:44, height:44, borderRadius:8, objectFit:'cover', flexShrink:0 }} onError={e=>e.target.style.display='none'}/>}
                       <div style={{ flex:1, minWidth:0 }}>
@@ -823,7 +823,7 @@ export default function ReviewsPage() {
                         {biz.rating && <div style={{ fontSize:12, color:'#f59e0b', fontWeight:700 }}>★{biz.rating} ({biz.review_count} reviews)</div>}
                       </div>
                       <button onClick={()=>fetchGoogleReviews(biz.place_id, biz.name)} disabled={googleFetching}
-                        style={{ padding:'7px 14px', borderRadius:8, border:'none', background:'#E6007E', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:5 }}>
+                        style={{ padding:'7px 14px', borderRadius:8, border:'none', background:'#cb1c6b', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:5 }}>
                         {googleFetching ? <Loader2 size={12} style={{animation:'spin 1s linear infinite'}}/> : null}
                         {googleFetching ? 'Fetching…' : 'Fetch Reviews'}
                       </button>
@@ -852,7 +852,7 @@ export default function ReviewsPage() {
                       <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
                         <span style={{ fontSize:13, fontWeight:700, color:'#111' }}>{r.reviewer_name||'Anonymous'}</span>
                         <span style={{ color:'#f59e0b', fontSize:13 }}>{'★'.repeat(r.rating||0)}{'☆'.repeat(5-(r.rating||0))}</span>
-                        <span style={{ fontSize:12, fontWeight:700, color:r.rating>=4?'#16a34a':r.rating<=2?'#E6007E':'#f59e0b' }}>{r.rating}★</span>
+                        <span style={{ fontSize:12, fontWeight:700, color:r.rating>=4?'#16a34a':r.rating<=2?'#cb1c6b':'#f59e0b' }}>{r.rating}★</span>
                         {r.is_responded && <span style={{ fontSize:12, fontWeight:700, padding:'1px 7px', borderRadius:20, background:'#f0fdf4', color:'#16a34a' }}>✓ Responded</span>}
                         <span style={{ fontSize:12, color:'#6b7280', marginLeft:'auto' }}>
                           {r.review_date ? new Date(r.review_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}
@@ -870,7 +870,7 @@ export default function ReviewsPage() {
                           style={{ width:'100%', padding:'8px 10px', borderRadius:8, border:'1.5px solid #00C2CB', fontSize:13, resize:'vertical', outline:'none', boxSizing:'border-box' }}/>
                         <div style={{ display:'flex', gap:6, marginTop:6 }}>
                           <button onClick={()=>saveGoogleResponse(r.review_id)}
-                            style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'#E6007E', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>Save</button>
+                            style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'#cb1c6b', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>Save</button>
                           <button onClick={()=>{ setGeneratingId(null); generateAIResponse(r) }} disabled={generatingId===r.review_id}
                             style={{ padding:'5px 12px', borderRadius:7, border:'1px solid #00C2CB', background:'transparent', color:'#00C2CB', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                             {generatingId===r.review_id?<Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={11}/>} Regenerate
@@ -909,7 +909,7 @@ export default function ReviewsPage() {
         <div style={{display:'flex',gap:6,padding:'0 16px 10px',overflowX:'auto',scrollbarWidth:'none'}}>
           {[0,...starArr].map(s=>(
             <button key={s} onClick={()=>setFilterStars(s)}
-              style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:`1px solid ${filterStars===s?'#E6007E':'#ececea'}`,background:filterStars===s?'#E6007E':'#fff',color:filterStars===s?'#fff':'#5a5a58',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+              style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:`1px solid ${filterStars===s?'#cb1c6b':'#ececea'}`,background:filterStars===s?'#cb1c6b':'#fff',color:filterStars===s?'#fff':'#5a5a58',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
               {s===0?'All':'★'.repeat(s)}
             </button>
           ))}
@@ -927,7 +927,7 @@ export default function ReviewsPage() {
               const stars='★'.repeat(r.star_rating||0)+'☆'.repeat(5-(r.star_rating||0))
               const isNeg=(r.star_rating||0)<=2
               return (
-                <div key={r.id} style={{background:'#fff',borderRadius:14,border:`1px solid ${isNeg?'#fecaca':'#ececea'}`,padding:'14px',borderLeft:`3px solid ${isNeg?'#E6007E':'#16a34a'}`}}>
+                <div key={r.id} style={{background:'#fff',borderRadius:14,border:`1px solid ${isNeg?'#fecaca':'#ececea'}`,padding:'14px',borderLeft:`3px solid ${isNeg?'#cb1c6b':'#16a34a'}`}}>
                   <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:6}}>
                     <div>
                       <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{r.reviewer_name||'Anonymous'}</div>
@@ -942,7 +942,7 @@ export default function ReviewsPage() {
                       <p style={{fontSize:13,color:'#5a5a58',margin:0,lineHeight:1.5}}>{r.response_text}</p>
                     </div>
                   ) : isNeg && (
-                    <button style={{width:'100%',padding:'9px',borderRadius:9,border:'1px solid #E6007E',background:'transparent',color:'#E6007E',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                    <button style={{width:'100%',padding:'9px',borderRadius:9,border:'1px solid #cb1c6b',background:'transparent',color:'#cb1c6b',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
                       Generate AI Response
                     </button>
                   )}

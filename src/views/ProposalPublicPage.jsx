@@ -5,7 +5,7 @@ import { Check, CheckCircle, Loader2, FileText, Clock, Shield } from 'lucide-rea
 import { supabase } from '../lib/supabase'
 import toast, { Toaster } from 'react-hot-toast'
 
-const ACCENT = '#E6007E'
+const ACCENT = '#cb1c6b'
 const TEAL = '#00C2CB'
 const PRICE_LABELS = { monthly:'/ mo', one_time:'one-time', hourly:'/ hr', custom:'' }
 

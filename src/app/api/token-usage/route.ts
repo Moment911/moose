@@ -638,7 +638,7 @@ export async function POST(req: NextRequest) {
         voice_phone:     { label: 'Voice & Phone',   color: '#00C2CB', total: 0, sources: {} },
         infrastructure:  { label: 'Infrastructure',  color: '#16a34a', total: 0, sources: {} },
         data_search:     { label: 'Data & Search',   color: '#f59e0b', total: 0, sources: {} },
-        business_tools:  { label: 'Business Tools',  color: '#E6007E', total: 0, sources: {} },
+        business_tools:  { label: 'Business Tools',  color: '#cb1c6b', total: 0, sources: {} },
         other:           { label: 'Other',           color: '#9ca3af', total: 0, sources: {} },
       }
 
@@ -741,7 +741,7 @@ export async function POST(req: NextRequest) {
         voice_phone:    { label: 'Voice & Phone',   color: '#00C2CB', total: 0 },
         infrastructure: { label: 'Infrastructure',  color: '#16a34a', total: 0 },
         data_search:    { label: 'Data & Search',   color: '#f59e0b', total: 0 },
-        business_tools: { label: 'Business Tools',  color: '#E6007E', total: 0 },
+        business_tools: { label: 'Business Tools',  color: '#cb1c6b', total: 0 },
         other:          { label: 'Other',           color: '#9ca3af', total: 0 },
       }
 

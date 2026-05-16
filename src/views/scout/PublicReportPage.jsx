@@ -12,7 +12,7 @@ import { supabase, getProspectReport, updateProspectReport, claimProspectReport 
 import { callClaude } from '../../lib/ai'
 import toast, { Toaster } from 'react-hot-toast'
 
-const RED   = '#E6007E'
+const RED   = '#cb1c6b'
 const TEAL  = '#00C2CB'
 const BLACK = '#0a0a0a'
 

@@ -29,7 +29,7 @@ export default function DiscrepancyCallout({ report, onChoose, onEdit, onIgnore,
         background: '#fff',
         border: `2px solid ${R}`,
         borderRadius: 16,
-        boxShadow: '0 12px 32px rgba(230,0,126,0.18)',
+        boxShadow: '0 12px 32px rgba(203, 28, 107,0.18)',
         padding: 16,
         margin: '12px auto',
       }}

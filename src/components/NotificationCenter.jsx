@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 const T = '#00C2CB'
-const R = '#E6007E'
+const R = '#cb1c6b'
 const BLK = '#111'
 const MUTED = '#6b7280'
 const BORDER = '#e5e7eb'

@@ -463,7 +463,7 @@ export default function CogReportPage() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => setShowAdd(true)} style={btnStyle('#E6007E', true)}>
+            <button onClick={() => setShowAdd(true)} style={btnStyle('#cb1c6b', true)}>
               <Plus size={13} /> Add Expense
             </button>
             <button onClick={syncAll} disabled={syncing} style={btnStyle('#8b5cf6')}>
@@ -589,9 +589,9 @@ export default function CogReportPage() {
                               onChange={(e) => setEditingBudget({ ...editingBudget, monthly_budget: e.target.value })}
                               onKeyDown={(e) => e.key === 'Enter' && saveBudget(key, editingBudget.monthly_budget)}
                               autoFocus
-                              style={{ width: 80, padding: '3px 8px', borderRadius: 6, border: '1.5px solid #E6007E', fontSize: 12 }}
+                              style={{ width: 80, padding: '3px 8px', borderRadius: 6, border: '1.5px solid #cb1c6b', fontSize: 12 }}
                             />
-                            <button onClick={() => saveBudget(key, editingBudget.monthly_budget)} style={{ padding: '3px 10px', borderRadius: 6, border: 'none', background: '#E6007E', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Save</button>
+                            <button onClick={() => saveBudget(key, editingBudget.monthly_budget)} style={{ padding: '3px 10px', borderRadius: 6, border: 'none', background: '#cb1c6b', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Save</button>
                           </>
                         ) : (
                           <button onClick={() => setEditingBudget({ category: key, monthly_budget: budget?.monthly_budget || '' })}
@@ -651,7 +651,7 @@ export default function CogReportPage() {
               {/* Live activity feed */}
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <Activity size={14} color="#E6007E" />
+                  <Activity size={14} color="#cb1c6b" />
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>Live Activity</div>
                   <div style={{
                     width: 6, height: 6, borderRadius: '50%',
@@ -892,7 +892,7 @@ export default function CogReportPage() {
                           <td style={{ padding: '10px 14px', fontWeight: 600, color: '#374151' }}>{FEATURE_LABELS[f.feature] || f.feature}</td>
                           <td style={{ padding: '10px 14px', textAlign: 'right', color: '#6b7280' }}>{f.calls.toLocaleString()}</td>
                           <td style={{ padding: '10px 14px', textAlign: 'right', color: '#6b7280' }}>${f.avg_cost_per_call.toFixed(4)}</td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#E6007E' }}>{fmt$(f.total_cost)}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#cb1c6b' }}>{fmt$(f.total_cost)}</td>
                           <td style={{ padding: '10px 14px', textAlign: 'right', color: '#9ca3af' }}>{Number(f.total_tokens).toLocaleString()}</td>
                           <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 11 }}>{f.primary_model || '—'}</td>
                         </tr>
@@ -903,7 +903,7 @@ export default function CogReportPage() {
                           {features.reduce((a, f) => a + f.calls, 0).toLocaleString()}
                         </td>
                         <td></td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#E6007E', fontSize: 14 }}>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#cb1c6b', fontSize: 14 }}>
                           {fmt$(features.reduce((a, f) => a + f.total_cost, 0))}
                         </td>
                         <td colSpan={2}></td>
@@ -1130,7 +1130,7 @@ function AddExpenseModal({ onClose, onSave }) {
           <button
             onClick={() => onSave(form)}
             disabled={!form.amount}
-            style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: form.amount ? '#E6007E' : '#e5e7eb', color: '#fff', fontSize: 13, fontWeight: 800, cursor: form.amount ? 'pointer' : 'not-allowed' }}>
+            style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: form.amount ? '#cb1c6b' : '#e5e7eb', color: '#fff', fontSize: 13, fontWeight: 800, cursor: form.amount ? 'pointer' : 'not-allowed' }}>
             Save Expense
           </button>
         </div>

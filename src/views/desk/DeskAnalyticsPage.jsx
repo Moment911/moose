@@ -6,7 +6,7 @@ import Sidebar from '../../components/Sidebar'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
-const RED  = '#E6007E'
+const RED  = '#cb1c6b'
 const TEAL = '#00C2CB'
 const BLACK = '#0a0a0a'
 

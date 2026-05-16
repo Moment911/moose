@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const KC = { acc:'#E6007E',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif",fb:"'Raleway',sans-serif" }
+const KC = { acc:'#cb1c6b',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif",fb:"'Raleway',sans-serif" }
 
 const STATUS_STYLES: Record<string,{bg:string;color:string;border:string}> = {
   live:{bg:'#f0fdf4',color:'#16a34a',border:'0.5px solid rgba(22,163,74,0.2)'},
@@ -9,7 +9,7 @@ const STATUS_STYLES: Record<string,{bg:string;color:string;border:string}> = {
   voicemail:{bg:'#fffbeb',color:'#92400e',border:'0.5px solid rgba(146,64,14,0.2)'},
   callback:{bg:'#faf5ff',color:'#7c3aed',border:'0.5px solid rgba(124,58,237,0.2)'},
   no_answer:{bg:'#f5f5f4',color:'#999',border:'0.5px solid rgba(0,0,0,0.08)'},
-  opted_in:{bg:'#FFF0F7',color:'#E6007E',border:'0.5px solid rgba(230,0,126,0.2)'},
+  opted_in:{bg:'#FFF0F7',color:'#cb1c6b',border:'0.5px solid rgba(203, 28, 107,0.2)'},
 }
 
 export default function DashboardPage() {
@@ -45,7 +45,7 @@ export default function DashboardPage() {
     { label:'Live Calls',value:s.live_calls,color:'#16a34a',delta:'Active now',dir:'neutral' },
     { label:'Calls Today',value:s.total_today,color:'#111',delta:'+12% vs yesterday',dir:'up' },
     { label:'Connect Rate',value:`${s.connect_rate}%`,color:'#4A4EFF',delta:'+4pts vs avg',dir:'up' },
-    { label:'Opt-ins Today',value:s.opted_ins,color:'#E6007E',delta:'+3 this hour',dir:'up' },
+    { label:'Opt-ins Today',value:s.opted_ins,color:'#cb1c6b',delta:'+3 this hour',dir:'up' },
     { label:'Voicemails',value:s.voicemails,color:'#111',delta:'17% VM rate',dir:'neutral' },
     { label:'Callbacks Sched.',value:s.callbacks,color:'#7c3aed',delta:'9 today',dir:'neutral' },
     { label:'Appointments',value:s.appointments,color:'#16a34a',delta:'5.7% book rate',dir:'up' },
@@ -141,7 +141,7 @@ export default function DashboardPage() {
             {[
               { label:'Dialed', value:s.total_today, color:'#111', pct:s.total_today>0?100:0 },
               { label:'Connected', value:s.connected, color:'#4A4EFF', pct:s.total_today>0?Math.round(s.connected/s.total_today*100):0 },
-              { label:'Opted In', value:s.opted_ins, color:'#E6007E', pct:s.total_today>0?Math.round(s.opted_ins/s.total_today*100):0 },
+              { label:'Opted In', value:s.opted_ins, color:'#cb1c6b', pct:s.total_today>0?Math.round(s.opted_ins/s.total_today*100):0 },
               { label:'Appt Set', value:s.appointments, color:'#16a34a', pct:s.total_today>0?Math.round(s.appointments/s.total_today*100):0 },
             ].map(f=>(
               <div key={f.label} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                 <div style={{ fontSize:10, color:'#999' }}>calls / hr</div>
               </div>
               <div style={{ background:KC.bg, borderRadius:8, padding:10, textAlign:'center' }}>
-                <div style={{ fontSize:18, fontWeight:700, color:'#E6007E', fontFamily:KC.fd }}>{s.live_calls}</div>
+                <div style={{ fontSize:18, fontWeight:700, color:'#cb1c6b', fontFamily:KC.fd }}>{s.live_calls}</div>
                 <div style={{ fontSize:10, color:'#999' }}>concurrent</div>
               </div>
             </div>

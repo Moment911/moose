@@ -4,7 +4,7 @@ const VARIANTS = {
   active:   { bg: '#F0FAFA', color: '#00878E', dot: '#00C2CB' },
   success:  { bg: '#f0fdf4', color: '#16a34a', dot: '#16a34a' },
   warning:  { bg: '#fffbeb', color: '#d97706', dot: '#d97706' },
-  error:    { bg: '#FFF0F7', color: '#B5005B', dot: '#E6007E' },
+  error:    { bg: '#FFF0F7', color: '#B5005B', dot: '#cb1c6b' },
   neutral:  { bg: '#F5F5F5', color: '#555555', dot: '#999999' },
   info:     { bg: '#eff6ff', color: '#2563eb', dot: '#3b82f6' },
 }

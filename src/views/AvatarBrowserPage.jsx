@@ -320,7 +320,7 @@ export default function AvatarBrowserPage() {
                       <button onClick={e => { e.stopPropagation(); toggleVideo(av.avatar_id, av.preview_video_url) }} style={{
                         position: 'absolute', bottom: 8, right: 8,
                         width: 32, height: 32, borderRadius: '50%',
-                        background: isPlaying ? 'rgba(0,0,0,0.6)' : 'rgba(230,0,126,0.8)',
+                        background: isPlaying ? 'rgba(0,0,0,0.6)' : 'rgba(203, 28, 107,0.8)',
                         border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         {isPlaying ? <Pause size={12} color={W} /> : <Play size={12} color={W} style={{ marginLeft: 2 }} />}

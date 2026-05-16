@@ -1,11 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const KC = { acc:'#E6007E',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif" }
+const KC = { acc:'#cb1c6b',accTint:'#FFF0F7',blue:'#4A4EFF',blueTint:'#EEF0FF',green:'#16a34a',greenTint:'#f0fdf4',text:'#111',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'Proxima Nova',sans-serif" }
 
 const SIGNAL_ICONS: Record<string,{bg:string;c:string;l:string}> = {
   review_spike:{bg:'#f0fdf4',c:'#16a34a',l:'R'}, hiring_post:{bg:'#EEF0FF',c:'#4A4EFF',l:'H'},
-  permit_pull:{bg:'#faf5ff',c:'#7c3aed',l:'P'}, ownership_change:{bg:'#FFF0F7',c:'#E6007E',l:'O'},
+  permit_pull:{bg:'#faf5ff',c:'#7c3aed',l:'P'}, ownership_change:{bg:'#FFF0F7',c:'#cb1c6b',l:'O'},
   website_update:{bg:'#fffbeb',c:'#92400e',l:'W'}, review_drop:{bg:'#fef2f2',c:'#991b1b',l:'D'},
 }
 
@@ -16,7 +16,7 @@ const SOURCES = [
   {n:'DNC.com',s:'Critical',c:'red'},{n:'LinkedIn',s:'Build',c:'magenta'},{n:'State License APIs',s:'Build',c:'magenta'},{n:'BBB Database',s:'Build',c:'magenta'},
 ]
 
-const badgeStyle = (c:string) => c==='green'?{bg:'#f0fdf4',co:'#16a34a'}:c==='blue'?{bg:'#EEF0FF',co:'#4A4EFF'}:c==='amber'?{bg:'#fffbeb',co:'#92400e'}:c==='magenta'?{bg:'#FFF0F7',co:'#E6007E'}:{bg:'#fef2f2',co:'#991b1b'}
+const badgeStyle = (c:string) => c==='green'?{bg:'#f0fdf4',co:'#16a34a'}:c==='blue'?{bg:'#EEF0FF',co:'#4A4EFF'}:c==='amber'?{bg:'#fffbeb',co:'#92400e'}:c==='magenta'?{bg:'#FFF0F7',co:'#cb1c6b'}:{bg:'#fef2f2',co:'#991b1b'}
 
 export default function IntelligencePage() {
   const [signals, setSignals] = useState<any[]>([])
@@ -63,7 +63,7 @@ export default function IntelligencePage() {
         <div style={{ background:KC.white, borderRadius:14, border:`0.5px solid ${KC.borderMd}`, padding:16 }}>
           <div style={{ fontSize:13, fontWeight:600, color:KC.text, fontFamily:KC.fd, marginBottom:12 }}>Lead IQ Score Breakdown</div>
           {[
-            {l:'Review Score',w:30,c:'#16a34a'},{l:'Activity Signals',w:25,c:'#4A4EFF'},{l:'Contact Quality',w:20,c:'#7c3aed'},{l:'Pain Alignment',w:15,c:'#E6007E'},{l:'Timing Score',w:10,c:'#92400e'},
+            {l:'Review Score',w:30,c:'#16a34a'},{l:'Activity Signals',w:25,c:'#4A4EFF'},{l:'Contact Quality',w:20,c:'#7c3aed'},{l:'Pain Alignment',w:15,c:'#cb1c6b'},{l:'Timing Score',w:10,c:'#92400e'},
           ].map(d=>(
             <div key={d.l} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
               <span style={{ minWidth:120, fontSize:11, color:'#555' }}>{d.l}</span>

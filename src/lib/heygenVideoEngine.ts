@@ -180,12 +180,12 @@ export async function sendVideoEmail(vmId: string): Promise<boolean> {
   <a href="${landingUrl}" style="display:block;text-decoration:none;margin:0 0 20px;">
     <div style="position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.08);">
       ${vm.heygen_thumbnail_url ? `<img src="${vm.heygen_thumbnail_url}" alt="Video message" style="width:100%;display:block;" />` : '<div style="background:#F5F5F5;height:320px;display:flex;align-items:center;justify-content:center;font-size:48px;">&#9654;</div>'}
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:rgba(230,0,126,0.9);display:flex;align-items:center;justify-content:center;">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:rgba(203, 28, 107,0.9);display:flex;align-items:center;justify-content:center;">
         <span style="color:#fff;font-size:24px;margin-left:4px;">&#9654;</span>
       </div>
     </div>
   </a>
-  <a href="${landingUrl}" style="display:inline-block;padding:12px 28px;background:#E6007E;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Watch My Message</a>
+  <a href="${landingUrl}" style="display:inline-block;padding:12px 28px;background:#cb1c6b;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Watch My Message</a>
   <p style="font-size:13px;color:#999;margin:20px 0 0;">This video was made just for you. Click to watch (15 seconds).</p>
 </div>`
 

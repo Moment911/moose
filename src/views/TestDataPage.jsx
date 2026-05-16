@@ -21,7 +21,7 @@ const C = {
   amber: '#D97706',
   amberSoft: '#FFFBEB',
   amberBorder: '#FCD34D',
-  red: '#E6007E',
+  red: '#cb1c6b',
   redSoft: '#FEE2E2',
   redBorder: '#FCA5A5',
 }

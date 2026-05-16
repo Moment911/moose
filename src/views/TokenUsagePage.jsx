@@ -50,7 +50,7 @@ const MODEL_LABELS = {
 
 const PROVIDER_CFG = {
   all:       { label: 'All Providers',   color: '#6b7280', icon: '⚡' },
-  anthropic: { label: 'Anthropic',       color: '#E6007E', icon: '🟠' },
+  anthropic: { label: 'Anthropic',       color: '#cb1c6b', icon: '🟠' },
   openai:    { label: 'OpenAI',          color: '#10a37f', icon: '🟢' },
   google:    { label: 'Google',          color: '#4285f4', icon: '🔵' },
   retell:    { label: 'Retell Voice',    color: '#8b5cf6', icon: '🎙️' },
@@ -60,7 +60,7 @@ const PROVIDER_CFG = {
 function modelColor(model) {
   if (!model) return '#9ca3af'
   if (model.includes('haiku')) return '#00C2CB'
-  if (model.includes('sonnet')) return '#E6007E'
+  if (model.includes('sonnet')) return '#cb1c6b'
   if (model.includes('opus')) return '#8b5cf6'
   if (model.includes('gpt') || model.startsWith('o1')) return '#10a37f'
   if (model.includes('gemini')) return '#4285f4'
@@ -340,7 +340,7 @@ export default function TokenUsagePage() {
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }} onChange={handleCsvUpload} />
             <button onClick={() => fileInputRef.current?.click()} disabled={importing}
-              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #E6007E40', background: '#fff', color: '#E6007E', cursor: importing ? 'wait' : 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #cb1c6b40', background: '#fff', color: '#cb1c6b', cursor: importing ? 'wait' : 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Upload size={13} /> {importing ? 'Importing…' : 'Import CSV'}
             </button>
             <a href="https://console.anthropic.com/settings/usage" target="_blank" rel="noreferrer"
@@ -403,7 +403,7 @@ export default function TokenUsagePage() {
             {/* Grand total banner — API + subscription combined */}
             {platformCosts && platformCosts.total > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 18 }}>
-                <div style={{ background: '#fff', borderRadius: 14, padding: '18px 22px', border: '1px solid #e5e7eb', borderLeft: '4px solid #E6007E' }}>
+                <div style={{ background: '#fff', borderRadius: 14, padding: '18px 22px', border: '1px solid #e5e7eb', borderLeft: '4px solid #cb1c6b' }}>
                   <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>API Token Costs</div>
                   <div style={{ fontSize: 26, fontWeight: 900, color: '#111' }}>{fmtCostLarge(data.total_cost)}</div>
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>metered per-call, from koto_token_usage</div>
@@ -415,9 +415,9 @@ export default function TokenUsagePage() {
                   <div style={{ fontSize: 26, fontWeight: 900, color: '#111' }}>{fmtCostLarge(platformCosts.total)}</div>
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>{platformCosts.entries} entries · Max plan + extras</div>
                 </div>
-                <div style={{ background: 'linear-gradient(135deg, #E6007E08 0%, #8b5cf608 100%)', borderRadius: 14, padding: '18px 22px', border: '1.5px solid #E6007E40' }}>
-                  <div style={{ fontSize: 11, color: '#E6007E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Grand Total Anthropic Spend</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: '#E6007E' }}>{fmtCostLarge(grandTotal)}</div>
+                <div style={{ background: 'linear-gradient(135deg, #cb1c6b08 0%, #8b5cf608 100%)', borderRadius: 14, padding: '18px 22px', border: '1.5px solid #cb1c6b40' }}>
+                  <div style={{ fontSize: 11, color: '#cb1c6b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Grand Total Anthropic Spend</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: '#cb1c6b' }}>{fmtCostLarge(grandTotal)}</div>
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>API + subscription combined</div>
                 </div>
               </div>
@@ -445,7 +445,7 @@ export default function TokenUsagePage() {
             {/* Summary cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
               {[
-                { label: 'Total Cost', value: fmtCostLarge(data.total_cost), Icon: DollarSign, color: '#E6007E', sub: `${days} days` },
+                { label: 'Total Cost', value: fmtCostLarge(data.total_cost), Icon: DollarSign, color: '#cb1c6b', sub: `${days} days` },
                 { label: 'Total Tokens', value: fmt(data.total_tokens), Icon: Zap, color: '#00C2CB', sub: `${fmt(data.total_input_tokens)} in / ${fmt(data.total_output_tokens)} out` },
                 { label: 'API Calls', value: fmt(data.total_calls), Icon: TrendingUp, color: '#8b5cf6', sub: `avg ${Math.round(data.total_tokens / Math.max(1, data.total_calls))} tokens/call` },
                 { label: 'Daily Avg Cost', value: fmtCostLarge(data.total_cost / days), Icon: Clock, color: '#f59e0b', sub: `~${fmtCostLarge((data.total_cost / days) * 30)}/month` },
@@ -482,7 +482,7 @@ export default function TokenUsagePage() {
                           <div style={{
                             height: '100%',
                             width: `${pctOfTotal}%`,
-                            background: '#E6007E',
+                            background: '#cb1c6b',
                             borderRadius: 10,
                           }} />
                         </div>
@@ -653,9 +653,9 @@ export default function TokenUsagePage() {
                         onClick={() => setGranularity(g)}
                         style={{
                           padding: '4px 10px', borderRadius: 6,
-                          border: granularity === g ? '1.5px solid #E6007E' : '1px solid #e5e7eb',
-                          background: granularity === g ? '#E6007E15' : '#fff',
-                          color: granularity === g ? '#E6007E' : '#6b7280',
+                          border: granularity === g ? '1.5px solid #cb1c6b' : '1px solid #e5e7eb',
+                          background: granularity === g ? '#cb1c6b15' : '#fff',
+                          color: granularity === g ? '#cb1c6b' : '#6b7280',
                           fontSize: 11, fontWeight: 700, cursor: 'pointer',
                         }}>
                         {g === '5minute' ? '5m' : g === '15minute' ? '15m' : g === 'minute' ? '1m' : g === 'hour' ? '1h' : g === 'day' ? '1d' : g === 'week' ? '1w' : '1mo'}
@@ -709,7 +709,7 @@ export default function TokenUsagePage() {
                       labelFormatter={(ts) => tickLabel(ts, granularity)}
                       contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
                     />
-                    <Bar dataKey="cost" fill="#E6007E" radius={[3, 3, 0, 0]} style={{ cursor: 'pointer' }} />
+                    <Bar dataKey="cost" fill="#cb1c6b" radius={[3, 3, 0, 0]} style={{ cursor: 'pointer' }} />
                   </BarChart>
                 </ResponsiveContainer>
                 <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 6, textAlign: 'center' }}>
@@ -746,7 +746,7 @@ export default function TokenUsagePage() {
                         <td style={{ padding: '10px 16px', color: '#6b7280' }}>{fmt(row.input_tokens)}</td>
                         <td style={{ padding: '10px 16px', color: '#6b7280' }}>{fmt(row.output_tokens)}</td>
                         <td style={{ padding: '10px 16px', fontWeight: 700, color: '#111' }}>{fmt(row.input_tokens + row.output_tokens)}</td>
-                        <td style={{ padding: '10px 16px', fontWeight: 800, color: '#E6007E' }}>{fmtCost(row.total_cost)}</td>
+                        <td style={{ padding: '10px 16px', fontWeight: 800, color: '#cb1c6b' }}>{fmtCost(row.total_cost)}</td>
                         <td style={{ padding: '10px 16px', color: '#9ca3af' }}>
                           {new Date(row.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </td>
@@ -779,7 +779,7 @@ export default function TokenUsagePage() {
             />
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setLabelEditor(null)} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={saveApiKeyLabel} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#E6007E', color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>Save</button>
+              <button onClick={saveApiKeyLabel} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#cb1c6b', color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>Save</button>
             </div>
           </div>
         </div>

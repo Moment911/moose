@@ -5569,7 +5569,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
   }
 
   const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
-  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#cb1c6b', T = '#00C2CB', BLK = '#111111'
   const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
   const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -5772,7 +5772,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
 function ReportsTab({ clientId, keywords, dashboard }) {
   const [activeReport, setActiveReport] = useState(null)
   const kws = keywords || []
-  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#cb1c6b', T = '#00C2CB', BLK = '#111111'
   const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 
   // Pre-compute report data from keywords
@@ -6066,7 +6066,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
   const [term, setTerm] = useState('')
   const [history, setHistory] = useState([])
 
-  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#cb1c6b', T = '#00C2CB', BLK = '#111111'
   const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
   const FB = "'Raleway','Helvetica Neue',sans-serif"
   const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }

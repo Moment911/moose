@@ -712,7 +712,7 @@ function EmptyChart({ message, compact }) {
 // internal state per instance, and an unstable identity (or mount on
 // data arrival inside the parent JSX tree) was contributing to render
 // churn after the scan completed.
-const COMPETITOR_PALETTE = ['#4A4545', '#8A8580', TEAL, '#A09A94', '#D4CFC9']
+const COMPETITOR_PALETTE = ['#4a4674', '#6b6789', TEAL, '#A09A94', '#D4CFC9']
 function ShareOfVoiceChart({ chartData, chartBrands, clientBrand }) {
   return (
     <ResponsiveContainer width="100%" height={260}>

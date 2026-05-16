@@ -94,7 +94,7 @@ export function appointmentConfirmationEmail(
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     <div style="background: #ffffff; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-      <h1 style="color: #1a1a1a; font-size: 24px; margin: 0 0 24px;">Appointment Confirmed</h1>
+      <h1 style="color: #201b51; font-size: 24px; margin: 0 0 24px;">Appointment Confirmed</h1>
       <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
         Hi ${name},
       </p>
@@ -102,7 +102,7 @@ export function appointmentConfirmationEmail(
         Your appointment with <strong>${closerName}</strong> (${closerTitle}) has been confirmed.
       </p>
       <div style="background: #f0f4ff; border-radius: 6px; padding: 20px; margin: 24px 0;">
-        <p style="color: #1a1a1a; font-size: 18px; font-weight: 600; margin: 0 0 8px;">
+        <p style="color: #201b51; font-size: 18px; font-weight: 600; margin: 0 0 8px;">
           ${datetime}
         </p>
       </div>
@@ -133,7 +133,7 @@ export function inboundCallSummaryEmail(
   const intakeRows = Object.entries(intakeData)
     .map(
       ([key, value]) =>
-        `<tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #6b7280; font-size: 14px;">${key}</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #1a1a1a; font-size: 14px;">${value}</td></tr>`
+        `<tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #6b7280; font-size: 14px;">${key}</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #201b51; font-size: 14px;">${value}</td></tr>`
     )
     .join('')
 
@@ -144,18 +144,18 @@ export function inboundCallSummaryEmail(
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     <div style="background: #ffffff; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-      <h1 style="color: #1a1a1a; font-size: 24px; margin: 0 0 8px;">Inbound Call Summary</h1>
+      <h1 style="color: #201b51; font-size: 24px; margin: 0 0 8px;">Inbound Call Summary</h1>
       <p style="color: #6b7280; font-size: 14px; margin: 0 0 24px;">${agencyName}</p>
 
       <div style="display: flex; gap: 16px; margin-bottom: 24px;">
         <div style="flex: 1;">
           <p style="color: #6b7280; font-size: 12px; text-transform: uppercase; margin: 0 0 4px;">Caller</p>
-          <p style="color: #1a1a1a; font-size: 16px; font-weight: 600; margin: 0;">${callerName}</p>
+          <p style="color: #201b51; font-size: 16px; font-weight: 600; margin: 0;">${callerName}</p>
           <p style="color: #4a4a4a; font-size: 14px; margin: 4px 0 0;">${callerPhone}</p>
         </div>
         <div>
           <p style="color: #6b7280; font-size: 12px; text-transform: uppercase; margin: 0 0 4px;">Duration</p>
-          <p style="color: #1a1a1a; font-size: 16px; font-weight: 600; margin: 0;">${duration}</p>
+          <p style="color: #201b51; font-size: 16px; font-weight: 600; margin: 0;">${duration}</p>
         </div>
         <div>
           <p style="color: #6b7280; font-size: 12px; text-transform: uppercase; margin: 0 0 4px;">Urgency</p>
@@ -165,7 +165,7 @@ export function inboundCallSummaryEmail(
 
       <div style="background: #f9fafb; border-radius: 6px; padding: 20px; margin: 0 0 24px;">
         <p style="color: #6b7280; font-size: 12px; text-transform: uppercase; margin: 0 0 8px;">Summary</p>
-        <p style="color: #1a1a1a; font-size: 15px; line-height: 1.6; margin: 0;">${summary}</p>
+        <p style="color: #201b51; font-size: 15px; line-height: 1.6; margin: 0;">${summary}</p>
       </div>
 
       ${
@@ -219,7 +219,7 @@ export function dailyCallReportEmail(
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     <div style="background: #ffffff; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-      <h1 style="color: #1a1a1a; font-size: 24px; margin: 0 0 8px;">Daily Call Report</h1>
+      <h1 style="color: #201b51; font-size: 24px; margin: 0 0 8px;">Daily Call Report</h1>
       <p style="color: #6b7280; font-size: 14px; margin: 0 0 4px;">${agencyName}</p>
       <p style="color: #6b7280; font-size: 14px; margin: 0 0 32px;">${date}</p>
 
@@ -241,19 +241,19 @@ export function dailyCallReportEmail(
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px;">
         <tr>
           <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #6b7280; font-size: 14px;">Answer Rate</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #1a1a1a; font-size: 14px; font-weight: 600; text-align: right;">${answerRate}%</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #201b51; font-size: 14px; font-weight: 600; text-align: right;">${answerRate}%</td>
         </tr>
         <tr>
           <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #6b7280; font-size: 14px;">Avg Duration</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #1a1a1a; font-size: 14px; font-weight: 600; text-align: right;">${stats.avgDuration}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #201b51; font-size: 14px; font-weight: 600; text-align: right;">${stats.avgDuration}</td>
         </tr>
         <tr>
           <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #6b7280; font-size: 14px;">Total Talk Time</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #1a1a1a; font-size: 14px; font-weight: 600; text-align: right;">${stats.totalDuration}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #201b51; font-size: 14px; font-weight: 600; text-align: right;">${stats.totalDuration}</td>
         </tr>
         <tr>
           <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #6b7280; font-size: 14px;">Appointments Booked</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #1a1a1a; font-size: 14px; font-weight: 600; text-align: right;">${stats.appointmentsBooked}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #201b51; font-size: 14px; font-weight: 600; text-align: right;">${stats.appointmentsBooked}</td>
         </tr>
       </table>
 

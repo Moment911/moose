@@ -148,7 +148,7 @@ export default function ScoutLeadsPage() {
                 onClick={bulkQueueForAICall}
                 disabled={queueing}
                 className="text-sm font-bold px-4 py-1.5 rounded-lg inline-flex items-center gap-2"
-                style={{ background: '#E6007E', color: '#fff', opacity: queueing ? 0.6 : 1, cursor: queueing ? 'wait' : 'pointer' }}
+                style={{ background: '#cb1c6b', color: '#fff', opacity: queueing ? 0.6 : 1, cursor: queueing ? 'wait' : 'pointer' }}
               >
                 {queueing ? <Loader2 size={13} className="animate-spin" /> : <Radio size={13} />}
                 Queue for AI call
