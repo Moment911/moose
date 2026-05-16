@@ -17,7 +17,7 @@
 import { useState } from 'react'
 import {
   Loader2, Search, Link2, MapPin, ListPlus, Trash2, Star, ExternalLink,
-  Award, Zap,
+  Award, Zap, TrendingUp, BarChart2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -33,38 +33,62 @@ async function api(action, body = {}) {
 }
 
 export default function CompetitorLabTab({ clientId }) {
-  const [mode, setMode] = useState('keyword')        // 'keyword' | 'urls' | 'local'
+  // 'keyword' | 'urls' | 'local' | 'rankings'
+  // The first three feed analyze_competitors (page-level analysis).
+  // 'rankings' feeds dfs_compare (domain-level "what do they rank for + gaps").
+  const [mode, setMode] = useState('keyword')
   const [keyword, setKeyword] = useState('')
   const [urlsText, setUrlsText] = useState('')
   const [market, setMarket] = useState({ service: '', city: '', state: '' })
+  const [competitorDomain, setCompetitorDomain] = useState('')
+  const [clientDomainOverride, setClientDomainOverride] = useState('')
 
   const [running, setRunning] = useState(false)
-  const [result, setResult] = useState(null)
+  const [result, setResult] = useState(null)         // page-analysis shape
+  const [rankings, setRankings] = useState(null)     // dfs_compare shape
   const [expanded, setExpanded] = useState(null)
 
   const run = async () => {
     if (!clientId) { toast.error('Pick a client first'); return }
-    let payload = {}
-
-    if (mode === 'keyword') {
-      if (!keyword.trim()) { toast.error('Enter a keyword'); return }
-      payload = { keyword: keyword.trim() }
-    } else if (mode === 'urls') {
-      const urls = urlsText.split(/\n|,/).map(u => u.trim()).filter(Boolean)
-      if (urls.length < 2) { toast.error('Add at least 2 URLs'); return }
-      if (urls.length > 10) { toast.error('Max 10 URLs per run'); return }
-      if (!keyword.trim()) { toast.error('Enter the keyword to anchor the comparison'); return }
-      payload = { urls, keyword: keyword.trim() }
-    } else if (mode === 'local') {
-      const { service, city, state } = market
-      if (!service.trim() || !city.trim()) { toast.error('Service and city required'); return }
-      payload = { market: { service: service.trim(), city: city.trim(), state: state.trim() } }
-    }
 
     setRunning(true)
     setResult(null)
+    setRankings(null)
     setExpanded(null)
+
     try {
+      // ── Rankings mode: domain-level "what do they rank for + gaps" ──
+      if (mode === 'rankings') {
+        const dom2 = stripDomain(competitorDomain.trim())
+        if (!dom2) { toast.error('Enter a competitor domain'); setRunning(false); return }
+        const dom1 = stripDomain(clientDomainOverride.trim())
+        if (!dom1) { toast.error('Enter your client\'s domain to compare against'); setRunning(false); return }
+        const r = await api('dfs_compare', { domain1: dom1, domain2: dom2 })
+        if (r.error || r.success === false) throw new Error(r.error || 'dfs_compare failed')
+        setRankings({ ...r, requested_domain: dom2, client_domain: dom1 })
+        const n = (r.intersection || []).length
+        const them = (r.domain2_keywords?.keywords || []).length
+        toast.success(`${dom2} ranks for ${them.toLocaleString()} keywords · ${n.toLocaleString()} overlap with you`)
+        return
+      }
+
+      // ── Page-analysis modes (analyze_competitors) ──
+      let payload = {}
+      if (mode === 'keyword') {
+        if (!keyword.trim()) { toast.error('Enter a keyword'); return }
+        payload = { keyword: keyword.trim() }
+      } else if (mode === 'urls') {
+        const urls = urlsText.split(/\n|,/).map(u => u.trim()).filter(Boolean)
+        if (urls.length < 2) { toast.error('Add at least 2 URLs'); return }
+        if (urls.length > 10) { toast.error('Max 10 URLs per run'); return }
+        if (!keyword.trim()) { toast.error('Enter the keyword to anchor the comparison'); return }
+        payload = { urls, keyword: keyword.trim() }
+      } else if (mode === 'local') {
+        const { service, city, state } = market
+        if (!service.trim() || !city.trim()) { toast.error('Service and city required'); return }
+        payload = { market: { service: service.trim(), city: city.trim(), state: state.trim() } }
+      }
+
       const r = await api('analyze_competitors', { client_id: clientId, ...payload })
       if (r.error) throw new Error(r.error)
       setResult(r)
@@ -74,6 +98,17 @@ export default function CompetitorLabTab({ clientId }) {
       toast.error(e.message || 'Analysis failed')
     } finally {
       setRunning(false)
+    }
+  }
+
+  // Strip protocol / paths so the user can paste "https://www.competitor.com/path"
+  function stripDomain(input) {
+    if (!input) return ''
+    try {
+      const u = input.startsWith('http') ? input : `https://${input}`
+      return new URL(u).hostname.replace(/^www\./, '')
+    } catch {
+      return input.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
     }
   }
 
@@ -95,6 +130,9 @@ export default function CompetitorLabTab({ clientId }) {
           </ModeButton>
           <ModeButton active={mode === 'local'} onClick={() => setMode('local')} icon={MapPin}>
             Hyper-local <span style={S.modeHint}>service × geo</span>
+          </ModeButton>
+          <ModeButton active={mode === 'rankings'} onClick={() => setMode('rankings')} icon={TrendingUp}>
+            Rankings <span style={S.modeHint}>what do they rank for?</span>
           </ModeButton>
         </div>
 
@@ -158,6 +196,34 @@ export default function CompetitorLabTab({ clientId }) {
               </div>
             </div>
           )}
+
+          {mode === 'rankings' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <Label>Competitor domain</Label>
+                <Input
+                  value={competitorDomain}
+                  onChange={e => setCompetitorDomain(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && run()}
+                  placeholder="e.g. competitor.com"
+                />
+              </div>
+              <div>
+                <Label>Your client's domain</Label>
+                <Input
+                  value={clientDomainOverride}
+                  onChange={e => setClientDomainOverride(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && run()}
+                  placeholder="e.g. yourclient.com"
+                />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <Hint>
+                  Pulls every keyword the competitor ranks for and compares against your client's keyword set. Returns: (1) shared keywords with side-by-side positions, (2) <strong>gap keywords</strong> they rank top 10 for that you don't, (3) striking-distance terms where you're close. Powered by DataForSEO domain intersection.
+                </Hint>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Run button */}
@@ -192,8 +258,153 @@ export default function CompetitorLabTab({ clientId }) {
           onRemoveRow={removeRow}
         />
       )}
+
+      {rankings && !running && <RankingsPane rankings={rankings} />}
     </div>
   )
+}
+
+// ─── Rankings pane (dfs_compare output) ─────────────────────────────────
+function RankingsPane({ rankings }) {
+  const intersection = rankings.intersection || []
+  const themOnly     = rankings.domain2_keywords?.keywords || []
+
+  // Compute the three useful slices
+  const losingTo = intersection
+    .filter(kw => kw.domain1_position && kw.domain2_position && kw.domain1_position > kw.domain2_position)
+    .sort((a, b) => (b.search_volume || 0) - (a.search_volume || 0))
+
+  const striking = intersection
+    .filter(kw => kw.domain1_position && kw.domain1_position > 3 && kw.domain1_position <= 10)
+    .sort((a, b) => (b.search_volume || 0) - (a.search_volume || 0))
+
+  const gaps = themOnly
+    .filter(kw => kw.position && kw.position <= 10 && (kw.search_volume || 0) >= 50)
+    .filter(kw => !intersection.find(i => i.keyword === kw.keyword))
+    .sort((a, b) => (b.search_volume || 0) - (a.search_volume || 0))
+
+  const topRankings = themOnly
+    .filter(kw => kw.position && kw.position <= 10)
+    .sort((a, b) => (b.search_volume || 0) - (a.search_volume || 0))
+
+  return (
+    <>
+      {/* Summary stats */}
+      <div style={S.card}>
+        <div style={S.sectionTitle}>
+          <TrendingUp size={16} color="var(--koto-pink)" />
+          {rankings.requested_domain}
+          <span style={{ fontWeight: 400, color: 'var(--koto-muted)', fontSize: 13 }}>
+            vs {rankings.client_domain}
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+          <Stat label="Their total keywords" value={themOnly.length.toLocaleString()} color="var(--koto-navy)" />
+          <Stat label="Shared with you"       value={intersection.length.toLocaleString()} color="var(--koto-pink)" />
+          <Stat label="Where they beat you"   value={losingTo.length.toLocaleString()}     color="var(--koto-danger)" />
+          <Stat label="Striking distance"     value={striking.length.toLocaleString()}     color="var(--koto-warning)" />
+          <Stat label="Gap (they rank, you don't)" value={gaps.length.toLocaleString()}    color="var(--koto-pink)" />
+        </div>
+      </div>
+
+      {/* Their top-ranking keywords */}
+      <div style={S.card}>
+        <div style={S.sectionTitle}>
+          <BarChart2 size={16} color="var(--koto-pink)" />
+          What they rank really well for
+          <span style={{ fontWeight: 400, color: 'var(--koto-muted)', fontSize: 13 }}>· top 10 positions, highest volume</span>
+        </div>
+        {topRankings.length === 0
+          ? <div style={S.muted}>No top-10 rankings found for this domain in DataForSEO.</div>
+          : <KeywordTable keywords={topRankings.slice(0, 40)} mode="them" />}
+      </div>
+
+      {/* Gap keywords */}
+      {gaps.length > 0 && (
+        <div style={S.card}>
+          <div style={S.sectionTitle}>
+            <Zap size={16} color="var(--koto-pink)" />
+            Gap opportunities
+            <span style={{ fontWeight: 400, color: 'var(--koto-muted)', fontSize: 13 }}>· they rank top 10, you don't rank at all</span>
+          </div>
+          <KeywordTable keywords={gaps.slice(0, 40)} mode="them" />
+        </div>
+      )}
+
+      {/* Where they beat you */}
+      {losingTo.length > 0 && (
+        <div style={S.card}>
+          <div style={S.sectionTitle}>
+            Where they outrank you
+            <span style={{ fontWeight: 400, color: 'var(--koto-muted)', fontSize: 13 }}>· shared keywords, sorted by volume</span>
+          </div>
+          <KeywordTable keywords={losingTo.slice(0, 40)} mode="both" />
+        </div>
+      )}
+    </>
+  )
+}
+
+function Stat({ label, value, color }) {
+  return (
+    <div style={{
+      background: 'var(--koto-off)', borderRadius: 10, border: '1px solid var(--koto-line)',
+      padding: '14px 16px', fontFamily: SF,
+    }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--koto-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, fontWeight: 400, color, letterSpacing: '.02em', lineHeight: 1 }}>{value}</div>
+    </div>
+  )
+}
+
+function KeywordTable({ keywords, mode /* 'them' | 'both' */ }) {
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: SF, fontSize: 13 }}>
+        <thead>
+          <tr style={{ borderBottom: '2px solid var(--koto-line)' }}>
+            <th style={{ ...S.th, textAlign: 'left' }}>Keyword</th>
+            <th style={S.th}>Volume</th>
+            <th style={S.th}>CPC</th>
+            {mode === 'both' && <th style={S.th}>Your pos</th>}
+            <th style={S.th}>{mode === 'both' ? 'Their pos' : 'Position'}</th>
+            <th style={S.th}>Intent</th>
+          </tr>
+        </thead>
+        <tbody>
+          {keywords.map((kw, i) => {
+            const theirPos = mode === 'both' ? kw.domain2_position : kw.position
+            return (
+              <tr key={i} style={{ borderBottom: '1px solid var(--koto-line)' }}>
+                <td style={{ ...S.td, fontWeight: 600, maxWidth: 360 }}>{kw.keyword}</td>
+                <td style={S.tdCenter}>{(kw.search_volume || 0).toLocaleString()}</td>
+                <td style={S.tdCenter}>${(kw.cpc || 0).toFixed(2)}</td>
+                {mode === 'both' && (
+                  <td style={{ ...S.tdCenter, fontWeight: 700, color: positionColor(kw.domain1_position) }}>
+                    {kw.domain1_position || '—'}
+                  </td>
+                )}
+                <td style={{ ...S.tdCenter, fontWeight: 700, color: positionColor(theirPos) }}>
+                  {theirPos || '—'}
+                </td>
+                <td style={{ ...S.tdCenter, fontSize: 11, color: 'var(--koto-muted)' }}>
+                  {kw.keyword_intent || kw.intent || '—'}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function positionColor(p) {
+  if (!p) return 'var(--koto-muted)'
+  if (p <= 3) return 'var(--koto-success)'
+  if (p <= 10) return 'var(--koto-navy)'
+  if (p <= 20) return 'var(--koto-warning)'
+  return 'var(--koto-danger)'
 }
 
 // ─── Results pane ──────────────────────────────────────────────────────
