@@ -139,7 +139,18 @@ export default function AutoFixQueueTab({ clientId, agencyId }) {
     try {
       const r = await api('autofix_scan', { client_id: clientId, agency_id: agencyId })
       if (r.error) throw new Error(r.error)
-      toast.success(`Scan complete — ${r.inserted} new, ${r.candidates_seen - r.inserted} already queued`)
+      const skipped = Number(r.skipped || 0)
+      const failed  = Number(r.failed  || 0)
+      const parts = [`${r.inserted} new`]
+      if (skipped) parts.push(`${skipped} already queued`)
+      if (failed)  parts.push(`${failed} failed`)
+      const msg = `Scan complete — ${parts.join(', ')}`
+      // Surface failures distinctly so silent insert errors don't hide
+      if (failed > 0) {
+        toast.error(msg + (r.errors?.[0] ? `: ${r.errors[0]}` : ''))
+      } else {
+        toast.success(msg)
+      }
       await refresh()
     } catch (e) {
       toast.error(e.message || 'Scan failed')
