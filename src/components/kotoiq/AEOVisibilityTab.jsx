@@ -149,7 +149,6 @@ function deltaCell(delta, unit = 'pp') {
 // ─────────────────────────────────────────────────────────────
 export default function AEOVisibilityTab({ clientId, agencyId }) {
   const [loading, setLoading] = useState(true)
-  const [setupOpen, setSetupOpen] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [seeding, setSeeding] = useState(false)
 
@@ -190,7 +189,6 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
       setCompare(k)
       setPrompts(p?.prompts || [])
       setCompetitors(comp?.competitors || [])
-      setSetupOpen((p?.prompts || []).length === 0)
     } catch (e) {
       console.warn('[aeo] refresh', e)
     } finally {
@@ -262,46 +260,12 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
     refresh()
   }
 
-  // ─── Empty / setup state ──────────────────────────────────────────
-  if (!loading && prompts.length === 0) {
-    return (
-      <div>
-        <HowItWorks tool="aeo_visibility" />
-        <div style={{ ...card, padding: 40, textAlign: 'center' }}>
-          <div style={{ width: 56, height: 56, borderRadius: 12, background: PINK_LIGHT, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-            <Sparkles size={26} color={PINK} />
-          </div>
-          <div style={{ fontFamily: DISPLAY, fontSize: 32, fontWeight: 400, color: INK, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: 10 }}>
-            Track this brand across every AI engine
-          </div>
-          <div style={{ fontFamily: BODY, fontSize: 14, color: DIM, maxWidth: 540, margin: '0 auto 24px', lineHeight: 1.55 }}>
-            We'll seed 40 real customer prompts from this client's profile, then check ChatGPT, Claude, Gemini, Perplexity, and Google AI Overviews weekly to see exactly when the brand is recommended — and when a competitor wins instead.
-          </div>
-          <button onClick={oneClickSetup} disabled={seeding || !clientId} style={{ ...inkButton, padding: '12px 22px', fontSize: 14, opacity: seeding ? 0.6 : 1 }}>
-            {seeding ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-            {seeding ? 'Seeding prompts...' : 'Set up AEO tracking — one click'}
-          </button>
-          <div style={{ fontSize: 12, color: SUB, marginTop: 14 }}>
-            ~$6/mo to scan weekly. Edit, add, or remove prompts anytime.
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ─── KPI hero ─────────────────────────────────────────────────────
-  const KpiCard = ({ label, value, delta, deltaUnit = 'pp', valueColor = INK, sub = null, valueSize = 28 }) => (
-    <div style={{ ...card, flex: 1, minWidth: 170, marginBottom: 0 }}>
-      <div style={labelStyle}>{label}</div>
-      <div style={{ ...bigStat, fontSize: valueSize, color: valueColor }}>{value}</div>
-      <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-        {delta != null && deltaCell(delta, deltaUnit)}
-        {sub && <span style={{ fontSize: 12, color: SUB }}>{sub}</span>}
-      </div>
-    </div>
-  )
-
-  // ─── Chart data prep ─────────────────────────────────────────────
+  // ─── Derived state — MUST be computed before any conditional return.
+  // Previously these useMemo calls sat AFTER the empty-state early return,
+  // which violated the Rules of Hooks: hook count changed between renders
+  // (0 hooks when empty → 3 hooks when populated), which corrupted React's
+  // hook slot tracking and triggered an unbounded render loop (#300) the
+  // first time scan results populated `prompts`. Always run the hooks.
   const chartData = useMemo(() => {
     const topBrands = (compare.rows || []).slice(0, 5).map(r => r.brand)
     if (compare.client_brand && !topBrands.includes(compare.client_brand)) {
@@ -321,7 +285,6 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
     return topBrands.slice(0, 5)
   }, [compare])
 
-  // ─── Matrix prep ─────────────────────────────────────────────────
   const filteredPrompts = useMemo(() => {
     if (matrixFilter === 'all') return matrix.prompts
     if (matrixFilter === 'mentioned') {
@@ -332,6 +295,33 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
     }
     return matrix.prompts.filter(p => p.category === matrixFilter)
   }, [matrix, matrixFilter])
+
+  // ─── Empty / setup state ──────────────────────────────────────────
+  if (!loading && prompts.length === 0) {
+    return (
+      <div>
+        <HowItWorks tool="aeo_visibility" />
+        <div style={{ ...card, padding: 40, textAlign: 'center' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 12, background: PINK_LIGHT, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+            <Sparkles size={26} color={PINK} />
+          </div>
+          <div style={{ fontFamily: DISPLAY, fontSize: 32, fontWeight: 400, color: INK, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: 10 }}>
+            Track this brand across every AI engine
+          </div>
+          <div style={{ fontFamily: BODY, fontSize: 14, color: DIM, maxWidth: 540, margin: '0 auto 24px', lineHeight: 1.55 }}>
+            We&apos;ll seed 40 real customer prompts from this client&apos;s profile, then check ChatGPT, Claude, Gemini, Perplexity, and Google AI Overviews weekly to see exactly when the brand is recommended — and when a competitor wins instead.
+          </div>
+          <button onClick={oneClickSetup} disabled={seeding || !clientId} style={{ ...inkButton, padding: '12px 22px', fontSize: 14, opacity: seeding ? 0.6 : 1 }}>
+            {seeding ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+            {seeding ? 'Seeding prompts...' : 'Set up AEO tracking — one click'}
+          </button>
+          <div style={{ fontSize: 12, color: SUB, marginTop: 14 }}>
+            ~$6/mo to scan weekly. Edit, add, or remove prompts anytime.
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // ─── Full dashboard ──────────────────────────────────────────────
   return (
@@ -390,41 +380,18 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
           <div style={sectionTitle}><Award size={16} color={INK} /> Share of Voice over time</div>
           <div style={{ fontSize: 12, color: SUB }}>Last 12 weeks · top 5 brands</div>
         </div>
-        {chartData.length === 0 ? (
+        {/* Require BOTH data points AND brand series before mounting the
+            chart — recharts mounting with zero <Area> children, then having
+            children appear on a subsequent render, was a contributor to the
+            post-scan render storm. */}
+        {chartData.length === 0 || chartBrands.length === 0 ? (
           <EmptyChart message="No scan data yet. Click Run scan now to populate." />
         ) : (
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={chartData} margin={{ top: 5, right: 8, left: -8, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={HAIR} vertical={false} />
-              <XAxis dataKey="week" fontSize={11} stroke={SUB} axisLine={false} tickLine={false} />
-              <YAxis fontSize={11} stroke={SUB} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
-              <Tooltip
-                contentStyle={{ background: '#fff', border: `1px solid ${HAIR}`, borderRadius: 10, fontSize: 12, fontFamily: SF, padding: '8px 12px' }}
-                labelStyle={{ color: SUB, fontWeight: 500, marginBottom: 4 }}
-                formatter={(v) => [`${v}%`, '']}
-              />
-              <Legend wrapperStyle={{ fontSize: 12, fontFamily: SF, color: DIM }} iconType="circle" />
-              {chartBrands.map((b, i) => {
-                const isSelf = compare.client_brand && b === compare.client_brand
-                // DESIGN.md: pink = meaningful, reserved for the client's own share.
-                // Competitors use a restrained warm-neutral + teal palette.
-                const competitorPalette = ['#4A4545', '#8A8580', TEAL, '#A09A94', '#D4CFC9']
-                const color = isSelf ? PINK : competitorPalette[i % competitorPalette.length]
-                return (
-                  <Area
-                    key={b}
-                    type="monotone"
-                    dataKey={b}
-                    stackId="1"
-                    stroke={color}
-                    fill={color}
-                    fillOpacity={isSelf ? 0.85 : 0.45}
-                    name={isSelf ? `${b} (you)` : b}
-                  />
-                )
-              })}
-            </AreaChart>
-          </ResponsiveContainer>
+          <ShareOfVoiceChart
+            chartData={chartData}
+            chartBrands={chartBrands}
+            clientBrand={compare.client_brand}
+          />
         )}
       </div>
 
@@ -655,6 +622,64 @@ function EmptyChart({ message, compact }) {
   return (
     <div style={{ padding: compact ? 20 : 40, textAlign: 'center', color: SUB, fontFamily: SF, fontSize: 13 }}>
       {message}
+    </div>
+  )
+}
+
+// ─── Share-of-Voice chart — extracted to module scope so the chart's
+// component identity is stable across parent re-renders. Recharts holds
+// internal state per instance, and an unstable identity (or mount on
+// data arrival inside the parent JSX tree) was contributing to render
+// churn after the scan completed.
+const COMPETITOR_PALETTE = ['#4A4545', '#8A8580', TEAL, '#A09A94', '#D4CFC9']
+function ShareOfVoiceChart({ chartData, chartBrands, clientBrand }) {
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <AreaChart data={chartData} margin={{ top: 5, right: 8, left: -8, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke={HAIR} vertical={false} />
+        <XAxis dataKey="week" fontSize={11} stroke={SUB} axisLine={false} tickLine={false} />
+        <YAxis fontSize={11} stroke={SUB} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
+        <Tooltip
+          contentStyle={{ background: '#fff', border: `1px solid ${HAIR}`, borderRadius: 10, fontSize: 12, fontFamily: SF, padding: '8px 12px' }}
+          labelStyle={{ color: SUB, fontWeight: 500, marginBottom: 4 }}
+          formatter={(v) => [`${v}%`, '']}
+        />
+        <Legend wrapperStyle={{ fontSize: 12, fontFamily: SF, color: DIM }} iconType="circle" />
+        {chartBrands.map((b, i) => {
+          const isSelf = clientBrand && b === clientBrand
+          // DESIGN.md: pink = meaningful, reserved for the client's own share.
+          const color = isSelf ? PINK : COMPETITOR_PALETTE[i % COMPETITOR_PALETTE.length]
+          return (
+            <Area
+              key={b}
+              type="monotone"
+              dataKey={b}
+              stackId="1"
+              stroke={color}
+              fill={color}
+              fillOpacity={isSelf ? 0.85 : 0.45}
+              name={isSelf ? `${b} (you)` : b}
+            />
+          )
+        })}
+      </AreaChart>
+    </ResponsiveContainer>
+  )
+}
+
+// ─── KPI hero card — module scope so component identity is stable
+// across parent re-renders. Defining this inside AEOVisibilityTab
+// caused remounts on every render and contributed to render churn
+// after scan completion.
+function KpiCard({ label, value, delta, deltaUnit = 'pp', valueColor = INK, sub = null, valueSize = 28 }) {
+  return (
+    <div style={{ ...card, flex: 1, minWidth: 170, marginBottom: 0 }}>
+      <div style={labelStyle}>{label}</div>
+      <div style={{ ...bigStat, fontSize: valueSize, color: valueColor }}>{value}</div>
+      <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+        {delta != null && deltaCell(delta, deltaUnit)}
+        {sub && <span style={{ fontSize: 12, color: SUB }}>{sub}</span>}
+      </div>
     </div>
   )
 }
