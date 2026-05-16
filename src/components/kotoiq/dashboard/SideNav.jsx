@@ -33,6 +33,7 @@ const NAV_GROUPS = [
     { id: 'authority',         label: 'Authority Score',   tab: 'topical_authority', icon: Award },
   ]},
   { label: 'Competitor Intel', items: [
+    { id: 'competitor_lab',    label: 'Competitor Lab',    tab: 'competitor_lab',    icon: Search },
     { id: 'competitor_pages',  label: 'Pages',             tab: 'competitor_pages',  icon: FileText },
     { id: 'pricing_tracker',   label: 'Pricing',           tab: 'pricing_tracker',   icon: DollarSign },
     { id: 'competitor_ads',    label: 'Ads',               tab: 'competitor_ads',    icon: Megaphone },

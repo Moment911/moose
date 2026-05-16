@@ -314,6 +314,15 @@ export const KOTOIQ_TAB_META: Record<string, KotoTabMeta> = {
     icon: Compass,
   },
 
+  // ── Competitor Lab ─────────────────────────────────────────
+  competitor_lab: {
+    eyebrow: 'INTEL · COMPETITOR LAB',
+    title: 'Compare any pages,',
+    accent: 'three ways',
+    rationale: 'Add competitor URLs by paste, by keyword, or by hyperlocal market (service × city × state). Compare word count, headings, schema, FAQ, keyword placement, and Moz authority side-by-side. Pick any combination — you have a lot of choices.',
+    icon: Search,
+  },
+
   // ── Bespoke-header tabs (selfHeader: true) ─────────────────
   // These render their own hero header — the shell skips. Entries
   // here document them in one place so this file is the canonical

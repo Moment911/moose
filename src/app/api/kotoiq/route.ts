@@ -1387,23 +1387,50 @@ Return ONLY valid JSON array:
 
   // ── COMPETITOR PAGE ANALYSIS: Reverse-engineer top-ranking pages ────
   if (action === 'analyze_competitors') {
-    const { client_id, keyword } = body
-    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+    const { client_id, urls: pastedUrls, market } = body
+    let { keyword } = body
+
+    // Extended input modes (used by Competitor Lab):
+    //   • urls: ['https://a.com/page', ...] — skip SERP discovery, analyze these pages directly
+    //   • market: { service, city, state } — build a hyperlocal keyword like "plumber austin tx"
+    if (!keyword && market && typeof market === 'object') {
+      const svc = String(market.service || '').trim()
+      const cty = String(market.city || '').trim()
+      const st  = String(market.state || '').trim()
+      if (!svc || !cty) return NextResponse.json({ error: 'market.service and market.city required' }, { status: 400 })
+      keyword = [svc, cty, st].filter(Boolean).join(' ')
+    }
+    const urlsMode = Array.isArray(pastedUrls) && pastedUrls.length > 0
+    if (!keyword && !urlsMode) {
+      return NextResponse.json({ error: 'keyword, urls, or market required' }, { status: 400 })
+    }
 
     // Get client info
     const { data: client } = await s.from('clients').select('name, website').eq('id', client_id).single()
     const clientDomain = client?.website ? new URL(client.website.startsWith('http') ? client.website : `https://${client.website}`).hostname : ''
 
-    // Get UKF data for this keyword
-    const fp = fingerprint(keyword)
-    const { data: kwData } = await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).eq('fingerprint', fp).single()
+    // Get UKF data for this keyword (only relevant for keyword/market modes)
+    const fp = keyword ? fingerprint(keyword) : ''
+    const { data: kwData } = keyword
+      ? await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).eq('fingerprint', fp).single()
+      : { data: null }
 
-    // Use DataForSEO to get real SERP results for the keyword
+    // Resolve the URL list. URLs mode skips SERP; other modes hit DataForSEO.
     const analyses: any[] = []
     let serpUrls: { url: string; domain: string; title: string; rank: number }[] = []
 
+    if (urlsMode) {
+      serpUrls = (pastedUrls as string[])
+        .map((u: string, i: number) => {
+          try {
+            const url = u.startsWith('http') ? u : `https://${u}`
+            return { url, domain: new URL(url).hostname, title: '', rank: i + 1 }
+          } catch { return null }
+        })
+        .filter((x): x is { url: string; domain: string; title: string; rank: number } => x !== null)
+    } else {
     try {
-      const serpResult = await getSERPResults(keyword)
+      const serpResult = await getSERPResults(keyword!)
       serpUrls = serpResult.items.slice(0, 15).map(item => ({
         url: item.url, domain: item.domain, title: item.title, rank: item.rank_group,
       }))
@@ -1416,9 +1443,10 @@ Return ONLY valid JSON array:
         url: c.website || `https://${c.domain}`, domain: c.domain || '', title: c.name || '', rank: i + 1,
       }))
     }
+    } // end urlsMode/else branch
 
-    // Analyze client's own page first (if ranking)
-    if (kwData?.sc_top_page) {
+    // Analyze client's own page first (if ranking) — keyword/market modes only
+    if (keyword && kwData?.sc_top_page) {
       try {
         const analysis = await analyzePageForKeyword(kwData.sc_top_page, keyword)
         if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: 0 })

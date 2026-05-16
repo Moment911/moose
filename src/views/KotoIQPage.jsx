@@ -48,6 +48,7 @@ import FeatureDirectoryTab from '../components/kotoiq/FeatureDirectoryTab'
 import AutoFixQueueTab from '../components/kotoiq/AutoFixQueueTab'
 import StyleEditorTab from '../components/kotoiq/StyleEditorTab'
 import CampaignsTab from '../components/kotoiq/CampaignsTab'
+import CompetitorLabTab from '../components/kotoiq/CompetitorLabTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -2502,6 +2503,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ CAMPAIGNS — directory of Page Factory rollouts ══ */}
         {clientId && tab === 'campaigns' && (
           <CampaignsTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ COMPETITOR LAB — multi-mode page analysis (URLs / keyword / local) ══ */}
+        {clientId && tab === 'competitor_lab' && (
+          <CompetitorLabTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}
