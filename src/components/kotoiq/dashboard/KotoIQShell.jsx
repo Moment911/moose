@@ -5,6 +5,7 @@ import { PanelLeftClose, PanelLeft, PanelRightClose, PanelRight } from 'lucide-r
 import SideNav from './SideNav'
 import Inspector from './Inspector'
 import { useKotoIQData } from '../../../context/KotoIQDataContext'
+import { kotoiqFetch } from '../../../lib/kotoiqFetch'
 
 /**
  * Universal KotoIQ shell — wraps any tab's content with the persistent
@@ -108,13 +109,9 @@ export default function KotoIQShell({ clientId, agencyId, clients, currentTab, o
     setLaunching(true)
     toast.loading('Deploying all KotoIQ agents…', { id: 'runall' })
     try {
-      const res = await fetch('/api/kotoiq', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'run_all_audits', client_id: clientId, agency_id: agencyId }),
-      })
-      const data = await res.json()
-      if (data.error || !data.run_id) {
-        toast.error(data.error || 'Failed to start audits', { id: 'runall' })
+      const data = await kotoiqFetch('run_all_audits', { client_id: clientId, agency_id: agencyId })
+      if (!data || data.error || !data.run_id) {
+        toast.error(data?.error || 'Failed to start audits', { id: 'runall' })
         setLaunching(false)
         return
       }
@@ -122,10 +119,8 @@ export default function KotoIQShell({ clientId, agencyId, clients, currentTab, o
       pollRef.current = setInterval(async () => {
         if (!runIdRef.current) return
         try {
-          const s = await fetch('/api/kotoiq', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'run_all_status', run_id: runIdRef.current }),
-          }).then(r => r.json())
+          const s = await kotoiqFetch('run_all_status', { run_id: runIdRef.current })
+          if (!s) return
           if (s.status === 'complete' || s.status === 'failed') {
             clearInterval(pollRef.current)
             pollRef.current = null

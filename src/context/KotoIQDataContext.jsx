@@ -1,5 +1,6 @@
 "use client"
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
+import { kotoiqFetch } from '../lib/kotoiqFetch'
 
 /**
  * KotoIQDataContext — shared client snapshot + cross-tab invalidation.
@@ -39,19 +40,9 @@ const Ctx = createContext({
   loading: false,
 })
 
-async function kapi(action, body = {}) {
-  try {
-    const res = await fetch('/api/kotoiq', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...body }),
-    })
-    if (!res.ok) return null
-    return res.json()
-  } catch {
-    return null
-  }
-}
+// Delegates to kotoiqFetch — attaches the Supabase Bearer so the
+// /api/kotoiq auth gate sees a verified session.
+const kapi = kotoiqFetch
 
 export function KotoIQDataProvider({ clientId, agencyId, children }) {
   const [refreshKey, setRefreshKey] = useState(0)
