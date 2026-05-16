@@ -39,6 +39,16 @@ import { runBingAudit, getBingAudit } from '@/lib/bingAuditEngine'
 import { scanAndGenerateBacklinks, getBacklinkOpportunities } from '@/lib/backlinkOpportunityEngine'
 import { askKotoIQ, listConversations, getConversation, deleteConversation } from '@/lib/askKotoIQEngine'
 import { setupCompetitorWatch, runCompetitorWatchCheck, getCompetitorEvents } from '@/lib/competitorWatchEngine'
+import {
+  setupClientForAEO,
+  runAEOVisibilityScan,
+  getShareOfVoice as getAeoShareOfVoice,
+  getPromptMatrix as getAeoPromptMatrix,
+  getCitedSources as getAeoCitedSources,
+  getCompetitorCompare as getAeoCompetitorCompare,
+  getOverviewStats as getAeoOverviewStats,
+} from '@/lib/kotoiq/aeoVisibilityEngine'
+import { seedPromptsForClient } from '@/lib/kotoiq/aeoPromptSeeder'
 import { setupSlackIntegration, setupTeamsIntegration, sendDailyDigest } from '@/lib/slackTeamsIntegration'
 import { calculateIndustryBenchmarks, getBenchmarkForClient } from '@/lib/industryBenchmarkEngine'
 import { generateScorecard } from '@/lib/scorecardEngine'
@@ -4025,6 +4035,141 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
   if (action === 'get_competitor_events') {
     try { return NextResponse.json(await getCompetitorEvents(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── AEO Visibility (Phase A) ──────────────────────────────────────────
+  // Continuous tracking of brand mentions across ChatGPT, Claude, Gemini,
+  // Perplexity, and Google AI Overviews.
+
+  if (action === 'aeo_setup_client') {
+    try { return NextResponse.json(await setupClientForAEO(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'aeo_seed_prompts') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    try {
+      const { data: client } = await s.from('clients').select('*').eq('id', client_id).single()
+      if (!client) return NextResponse.json({ error: 'client not found' }, { status: 404 })
+      const ctx = {
+        business_name: client.business_name || client.name,
+        industry: client.industry || client.primary_service,
+        primary_service: client.primary_service,
+        target_customer: client.target_customer,
+        marketing_budget: client.marketing_budget,
+        unique_selling_prop: client.unique_selling_prop,
+        city: client.city,
+        state: client.state,
+        service_area: client.service_area,
+        website: client.website,
+      }
+      const seed = await seedPromptsForClient(ctx, { agencyId: agency_id, clientId: client_id })
+      if (seed.error) return NextResponse.json({ error: seed.error, prompts: [], cost_usd: seed.cost_usd })
+      return NextResponse.json({ prompts: seed.prompts, cost_usd: seed.cost_usd, persisted: false })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'aeo_list_prompts') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data, error } = await s.from('kotoiq_aeo_prompts')
+      .select('id, prompt, category, intent, is_active, created_by, created_at')
+      .eq('client_id', client_id)
+      .order('category', { ascending: true })
+      .order('created_at', { ascending: true })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ prompts: data || [] })
+  }
+
+  if (action === 'aeo_add_prompt') {
+    const { client_id, prompt, category, intent } = body
+    if (!client_id || !prompt) return NextResponse.json({ error: 'client_id and prompt required' }, { status: 400 })
+    const { data, error } = await s.from('kotoiq_aeo_prompts')
+      .insert({ client_id, prompt, category: category || 'informational', intent: intent || null, created_by: 'manual' })
+      .select()
+      .single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ prompt: data })
+  }
+
+  if (action === 'aeo_update_prompt') {
+    const { id, ...updates } = body
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    delete updates.action
+    updates.updated_at = new Date().toISOString()
+    const { data, error } = await s.from('kotoiq_aeo_prompts').update(updates).eq('id', id).select().single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ prompt: data })
+  }
+
+  if (action === 'aeo_delete_prompt') {
+    const { id } = body
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    const { error } = await s.from('kotoiq_aeo_prompts').delete().eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
+  if (action === 'aeo_list_competitors') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data, error } = await s.from('kotoiq_aeo_competitors')
+      .select('id, brand_name, aliases, domain, is_self, added_at')
+      .eq('client_id', client_id)
+      .order('is_self', { ascending: false })
+      .order('added_at', { ascending: true })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ competitors: data || [] })
+  }
+
+  if (action === 'aeo_add_competitor') {
+    const { client_id, brand_name, aliases, domain, is_self } = body
+    if (!client_id || !brand_name) return NextResponse.json({ error: 'client_id and brand_name required' }, { status: 400 })
+    const { data, error } = await s.from('kotoiq_aeo_competitors')
+      .upsert({ client_id, brand_name, aliases: aliases || null, domain: domain || null, is_self: !!is_self }, { onConflict: 'client_id,brand_name' })
+      .select()
+      .single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ competitor: data })
+  }
+
+  if (action === 'aeo_remove_competitor') {
+    const { id } = body
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    const { error } = await s.from('kotoiq_aeo_competitors').delete().eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
+  if (action === 'aeo_run_now') {
+    try { return NextResponse.json(await runAEOVisibilityScan(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'aeo_overview_stats') {
+    try { return NextResponse.json(await getAeoOverviewStats(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'aeo_share_of_voice') {
+    try { return NextResponse.json(await getAeoShareOfVoice(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'aeo_prompt_matrix') {
+    try { return NextResponse.json(await getAeoPromptMatrix(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'aeo_cited_sources') {
+    try { return NextResponse.json(await getAeoCitedSources(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'aeo_competitor_compare') {
+    try { return NextResponse.json(await getAeoCompetitorCompare(s, body)) }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 

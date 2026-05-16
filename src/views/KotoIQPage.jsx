@@ -33,6 +33,7 @@ import ContentCalendarTab from '../components/kotoiq/ContentCalendarTab'
 import SemanticAgentsInfo from '../components/kotoiq/SemanticAgentsInfo'
 import TopicalAuthorityTab from '../components/kotoiq/TopicalAuthorityTab'
 import AEOMultiEngineTab from '../components/kotoiq/AEOMultiEngineTab'
+import AEOVisibilityTab from '../components/kotoiq/AEOVisibilityTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -607,6 +608,7 @@ const KOTOIQ_NAV_GROUPS = [
     ['competitor_map', 'Competitor Maps', Map],
     ['aeo', 'AEO Research', Brain],
     ['aeo_multi', 'Multi-Engine AEO', Sparkles],
+    ['aeo_visibility', 'AEO Visibility', Sparkles],
     ['brand_serp', 'Brand SERP', Shield],
     ['backlinks', 'Backlinks', Link2],
     ['backlink_opps', 'Link Opportunities', Target],
@@ -2392,6 +2394,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ AEO RESEARCH TAB ══ */}
         {clientId && tab === 'aeo' && (
           <AEOResearchTab clientId={clientId} clientName={clients.find(c => c.id === clientId)?.name} clientIndustry={clients.find(c => c.id === clientId)?.primary_service} keywords={keywords} />
+        )}
+
+        {/* ══ AEO VISIBILITY TAB ══ */}
+        {clientId && tab === 'aeo_visibility' && (
+          <AEOVisibilityTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}
