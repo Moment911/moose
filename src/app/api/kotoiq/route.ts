@@ -39,6 +39,14 @@ import { runBingAudit, getBingAudit } from '@/lib/bingAuditEngine'
 import { scanAndGenerateBacklinks, getBacklinkOpportunities } from '@/lib/backlinkOpportunityEngine'
 import { askKotoIQ, listConversations, getConversation, deleteConversation } from '@/lib/askKotoIQEngine'
 import { runAtlasBrain } from '@/lib/atlasBrainAgent'
+import {
+  scanForFixes as autofixScan,
+  listQueue as autofixList,
+  approveFix as autofixApprove,
+  rejectFix as autofixReject,
+  snoozeFix as autofixSnooze,
+  runApprovedFixes as autofixRun,
+} from '@/lib/kotoiq/autoFixQueueEngine'
 import { setupCompetitorWatch, runCompetitorWatchCheck, getCompetitorEvents } from '@/lib/competitorWatchEngine'
 import {
   setupClientForAEO,
@@ -4010,6 +4018,32 @@ Provide a detailed analysis. Return ONLY valid JSON:
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
     }
+  }
+
+  // ── AUTO-FIX QUEUE — OTTO-style triage + dispatch ─────────────────────────
+  if (action === 'autofix_scan') {
+    try { return NextResponse.json(await autofixScan(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+  if (action === 'autofix_list') {
+    try { return NextResponse.json(await autofixList(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+  if (action === 'autofix_approve') {
+    try { return NextResponse.json(await autofixApprove(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+  if (action === 'autofix_reject') {
+    try { return NextResponse.json(await autofixReject(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+  if (action === 'autofix_snooze') {
+    try { return NextResponse.json(await autofixSnooze(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+  if (action === 'autofix_run') {
+    try { return NextResponse.json(await autofixRun(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 
   if (action === 'list_chat_conversations') {

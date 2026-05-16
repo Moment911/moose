@@ -10,7 +10,7 @@ import {
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
   Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings,
   Map, Code, Award, GitBranch, Eraser, Grid, Sparkles, Briefcase, Image as ImageIcon,
-  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Play, Mail, Sunrise, Compass,
+  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Play, Mail, Sunrise, Compass, Wrench,
 } from 'lucide-react'
 // Alias: lucide-react doesn't export Youtube in this version
 const Youtube = Play
@@ -45,6 +45,7 @@ import NewsletterIntelTab from '../components/kotoiq/NewsletterIntelTab'
 import CompetitorPulseTab from '../components/kotoiq/CompetitorPulseTab'
 import TodayTab from '../components/kotoiq/TodayTab'
 import FeatureDirectoryTab from '../components/kotoiq/FeatureDirectoryTab'
+import AutoFixQueueTab from '../components/kotoiq/AutoFixQueueTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -687,6 +688,7 @@ const KOTOIQ_NAV_GROUPS = [
   ]},
   { group: 'Reports & Tools', items: [
     ['feature_directory', 'Feature Directory', Compass, 'Every KotoIQ tool — what it does, when to use it, who it\'s for'],
+    ['autofix_queue', 'Auto-Fix Queue', Wrench, 'OTTO-style: triage audit findings, approve, dispatch fixes'],
     ['reports', 'Reports', FileText, 'Generate and view SEO reports'],
     ['roi', 'ROI Projections', DollarSign, 'Revenue and ROI forecasting'],
     ['visitors', 'Visitors', Eye, 'Website visitor intelligence'],
@@ -2483,6 +2485,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             navGroups={KOTOIQ_NAV_GROUPS}
             onSwitchTab={setTab}
           />
+        )}
+
+        {/* ══ AUTO-FIX QUEUE — OTTO-style triage + dispatch ═══ */}
+        {clientId && tab === 'autofix_queue' && (
+          <AutoFixQueueTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}
