@@ -175,57 +175,57 @@ export async function runAEOVisibilityScan(
   let total_cost_usd = 0
   const ran_at = new Date().toISOString()
 
+  // Per-prompt work: 5 engines in parallel, then 5 parser calls in parallel,
+  // then write all 5 rows in one insert. Each prompt batch ~5-15s instead of
+  // ~30s when parsers were serial.
   for (const p of prompts) {
-    const results = await Promise.allSettled(
+    const engineResults = await Promise.allSettled(
       engines.map(eng => runners[eng](p.prompt, { agencyId: agency_id, clientId: client_id, feature: 'aeo_visibility' })),
     )
 
-    const rows: any[] = []
-    for (let i = 0; i < results.length; i++) {
-      const eng = engines[i]
-      const settled = results[i]
+    // Materialize responses (handle rejections)
+    const responses: AeoEngineResponse[] = engineResults.map((settled, i) => {
       engine_calls++
-
-      let response: AeoEngineResponse
       if (settled.status === 'fulfilled') {
-        response = settled.value
-      } else {
-        response = {
-          engine: eng,
-          text: '',
-          cited_urls: [],
-          response_ms: 0,
-          cost_usd: 0,
-          error: settled.reason?.message || String(settled.reason),
+        if (settled.value.error) failures++; else successes++
+        return settled.value
+      }
+      failures++
+      return {
+        engine: engines[i],
+        text: '',
+        cited_urls: [],
+        response_ms: 0,
+        cost_usd: 0,
+        error: settled.reason?.message || String(settled.reason),
+      }
+    })
+
+    // Parser calls in parallel (was the bottleneck — serial ate 25s/prompt)
+    const parserResults = await Promise.all(
+      responses.map(resp => {
+        if (!resp.text || !trackedBrands.length) {
+          return Promise.resolve({ brand_mentions: [], cited_urls: resp.cited_urls, parser_cost_usd: 0, parser_ms: 0 })
         }
-      }
+        return parseMentions(resp, trackedBrands, { agencyId: agency_id, clientId: client_id })
+      }),
+    )
 
-      if (response.error) failures++
-      else successes++
-
-      total_cost_usd += response.cost_usd || 0
-
-      // Parse mentions only when we have text
-      let mentions: any[] = []
-      let cited_urls = response.cited_urls
-      let parser_cost = 0
-
-      if (response.text && trackedBrands.length) {
-        const parsed = await parseMentions(response, trackedBrands, { agencyId: agency_id, clientId: client_id })
-        mentions = parsed.brand_mentions
-        cited_urls = parsed.cited_urls
-        parser_cost = parsed.parser_cost_usd
-        total_cost_usd += parser_cost
-      }
+    const rows = responses.map((response, i) => {
+      const parsed = parserResults[i]
+      const mentions = parsed.brand_mentions
+      const cited_urls = parsed.cited_urls
+      const parser_cost = parsed.parser_cost_usd || 0
+      total_cost_usd += (response.cost_usd || 0) + parser_cost
 
       const selfMention = selfBrandName
         ? mentions.find(m => m.brand === selfBrandName)
         : undefined
 
-      rows.push({
+      return {
         prompt_id: p.id,
         client_id,
-        engine: eng,
+        engine: response.engine,
         raw_response: response.text || null,
         response_ms: response.response_ms || 0,
         cited_urls,
@@ -236,13 +236,12 @@ export async function runAEOVisibilityScan(
         error: response.error || null,
         cost_usd: (response.cost_usd || 0) + parser_cost,
         run_at: ran_at,
-      })
-    }
+      }
+    })
 
     if (rows.length) {
       const { error } = await s.from('kotoiq_aeo_runs').insert(rows)
       if (error) {
-        // Don't stop the scan on a write failure — log and continue
         // eslint-disable-next-line no-console
         console.warn('[aeoVisibility] insert error', error.message)
       }

@@ -4166,7 +4166,13 @@ Provide a detailed analysis. Return ONLY valid JSON:
   }
 
   if (action === 'aeo_run_now') {
-    try { return NextResponse.json(await runAEOVisibilityScan(s, body)) }
+    // Manual scans cap at 10 prompts by default to fit comfortably in
+    // the 300s function budget. Override with explicit prompt_limit.
+    // The weekly cron calls runAEOVisibilityScan directly without a limit.
+    try {
+      const limitedBody = { prompt_limit: 10, ...body }
+      return NextResponse.json(await runAEOVisibilityScan(s, limitedBody))
+    }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 

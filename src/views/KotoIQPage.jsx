@@ -583,7 +583,10 @@ function QuickWinQueueCard({ queue, totals, loading, onGenerate, onMarkDone, onM
 // KotoIQ navigation — pinned shortcuts plus the long-tail tool catalog.
 // Pinned tabs are shown at the top of the sidebar; everything else is
 // reachable via the "All Tools" disclosure or the ⌘K command palette.
-const KOTOIQ_PINNED_KEYS = ['dashboard', 'keywords', 'ranks', 'reports', 'connect']
+//
+// Pulse is pinned because it's the daily landing — the unified feed of
+// every competitor move from every engine.
+const KOTOIQ_PINNED_KEYS = ['dashboard', 'competitor_pulse', 'keywords', 'ranks', 'reports', 'connect']
 
 const KOTOIQ_NAV_GROUPS = [
   { group: 'AI', items: [
@@ -591,6 +594,7 @@ const KOTOIQ_NAV_GROUPS = [
   ]},
   { group: 'Overview', items: [
     ['dashboard', 'Dashboard', LayoutDashboard, 'Keyword overview, quick wins, and AI visibility score'],
+    ['competitor_pulse', 'Competitor Pulse', Activity, 'Unified feed of every competitor move — daily landing page'],
     ['keywords', 'Keywords', Search, 'All discovered and tracked keywords'],
     ['ranks', 'Rankings', TrendingUp, 'Google ranking positions from Search Console'],
     ['topical_authority', 'Authority Score', Award, 'Domain authority and topical relevance analysis'],
@@ -609,28 +613,34 @@ const KOTOIQ_NAV_GROUPS = [
   { group: 'Behavior Analytics', items: [
     ['behavior', 'Behavior Analytics', Activity],
   ]},
-  { group: 'Intelligence', items: [
-    ['strategy', 'Strategic Plan', Target],
-    ['scorecard', 'Scorecard', Award],
-    ['competitor_pulse', 'Competitor Pulse', Activity],
-    ['competitor_watch', 'Competitor Watch', Eye],
-    ['competitor_pages', 'Competitor Pages', FileText],
-    ['pricing_tracker', 'Pricing Tracker', DollarSign],
-    ['tech_stack', 'Tech Stack', Layers],
-    ['competitor_ads', 'Competitor Ads', Megaphone],
-    ['competitor_youtube', 'Competitor YouTube', Youtube],
-    ['newsletter_intel', 'Newsletter Intel', Mail],
+  { group: 'Competitor Intel', items: [
+    ['competitor_pulse', 'Pulse — unified feed', Activity, 'Every competitor move, every engine, one timeline'],
+    ['competitor_pages', 'Pages', FileText, 'Daily snapshots + Claude noise filter'],
+    ['pricing_tracker', 'Pricing', DollarSign, 'Tier-level price + promo change timeline'],
+    ['competitor_ads', 'Ads', Megaphone, 'Meta Ads Library creatives'],
+    ['competitor_youtube', 'YouTube', Play, 'Channels + recent uploads + stats'],
+    ['newsletter_intel', 'Newsletter', Mail, 'Inbound email capture + journey classifier'],
+    ['tech_stack', 'Tech Stack', Layers, 'CMS / ESP / analytics / chat / ad pixels'],
+    ['competitor_watch', 'Watch (legacy alerts)', Eye],
     ['competitors', 'Competitors', Target],
     ['competitor_map', 'Competitor Maps', Map],
+    ['scorecard', 'Scorecard', Award],
+  ]},
+  { group: 'AI Search', items: [
+    ['aeo_visibility', 'Visibility (Share of Voice)', Sparkles, '5-engine SoV tracker — Profound-style'],
     ['aeo', 'AEO Research', Brain],
-    ['aeo_multi', 'Multi-Engine AEO', Sparkles],
-    ['aeo_visibility', 'AEO Visibility', Sparkles],
+    ['aeo_multi', 'Multi-Engine AEO Score', Sparkles],
     ['brand_serp', 'Brand SERP', Shield],
+  ]},
+  { group: 'Authority', items: [
     ['backlinks', 'Backlinks', Link2],
     ['backlink_opps', 'Link Opportunities', Target],
     ['eeat', 'E-E-A-T', Award],
     ['knowledge_graph', 'Knowledge Graph', GitBranch],
     ['query_paths', 'Query Paths', GitBranch],
+  ]},
+  { group: 'Strategy', items: [
+    ['strategy', 'Strategic Plan', Target],
   ]},
   { group: 'Content', items: [
     ['autopilot', 'Auto-Pilot', Sparkles],
