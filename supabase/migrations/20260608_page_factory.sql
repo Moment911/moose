@@ -27,13 +27,14 @@ CREATE TABLE IF NOT EXISTS kotoiq_page_suggestions (
   updated_at    TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_page_suggestions_agency   ON kotoiq_page_suggestions(agency_id);
-CREATE INDEX idx_page_suggestions_client   ON kotoiq_page_suggestions(client_id);
-CREATE INDEX idx_page_suggestions_status   ON kotoiq_page_suggestions(status);
-CREATE INDEX idx_page_suggestions_priority ON kotoiq_page_suggestions(priority DESC);
+CREATE INDEX IF NOT EXISTS idx_page_suggestions_agency   ON kotoiq_page_suggestions(agency_id);
+CREATE INDEX IF NOT EXISTS idx_page_suggestions_client   ON kotoiq_page_suggestions(client_id);
+CREATE INDEX IF NOT EXISTS idx_page_suggestions_status   ON kotoiq_page_suggestions(status);
+CREATE INDEX IF NOT EXISTS idx_page_suggestions_priority ON kotoiq_page_suggestions(priority DESC);
 
 ALTER TABLE kotoiq_page_suggestions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "agency_isolation_page_suggestions" ON kotoiq_page_suggestions;
 CREATE POLICY "agency_isolation_page_suggestions"
   ON kotoiq_page_suggestions
   FOR ALL
@@ -64,11 +65,12 @@ CREATE TABLE IF NOT EXISTS kotoiq_style_profiles (
   updated_at       TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_style_profiles_agency ON kotoiq_style_profiles(agency_id);
-CREATE INDEX idx_style_profiles_client ON kotoiq_style_profiles(client_id);
+CREATE INDEX IF NOT EXISTS idx_style_profiles_agency ON kotoiq_style_profiles(agency_id);
+CREATE INDEX IF NOT EXISTS idx_style_profiles_client ON kotoiq_style_profiles(client_id);
 
 ALTER TABLE kotoiq_style_profiles ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "agency_isolation_style_profiles" ON kotoiq_style_profiles;
 CREATE POLICY "agency_isolation_style_profiles"
   ON kotoiq_style_profiles
   FOR ALL
@@ -95,12 +97,13 @@ CREATE TABLE IF NOT EXISTS kotoiq_publish_watches (
   created_at   TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_publish_watches_pending ON kotoiq_publish_watches(check_at)
+CREATE INDEX IF NOT EXISTS idx_publish_watches_pending ON kotoiq_publish_watches(check_at)
   WHERE checked_at IS NULL;
-CREATE INDEX idx_publish_watches_agency  ON kotoiq_publish_watches(agency_id);
+CREATE INDEX IF NOT EXISTS idx_publish_watches_agency  ON kotoiq_publish_watches(agency_id);
 
 ALTER TABLE kotoiq_publish_watches ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "agency_isolation_publish_watches" ON kotoiq_publish_watches;
 CREATE POLICY "agency_isolation_publish_watches"
   ON kotoiq_publish_watches
   FOR ALL
