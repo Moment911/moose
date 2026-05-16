@@ -10,7 +10,7 @@ import {
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
   Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings,
   Map, Code, Award, GitBranch, Eraser, Grid, Sparkles, Briefcase, Image as ImageIcon,
-  Layers, Share2, LayoutDashboard, Plug, Command, History,
+  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Youtube, Mail,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -37,6 +37,10 @@ import AEOVisibilityTab from '../components/kotoiq/AEOVisibilityTab'
 import CompetitorPagesTab from '../components/kotoiq/CompetitorPagesTab'
 import PricingTrackerTab from '../components/kotoiq/PricingTrackerTab'
 import TechStackTab from '../components/kotoiq/TechStackTab'
+import CompetitorAdsTab from '../components/kotoiq/CompetitorAdsTab'
+import CompetitorYouTubeTab from '../components/kotoiq/CompetitorYouTubeTab'
+import NewsletterIntelTab from '../components/kotoiq/NewsletterIntelTab'
+import CompetitorPulseTab from '../components/kotoiq/CompetitorPulseTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -606,10 +610,14 @@ const KOTOIQ_NAV_GROUPS = [
   { group: 'Intelligence', items: [
     ['strategy', 'Strategic Plan', Target],
     ['scorecard', 'Scorecard', Award],
+    ['competitor_pulse', 'Competitor Pulse', Activity],
     ['competitor_watch', 'Competitor Watch', Eye],
     ['competitor_pages', 'Competitor Pages', FileText],
     ['pricing_tracker', 'Pricing Tracker', DollarSign],
     ['tech_stack', 'Tech Stack', Layers],
+    ['competitor_ads', 'Competitor Ads', Megaphone],
+    ['competitor_youtube', 'Competitor YouTube', Youtube],
+    ['newsletter_intel', 'Newsletter Intel', Mail],
     ['competitors', 'Competitors', Target],
     ['competitor_map', 'Competitor Maps', Map],
     ['aeo', 'AEO Research', Brain],
@@ -2420,6 +2428,26 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ TECH STACK TAB ══ */}
         {clientId && tab === 'tech_stack' && (
           <TechStackTab clientId={clientId} />
+        )}
+
+        {/* ══ COMPETITOR ADS TAB ══ */}
+        {clientId && tab === 'competitor_ads' && (
+          <CompetitorAdsTab clientId={clientId} />
+        )}
+
+        {/* ══ COMPETITOR YOUTUBE TAB ══ */}
+        {clientId && tab === 'competitor_youtube' && (
+          <CompetitorYouTubeTab clientId={clientId} />
+        )}
+
+        {/* ══ NEWSLETTER INTEL TAB ══ */}
+        {clientId && tab === 'newsletter_intel' && (
+          <NewsletterIntelTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ COMPETITOR PULSE TAB (Phase J — unified timeline) ══ */}
+        {clientId && tab === 'competitor_pulse' && (
+          <CompetitorPulseTab clientId={clientId} />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}

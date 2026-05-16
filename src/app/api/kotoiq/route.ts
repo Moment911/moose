@@ -62,6 +62,13 @@ import { discoverPages } from '@/lib/kotoiq/pageDiscovery'
 import { getCurrentPricing, getPricingChanges, getPricingOverview } from '@/lib/kotoiq/pricingTrackerEngine'
 import { getTechStackByCompetitor } from '@/lib/kotoiq/techStackAggregator'
 import { estimateDomainTraffic, estimateTrafficForDomains } from '@/lib/kotoiq/trafficEstimator'
+import { searchMetaAds, syncMetaAdsForBrand, listCompetitorAds, getAdsOverview } from '@/lib/kotoiq/metaAdsLibraryEngine'
+import { findYouTubeChannel, syncYouTubeForBrand, listYouTubeChannels, listYouTubeVideos } from '@/lib/kotoiq/youtubeIntelEngine'
+import {
+  createEmailAlias, listEmailAliases, deleteEmailAlias,
+  persistCompetitorEmail, listCompetitorEmails, getNewsletterOverview,
+} from '@/lib/kotoiq/newsletterIntelEngine'
+import { getUnifiedEventsFeed } from '@/lib/kotoiq/unifiedEventsEngine'
 import { setupSlackIntegration, setupTeamsIntegration, sendDailyDigest } from '@/lib/slackTeamsIntegration'
 import { calculateIndustryBenchmarks, getBenchmarkForClient } from '@/lib/industryBenchmarkEngine'
 import { generateScorecard } from '@/lib/scorecardEngine'
@@ -4295,6 +4302,114 @@ Provide a detailed analysis. Return ONLY valid JSON:
     const { domains } = body
     if (!Array.isArray(domains)) return NextResponse.json({ error: 'domains array required' }, { status: 400 })
     try { return NextResponse.json({ estimates: await estimateTrafficForDomains(domains) }) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Ad Creative Library (Phase E) ─────────────────────────────────────
+  // Meta Ads Library — free public API. Search any brand,
+  // returns active + historical ad creatives across FB/IG/etc.
+
+  if (action === 'meta_ads_search') {
+    const { brand, countries, active, limit } = body
+    if (!brand) return NextResponse.json({ error: 'brand required' }, { status: 400 })
+    try { return NextResponse.json(await searchMetaAds(brand, { countries, active, limit })) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'meta_ads_sync') {
+    try { return NextResponse.json(await syncMetaAdsForBrand(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'list_competitor_ads') {
+    try { return NextResponse.json(await listCompetitorAds(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'ads_overview') {
+    try { return NextResponse.json(await getAdsOverview(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── YouTube Intel (Phase F) ───────────────────────────────────────────
+  // Free YouTube Data API v3. Search a competitor's channel,
+  // pull subscriber + view totals, and sync the 50 most recent
+  // uploads with per-video stats.
+
+  if (action === 'youtube_find_channel') {
+    const { brand } = body
+    if (!brand) return NextResponse.json({ error: 'brand required' }, { status: 400 })
+    try { return NextResponse.json(await findYouTubeChannel(brand)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'youtube_sync') {
+    try { return NextResponse.json(await syncYouTubeForBrand(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'list_youtube_channels') {
+    try { return NextResponse.json(await listYouTubeChannels(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'list_youtube_videos') {
+    try { return NextResponse.json(await listYouTubeVideos(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Newsletter Intel (Phase G) ────────────────────────────────────────
+  // Resend inbound or manual-paste import of competitor emails.
+  // Haiku classifier extracts journey stage + emotion + promo.
+
+  if (action === 'email_create_alias') {
+    try { return NextResponse.json(await createEmailAlias(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'email_list_aliases') {
+    try { return NextResponse.json(await listEmailAliases(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'email_delete_alias') {
+    try { return NextResponse.json(await deleteEmailAlias(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'email_paste_import') {
+    // Manual paste — user pastes raw HTML email source for any brand
+    const { client_id, brand_name, from_address, from_name, subject, body_html, body_text, sent_at, agency_id } = body
+    if (!client_id || !brand_name) return NextResponse.json({ error: 'client_id and brand_name required' }, { status: 400 })
+    try {
+      const out = await persistCompetitorEmail(s, {
+        client_id, brand_name,
+        from_address: from_address || 'manual@paste',
+        from_name, subject: subject || '(no subject)',
+        body_html, body_text, sent_at,
+        source: 'manual_paste',
+        agency_id,
+      })
+      return NextResponse.json(out)
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'list_competitor_emails') {
+    try { return NextResponse.json(await listCompetitorEmails(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'newsletter_overview') {
+    try { return NextResponse.json(await getNewsletterOverview(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Unified Events Timeline (Phase J — the killer view) ───────────────
+  // Pulls every meaningful change from every engine and serves a single
+  // chronological feed of "what's happening across all my competitors".
+
+  if (action === 'unified_events_feed') {
+    try { return NextResponse.json(await getUnifiedEventsFeed(s, body)) }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 
