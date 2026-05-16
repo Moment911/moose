@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Brain, Send, Loader2, Plus, MessageSquare, Trash2, Sparkles,
-  FileText, AlertCircle, ChevronRight, User,
+  FileText, AlertCircle, ChevronRight, User, Wrench, CheckCircle2, XCircle,
+  ChevronDown, Zap, Compass,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -106,6 +107,8 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [convLoading, setConvLoading] = useState(false)
+  // Atlas mode = tool-using agent. Quick mode = one-shot grounded answer.
+  const [mode, setMode] = useState('quick')
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -195,7 +198,8 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
         .filter(m => m.role === 'user' || m.role === 'assistant')
         .map(m => ({ role: m.role, content: m.content }))
 
-      const res = await api('ask_kotoiq', {
+      const actionName = mode === 'atlas' ? 'agent_ask' : 'ask_kotoiq'
+      const res = await api(actionName, {
         message: text,
         conversation_id: convId || undefined,
         conversation_history: history.slice(0, -1), // exclude the just-sent message (server gets it via `message`)
@@ -212,8 +216,9 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
         const assistantMsg = {
           role: 'assistant',
           content: res.message || '(no response)',
-          data_used: res.data_used || [],
+          data_used: res.data_used || (res.trace ? res.trace.map(t => t.tool) : []),
           suggested_actions: res.suggested_actions || [],
+          agent_trace: res.trace || null, // present in atlas mode only
           created_at: new Date().toISOString(),
         }
         setMessages(prev => [...prev, assistantMsg])
@@ -235,7 +240,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
       }])
     }
     setSending(false)
-  }, [input, sending, messages, api, convId, loadConversations])
+  }, [input, sending, messages, api, convId, loadConversations, mode])
 
   const handleSuggestedAction = useCallback(async (action) => {
     toast.success(`Triggering ${action.label}`)
@@ -330,9 +335,49 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
           <div style={{ width: 34, height: 34, borderRadius: 10, background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Brain size={18} color="#0a0a0a" />
           </div>
-          <div>
-            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>Ask KotoIQ</div>
-            <div style={{ fontSize: 11, color: '#6b6b70' }}>Conversational intelligence across all client data</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
+              {mode === 'atlas' ? 'Atlas Brain' : 'Ask KotoIQ'}
+            </div>
+            <div style={{ fontSize: 11, color: '#6b6b70' }}>
+              {mode === 'atlas'
+                ? 'Tool-using agent — runs audits, fetches data, chains engines'
+                : 'Conversational intelligence across all client data'}
+            </div>
+          </div>
+
+          {/* Mode toggle ──────────────────────────────────────── */}
+          <div style={{ display: 'flex', background: GRY, borderRadius: 10, padding: 3, border: '1px solid #ececef' }}>
+            <button
+              onClick={() => setMode('quick')}
+              title="One-shot grounded answer from cached data — fast & cheap"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '6px 12px', borderRadius: 8, border: 'none',
+                background: mode === 'quick' ? '#fff' : 'transparent',
+                color: mode === 'quick' ? "#0a0a0a" : '#6b6b70',
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                boxShadow: mode === 'quick' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              }}
+            >
+              <Zap size={12} /> Quick
+            </button>
+            <button
+              onClick={() => setMode('atlas')}
+              title="Atlas agent — runs tools, audits, and generators; slower but more powerful"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '6px 12px', borderRadius: 8, border: 'none',
+                background: mode === 'atlas' ? '#fff' : 'transparent',
+                color: mode === 'atlas' ? "#0a0a0a" : '#6b6b70',
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                boxShadow: mode === 'atlas' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              }}
+            >
+              <Compass size={12} /> Atlas
+            </button>
           </div>
         </div>
 
@@ -389,7 +434,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                   </div>
                   <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, color: '#6b6b70', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                    KotoIQ is thinking&hellip;
+                    {mode === 'atlas' ? 'Atlas is planning + running tools…' : 'KotoIQ is thinking…'}
                   </div>
                 </div>
               )}
@@ -445,6 +490,116 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
   )
 }
 
+// ── Extract <AGENT_TRACE>...</AGENT_TRACE> marker from a stored message
+// content. Used so that on conversation reload, Atlas traces still render.
+function extractTrace(content) {
+  if (!content) return { content: '', trace: null }
+  const m = content.match(/<AGENT_TRACE>([\s\S]*?)<\/AGENT_TRACE>/)
+  if (!m) return { content, trace: null }
+  let trace = null
+  try { trace = JSON.parse(m[1]) } catch { /* ignore */ }
+  return {
+    content: content.replace(/<AGENT_TRACE>[\s\S]*?<\/AGENT_TRACE>/, '').trim(),
+    trace: Array.isArray(trace) ? trace : null,
+  }
+}
+
+function formatLatency(ms) {
+  if (ms == null) return ''
+  if (ms < 1000) return `${ms}ms`
+  return `${(ms / 1000).toFixed(1)}s`
+}
+
+// ── Atlas tool-call trace (collapsible) ────────────────────────────────────
+function AgentTrace({ trace }) {
+  const [open, setOpen] = useState(false)
+  const [expanded, setExpanded] = useState({}) // per-step expansion
+  if (!trace || trace.length === 0) return null
+
+  const okCount = trace.filter(t => t.ok).length
+  const totalMs = trace.reduce((sum, t) => sum + (t.ms || 0), 0)
+
+  return (
+    <div style={{
+      marginBottom: 8, border: '1px solid #ececef', borderRadius: 10,
+      background: '#fff', overflow: 'hidden',
+    }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 12px', border: 'none', background: 'transparent',
+          cursor: 'pointer', textAlign: 'left',
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+        }}
+      >
+        <Wrench size={12} color={T} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: BLK, letterSpacing: '.02em' }}>
+          {trace.length} tool {trace.length === 1 ? 'call' : 'calls'}
+        </span>
+        <span style={{ fontSize: 10, color: '#8e8e93' }}>
+          · {okCount}/{trace.length} ok · {formatLatency(totalMs)}
+        </span>
+        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+          <ChevronDown size={13} color="#8e8e93" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 120ms' }} />
+        </span>
+      </button>
+
+      {open && (
+        <div style={{ borderTop: '1px solid #ececef', padding: '6px 0' }}>
+          {trace.map((step, i) => {
+            const isOpen = !!expanded[i]
+            return (
+              <div key={i} style={{ borderBottom: i < trace.length - 1 ? '1px solid #f5f5f7' : 'none' }}>
+                <button onClick={() => setExpanded(e => ({ ...e, [i]: !e[i] }))}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 12px', border: 'none', background: 'transparent',
+                    cursor: 'pointer', textAlign: 'left',
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+                  }}
+                >
+                  {step.ok
+                    ? <CheckCircle2 size={12} color={GRN} />
+                    : <XCircle size={12} color={'#dc2626'} />}
+                  <code style={{ fontSize: 11, fontFamily: 'monospace', color: BLK, fontWeight: 600 }}>
+                    {step.tool}
+                  </code>
+                  <span style={{ fontSize: 10, color: '#8e8e93' }}>
+                    {formatLatency(step.ms)}
+                  </span>
+                  <span style={{ marginLeft: 'auto' }}>
+                    <ChevronDown size={11} color="#8e8e93" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 120ms' }} />
+                  </span>
+                </button>
+                {isOpen && (
+                  <div style={{ padding: '0 12px 10px 32px' }}>
+                    {step.input && Object.keys(step.input).length > 0 && (
+                      <div style={{ marginBottom: 6 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: '#8e8e93', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>Input</div>
+                        <pre style={{ margin: 0, padding: '6px 8px', background: GRY, borderRadius: 6, fontSize: 11, fontFamily: 'monospace', color: BLK, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                          {JSON.stringify(step.input, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#8e8e93', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                        {step.ok ? 'Output' : 'Error'}
+                      </div>
+                      <pre style={{ margin: 0, padding: '6px 8px', background: GRY, borderRadius: 6, fontSize: 11, fontFamily: 'monospace', color: BLK, whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 220, overflow: 'auto' }}>
+                        {step.output_summary || '(empty)'}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Message bubble ────────────────────────────────────────────────────────
 function MessageBubble({ message, onActionClick }) {
   const isUser = message.role === 'user'
@@ -464,16 +619,23 @@ function MessageBubble({ message, onActionClick }) {
     )
   }
 
+  // Trace can come from two places: live response (message.agent_trace) OR
+  // embedded in stored content via <AGENT_TRACE> marker (reloaded convo).
+  const { content: cleanContent, trace: extractedTrace } = extractTrace(message.content)
+  const trace = message.agent_trace || extractedTrace
+
   return (
     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 20 }}>
       <div style={{ width: 30, height: 30, borderRadius: 10, background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Brain size={15} color="#0a0a0a" />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, maxWidth: '92%' }}>
-          <div>{renderMarkdown(message.content)}</div>
+        <AgentTrace trace={trace} />
 
-          {dataUsed.length > 0 && (
+        <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, maxWidth: '92%' }}>
+          <div>{renderMarkdown(cleanContent)}</div>
+
+          {dataUsed.length > 0 && !trace && (
             <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #ececef', display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 4 }}>
                 <FileText size={10} style={{ verticalAlign: '-1px', marginRight: 3 }} />
