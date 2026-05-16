@@ -4819,8 +4819,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {[
                   { key: 'search_console', label: 'Search Console', desc: 'Keyword rankings, clicks, impressions, CTR', color: '#4285F4', icon: Search },
                   { key: 'analytics', label: 'Google Analytics 4', desc: 'Sessions, conversions, revenue, bounce rate', color: '#F4B400', icon: BarChart2 },
-                  { key: 'ads', label: 'Google Ads', desc: 'Coming soon — requires Google API review', color: '#34A853', icon: DollarSign, comingSoon: true },
-                  { key: 'gmb', label: 'Business Profile', desc: 'Coming soon — requires additional scope', color: '#EA4335', icon: MapPin, comingSoon: true },
+                  { key: 'ads', label: 'Google Ads', desc: 'PPC campaigns, keywords, bids, conversions', color: '#34A853', icon: DollarSign },
+                  { key: 'gmb', label: 'Business Profile', desc: 'Reviews, local visibility, posts, insights', color: '#EA4335', icon: MapPin },
                 ].map(svc => {
                   const c = connections.find(x => x.provider === svc.key && x.connected)
                   const isConnected = !!c
