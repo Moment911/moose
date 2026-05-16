@@ -1,4 +1,5 @@
 'use client'
+import type React from 'react'
 import { useState, useEffect } from 'react'
 
 const KC = { acc:'#cb1c6b',text:'#111',secondary:'#555',tertiary:'#999',border:'rgba(0,0,0,0.08)',borderMd:'rgba(0,0,0,0.13)',bg:'#F7F7F6',white:'#fff',fd:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fb:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }

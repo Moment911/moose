@@ -1,4 +1,5 @@
 // @ts-nocheck
+import type React from 'react'
 "use client"
 import { FH } from '../../lib/theme'
 

@@ -1,4 +1,5 @@
 'use client'
+import type React from 'react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getKCAccess, KCAccess } from '@/lib/kotoclose-auth'

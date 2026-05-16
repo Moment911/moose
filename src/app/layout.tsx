@@ -1,3 +1,4 @@
+import type React from 'react'
 import type { Metadata, Viewport } from "next"
 import { JetBrains_Mono } from "next/font/google"
 import "./globals.css"
