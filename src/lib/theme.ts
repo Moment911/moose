@@ -20,11 +20,23 @@ export const W    = '#ffffff'
 export const DST  = '#DC2626'
 
 // Font stacks (DESIGN.md §Typography)
-// Display = Bebas Neue (headlines, hero numerals, KPI stats — never below 18px)
-// Body    = DM Sans  (UI text, labels, controls)
-// Accent  = DM Serif Display italic (editorial accent word inside hero copy)
-// Mono    = JetBrains Mono (data, code, monospaced inputs)
-export const FH = "'Bebas Neue', 'Arial Narrow', sans-serif"
+//
+// IMPORTANT: FH used to be Proxima Nova — a body-weight sans. Many of the
+// 143 files that import it apply it to BUTTONS, LABELS, and SMALL UI TEXT
+// (10-14px) where Bebas Neue (a condensed all-caps display font) would look
+// SHOUTY and unreadable. So FH is aliased to DM Sans for backward compat.
+//
+// For an actual display headline, import FD (Bebas Neue) explicitly, or
+// declare a local DISPLAY constant like the new tabs do. DESIGN.md reserves
+// Bebas Neue for headlines, hero numerals, and KPI stats — never below 18px.
+//
+// Display = Bebas Neue   (FD — headlines, hero numerals, KPI stats; ≥18px)
+// Heading = DM Sans      (FH — alias to body, kept for back-compat across 143 files)
+// Body    = DM Sans      (FB — UI text, labels, controls)
+// Accent  = DM Serif Display italic (FA — editorial accent word inside hero copy)
+// Mono    = JetBrains Mono (FM — data, code, monospaced inputs)
+export const FD = "'Bebas Neue', 'Arial Narrow', sans-serif"
+export const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 export const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 export const FA = "'DM Serif Display', Georgia, serif"
 export const FM = "'JetBrains Mono', 'SF Mono', Menlo, monospace"
@@ -51,7 +63,8 @@ export const koto = {
   danger: DST,
   info: '#2563EB',
   // Fonts (alias)
-  fontDisplay: FH,
+  fontDisplay: FD,
+  fontHeading: FH,
   fontBody: FB,
   fontAccent: FA,
   fontMono: FM,
