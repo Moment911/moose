@@ -6,6 +6,7 @@ import {
   GitBranch, Layers, FileText, Zap, RefreshCw, Calendar,
   Activity, Code, Star, ImageIcon, Grid, Settings, DollarSign,
   MessageCircle, Check, Sunrise, Megaphone, Mail,
+  Wrench, Compass,
 } from 'lucide-react'
 import { useKotoIQData } from '../../../context/KotoIQDataContext'
 
@@ -61,6 +62,7 @@ const NAV_GROUPS = [
   ]},
   { label: 'Content', items: [
     { id: 'autopilot',         label: 'Auto-Pilot',        tab: 'autonomous_pipeline', icon: Zap },
+    { id: 'autofix_queue',     label: 'Auto-Fix Queue',    tab: 'autofix_queue',     icon: Wrench },
     { id: 'page_factory',      label: 'Page Factory',      tab: 'page_factory',      icon: Layers },
     { id: 'briefs',            label: 'PageIQ Writer',     tab: 'briefs',            icon: FileText },
     { id: 'hyperlocal',        label: 'Hyperlocal Content',tab: 'hyperlocal',        icon: Map },
@@ -84,6 +86,7 @@ const NAV_GROUPS = [
     { id: 'reviews',           label: 'Reviews',           tab: 'reviews',           icon: Star },
   ]},
   { label: 'Reports & Tools', items: [
+    { id: 'feature_directory', label: 'Feature Directory', tab: 'feature_directory', icon: Compass },
     { id: 'roi',               label: 'ROI Projections',   tab: 'roi',               icon: BarChart2 },
     { id: 'bulk',              label: 'Bulk Operations',   tab: 'bulk_ops',          icon: Layers },
     { id: 'connect',           label: 'Connect APIs',      tab: 'connect',           icon: Settings },
