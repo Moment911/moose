@@ -53,9 +53,18 @@ export async function runGoogleAIO(
       position: i + 1,
     }))
 
+    // DataForSEO sometimes returns AIO with sources but an empty body text.
+    // Fold source titles + domains into the parser-visible text so a brand
+    // that appears in the AIO citations still gets credited as a mention.
+    const sourceText = aio.sources
+      .map(s => [s.title, s.domain].filter(Boolean).join(' — '))
+      .filter(Boolean)
+      .join('\n')
+    const combinedText = [aio.text, sourceText].filter(Boolean).join('\n\nSources:\n')
+
     return {
       engine: 'google_aio',
-      text: aio.text || '',
+      text: combinedText || '',
       cited_urls,
       response_ms: Date.now() - start,
       cost_usd: COST_USD_PER_CALL,
