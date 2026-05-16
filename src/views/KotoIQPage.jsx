@@ -3831,11 +3831,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
               {!compLandscape && !compLandscapeLoading && (
                 <div style={{ textAlign: 'center', padding: '30px 0', color: '#1f2937', fontSize: 13 }}>
-                  <div style={{ padding: '12px 16px', borderRadius: 10, background: '#fef3c7', border: '1px solid #f59e0b30', fontSize: 12, color: '#92400e', lineHeight: 1.6, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8, textAlign: 'left' }}>
-                    <AlertCircle size={16} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
-                    <div><strong>Setup Required:</strong> Competitor Landscape requires the DataForSEO integration. Contact your admin to configure DATAFORSEO_AUTH in Vercel environment variables.</div>
-                  </div>
-                  Click "Discover Competitors" to find all domains competing for the same keywords.
+                  Click <strong>Discover Competitors</strong> to find every domain competing for the same keywords as this client.
                 </div>
               )}
             </div>
@@ -4068,7 +4064,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             {compAnalysis && !compLoading && compAnalysis.analyses?.length === 0 && (
               <div style={{ padding: '12px 16px', borderRadius: 10, background: '#fef3c7', border: '1px solid #f59e0b30', fontSize: 12, color: '#92400e', lineHeight: 1.6, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <AlertCircle size={16} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
-                <div><strong>Setup Required:</strong> Competitor analysis uses DataForSEO for SERP data. Without it, results may be limited. Configure DATAFORSEO_AUTH for full competitor intelligence.</div>
+                <div>No competitor pages returned for this keyword. Try a more specific local keyword (e.g. "emergency plumber boca raton") or check that this client has a website set.</div>
               </div>
             )}
 
