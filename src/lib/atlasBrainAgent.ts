@@ -170,6 +170,42 @@ const TOOLS: ToolDef[] = [
     input_schema: { type: 'object', properties: {}, required: [] },
     action: 'roi_projections',
   },
+  {
+    name: 'recommend_local_strategy',
+    description: 'Generate a complete 2026 hyperlocal SEO/AEO strategy: URL structure, topic clusters (pillar + service×city + neighborhood), schema plan (Service/Place/LocalBusiness for service-area businesses), AEO entity strategy for AI Overviews, internal linking pattern, and a phased multi-week attack plan. Persists every cluster as a page suggestion in Page Factory. Use when the user wants to design a local service business\'s page architecture from scratch, or expand into new service areas.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        business_name: { type: 'string', description: 'Client business name, e.g. "Acme Plumbing & Heating"' },
+        business_model: {
+          type: 'string',
+          enum: ['service_area', 'storefront', 'hybrid', 'multi_location'],
+          description: 'service_area = SAB driving to customers; storefront = single brick-and-mortar; hybrid = both; multi_location = chain with multiple physical locations',
+        },
+        services: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'List of services offered, e.g. ["water heater repair", "drain cleaning"]',
+        },
+        areas: {
+          type: 'array',
+          description: 'Target cities/areas. Each requires city + state (2-letter); is_primary flags the HQ city.',
+          items: {
+            type: 'object',
+            properties: {
+              city: { type: 'string' },
+              state: { type: 'string', description: '2-letter state code' },
+              is_primary: { type: 'boolean' },
+            },
+            required: ['city', 'state'],
+          },
+        },
+        notes: { type: 'string', description: 'Optional context — voice, ranking pain points, brands to avoid.' },
+      },
+      required: ['business_name', 'business_model', 'services', 'areas'],
+    },
+    action: 'recommend_local_strategy',
+  },
 ]
 
 const TOOL_BY_NAME: Record<string, ToolDef> = Object.fromEntries(TOOLS.map(t => [t.name, t]))
