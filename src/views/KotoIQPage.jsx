@@ -34,6 +34,7 @@ import SemanticAgentsInfo from '../components/kotoiq/SemanticAgentsInfo'
 import TopicalAuthorityTab from '../components/kotoiq/TopicalAuthorityTab'
 import AEOMultiEngineTab from '../components/kotoiq/AEOMultiEngineTab'
 import AEOVisibilityTab from '../components/kotoiq/AEOVisibilityTab'
+import CompetitorPagesTab from '../components/kotoiq/CompetitorPagesTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -604,6 +605,7 @@ const KOTOIQ_NAV_GROUPS = [
     ['strategy', 'Strategic Plan', Target],
     ['scorecard', 'Scorecard', Award],
     ['competitor_watch', 'Competitor Watch', Eye],
+    ['competitor_pages', 'Competitor Pages', FileText],
     ['competitors', 'Competitors', Target],
     ['competitor_map', 'Competitor Maps', Map],
     ['aeo', 'AEO Research', Brain],
@@ -2399,6 +2401,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ AEO VISIBILITY TAB ══ */}
         {clientId && tab === 'aeo_visibility' && (
           <AEOVisibilityTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ COMPETITOR PAGES TAB ══ */}
+        {clientId && tab === 'competitor_pages' && (
+          <CompetitorPagesTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}

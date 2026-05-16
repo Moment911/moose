@@ -49,6 +49,16 @@ import {
   getOverviewStats as getAeoOverviewStats,
 } from '@/lib/kotoiq/aeoVisibilityEngine'
 import { seedPromptsForClient } from '@/lib/kotoiq/aeoPromptSeeder'
+import {
+  trackPage as trackCompetitorPage,
+  untrackPage as untrackCompetitorPage,
+  listTrackedPages as listCompetitorPages,
+  runPageDiffNow,
+  getPageChanges,
+  getPageSnapshot,
+  reclassifyChange as reclassifyPageChange,
+} from '@/lib/kotoiq/pageDiffEngine'
+import { discoverPages } from '@/lib/kotoiq/pageDiscovery'
 import { setupSlackIntegration, setupTeamsIntegration, sendDailyDigest } from '@/lib/slackTeamsIntegration'
 import { calculateIndustryBenchmarks, getBenchmarkForClient } from '@/lib/industryBenchmarkEngine'
 import { generateScorecard } from '@/lib/scorecardEngine'
@@ -4171,6 +4181,72 @@ Provide a detailed analysis. Return ONLY valid JSON:
   if (action === 'aeo_competitor_compare') {
     try { return NextResponse.json(await getAeoCompetitorCompare(s, body)) }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Competitor Page Diff (Phase B) ────────────────────────────────────
+  // Snapshot competitor pages daily, detect meaningful changes with a
+  // Claude Haiku noise filter, alert via Slack/Teams.
+
+  if (action === 'track_page') {
+    try { return NextResponse.json(await trackCompetitorPage(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'untrack_page') {
+    try { return NextResponse.json(await untrackCompetitorPage(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'list_tracked_pages') {
+    try { return NextResponse.json(await listCompetitorPages(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'run_page_diff_now') {
+    try { return NextResponse.json(await runPageDiffNow(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'get_page_changes') {
+    try { return NextResponse.json(await getPageChanges(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'get_page_snapshot') {
+    try { return NextResponse.json(await getPageSnapshot(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'reclassify_change') {
+    try { return NextResponse.json(await reclassifyPageChange(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'discover_pages') {
+    // Discover 5 high-signal pages for a competitor domain and (optionally)
+    // auto-track them. Called by the UI right after a competitor is added
+    // to AEO Visibility so the dataset is rich on day one.
+    const { client_id, domain, auto_track = true, added_by } = body
+    if (!client_id || !domain) return NextResponse.json({ error: 'client_id and domain required' }, { status: 400 })
+    try {
+      const result = await discoverPages(domain)
+      let tracked = 0
+      if (auto_track && result.pages.length) {
+        for (const page of result.pages) {
+          try {
+            await trackCompetitorPage(s, {
+              client_id,
+              url: page.url,
+              page_type: page.page_type,
+              check_frequency: 'daily',
+              added_by,
+            })
+            tracked += 1
+          } catch { /* skip individual failures */ }
+        }
+      }
+      return NextResponse.json({ pages: result.pages, sitemap_url: result.sitemap_url, tracked })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 
   // ── Slack / Teams Integration ─────────────────────────────────────────

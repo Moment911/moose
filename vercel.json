@@ -43,6 +43,10 @@
     {
       "path": "/api/cron/aeo-visibility-scan",
       "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/cron/page-diff-scan",
+      "schedule": "0 4 * * *"
     }
   ],
   "functions": {
@@ -116,6 +120,9 @@
       "maxDuration": 300
     },
     "src/app/api/cron/aeo-visibility-scan/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/page-diff-scan/route.ts": {
       "maxDuration": 300
     }
   }
