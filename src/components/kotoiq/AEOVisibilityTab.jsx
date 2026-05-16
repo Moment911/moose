@@ -285,6 +285,11 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
     return topBrands.slice(0, 5)
   }, [compare])
 
+  const hasAnyCellData = useMemo(() => {
+    if (!matrix.prompts?.length) return false
+    return matrix.prompts.some(p => ENGINES.some(e => matrix.matrix[p.id]?.[e.key]))
+  }, [matrix])
+
   const filteredPrompts = useMemo(() => {
     if (matrixFilter === 'all') return matrix.prompts
     if (matrixFilter === 'mentioned') {
@@ -407,6 +412,17 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
             ))}
           </div>
         </div>
+        {!hasAnyCellData && filteredPrompts.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', marginBottom: 14, background: `${PINK}0D`, border: `1px solid ${PINK}33`, borderRadius: 10, fontFamily: SF }}>
+            <Sparkles size={16} color={PINK} style={{ flexShrink: 0, marginTop: 2 }} />
+            <div style={{ fontSize: 13, color: INK, lineHeight: 1.5 }}>
+              <div style={{ fontWeight: 700, marginBottom: 2 }}>Prompts seeded, but no engines scanned yet</div>
+              <div style={{ color: DIM }}>
+                Every dashed cell is a prompt we'll ask the 5 AI engines on your behalf. Click <span style={{ fontWeight: 700, color: INK }}>Run scan now</span> at the top to populate this matrix (~2 min), or the weekly cron will fill it Monday 3am UTC.
+              </div>
+            </div>
+          </div>
+        )}
         {filteredPrompts.length === 0 ? (
           <EmptyChart message="No prompts match this filter." />
         ) : (
