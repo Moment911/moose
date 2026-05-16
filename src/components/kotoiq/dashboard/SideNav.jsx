@@ -5,7 +5,7 @@ import {
   Target, Shield, Eye, Globe, Map, Brain, Sparkles, Link2,
   GitBranch, Layers, FileText, Zap, RefreshCw, Calendar,
   Activity, Code, Star, ImageIcon, Grid, Settings, DollarSign,
-  MessageCircle, Check,
+  MessageCircle, Check, Sunrise, Megaphone, Mail,
 } from 'lucide-react'
 import { useKotoIQData } from '../../../context/KotoIQDataContext'
 
@@ -24,20 +24,35 @@ const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 
 
 const NAV_GROUPS = [
   { label: 'Overview', items: [
+    { id: 'today',             label: 'Today',             tab: 'today',             icon: Sunrise },
+    { id: 'competitor_pulse',  label: 'Competitor Pulse',  tab: 'competitor_pulse',  icon: Activity },
     { id: 'dashboard',         label: 'Dashboard',         tab: 'dashboard',         icon: BarChart2 },
     { id: 'ask',               label: 'Ask KotoIQ',        tab: 'ask',               icon: MessageCircle },
     { id: 'keywords',          label: 'Keywords',          tab: 'keywords',          icon: Search },
     { id: 'authority',         label: 'Authority Score',   tab: 'topical_authority', icon: Award },
   ]},
-  { label: 'Intelligence', items: [
-    { id: 'strategy',          label: 'Strategic Plan',    tab: 'strategy',          icon: Target },
-    { id: 'scorecard',         label: 'Scorecard',         tab: 'scorecard',         icon: Shield },
-    { id: 'competitor_watch',  label: 'Competitor Watch',  tab: 'competitor_watch',  icon: Eye },
+  { label: 'Competitor Intel', items: [
+    { id: 'competitor_pages',  label: 'Pages',             tab: 'competitor_pages',  icon: FileText },
+    { id: 'pricing_tracker',   label: 'Pricing',           tab: 'pricing_tracker',   icon: DollarSign },
+    { id: 'competitor_ads',    label: 'Ads',               tab: 'competitor_ads',    icon: Megaphone },
+    { id: 'competitor_youtube',label: 'YouTube',           tab: 'competitor_youtube', icon: Play },
+    { id: 'newsletter_intel',  label: 'Newsletter',        tab: 'newsletter_intel',  icon: Mail },
+    { id: 'tech_stack',        label: 'Tech Stack',        tab: 'tech_stack',        icon: Layers },
+    { id: 'competitor_watch',  label: 'Watch (alerts)',    tab: 'competitor_watch',  icon: Eye },
     { id: 'competitors',       label: 'Competitors',       tab: 'competitors',       icon: Globe },
     { id: 'comp_map',          label: 'Competitor Maps',   tab: 'competitor_map',    icon: Map },
+    { id: 'scorecard',         label: 'Scorecard',         tab: 'scorecard',         icon: Shield },
+  ]},
+  { label: 'AI Search', items: [
+    { id: 'aeo_visibility',    label: 'AEO Visibility',    tab: 'aeo_visibility',    icon: Sparkles },
     { id: 'aeo',               label: 'AEO Research',      tab: 'aeo',               icon: Brain },
     { id: 'multi_aeo',         label: 'Multi-Engine AEO',  tab: 'multi_engine_aeo',  icon: Sparkles },
     { id: 'brand_serp',        label: 'Brand SERP',        tab: 'brand_serp',        icon: Search },
+  ]},
+  { label: 'Strategy & Authority', items: [
+    { id: 'strategy',          label: 'Strategic Plan',    tab: 'strategy',          icon: Target },
+    { id: 'competitors',       label: 'Competitors',       tab: 'competitors',       icon: Globe },
+    { id: 'comp_map',          label: 'Competitor Maps',   tab: 'competitor_map',    icon: Map },
     { id: 'backlinks',         label: 'Backlinks',         tab: 'backlinks',         icon: Link2 },
     { id: 'link_opps',         label: 'Link Opportunities',tab: 'backlink_opportunities', icon: GitBranch },
     { id: 'eeat',              label: 'E-E-A-T',           tab: 'eeat',              icon: Shield },
