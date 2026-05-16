@@ -398,20 +398,21 @@ export async function POST(req: NextRequest) {
   const { action } = body
   const s = sb()
 
-  // ── AUTH: Require a verified session OR a trusted internal/cron caller. ──
+  // ── AUTH: Two trusted-caller paths + soft-gate for browser fetches. ──
   // Internal callers (run_all_audits wave runner, weekly-launch-all cron)
-  // pass Authorization: Bearer ${CRON_SECRET}. Everyone else must be a
-  // logged-in user; their agency_id is taken from the session, never the
-  // body. Non-super-admins additionally must own body.client_id.
+  // pass Authorization: Bearer ${CRON_SECRET}. Browser fetches today don't
+  // attach the user's Supabase access_token (~30 call sites still need to
+  // be migrated). verifySession returns verified:false for those — we treat
+  // them as legacy traffic and trust body.agency_id rather than 401-ing,
+  // so we don't break the app while the frontend catches up. When ctx is
+  // verified, we enforce strict agency_id overwrite + client-ownership.
   const authHeader = req.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
   const isInternal = !!cronSecret && authHeader === `Bearer ${cronSecret}`
 
   if (!isInternal) {
     const ctx = await verifySession(req, body)
-    if (!ctx.verified) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (ctx.verified) {
     // Source-of-truth agency_id — overwrites whatever the client sent.
     // Super-admin impersonation already handled inside verifySession via
     // x-koto-agency-id header.
@@ -430,6 +431,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     }
+    } // end if (ctx.verified)
   }
   // ── END AUTH ──────────────────────────────────────────────────────────
 
