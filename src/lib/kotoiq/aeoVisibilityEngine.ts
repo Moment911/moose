@@ -175,15 +175,18 @@ export async function runAEOVisibilityScan(
   let total_cost_usd = 0
   const ran_at = new Date().toISOString()
 
-  // Per-prompt work: 5 engines in parallel, then 5 parser calls in parallel,
-  // then write all 5 rows in one insert. Each prompt batch ~5-15s instead of
-  // ~30s when parsers were serial.
-  for (const p of prompts) {
+  // Parallel batching:
+  // - PROMPT_BATCH prompts run concurrently
+  // - within each prompt, 5 engines run in parallel, then 5 parser calls in parallel
+  // - 40 prompts / 4 per batch = 10 batches × ~12s each = ~120s (well under 300s)
+  const PROMPT_BATCH = 4
+
+  // Process one prompt — same logic as before, factored out for batching
+  async function scanOnePrompt(p: { id: string; prompt: string }) {
     const engineResults = await Promise.allSettled(
       engines.map(eng => runners[eng](p.prompt, { agencyId: agency_id, clientId: client_id, feature: 'aeo_visibility' })),
     )
 
-    // Materialize responses (handle rejections)
     const responses: AeoEngineResponse[] = engineResults.map((settled, i) => {
       engine_calls++
       if (settled.status === 'fulfilled') {
@@ -201,7 +204,6 @@ export async function runAEOVisibilityScan(
       }
     })
 
-    // Parser calls in parallel (was the bottleneck — serial ate 25s/prompt)
     const parserResults = await Promise.all(
       responses.map(resp => {
         if (!resp.text || !trackedBrands.length) {
@@ -246,6 +248,12 @@ export async function runAEOVisibilityScan(
         console.warn('[aeoVisibility] insert error', error.message)
       }
     }
+  }
+
+  // Drive the batches
+  for (let i = 0; i < prompts.length; i += PROMPT_BATCH) {
+    const batch = prompts.slice(i, i + PROMPT_BATCH)
+    await Promise.all(batch.map(scanOnePrompt))
   }
 
   return {

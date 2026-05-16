@@ -4166,13 +4166,9 @@ Provide a detailed analysis. Return ONLY valid JSON:
   }
 
   if (action === 'aeo_run_now') {
-    // Manual scans cap at 10 prompts by default to fit comfortably in
-    // the 300s function budget. Override with explicit prompt_limit.
-    // The weekly cron calls runAEOVisibilityScan directly without a limit.
-    try {
-      const limitedBody = { prompt_limit: 10, ...body }
-      return NextResponse.json(await runAEOVisibilityScan(s, limitedBody))
-    }
+    // With prompt batching (4 prompts × 5 engines in parallel per batch),
+    // a 40-prompt scan completes in ~120s — well under the 300s function cap.
+    try { return NextResponse.json(await runAEOVisibilityScan(s, body)) }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 

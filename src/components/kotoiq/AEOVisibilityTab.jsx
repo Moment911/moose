@@ -203,11 +203,11 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
   const runScan = async () => {
     setScanning(true)
     try {
-      // Manual scans run a 10-prompt sample so they fit in 300s.
-      // The weekly cron runs all prompts.
-      const r = await api('aeo_run_now', { client_id: clientId, agency_id: agencyId, prompt_limit: 10 })
+      // Engine batches 4 prompts in parallel × 5 engines each, so even a
+      // 40-prompt full scan fits in ~120s of the 300s function cap.
+      const r = await api('aeo_run_now', { client_id: clientId, agency_id: agencyId })
       if (r.error) throw new Error(r.error)
-      toast.success(`Sample scan complete — ${r.prompts_run} prompts × ${r.engine_calls} calls. Full scan runs Mondays.`)
+      toast.success(`Scan complete — ${r.prompts_run} prompts × ${r.engine_calls} engine calls in ${Math.round((Date.now() - new Date(r.ran_at).getTime()) / 1000)}s`)
       await refresh()
     } catch (e) {
       toast.error(e.message || 'Scan failed')
@@ -349,9 +349,9 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <span style={{ fontSize: 12, color: SUB }}>Last scan {relative(overview?.last_scan_at)}</span>
           <button onClick={refresh} style={ghostButton} title="Refresh"><RefreshCw size={14} /></button>
-          <button onClick={runScan} disabled={scanning || !clientId} style={{ ...inkButton, opacity: scanning ? 0.6 : 1 }} title="Runs 10 prompts × 5 engines (~60s). Full 40-prompt scan runs Mondays via cron.">
+          <button onClick={runScan} disabled={scanning || !clientId} style={{ ...inkButton, opacity: scanning ? 0.6 : 1 }} title="Runs every active prompt across all 5 engines in parallel batches. ~2 minutes for a full scan.">
             {scanning ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
-            {scanning ? 'Scanning sample...' : 'Sample scan (10 prompts)'}
+            {scanning ? 'Scanning all prompts...' : 'Run scan now'}
           </button>
         </div>
       </div>
