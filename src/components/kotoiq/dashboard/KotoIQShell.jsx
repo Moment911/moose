@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { PanelLeftClose, PanelLeft, PanelRightClose, PanelRight } from 'lucide-react'
 import SideNav from './SideNav'
 import Inspector from './Inspector'
+import KotoTabHeader from './KotoTabHeader'
 import { useKotoIQData } from '../../../context/KotoIQDataContext'
 import { kotoiqFetch } from '../../../lib/kotoiqFetch'
 
@@ -183,6 +184,10 @@ export default function KotoIQShell({ clientId, agencyId, clients, currentTab, o
       )}
 
       <main style={S.main}>
+        {/* Universal page header — pulls metadata from kotoiqTabMeta.ts.
+            Renders nothing for tabs that own their own bespoke hero (AEO,
+            Today, Auto-Fix Queue, Feature Directory, etc.). */}
+        <KotoTabHeader tabKey={currentTab} />
         {children}
       </main>
 
