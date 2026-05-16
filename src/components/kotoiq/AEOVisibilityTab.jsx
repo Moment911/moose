@@ -12,7 +12,7 @@ import HowItWorks from './HowItWorks'
 import {
   Eyebrow, SectionHeader as PSectionHeader, EducationalNote, ActionCallout,
   EmptyState, StatGrid, Stat, WorkflowStepper, FlagChip, NextStepLink,
-  BottomCTA, LiveTicker, CtaButton, KotoKeyframes,
+  BottomCTA, LiveTicker, CtaButton,
 } from '@/components/ui/koto'
 
 // ─────────────────────────────────────────────────────────────
@@ -357,7 +357,6 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
   // ─── Full dashboard ──────────────────────────────────────────────
   return (
     <div>
-      <KotoKeyframes />
       <HowItWorks tool="aeo_visibility" />
 
       {/* Header */}

@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+/* Koto UX primitive keyframes (DESIGN.md 2026-05-16) */
+@keyframes kotoPulsePink { 0%,100% { box-shadow: 0 0 0 0 rgba(203,28,107,.45) } 50% { box-shadow: 0 0 0 12px rgba(203,28,107,0) } }
+@keyframes kotoPulseDot  { 0%,100% { box-shadow: 0 0 0 0 rgba(13,158,110,.55); transform: scale(1) } 50% { box-shadow: 0 0 0 8px rgba(13,158,110,0); transform: scale(1.15) } }
+@keyframes kotoSkelPulse { 0%,100% { opacity: .6 } 50% { opacity: 1 } }
+
 @theme {
   --color-brand-50:  rgba(203, 28, 107,0.04);
   --color-brand-100: rgba(203, 28, 107,0.07);

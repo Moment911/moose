@@ -3,7 +3,7 @@
 // instead of rolling their own. Reference: src/components/kotoiq/AEOVisibilityTab.jsx
 
 'use client'
-import React from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { Sparkles, Info, AlertTriangle, CheckCircle2, Lightbulb, Loader2, Check, RefreshCw, ArrowRight } from 'lucide-react'
 import { t } from '../../../styles/koto-tokens'
 
@@ -51,8 +51,8 @@ export function SectionHeader({ icon: Icon, title, accent, rationale, right, sty
 
 // ── Pattern 3 — Educational Note ───────────────────────────────────────────
 export function EducationalNote({ noteId, title = 'Why this matters', children, dismissible = true }) {
-  const [hidden, setHidden] = React.useState(false)
-  React.useEffect(() => {
+  const [hidden, setHidden] = useState(false)
+  useEffect(() => {
     if (!dismissible || !noteId || typeof window === 'undefined') return
     try {
       const dismissed = JSON.parse(localStorage.getItem('koto_dismissed_notes') || '{}')
@@ -204,7 +204,7 @@ export function WorkflowStepper({ steps, current = 0 }) {
         const dotBg = done || active ? t.pink : t.hover
         const dotColor = done || active ? t.white : t.muted
         return (
-          <React.Fragment key={i}>
+          <Fragment key={i}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 80 }}>
               <div style={{
                 width: 26, height: 26, borderRadius: t.rPill, background: dotBg, color: dotColor,
@@ -228,7 +228,7 @@ export function WorkflowStepper({ steps, current = 0 }) {
                 background: done ? t.pink : t.line, alignSelf: 'flex-start',
               }} />
             )}
-          </React.Fragment>
+          </Fragment>
         )
       })}
     </div>
