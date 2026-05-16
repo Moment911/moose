@@ -196,15 +196,24 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
         api('aeo_list_prompts', { client_id: clientId }),
         api('aeo_list_competitors', { client_id: clientId }),
       ])
-      setOverview(o)
-      setSov(s)
-      setMatrix(m)
-      setCited(c?.items || [])
-      setCompare(k)
-      setPrompts(p?.prompts || [])
-      setCompetitors(comp?.competitors || [])
+      // Each response may be `{ error: "..." }` on server failure. Without this
+      // guard, `overview.share_of_voice` renders as `NaN%` and chart inputs
+      // crash on `.buckets.map`. Treat error shapes as no-data and surface
+      // the first server error so the user knows the dash is partial.
+      const safe = (x, fallback) => (x && !x.error ? x : fallback)
+      setOverview(safe(o, null))
+      setSov(safe(s, { buckets: [], tracked_brands: [] }))
+      setMatrix(safe(m, { prompts: [], engines: ENGINES.map(e => e.key), matrix: {} }))
+      setCited(safe(c, { items: [] }).items || [])
+      setCompare(safe(k, { client_brand: null, rows: [] }))
+      setPrompts(safe(p, { prompts: [] }).prompts || [])
+      setCompetitors(safe(comp, { competitors: [] }).competitors || [])
+
+      const firstError = [o, s, m, c, k, p, comp].find(x => x && x.error)?.error
+      if (firstError) toast.error(firstError)
     } catch (e) {
       console.warn('[aeo] refresh', e)
+      toast.error('Could not refresh AEO data — check your connection')
     } finally {
       setLoading(false)
     }
@@ -251,12 +260,14 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
     refresh()
   }
   const togglePrompt = async (p) => {
-    await api('aeo_update_prompt', { id: p.id, is_active: !p.is_active })
+    const r = await api('aeo_update_prompt', { id: p.id, is_active: !p.is_active })
+    if (r?.error) return toast.error(r.error)
     refresh()
   }
   const deletePrompt = async (id) => {
     if (!confirm('Delete this prompt?')) return
-    await api('aeo_delete_prompt', { id })
+    const r = await api('aeo_delete_prompt', { id })
+    if (r?.error) return toast.error(r.error)
     refresh()
   }
   const addCompetitor = async () => {
@@ -270,7 +281,8 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
   const removeCompetitor = async (id, isSelf) => {
     if (isSelf) return toast.error('Cannot remove your own brand')
     if (!confirm('Remove this competitor?')) return
-    await api('aeo_remove_competitor', { id })
+    const r = await api('aeo_remove_competitor', { id })
+    if (r?.error) return toast.error(r.error)
     refresh()
   }
 
