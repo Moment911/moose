@@ -69,6 +69,7 @@ import {
 } from '@/lib/kotoiq/pageDiffEngine'
 import { discoverPages } from '@/lib/kotoiq/pageDiscovery'
 import { recommendLocalStrategy } from '@/lib/kotoiq/localStrategistEngine'
+import { bulkGenerateBriefs, publishBriefToWp } from '@/lib/kotoiq/bulkPageBuilder'
 import { getCurrentPricing, getPricingChanges, getPricingOverview } from '@/lib/kotoiq/pricingTrackerEngine'
 import { getTechStackByCompetitor } from '@/lib/kotoiq/techStackAggregator'
 import { estimateDomainTraffic, estimateTrafficForDomains } from '@/lib/kotoiq/trafficEstimator'
@@ -5958,6 +5959,88 @@ Return ONLY valid JSON:
   if (action === 'recommend_local_strategy') {
     try {
       return NextResponse.json(await recommendLocalStrategy(s, body))
+    } catch (e) {
+      const err = e as Error
+      return NextResponse.json({ error: err.message }, { status: 500 })
+    }
+  }
+
+  // ─── PAGE FACTORY: bulk page generation ─────────────────────────────
+  // Loops generateBrief() across approved suggestions. Sequential under
+  // the 300s function cap; returns counts.remaining so Atlas Brain (or
+  // any orchestrator) can call repeatedly until 0.
+  if (action === 'bulk_generate_pages') {
+    try {
+      return NextResponse.json(await bulkGenerateBriefs(s, ai, body))
+    } catch (e) {
+      const err = e as Error
+      return NextResponse.json({ error: err.message }, { status: 500 })
+    }
+  }
+
+  // ─── PAGE FACTORY: publish one brief to WordPress ───────────────────
+  // Wraps the existing /api/wp generate_pages flow so chat orchestration
+  // can deploy a single brief as a draft/published WP post.
+  if (action === 'publish_brief_to_wp') {
+    try {
+      return NextResponse.json(await publishBriefToWp(s, body))
+    } catch (e) {
+      const err = e as Error
+      return NextResponse.json({ error: err.message }, { status: 500 })
+    }
+  }
+
+  // ─── PAGE FACTORY: campaigns directory — group suggestions by run ──
+  // Returns rollups grouped by metadata.campaign_label OR
+  // metadata.strategy_generated_at. Powers the Campaigns tab.
+  if (action === 'list_page_campaigns') {
+    try {
+      const { client_id } = body
+      if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+      const { data: rows, error } = await s.from('kotoiq_page_suggestions')
+        .select('id, service, city, state, priority, status, metadata, created_at, updated_at')
+        .eq('client_id', client_id)
+        .order('created_at', { ascending: false })
+        .limit(2000)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+      type SuggRow = {
+        id: string; service: string; city: string; state: string;
+        priority: number; status: string;
+        metadata: Record<string, unknown> | null;
+        created_at: string; updated_at: string;
+      }
+      const groups = new Map<string, {
+        key: string; label: string; generated_at: string;
+        total: number; pages: SuggRow[];
+        status_counts: Record<string, number>;
+      }>()
+      for (const r of (rows || []) as SuggRow[]) {
+        const meta = r.metadata || {}
+        const label = (meta as { campaign_label?: string }).campaign_label
+          || (meta as { source?: string }).source
+          || 'ungrouped'
+        const generated = (meta as { strategy_generated_at?: string }).strategy_generated_at
+          || r.created_at
+        const key = `${label}::${generated}`
+        if (!groups.has(key)) {
+          groups.set(key, {
+            key, label, generated_at: generated,
+            total: 0, pages: [],
+            status_counts: { suggested: 0, accepted: 0, generating: 0, built: 0, published: 0, dismissed: 0 },
+          })
+        }
+        const g = groups.get(key)!
+        g.total += 1
+        g.pages.push(r)
+        g.status_counts[r.status] = (g.status_counts[r.status] || 0) + 1
+      }
+
+      const campaigns = Array.from(groups.values())
+        .sort((a, b) => new Date(b.generated_at).getTime() - new Date(a.generated_at).getTime())
+
+      return NextResponse.json({ campaigns })
     } catch (e) {
       const err = e as Error
       return NextResponse.json({ error: err.message }, { status: 500 })

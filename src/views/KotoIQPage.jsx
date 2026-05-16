@@ -47,6 +47,7 @@ import TodayTab from '../components/kotoiq/TodayTab'
 import FeatureDirectoryTab from '../components/kotoiq/FeatureDirectoryTab'
 import AutoFixQueueTab from '../components/kotoiq/AutoFixQueueTab'
 import StyleEditorTab from '../components/kotoiq/StyleEditorTab'
+import CampaignsTab from '../components/kotoiq/CampaignsTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -2496,6 +2497,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ STYLE EDITOR — realtime token control for the whole product ══ */}
         {tab === 'style_editor' && (
           <StyleEditorTab />
+        )}
+
+        {/* ══ CAMPAIGNS — directory of Page Factory rollouts ══ */}
+        {clientId && tab === 'campaigns' && (
+          <CampaignsTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}

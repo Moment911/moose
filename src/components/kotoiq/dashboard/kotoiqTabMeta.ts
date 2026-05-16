@@ -305,6 +305,15 @@ export const KOTOIQ_TAB_META: Record<string, KotoTabMeta> = {
     icon: Sliders,
   },
 
+  // ── Campaigns directory ────────────────────────────────────
+  campaigns: {
+    eyebrow: 'CONTENT · CAMPAIGNS',
+    title: 'Every rollout in',
+    accent: 'one place',
+    rationale: 'Page Factory rollouts grouped by strategist run — see progress (queued → built → published), bulk-generate pending pages, and publish built briefs to WordPress. Each batch is one campaign.',
+    icon: Compass,
+  },
+
   // ── Bespoke-header tabs (selfHeader: true) ─────────────────
   // These render their own hero header — the shell skips. Entries
   // here document them in one place so this file is the canonical

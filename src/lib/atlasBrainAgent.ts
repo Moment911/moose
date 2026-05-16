@@ -171,6 +171,38 @@ const TOOLS: ToolDef[] = [
     action: 'roi_projections',
   },
   {
+    name: 'bulk_generate_pages',
+    description: 'Bulk-generate content briefs for approved page suggestions in the Page Factory queue. Loops generate_brief sequentially under the 300s function cap. Returns counts.remaining — call again until 0 to finish a campaign. Use after recommend_local_strategy seeds the queue, or any time the user wants to bulk-build N approved suggestions.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        suggestion_ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Optional explicit list of page_suggestion IDs to build. If omitted, builds the top approved/suggested rows by priority.',
+        },
+        limit: { type: 'number', description: 'Max briefs to generate this call (default 5, max 20). Higher risks Vercel 504.' },
+        words_target: { type: 'number', description: 'Override the word count target across all briefs in this run.' },
+        campaign_label: { type: 'string', description: 'Human-friendly group name stored on each suggestion for the Campaigns directory.' },
+      },
+      required: [],
+    },
+    action: 'bulk_generate_pages',
+  },
+  {
+    name: 'publish_brief_to_wp',
+    description: 'Publish a single content brief as a WordPress post via the connected /api/wp endpoint. Persists a kotoiq_publishes row with wp_post_id and URL. Use after bulk_generate_pages produces briefs that the user has reviewed and approved for deployment.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        brief_id: { type: 'string', description: 'The kotoiq_content_briefs row id to publish.' },
+        site_id:  { type: 'string', description: 'Optional koto_wp_sites id. If omitted, picks the client\'s most recent connected site.' },
+      },
+      required: ['brief_id'],
+    },
+    action: 'publish_brief_to_wp',
+  },
+  {
     name: 'recommend_local_strategy',
     description: 'Generate a complete 2026 hyperlocal SEO/AEO strategy: URL structure, topic clusters (pillar + service×city + neighborhood), schema plan (Service/Place/LocalBusiness for service-area businesses), AEO entity strategy for AI Overviews, internal linking pattern, and a phased multi-week attack plan. Persists every cluster as a page suggestion in Page Factory. Use when the user wants to design a local service business\'s page architecture from scratch, or expand into new service areas.',
     input_schema: {
