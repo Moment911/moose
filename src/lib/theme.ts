@@ -1,35 +1,83 @@
 // ── Koto Design System — Single source of truth for all visual tokens ────────
-// Import this instead of redeclaring R, T, BLK, etc. in every file.
+// Aligned with DESIGN.md (2026-05-16 unification): Bebas Neue display,
+// DM Sans body, navy #201b51 + cream #faf9f6 + pink #cb1c6b. The exported
+// short names (R, T, BLK, GRY, FH, FB, W, GRN, AMB, DST) stay so the 59
+// tabs that import them get the new palette without code changes.
+//
+// New code should prefer the explicit names — `koto` token map below —
+// or the koto/ui primitives in `src/components/ui/koto/`.
 
-// Brand colors
-export const R   = '#cb1c6b'   // Koto Pink — primary accent
-export const T   = '#00C2CB'   // Koto Teal — secondary accent
-export const BLK = '#111111'   // Near-black for text
-export const GRY = '#f9fafb'   // Light gray background
-export const GRN = '#16a34a'   // Success green
-export const AMB = '#f59e0b'   // Warning amber
-export const W   = '#ffffff'   // White
+// Brand colors (DESIGN.md §Color)
+export const R    = '#cb1c6b'   // Koto Pink — primary accent (unchanged)
+export const T    = '#0d9e6e'   // Koto Teal — secondary accent (charts only, dark teal)
+export const BLK  = '#201b51'   // Navy — primary text + structure (was #111111)
+export const GRY  = '#faf9f6'   // Warm cream — page surface (was #f9fafb)
+export const GRN  = '#16A34A'   // Success
+export const AMB  = '#D97706'   // Warning
+export const W    = '#ffffff'
 
-// Font stacks
-export const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"  // Headings
-export const FB = "'Raleway','Helvetica Neue',sans-serif"                      // Body
+// Destructive (DESIGN.md §Color · usage rules: never collide with accent pink)
+export const DST  = '#DC2626'
 
-// Common inline style patterns
+// Font stacks (DESIGN.md §Typography)
+// Display = Bebas Neue (headlines, hero numerals, KPI stats — never below 18px)
+// Body    = DM Sans  (UI text, labels, controls)
+// Accent  = DM Serif Display italic (editorial accent word inside hero copy)
+// Mono    = JetBrains Mono (data, code, monospaced inputs)
+export const FH = "'Bebas Neue', 'Arial Narrow', sans-serif"
+export const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+export const FA = "'DM Serif Display', Georgia, serif"
+export const FM = "'JetBrains Mono', 'SF Mono', Menlo, monospace"
+
+// Extended palette (canonical names — prefer these in new code)
+export const koto = {
+  // Color
+  navy: BLK,
+  navyDeep: '#13104a',          // dark mode page bg
+  pink: R,
+  pinkHover: '#a8155a',
+  pinkSoft: 'rgba(203, 28, 107, 0.08)',
+  cream: GRY,
+  off: '#f5f3ee',               // off-white surface
+  white: W,
+  text: BLK,
+  dim: '#4a4674',
+  muted: '#6b6789',
+  faint: '#9d9ab3',
+  line: 'rgba(32, 27, 81, .12)',
+  lineSoft: 'rgba(32, 27, 81, .06)',
+  success: GRN,
+  warning: AMB,
+  danger: DST,
+  info: '#2563EB',
+  // Fonts (alias)
+  fontDisplay: FH,
+  fontBody: FB,
+  fontAccent: FA,
+  fontMono: FM,
+} as const
+
+// Common inline style patterns — updated to new tokens.
+// All consumers continue to import { cardStyle, buttonPrimary, ... } and get
+// the new look automatically.
+
 export const cardStyle = {
   background: W,
-  borderRadius: 14,
-  border: '1px solid #e5e7eb',
+  borderRadius: 16,
+  border: `1px solid ${koto.line}`,
   padding: '20px 22px',
   marginBottom: 14,
+  boxShadow: '0 4px 24px rgba(32, 27, 81, .05)',
+  fontFamily: FB,
 } as const
 
 export const labelStyle = {
   fontSize: 11,
-  fontWeight: 700,
-  fontFamily: FH,
-  color: '#6b7280',
+  fontWeight: 600,
+  fontFamily: FB,
+  color: koto.muted,
   textTransform: 'uppercase' as const,
-  letterSpacing: '.06em',
+  letterSpacing: '.14em',
   marginBottom: 6,
   display: 'block',
 } as const
@@ -37,18 +85,19 @@ export const labelStyle = {
 export const inputStyle = {
   width: '100%',
   padding: '10px 12px',
-  borderRadius: 10,
-  border: '1px solid #d1d5db',
+  borderRadius: 8,
+  border: `1px solid ${koto.line}`,
   fontSize: 14,
   fontFamily: FB,
   color: BLK,
   outline: 'none',
+  boxSizing: 'border-box' as const,
 } as const
 
 export const cardTitleStyle = {
-  fontSize: 15,
-  fontWeight: 800,
-  fontFamily: FH,
+  fontSize: 16,
+  fontWeight: 600,
+  fontFamily: FB,
   color: BLK,
   marginBottom: 14,
   display: 'flex',
@@ -59,41 +108,42 @@ export const cardTitleStyle = {
 export const badgeStyle = (color: string) => ({
   fontSize: 10,
   fontWeight: 700,
-  padding: '2px 8px',
-  borderRadius: 20,
+  padding: '3px 8px',
+  borderRadius: 999,
   background: color + '15',
   color,
   textTransform: 'uppercase' as const,
-  letterSpacing: '.04em',
+  letterSpacing: '.06em',
+  fontFamily: FB,
 }) as const
 
+// Pill primary — pink, uppercase, soft pink shadow (DESIGN.md §Geometry)
 export const buttonPrimary = {
-  padding: '10px 20px',
-  borderRadius: 10,
+  padding: '12px 22px',
+  borderRadius: 9999,
   border: 'none',
   background: R,
   color: W,
-  fontSize: 14,
-  fontWeight: 700,
-  fontFamily: FH,
+  fontSize: 12,
+  fontWeight: 600,
+  fontFamily: FB,
+  letterSpacing: '.08em',
+  textTransform: 'uppercase' as const,
+  boxShadow: '0 4px 20px rgba(203, 28, 107, .25)',
   cursor: 'pointer',
+  transition: 'background .25s, transform .25s, box-shadow .25s',
 } as const
 
 export const buttonSecondary = {
-  padding: '10px 20px',
-  borderRadius: 10,
-  border: '1px solid #d1d5db',
+  padding: '10px 18px',
+  borderRadius: 9999,
+  border: `1px solid ${koto.line}`,
   background: W,
   color: BLK,
-  fontSize: 14,
-  fontWeight: 600,
-  fontFamily: FH,
+  fontSize: 12,
+  fontWeight: 500,
+  fontFamily: FB,
+  letterSpacing: '.04em',
   cursor: 'pointer',
+  transition: 'background 200ms ease-out, border-color 200ms',
 } as const
-
-// ── Phase 7 destructive action token (UI-SPEC §3) ────────────────────────────
-// Used ONLY for field-rejection confirmation in the Launch Page (D-05 delete
-// flow + D-10 margin-note "reject" action).  Koto Pink (R) stays reserved for
-// accent + the D-11 discrepancy callout; reusing it for destructive would
-// collide visually with discrepancy dots.
-export const DST = '#DC2626'
