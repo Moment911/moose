@@ -410,43 +410,70 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
         {filteredPrompts.length === 0 ? (
           <EmptyChart message="No prompts match this filter." />
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: SF, minWidth: 760 }}>
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${HAIR}` }}>
-                  <th style={thLeft}>Prompt</th>
-                  {ENGINES.map(e => (
-                    <th key={e.key} style={thCenter} title={`${e.label} response`}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: DIM }}>
-                        <e.Icon size={11} color={e.color} /> {e.label}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPrompts.map(p => {
-                  const row = matrix.matrix[p.id] || {}
-                  return (
-                    <tr key={p.id} style={{ borderBottom: `1px solid ${HAIR}` }}>
-                      <td style={{ padding: '12px 6px', maxWidth: 360 }}>
-                        <div style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: CATEGORY_COLOR[p.category] || SUB, marginRight: 8, verticalAlign: 'middle' }} />
-                        <span style={{ color: INK, fontWeight: 500 }}>{p.prompt}</span>
-                      </td>
-                      {ENGINES.map(e => {
-                        const cell = row[e.key]
-                        return (
-                          <td key={e.key} style={tdCenter}>
-                            <MatrixCell cell={cell} engineColor={e.color} />
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: SF, minWidth: 920 }}>
+                <colgroup>
+                  <col style={{ width: '42%' }} />
+                  {ENGINES.map(e => <col key={e.key} style={{ width: `${58 / ENGINES.length}%` }} />)}
+                  <col style={{ width: 70 }} />
+                </colgroup>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${HAIR}` }}>
+                    <th style={{ ...thLeft, position: 'sticky', left: 0, background: '#fff', zIndex: 2 }}>Prompt</th>
+                    {ENGINES.map(e => (
+                      <th key={e.key} style={thCenter} title={`${e.label} response`}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: DIM, whiteSpace: 'nowrap' }}>
+                          <e.Icon size={11} color={e.color} /> {e.label}
+                        </span>
+                      </th>
+                    ))}
+                    <th style={thCenter} title="Engines that mentioned this brand">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPrompts.map(p => {
+                    const row = matrix.matrix[p.id] || {}
+                    const hits = ENGINES.reduce((n, e) => n + (row[e.key]?.mentioned ? 1 : 0), 0)
+                    const scored = ENGINES.reduce((n, e) => n + (row[e.key] ? 1 : 0), 0)
+                    return (
+                      <tr key={p.id} style={{ borderBottom: `1px solid ${HAIR}` }}>
+                        <td style={{ padding: '12px 10px 12px 6px', maxWidth: 360, position: 'sticky', left: 0, background: '#fff', zIndex: 1 }}>
+                          <div style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: CATEGORY_COLOR[p.category] || SUB, marginRight: 8, verticalAlign: 'middle' }} />
+                          <span style={{ color: INK, fontWeight: 500 }}>{p.prompt}</span>
+                        </td>
+                        {ENGINES.map(e => {
+                          const cell = row[e.key]
+                          return (
+                            <td key={e.key} style={tdCenter}>
+                              <MatrixCell cell={cell} engineColor={e.color} />
+                            </td>
+                          )
+                        })}
+                        <td style={{ ...tdCenter, color: hits > 0 ? INK : SUB, fontWeight: 700 }}>
+                          {scored === 0 ? '—' : `${hits}/${ENGINES.length}`}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 12, fontSize: 11, color: DIM, fontFamily: SF }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 14, height: 14, borderRadius: '50%', background: PINK, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 800 }}>1</span>
+                Mentioned (number = position)
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 14, height: 14, borderRadius: '50%', border: `1.5px solid ${PINK}40`, background: `${PINK}0D`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: `${PINK}99`, fontSize: 9 }}>✗</span>
+                Scanned, brand absent
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 14, height: 14, borderRadius: '50%', border: `1.5px dashed ${HAIR}`, background: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: SUB, fontSize: 9 }}>·</span>
+                Not scanned yet
+              </span>
+            </div>
+          </>
         )}
       </div>
 
@@ -586,17 +613,29 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
 // Sub-components
 // ─────────────────────────────────────────────────────────────
 function MatrixCell({ cell, engineColor }) {
+  const pillBase = {
+    width: 22, height: 22, borderRadius: '50%', display: 'inline-flex',
+    alignItems: 'center', justifyContent: 'center', fontFamily: SF, fontWeight: 800, fontSize: 11,
+  }
   if (!cell) {
-    return <span style={{ color: SUB, fontSize: 16, fontFamily: SF }}>·</span>
+    return (
+      <span title="Not scanned yet" style={{ ...pillBase, border: `1.5px dashed ${HAIR}`, background: '#fff', color: SUB, fontSize: 13 }}>
+        ·
+      </span>
+    )
   }
   if (!cell.mentioned) {
-    return <span style={{ color: SUB, fontSize: 13, fontFamily: SF }}>—</span>
+    return (
+      <span title="Scanned — brand not mentioned" style={{ ...pillBase, border: `1.5px solid ${engineColor}40`, background: `${engineColor}0D`, color: `${engineColor}99`, fontSize: 12 }}>
+        ✗
+      </span>
+    )
   }
   const pos = cell.position
   const sentimentColor = cell.sentiment === 'positive' ? GRN : cell.sentiment === 'negative' ? RED : MID
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-      <span style={{ width: 22, height: 22, borderRadius: '50%', background: engineColor, color: '#fff', fontSize: 11, fontWeight: 800, fontFamily: SF, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span title={`Mentioned${pos ? ` at position ${pos}` : ''}${cell.sentiment ? ` · ${cell.sentiment}` : ''}`} style={{ ...pillBase, background: engineColor, color: '#fff' }}>
         {pos || '✓'}
       </span>
       {cell.sentiment && cell.sentiment !== 'neutral' && (
