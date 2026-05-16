@@ -185,6 +185,10 @@ export default function PageFactoryTab({ clientId, agencyId }) {
         <KPIBox label="Est. Revenue" value={`$${revenueTotal.toLocaleString()}`} sub="$150 / call avg" color={revenueTotal > 0 ? GRN : BLK} />
       </div>
 
+      {/* ── 2026 Local SEO/AEO Strategist ─────────────────────────── */}
+      <LocalStrategist clientId={clientId} agencyId={agencyId} onApplied={() => sync()} />
+
+
       {/* Performance Feedback — refresh candidates + priority boosts */}
       {perfFeedback.scanned_pages > 0 && (perfFeedback.refresh_candidates.length > 0 || perfFeedback.priority_boosts.length > 0 || perfFeedback.underperformers.length > 0) && (
         <div style={card}>
@@ -448,3 +452,315 @@ const th = { textAlign: 'left', padding: '8px 10px', fontSize: 11, fontWeight: 7
 const thNum = { ...th, textAlign: 'right' }
 const td = { padding: '10px', color: BLK, verticalAlign: 'top' }
 const tdNum = { ...td, textAlign: 'right' }
+
+// ─────────────────────────────────────────────────────────────────────────
+// 2026 Local SEO/AEO Strategist
+//
+// Enter services + target areas + business model → AI returns a structured
+// strategy (URL pattern, topic clusters, schema plan, AEO entities, phased
+// attack plan) and persists every cluster as a kotoiq_page_suggestions row.
+// ─────────────────────────────────────────────────────────────────────────
+function LocalStrategist({ clientId, agencyId, onApplied }) {
+  const [businessName, setBusinessName] = useState('')
+  const [model, setModel] = useState('service_area')
+  const [servicesText, setServicesText] = useState('')
+  const [areaRows, setAreaRows] = useState([{ city: '', state: '', is_primary: true }])
+  const [notes, setNotes] = useState('')
+  const [running, setRunning] = useState(false)
+  const [strategy, setStrategy] = useState(null)
+  const [openCluster, setOpenCluster] = useState(null)
+
+  const addArea = () => setAreaRows(rs => [...rs, { city: '', state: '', is_primary: false }])
+  const removeArea = (i) => setAreaRows(rs => rs.length === 1 ? rs : rs.filter((_, idx) => idx !== i))
+  const updateArea = (i, key, val) => setAreaRows(rs => rs.map((r, idx) => idx === i ? { ...r, [key]: val } : r))
+
+  const run = async () => {
+    if (!clientId) { toast.error('Pick a client first'); return }
+    if (!businessName.trim()) { toast.error('Enter the business name'); return }
+    const services = servicesText.split(/\n|,/).map(s => s.trim()).filter(Boolean)
+    if (services.length === 0) { toast.error('Add at least one service'); return }
+    const areas = areaRows.filter(r => r.city.trim() && r.state.trim())
+      .map(r => ({ city: r.city.trim(), state: r.state.trim().toUpperCase().slice(0,2), is_primary: !!r.is_primary }))
+    if (areas.length === 0) { toast.error('Add at least one target area (city + state)'); return }
+
+    setRunning(true)
+    setStrategy(null)
+    try {
+      const r = await api('recommend_local_strategy', {
+        client_id: clientId, agency_id: agencyId,
+        business_name: businessName.trim(),
+        business_model: model,
+        services, areas,
+        notes: notes.trim() || undefined,
+      })
+      if (r.error) throw new Error(r.error)
+      setStrategy(r)
+      toast.success(`Strategy generated · ${r.topic_clusters?.length || 0} pages queued · $${r.meta?.cost_usd ?? '0'} spent`)
+      onApplied?.()
+    } catch (e) {
+      toast.error(e.message || 'Strategy generation failed')
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  return (
+    <div style={{ ...card, padding: '24px 26px' }}>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{
+          fontSize: 11, fontWeight: 600, color: 'var(--koto-pink)',
+          textTransform: 'uppercase', letterSpacing: '.24em', marginBottom: 8,
+          fontFamily: SF, display: 'inline-flex', alignItems: 'center', gap: 8,
+        }}>
+          <Target size={11} color="var(--koto-pink)" /> AEO · LOCAL STRATEGIST
+        </div>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, fontWeight: 400, color: 'var(--koto-navy)', letterSpacing: '.02em', lineHeight: 1, display: 'inline' }}>
+          Build a 2026 hyperlocal{' '}
+          <em style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: 'italic', color: 'var(--koto-pink)', fontWeight: 400 }}>
+            attack plan
+          </em>
+        </div>
+        <div style={{ fontFamily: SF, fontSize: 13, color: 'var(--koto-muted)', marginTop: 10, maxWidth: 680, lineHeight: 1.55 }}>
+          Tell us the services and target areas. Claude Sonnet returns URL structure, topic clusters,
+          schema plan, AEO entity strategy, and a phased rollout — informed by 2026 best practices for
+          local + AI-Overview search. Every cluster auto-fills your Page Factory queue.
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14, marginTop: 18 }}>
+        <div>
+          <Label>Business name</Label>
+          <Input value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="Acme Plumbing & Heating" />
+        </div>
+        <div>
+          <Label>Business model</Label>
+          <select value={model} onChange={e => setModel(e.target.value)} style={selectStyle}>
+            <option value="service_area">Service area (we go to customers)</option>
+            <option value="storefront">Single storefront (foot traffic)</option>
+            <option value="hybrid">Hybrid (both)</option>
+            <option value="multi_location">Multi-location chain</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <Label>Services (one per line, or comma-separated)</Label>
+        <textarea
+          value={servicesText}
+          onChange={e => setServicesText(e.target.value)}
+          rows={4}
+          placeholder="Water heater repair&#10;Drain cleaning&#10;Tankless install&#10;Sewer line replacement"
+          style={{ ...inputStyle, minHeight: 90, resize: 'vertical', fontFamily: 'var(--font-mono, monospace)', fontSize: 13 }}
+        />
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <Label>Target areas (city + state)</Label>
+          <button onClick={addArea} type="button" style={ghostMini}>+ Add area</button>
+        </div>
+        <div style={{ display: 'grid', gap: 6 }}>
+          {areaRows.map((row, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 90px 30px', gap: 6, alignItems: 'center' }}>
+              <input value={row.city} onChange={e => updateArea(i, 'city', e.target.value)} placeholder="City"
+                style={inputStyle} />
+              <input value={row.state} onChange={e => updateArea(i, 'state', e.target.value)} placeholder="ST" maxLength={2}
+                style={{ ...inputStyle, textTransform: 'uppercase' }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: SF, fontSize: 11, color: 'var(--koto-muted)' }}>
+                <input type="checkbox" checked={!!row.is_primary} onChange={e => updateArea(i, 'is_primary', e.target.checked)} />
+                Primary
+              </label>
+              <button onClick={() => removeArea(i)} type="button" style={removeBtn} title="Remove">×</button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <Label>Notes <span style={{ color: 'var(--koto-muted)', fontWeight: 400 }}>(optional context)</span></Label>
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
+          placeholder="Voice/tone hints, current ranking pain points, brands to avoid mentioning, etc."
+          style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} />
+      </div>
+
+      <div style={{ marginTop: 20, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button onClick={run} disabled={running || !clientId} style={{
+          padding: '12px 22px', borderRadius: 9999, border: 'none',
+          background: running ? '#cbd5e1' : 'var(--koto-pink)',
+          color: '#fff', fontFamily: SF, fontSize: 12, fontWeight: 600,
+          letterSpacing: '.08em', textTransform: 'uppercase',
+          cursor: running ? 'wait' : 'pointer',
+          boxShadow: running ? 'none' : '0 4px 20px rgba(203,28,107,.25)',
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+        }}>
+          {running ? <><Loader2 size={13} className="spin" /> Generating…</> : <><Zap size={13} /> Build 2026 Strategy</>}
+        </button>
+        <span style={{ fontSize: 12, color: 'var(--koto-muted)' }}>
+          Uses Claude Sonnet · usually 30-60s · costs about $0.05-$0.15
+        </span>
+      </div>
+
+      {strategy && <StrategyOutput strategy={strategy} openCluster={openCluster} setOpenCluster={setOpenCluster} />}
+    </div>
+  )
+}
+
+function StrategyOutput({ strategy, openCluster, setOpenCluster }) {
+  return (
+    <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid var(--koto-line)' }}>
+      <SubH>URL structure</SubH>
+      <div style={{ ...callout, marginBottom: 12 }}>
+        <code style={codeStyle}>{strategy.url_structure?.pattern}</code>
+        <div style={{ marginTop: 8, fontSize: 13, color: 'var(--koto-navy)', lineHeight: 1.55 }}>
+          {strategy.url_structure?.rationale}
+        </div>
+        {strategy.url_structure?.examples?.length > 0 && (
+          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {strategy.url_structure.examples.map((u, i) => (
+              <code key={i} style={{ ...codeStyle, padding: '2px 8px', fontSize: 12 }}>{u}</code>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <SubH>Topic clusters <span style={{ color: 'var(--koto-muted)', fontWeight: 400, fontSize: 12 }}>· {strategy.topic_clusters?.length || 0} pages queued</span></SubH>
+      <div style={{ display: 'grid', gap: 6, marginBottom: 18 }}>
+        {(strategy.topic_clusters || []).map((c, i) => {
+          const open = openCluster === i
+          return (
+            <div key={i} style={{ background: 'var(--koto-off)', borderRadius: 10, border: '1px solid var(--koto-line)' }}>
+              <button onClick={() => setOpenCluster(open ? null : i)} style={{
+                width: '100%', textAlign: 'left', background: 'transparent', border: 'none',
+                padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                fontFamily: SF,
+              }}>
+                <span style={{ ...priorityChip(c.priority), flexShrink: 0 }}>P{c.priority}</span>
+                <code style={{ fontSize: 12, color: 'var(--koto-navy)', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.url}</code>
+                <span style={{ fontSize: 11, color: 'var(--koto-muted)', fontWeight: 600, padding: '2px 8px', background: '#fff', borderRadius: 999, border: '1px solid var(--koto-line)' }}>{c.kind}</span>
+              </button>
+              {open && (
+                <div style={{ padding: '4px 14px 14px', fontSize: 12.5, color: 'var(--koto-dim)', lineHeight: 1.55, fontFamily: SF }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--koto-navy)', marginBottom: 4 }}>{c.title}</div>
+                  {c.meta_description && <div style={{ marginBottom: 8, fontStyle: 'italic' }}>{c.meta_description}</div>}
+                  <RowMeta label="H1" value={c.h1} />
+                  <RowMeta label="Target query" value={c.target_query} />
+                  <RowMeta label="Intent" value={c.search_intent} />
+                  <RowMeta label="Word count" value={`~${c.word_count_target}`} />
+                  <RowMeta label="Schema" value={(c.schema_types || []).join(' · ') || 'none'} />
+                  <RowMeta label="Link to" value={(c.internal_link_targets || []).join(' · ') || 'none'} />
+                  <RowMeta label="E-E-A-T" value={(c.e_e_a_t_signals || []).join(' · ') || 'none'} />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <SubH>Schema plan (2026)</SubH>
+      <div style={{ ...callout, marginBottom: 12 }}>
+        <RowMeta label="Site-wide" value={(strategy.schema_plan?.site_wide || []).join(' · ')} />
+        <RowMeta label="Service pages" value={(strategy.schema_plan?.service_pages || []).join(' · ')} />
+        <RowMeta label="City pages" value={(strategy.schema_plan?.city_pages || []).join(' · ')} />
+        {strategy.schema_plan?.notes && <div style={{ marginTop: 8, fontSize: 12.5, color: 'var(--koto-dim)', lineHeight: 1.55 }}>{strategy.schema_plan.notes}</div>}
+      </div>
+
+      <SubH>AEO strategy</SubH>
+      <div style={{ ...callout, marginBottom: 12 }}>
+        <RowMeta label="Target entities" value={(strategy.aeo_strategy?.target_entities || []).join(' · ')} />
+        <RowMeta label="Citation strategy" value={strategy.aeo_strategy?.citation_strategy} />
+        <RowMeta label="Structured answers" value={strategy.aeo_strategy?.structured_answers} />
+      </div>
+
+      <SubH>Phased attack plan</SubH>
+      <div style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
+        {(strategy.attack_plan || []).map((ph, i) => (
+          <div key={i} style={{ ...callout, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <div style={{ flexShrink: 0, width: 80 }}>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, color: 'var(--koto-pink)', letterSpacing: '.02em', lineHeight: 1 }}>P{i+1}</div>
+              <div style={{ fontSize: 10, color: 'var(--koto-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginTop: 4 }}>{ph.phase} · {ph.weeks}w</div>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: SF, fontSize: 14, fontWeight: 700, color: 'var(--koto-navy)' }}>{ph.label}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--koto-dim)', marginTop: 4, lineHeight: 1.55 }}>{ph.rationale}</div>
+              {(ph.pages || []).length > 0 && (
+                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {ph.pages.map((u, k) => <code key={k} style={{ ...codeStyle, fontSize: 11, padding: '2px 6px' }}>{u}</code>)}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {(strategy.risks_and_pitfalls || []).length > 0 && (
+        <>
+          <SubH>Risks & pitfalls</SubH>
+          <ul style={{ ...callout, paddingLeft: 30, marginBottom: 12 }}>
+            {strategy.risks_and_pitfalls.map((r, i) => (
+              <li key={i} style={{ fontSize: 12.5, color: 'var(--koto-dim)', lineHeight: 1.55, marginBottom: 4 }}>{r}</li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--koto-off)', borderRadius: 8, fontSize: 11, color: 'var(--koto-muted)', fontFamily: SF, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <span>Generated {new Date(strategy.meta?.generated_at).toLocaleString()}</span>
+        <span>{strategy.meta?.model} · cost ${strategy.meta?.cost_usd}</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Strategist UI primitives ───────────────────────────────────────────
+function Label({ children }) {
+  return <div style={{ fontFamily: SF, fontSize: 11, fontWeight: 600, color: 'var(--koto-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>{children}</div>
+}
+function Input(props) { return <input {...props} style={inputStyle} /> }
+function SubH({ children }) {
+  return <div style={{ fontFamily: SF, fontSize: 11, fontWeight: 700, color: 'var(--koto-muted)', textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 8, marginTop: 4 }}>{children}</div>
+}
+function RowMeta({ label, value }) {
+  if (!value) return null
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 8, marginBottom: 4, fontSize: 12 }}>
+      <span style={{ color: 'var(--koto-muted)', fontWeight: 600 }}>{label}</span>
+      <span style={{ color: 'var(--koto-navy)' }}>{value}</span>
+    </div>
+  )
+}
+function priorityChip(p) {
+  const colors = { 0: '#cb1c6b', 1: '#D97706', 2: '#2563EB', 3: '#6b6789' }
+  return {
+    display: 'inline-block', padding: '2px 7px', borderRadius: 999,
+    fontSize: 10, fontWeight: 700, color: '#fff',
+    background: colors[p] || '#6b6789',
+    fontFamily: SF, letterSpacing: '.04em',
+  }
+}
+const inputStyle = {
+  width: '100%', padding: '9px 12px', borderRadius: 8,
+  border: '1px solid var(--koto-line)', fontSize: 13,
+  fontFamily: SF, color: 'var(--koto-navy)',
+  outline: 'none', background: '#fff', boxSizing: 'border-box',
+}
+const selectStyle = { ...inputStyle, cursor: 'pointer' }
+const ghostMini = {
+  padding: '4px 10px', borderRadius: 6, border: '1px solid var(--koto-line)',
+  background: '#fff', color: 'var(--koto-navy)', fontSize: 11, fontWeight: 600,
+  fontFamily: SF, cursor: 'pointer',
+}
+const removeBtn = {
+  width: 26, height: 26, borderRadius: 6, border: '1px solid var(--koto-line)',
+  background: '#fff', color: 'var(--koto-muted)', fontSize: 16, lineHeight: 1,
+  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+}
+const callout = {
+  background: 'var(--koto-off)', border: '1px solid var(--koto-line)',
+  borderRadius: 10, padding: '12px 14px',
+}
+const codeStyle = {
+  fontFamily: 'var(--font-mono, monospace)', fontSize: 13,
+  background: '#fff', padding: '3px 10px', borderRadius: 6,
+  border: '1px solid var(--koto-line)', color: 'var(--koto-navy)',
+  display: 'inline-block', wordBreak: 'break-all',
+}

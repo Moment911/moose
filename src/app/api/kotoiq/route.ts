@@ -68,6 +68,7 @@ import {
   reclassifyChange as reclassifyPageChange,
 } from '@/lib/kotoiq/pageDiffEngine'
 import { discoverPages } from '@/lib/kotoiq/pageDiscovery'
+import { recommendLocalStrategy } from '@/lib/kotoiq/localStrategistEngine'
 import { getCurrentPricing, getPricingChanges, getPricingOverview } from '@/lib/kotoiq/pricingTrackerEngine'
 import { getTechStackByCompetitor } from '@/lib/kotoiq/techStackAggregator'
 import { estimateDomainTraffic, estimateTrafficForDomains } from '@/lib/kotoiq/trafficEstimator'
@@ -5948,6 +5949,19 @@ Return ONLY valid JSON:
       .sort((a, b) => b.top_priority - a.top_priority)
 
     return NextResponse.json({ services })
+  }
+
+  // ─── PAGE FACTORY: 2026 local SEO/AEO strategy recommender ──────────
+  // Takes services + areas + business model, returns a structured
+  // strategy (URL pattern, topic clusters, schema plan, AEO entities,
+  // phased attack plan) and persists every cluster as a kotoiq_page_suggestions row.
+  if (action === 'recommend_local_strategy') {
+    try {
+      return NextResponse.json(await recommendLocalStrategy(s, body))
+    } catch (e) {
+      const err = e as Error
+      return NextResponse.json({ error: err.message }, { status: 500 })
+    }
   }
 
   // ─── PAGE FACTORY: refresh gap analysis for a client ─────────────────
