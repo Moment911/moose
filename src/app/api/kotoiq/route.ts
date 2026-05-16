@@ -69,6 +69,7 @@ import {
   persistCompetitorEmail, listCompetitorEmails, getNewsletterOverview,
 } from '@/lib/kotoiq/newsletterIntelEngine'
 import { getUnifiedEventsFeed } from '@/lib/kotoiq/unifiedEventsEngine'
+import { getTodayRoutines, markRoutineComplete, getTodayAttention, getTodayOverview } from '@/lib/kotoiq/todayEngine'
 import { setupSlackIntegration, setupTeamsIntegration, sendDailyDigest } from '@/lib/slackTeamsIntegration'
 import { calculateIndustryBenchmarks, getBenchmarkForClient } from '@/lib/industryBenchmarkEngine'
 import { generateScorecard } from '@/lib/scorecardEngine'
@@ -4412,6 +4413,30 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
   if (action === 'unified_events_feed') {
     try { return NextResponse.json(await getUnifiedEventsFeed(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Today / Action Center (UX layer) ──────────────────────────────────
+  // Cadence-aware checklist + live attention feed + KPI overview.
+  // The "what do I do?" surface for the whole product.
+
+  if (action === 'today_routines') {
+    try { return NextResponse.json(await getTodayRoutines(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'today_attention') {
+    try { return NextResponse.json(await getTodayAttention(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'today_overview') {
+    try { return NextResponse.json(await getTodayOverview(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'mark_routine_complete') {
+    try { return NextResponse.json(await markRoutineComplete(s, body)) }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 

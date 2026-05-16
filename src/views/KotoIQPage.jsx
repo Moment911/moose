@@ -10,7 +10,7 @@ import {
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
   Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings,
   Map, Code, Award, GitBranch, Eraser, Grid, Sparkles, Briefcase, Image as ImageIcon,
-  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Play, Mail,
+  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Play, Mail, Sunrise,
 } from 'lucide-react'
 // Alias: lucide-react doesn't export Youtube in this version
 const Youtube = Play
@@ -43,6 +43,7 @@ import CompetitorAdsTab from '../components/kotoiq/CompetitorAdsTab'
 import CompetitorYouTubeTab from '../components/kotoiq/CompetitorYouTubeTab'
 import NewsletterIntelTab from '../components/kotoiq/NewsletterIntelTab'
 import CompetitorPulseTab from '../components/kotoiq/CompetitorPulseTab'
+import TodayTab from '../components/kotoiq/TodayTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -586,13 +587,15 @@ function QuickWinQueueCard({ queue, totals, loading, onGenerate, onMarkDone, onM
 //
 // Pulse is pinned because it's the daily landing — the unified feed of
 // every competitor move from every engine.
-const KOTOIQ_PINNED_KEYS = ['dashboard', 'competitor_pulse', 'keywords', 'ranks', 'reports', 'connect']
+// "today" is the new daily landing — cadence checklist + animated attention feed
+const KOTOIQ_PINNED_KEYS = ['today', 'competitor_pulse', 'dashboard', 'keywords', 'ranks', 'reports', 'connect']
 
 const KOTOIQ_NAV_GROUPS = [
   { group: 'AI', items: [
     ['ask', 'Ask KotoIQ', Brain, 'Ask AI questions about this client\'s SEO'],
   ]},
   { group: 'Overview', items: [
+    ['today', 'Today', Sunrise, 'Daily action center — routines, alerts, what to do next'],
     ['dashboard', 'Dashboard', LayoutDashboard, 'Keyword overview, quick wins, and AI visibility score'],
     ['competitor_pulse', 'Competitor Pulse', Activity, 'Unified feed of every competitor move — daily landing page'],
     ['keywords', 'Keywords', Search, 'All discovered and tracked keywords'],
@@ -2460,6 +2463,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ COMPETITOR PULSE TAB (Phase J — unified timeline) ══ */}
         {clientId && tab === 'competitor_pulse' && (
           <CompetitorPulseTab clientId={clientId} />
+        )}
+
+        {/* ══ TODAY TAB — daily action center, pinned at top ══ */}
+        {clientId && tab === 'today' && (
+          <TodayTab
+            clientId={clientId}
+            agencyId={agencyId}
+            clientName={clients.find(c => c.id === clientId)?.name}
+            onSwitchTab={setTab}
+          />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}
