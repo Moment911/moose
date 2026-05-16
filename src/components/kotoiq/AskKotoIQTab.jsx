@@ -107,11 +107,12 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [convLoading, setConvLoading] = useState(false)
-  // Atlas mode = tool-using agent. Quick mode = one-shot grounded answer.
-  // Atlas Brain is the only mode now — the old "Quick" single-shot answerer
-  // (ask_kotoiq) is superseded by Atlas's tool-using loop, which can do
+  // KotoIQ is the only mode now — the old "Quick" single-shot answerer
+  // (ask_kotoiq) is superseded by KotoIQ's tool-using loop, which can do
   // everything Quick did plus chain audits/generators. ask_kotoiq stays
   // alive at the API level for cron/programmatic callers.
+  // The mode value still flips to 'atlas' internally because that's the
+  // backend action name (agent_ask vs ask_kotoiq) — only the UI dropped Atlas.
   const [mode] = useState('atlas')
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
@@ -350,7 +351,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
-              Atlas Brain
+              KotoIQ
             </div>
             <div style={{ fontSize: 11, color: '#6b6b70' }}>
               Tool-using agent — runs audits, fetches data, chains engines
@@ -411,7 +412,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                   </div>
                   <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, color: '#6b6b70', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                    {mode === 'atlas' ? 'Atlas is planning + running tools…' : 'KotoIQ is thinking…'}
+                    {mode === 'atlas' ? 'KotoIQ is planning + running tools…' : 'KotoIQ is thinking…'}
                   </div>
                 </div>
               )}

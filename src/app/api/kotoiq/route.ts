@@ -38,7 +38,7 @@ import { runGSCAudit, getGSCAudit } from '@/lib/gscAuditEngine'
 import { runBingAudit, getBingAudit } from '@/lib/bingAuditEngine'
 import { scanAndGenerateBacklinks, getBacklinkOpportunities } from '@/lib/backlinkOpportunityEngine'
 import { askKotoIQ, listConversations, getConversation, deleteConversation } from '@/lib/askKotoIQEngine'
-import { runAtlasBrain } from '@/lib/atlasBrainAgent'
+import { runKotoIQAgent } from '@/lib/kotoIQAgent'
 import {
   scanForFixes as autofixScan,
   listQueue as autofixList,
@@ -4043,7 +4043,7 @@ Provide a detailed analysis. Return ONLY valid JSON:
   // ── ATLAS BRAIN — tool-using agent (chains audits / engines / generators) ─
   if (action === 'agent_ask') {
     try {
-      const result = await runAtlasBrain(s, ai, body)
+      const result = await runKotoIQAgent(s, ai, body)
       return NextResponse.json(result)
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
@@ -5995,7 +5995,7 @@ Return ONLY valid JSON:
 
   // ─── PAGE FACTORY: bulk page generation ─────────────────────────────
   // Loops generateBrief() across approved suggestions. Sequential under
-  // the 300s function cap; returns counts.remaining so Atlas Brain (or
+  // the 300s function cap; returns counts.remaining so KotoIQ (or
   // any orchestrator) can call repeatedly until 0.
   if (action === 'bulk_generate_pages') {
     try {

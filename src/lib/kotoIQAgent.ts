@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Atlas Brain — Ask KotoIQ as a tool-using agent.
+// KotoIQ — Ask KotoIQ as a tool-using agent.
 // Wraps a curated subset of /api/kotoiq actions as Claude tools
 // and runs a tool-use loop. The agent plans, runs audits, fetches
 // data, and synthesizes a grounded answer with a full trace.
@@ -281,7 +281,7 @@ async function dispatchTool(
 }
 
 // ── System prompt ────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Atlas — KotoIQ's autonomous AI search-intelligence analyst. You answer questions about a client's SEO, AEO, content, authority, and PPC by USING TOOLS to fetch real data and run audits.
+const SYSTEM_PROMPT = `You are KotoIQ's autonomous AI search-intelligence analyst. You answer questions about a client's SEO, AEO, content, authority, and PPC by USING TOOLS to fetch real data and run audits.
 
 CORE RULES:
 - Always ground your answer in real tool output. Never invent numbers.
@@ -294,7 +294,7 @@ CORE RULES:
 - Voice: concise, expert, practical. No fluff, no hedging filler, no "I'd be happy to help" preambles.`
 
 // ── Main entrypoint ──────────────────────────────────────────
-export async function runAtlasBrain(s: SupabaseClient, ai: Anthropic, body: AgentBody) {
+export async function runKotoIQAgent(s: SupabaseClient, ai: Anthropic, body: AgentBody) {
   const { client_id, agency_id, message, conversation_id, conversation_history } = body
   if (!message?.trim()) throw new Error('message required')
 
@@ -369,12 +369,12 @@ export async function runAtlasBrain(s: SupabaseClient, ai: Anthropic, body: Agen
 
   if (!finalText) {
     finalText = stopReason === 'max_tokens'
-      ? '(Atlas reached its token budget mid-thought. The trace above shows what it explored. Try a tighter question.)'
-      : '(Atlas hit the iteration cap before producing a final answer. The tool trace above shows what it explored.)'
+      ? '(KotoIQ reached its token budget mid-thought. The trace above shows what it explored. Try a tighter question.)'
+      : '(KotoIQ hit the iteration cap before producing a final answer. The tool trace above shows what it explored.)'
   }
 
   void logTokenUsage({
-    feature: 'kotoiq_atlas_agent',
+    feature: 'kotoiq_agent',
     model: 'claude-sonnet-4-6',
     inputTokens: totalInputTokens,
     outputTokens: totalOutputTokens,
@@ -445,7 +445,7 @@ export async function runAtlasBrain(s: SupabaseClient, ai: Anthropic, body: Agen
   } catch (e) {
     const err = e as Error
     persist_error = err.message || 'unknown persistence error'
-    console.error('[atlasBrain] conversation persist failed:', err)
+    console.error('[kotoIQAgent] conversation persist failed:', err)
   }
 
   return {

@@ -129,7 +129,7 @@ export default function CampaignsTab({ clientId, agencyId }) {
             No campaigns yet
           </div>
           <div style={{ fontSize: 13, color: 'var(--koto-muted)', maxWidth: 480, lineHeight: 1.55 }}>
-            Run a Local Strategist plan in Page Factory or ask Atlas Brain to seed a hyperlocal rollout. Every batch of page suggestions shows up here as one campaign you can build out and deploy.
+            Run a Local Strategist plan in Page Factory or ask KotoIQ to seed a hyperlocal rollout. Every batch of page suggestions shows up here as one campaign you can build out and deploy.
           </div>
         </div>
       )}

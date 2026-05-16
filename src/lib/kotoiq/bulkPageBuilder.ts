@@ -14,7 +14,7 @@
 //        Calls the existing /api/wp generate_pages endpoint to render the
 //        brief as a WordPress post and persist the publish record.
 //
-// Both functions return concise summaries so Atlas Brain (or any chat
+// Both functions return concise summaries so KotoIQ (or any chat
 // orchestration) can iterate cleanly.
 // ─────────────────────────────────────────────────────────────────────────
 
