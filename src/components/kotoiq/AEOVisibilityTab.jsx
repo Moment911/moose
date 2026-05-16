@@ -9,31 +9,41 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import toast from 'react-hot-toast'
 import { GRN, AMB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
+import {
+  Eyebrow, SectionHeader as PSectionHeader, EducationalNote, ActionCallout,
+  EmptyState, StatGrid, Stat, WorkflowStepper, FlagChip, NextStepLink,
+  BottomCTA, LiveTicker, CtaButton, KotoKeyframes,
+} from '@/components/ui/koto'
 
 // ─────────────────────────────────────────────────────────────
-// Koto Design System tokens (DESIGN.md, 2026-05-13)
-// Display: Instrument Serif. Body/UI: DM Sans.
-// Accent: #E6007E pink (sparingly). Warm neutral palette.
+// Koto Design System tokens (DESIGN.md, 2026-05-16)
+// Display: Bebas Neue. Accent: DM Serif Display italic.
+// Body/UI: DM Sans. Data: JetBrains Mono.
+// Brand: navy #201b51 + warm cream #faf9f6 + pink #cb1c6b.
 // ─────────────────────────────────────────────────────────────
-const DISPLAY = "'Instrument Serif', Georgia, 'Times New Roman', serif"
+const DISPLAY = "'Bebas Neue', 'Arial Narrow', sans-serif"
+const ACCENT  = "'DM Serif Display', Georgia, serif"
 const SF      = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" // BODY alias (legacy)
 const BODY    = SF
+const MONO    = "'JetBrains Mono', 'SF Mono', Menlo, monospace"
 
-const INK     = '#1A1A1A'   // text-primary
-const DIM     = '#4A4545'   // text-secondary (warm)
-const MID     = '#8A8580'   // text-muted (warm)
-const SUB     = '#8A8580'   // alias
-const HAIR    = '#E8E4E0'   // border (warm)
-const SUBHAIR = '#F0ECE8'   // border-subtle
-const SOFT    = '#FAFAF8'   // bg-surface
-const PAGE    = '#F7F5F2'   // bg-page (warm linen)
+const INK     = '#201b51'   // text-primary (navy)
+const DIM     = '#4a4674'   // text-secondary (dimmed navy)
+const MID     = '#6b6789'   // text-muted (purple-grey)
+const SUB     = '#6b6789'   // alias of muted
+const FAINT   = '#9d9ab3'   // placeholders, disabled
+const HAIR    = 'rgba(32, 27, 81, .12)'   // navy-tinted border
+const SUBHAIR = 'rgba(32, 27, 81, .06)'   // subtle row separator
+const SOFT    = '#f5f3ee'   // off-white surface
+const PAGE    = '#faf9f6'   // warm cream page background
 
-const PINK         = '#E6007E'                    // accent
-const PINK_HOVER   = '#CC006E'
-const PINK_LIGHT   = 'rgba(230, 0, 126, 0.07)'
-const TEAL         = '#00C2CB'                    // data-positive only
+const PINK         = '#cb1c6b'                    // accent
+const PINK_HOVER   = '#a8155a'
+const PINK_LIGHT   = 'rgba(203, 28, 107, 0.08)'
+const PINK_FAINT   = 'rgba(203, 28, 107, 0.04)'
+const TEAL         = '#0d9e6e'                    // success / data-positive
 
-const RED    = '#DC2626'   // danger
+const RED    = '#dc2626'   // danger
 const BLUE   = '#2563EB'   // info
 const VIOLET = '#a78bfa'   // categorical (charts only)
 const GREEN  = GRN          // success
@@ -72,34 +82,38 @@ const CATEGORY_COLOR = {
 const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)'
 
 const card = {
-  background: '#fff', borderRadius: 12, border: `1px solid ${HAIR}`,
-  padding: '20px 22px', marginBottom: 14, fontFamily: BODY,
-  boxShadow: CARD_SHADOW,
+  background: '#fff', borderRadius: 16, border: `1px solid ${HAIR}`,
+  padding: '24px 24px', marginBottom: 14, fontFamily: BODY,
+  boxShadow: '0 4px 24px rgba(32, 27, 81, .05)',
 }
 const labelStyle = {
   fontSize: 11, fontWeight: 600, color: MID, textTransform: 'uppercase',
-  letterSpacing: '.06em', fontFamily: BODY, marginBottom: 6,
+  letterSpacing: '.14em', fontFamily: BODY, marginBottom: 6,
 }
 const bigStat = {
   fontFamily: DISPLAY,
-  fontSize: 32, fontWeight: 400, color: INK,
-  letterSpacing: '-0.02em', lineHeight: 1.05,
+  fontSize: 48, fontWeight: 400, color: INK,
+  letterSpacing: '.02em', lineHeight: 1,
 }
 const sectionTitle = {
   fontFamily: BODY, fontSize: 16, fontWeight: 600, color: INK,
   marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8,
 }
+// Primary CTA — pill, uppercase, pink shadow, lift on hover.
 const inkButton = {
-  display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px',
-  background: PINK, color: '#fff', border: 'none', borderRadius: 8,
-  fontSize: 13, fontWeight: 600, fontFamily: BODY, cursor: 'pointer',
-  transition: 'background 200ms ease-out',
+  display: 'inline-flex', alignItems: 'center', gap: 10, padding: '12px 22px',
+  background: PINK, color: '#fff', border: 'none', borderRadius: 9999,
+  fontSize: 12, fontWeight: 600, fontFamily: BODY, cursor: 'pointer',
+  letterSpacing: '.08em', textTransform: 'uppercase',
+  boxShadow: '0 4px 20px rgba(203, 28, 107, .25)',
+  transition: 'background .25s, transform .25s, box-shadow .25s',
 }
 const ghostButton = {
-  display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px',
-  background: '#fff', color: INK, border: `1px solid ${HAIR}`, borderRadius: 8,
-  fontSize: 13, fontWeight: 500, fontFamily: BODY, cursor: 'pointer',
-  transition: 'background 200ms ease-out',
+  display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 14px',
+  background: '#fff', color: INK, border: `1px solid ${HAIR}`, borderRadius: 9999,
+  fontSize: 12, fontWeight: 500, fontFamily: BODY, cursor: 'pointer',
+  letterSpacing: '.04em',
+  transition: 'background 200ms ease-out, border-color 200ms',
 }
 const subtleInput = {
   width: '100%', padding: '10px 12px', border: `1px solid ${HAIR}`,
@@ -331,14 +345,18 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
   // ─── Full dashboard ──────────────────────────────────────────────
   return (
     <div>
+      <KotoKeyframes />
       <HowItWorks tool="aeo_visibility" />
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontFamily: DISPLAY, fontSize: 28, fontWeight: 400, color: INK, letterSpacing: '-0.02em', lineHeight: 1.1 }}>AEO Visibility</div>
-          <div style={{ fontFamily: BODY, fontSize: 13, color: DIM, marginTop: 4 }}>
-            How often this brand appears in AI search answers — across ChatGPT, Claude, Gemini, Perplexity, and Google AI Overviews.
+          <Eyebrow style={{ marginBottom: 8 }}>AEO · Answer Engine Optimization</Eyebrow>
+          <div style={{ fontFamily: DISPLAY, fontSize: 44, fontWeight: 400, color: INK, letterSpacing: '.02em', lineHeight: 1 }}>
+            Where this brand <em style={{ fontFamily: ACCENT, fontStyle: 'italic', color: PINK, fontWeight: 400 }}>appears</em>
+          </div>
+          <div style={{ fontFamily: BODY, fontSize: 13, color: MID, marginTop: 8, maxWidth: 640, lineHeight: 1.55 }}>
+            How often this brand surfaces in AI search answers — across ChatGPT, Claude, Gemini, Perplexity, and Google AI Overviews.
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -402,26 +420,34 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
 
       {/* Engine × prompt matrix */}
       <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 10, flexWrap: 'wrap' }}>
-          <div style={sectionTitle}><Search size={16} color={INK} /> Engine × Prompt — where this brand appears</div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['all', 'mentioned', 'missed', 'commercial', 'comparison', 'informational', 'local', 'problem'].map(f => (
-              <button key={f} onClick={() => setMatrixFilter(f)} style={chipButton(matrixFilter === f)}>
-                {f === 'all' ? 'All' : f === 'mentioned' ? '✓ Mentioned' : f === 'missed' ? '✗ Missed' : CATEGORY_LABEL[f] || f}
-              </button>
-            ))}
-          </div>
-        </div>
-        {!hasAnyCellData && filteredPrompts.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', marginBottom: 14, background: `${PINK}0D`, border: `1px solid ${PINK}33`, borderRadius: 10, fontFamily: SF }}>
-            <Sparkles size={16} color={PINK} style={{ flexShrink: 0, marginTop: 2 }} />
-            <div style={{ fontSize: 13, color: INK, lineHeight: 1.5 }}>
-              <div style={{ fontWeight: 700, marginBottom: 2 }}>Prompts seeded, but no engines scanned yet</div>
-              <div style={{ color: DIM }}>
-                Every dashed cell is a prompt we'll ask the 5 AI engines on your behalf. Click <span style={{ fontWeight: 700, color: INK }}>Run scan now</span> at the top to populate this matrix (~2 min), or the weekly cron will fill it Monday 3am UTC.
-              </div>
+        <PSectionHeader
+          icon={Search}
+          title="Engine × Prompt — where this brand"
+          accent="appears"
+          rationale="Five AI engines, every prompt your customers might ask. Filled pink pill = you got mentioned at that position. Outlined ✗ = the engine answered, you weren't in it. Dashed dot = we haven't asked that prompt yet."
+          right={(
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {['all', 'mentioned', 'missed', 'commercial', 'comparison', 'informational', 'local', 'problem'].map(f => (
+                <button key={f} onClick={() => setMatrixFilter(f)} style={chipButton(matrixFilter === f)}>
+                  {f === 'all' ? 'All' : f === 'mentioned' ? '✓ Mentioned' : f === 'missed' ? '✗ Missed' : CATEGORY_LABEL[f] || f}
+                </button>
+              ))}
             </div>
-          </div>
+          )}
+        />
+        <EducationalNote
+          noteId="aeo-matrix-strategy"
+          title="Why this matters"
+        >
+          Mentions in AI answers are the new search rankings — clients win when ChatGPT, Claude, Gemini, Perplexity, or Google AI Overviews recommend them by name. Filter to <strong style={{ color: INK }}>✗ Missed + Commercial</strong> first: those are buyers asking AI which agency to use and not hearing your name. Fix priority 1.
+        </EducationalNote>
+        {!hasAnyCellData && filteredPrompts.length > 0 && (
+          <ActionCallout
+            variant="tip"
+            title="Prompts seeded, but no engines scanned yet"
+          >
+            Every dashed cell is a prompt we'll ask the 5 AI engines on your behalf. Click <strong style={{ color: INK }}>Run scan now</strong> at the top to populate this matrix (~2 min), or the weekly cron will fill it Monday 3am UTC.
+          </ActionCallout>
         )}
         {filteredPrompts.length === 0 ? (
           <EmptyChart message="No prompts match this filter." />
