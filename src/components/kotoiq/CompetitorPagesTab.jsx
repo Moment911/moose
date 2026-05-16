@@ -11,7 +11,7 @@ import HowItWorks from './HowItWorks'
 // ─────────────────────────────────────────────────────────────
 // Koto Design tokens (DESIGN.md, 2026-05-13)
 // ─────────────────────────────────────────────────────────────
-const DISPLAY = "'Instrument Serif', Georgia, 'Times New Roman', serif"
+const DISPLAY = "'Bebas Neue', 'Arial Narrow', sans-serif"
 const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const INK     = '#201b51'

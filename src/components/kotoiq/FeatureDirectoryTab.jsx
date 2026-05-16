@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { Search, Compass, ArrowUpRight, Users, Filter, X } from 'lucide-react'
 
 // ─── Koto Design tokens (DESIGN.md) ─────────────────────────
-const DISPLAY = "'Instrument Serif', Georgia, 'Times New Roman', serif"
+const DISPLAY = "'Bebas Neue', 'Arial Narrow', sans-serif"
 const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const INK     = '#201b51'
 const DIM     = '#4a4674'

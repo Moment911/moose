@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import HowItWorks from './HowItWorks'
 
 // ─── Koto Design tokens (DESIGN.md) ──────────────────────────
-const DISPLAY = "'Instrument Serif', Georgia, 'Times New Roman', serif"
+const DISPLAY = "'Bebas Neue', 'Arial Narrow', sans-serif"
 const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const INK = '#201b51'
 const DIM = '#4a4674'

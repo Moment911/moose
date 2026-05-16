@@ -41,7 +41,7 @@ export const KOTO = {
     purple:     '#7c3aed',
   },
   fonts: {
-    heading: "'Instrument Serif',Georgia,serif",
+    heading: "'Bebas Neue','Arial Narrow',sans-serif",
     body:    "'DM Sans',-apple-system,sans-serif",
     mono:    "'JetBrains Mono','SF Mono',monospace",
   },

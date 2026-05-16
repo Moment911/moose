@@ -36,7 +36,7 @@ body {
 }
 
 /* Typography scale */
-.ds-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; color: #201b51; letter-spacing: -0.01em; }
+.ds-title { font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; font-size: 24px; font-weight: 400; color: #201b51; letter-spacing: -0.01em; }
 .ds-subtitle { font-size: 13px; font-weight: 400; color: #6b6789; }
 .ds-body { font-size: 14px; font-weight: 400; color: #4a4674; line-height: 1.6; }
 .ds-caption { font-size: 12px; font-weight: 400; color: #6b6789; }

@@ -87,7 +87,7 @@ export const colors = {
 
 // ── Typography ──────────────────────────────────────────────────────────────
 export const fonts = {
-  display: "'Instrument Serif',Georgia,serif",
+  display: "'Bebas Neue','Arial Narrow',sans-serif",
   body: "'DM Sans',-apple-system,sans-serif",
   mono: "'JetBrains Mono','SF Mono',monospace",
 } as const
@@ -99,9 +99,9 @@ export const fontSize = {
   md: 15,        // Slightly larger body
   lg: 16,        // Card titles, important body
   xl: 18,        // Section headers
-  '2xl': 20,     // Section headings (Instrument Serif)
-  '3xl': 24,     // Page titles (Instrument Serif)
-  '4xl': 28,     // Hero numbers, large headings (Instrument Serif)
+  '2xl': 20,     // Section headings (Bebas Neue)
+  '3xl': 24,     // Page titles (Bebas Neue)
+  '4xl': 28,     // Hero numbers, large headings (Bebas Neue)
 } as const
 
 export const fontWeight = {

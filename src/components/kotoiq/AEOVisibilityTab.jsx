@@ -77,7 +77,7 @@ const CATEGORY_COLOR = {
 // Style primitives — DESIGN.md compliant
 // Cards 12px radius. Buttons 8px. Subtle shadow.
 // Primary CTA = pink. Section titles = DM Sans 600 16px.
-// Hero numbers / page title = Instrument Serif.
+// Hero numbers / page title = Bebas Neue.
 // ─────────────────────────────────────────────────────────────
 const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)'
 

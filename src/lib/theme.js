@@ -5,5 +5,5 @@ export const GRY = '#faf9f6'
 export const GRN = '#16a34a'
 export const AMB = '#D97706'
 export const W   = '#ffffff'
-export const FH  = "'Instrument Serif',Georgia,serif"
+export const FH  = "'Bebas Neue','Arial Narrow',sans-serif"
 export const FB  = "'DM Sans',-apple-system,sans-serif"
