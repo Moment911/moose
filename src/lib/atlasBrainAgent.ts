@@ -407,36 +407,46 @@ export async function runAtlasBrain(s: SupabaseClient, ai: Anthropic, body: Agen
     ? `${assistantText}\n\n<AGENT_TRACE>${JSON.stringify(trace)}</AGENT_TRACE>`
     : assistantText
 
-  // Persist conversation (retry-tolerant — schema drift safety)
+  // Persist conversation — surface errors instead of swallowing.
+  // Previous silent catch was hiding RLS / schema drift / FK failures, so
+  // conversations vanished without any signal to the UI.
   let convId = conversation_id
+  let persist_error: string | undefined
   try {
     if (!convId) {
-      const title = message.length > 80 ? message.slice(0, 80) + '...' : message
-      const { data: conv } = await s.from('kotoiq_chat_conversations').insert({
+      const title = message.length > 80 ? message.slice(0, 80) + '…' : message
+      const { data: conv, error: insErr } = await s.from('kotoiq_chat_conversations').insert({
         client_id: client_id || null,
         agency_id: agency_id || null,
         title,
-      }).select().single()
-      convId = conv?.id
+      }).select('id').single()
+      if (insErr) throw new Error(`conv insert: ${insErr.message}`)
+      convId = (conv as { id: string } | null)?.id
+      if (!convId) throw new Error('conv insert returned no id')
     } else {
-      await s.from('kotoiq_chat_conversations').update({ updated_at: new Date().toISOString() }).eq('id', convId)
+      const { error: upErr } = await s.from('kotoiq_chat_conversations')
+        .update({ updated_at: new Date().toISOString() }).eq('id', convId)
+      if (upErr) throw new Error(`conv update: ${upErr.message}`)
     }
 
-    if (convId) {
-      await s.from('kotoiq_chat_messages').insert([
-        { conversation_id: convId, role: 'user', content: message },
-        {
-          conversation_id: convId,
-          role: 'assistant',
-          content: contentForStorage,
-          data_used: trace.map(t => t.tool),
-          suggested_actions: suggestedActions,
-          tokens_input: totalInputTokens,
-          tokens_output: totalOutputTokens,
-        },
-      ])
-    }
-  } catch { /* non-fatal */ }
+    const { error: msgErr } = await s.from('kotoiq_chat_messages').insert([
+      { conversation_id: convId, role: 'user', content: message },
+      {
+        conversation_id: convId,
+        role: 'assistant',
+        content: contentForStorage,
+        data_used: trace.map(t => t.tool),
+        suggested_actions: suggestedActions,
+        tokens_input: totalInputTokens,
+        tokens_output: totalOutputTokens,
+      },
+    ])
+    if (msgErr) throw new Error(`message insert: ${msgErr.message}`)
+  } catch (e) {
+    const err = e as Error
+    persist_error = err.message || 'unknown persistence error'
+    console.error('[atlasBrain] conversation persist failed:', err)
+  }
 
   return {
     conversation_id: convId,
@@ -446,5 +456,6 @@ export async function runAtlasBrain(s: SupabaseClient, ai: Anthropic, body: Agen
     iterations: trace.length,
     tokens_input: totalInputTokens,
     tokens_output: totalOutputTokens,
+    ...(persist_error ? { persist_error } : {}),
   }
 }

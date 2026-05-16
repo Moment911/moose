@@ -230,6 +230,11 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
         } else {
           loadConversations()
         }
+
+        // Surface persistence failures so they don't fail silently
+        if (res.persist_error) {
+          toast.error(`Conversation didn't save: ${res.persist_error}`)
+        }
       }
     } catch (err) {
       toast.error('Request failed')
@@ -316,11 +321,15 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                 </div>
                 <div style={{ fontSize: 11, color: '#8e8e93', marginTop: 2 }}>{formatTime(c.updated_at || c.created_at)}</div>
               </div>
-              <button onClick={(e) => deleteConversation(c.id, e)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 2, color: '#8e8e93', display: 'flex' }}
-                title="Delete"
+              <button
+                onClick={(e) => deleteConversation(c.id, e)}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220, 38, 38, .1)'; e.currentTarget.style.color = '#dc2626' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b6789' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, color: '#6b6789', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, flexShrink: 0, transition: 'background 120ms, color 120ms' }}
+                title="Delete conversation"
+                aria-label="Delete conversation"
               >
-                <Trash2 size={12} />
+                <Trash2 size={14} />
               </button>
             </div>
           ))}
