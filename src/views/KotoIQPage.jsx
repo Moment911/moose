@@ -10,7 +10,7 @@ import {
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
   Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings,
   Map, Code, Award, GitBranch, Eraser, Grid, Sparkles, Briefcase, Image as ImageIcon,
-  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Play, Mail, Sunrise,
+  Layers, Share2, LayoutDashboard, Plug, Command, History, Megaphone, Play, Mail, Sunrise, Compass,
 } from 'lucide-react'
 // Alias: lucide-react doesn't export Youtube in this version
 const Youtube = Play
@@ -44,6 +44,7 @@ import CompetitorYouTubeTab from '../components/kotoiq/CompetitorYouTubeTab'
 import NewsletterIntelTab from '../components/kotoiq/NewsletterIntelTab'
 import CompetitorPulseTab from '../components/kotoiq/CompetitorPulseTab'
 import TodayTab from '../components/kotoiq/TodayTab'
+import FeatureDirectoryTab from '../components/kotoiq/FeatureDirectoryTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -685,6 +686,7 @@ const KOTOIQ_NAV_GROUPS = [
     ['agent_goals', 'Agent Goals', Target],
   ]},
   { group: 'Reports & Tools', items: [
+    ['feature_directory', 'Feature Directory', Compass, 'Every KotoIQ tool — what it does, when to use it, who it\'s for'],
     ['reports', 'Reports', FileText, 'Generate and view SEO reports'],
     ['roi', 'ROI Projections', DollarSign, 'Revenue and ROI forecasting'],
     ['visitors', 'Visitors', Eye, 'Website visitor intelligence'],
@@ -2471,6 +2473,14 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             clientId={clientId}
             agencyId={agencyId}
             clientName={clients.find(c => c.id === clientId)?.name}
+            onSwitchTab={setTab}
+          />
+        )}
+
+        {/* ══ FEATURE DIRECTORY — searchable catalog of every KotoIQ tool ══ */}
+        {tab === 'feature_directory' && (
+          <FeatureDirectoryTab
+            navGroups={KOTOIQ_NAV_GROUPS}
             onSwitchTab={setTab}
           />
         )}
