@@ -59,6 +59,9 @@ import {
   reclassifyChange as reclassifyPageChange,
 } from '@/lib/kotoiq/pageDiffEngine'
 import { discoverPages } from '@/lib/kotoiq/pageDiscovery'
+import { getCurrentPricing, getPricingChanges, getPricingOverview } from '@/lib/kotoiq/pricingTrackerEngine'
+import { getTechStackByCompetitor } from '@/lib/kotoiq/techStackAggregator'
+import { estimateDomainTraffic, estimateTrafficForDomains } from '@/lib/kotoiq/trafficEstimator'
 import { setupSlackIntegration, setupTeamsIntegration, sendDailyDigest } from '@/lib/slackTeamsIntegration'
 import { calculateIndustryBenchmarks, getBenchmarkForClient } from '@/lib/industryBenchmarkEngine'
 import { generateScorecard } from '@/lib/scorecardEngine'
@@ -4249,6 +4252,50 @@ Provide a detailed analysis. Return ONLY valid JSON:
       }
       return NextResponse.json({ pages: result.pages, sitemap_url: result.sitemap_url, tracked })
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Pricing Tracker (Phase C) ─────────────────────────────────────────
+  // Reads pricing_extracted from page snapshots and aggregates into
+  // current pricing + timeline of price/tier/promo changes.
+
+  if (action === 'pricing_current') {
+    try { return NextResponse.json(await getCurrentPricing(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'pricing_changes') {
+    try { return NextResponse.json(await getPricingChanges(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'pricing_overview') {
+    try { return NextResponse.json(await getPricingOverview(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Tech Stack (Phase H) ──────────────────────────────────────────────
+  // Aggregates detected_tech across all tracked pages per competitor.
+
+  if (action === 'tech_stack_by_competitor') {
+    try { return NextResponse.json(await getTechStackByCompetitor(s, body)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── Traffic Estimator (Phase I) ───────────────────────────────────────
+  // Free organic-traffic estimate via DataForSEO ranks × CTR curve.
+
+  if (action === 'traffic_estimate') {
+    const { domain } = body
+    if (!domain) return NextResponse.json({ error: 'domain required' }, { status: 400 })
+    try { return NextResponse.json(await estimateDomainTraffic(domain)) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  if (action === 'traffic_estimate_bulk') {
+    const { domains } = body
+    if (!Array.isArray(domains)) return NextResponse.json({ error: 'domains array required' }, { status: 400 })
+    try { return NextResponse.json({ estimates: await estimateTrafficForDomains(domains) }) }
+    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 
   // ── Slack / Teams Integration ─────────────────────────────────────────

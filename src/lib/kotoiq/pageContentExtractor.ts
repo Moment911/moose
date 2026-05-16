@@ -30,6 +30,7 @@ export interface ExtractedPage {
   schema_orgs: any[]
   word_count: number
   raw_html_length: number
+  raw_html?: string              // transient — used for tech-stack detection, not stored
   error?: string
 }
 
@@ -192,6 +193,7 @@ export function extractFromHtml(
     schema_orgs,
     word_count,
     raw_html_length: html.length,
+    raw_html: html,
   }
 }
 

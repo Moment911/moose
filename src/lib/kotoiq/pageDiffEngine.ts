@@ -21,7 +21,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { fetchAndExtract, urlDomain, inferPageType, type ExtractedPage } from './pageContentExtractor'
 import { classifyChange, computeFieldDiff, type ClassifiedChange } from './changeClassifier'
 import { extractPricing } from './pricingExtractor'
-import { detectTechStack } from './techStackDetector'
+import { detectTechStack, type DetectedTech } from './techStackDetector'
 import { sendSlackAlert, sendTeamsAlert } from '@/lib/slackTeamsIntegration'
 
 const RAW_HTML_CACHE = new Map<string, string>()   // per-call cache so we don't re-fetch when re-extracting
@@ -195,10 +195,10 @@ async function scanOnePage(
     if (pricing.is_pricing_page) pricing_extracted = pricing
   }
 
-  // Tech stack is regex against the html sample we kept in extracted.body_text;
-  // ideally we'd run it on raw html. Skipping for now — leaving the column NULL
-  // unless we have a raw_html slot. Future improvement.
-  const detected_tech: any = null
+  // Tech stack — regex match against raw HTML for free instant detection
+  const detected_tech = extracted.raw_html
+    ? detectTechStack(extracted.raw_html)
+    : null
 
   // Insert new snapshot
   const { data: newSnap, error: snapErr } = await s.from('kotoiq_page_snapshots').insert({

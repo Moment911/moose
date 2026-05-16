@@ -35,6 +35,8 @@ import TopicalAuthorityTab from '../components/kotoiq/TopicalAuthorityTab'
 import AEOMultiEngineTab from '../components/kotoiq/AEOMultiEngineTab'
 import AEOVisibilityTab from '../components/kotoiq/AEOVisibilityTab'
 import CompetitorPagesTab from '../components/kotoiq/CompetitorPagesTab'
+import PricingTrackerTab from '../components/kotoiq/PricingTrackerTab'
+import TechStackTab from '../components/kotoiq/TechStackTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -606,6 +608,8 @@ const KOTOIQ_NAV_GROUPS = [
     ['scorecard', 'Scorecard', Award],
     ['competitor_watch', 'Competitor Watch', Eye],
     ['competitor_pages', 'Competitor Pages', FileText],
+    ['pricing_tracker', 'Pricing Tracker', DollarSign],
+    ['tech_stack', 'Tech Stack', Layers],
     ['competitors', 'Competitors', Target],
     ['competitor_map', 'Competitor Maps', Map],
     ['aeo', 'AEO Research', Brain],
@@ -2406,6 +2410,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ COMPETITOR PAGES TAB ══ */}
         {clientId && tab === 'competitor_pages' && (
           <CompetitorPagesTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ PRICING TRACKER TAB ══ */}
+        {clientId && tab === 'pricing_tracker' && (
+          <PricingTrackerTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ TECH STACK TAB ══ */}
+        {clientId && tab === 'tech_stack' && (
+          <TechStackTab clientId={clientId} />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}
