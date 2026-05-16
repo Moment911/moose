@@ -5,12 +5,12 @@ import { Search, Compass, ArrowUpRight, Users, Filter, X } from 'lucide-react'
 // ─── Koto Design tokens (DESIGN.md) ─────────────────────────
 const DISPLAY = "'Bebas Neue', 'Arial Narrow', sans-serif"
 const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-const INK     = '#201b51'
-const DIM     = '#4a4674'
-const MID     = '#6b6789'
-const HAIR    = '#e8e6ef'
-const SUBHAIR = '#F0ECE8'
-const SOFT    = '#f5f3ee'
+const INK     = 'var(--koto-navy)'
+const DIM     = 'var(--koto-dim)'
+const MID     = 'var(--koto-muted)'
+const HAIR    = 'var(--koto-line)'
+const SUBHAIR = 'var(--koto-line)'
+const SOFT    = 'var(--koto-off)'
 const PINK    = '#cb1c6b'
 const PINK_LIGHT = 'rgba(203, 28, 107, 0.07)'
 const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)'

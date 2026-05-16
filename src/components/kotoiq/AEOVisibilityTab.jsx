@@ -27,15 +27,15 @@ const SF      = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-s
 const BODY    = SF
 const MONO    = "'JetBrains Mono', 'SF Mono', Menlo, monospace"
 
-const INK     = '#201b51'   // text-primary (navy)
-const DIM     = '#4a4674'   // text-secondary (dimmed navy)
-const MID     = '#6b6789'   // text-muted (purple-grey)
-const SUB     = '#6b6789'   // alias of muted
+const INK     = 'var(--koto-navy)'   // text-primary (navy)
+const DIM     = 'var(--koto-dim)'   // text-secondary (dimmed navy)
+const MID     = 'var(--koto-muted)'   // text-muted (purple-grey)
+const SUB     = 'var(--koto-muted)'   // alias of muted
 const FAINT   = '#9d9ab3'   // placeholders, disabled
-const HAIR    = 'rgba(32, 27, 81, .12)'   // navy-tinted border
-const SUBHAIR = 'rgba(32, 27, 81, .06)'   // subtle row separator
-const SOFT    = '#f5f3ee'   // off-white surface
-const PAGE    = '#faf9f6'   // warm cream page background
+const HAIR    = 'var(--koto-line)'   // navy-tinted border
+const SUBHAIR = 'var(--koto-line)'   // subtle row separator
+const SOFT    = 'var(--koto-off)'   // off-white surface
+const PAGE    = 'var(--koto-warm)'   // warm cream page background
 
 const PINK         = '#cb1c6b'                    // accent
 const PINK_HOVER   = '#a8155a'

@@ -10,13 +10,13 @@ import toast from 'react-hot-toast'
 // ─── Koto Design tokens (DESIGN.md) ─────────────────────────
 const DISPLAY = "'Bebas Neue', 'Arial Narrow', sans-serif"
 const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-const INK = '#201b51'
-const DIM = '#4a4674'
-const MID = '#6b6789'
-const HAIR = '#e8e6ef'
-const SUBHAIR = '#F0ECE8'
-const SOFT = '#f5f3ee'
-const PAGE = '#faf9f6'
+const INK = 'var(--koto-navy)'
+const DIM = 'var(--koto-dim)'
+const MID = 'var(--koto-muted)'
+const HAIR = 'var(--koto-line)'
+const SUBHAIR = 'var(--koto-line)'
+const SOFT = 'var(--koto-off)'
+const PAGE = 'var(--koto-warm)'
 const PINK = '#cb1c6b'
 const PINK_HOVER = '#a8155a'
 const PINK_LIGHT = 'rgba(203, 28, 107, 0.07)'
@@ -172,11 +172,16 @@ export default function TodayTab({ clientId, agencyId, clientName, onSwitchTab }
     <div style={{ fontFamily: BODY }}>
       <style dangerouslySetInnerHTML={{ __html: ANIMATIONS_CSS }} />
 
-      {/* Hero greeting + summary */}
+      {/* Hero greeting + summary — Bebas Neue display matches Unified Marketing brand
+          (.02em positive tracking, DM Serif italic pink for client name) */}
       <div style={{ marginBottom: 22 }}>
-        <div style={{ fontFamily: DISPLAY, fontSize: 36, fontWeight: 400, color: INK, letterSpacing: '-0.02em', lineHeight: 1.05 }} className="koto-fade-in">
-          {greeting()}{clientName ? `,` : ''}
-          {clientName && <span style={{ color: PINK }}> {clientName}</span>}
+        <div style={{ fontFamily: DISPLAY, fontSize: 52, fontWeight: 400, color: INK, letterSpacing: '.02em', lineHeight: 1 }} className="koto-fade-in">
+          {greeting()}{clientName ? <>,&nbsp;</> : ''}
+          {clientName && (
+            <em style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: 'italic', color: PINK, fontWeight: 400 }}>
+              {clientName}
+            </em>
+          )}
         </div>
         <div style={{ fontFamily: BODY, fontSize: 14, color: DIM, marginTop: 6 }} className="koto-fade-in">
           {loading
