@@ -46,6 +46,8 @@ const DIRECT_AGENCY_TABLES = new Set([
   'kotoiq_page_suggestions',    // Page Factory — gap intelligence output
   'kotoiq_style_profiles',      // Page Factory — reference HTML style extraction
   'kotoiq_publish_watches',     // Page Factory — GSC indexation monitoring
+  'kotoiq_routine_completions', // Today / Action Center — cadence completions (migration 20260613)
+  'kotoiq_autofix_queue',       // Auto-Fix Queue — materialized findings (migration 20260614)
 ])
 
 /** Tables where agency_id is transitive (through a parent FK) */
