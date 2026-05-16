@@ -301,21 +301,24 @@ export async function scanForFixes(s: SupabaseClient, body: {
   }
 
   // ── Persist (upsert on source_signature, never overwrite live status)
-  // Strategy: for each row, INSERT … ON CONFLICT DO NOTHING. That keeps
-  // user state (approved/rejected/snoozed) intact across re-scans.
+  // Strategy: for each row, INSERT and rely on the UNIQUE (client_id,
+  // source_signature) constraint to skip duplicates. That keeps user
+  // state (approved/rejected/snoozed) intact across re-scans.
   let inserted = 0
   let skipped = 0
+  let failed = 0
+  const errors: string[] = []
   for (const r of rows) {
     const { error } = await s.from('kotoiq_autofix_queue').insert(r)
-    if (error) {
-      // Most common: unique violation (row already exists) — that's fine.
-      if (String(error.message || '').includes('duplicate key')) {
-        skipped++
-      } else {
-        skipped++
-      }
-    } else {
+    if (!error) {
       inserted++
+      continue
+    }
+    if (String(error.message || '').includes('duplicate key')) {
+      skipped++
+    } else {
+      failed++
+      errors.push(`${r.source_signature}: ${error.message}`)
     }
   }
 
@@ -325,6 +328,8 @@ export async function scanForFixes(s: SupabaseClient, body: {
     candidates_seen: rows.length,
     inserted,
     skipped,
+    failed,
+    ...(errors.length ? { errors } : {}),
   }
 }
 
