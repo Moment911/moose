@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from 'react'
 
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function PlacesAutocomplete({
   value, onChange, onPlaceSelected,

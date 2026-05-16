@@ -11,8 +11,8 @@ import { signOut } from '../../lib/supabase'
 
 const R   = '#cb1c6b'
 const T   = '#00C2CB'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
+const FH  = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB  = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const TABS = [
   { to: '/',              icon: LayoutGrid, label: 'Home'     },

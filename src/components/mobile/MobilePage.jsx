@@ -6,8 +6,8 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const BG  = '#F9F9F9'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
+const FH  = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB  = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const R   = '#cb1c6b'
 
 export { MobilePage }
@@ -228,7 +228,7 @@ export function MobileSearch({ value, onChange, placeholder = 'Search…' }) {
         placeholder={placeholder}
         style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16,
           color: '#0a0a0a', background: 'transparent', padding: '11px 0',
-          fontFamily: "'Raleway','Helvetica Neue',sans-serif" }}/>
+          fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}/>
       {value && (
         <button onClick={() => onChange('')}
           style={{ background: 'none', border: 'none', cursor: 'pointer',
@@ -263,7 +263,7 @@ export function MobileButton({ label, icon: Icon, onPress, secondary, disabled }
         background: secondary ? '#F9F9F9' : R,
         color: secondary ? '#0a0a0a' : '#fff',
         fontSize: 15, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer',
-        fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",
+        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
         opacity: disabled ? 0.6 : 1,
         WebkitTapHighlightColor: 'transparent',
       }}>

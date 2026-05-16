@@ -1091,7 +1091,7 @@ export default function AgencySettingsPage() {
         {/* Current section content */}
         {section && (
           <div style={{padding:'0 16px 24px'}}>
-            <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:17,fontWeight:800,color:'#0a0a0a',padding:'8px 0 12px',letterSpacing:'-.02em'}}>
+            <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:17,fontWeight:800,color:'#0a0a0a',padding:'8px 0 12px',letterSpacing:'-.02em'}}>
               {SECTIONS.find(s=>s.key===section)?.label}
             </div>
             {renderSection()}

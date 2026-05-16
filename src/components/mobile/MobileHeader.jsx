@@ -2,7 +2,7 @@
 import { Menu, ChevronLeft, Zap } from 'lucide-react'
 
 const R   = '#cb1c6b'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function MobileHeader({ title, onMenuPress, onBack, backLabel, rightAction, showLogo = false }) {
   return (

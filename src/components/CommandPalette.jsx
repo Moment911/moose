@@ -9,8 +9,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const R   = '#cb1c6b', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b';
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif";
-const FB = "'Raleway','Helvetica Neue',sans-serif";
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
 
 const PAGES = [
   { label: 'Dashboard', path: '/', icon: LayoutGrid, category: 'Main' },

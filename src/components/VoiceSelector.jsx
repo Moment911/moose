@@ -4,8 +4,8 @@ import { Search, Play, Square, Check, Loader2, ChevronDown } from "lucide-react"
 import toast from "react-hot-toast";
 
 const R = "#cb1c6b", T = "#00C2CB", BLK = "#0a0a0a", GRN = "#16a34a", AMB = "#f59e0b", PURP = "#7c3aed";
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif";
-const FB = "'Raleway','Helvetica Neue',sans-serif";
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
 
 const PROVIDER_COLORS = {
   ElevenLabs: PURP,

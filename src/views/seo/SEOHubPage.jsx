@@ -444,17 +444,17 @@ Return ONLY valid JSON (no markdown):
         {tab==='overview' && (
           <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
             <MobileCard style={{padding:'14px'}}>
-              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#111',marginBottom:10}}>Connections</div>
+              <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:800,color:'#111',marginBottom:10}}>Connections</div>
               {[
                 {label:'Google Search Console',key:'gsc',color:'#4285f4'},
                 {label:'Google Analytics 4',   key:'ga4',color:'#e8710a'},
                 {label:'Google Business Profile',key:'gmb',color:'#34a853'},
               ].map((p,i)=>(
                 <div key={p.key} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:i<2?'1px solid #f2f2f0':'none'}}>
-                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:600,color:'#111'}}>{p.label}</div>
+                  <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:600,color:'#111'}}>{p.label}</div>
                   {connections?.[p.key]
-                    ? <span style={{fontSize:12,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 8px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>✓ Connected</span>
-                    : <button style={{padding:'5px 12px',borderRadius:8,border:`1px solid ${p.color}`,background:'transparent',color:p.color,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Connect</button>
+                    ? <span style={{fontSize:12,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 8px',borderRadius:20,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>✓ Connected</span>
+                    : <button style={{padding:'5px 12px',borderRadius:8,border:`1px solid ${p.color}`,background:'transparent',color:p.color,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>Connect</button>
                   }
                 </div>
               ))}
@@ -473,7 +473,7 @@ Return ONLY valid JSON (no markdown):
                     borderBottom={i<keywords.length-1}
                     title={kw.keyword}
                     subtitle={`Position ${kw.position||'—'} · ${kw.clicks||0} clicks`}
-                    badge={<span style={{fontSize:12,fontWeight:800,color:kw.position<=3?'#16a34a':kw.position<=10?'#f59e0b':'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{kw.position||'—'}</span>}/>
+                    badge={<span style={{fontSize:12,fontWeight:800,color:kw.position<=3?'#16a34a':kw.position<=10?'#f59e0b':'#9a9a96',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>{kw.position||'—'}</span>}/>
                 ))}
               </MobileCard>
             )}
@@ -490,7 +490,7 @@ Return ONLY valid JSON (no markdown):
                   <MobileRow key={s.id} borderBottom={i<sites.length-1}
                     title={s.name||s.url}
                     subtitle={s.url}
-                    badge={<span style={{fontSize:12,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 6px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>v{s.plugin_version||'?'}</span>}/>
+                    badge={<span style={{fontSize:12,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 6px',borderRadius:20,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>v{s.plugin_version||'?'}</span>}/>
                 ))}
               </MobileCard>
             )}
@@ -1222,7 +1222,7 @@ Return ONLY valid JSON (no markdown):
                       <div className="animate-fade-up">
                         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
                           <div style={{ fontSize:40, marginBottom:16 }}>📍</div>
-                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>GBP Audit & Optimizer</div>
+                          <div style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>GBP Audit & Optimizer</div>
                           <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
                             Score your Google Business Profile, compare against nearby competitors, and get an AI-generated action plan to climb the local map pack.
                           </div>
@@ -1238,7 +1238,7 @@ Return ONLY valid JSON (no markdown):
                       <div className="animate-fade-up">
                         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
                           <div style={{ fontSize:40, marginBottom:16 }}>🔍</div>
-                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>On-Page SEO Checker</div>
+                          <div style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>On-Page SEO Checker</div>
                           <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
                             Audit any URL for 20+ technical SEO issues. Get live PageSpeed scores and AI-powered recommendations tailored for local businesses.
                           </div>
@@ -1254,7 +1254,7 @@ Return ONLY valid JSON (no markdown):
                       <div className="animate-fade-up">
                         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
                           <div style={{ fontSize:40, marginBottom:16 }}>📍</div>
-                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Citation Tracker</div>
+                          <div style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Citation Tracker</div>
                           <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
                             Check 20 top directories for missing listings and NAP inconsistencies. Get an AI-ranked fix list to boost local rankings.
                           </div>
@@ -1270,7 +1270,7 @@ Return ONLY valid JSON (no markdown):
                       <div className="animate-fade-up">
                         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
                           <div style={{ fontSize:40, marginBottom:16 }}>🏆</div>
-                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Competitor Intelligence</div>
+                          <div style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Competitor Intelligence</div>
                           <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
                             Automatically find up to 10 nearby competitors, score them head-to-head, and get an AI strategic action plan.
                           </div>
@@ -1286,7 +1286,7 @@ Return ONLY valid JSON (no markdown):
                       <div className="animate-fade-up">
                         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
                           <div style={{ fontSize:40, marginBottom:16 }}>📊</div>
-                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>AI Monthly Report</div>
+                          <div style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>AI Monthly Report</div>
                           <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
                             Generate a full client performance report in seconds. Reviews, GBP score, SEO score, and keyword opportunities — written by Claude, ready to send.
                           </div>

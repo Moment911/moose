@@ -142,7 +142,7 @@ export default function CalendarPage() {
             {upcoming.map((e,i)=>(
               <MobileRow key={e.id} borderBottom={i<upcoming.length-1}
                 left={<div style={{width:40,height:40,borderRadius:10,background:'#cb1c6b'+'15',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#cb1c6b',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
+                  <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:800,color:'#cb1c6b',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
                   <div style={{fontSize:9,fontWeight:700,color:'#cb1c6b',textTransform:'uppercase'}}>{new Date(e.start_date||e.date).toLocaleString('en-US',{month:'short'})}</div>
                 </div>}
                 title={e.title||e.name||'Event'}
@@ -156,7 +156,7 @@ export default function CalendarPage() {
             {past.map((e,i)=>(
               <MobileRow key={e.id} borderBottom={i<past.length-1}
                 left={<div style={{width:40,height:40,borderRadius:10,background:'#F9F9F9',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#9a9a96',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
+                  <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:800,color:'#9a9a96',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
                   <div style={{fontSize:9,fontWeight:700,color:'#9a9a96',textTransform:'uppercase'}}>{new Date(e.start_date||e.date).toLocaleString('en-US',{month:'short'})}</div>
                 </div>}
                 title={e.title||e.name||'Event'}

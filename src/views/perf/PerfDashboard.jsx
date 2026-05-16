@@ -319,12 +319,12 @@ export default function PerfDashboard() {
             <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
               {campaigns.slice(0,5).map(cam=>(
                 <MobileCard key={cam.id} style={{padding:'14px'}}>
-                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a',marginBottom:6,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cam.name}</div>
+                  <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a',marginBottom:6,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cam.name}</div>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
                     {[{label:'Spend',v:'$'+Math.round(cam.cost||0).toLocaleString()},{label:'Clicks',v:(cam.clicks||0).toLocaleString()},{label:'Conv',v:(cam.conversions||0).toFixed(0)},{label:'ROAS',v:(cam.roas||0).toFixed(1)+'x'}].map(m=>(
                       <div key={m.label} style={{background:'#f8f8f6',borderRadius:9,padding:'8px 10px'}}>
-                        <div style={{fontSize:11,color:'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em'}}>{m.label}</div>
-                        <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>{m.v}</div>
+                        <div style={{fontSize:11,color:'#9a9a96',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em'}}>{m.label}</div>
+                        <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>{m.v}</div>
                       </div>
                     ))}
                   </div>
@@ -342,7 +342,7 @@ export default function PerfDashboard() {
                   <MobileRow title={cam.name}
                     subtitle={`${cam.status||'—'} · Budget $${Math.round(cam.budget_amount||0)}/day`}
                     left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,background:cam.status==='ENABLED'?'#16a34a':'#9a9a96'}}/>}
-                    badge={<span style={{fontSize:11,fontWeight:800,color:cam.roas>=3?'#16a34a':cam.roas>=1?'#f59e0b':'#cb1c6b',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{(cam.roas||0).toFixed(1)}x</span>}
+                    badge={<span style={{fontSize:11,fontWeight:800,color:cam.roas>=3?'#16a34a':cam.roas>=1?'#f59e0b':'#cb1c6b',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>{(cam.roas||0).toFixed(1)}x</span>}
                     borderBottom={false}/>
                 </MobileCard>
               ))}
@@ -355,11 +355,11 @@ export default function PerfDashboard() {
                 ? <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No pending recommendations</div>
                 : fRecs.map(r=>(
                 <MobileCard key={r.id} style={{padding:'14px',borderLeft:`3px solid ${r.priority==='high'?'#cb1c6b':r.priority==='medium'?'#f59e0b':'#9a9a96'}`}}>
-                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:4}}>{r.title}</div>
+                  <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:4}}>{r.title}</div>
                   <p style={{fontSize:13,color:'#5a5a58',margin:'0 0 10px',lineHeight:1.5}}>{r.description}</p>
                   <div style={{display:'flex',gap:6}}>
-                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f0fdf4',color:'#16a34a',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{r.est_impact}</span>
-                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#F9F9F9',color:'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{Math.round((r.confidence||0)*100)}% confidence</span>
+                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f0fdf4',color:'#16a34a',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>{r.est_impact}</span>
+                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#F9F9F9',color:'#9a9a96',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>{Math.round((r.confidence||0)*100)}% confidence</span>
                   </div>
                 </MobileCard>
               ))}

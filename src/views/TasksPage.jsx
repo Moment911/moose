@@ -184,9 +184,9 @@ export default function TasksPage() {
               <input value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)}
                 onKeyDown={e=>{if(e.key==='Enter'){handleAddTask();setMShowAdd(false)}}}
                 placeholder="Task title..." autoFocus
-                style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1.5px solid #e5e7eb',fontSize:16,outline:'none',fontFamily:"'Raleway','Helvetica Neue',sans-serif",minHeight:44}}/>
+                style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1.5px solid #e5e7eb',fontSize:16,outline:'none',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",minHeight:44}}/>
               <button onClick={()=>{handleAddTask();setMShowAdd(false)}}
-                style={{padding:'10px 18px',borderRadius:10,border:'none',background:'#cb1c6b',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',minHeight:44,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Add</button>
+                style={{padding:'10px 18px',borderRadius:10,border:'none',background:'#cb1c6b',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',minHeight:44,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>Add</button>
               <button onClick={()=>setMShowAdd(false)}
                 style={{padding:'10px',borderRadius:10,border:'1px solid #e5e7eb',background:'#fff',color:'#9ca3af',cursor:'pointer',minHeight:44,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
             </div>
@@ -207,7 +207,7 @@ export default function TasksPage() {
                 title={t.title||'Untitled'}
                 subtitle={[t.assignee_name, t.due_date?'Due '+new Date(t.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}):null].filter(Boolean).join(' · ')}
                 badge={t.status==='done'
-                  ? <span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 7px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>✓</span>
+                  ? <span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 7px',borderRadius:20,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",flexShrink:0}}>✓</span>
                   : null}/>
             ))}
           </MobileCard>

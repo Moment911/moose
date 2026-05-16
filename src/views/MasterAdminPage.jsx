@@ -16,8 +16,8 @@ const TEAL  = '#00C2CB'
 const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
+const FH    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const STATUS_CFG = {
   ok:    { color: GREEN,  bg: '#f0fdf4', icon: CheckCircle, label: 'Healthy'  },

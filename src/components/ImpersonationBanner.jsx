@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { X, ArrowLeft, ChevronRight } from 'lucide-react'
 
-const FH = "'Proxima Nova','Nunito Sans',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function ImpersonationBanner() {
   const {

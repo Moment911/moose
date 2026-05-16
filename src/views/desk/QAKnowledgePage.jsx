@@ -553,16 +553,16 @@ export default function QAKnowledgePage() {
             <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'14px'}}>
               <textarea value={askQ} onChange={e=>setAskQ(e.target.value)}
                 placeholder="Ask anything about your clients or services…" rows={3}
-                style={{width:'100%',border:'none',outline:'none',fontSize:16,resize:'none',fontFamily:"'Raleway',sans-serif",color:'#0a0a0a',boxSizing:'border-box'}}/>
+                style={{width:'100%',border:'none',outline:'none',fontSize:16,resize:'none',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",color:'#0a0a0a',boxSizing:'border-box'}}/>
               <button onClick={handleAsk} disabled={!askQ.trim()||askLoading}
-                style={{width:'100%',padding:'12px',borderRadius:10,border:'none',background:'#cb1c6b',color:'#fff',fontSize:15,fontWeight:700,cursor:askLoading||!askQ.trim()?'not-allowed':'pointer',opacity:askLoading||!askQ.trim()?0.6:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginTop:10}}>
+                style={{width:'100%',padding:'12px',borderRadius:10,border:'none',background:'#cb1c6b',color:'#fff',fontSize:15,fontWeight:700,cursor:askLoading||!askQ.trim()?'not-allowed':'pointer',opacity:askLoading||!askQ.trim()?0.6:1,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",marginTop:10}}>
                 {askLoading?'Thinking…':'Ask AI'}
               </button>
             </div>
             {askAnswer && (
               <div style={{background:'#fff',borderRadius:14,border:'1px solid #00C2CB',padding:'14px'}}>
-                <div style={{fontSize:11,fontWeight:700,color:'#00C2CB',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>AI Answer</div>
-                <p style={{fontSize:15,color:'#0a0a0a',lineHeight:1.65,margin:0,fontFamily:"'Raleway',sans-serif"}}>{askAnswer}</p>
+                <div style={{fontSize:11,fontWeight:700,color:'#00C2CB',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>AI Answer</div>
+                <p style={{fontSize:15,color:'#0a0a0a',lineHeight:1.65,margin:0,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>{askAnswer}</p>
               </div>
             )}
           </div>
@@ -583,7 +583,7 @@ export default function QAKnowledgePage() {
                     left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,background:e.is_verified?'#16a34a':'#d0d0cc'}}/>}
                     title={e.question||e.subject_pattern||'Entry'}
                     subtitle={e.answer_short||e.resolution||''}
-                    badge={e.is_verified?<span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'1px 6px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>✓</span>:null}/>
+                    badge={e.is_verified?<span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'1px 6px',borderRadius:20,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>✓</span>:null}/>
                 ))}
               </MobileCard>
             )}

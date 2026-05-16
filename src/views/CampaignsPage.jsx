@@ -83,7 +83,7 @@ export default function CampaignsPage() {
                 left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,marginTop:4,background:stsColor(cam.status)}}/>}
                 title={cam.name||'Untitled'}
                 subtitle={[cam.type||'Email', cam.list_name].filter(Boolean).join(' · ')}
-                badge={<span style={{fontSize:10,fontWeight:800,padding:'2px 7px',borderRadius:20,background:stsColor(cam.status)+'15',color:stsColor(cam.status),fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0,textTransform:'capitalize'}}>{cam.status||'draft'}</span>}/>
+                badge={<span style={{fontSize:10,fontWeight:800,padding:'2px 7px',borderRadius:20,background:stsColor(cam.status)+'15',color:stsColor(cam.status),fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",flexShrink:0,textTransform:'capitalize'}}>{cam.status||'draft'}</span>}/>
             ))}
           </MobileCard>
         )}

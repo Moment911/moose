@@ -10,7 +10,7 @@ const R = '#cb1c6b'
 const BLK = '#111'
 const MUTED = '#6b7280'
 const BORDER = '#e5e7eb'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 function timeAgo(date) {
   if (!date) return ''

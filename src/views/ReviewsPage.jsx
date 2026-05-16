@@ -760,7 +760,7 @@ export default function ReviewsPage() {
         {clients.length>0 && (
           <div style={{padding:'10px 16px'}}>
             <select value={selectedClient?.id||''} onChange={e=>{const cl=clients.find(c=>c.id===e.target.value);if(cl)setSelectedClient(cl)}}
-              style={{width:'100%',padding:'11px 13px',borderRadius:11,border:'1px solid #ececea',fontSize:16,color:'#0a0a0a',background:'#fff',fontFamily:"'Raleway',sans-serif"}}>
+              style={{width:'100%',padding:'11px 13px',borderRadius:11,border:'1px solid #ececea',fontSize:16,color:'#0a0a0a',background:'#fff',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>
               <option value="">Select a client…</option>
               {clients.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}
             </select>
@@ -775,8 +775,8 @@ export default function ReviewsPage() {
           <div style={{ padding:'12px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <div style={{ width:26, height:26, borderRadius:7, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13 }}>🔵</div>
-              <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:14, fontWeight:800, color:'#111' }}>Google Reviews</span>
-              {googleStats && <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fdf4', color:'#16a34a', fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>★{googleStats.rating} · {googleStats.total} total</span>}
+              <span style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:14, fontWeight:800, color:'#111' }}>Google Reviews</span>
+              {googleStats && <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fdf4', color:'#16a34a', fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>★{googleStats.rating} · {googleStats.total} total</span>}
             </div>
             <div style={{ display:'flex', gap:6 }}>
               <button onClick={()=>setGoogleTab('search')}
@@ -909,7 +909,7 @@ export default function ReviewsPage() {
         <div style={{display:'flex',gap:6,padding:'0 16px 10px',overflowX:'auto',scrollbarWidth:'none'}}>
           {[0,...starArr].map(s=>(
             <button key={s} onClick={()=>setFilterStars(s)}
-              style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:`1px solid ${filterStars===s?'#cb1c6b':'#ececea'}`,background:filterStars===s?'#cb1c6b':'#fff',color:filterStars===s?'#fff':'#5a5a58',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+              style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:`1px solid ${filterStars===s?'#cb1c6b':'#ececea'}`,background:filterStars===s?'#cb1c6b':'#fff',color:filterStars===s?'#fff':'#5a5a58',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>
               {s===0?'All':'★'.repeat(s)}
             </button>
           ))}
@@ -930,19 +930,19 @@ export default function ReviewsPage() {
                 <div key={r.id} style={{background:'#fff',borderRadius:14,border:`1px solid ${isNeg?'#fecaca':'#ececea'}`,padding:'14px',borderLeft:`3px solid ${isNeg?'#cb1c6b':'#16a34a'}`}}>
                   <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:6}}>
                     <div>
-                      <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{r.reviewer_name||'Anonymous'}</div>
+                      <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{r.reviewer_name||'Anonymous'}</div>
                       <div style={{fontSize:13,color:'#f59e0b',letterSpacing:1}}>{stars}</div>
                     </div>
                     <span style={{fontSize:12,color:'#6b7280',flexShrink:0}}>{r.platform}</span>
                   </div>
-                  {r.review_text && <p style={{fontSize:14,color:'#5a5a58',margin:'0 0 8px',lineHeight:1.55,fontFamily:"'Raleway',sans-serif"}}>{r.review_text}</p>}
+                  {r.review_text && <p style={{fontSize:14,color:'#5a5a58',margin:'0 0 8px',lineHeight:1.55,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>{r.review_text}</p>}
                   {r.response_text ? (
                     <div style={{background:'#f8f8f6',borderRadius:9,padding:'10px 12px',borderLeft:'2px solid #00C2CB'}}>
-                      <div style={{fontSize:12,fontWeight:700,color:'#00C2CB',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginBottom:4}}>YOUR RESPONSE</div>
+                      <div style={{fontSize:12,fontWeight:700,color:'#00C2CB',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",marginBottom:4}}>YOUR RESPONSE</div>
                       <p style={{fontSize:13,color:'#5a5a58',margin:0,lineHeight:1.5}}>{r.response_text}</p>
                     </div>
                   ) : isNeg && (
-                    <button style={{width:'100%',padding:'9px',borderRadius:9,border:'1px solid #cb1c6b',background:'transparent',color:'#cb1c6b',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                    <button style={{width:'100%',padding:'9px',borderRadius:9,border:'1px solid #cb1c6b',background:'transparent',color:'#cb1c6b',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>
                       Generate AI Response
                     </button>
                   )}

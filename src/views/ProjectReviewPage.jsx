@@ -241,7 +241,7 @@ export default function ProjectReviewPage() {
   const brandName = project?.brand_name || 'Koto'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
       {/* Header — matches the per-file PublicReviewPage chrome:
           [brand mark] [KOTO / project name] ··· [reviewing as …] */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 24px' }}>

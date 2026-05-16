@@ -5570,8 +5570,8 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
 
   const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
   const GRN = '#16a34a', AMB = '#f59e0b', R = '#cb1c6b', T = '#00C2CB', BLK = '#111111'
-  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-  const FB = "'Raleway','Helvetica Neue',sans-serif"
+  const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+  const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
   return (
     <>
@@ -5773,7 +5773,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
   const [activeReport, setActiveReport] = useState(null)
   const kws = keywords || []
   const GRN = '#16a34a', AMB = '#f59e0b', R = '#cb1c6b', T = '#00C2CB', BLK = '#111111'
-  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+  const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
   // Pre-compute report data from keywords
   const ranked = kws.filter(k => k.sc_position || k.position)
@@ -6067,8 +6067,8 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
   const [history, setHistory] = useState([])
 
   const GRN = '#16a34a', AMB = '#f59e0b', R = '#cb1c6b', T = '#00C2CB', BLK = '#111111'
-  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-  const FB = "'Raleway','Helvetica Neue',sans-serif"
+  const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+  const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
   const card = { background: '#fff', borderRadius: 14, border: '1px solid #ececef', padding: '20px 24px', marginBottom: 16 }
 
   const buildUrl = () => {

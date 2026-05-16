@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const BAR_HEIGHT = 36
 
 export default function ImpersonationBar() {

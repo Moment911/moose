@@ -24,7 +24,7 @@ import AIThinkingBox from '../../components/AIThinkingBox'
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    DESIGN SYSTEM — Apple-grade enterprise design language
-   Brand: #cb1c6b (accent), #00C2CB (teal), Proxima Nova / Raleway
+   Brand: #cb1c6b (accent), #0d9e6e (teal), Bebas Neue / DM Sans (per DESIGN.md)
    ═══════════════════════════════════════════════════════════════════════════════ */
 import { R as ACCENT, T as TEAL, FH, FB } from '../../lib/theme'
 

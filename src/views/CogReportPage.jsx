@@ -450,7 +450,7 @@ export default function CogReportPage() {
   const byService = data?.by_service || []
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f9f9f9', fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f9f9f9', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
       <Sidebar />
       <div style={{ flex: 1, padding: 32, maxWidth: 1400 }}>
 

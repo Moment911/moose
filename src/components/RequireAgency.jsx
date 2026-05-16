@@ -67,7 +67,7 @@ function AgencyPicker({ onSelect }) {
             <div style={{ width: 56, height: 56, borderRadius: 16, background: '#cb1c6b15', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Building2 size={28} color="#cb1c6b" />
             </div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#111', margin: '0 0 8px', fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif" }}>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#111', margin: '0 0 8px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
               Select an Agency
             </h1>
             <p style={{ fontSize: 15, color: '#6b7280', margin: 0 }}>

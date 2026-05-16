@@ -496,7 +496,7 @@ export default function TestDataPage() {
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '10px 18px', borderRadius: 10,
                 background: '#fff', border: `1px solid ${C.border}`,
-                fontFamily: "'Proxima Nova',sans-serif", fontWeight: 700, fontSize: 14,
+                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                 color: C.mutedDark, cursor: 'pointer',
               }}
             >

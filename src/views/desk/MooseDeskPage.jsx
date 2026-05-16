@@ -337,7 +337,7 @@ export default function KotoDeskPage() {
         {showNew && (
           <div style={{margin:'12px 16px',background:'#fff',borderRadius:14,border:'2px solid #cb1c6b',padding:'16px'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-              <span style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>New Ticket</span>
+              <span style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>New Ticket</span>
               <button onClick={()=>setShowNew(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#9a9a96'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
@@ -350,7 +350,7 @@ export default function KotoDeskPage() {
                   if(!subj){toast.error('Subject required');return}
                   const {data:ticket}=await supabase.from('desk_tickets').insert({agency_id:aid,subject:subj,description:desc||'',status:'new',priority:'normal',category:'general',ticket_number:'TK-'+Date.now().toString().slice(-6)}).select().single()
                   if(ticket){toast.success('Ticket created');setShowNew(false);load()}
-                }} style={{flex:1,padding:'12px',borderRadius:11,border:'none',background:'#cb1c6b',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Submit</button>
+                }} style={{flex:1,padding:'12px',borderRadius:11,border:'none',background:'#cb1c6b',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>Submit</button>
                 <button onClick={()=>setShowNew(false)} style={{flex:1,padding:'12px',borderRadius:11,border:'1px solid #ececea',background:'transparent',color:'#0a0a0a',fontSize:15,fontWeight:600,cursor:'pointer'}}>Cancel</button>
               </div>
             </div>
@@ -371,7 +371,7 @@ export default function KotoDeskPage() {
                 left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,marginTop:4,background:priColor(t.priority)}}/>}
                 title={t.subject}
                 subtitle={[t.status?.replace('_',' '), t.submitter_name, t.ai_category].filter(Boolean).join(' · ')}
-                badge={t.status==='new'?<span style={{fontSize:12,fontWeight:800,padding:'2px 7px',borderRadius:20,background:'#fef2f2',color:'#cb1c6b',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>NEW</span>:null}/>
+                badge={t.status==='new'?<span style={{fontSize:12,fontWeight:800,padding:'2px 7px',borderRadius:20,background:'#fef2f2',color:'#cb1c6b',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",flexShrink:0}}>NEW</span>:null}/>
             ))}
           </MobileCard>
         )}

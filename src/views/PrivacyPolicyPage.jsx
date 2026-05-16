@@ -10,9 +10,9 @@ const ADDR  = 'Boca Raton, Florida, United States'
 const EMAIL = 'privacy@hellokoto.com'
 const DATE  = 'April 29, 2026'
 const RED   = '#cb1c6b'
-const BLK = '#111111'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Georgia',serif"
+const BLK = '#201b51'
+const FH    = "'Bebas Neue', 'Arial Narrow', sans-serif"
+const FB    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 function H1({ children }) {
   return <h1 style={{ fontSize:36, fontWeight:900, color:BLK, margin:'0 0 8px', fontFamily:FH, letterSpacing:'-.03em' }}>{children}</h1>

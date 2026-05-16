@@ -260,7 +260,7 @@ export default function DeskReportsPage() {
                 borderBottom:`2.5px solid ${range===r.key?'#cb1c6b':'transparent'}`,
                 background:'transparent',color:range===r.key?'#cb1c6b':'#9a9a96',
                 fontSize:14,fontWeight:range===r.key?700:500,cursor:'pointer',
-                fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>
               {r.label}
             </button>
           ))}
@@ -279,14 +279,14 @@ export default function DeskReportsPage() {
           <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
             {/* Category breakdown */}
             <MobileCard style={{padding:'14px'}}>
-              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:12}}>By Category</div>
+              <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:12}}>By Category</div>
               {Object.entries(t.reduce((acc,tk)=>{acc[tk.category||'general']=(acc[tk.category||'general']||0)+1;return acc},{})).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([cat,cnt])=>(
                 <div key={cat} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
-                  <div style={{fontSize:13,color:'#5a5a58',flex:1,fontFamily:"'Raleway',sans-serif",textTransform:'capitalize'}}>{cat}</div>
+                  <div style={{fontSize:13,color:'#5a5a58',flex:1,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",textTransform:'capitalize'}}>{cat}</div>
                   <div style={{height:6,flex:2,background:'#F9F9F9',borderRadius:3,overflow:'hidden'}}>
                     <div style={{height:'100%',width:`${Math.round(cnt/t.length*100)}%`,background:'#cb1c6b',borderRadius:3}}/>
                   </div>
-                  <div style={{fontSize:13,fontWeight:700,color:'#0a0a0a',minWidth:24,textAlign:'right',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{cnt}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#0a0a0a',minWidth:24,textAlign:'right',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>{cnt}</div>
                 </div>
               ))}
             </MobileCard>
@@ -294,17 +294,17 @@ export default function DeskReportsPage() {
             {/* Agent table */}
             {agents.length>0 && (
               <MobileCard style={{padding:'14px'}}>
-                <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:12}}>Agent Effort</div>
+                <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:12}}>Agent Effort</div>
                 {agents.map(ag=>{
                   const agT=t.filter(x=>x.assigned_agent_id===ag.id)
                   return (
                     <div key={ag.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #f2f2f0'}}>
                       <div>
-                        <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{ag.name}</div>
+                        <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{ag.name}</div>
                         <div style={{fontSize:12,color:'#9a9a96'}}>{ag.role}</div>
                       </div>
                       <div style={{textAlign:'right'}}>
-                        <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>{agT.length}</div>
+                        <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>{agT.length}</div>
                         <div style={{fontSize:11,color:'#9a9a96'}}>tickets</div>
                       </div>
                     </div>

@@ -2646,7 +2646,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
       padding: '16px 20px',
       marginBottom: 16,
     }}>
-      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4, fontFamily: "'Proxima Nova',sans-serif" }}>
+      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
         📞 Voice Onboarding
       </div>
       <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>
@@ -2818,7 +2818,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
                 fontSize: 12,
                 fontWeight: 700,
                 cursor: 'pointer',
-                fontFamily: "'Proxima Nova',sans-serif",
+                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
               }}>
               📧 Email missing fields to someone
             </button>

@@ -458,7 +458,7 @@ function SaveStatusBadge({ status }) {
         background: palette.bg, color: palette.fg,
         border: `1px solid ${palette.border}`,
         boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-        fontFamily: "'Proxima Nova','Nunito Sans',sans-serif",
+        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
       }}
     >
       {palette.label}
@@ -2234,7 +2234,7 @@ export default function OnboardingPage() {
               {agencyInfo?.logo_url && (
                 <img src={agencyInfo.logo_url} alt={agencyInfo.brand_name || agencyInfo.name} style={{ height: 40, maxWidth: 180, objectFit: 'contain' }} />
               )}
-              <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: "'Proxima Nova', sans-serif" }}>Powered by <strong style={{ color: '#00C2CB' }}>Koto</strong></span>
+              <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>Powered by <strong style={{ color: '#00C2CB' }}>Koto</strong></span>
             </div>
           </div>
           {tokenData?.clients?.logo_url && (
@@ -2331,7 +2331,7 @@ export default function OnboardingPage() {
             padding: '28px 32px',
             marginBottom: 32,
           }}>
-            <div style={{ fontSize: 22, fontWeight: 900, color: '#111', marginBottom: 8, fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif" }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#111', marginBottom: 8, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
               Welcome! Tell us about your business in your own words.
             </div>
             <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.7, marginBottom: 20 }}>
@@ -2348,7 +2348,7 @@ export default function OnboardingPage() {
                 borderRadius: 10,
                 border: `1.5px solid ${ACCENT}60`,
                 fontSize: 14,
-                fontFamily: "'Raleway','Helvetica Neue',sans-serif",
+                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
                 lineHeight: 1.7,
                 resize: 'vertical',
                 boxSizing: 'border-box',
@@ -2460,7 +2460,7 @@ export default function OnboardingPage() {
           }}>
             <div style={{
               fontWeight: 800, fontSize: 16, color: '#111',
-              marginBottom: 6, fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",
+              marginBottom: 6, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
             }}>
               Questions tailored to your business
             </div>
@@ -2489,7 +2489,7 @@ export default function OnboardingPage() {
                       width: '100%', padding: '10px 14px', borderRadius: 8,
                       border: '1px solid #e5e7eb', fontSize: 14, resize: 'vertical',
                       boxSizing: 'border-box',
-                      fontFamily: "'Raleway','Helvetica Neue',sans-serif",
+                      fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
                       outline: 'none',
                     }}
                   />

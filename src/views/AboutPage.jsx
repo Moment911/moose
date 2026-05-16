@@ -22,8 +22,8 @@ const W      = '#ffffff'
 const GRN    = '#16a34a'
 const AMB    = '#f59e0b'
 
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const GLOBAL_CSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

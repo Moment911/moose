@@ -301,7 +301,7 @@ export default function ClientsPage() {
         <div style={{ background: '#ffffff', padding:'16px 16px 14px' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
-              <h1 style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em' }}>
+              <h1 style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em' }}>
                 {isSuperAdmin && !isImpersonating ? 'All Clients' : 'Clients'}
               </h1>
               <p style={{ fontSize:13, color: '#9ca3af', margin:'2px 0 0' }}>
@@ -326,7 +326,7 @@ export default function ClientsPage() {
                 borderBottom:`2.5px solid ${statusFilter===s?'#cb1c6b':'transparent'}`,
                 background:'transparent', color:statusFilter===s?'#cb1c6b':'#9ca3af',
                 fontSize:14, fontWeight:statusFilter===s?700:500, cursor:'pointer',
-                fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", whiteSpace:'nowrap' }}>
+                fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", whiteSpace:'nowrap' }}>
               {s.charAt(0).toUpperCase()+s.slice(1)}
             </button>
           ))}
@@ -336,7 +336,7 @@ export default function ClientsPage() {
         {showAdd && (
           <div style={{ margin:'12px 16px', background:'#fff', borderRadius:14, border:'2px solid #cb1c6b', padding:'16px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-              <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:16, fontWeight:800, color:'#111' }}>
+              <span style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:16, fontWeight:800, color:'#111' }}>
                 {editingId ? 'Edit Client' : 'New Client'}
               </span>
               <button onClick={()=>{setShowAdd(false);setEditingId(null)}} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}>
@@ -345,14 +345,14 @@ export default function ClientsPage() {
             </div>
             {[{label:'Name *',key:'name',type:'text',placeholder:'Apex Dental'},{label:'Email',key:'email',type:'email',placeholder:'info@client.com'},{label:'Phone',key:'phone',type:'tel',placeholder:'(305) 555-0100'},{label:'Website',key:'website',type:'url',placeholder:'https://client.com'}].map(f=>(
               <div key={f.key} style={{ marginBottom:10 }}>
-                <label style={{ fontSize:13, fontWeight:700, color:'#111', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>{f.label}</label>
+                <label style={{ fontSize:13, fontWeight:700, color:'#111', display:'block', marginBottom:4, fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={e=>setF(f.key,e.target.value)} placeholder={f.placeholder}
                   style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #e5e7eb', fontSize:16, outline:'none', color:'#111', boxSizing:'border-box' }}
                   onFocus={e=>e.target.style.borderColor='#cb1c6b'} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
               </div>
             ))}
             <div style={{ marginBottom:12 }}>
-              <label style={{ fontSize:13, fontWeight:700, color:'#111', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>Status</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#111', display:'block', marginBottom:4, fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>Status</label>
               <select value={form.status} onChange={e=>setF('status',e.target.value)}
                 style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #e5e7eb', fontSize:16, color:'#111', background:'#fff' }}>
                 <option value="active">Active</option><option value="prospect">Prospect</option>
@@ -383,12 +383,12 @@ export default function ClientsPage() {
                   borderBottom={i<filtered.length-1}
                   left={<div style={{ width:38, height:38, borderRadius:10, background:cfg.bg, flexShrink:0,
                     display:'flex', alignItems:'center', justifyContent:'center',
-                    fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:15, fontWeight:800, color:cfg.color }}>
+                    fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:15, fontWeight:800, color:cfg.color }}>
                     {cl.name[0].toUpperCase()}
                   </div>}
                   title={cl.name}
                   subtitle={[cl.industry, cl.phone].filter(Boolean).join(' · ')}
-                  badge={<span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:cfg.bg, color:cfg.color, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", flexShrink:0 }}>{cl.status||'active'}</span>}/>
+                  badge={<span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:cfg.bg, color:cfg.color, fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", flexShrink:0 }}>{cl.status||'active'}</span>}/>
               )
             })}
           </MobileCard>

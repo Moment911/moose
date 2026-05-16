@@ -9,8 +9,8 @@ const KC = {
   text: '#111111', secondary: '#555555', tertiary: '#999999',
   border: 'rgba(0,0,0,0.08)', borderMd: 'rgba(0,0,0,0.13)',
   bg: '#F7F7F6', white: '#ffffff',
-  fd: "'Proxima Nova', 'Instrument Sans', sans-serif",
-  fb: "'Raleway', 'DM Sans', sans-serif",
+  fd: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+  fb: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
 }
 
 const PAGE_TITLES: Record<string, string> = {

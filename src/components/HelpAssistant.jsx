@@ -12,8 +12,8 @@ const BLK = '#111'
 const BG = '#F7F7F6'
 const BORDER = '#e5e7eb'
 const MUTED = '#6b7280'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const STARTER_CHIPS = [
   "How do I create a discovery engagement?",

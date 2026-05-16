@@ -18,8 +18,8 @@ export const KC = {
     amberTint: '#fffbeb',
   },
   fonts: {
-    display: "'Instrument Sans', 'Proxima Nova', sans-serif",
-    body: "'DM Sans', 'Raleway', sans-serif",
+    display: "'Instrument Sans', 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+    body: "'DM Sans', 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
     mono: "'SF Mono', 'Fira Code', monospace",
   },
   radius: { sm: '6px', md: '10px', lg: '14px' },

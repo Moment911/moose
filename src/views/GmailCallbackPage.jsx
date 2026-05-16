@@ -58,7 +58,7 @@ export default function GmailCallbackPage() {
     <div style={{
       minHeight: '100vh', background: BG,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: "'Raleway','Helvetica Neue',sans-serif", color: BLK, padding: 24,
+      fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK, padding: 24,
     }}>
       <div style={{
         background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb',
@@ -77,7 +77,7 @@ export default function GmailCallbackPage() {
         </div>
 
         <div style={{
-          fontFamily: "'Proxima Nova','Nunito Sans',sans-serif",
+          fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
           fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 6,
         }}>
           {status === 'success' ? 'Gmail connected!' :
@@ -106,7 +106,7 @@ export default function GmailCallbackPage() {
             style={{
               marginTop: 20, padding: '10px 20px', borderRadius: 10,
               background: BLK, color: '#fff', border: 'none',
-              fontFamily: "'Proxima Nova',sans-serif", fontWeight: 700, fontSize: 14,
+              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
               cursor: 'pointer',
             }}
           >

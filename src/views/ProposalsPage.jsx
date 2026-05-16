@@ -182,7 +182,7 @@ export default function ProposalsPage() {
                 borderBottom:`2.5px solid ${mobileStatus===s?'#cb1c6b':'transparent'}`,
                 background:'transparent',color:mobileStatus===s?'#cb1c6b':'#9a9a96',
                 fontSize:14,fontWeight:mobileStatus===s?700:500,cursor:'pointer',
-                fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",whiteSpace:'nowrap'}}>
+                fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",whiteSpace:'nowrap'}}>
               {s.charAt(0).toUpperCase()+s.slice(1)}
             </button>
           ))}
@@ -210,7 +210,7 @@ export default function ProposalsPage() {
                   </div>}
                   title={p.title||'Untitled'}
                   subtitle={[p.client_name, p.total_value?`$${Number(p.total_value).toLocaleString()}`:null].filter(Boolean).join(' · ')}
-                  badge={<span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:stsBg,color:stsColor,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0,textTransform:'capitalize'}}>{sts||'draft'}</span>}/>
+                  badge={<span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:stsBg,color:stsColor,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",flexShrink:0,textTransform:'capitalize'}}>{sts||'draft'}</span>}/>
               )
             })}
           </MobileCard>

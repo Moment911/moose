@@ -64,7 +64,7 @@ export default function RealTimeCostMeter() {
       gap: 10,
       boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
       border: '1px solid rgba(255,255,255,0.08)',
-      fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",
+      fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
       fontSize: 13,
       cursor: 'pointer',
       transition: 'transform .15s',

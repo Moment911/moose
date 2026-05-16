@@ -16,8 +16,8 @@ const C = {
   teal: '#00C2CB',
   tealSoft: '#E6FCFD',
 }
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function EmailTrackingGmailHelperPage() {
   const { agencyId } = useAuth()

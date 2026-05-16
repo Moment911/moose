@@ -15,8 +15,8 @@ const TEAL_DARK = '#0099A8'
 const BLK = '#111'
 const MUTED = '#6b7280'
 const BORDER = '#e5e7eb'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const DEFAULT_AGENCY_EMAIL = 'access@momentamarketing.com'
 const DEFAULT_AGENCY_NAME = 'Momenta Marketing'

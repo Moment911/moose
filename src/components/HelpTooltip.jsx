@@ -108,7 +108,7 @@ function tooltipStyle(position) {
     background: '#111', color: '#fff',
     padding: '10px 12px', borderRadius: 8,
     maxWidth: 280, width: 260,
-    fontFamily: "'Raleway','Helvetica Neue',sans-serif",
+    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
     boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
     zIndex: 450,
   }

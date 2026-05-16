@@ -146,7 +146,7 @@ export default function ContactsPage() {
               <MobileRow key={ct.id}
                 onClick={()=>navigate(`/contacts/${ct.id}`)}
                 borderBottom={i<fContacts.length-1}
-                left={<div style={{width:38,height:38,borderRadius:'50%',background:'#cb1c6b'+'20',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:15,fontWeight:800,color:'#cb1c6b'}}>
+                left={<div style={{width:38,height:38,borderRadius:'50%',background:'#cb1c6b'+'20',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:15,fontWeight:800,color:'#cb1c6b'}}>
                   {(ct.name||ct.email||'?')[0].toUpperCase()}
                 </div>}
                 title={ct.name||ct.email||'Contact'}

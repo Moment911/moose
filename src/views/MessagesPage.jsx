@@ -132,7 +132,7 @@ export default function MessagesPage() {
             <button onClick={()=>setMView('list')} style={{background:'none',border:'none',cursor:'pointer',color:'#cb1c6b',padding:'4px 0',display:'flex',alignItems:'center',gap:4,WebkitTapHighlightColor:'transparent'}}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
-            <div style={{flex:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+            <div style={{flex:1,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:16,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
               {selectedConvo.title||selectedConvo.client_name||'Conversation'}
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function MessagesPage() {
             {(messages||[]).map(m=>(
               <div key={m.id} style={{display:'flex',flexDirection:'column',alignItems:m.is_agent?'flex-end':'flex-start'}}>
                 <div style={{maxWidth:'82%',background:m.is_agent?'#cb1c6b':'#fff',borderRadius:m.is_agent?'14px 14px 4px 14px':'14px 14px 14px 4px',padding:'10px 13px',border:m.is_agent?'none':'1px solid #ececea'}}>
-                  <p style={{fontSize:15,color:m.is_agent?'#fff':'#0a0a0a',margin:0,lineHeight:1.55,fontFamily:"'Raleway',sans-serif"}}>{m.body||m.content}</p>
+                  <p style={{fontSize:15,color:m.is_agent?'#fff':'#0a0a0a',margin:0,lineHeight:1.55,fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"}}>{m.body||m.content}</p>
                 </div>
                 <span style={{fontSize:11,color:'#9a9a96',marginTop:3,paddingLeft:4}}>{new Date(m.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</span>
               </div>
@@ -175,13 +175,13 @@ export default function MessagesPage() {
               <MobileRow key={cv.id}
                 onClick={()=>{setSelectedConvo(cv);setMView('thread')}}
                 borderBottom={i<arr.length-1}
-                left={<div style={{width:42,height:42,borderRadius:'50%',background:'#cb1c6b'+'20',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#cb1c6b'}}>
+                left={<div style={{width:42,height:42,borderRadius:'50%',background:'#cb1c6b'+'20',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:16,fontWeight:800,color:'#cb1c6b'}}>
                   {(cv.client_name||cv.title||'?')[0].toUpperCase()}
                 </div>}
                 title={cv.title||cv.client_name||'Conversation'}
                 subtitle={cv.last_message||cv.preview||''}
                 badge={cv.unread_count>0
-                  ? <span style={{width:20,height:20,borderRadius:'50%',background:'#cb1c6b',color:'#fff',fontSize:11,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>{cv.unread_count}</span>
+                  ? <span style={{width:20,height:20,borderRadius:'50%',background:'#cb1c6b',color:'#fff',fontSize:11,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",flexShrink:0}}>{cv.unread_count}</span>
                   : null}/>
             ))}
           </MobileCard>

@@ -13,8 +13,8 @@ const TEAL  = '#00C2CB'
 const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
+const FH    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const PLAN_CFG = {
   starter:    { color:TEAL,   bg:TEAL+'15',   price:297  },
@@ -838,13 +838,13 @@ export default function KotoSuperAdminPage() {
               {/* Pending requests */}
               {mpRequests.length > 0 && (
                 <div style={{ background:'#fffbeb', borderRadius:14, border:'1px solid #fde68a', padding:'16px 20px', marginBottom:20 }}>
-                  <div style={{ fontFamily:"'Proxima Nova',sans-serif", fontSize:14, fontWeight:800, color:'#92400e', marginBottom:12 }}>
+                  <div style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:14, fontWeight:800, color:'#92400e', marginBottom:12 }}>
                     ⏳ Pending Add-On Requests ({mpRequests.length})
                   </div>
                   {mpRequests.map(req => (
                     <div key={req.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:'1px solid #fde68a' }}>
                       <div style={{ flex:1 }}>
-                        <div style={{ fontFamily:"'Proxima Nova',sans-serif", fontSize:13, fontWeight:700, color:'#111' }}>
+                        <div style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:13, fontWeight:700, color:'#111' }}>
                           {req.agencies?.name} → {req.addon_key.replace(/_/g,' ')}
                         </div>
                         {req.message && <div style={{ fontSize:12, color:'#6b7280' }}>{req.message}</div>}
@@ -856,7 +856,7 @@ export default function KotoSuperAdminPage() {
                         setMpRequests(p=>p.filter(r=>r.id!==req.id))
                         toast.success('Approved ✓')
                       }}
-                        style={{ padding:'6px 14px', borderRadius:8, border:'none', background:'#16a34a', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'Proxima Nova',sans-serif" }}>
+                        style={{ padding:'6px 14px', borderRadius:8, border:'none', background:'#16a34a', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
                         Approve
                       </button>
                       <button onClick={async()=>{
@@ -872,7 +872,7 @@ export default function KotoSuperAdminPage() {
 
               {/* Per-agency add-on matrix */}
               <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
-                <div style={{ padding:'14px 18px', borderBottom:'1px solid #f3f4f6', fontFamily:"'Proxima Nova',sans-serif", fontSize:14, fontWeight:800, color:'#0a0a0a', display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ padding:'14px 18px', borderBottom:'1px solid #f3f4f6', fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:14, fontWeight:800, color:'#0a0a0a', display:'flex', alignItems:'center', gap:8 }}>
                   Agency Add-On Control Panel
                   <span style={{ fontSize:11, color:'#9ca3af', fontWeight:400 }}>Toggle features per agency</span>
                 </div>
@@ -880,9 +880,9 @@ export default function KotoSuperAdminPage() {
                   <table style={{ width:'100%', borderCollapse:'collapse' }}>
                     <thead>
                       <tr style={{ background:'#f9fafb' }}>
-                        <th style={{ padding:'10px 16px', textAlign:'left', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:"'Proxima Nova',sans-serif", whiteSpace:'nowrap' }}>Agency</th>
+                        <th style={{ padding:'10px 16px', textAlign:'left', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", whiteSpace:'nowrap' }}>Agency</th>
                         {['review_campaigns','scout_pipeline','autonomous_agent','client_portal','rank_tracker','performance_ai','api_access'].map(key => (
-                          <th key={key} style={{ padding:'10px 8px', textAlign:'center', fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:"'Proxima Nova',sans-serif", whiteSpace:'nowrap' }}>
+                          <th key={key} style={{ padding:'10px 8px', textAlign:'center', fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", whiteSpace:'nowrap' }}>
                             {key.replace(/_/g,' ')}
                           </th>
                         ))}
@@ -892,7 +892,7 @@ export default function KotoSuperAdminPage() {
                       {mpAgencies.slice(0,20).map(ag => (
                         <tr key={ag.id} style={{ borderBottom:'1px solid #f9fafb' }}>
                           <td style={{ padding:'10px 16px' }}>
-                            <div style={{ fontFamily:"'Proxima Nova',sans-serif", fontSize:13, fontWeight:700, color:'#111' }}>{ag.brand_name||ag.name}</div>
+                            <div style={{ fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize:13, fontWeight:700, color:'#111' }}>{ag.brand_name||ag.name}</div>
                             <div style={{ fontSize:11, color:'#9ca3af', textTransform:'capitalize' }}>{ag.plan}</div>
                           </td>
                           {['review_campaigns','scout_pipeline','autonomous_agent','client_portal','rank_tracker','performance_ai','api_access'].map(key => {

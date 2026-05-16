@@ -15,8 +15,8 @@ const T = '#00C2CB'
 const BLK = '#111111'
 const GRY = '#F9F9F9'
 const GRN = '#16a34a'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const confettiColors = [
   R, T, GRN, '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4',

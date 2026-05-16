@@ -469,7 +469,7 @@ export default function ProposalBuilderPage() {
         <div style={{padding:'24px 16px'}}>
           <MobileCard style={{padding:'20px',textAlign:'center'}}>
             <div style={{fontSize:32,marginBottom:12}}>💻</div>
-            <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a',marginBottom:8}}>
+            <div style={{fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a',marginBottom:8}}>
               Best on Desktop
             </div>
             <p style={{fontSize:14,color:'#6b7280',marginBottom:16,lineHeight:1.6}}>

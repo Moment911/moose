@@ -11,8 +11,8 @@ const RED   = '#cb1c6b'
 const BLACK = '#0a0a0a'
 const WHITE = '#ffffff'
 const GRAY  = '#6b7280'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+const FH = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const FB = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const CSS = `
   .svc-fade { opacity: 0; transform: translateY(32px); transition: opacity .65s ease, transform .65s ease; }
