@@ -15,7 +15,7 @@
 
 import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getUnifiedEventsFeed } from './unifiedEventsEngine'
+import { getUnifiedEventsFeed, type UnifiedEvent } from './unifiedEventsEngine'
 
 export type Cadence = 'initial' | 'daily' | 'weekly' | 'monthly'
 
@@ -270,8 +270,9 @@ async function autoDetectInitial(
       // Best-effort — table may not exist if WP module not installed; treat error as pending
       try {
         const { data } = await s.from('koto_wp_sites').select('id, connected').eq('client_id', client_id)
-        const connected = (data || []).filter((x: any) => x.connected).length
-        if (!data?.length) return { status: 'pending', detail: 'No WordPress site connected' }
+        const sites = (data || []) as Array<{ id: string; connected: boolean | null }>
+        const connected = sites.filter(x => x.connected).length
+        if (!sites.length) return { status: 'pending', detail: 'No WordPress site connected' }
         return connected ? { status: 'done', detail: `${connected} site(s) connected` } : { status: 'partial', detail: 'Saved but not verified' }
       } catch {
         return { status: 'pending', detail: 'No WordPress site connected' }
@@ -379,8 +380,8 @@ export async function getTodayAttention(
   s: SupabaseClient,
   body: { client_id: string; days?: number },
 ): Promise<{
-  high: any[]
-  medium: any[]
+  high: UnifiedEvent[]
+  medium: UnifiedEvent[]
   total: number
   by_source: Record<string, number>
 }> {
