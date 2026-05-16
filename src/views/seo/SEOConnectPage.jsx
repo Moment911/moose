@@ -236,32 +236,40 @@ export default function SEOConnectPage() {
       const { clientId, access_token, refresh_token, expires_in, scope } = tempTokens
       const expiresAt = new Date(Date.now() + (expires_in || 3600) * 1000).toISOString()
 
+      // Google omits refresh_token on re-consent if it already issued one
+      // recently — we must NOT overwrite the existing row's refresh_token
+      // with null in that case. Build a base record without refresh_token,
+      // then add it only when Google actually returned a new one. Also
+      // explicitly clear last_error / needs_reconnect on every successful
+      // save so the UI flips out of the error state.
+      const baseFields = {
+        access_token,
+        token_expires_at: expiresAt,
+        scope,
+        connected:        true,
+        needs_reconnect:  false,
+        last_error:       null,
+        last_error_at:    null,
+        updated_at:       new Date().toISOString(),
+      }
+      const withRefreshToken = (extra) => ({
+        ...baseFields,
+        ...(refresh_token ? { refresh_token } : {}),
+        ...extra,
+      })
+
       if (selectedGsc) {
-        await supabase.from('seo_connections').upsert({
-          client_id:       clientId,
-          provider:        'search_console',
-          access_token,
-          refresh_token:   refresh_token || null,
-          token_expires_at: expiresAt,
-          scope,
-          site_url:        selectedGsc,
-          connected:       true,
-          updated_at:      new Date().toISOString(),
-        }, { onConflict: 'client_id,provider' })
+        await supabase.from('seo_connections').upsert(
+          withRefreshToken({ client_id: clientId, provider: 'search_console', site_url: selectedGsc }),
+          { onConflict: 'client_id,provider' }
+        )
       }
 
       if (selectedGa4) {
-        await supabase.from('seo_connections').upsert({
-          client_id:       clientId,
-          provider:        'analytics',
-          access_token,
-          refresh_token:   refresh_token || null,
-          token_expires_at: expiresAt,
-          scope,
-          property_id:     selectedGa4,
-          connected:       true,
-          updated_at:      new Date().toISOString(),
-        }, { onConflict: 'client_id,provider' })
+        await supabase.from('seo_connections').upsert(
+          withRefreshToken({ client_id: clientId, provider: 'analytics', property_id: selectedGa4 }),
+          { onConflict: 'client_id,provider' }
+        )
       }
 
       // Track scopes Google actually granted (it can strip sensitive scopes
@@ -273,32 +281,18 @@ export default function SEOConnectPage() {
       if (!grantedGmb) strippedScopes.push('Google Business Profile')
       if (!grantedAds) strippedScopes.push('Google Ads')
 
-      // Auto-save GBP connection if the token has business.manage scope
       if (grantedGmb) {
-        await supabase.from('seo_connections').upsert({
-          client_id:       clientId,
-          provider:        'gmb',
-          access_token,
-          refresh_token:   refresh_token || null,
-          token_expires_at: expiresAt,
-          scope,
-          connected:       true,
-          updated_at:      new Date().toISOString(),
-        }, { onConflict: 'client_id,provider' })
+        await supabase.from('seo_connections').upsert(
+          withRefreshToken({ client_id: clientId, provider: 'gmb' }),
+          { onConflict: 'client_id,provider' }
+        )
       }
 
-      // Auto-save Google Ads connection if the token has adwords scope
       if (grantedAds) {
-        await supabase.from('seo_connections').upsert({
-          client_id:       clientId,
-          provider:        'ads',
-          access_token,
-          refresh_token:   refresh_token || null,
-          token_expires_at: expiresAt,
-          scope,
-          connected:       true,
-          updated_at:      new Date().toISOString(),
-        }, { onConflict: 'client_id,provider' })
+        await supabase.from('seo_connections').upsert(
+          withRefreshToken({ client_id: clientId, provider: 'ads' }),
+          { onConflict: 'client_id,provider' }
+        )
       }
 
       await loadConnections()
