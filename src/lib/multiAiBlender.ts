@@ -19,10 +19,10 @@ import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { logTokenUsage } from '@/lib/tokenTracker'
 
-const CLAUDE_ARM_MODEL = 'claude-sonnet-4-6-20250627'
+const CLAUDE_ARM_MODEL = 'claude-sonnet-4-6'
 const OPENAI_ARM_MODEL = 'gpt-4o'
 const GEMINI_ARM_MODEL = 'gemini-2.0-flash'
-const SYNTHESIS_MODEL  = 'claude-sonnet-4-6-20250627'
+const SYNTHESIS_MODEL  = 'claude-sonnet-4-6'
 
 const PROVIDER_TIMEOUT_MS  = 45_000
 const SYNTHESIS_TIMEOUT_MS = 15_000

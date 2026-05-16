@@ -59,7 +59,7 @@ interface TaskConfig {
 
 // ── Model constants ───────────────────────────────────────────
 
-const CLAUDE_MODEL = 'claude-sonnet-4-6-20250627'
+const CLAUDE_MODEL = 'claude-sonnet-4-6'
 const GPT4O_MODEL = 'gpt-4o'
 const GPT4O_MINI_MODEL = 'gpt-4o-mini'
 const GEMINI_FLASH_MODEL = 'gemini-2.5-flash'

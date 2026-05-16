@@ -2,7 +2,7 @@ import 'server-only'
 import Anthropic from '@anthropic-ai/sdk'
 import { logTokenUsage } from '@/lib/tokenTracker'
 
-const MODEL = 'claude-sonnet-4-6-20250627'
+const MODEL = 'claude-sonnet-4-6'
 const TIMEOUT_MS = 30_000
 const MAX_OUTPUT = 4000
 
