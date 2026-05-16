@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Brain, Send, Loader2, Plus, MessageSquare, Trash2, Sparkles,
   FileText, AlertCircle, ChevronRight, User, Wrench, CheckCircle2, XCircle,
-  ChevronDown, Zap, Compass,
+  ChevronDown,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -108,7 +108,11 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
   const [sending, setSending] = useState(false)
   const [convLoading, setConvLoading] = useState(false)
   // Atlas mode = tool-using agent. Quick mode = one-shot grounded answer.
-  const [mode, setMode] = useState('quick')
+  // Atlas Brain is the only mode now — the old "Quick" single-shot answerer
+  // (ask_kotoiq) is superseded by Atlas's tool-using loop, which can do
+  // everything Quick did plus chain audits/generators. ask_kotoiq stays
+  // alive at the API level for cron/programmatic callers.
+  const [mode] = useState('atlas')
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -346,47 +350,11 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
-              {mode === 'atlas' ? 'Atlas Brain' : 'Ask KotoIQ'}
+              Atlas Brain
             </div>
             <div style={{ fontSize: 11, color: '#6b6b70' }}>
-              {mode === 'atlas'
-                ? 'Tool-using agent — runs audits, fetches data, chains engines'
-                : 'Conversational intelligence across all client data'}
+              Tool-using agent — runs audits, fetches data, chains engines
             </div>
-          </div>
-
-          {/* Mode toggle ──────────────────────────────────────── */}
-          <div style={{ display: 'flex', background: GRY, borderRadius: 10, padding: 3, border: '1px solid #ececef' }}>
-            <button
-              onClick={() => setMode('quick')}
-              title="One-shot grounded answer from cached data — fast & cheap"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '6px 12px', borderRadius: 8, border: 'none',
-                background: mode === 'quick' ? '#fff' : 'transparent',
-                color: mode === 'quick' ? "#0a0a0a" : '#6b6b70',
-                fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                boxShadow: mode === 'quick' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-              }}
-            >
-              <Zap size={12} /> Quick
-            </button>
-            <button
-              onClick={() => setMode('atlas')}
-              title="Atlas agent — runs tools, audits, and generators; slower but more powerful"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '6px 12px', borderRadius: 8, border: 'none',
-                background: mode === 'atlas' ? '#fff' : 'transparent',
-                color: mode === 'atlas' ? "#0a0a0a" : '#6b6b70',
-                fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                boxShadow: mode === 'atlas' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-              }}
-            >
-              <Compass size={12} /> Atlas
-            </button>
           </div>
         </div>
 
