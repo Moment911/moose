@@ -71,7 +71,6 @@ const MAX_TOKENS = 4_096
 
 const PRICING: Record<string, { in: number; out: number }> = {
   [CLAUDE_MODEL]: { in: 3, out: 15 },
-  'claude-sonnet-4-6': { in: 3, out: 15 },
   [GPT4O_MODEL]: { in: 2.5, out: 10 },
   [GPT4O_MINI_MODEL]: { in: 0.15, out: 0.6 },
   [GEMINI_FLASH_MODEL]: { in: 0.30, out: 2.50 },
