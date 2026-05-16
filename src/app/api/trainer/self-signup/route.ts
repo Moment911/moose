@@ -73,6 +73,26 @@ function err(status: number, error: string, extra?: Record<string, unknown>) {
 // the current value gets routed back through /start/consent.
 const WAIVER_TEXT_VERSION = 1
 
+// Calorie floors per the legal compliance framework — non-negotiable.
+// The baseline prompt already enforces this at the model layer; this is the
+// server-side safety net that catches any drift below the floor.
+const CALORIE_FLOOR_FEMALE = 1200
+const CALORIE_FLOOR_MALE = 1500
+
+function clampBaselineFloor(b: BaselineOutput, sex: string | null): BaselineOutput {
+  const s = (sex || '').toLowerCase()
+  const floor = s === 'female' || s === 'f' ? CALORIE_FLOOR_FEMALE : CALORIE_FLOOR_MALE
+  if (typeof b.calorie_target_kcal !== 'number' || b.calorie_target_kcal >= floor) return b
+  const note = `Adjusted to the ${floor} kcal/day floor — further restriction would require professional supervision.`
+  return {
+    ...b,
+    calorie_target_kcal: floor,
+    coach_summary: b.coach_summary
+      ? `${b.coach_summary} ${note}`
+      : note,
+  }
+}
+
 interface ComplianceState {
   waiver_accepted_at?: string
   waiver_text_version?: number
@@ -203,7 +223,7 @@ export async function POST(req: NextRequest) {
       agencyId,
       metadata: { trainee_id: trainee.id, self_signup: true },
     })
-    if (r.ok) progress.baseline = r.data
+    if (r.ok) progress.baseline = clampBaselineFloor(r.data, trainee.sex ?? null)
     else errors.push(`baseline:${r.error}`)
   } catch (e) {
     errors.push(`baseline:${e instanceof Error ? e.message : String(e)}`)

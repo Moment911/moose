@@ -2,7 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { FEATURE_TAGS } from '../../../../lib/trainer/trainerConfig'
 import { buildCoachChatPrompt } from '../../../../lib/trainer/prompts/coachChat'
+import { detectRiskCategory } from '../../../../lib/trainer/prompts/legalCompliance'
 import { streamSonnetChat } from '../../../../lib/trainer/streamSonnet'
+
+// Synthetic NDJSON stream — same shape streamSonnetChat emits — that delivers
+// a canned redirect text and closes. Used when detectRiskCategory() flags the
+// latest user message before we call Sonnet.
+function riskRedirectStream(text: string, metadata: Record<string, unknown>): ReadableStream<Uint8Array> {
+  const enc = new TextEncoder()
+  return new ReadableStream({
+    start(controller) {
+      controller.enqueue(enc.encode(JSON.stringify({ type: 'text_delta', text }) + '\n'))
+      controller.enqueue(enc.encode(JSON.stringify({
+        type: 'done',
+        usage: { input_tokens: 0, output_tokens: 0 },
+        risk_redirect: true,
+        ...metadata,
+      }) + '\n'))
+      controller.close()
+    },
+  })
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/trainer/coach-chat
@@ -78,6 +98,28 @@ export async function POST(req: NextRequest) {
   }
 
   const turnCount = messages.filter((m) => m.role === 'user').length
+
+  // Risk-category pre-filter on the latest user message. Short-circuits Sonnet
+  // for unambiguous emergency / ED / pregnancy / injury / medical-condition
+  // language with a canned redirect.
+  const latestUser = [...messages].reverse().find((m) => m.role === 'user')
+  if (latestUser) {
+    const risk = detectRiskCategory(latestUser.content)
+    if (risk) {
+      const stream = riskRedirectStream(risk.redirect, {
+        risk_category: risk.category,
+        stage: 'coach_chat',
+        trainee_id: traineeId,
+      })
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'no-cache, no-store',
+          'X-Accel-Buffering': 'no',
+        },
+      })
+    }
+  }
 
   const { systemPrompt, tools } = buildCoachChatPrompt({
     trainee: trainee as Record<string, unknown>,

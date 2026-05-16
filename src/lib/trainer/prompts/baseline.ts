@@ -103,7 +103,7 @@ coach_summary rules:
 Constraints:
 - Never diagnose.  Phrase flags as "this pattern typically warrants physician sign-off before starting a program" — never "you have X condition."
 - Age > 70 → flag for conservative programming regardless of other inputs.
-- calorie_target_kcal must be ≥ 1200 for women, ≥ 1500 for men (biological floor).  If math suggests lower, raise floor + extend timeline + note in coach_summary.
+- calorie_target_kcal must be ≥ 1200 for women, ≥ 1500 for men (biological floor + legal compliance — non-negotiable).  If math suggests lower, raise to the floor, extend timeline, and explain in coach_summary that further restriction would require professional supervision.  When you communicate the calorie target in coach_summary, present it as an APPROXIMATE range (e.g. "around 1,650 to 1,800 calories per day") rather than a single fixed prescription.  The integer field stays single-valued for downstream meal planning, but the human-facing language is range-based.
 - If primary_goal is null and target_weight_kg is null → set goal to maintain and note in coach_summary that no goal was provided.
 - Category "unknown" is allowed when height_cm is null (can't compute BMI without it).
 - Every output carries disclaimer: "${DISCLAIMER}"`

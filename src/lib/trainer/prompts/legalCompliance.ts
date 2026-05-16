@@ -88,3 +88,121 @@ export function withLegalCompliance(body: string, opts: ComplianceMode = {}): st
   parts.push(body)
   return parts.join('\n\n')
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pre-filter: detect unambiguous risk-category language in user input and
+// short-circuit Sonnet entirely. The system-prompt preamble is the safety net
+// when this pre-filter misses something; the pre-filter exists so we never
+// generate a Sonnet response for a clear emergency or ED-pattern message.
+//
+// Intentionally conservative — patterns must be unambiguous. False positives
+// frustrate users; false negatives still hit the preamble downstream.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type RiskCategory =
+  | 'emergency'
+  | 'eating_disorder'
+  | 'pregnancy'
+  | 'injury'
+  | 'medical_condition'
+
+export const RISK_REDIRECTS: Record<RiskCategory, string> = {
+  emergency:
+    "It sounds like this might be an emergency. Please stop and seek immediate medical attention, or call your local emergency services right now (in the U.S., 911). If you are in crisis or thinking about harming yourself, the 988 Suicide and Crisis Lifeline is available 24/7.",
+  eating_disorder:
+    "I can't help with extreme dieting or unsafe weight-loss behaviors. This is something a licensed professional should support you with — in the U.S. you can reach the NEDA Helpline at 1-800-931-2237 (or text \"NEDA\" to 741741). I'm here for general wellness support whenever you'd like.",
+  pregnancy:
+    "Programs during pregnancy or the postpartum period need to be reviewed by your healthcare provider. I can share general wellness ideas, but I won't issue an individualized plan here. Please talk to your OB-GYN or a qualified provider for guidance tailored to you.",
+  injury:
+    "It sounds like you may be dealing with an injury. Please stop the activity and consult a qualified healthcare or rehab professional before continuing. Once you've been cleared, I'm happy to help adjust your plan around the recovery.",
+  medical_condition:
+    "I can't provide guidance for medical conditions. Please consult a licensed healthcare professional — they can advise you safely. I can stick to general wellness topics if that's helpful.",
+}
+
+const EMERGENCY_PATTERNS: RegExp[] = [
+  /\bchest pain\b/i,
+  /\b(can't|cannot|can not)\s+breathe\b/i,
+  /\bshortness of breath\b/i,
+  /\b(suicidal|kill myself|want to die|end my life|end it all)\b/i,
+  /\b(having|i think i'?m having)\s+(a\s+)?(heart attack|stroke)\b/i,
+  /\bpassing out\b/i,
+  /\b(severe|sudden)\s+(dizziness|weakness|numbness)\b/i,
+  /\b(numbness|weakness)\s+on\s+(one|the\s+(left|right))\s+side\b/i,
+  /\bcalling 911\b/i,
+]
+
+const EATING_DISORDER_PATTERNS: RegExp[] = [
+  /\b(making|make)\s+myself\s+(throw up|vomit)\b/i,
+  /\bpurg(e|ing)\b/i,
+  /\bself[-\s]?induced\s+vomit/i,
+  /\blose\s+\d{2,3}\s*(lbs?|pounds)\s+in\s+(a\s+)?(week|two\s+weeks|2\s+weeks|month)\b/i,
+  /\bstarv(e|ing)\s+(myself|my\s*self)\b/i,
+  /\b(below|under)\s+(800|900|1000)\s*(cal|calories|kcal)\b/i,
+  /\beat\s+(less than|under)\s+(800|900|1000)\b/i,
+  /\b(anorexi|bulimi)/i,
+  /\bbinge\s+and\s+purge\b/i,
+]
+
+const PREGNANCY_PATTERNS: RegExp[] = [
+  /\b(i\s*('|am|m)\s*(currently\s+)?pregnant)\b/i,
+  /\bi\s+am\s+(currently\s+)?expecting\b/i,
+  /\b(my\s+)?postpartum\b/i,
+  /\b(currently\s+)?breastfeeding\b/i,
+  /\bnursing\s+(my\s+)?(baby|newborn|infant)\b/i,
+  /\b(\d+)\s+weeks?\s+pregnant\b/i,
+]
+
+const INJURY_PATTERNS: RegExp[] = [
+  /\bi\s+(just\s+)?(tore|torn)\s+(my|a)\s+/i,
+  /\bi\s+(just\s+)?(broke|fractured)\s+(my|a)\s+/i,
+  /\bi\s+(just\s+)?(sprained|dislocated)\s+(my|a)\s+/i,
+  /\bjust\s+had\s+(surgery|an\s+operation)\b/i,
+  /\bpost[-\s]?(op|surgery)\b/i,
+  /\bACL\s+(tear|torn|reconstruction)\b/i,
+  /\b(rotator cuff|labrum|MCL|PCL|achilles)\s+(tear|torn|rupture)\b/i,
+]
+
+const MEDICAL_PATTERNS: RegExp[] = [
+  /\bi\s+(have|am)\s+(type\s*[12]\s*)?diabet(es|ic)\b/i,
+  /\bi(\s+have|'?ve\s+got|\s+am)\s+(high|low)\s+blood\s+pressure\b/i,
+  /\bi(\s+have|'?ve\s+got)\s+(a\s+)?(thyroid|heart|liver|kidney)\s+(condition|disease|problem|issue)\b/i,
+  /\bi\s+had\s+a\s+(heart attack|stroke|cardiac event)\b/i,
+  /\b(cancer|chemo(therapy)?|chemotherapy|radiation\s+treatment)\b/i,
+  /\b(crohn'?s|colitis|celiac|MS|multiple sclerosis|lupus|fibromyalgia|parkinson)\b/i,
+  /\bdoctor\s+(told|said|put)\s+me\s+(on|to)\s+/i,
+  /\b(prescribed|on)\s+(insulin|metformin|warfarin|coumadin|levothyroxine|synthroid)\b/i,
+]
+
+const ORDERED_PATTERNS: { category: RiskCategory; patterns: RegExp[] }[] = [
+  { category: 'emergency', patterns: EMERGENCY_PATTERNS },
+  { category: 'eating_disorder', patterns: EATING_DISORDER_PATTERNS },
+  { category: 'pregnancy', patterns: PREGNANCY_PATTERNS },
+  { category: 'injury', patterns: INJURY_PATTERNS },
+  { category: 'medical_condition', patterns: MEDICAL_PATTERNS },
+]
+
+/**
+ * Scan a user message for unambiguous risk-category language. Returns the
+ * first matched category (in priority order: emergency, ED, pregnancy,
+ * injury, medical_condition) and the canned redirect script for that
+ * category, or null if nothing matches.
+ *
+ * Intended for server-side use: the API route should run this on the latest
+ * user message before invoking Sonnet, and if non-null, return the redirect
+ * directly instead of streaming a model response.
+ */
+export function detectRiskCategory(
+  text: string | null | undefined,
+): { category: RiskCategory; redirect: string } | null {
+  if (!text || typeof text !== 'string') return null
+  const trimmed = text.trim()
+  if (!trimmed) return null
+  for (const { category, patterns } of ORDERED_PATTERNS) {
+    for (const re of patterns) {
+      if (re.test(trimmed)) {
+        return { category, redirect: RISK_REDIRECTS[category] }
+      }
+    }
+  }
+  return null
+}
