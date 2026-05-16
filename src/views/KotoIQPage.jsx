@@ -46,6 +46,7 @@ import CompetitorPulseTab from '../components/kotoiq/CompetitorPulseTab'
 import TodayTab from '../components/kotoiq/TodayTab'
 import FeatureDirectoryTab from '../components/kotoiq/FeatureDirectoryTab'
 import AutoFixQueueTab from '../components/kotoiq/AutoFixQueueTab'
+import StyleEditorTab from '../components/kotoiq/StyleEditorTab'
 import ContentDecayTab from '../components/kotoiq/ContentDecayTab'
 import GMBImagesTab from '../components/kotoiq/GMBImagesTab'
 import GSCAuditTab from '../components/kotoiq/GSCAuditTab'
@@ -2490,6 +2491,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ AUTO-FIX QUEUE — OTTO-style triage + dispatch ═══ */}
         {clientId && tab === 'autofix_queue' && (
           <AutoFixQueueTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ STYLE EDITOR — realtime token control for the whole product ══ */}
+        {tab === 'style_editor' && (
+          <StyleEditorTab />
         )}
 
         {/* ══ CONTENT REFRESH TAB ══ */}

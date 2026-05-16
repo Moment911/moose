@@ -2,68 +2,52 @@
 // ─────────────────────────────────────────────────────────────────────────
 // KotoTabHeader — universal page-header treatment for every KotoIQ tab.
 //
-// Centrally applied: KotoIQShell.jsx renders this once at the top of every
-// tab's <main> content area. Metadata for each tab lives in kotoiqTabMeta.ts.
-//
-// Treatment (matches the Unified Marketing 2026 style guide + DESIGN.md):
-//   - Pink uppercase Eyebrow (DM Sans 12px · .24em tracking · ◆ glyph)
-//   - Bebas Neue page title (Bebas Neue 40px · navy · .02em)
-//   - DM Serif Display italic accent word inside the title (pink)
-//   - Optional one-line rationale (DM Sans 13px · muted)
-//   - Optional right-aligned actions slot (passed by parent)
-//
-// Tabs not in KOTOIQ_TAB_META render nothing — those tabs own their own
-// bespoke headers (AEO Visibility, Today, Feature Directory, etc.).
+// Uses CSS variables defined in globals.css so the Style Editor tab can
+// tweak fonts/colors/spacing in realtime and every header re-renders
+// without a code change.
 // ─────────────────────────────────────────────────────────────────────────
 
 import { KOTOIQ_TAB_META } from './kotoiqTabMeta'
 
-const DISPLAY = "'Bebas Neue', 'Arial Narrow', sans-serif"
-const ACCENT  = "'DM Serif Display', Georgia, serif"
-const BODY    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-
-const INK   = '#201b51'
-const MID   = '#6b6789'
-const PINK  = '#cb1c6b'
-
 export default function KotoTabHeader({ tabKey, rightSlot = null }) {
   const meta = KOTOIQ_TAB_META[tabKey]
   if (!meta) return null
+  if (meta.selfHeader) return null  // bespoke header tabs opt out
 
   const { eyebrow, title, accent, rationale, icon: Icon } = meta
 
   return (
     <header
       style={{
-        padding: '32px 32px 18px',
+        padding: 'var(--tabhead-pad-y, 32px) var(--tabhead-pad-x, 32px) var(--tabhead-pad-bottom, 18px)',
         background: 'transparent',
-        fontFamily: BODY,
+        fontFamily: 'var(--font-body)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
           <div style={{
-            fontSize: 12,
+            fontSize: 'var(--tabhead-eyebrow-size, 12px)',
             fontWeight: 600,
-            color: PINK,
+            color: 'var(--koto-pink, #cb1c6b)',
             textTransform: 'uppercase',
-            letterSpacing: '.24em',
-            fontFamily: BODY,
+            letterSpacing: 'var(--tabhead-eyebrow-track, .24em)',
+            fontFamily: 'var(--font-body)',
             display: 'inline-flex',
             alignItems: 'center',
             gap: 10,
             marginBottom: 10,
           }}>
-            {Icon ? <Icon size={13} color={PINK} strokeWidth={2.2} /> : <span style={{ fontSize: 10 }}>◆</span>}
+            {Icon ? <Icon size={13} color="var(--koto-pink, #cb1c6b)" strokeWidth={2.2} /> : <span style={{ fontSize: 10 }}>◆</span>}
             <span>{eyebrow}</span>
           </div>
 
           <h1 style={{
-            fontFamily: DISPLAY,
-            fontSize: 44,
+            fontFamily: 'var(--font-display)',
+            fontSize: 'var(--tabhead-title-size, 44px)',
             fontWeight: 400,
-            color: INK,
-            letterSpacing: '.02em',
+            color: 'var(--text-primary)',
+            letterSpacing: 'var(--tabhead-title-track, .02em)',
             lineHeight: 1.02,
             margin: 0,
             display: 'inline',
@@ -73,9 +57,9 @@ export default function KotoTabHeader({ tabKey, rightSlot = null }) {
               <>
                 {' '}
                 <em style={{
-                  fontFamily: ACCENT,
+                  fontFamily: 'var(--font-accent, "DM Serif Display", Georgia, serif)',
                   fontStyle: 'italic',
-                  color: PINK,
+                  color: 'var(--koto-pink, #cb1c6b)',
                   fontWeight: 400,
                 }}>
                   {accent}
@@ -86,9 +70,9 @@ export default function KotoTabHeader({ tabKey, rightSlot = null }) {
 
           {rationale && (
             <div style={{
-              fontFamily: BODY,
-              fontSize: 13.5,
-              color: MID,
+              fontFamily: 'var(--font-body)',
+              fontSize: 'var(--tabhead-rationale-size, 13.5px)',
+              color: 'var(--text-muted)',
               maxWidth: 720,
               lineHeight: 1.55,
               marginTop: 14,
@@ -105,11 +89,10 @@ export default function KotoTabHeader({ tabKey, rightSlot = null }) {
         )}
       </div>
 
-      {/* Hairline separator — establishes a clean handoff to the tab body */}
       <div style={{
         marginTop: 22,
         height: 1,
-        background: 'rgba(32, 27, 81, .08)',
+        background: 'var(--tabhead-rule, rgba(32, 27, 81, .08))',
       }} />
     </header>
   )

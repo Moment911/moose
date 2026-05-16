@@ -21,7 +21,8 @@ import type { LucideIcon } from 'lucide-react'
 import {
   BarChart2, Search, Award, Target, Shield, Eye, Globe, Map, Brain, Link2,
   GitBranch, Layers, FileText, Zap, RefreshCw, Calendar, Activity, Code,
-  Sparkles, Settings,
+  Sparkles, Settings, Sunrise, MessageCircle, DollarSign, Megaphone, Play,
+  Mail, Wrench, Compass, Sliders,
 } from 'lucide-react'
 
 export interface KotoTabMeta {
@@ -35,6 +36,9 @@ export interface KotoTabMeta {
   rationale?: string
   /** Lucide icon rendered next to the eyebrow */
   icon?: LucideIcon
+  /** True when the tab renders its OWN hero — the shell skips header rendering for these.
+   *  We still keep the entry here as a single source of truth for tab catalog tooling. */
+  selfHeader?: boolean
 }
 
 export const KOTOIQ_TAB_META: Record<string, KotoTabMeta> = {
@@ -291,22 +295,38 @@ export const KOTOIQ_TAB_META: Record<string, KotoTabMeta> = {
     rationale: 'Google, Meta, LinkedIn, Hotjar, Clarity, GBP, GSC — link the platforms that power every other tab.',
     icon: Settings,
   },
+
+  // ── Style Editor ───────────────────────────────────────────
+  style_editor: {
+    eyebrow: 'BRAND · STYLE EDITOR',
+    title: 'Tune the whole',
+    accent: 'product',
+    rationale: 'Edit fonts, colors, spacing, and the page header treatment in realtime. Changes write to CSS variables that drive every tab. Copy back to theme.ts when you’re happy.',
+    icon: Sliders,
+  },
+
+  // ── Bespoke-header tabs (selfHeader: true) ─────────────────
+  // These render their own hero header — the shell skips. Entries
+  // here document them in one place so this file is the canonical
+  // tab catalog for tooling like Feature Directory.
+  today:              { eyebrow: 'OVERVIEW · TODAY',           title: 'Today',                   icon: Sunrise,        selfHeader: true },
+  competitor_pulse:   { eyebrow: 'INTEL · PULSE',              title: 'Competitor Pulse',        icon: Activity,       selfHeader: true },
+  ask:                { eyebrow: 'AI · ATLAS BRAIN',           title: 'Ask KotoIQ',              icon: MessageCircle,  selfHeader: true },
+  aeo_visibility:     { eyebrow: 'AEO · ANSWER ENGINE',        title: 'AEO Visibility',          icon: Sparkles,       selfHeader: true },
+  competitor_pages:   { eyebrow: 'INTEL · PAGES',              title: 'Competitor Pages',        icon: FileText,       selfHeader: true },
+  pricing_tracker:    { eyebrow: 'INTEL · PRICING',            title: 'Pricing Tracker',         icon: DollarSign,     selfHeader: true },
+  competitor_ads:     { eyebrow: 'INTEL · ADS',                title: 'Competitor Ads',          icon: Megaphone,      selfHeader: true },
+  competitor_youtube: { eyebrow: 'INTEL · YOUTUBE',            title: 'YouTube',                 icon: Play,           selfHeader: true },
+  newsletter_intel:   { eyebrow: 'INTEL · NEWSLETTER',         title: 'Newsletter Intel',        icon: Mail,           selfHeader: true },
+  tech_stack:         { eyebrow: 'INTEL · TECH STACK',         title: 'Tech Stack',              icon: Layers,         selfHeader: true },
+  autofix_queue:      { eyebrow: 'CONTENT · AUTO-FIX',         title: 'Auto-Fix Queue',          icon: Wrench,         selfHeader: true },
+  feature_directory:  { eyebrow: 'TOOLS · DIRECTORY',          title: 'Feature Directory',       icon: Compass,        selfHeader: true },
 }
 
-// Tabs whose own bespoke hero header is canonical — skip the shell header.
-// Intentionally not in KOTOIQ_TAB_META above; this set is exported only for
-// debug/audit tooling.
-export const KOTOIQ_TABS_WITH_OWN_HEADER = new Set([
-  'today',
-  'competitor_pulse',
-  'ask',
-  'aeo_visibility',
-  'competitor_pages',
-  'pricing_tracker',
-  'competitor_ads',
-  'competitor_youtube',
-  'newsletter_intel',
-  'tech_stack',
-  'autofix_queue',
-  'feature_directory',
-])
+// Tabs whose own bespoke hero header is canonical — derived from KOTOIQ_TAB_META
+// so the meta file stays the single source of truth.
+export const KOTOIQ_TABS_WITH_OWN_HEADER = new Set(
+  Object.entries(KOTOIQ_TAB_META)
+    .filter(([, meta]) => meta.selfHeader === true)
+    .map(([key]) => key),
+)

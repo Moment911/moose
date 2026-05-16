@@ -20,6 +20,7 @@
 }
 
 :root {
+  /* ── Legacy aliases (kept for older code) ─────────────────────────── */
   --red:    #cb1c6b;
   --red-dk: #a8155a;
   --teal:   #00C2CB;
@@ -37,6 +38,33 @@
   --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
   --font-body:    'DM Sans', -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', 'SF Mono', monospace;
+  --font-accent:  'DM Serif Display', Georgia, serif;
+
+  /* ── Koto canonical names (used by KotoTabHeader + Style Editor) ──── */
+  /* Edit these from the Style Editor tab to retune the whole product. */
+  --koto-navy:        #201b51;
+  --koto-navy-deep:   #15113a;
+  --koto-pink:        #cb1c6b;
+  --koto-pink-deep:   #a8155a;
+  --koto-warm:        #faf9f6;
+  --koto-off:         #f5f3ee;
+  --koto-line:        rgba(32, 27, 81, .12);
+  --koto-muted:       #6b6789;
+  --koto-dim:         #4a4674;
+  --koto-success:     #16A34A;
+  --koto-warning:     #D97706;
+  --koto-danger:      #DC2626;
+
+  /* ── KotoTabHeader sizing tokens (Style Editor controls these) ────── */
+  --tabhead-pad-x:           32px;
+  --tabhead-pad-y:           32px;
+  --tabhead-pad-bottom:      18px;
+  --tabhead-eyebrow-size:    12px;
+  --tabhead-eyebrow-track:   .24em;
+  --tabhead-title-size:      44px;
+  --tabhead-title-track:     .02em;
+  --tabhead-rationale-size:  13.5px;
+  --tabhead-rule:            rgba(32, 27, 81, .08);
 
   --radius-sm:  8px;
   --radius-md:  12px;

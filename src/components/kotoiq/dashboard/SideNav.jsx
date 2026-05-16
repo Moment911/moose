@@ -6,7 +6,7 @@ import {
   GitBranch, Layers, FileText, Zap, RefreshCw, Calendar,
   Activity, Code, Star, ImageIcon, Grid, Settings, DollarSign,
   MessageCircle, Check, Sunrise, Megaphone, Mail,
-  Wrench, Compass,
+  Wrench, Compass, Sliders,
 } from 'lucide-react'
 import { useKotoIQData } from '../../../context/KotoIQDataContext'
 
@@ -87,6 +87,7 @@ const NAV_GROUPS = [
   ]},
   { label: 'Reports & Tools', items: [
     { id: 'feature_directory', label: 'Feature Directory', tab: 'feature_directory', icon: Compass },
+    { id: 'style_editor',      label: 'Style Editor',      tab: 'style_editor',      icon: Sliders },
     { id: 'roi',               label: 'ROI Projections',   tab: 'roi',               icon: BarChart2 },
     { id: 'bulk',              label: 'Bulk Operations',   tab: 'bulk_ops',          icon: Layers },
     { id: 'connect',           label: 'Connect APIs',      tab: 'connect',           icon: Settings },
