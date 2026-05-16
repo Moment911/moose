@@ -108,6 +108,7 @@ export default function TodayTab({ clientId, agencyId, clientName, onSwitchTab }
   const [overview, setOverview] = useState(null)
   const [routines, setRoutines] = useState([])
   const [attention, setAttention] = useState({ high: [], medium: [], total: 0, by_source: {} })
+  const [lastRefreshAt, setLastRefreshAt] = useState(null)
 
   const [expandedCadence, setExpandedCadence] = useState('daily')
 
@@ -123,16 +124,36 @@ export default function TodayTab({ clientId, agencyId, clientName, onSwitchTab }
         api('today_routines', { client_id: clientId }),
         api('today_attention', { client_id: clientId, days: 1 }),
       ])
-      setOverview(o)
-      setRoutines(r?.routines || [])
-      setAttention(a || { high: [], medium: [], total: 0, by_source: {} })
-    } catch (e) { console.warn('[today] refresh', e) }
-    finally { setLoading(false) }
+      // Each response may be either a payload or { error: ... }. Treat the
+      // error shape as "no data" instead of letting `.setup_progress` etc.
+      // render as `undefined%` in the KPI strip.
+      const overviewPayload = o && !o.error ? o : null
+      const routinesPayload = r && !r.error ? (r.routines || []) : []
+      const attentionPayload = a && !a.error
+        ? { high: a.high || [], medium: a.medium || [], total: a.total || 0, by_source: a.by_source || {} }
+        : { high: [], medium: [], total: 0, by_source: {} }
+
+      setOverview(overviewPayload)
+      setRoutines(routinesPayload)
+      setAttention(attentionPayload)
+      setLastRefreshAt(new Date().toISOString())
+
+      // Surface server errors so the user knows the dash is partial
+      const firstError = [o, r, a].find(x => x && x.error)?.error
+      if (firstError) toast.error(firstError)
+    } catch (e) {
+      console.warn('[today] refresh', e)
+      toast.error('Could not refresh Today — check your connection')
+    } finally { setLoading(false) }
   }
   useEffect(() => { refresh() /* eslint-disable-next-line */ }, [clientId])
 
   const markComplete = async (routine_id) => {
-    await api('mark_routine_complete', { client_id: clientId, agency_id: agencyId, routine_id })
+    const res = await api('mark_routine_complete', { client_id: clientId, agency_id: agencyId, routine_id })
+    if (res && res.error) {
+      toast.error(res.error)
+      return
+    }
     toast.success('Done. Nice.')
     refresh()
   }
@@ -252,7 +273,9 @@ export default function TodayTab({ clientId, agencyId, clientName, onSwitchTab }
       </div>
 
       <div style={{ textAlign: 'center', fontFamily: BODY, fontSize: 12, color: MID, padding: '24px 0' }}>
-        Last refreshed {relative(new Date().toISOString())} · routines reset on cadence boundaries
+        {lastRefreshAt
+          ? `Last refreshed ${relative(lastRefreshAt)} · routines reset on cadence boundaries`
+          : 'Routines reset on cadence boundaries'}
       </div>
     </div>
   )
