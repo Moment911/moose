@@ -22,7 +22,7 @@ const INK4 = '#a1a1a6'
 const GRN = '#10b981'
 const BRD = '#ececef'
 const CARD = '#f1f1f6'
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const FIELD_GROUPS = [
   {

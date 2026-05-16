@@ -12,7 +12,7 @@ const C = {
   ink: '#0a0a0a', ink2: '#1f1f22', ink3: '#6b6b70', ink4: '#a1a1a6',
   bg: '#ffffff', card: '#f1f1f6', border: '#ececef', divider: '#e5e5ea',
   green: '#16a34a', greenBg: '#ecfdf5', blue: '#5aa0ff', amber: '#d89a6a',
-  font: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  font: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   r: 16, rSm: 12, rPill: 999,
 }
 

@@ -21,7 +21,7 @@ import { useKotoIQData } from '../../../context/KotoIQDataContext'
  *   - Collapsible tool nav grouped by section
  */
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif"
+const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const NAV_GROUPS = [
   { label: 'Overview', items: [

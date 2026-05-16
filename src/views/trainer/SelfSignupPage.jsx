@@ -25,7 +25,7 @@ async function nextRouteForUser(user) {
   return mapping ? '/my-plan' : '/my-intake'
 }
 
-const F = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const F = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const INK = '#0a0a0a'
 const INK3 = '#6b6b70'
 const CARD = '#f1f1f6'

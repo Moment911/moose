@@ -24,7 +24,7 @@ import { kotoiqFetch } from '../../../lib/kotoiqFetch'
  *   - <900px:  SideNav becomes a hamburger drawer
  */
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif"
+const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 // Tabs where the Inspector rail makes sense — these are data-driven views
 // where freshness + Data Health context adds value. Tool-heavy tabs that

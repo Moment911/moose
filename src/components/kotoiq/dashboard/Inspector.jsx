@@ -12,7 +12,7 @@ import { useKotoIQData, useKotoIQRefreshKey } from '../../../context/KotoIQDataC
  *   - reads freshness map directly from KotoIQDataContext
  */
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif"
+const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const SOURCES_TO_SHOW = [
   { key: 'quick_scan',              label: 'Keywords' },

@@ -8,7 +8,7 @@ const ACCENT = '#d89a6a'
 const ACCENT_BG = 'rgba(216,154,106,0.10)'
 const GRN = '#10b981'
 const RED = '#e9695c'
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trainer Phase 2 — PlanBaselineCard.

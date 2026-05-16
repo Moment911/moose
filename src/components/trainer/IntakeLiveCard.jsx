@@ -12,7 +12,7 @@ const INK3 = '#6b6b70'
 const ACCENT = '#d89a6a'
 const GRN = '#10b981'
 const BRD = '#ececef'
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const GOAL_LABELS = { lose_fat: 'Lose fat', gain_muscle: 'Gain muscle', maintain: 'Maintain', performance: 'Performance', recomp: 'Recomp' }
 const EQUIPMENT_LABELS = { none: 'None', bands: 'Bands', home_gym: 'Home gym', full_gym: 'Full gym' }

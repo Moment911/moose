@@ -26,7 +26,7 @@ export const T = {
   disabled:   '#c8c8cc',
 
   // font + weights
-  font:       "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  font:       "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   weight: {
     display: 800,   // page headlines
     h1:      700,

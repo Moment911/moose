@@ -22,7 +22,7 @@ import { useKotoIQData } from '../../../context/KotoIQDataContext'
  * wrap every tab in the same chrome.
  */
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif"
+const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function DashboardLayout({ clientId, agencyId, clients, currentTab, onSwitchTab }) {
   const { bumpRefresh, freshness } = useKotoIQData()

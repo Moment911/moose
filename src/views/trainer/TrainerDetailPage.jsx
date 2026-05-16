@@ -3691,7 +3691,7 @@ function EmptyHint({ title, desc, onGoto, ctaLabel }) {
 const CAL = {
   ink: '#0a0a0a', ink2: '#1f1f22', ink3: '#6b6b70', ink4: '#a1a1a6',
   bg: '#ffffff', card: '#f1f1f6', border: '#ececef', divider: '#e5e5ea',
-  font: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  font: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   rSm: 12, rMd: 16, rLg: 22, rPill: 999,
 }
 

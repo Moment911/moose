@@ -13,7 +13,7 @@ const INK3 = '#6b6b70'
 const ACCENT = '#d89a6a'
 const BRD = '#ececef'
 const BRD_LT = '#f1f1f6'
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function GroceryList({ groceryList }) {
   const [openAisles, setOpenAisles] = useState({})

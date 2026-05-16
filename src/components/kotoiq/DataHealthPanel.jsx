@@ -4,7 +4,7 @@ import { ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react'
 import { BLK, GRN, AMB, R } from '../../lib/theme'
 import { useKotoIQRefreshKey } from '../../context/KotoIQDataContext'
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 /**
  * Data Health Panel — one-glance view of how complete the client's

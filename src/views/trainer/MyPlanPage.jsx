@@ -68,7 +68,7 @@ const A = {
   border:   '#ececef',
   shadow1:  '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
   shadow2:  '0 6px 16px rgba(0,0,0,0.06)',
-  font:     "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  font:     "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   mono:     "'SF Mono', 'Menlo', monospace",
   r:        16,
   rSm:      12,

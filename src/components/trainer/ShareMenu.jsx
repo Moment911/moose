@@ -18,7 +18,7 @@ const INK3 = '#6b6b70'
 const BRD = '#ececef'
 const GRN = '#10b981'
 const RED = '#e9695c'
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function ShareMenu({ onPrint, onEmail, onSMS, onCopy, label = 'Plan' }) {
   const [open, setOpen] = useState(false)

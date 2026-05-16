@@ -9,7 +9,7 @@ const INK = '#0a0a0a'
 const INK3 = '#6b6b70'
 const INK4 = '#a1a1a6'
 const BRD = '#ececef'
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function TrainerFooter({ maxWidth = 1100 }) {
   return (

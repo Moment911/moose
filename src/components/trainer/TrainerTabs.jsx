@@ -53,7 +53,7 @@ export default function TrainerTabs({ tabs, activeKey, onChange }) {
               whiteSpace: 'nowrap',
               letterSpacing: '0px',
               flexShrink: 0,
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
               transition: 'color .12s, border-color .12s',
             }}
             onMouseEnter={(e) => {

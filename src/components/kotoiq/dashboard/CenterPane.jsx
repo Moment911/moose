@@ -17,7 +17,7 @@ import { useKotoIQData, useKotoIQRefreshKey } from '../../../context/KotoIQDataC
  * has moved into the sidebar nav (tools) or right inspector (data health).
  */
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif"
+const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 export default function CenterPane({ clientId, agencyId, clientName, onSwitchTab }) {
   const refreshKey = useKotoIQRefreshKey()

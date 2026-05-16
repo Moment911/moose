@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase'
 // downstream /my-intake auth gate and the /api/trainer/self-signup route
 // can both verify the user has been through this flow.
 
-const F = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const F = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const INK = '#0a0a0a'
 const INK2 = '#37373c'
 const INK3 = '#6b6b70'

@@ -31,7 +31,7 @@ const BRD = '#ececef'
 const BRD_LT = '#f1f1f6'
 const AMB = '#f0b400'
 const AMB_BG = '#fffbeb'
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: BookOpen },

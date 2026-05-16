@@ -5,11 +5,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const T_FONT =
-  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+  "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 
 // Sporty condensed font for numbers
 export const T_FONT_NUM =
-  '"Barlow Condensed", "SF Pro Display", system-ui, sans-serif'
+  '"Barlow Condensed", "DM Sans", system-ui, sans-serif'
 
 // Surfaces
 export const T_BG = '#ffffff'          // clean white canvas

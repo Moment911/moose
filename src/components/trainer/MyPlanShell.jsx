@@ -18,7 +18,7 @@ const A = {
   ink3:    '#6b6b70',
   accent:  '#d89a6a',
   border:  '#ececef',
-  font:    "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  font:    "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
 }
 
 export default function MyPlanShell({ agency, children, hasMobileTabBar = false }) {

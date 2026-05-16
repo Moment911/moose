@@ -185,7 +185,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
 
       {/* Section 1: Client & Connections */}
       <div style={{ ...cardStyle, marginBottom: 20 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 14 }}>
+        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK, marginBottom: 14 }}>
           Data Sources
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -203,7 +203,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                   padding: '8px 14px', borderRadius: 8,
                   border: `1px solid ${connected ? GRN + '40' : '#ececef'}`,
                   background: connected ? GRN + '08' : W,
-                  fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 600, color: BLK,
+                  fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontWeight: 600, color: BLK,
                 }}
               >
                 {connected
@@ -230,7 +230,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
       {/* Section 2: Target Keywords */}
       <div style={{ ...cardStyle, marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
+          <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK }}>
             Target Keywords
           </div>
           <span style={{ ...badgeStyle(T), fontSize: 11 }}>
@@ -249,7 +249,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
               minHeight: 60,
               resize: 'vertical',
               fontSize: 13,
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
             }}
           />
           <button
@@ -273,7 +273,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '4px 10px', borderRadius: 6,
-                  background: '#f1f1f6', fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK,
+                  background: '#f1f1f6', fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK,
                 }}
               >
                 {kw}
@@ -291,7 +291,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
 
       {/* Section 3: Pipeline Control */}
       <div style={{ ...cardStyle, marginBottom: 20 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 14 }}>
+        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK, marginBottom: 14 }}>
           Pipeline Control
         </div>
 
@@ -309,7 +309,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                   padding: '6px 12px', borderRadius: 8,
                   border: `1px solid ${active ? T + '60' : '#ececef'}`,
                   background: active ? T + '10' : W,
-                  fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+                  fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
                   color: active ? BLK : '#8e8e93',
                   cursor: isRunning ? 'not-allowed' : 'pointer',
                   opacity: isRunning ? 0.6 : 1,
@@ -333,10 +333,10 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
               : <ToggleLeft size={28} color="#8e8e93" />
             }
           </div>
-          <span style={{ fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
+          <span style={{ fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK }}>
             Auto-publish pages
           </span>
-          <span style={{ fontSize: 11, color: '#6b6b70', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+          <span style={{ fontSize: 11, color: '#6b6b70', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
             {autoPublish ? 'Pages will be published automatically' : 'Pages saved as drafts'}
           </span>
         </div>
@@ -382,10 +382,10 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
       {run && (
         <div style={{ ...cardStyle, marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
+            <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK }}>
               Pipeline Progress
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: STATUS_COLORS[run.status] || BLK }}>
+            <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: STATUS_COLORS[run.status] || BLK }}>
               {run.status === 'running' && `${overallProgress}%`}
               {run.status === 'done' && 'Complete'}
               {run.status === 'error' && 'Error'}
@@ -427,7 +427,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                         <span style={{ fontSize: 12, fontWeight: 700, color }}>{stage.stage}</span>
                       )}
                     </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color, textAlign: 'center', whiteSpace: 'nowrap' }}>
                       {stage.stage_name}
                     </span>
                   </div>
@@ -467,7 +467,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {expanded ? <ChevronDown size={14} color="#6b6b70" /> : <ChevronRight size={14} color="#6b6b70" />}
-                    <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK }}>
                       Stage {stage.stage}: {stage.stage_name}
                     </span>
                     {stage.status === 'running' && (
@@ -475,11 +475,11 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 11, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#6b6b70' }}>
+                    <span style={{ fontSize: 11, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: '#6b6b70' }}>
                       {stage.steps_complete}/{stage.steps_total} steps
                     </span>
                     {stage.duration_ms != null && (
-                      <span style={{ fontSize: 11, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#8e8e93' }}>
+                      <span style={{ fontSize: 11, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: '#8e8e93' }}>
                         {(stage.duration_ms / 1000).toFixed(1)}s
                       </span>
                     )}
@@ -503,10 +503,10 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           {step.status === 'success' && <CheckCircle2 size={12} color={GRN} />}
                           {step.status === 'error' && <XCircle size={12} color="#ef4444" />}
-                          <span style={{ fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK }}>{step.step}</span>
+                          <span style={{ fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK }}>{step.step}</span>
                         </div>
                         {step.error && (
-                          <span style={{ fontSize: 11, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#ef4444', maxWidth: 300, textAlign: 'right' }}>
+                          <span style={{ fontSize: 11, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: '#ef4444', maxWidth: 300, textAlign: 'right' }}>
                             {step.error}
                           </span>
                         )}
@@ -523,7 +523,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
       {/* Section 5: Results */}
       {run && run.status === 'done' && run.results && (
         <div style={{ ...cardStyle }}>
-          <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, marginBottom: 14 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: BLK, marginBottom: 14 }}>
             Results
           </div>
 
@@ -541,10 +541,10 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: 28, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: stat.color }}>
+                <div style={{ fontSize: 28, fontWeight: 800, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: stat.color }}>
                   {stat.value}
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: '#6b6b70', textTransform: 'uppercase', letterSpacing: '.04em' }}>
                   {stat.label}
                 </div>
               </div>
@@ -563,7 +563,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
                     rel="noopener noreferrer"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6,
-                      fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#3b82f6',
+                      fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: '#3b82f6',
                       textDecoration: 'none',
                     }}
                   >
@@ -580,7 +580,7 @@ export default function PipelineOrchestratorTab({ clientId, agencyId, siteId, co
               <span style={labelStyle}>Errors ({run.results.errors.length})</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {run.results.errors.map((err, i) => (
-                  <div key={i} style={{ fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: '#ef4444' }}>
+                  <div key={i} style={{ fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", color: '#ef4444' }}>
                     {err}
                   </div>
                 ))}

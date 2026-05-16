@@ -9,7 +9,7 @@ import { BLK, GRN, AMB, R } from '../../lib/theme'
 import { useKotoIQRefreshKey } from '../../context/KotoIQDataContext'
 import FreshnessBadge from './FreshnessBadge'
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
 const STATUS_COLOR = {

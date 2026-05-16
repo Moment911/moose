@@ -8,7 +8,7 @@ import TrainerPortalShell from '../../components/trainer/TrainerPortalShell'
 // TrainerHomePage — Cal-AI aesthetic: white canvas, clean typography.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const F    = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const F    = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const INK  = '#0a0a0a'
 const INK2 = '#1f1f22'
 const INK3 = '#6b6b70'

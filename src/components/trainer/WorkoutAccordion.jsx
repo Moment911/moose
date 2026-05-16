@@ -15,7 +15,7 @@ const T = {
   bg: '#ffffff', card: '#f1f1f6', border: '#ececef', divider: '#e5e5ea',
   green: '#16a34a', greenBg: '#ecfdf5', amber: '#d89a6a', amberBg: '#fef7ed',
   blue: '#5aa0ff', red: '#e9695c',
-  font: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  font: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   mono: "'SF Mono', 'Menlo', monospace",
   r: 16, rSm: 12, rPill: 999,
   shadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',

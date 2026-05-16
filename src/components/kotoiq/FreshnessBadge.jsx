@@ -2,7 +2,7 @@
 import { useFreshness } from '../../context/KotoIQDataContext'
 import { GRN, AMB } from '../../lib/theme'
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const STALE_RED = '#dc2626'
 
 /**

@@ -14,7 +14,7 @@ const C = {
   bg: '#ffffff', card: '#f1f1f6', border: '#ececef', divider: '#e5e5ea',
   green: '#16a34a', greenBg: '#ecfdf5', amber: '#f0b400', amberBg: '#fef9ec',
   blue: '#5aa0ff', red: '#e9695c',
-  font: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+  font: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   r: 16, rSm: 12, rPill: 999,
 }
 
