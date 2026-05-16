@@ -11,19 +11,32 @@ import { GRN, AMB } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 // ─────────────────────────────────────────────────────────────
-// Cal-AI / new Koto style tokens
+// Koto Design System tokens (DESIGN.md, 2026-05-13)
+// Display: Instrument Serif. Body/UI: DM Sans.
+// Accent: #E6007E pink (sparingly). Warm neutral palette.
 // ─────────────────────────────────────────────────────────────
-const SF  = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
-const INK = '#0a0a0a'
-const DIM = '#1f1f22'
-const MID = '#6b6b70'
-const SUB = '#8e8e93'
-const HAIR = '#ececef'
-const SOFT = '#f6f6f8'
-const RED = '#e9695c'
-const BLUE = '#5aa0ff'
-const VIOLET = '#a78bfa'
-const GREEN = GRN
+const DISPLAY = "'Instrument Serif', Georgia, 'Times New Roman', serif"
+const SF      = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" // BODY alias (legacy)
+const BODY    = SF
+
+const INK     = '#1A1A1A'   // text-primary
+const DIM     = '#4A4545'   // text-secondary (warm)
+const MID     = '#8A8580'   // text-muted (warm)
+const SUB     = '#8A8580'   // alias
+const HAIR    = '#E8E4E0'   // border (warm)
+const SUBHAIR = '#F0ECE8'   // border-subtle
+const SOFT    = '#FAFAF8'   // bg-surface
+const PAGE    = '#F7F5F2'   // bg-page (warm linen)
+
+const PINK         = '#E6007E'                    // accent
+const PINK_HOVER   = '#CC006E'
+const PINK_LIGHT   = 'rgba(230, 0, 126, 0.07)'
+const TEAL         = '#00C2CB'                    // data-positive only
+
+const RED    = '#DC2626'   // danger
+const BLUE   = '#2563EB'   // info
+const VIOLET = '#a78bfa'   // categorical (charts only)
+const GREEN  = GRN          // success
 
 const ENGINES = [
   { key: 'chatgpt',    label: 'ChatGPT',     color: '#10A37F', Icon: Bot },
@@ -43,45 +56,54 @@ const CATEGORY_LABEL = {
   problem: 'Problem-aware',
 }
 const CATEGORY_COLOR = {
-  commercial: '#0a0a0a',
-  comparison: VIOLET,
-  informational: BLUE,
-  local: GREEN,
+  commercial: INK,
+  comparison: DIM,
+  informational: MID,
+  local: TEAL,
   problem: AMB,
 }
 
 // ─────────────────────────────────────────────────────────────
-// Style primitives
+// Style primitives — DESIGN.md compliant
+// Cards 12px radius. Buttons 8px. Subtle shadow.
+// Primary CTA = pink. Section titles = DM Sans 600 16px.
+// Hero numbers / page title = Instrument Serif.
 // ─────────────────────────────────────────────────────────────
+const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)'
+
 const card = {
-  background: '#fff', borderRadius: 16, border: `1px solid ${HAIR}`,
-  padding: '20px 22px', marginBottom: 14, fontFamily: SF,
+  background: '#fff', borderRadius: 12, border: `1px solid ${HAIR}`,
+  padding: '20px 22px', marginBottom: 14, fontFamily: BODY,
+  boxShadow: CARD_SHADOW,
 }
 const labelStyle = {
-  fontSize: 11, fontWeight: 700, color: MID, textTransform: 'uppercase',
-  letterSpacing: '.06em', fontFamily: SF, marginBottom: 6,
+  fontSize: 11, fontWeight: 600, color: MID, textTransform: 'uppercase',
+  letterSpacing: '.06em', fontFamily: BODY, marginBottom: 6,
 }
 const bigStat = {
-  fontSize: 28, fontWeight: 900, color: INK, letterSpacing: '-0.5px',
-  lineHeight: 1.05, fontFamily: SF,
+  fontFamily: DISPLAY,
+  fontSize: 32, fontWeight: 400, color: INK,
+  letterSpacing: '-0.02em', lineHeight: 1.05,
 }
 const sectionTitle = {
-  fontFamily: SF, fontSize: 15, fontWeight: 800, color: INK,
+  fontFamily: BODY, fontSize: 16, fontWeight: 600, color: INK,
   marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8,
 }
 const inkButton = {
   display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px',
-  background: INK, color: '#fff', border: 'none', borderRadius: 10,
-  fontSize: 13, fontWeight: 700, fontFamily: SF, cursor: 'pointer',
+  background: PINK, color: '#fff', border: 'none', borderRadius: 8,
+  fontSize: 13, fontWeight: 600, fontFamily: BODY, cursor: 'pointer',
+  transition: 'background 200ms ease-out',
 }
 const ghostButton = {
   display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px',
-  background: '#fff', color: INK, border: `1px solid ${HAIR}`, borderRadius: 10,
-  fontSize: 13, fontWeight: 600, fontFamily: SF, cursor: 'pointer',
+  background: '#fff', color: INK, border: `1px solid ${HAIR}`, borderRadius: 8,
+  fontSize: 13, fontWeight: 500, fontFamily: BODY, cursor: 'pointer',
+  transition: 'background 200ms ease-out',
 }
 const subtleInput = {
   width: '100%', padding: '10px 12px', border: `1px solid ${HAIR}`,
-  borderRadius: 10, fontSize: 13, fontFamily: SF, color: INK, outline: 'none',
+  borderRadius: 8, fontSize: 14, fontFamily: BODY, color: INK, outline: 'none',
   boxSizing: 'border-box',
 }
 
@@ -244,13 +266,13 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
       <div>
         <HowItWorks tool="aeo_visibility" />
         <div style={{ ...card, padding: 40, textAlign: 'center' }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: SOFT, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-            <Sparkles size={26} color={INK} />
+          <div style={{ width: 56, height: 56, borderRadius: 12, background: PINK_LIGHT, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+            <Sparkles size={26} color={PINK} />
           </div>
-          <div style={{ fontFamily: SF, fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.4px', marginBottom: 8 }}>
+          <div style={{ fontFamily: DISPLAY, fontSize: 32, fontWeight: 400, color: INK, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: 10 }}>
             Track this brand across every AI engine
           </div>
-          <div style={{ fontSize: 14, color: DIM, maxWidth: 540, margin: '0 auto 24px', lineHeight: 1.5 }}>
+          <div style={{ fontFamily: BODY, fontSize: 14, color: DIM, maxWidth: 540, margin: '0 auto 24px', lineHeight: 1.55 }}>
             We'll seed 40 real customer prompts from this client's profile, then check ChatGPT, Claude, Gemini, Perplexity, and Google AI Overviews weekly to see exactly when the brand is recommended — and when a competitor wins instead.
           </div>
           <button onClick={oneClickSetup} disabled={seeding || !clientId} style={{ ...inkButton, padding: '12px 22px', fontSize: 14, opacity: seeding ? 0.6 : 1 }}>
@@ -315,10 +337,10 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
       <HowItWorks tool="aeo_visibility" />
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontFamily: SF, fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.4px' }}>AEO Visibility</div>
-          <div style={{ fontSize: 13, color: DIM, marginTop: 2 }}>
+          <div style={{ fontFamily: DISPLAY, fontSize: 28, fontWeight: 400, color: INK, letterSpacing: '-0.02em', lineHeight: 1.1 }}>AEO Visibility</div>
+          <div style={{ fontFamily: BODY, fontSize: 13, color: DIM, marginTop: 4 }}>
             How often this brand appears in AI search answers — across ChatGPT, Claude, Gemini, Perplexity, and Google AI Overviews.
           </div>
         </div>
@@ -382,7 +404,10 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
               <Legend wrapperStyle={{ fontSize: 12, fontFamily: SF, color: DIM }} iconType="circle" />
               {chartBrands.map((b, i) => {
                 const isSelf = compare.client_brand && b === compare.client_brand
-                const color = isSelf ? INK : [VIOLET, BLUE, '#22D3EE', AMB, '#D97757'][i % 5]
+                // DESIGN.md: pink = meaningful, reserved for the client's own share.
+                // Competitors use a restrained warm-neutral + teal palette.
+                const competitorPalette = ['#4A4545', '#8A8580', TEAL, '#A09A94', '#D4CFC9']
+                const color = isSelf ? PINK : competitorPalette[i % competitorPalette.length]
                 return (
                   <Area
                     key={b}
@@ -391,7 +416,7 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
                     stackId="1"
                     stroke={color}
                     fill={color}
-                    fillOpacity={isSelf ? 0.85 : 0.4}
+                    fillOpacity={isSelf ? 0.85 : 0.45}
                     name={isSelf ? `${b} (you)` : b}
                   />
                 )
@@ -474,16 +499,16 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
               </thead>
               <tbody>
                 {compare.rows.map(r => (
-                  <tr key={r.brand} style={{ borderBottom: `1px solid ${HAIR}` }}>
+                  <tr key={r.brand} style={{ borderBottom: `1px solid ${SUBHAIR}` }}>
                     <td style={{ padding: '10px 6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontWeight: r.is_self ? 800 : 600, color: INK }}>{r.brand}</span>
-                        {r.is_self && <span style={chip(INK)}>YOU</span>}
+                        <span style={{ fontWeight: r.is_self ? 600 : 500, color: INK, fontFamily: BODY }}>{r.brand}</span>
+                        {r.is_self && <span style={chip(PINK)}>YOU</span>}
                       </div>
                     </td>
                     <td style={tdRight}>{r.mentions}</td>
                     <td style={tdRight}>
-                      <ShareBar pct={r.share} color={r.is_self ? INK : VIOLET} />
+                      <ShareBar pct={r.share} color={r.is_self ? PINK : DIM} />
                     </td>
                     <td style={tdRight}>{r.avg_position != null ? r.avg_position.toFixed(1) : '—'}</td>
                   </tr>
@@ -570,7 +595,7 @@ export default function AEOVisibilityTab({ clientId, agencyId }) {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {competitors.map(c => (
-                <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: c.is_self ? INK : '#fff', color: c.is_self ? '#fff' : INK, border: `1px solid ${c.is_self ? INK : HAIR}`, borderRadius: 999, fontSize: 13, fontWeight: 600, fontFamily: SF }}>
+                <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: c.is_self ? PINK : '#fff', color: c.is_self ? '#fff' : INK, border: `1px solid ${c.is_self ? PINK : HAIR}`, borderRadius: 999, fontSize: 13, fontWeight: 500, fontFamily: BODY }}>
                   {c.brand_name}
                   {c.is_self && <span style={{ fontSize: 10, fontWeight: 800, opacity: 0.8 }}>YOU</span>}
                   {!c.is_self && (
@@ -645,6 +670,7 @@ const collapseHeader = { display: 'flex', alignItems: 'center', justifyContent: 
 const chip = (color) => ({ display: 'inline-block', background: color + '14', color, fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 999, fontFamily: SF, letterSpacing: '.04em', textTransform: 'uppercase' })
 const chipButton = (active) => ({
   display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 999,
-  border: `1px solid ${active ? INK : HAIR}`, background: active ? INK : '#fff',
-  color: active ? '#fff' : MID, fontSize: 12, fontWeight: 700, fontFamily: SF, cursor: 'pointer',
+  border: `1px solid ${active ? PINK : HAIR}`, background: active ? PINK : '#fff',
+  color: active ? '#fff' : DIM, fontSize: 12, fontWeight: 600, fontFamily: BODY, cursor: 'pointer',
+  transition: 'all 200ms ease-out',
 })
