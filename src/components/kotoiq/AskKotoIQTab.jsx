@@ -351,7 +351,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
-              KotoIQ
+              KotoBrain
             </div>
             <div style={{ fontSize: 11, color: '#6b6b70' }}>
               Tool-using agent — runs audits, fetches data, chains engines
@@ -377,7 +377,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               </div>
               <div style={{ fontSize: 14, color: '#6b6b70', marginBottom: 24, lineHeight: 1.6 }}>
                 Ask anything about this client&rsquo;s SEO, rankings, content, or what to do next.<br />
-                KotoIQ pulls from live data — rankings, audits, keywords, recommendations, and calendars.
+                KotoBrain pulls from live data — rankings, audits, keywords, recommendations, and calendars.
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
@@ -412,7 +412,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                   </div>
                   <div style={{ padding: '12px 16px', background: GRY, borderRadius: 12, color: '#6b6b70', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                    {mode === 'atlas' ? 'KotoIQ is planning + running tools…' : 'KotoIQ is thinking…'}
+                    {mode === 'atlas' ? 'KotoBrain is planning + running tools…' : 'KotoBrain is thinking…'}
                   </div>
                 </div>
               )}
