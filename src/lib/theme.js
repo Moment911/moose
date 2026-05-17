@@ -1,9 +1,5 @@
-export const R   = '#cb1c6b'
-export const T   = '#00C2CB'
-export const BLK = '#201b51'
-export const GRY = '#faf9f6'
-export const GRN = '#16a34a'
-export const AMB = '#D97706'
-export const W   = '#ffffff'
-export const FH  = "'Bebas Neue','Arial Narrow',sans-serif"
-export const FB  = "'DM Sans',-apple-system,sans-serif"
+// Legacy shim: this file used to be a parallel 9-token stub of theme.ts that
+// silently shipped stale brand values (cyan T, Bebas FH) to anything webpack
+// resolved here instead of theme.ts. Now it re-exports the canonical theme so
+// `from '../lib/theme'` resolves identically regardless of extension order.
+export * from './theme.ts'
