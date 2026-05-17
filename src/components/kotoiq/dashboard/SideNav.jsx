@@ -26,6 +26,7 @@ const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const NAV_GROUPS = [
   { label: 'Overview', items: [
     { id: 'today',             label: 'Today',             tab: 'today',             icon: Sunrise },
+    { id: 'plans',             label: 'Plans',             tab: 'plans',             icon: Target },
     { id: 'competitor_pulse',  label: 'Competitor Pulse',  tab: 'competitor_pulse',  icon: Activity },
     { id: 'dashboard',         label: 'Dashboard',         tab: 'dashboard',         icon: BarChart2 },
     { id: 'ask',               label: 'Ask KotoIQ',        tab: 'ask',               icon: MessageCircle },

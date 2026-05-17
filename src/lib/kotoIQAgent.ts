@@ -203,6 +203,22 @@ const TOOLS: ToolDef[] = [
     action: 'publish_brief_to_wp',
   },
   {
+    name: 'create_plan',
+    description: 'Turn the user\'s freeform goal into a structured, executable plan — a numbered list of 5-15 steps tied to real /api/kotoiq actions with concrete dispatch params and a dependency graph. Persists as a DRAFT plan in kotoiq_plans (user approves + executes from the Plans tab). Use when the user describes an outcome they want (e.g. "grow Acme\'s local visibility in Austin", "win back rankings after the May update", "launch into Boca Raton") rather than a single one-off action. Returns plan_id and the full draft for inline display.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        goal: { type: 'string', description: 'Restate the user\'s goal sharply, e.g. "Grow Acme Plumbing\'s local visibility across Austin metro in Q3"' },
+        context: {
+          type: 'object',
+          description: 'Optional normalized context the planner should incorporate: services, areas, business_model, deadlines, brand_voice, etc. Pull from what the user said — don\'t invent.',
+        },
+      },
+      required: ['goal'],
+    },
+    action: 'plan_create',
+  },
+  {
     name: 'recommend_local_strategy',
     description: 'Generate a complete 2026 hyperlocal SEO/AEO strategy: URL structure, topic clusters (pillar + service×city + neighborhood), schema plan (Service/Place/LocalBusiness for service-area businesses), AEO entity strategy for AI Overviews, internal linking pattern, and a phased multi-week attack plan. Persists every cluster as a page suggestion in Page Factory. Use when the user wants to design a local service business\'s page architecture from scratch, or expand into new service areas.',
     input_schema: {

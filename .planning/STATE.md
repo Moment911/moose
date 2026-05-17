@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: ready-for-pilot
 stopped_at: M1 code-complete + infra green; Phase 8 UI scope-cut to next milestone; remaining work is human UAT + PILOT-01 operator test
-last_updated: "2026-04-21T22:10:00.000Z"
-last_activity: 2026-04-21
+last_updated: "2026-05-17T03:00:00.000Z"
+last_activity: 2026-05-16
 progress:
   total_phases: 8
   completed_phases: 8
@@ -19,6 +19,21 @@ trainer_initiative:
   current_plan: 03-ui
   last_update: "2026-04-21"
   notes: Plans 01 (schema) + 02 (API dispatcher) landed. Plan 03 (UI) in progress on clean M1-complete baseline.
+kotoiq_plans_initiative:
+  status: code-complete-pending-migration
+  shipped:
+    - "Migration 20260616_kotoiq_plans (kotoiq_plans + kotoiq_plan_steps tables)"
+    - "Agent rename: chat surface = KotoBrain; product/platform = KotoIQ (commits 47b33db, 0c89da0)"
+    - "planBuilderEngine.ts — Claude Sonnet planner with full tool catalog (commit 0c89da0)"
+    - "planExecutorEngine.ts — single-step executor with depends_on graph + artifact extraction"
+    - "7 API actions in /api/kotoiq dispatcher: plan_create, plan_list, plan_get, plan_approve, plan_execute_next, plan_pause, plan_archive"
+    - "KotoBrain create_plan tool — chat input becomes a plan"
+    - "PlansTab.jsx — list + timeline + approve/run-next/run-remaining/pause/archive"
+    - "SideNav 'Plans' entry (Overview group) + KOTOIQ_NAV_GROUPS Strategy entry"
+  pending_action: "Apply migration 20260616_kotoiq_plans via Supabase SQL Editor (PlansTab calls 500 until tables exist in prod)"
+  next: "Background-actions refactor — all tab actions through Workflow DevKit queue + global tray; PlansTab as pilot"
+infra_fixes:
+  - "2026-05-16: deleted-then-shimmed src/lib/theme.js — was 9-export stub silently shadowing 162-line theme.ts for ~30+ files. Fixed brand inconsistency (T was cyan in stub vs unified teal in .ts) and 117+ Webpack 'Attempted import error' warnings for cardStyle/badgeStyle/buttonPrimary/DST/etc. Shim re-exports theme.ts so legacy `.js`-resolving imports still work."
 ---
 
 # Project State

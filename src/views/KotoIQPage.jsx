@@ -46,6 +46,7 @@ import CompetitorPulseTab from '../components/kotoiq/CompetitorPulseTab'
 import TodayTab from '../components/kotoiq/TodayTab'
 import FeatureDirectoryTab from '../components/kotoiq/FeatureDirectoryTab'
 import AutoFixQueueTab from '../components/kotoiq/AutoFixQueueTab'
+import PlansTab from '../components/kotoiq/PlansTab'
 import StyleEditorTab from '../components/kotoiq/StyleEditorTab'
 import CampaignsTab from '../components/kotoiq/CampaignsTab'
 import CompetitorLabTab from '../components/kotoiq/CompetitorLabTab'
@@ -648,6 +649,7 @@ const KOTOIQ_NAV_GROUPS = [
     ['query_paths', 'Query Paths', GitBranch],
   ]},
   { group: 'Strategy', items: [
+    ['plans', 'Plans', Target, 'Goal-shaped workflows: research → strategy → build → publish in one approvable plan'],
     ['strategy', 'Strategic Plan', Target],
   ]},
   { group: 'Content', items: [
@@ -2493,6 +2495,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ AUTO-FIX QUEUE — OTTO-style triage + dispatch ═══ */}
         {clientId && tab === 'autofix_queue' && (
           <AutoFixQueueTab clientId={clientId} agencyId={agencyId} />
+        )}
+
+        {/* ══ PLANS — goal-shaped executable workflows ══ */}
+        {clientId && tab === 'plans' && (
+          <PlansTab clientId={clientId} agencyId={agencyId} />
         )}
 
         {/* ══ STYLE EDITOR — realtime token control for the whole product ══ */}

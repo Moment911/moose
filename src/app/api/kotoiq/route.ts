@@ -70,6 +70,15 @@ import {
 import { discoverPages } from '@/lib/kotoiq/pageDiscovery'
 import { recommendLocalStrategy } from '@/lib/kotoiq/localStrategistEngine'
 import { bulkGenerateBriefs, publishBriefToWp } from '@/lib/kotoiq/bulkPageBuilder'
+import { buildPlan } from '@/lib/kotoiq/planBuilderEngine'
+import {
+  executeNextStep,
+  approvePlan,
+  pausePlan,
+  archivePlan,
+  listPlans,
+  getPlan,
+} from '@/lib/kotoiq/planExecutorEngine'
 import { getCurrentPricing, getPricingChanges, getPricingOverview } from '@/lib/kotoiq/pricingTrackerEngine'
 import { getTechStackByCompetitor } from '@/lib/kotoiq/techStackAggregator'
 import { estimateDomainTraffic, estimateTrafficForDomains } from '@/lib/kotoiq/trafficEstimator'
@@ -4074,6 +4083,75 @@ Provide a detailed analysis. Return ONLY valid JSON:
   if (action === 'autofix_run') {
     try { return NextResponse.json(await autofixRun(s, body)) }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── PLANS — enterprise plan-and-execute workflow ───────────────────────────
+  // Builder (buildPlan) takes a goal + client + optional context, asks
+  // Claude Sonnet to produce a step graph, persists as DRAFT. Executor
+  // walks the graph one step per call (single-step keeps us under the
+  // 300s Vercel cap; UI loops execute_next when user wants to run all).
+  if (action === 'plan_create') {
+    try {
+      const { client_id, agency_id, goal, context } = body
+      const result = await buildPlan(s, { client_id, agency_id, goal, context })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+  if (action === 'plan_list') {
+    try {
+      const { client_id, status, limit } = body
+      const result = await listPlans(s, { client_id, status, limit })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+  if (action === 'plan_get') {
+    try {
+      const { plan_id } = body
+      const result = await getPlan(s, { plan_id })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+  if (action === 'plan_approve') {
+    try {
+      const { plan_id } = body
+      const result = await approvePlan(s, plan_id)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+  if (action === 'plan_execute_next') {
+    try {
+      const { plan_id, agency_id } = body
+      const result = await executeNextStep(s, { plan_id, agency_id })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+  if (action === 'plan_pause') {
+    try {
+      const { plan_id } = body
+      const result = await pausePlan(s, plan_id)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+  if (action === 'plan_archive') {
+    try {
+      const { plan_id } = body
+      const result = await archivePlan(s, plan_id)
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
   }
 
   if (action === 'list_chat_conversations') {
