@@ -44,6 +44,7 @@ export default function SearchReplacePanel({ site }) {
   const [jobRunning, setJobRunning] = useState(false)
   const [samples, setSamples] = useState([])
   const [jobs, setJobs] = useState([])
+  const [selectedJobIds, setSelectedJobIds] = useState({}) // {jobId: true} — for multi-select undo
   const [progress, setProgress] = useState(null) // {scanned, matches, table}
   const cancelRef = useRef(false)
 
@@ -221,6 +222,50 @@ export default function SearchReplacePanel({ site }) {
       toast.error(e.message)
     }
   }
+
+  async function undoSelected() {
+    const ids = Object.keys(selectedJobIds).filter(id => selectedJobIds[id])
+    if (!ids.length) return
+    // Filter to undoable jobs only + sort newest first so undos compose correctly
+    const undoable = jobs
+      .filter(j => ids.includes(j.id) && !j.is_dry_run && j.status === 'complete')
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    if (!undoable.length) { toast.error('No undoable runs in selection (preview or already-undone jobs are skipped)'); return }
+    const totalRows = undoable.reduce((sum, j) => sum + (j.total_rows_changed || 0), 0)
+    if (!confirm(`Undo ${undoable.length} job(s)? Restores ${totalRows.toLocaleString()} row(s) total.\n\nApplied newest-first so revert order is correct.`)) return
+
+    let restored = 0
+    for (const j of undoable) {
+      const tid = toast.loading(`Undoing "${trim(j.search, 30)}"…`)
+      try {
+        const res = await fetch('/api/wp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'sr_undo_job', site_id: site.id, job_id: j.id }),
+        })
+        const data = await res.json()
+        toast.dismiss(tid)
+        if (data.error) { toast.error(`${j.search}: ${data.error}`); break }
+        restored += Number(data.restored || 0)
+      } catch (e) {
+        toast.dismiss(tid)
+        toast.error(e.message); break
+      }
+    }
+    toast.success(`Restored ${restored.toLocaleString()} row(s) across ${undoable.length} job(s)`)
+    setSelectedJobIds({})
+    await loadJobs()
+  }
+
+  function toggleJobSelected(id) {
+    setSelectedJobIds(s => ({ ...s, [id]: !s[id] }))
+  }
+  function selectAllUndoable() {
+    const next = {}
+    jobs.forEach(j => { if (!j.is_dry_run && j.status === 'complete') next[j.id] = true })
+    setSelectedJobIds(next)
+  }
+  function clearJobSelection() { setSelectedJobIds({}) }
 
   async function deleteJob(j) {
     if (!confirm('Delete job + journal? This removes the undo history but does not revert changes.')) return
@@ -407,17 +452,45 @@ export default function SearchReplacePanel({ site }) {
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>History</div>
-            <button onClick={loadJobs} style={mini()}><RefreshCw size={10} /></button>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={selectAllUndoable} style={mini()} title="Select all undoable runs">Select all</button>
+              <button onClick={clearJobSelection} style={mini()}>Clear</button>
+              <button onClick={loadJobs} style={mini()}><RefreshCw size={10} /></button>
+            </div>
           </div>
+
+          {(() => {
+            const selectedCount = Object.values(selectedJobIds).filter(Boolean).length
+            if (!selectedCount) return null
+            const totalRows = jobs
+              .filter(j => selectedJobIds[j.id] && !j.is_dry_run && j.status === 'complete')
+              .reduce((s, j) => s + (j.total_rows_changed || 0), 0)
+            return (
+              <button onClick={undoSelected} style={{ ...btn({ bg: AMB, color: '#fff' }), marginBottom: 10 }}>
+                <Undo2 size={13} /> Undo {selectedCount} selected · {totalRows.toLocaleString()} rows
+              </button>
+            )
+          })()}
+
           {jobs.length === 0 ? (
             <div style={{ padding: 18, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}>No jobs yet.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {jobs.map(j => {
                 const pill = STATUS_PILL[j.status] || STATUS_PILL.preview
+                const isUndoable = !j.is_dry_run && j.status === 'complete'
+                const isSelected = !!selectedJobIds[j.id]
                 return (
-                  <div key={j.id} style={{ padding: 10, background: '#fafafa', borderRadius: 9, border: '1px solid #f1f5f9' }}>
+                  <div key={j.id} style={{ padding: 10, background: isSelected ? `${AMB}10` : '#fafafa', borderRadius: 9, border: `1px solid ${isSelected ? AMB : '#f1f5f9'}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        disabled={!isUndoable}
+                        onChange={() => isUndoable && toggleJobSelected(j.id)}
+                        title={isUndoable ? 'Select to bulk-undo' : 'Only completed live runs can be undone'}
+                        style={{ margin: 0, opacity: isUndoable ? 1 : 0.3, cursor: isUndoable ? 'pointer' : 'not-allowed' }}
+                      />
                       <Pill color={pill.color} bg={pill.bg}>{pill.label}</Pill>
                       {j.is_dry_run && <Pill>preview</Pill>}
                       <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: BLK, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -433,7 +506,7 @@ export default function SearchReplacePanel({ site }) {
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => loadSamplesFor(j.id)} style={mini()}><Eye size={10} /> Samples</button>
-                      {!j.is_dry_run && j.status === 'complete' && (
+                      {isUndoable && (
                         <button onClick={() => undoJob(j)} style={mini({ color: AMB, borderColor: AMB })}><Undo2 size={10} /> Undo</button>
                       )}
                       <div style={{ flex: 1 }} />
