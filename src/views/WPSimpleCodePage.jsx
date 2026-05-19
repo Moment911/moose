@@ -1,0 +1,171 @@
+"use client"
+import { useState, useEffect } from 'react'
+import { Code2, Plug, Globe, Loader2, CheckCircle, XCircle, Search as SearchIcon, ShieldCheck, ExternalLink, RefreshCw } from 'lucide-react'
+import Sidebar from '../components/Sidebar'
+import { useAuth } from '../hooks/useAuth'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
+import WPSCConnectionGate from '../components/kotoiq/WPSCConnectionGate'
+import SearchReplacePanel from '../components/kotoiq/SearchReplacePanel'
+import SnippetsPanel from '../components/kotoiq/SnippetsPanel'
+import AccessManagementPanel from '../components/kotoiq/AccessManagementPanel'
+
+const TABS = [
+  { key: 'search_replace', label: 'Search & Replace', icon: SearchIcon },
+  { key: 'snippets',       label: 'Snippets',         icon: Code2 },
+  { key: 'access',         label: 'Access',           icon: ShieldCheck },
+]
+
+function Dot({ on }) {
+  return <span style={{ display:'inline-block', width:8, height:8, borderRadius:'50%', background:on?GRN:'#d1d5db', boxShadow:on?`0 0 0 3px ${GRN}25`:'none', flexShrink:0 }}/>
+}
+
+function SiteCard({ site, selected, onClick }) {
+  return (
+    <div onClick={onClick} style={{ background:'#fff', borderRadius:12, border:`1.5px solid ${selected?R:'#e5e7eb'}`, padding:'12px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+      <Dot on={site.connected}/>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:BLK, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{site.site_name || site.site_url}</div>
+        <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{site.clients?.name || site.site_url.replace(/^https?:\/\//,'')}</div>
+      </div>
+      {site.wpsc_api_key
+        ? <span title="Paired" style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, fontFamily:FH, fontWeight:700, color:GRN, background:`${GRN}15`, padding:'2px 6px', borderRadius:6 }}><Plug size={9}/> WPSC</span>
+        : null}
+    </div>
+  )
+}
+
+export default function WPSimpleCodePage() {
+  const { agencyId } = useAuth()
+  const [sites, setSites] = useState([])
+  const [selected, setSelected] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState('search_replace')
+
+  useEffect(() => { if (agencyId) loadSites() }, [agencyId])
+
+  async function loadSites() {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/wp?agency_id=${agencyId || '00000000-0000-0000-0000-000000000099'}`)
+      const data = await res.json()
+      setSites(data.sites || [])
+      if (data.sites?.length && !selected) setSelected(data.sites[0])
+      else if (selected) {
+        const fresh = data.sites?.find(s => s.id === selected.id)
+        if (fresh) setSelected(fresh)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function pickSite(s) { setSelected(s) }
+
+  return (
+    <div style={{ display:'flex', minHeight:'100vh', background:GRY }}>
+      <Sidebar/>
+      <div style={{ flex:1, display:'flex', flexDirection:'column' }}>
+
+        {/* Header */}
+        <div style={{ padding:'18px 28px', borderBottom:'1px solid #e5e7eb', background:'#fff', display:'flex', alignItems:'center', gap:14 }}>
+          <div style={{ width:38, height:38, borderRadius:10, background:`${R}12`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Code2 size={20} color={R}/>
+          </div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontFamily:FH, fontSize:20, fontWeight:900, color:BLK, lineHeight:1.1 }}>WPSimpleCode</div>
+            <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:2 }}>
+              Site-wide search &amp; replace, role-aware code snippets, and access management — across every paired WordPress site.
+            </div>
+          </div>
+          <button onClick={loadSites} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 12px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#6b7280', fontFamily:FH, fontSize:12, fontWeight:600, cursor:'pointer' }}>
+            <RefreshCw size={12}/> Refresh
+          </button>
+        </div>
+
+        {/* Body — site list (left) + content (right) */}
+        <div style={{ flex:1, display:'flex', minHeight:0 }}>
+
+          {/* Site list rail */}
+          <div style={{ width:320, borderRight:'1px solid #e5e7eb', background:'#fafafa', display:'flex', flexDirection:'column', minHeight:0 }}>
+            <div style={{ padding:'14px 16px 8px', display:'flex', alignItems:'center', gap:6 }}>
+              <Globe size={13} color="#6b7280"/>
+              <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#374151' }}>Connected sites ({sites.length})</div>
+            </div>
+            <div style={{ flex:1, overflowY:'auto', padding:'0 12px 12px' }}>
+              {loading ? (
+                <div style={{ padding:24, textAlign:'center', color:'#9ca3af', fontSize:12 }}><Loader2 size={14} className="spin"/> Loading…</div>
+              ) : sites.length === 0 ? (
+                <div style={{ padding:24, textAlign:'center', color:'#9ca3af', fontSize:12, fontFamily:FB }}>
+                  No WordPress sites connected yet. Connect a site from the SEO area first.
+                </div>
+              ) : sites.map(s => (
+                <SiteCard key={s.id} site={s} selected={selected?.id === s.id} onClick={() => pickSite(s)}/>
+              ))}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div style={{ flex:1, display:'flex', flexDirection:'column', minHeight:0, overflow:'hidden' }}>
+            {selected ? (
+              <>
+                {/* Site sub-header + tabs */}
+                <div style={{ padding:'14px 28px 0', borderBottom:'1px solid #e5e7eb', background:'#fff' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{selected.site_name || selected.site_url}</div>
+                      <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, display:'flex', alignItems:'center', gap:6 }}>
+                        <a href={selected.site_url} target="_blank" rel="noreferrer" style={{ color:T, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:3 }}>
+                          {selected.site_url.replace(/^https?:\/\//,'')} <ExternalLink size={10}/>
+                        </a>
+                        {selected.wpsc_version && <span style={{ marginLeft:6 }}>· WPSimpleCode v{selected.wpsc_version}</span>}
+                      </div>
+                    </div>
+                    {selected.wpsc_api_key
+                      ? <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontFamily:FH, fontWeight:700, color:GRN, background:`${GRN}15`, padding:'4px 8px', borderRadius:8 }}><CheckCircle size={11}/> Paired</span>
+                      : <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontFamily:FH, fontWeight:700, color:AMB, background:`${AMB}15`, padding:'4px 8px', borderRadius:8 }}><XCircle size={11}/> Not paired</span>}
+                  </div>
+                  <div style={{ display:'flex', gap:2 }}>
+                    {TABS.map(t => {
+                      const Icon = t.icon
+                      const active = tab === t.key
+                      return (
+                        <button key={t.key} onClick={() => setTab(t.key)} style={{
+                          display:'flex', alignItems:'center', gap:6,
+                          padding:'9px 16px', borderRadius:'8px 8px 0 0', border:'none',
+                          background: active ? GRY : 'transparent',
+                          color: active ? BLK : '#9ca3af',
+                          fontSize:12, fontWeight: active ? 700 : 500, fontFamily:FH, cursor:'pointer',
+                        }}>
+                          <Icon size={12}/>{t.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Tab content */}
+                <div style={{ flex:1, overflowY:'auto', padding:'20px 28px', background:GRY }}>
+                  <WPSCConnectionGate site={selected} onPaired={loadSites}>
+                    {tab === 'search_replace' && <SearchReplacePanel site={selected}/>}
+                    {tab === 'snippets'       && <SnippetsPanel site={selected}/>}
+                    {tab === 'access'         && <AccessManagementPanel site={selected}/>}
+                  </WPSCConnectionGate>
+                </div>
+              </>
+            ) : (
+              <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', color:'#9ca3af', fontFamily:FB, fontSize:13 }}>
+                Pick a site to manage.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spin { animation: spin 1s linear infinite; display: inline-block; }
+      `}</style>
+    </div>
+  )
+}

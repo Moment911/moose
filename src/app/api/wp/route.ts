@@ -11,6 +11,47 @@ function getSupabase() {
   )
 }
 
+async function proxyToWPSC(site: any, endpoint: string, body: any = {}) {
+  // WPSimpleCode plugin proxy — separate namespace + key from the koto plugin.
+  const start = Date.now()
+  const sb = getSupabase()
+  const key = site.wpsc_api_key || ''
+  const { data: cmd } = await sb.from('koto_wp_commands').insert({
+    site_id: site.id, agency_id: site.agency_id, command: `wpsc:${endpoint}`, payload: body, status: 'pending',
+  }).select().single()
+  try {
+    const url = `${site.site_url}/wp-json/wpsimplecode/v1/${endpoint}`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'X-WPSC-Key': key,
+        'X-WPSC-Source': APP_URL,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body || {}),
+      signal: AbortSignal.timeout(45000),
+    })
+    const responseData = res.ok ? await res.json().catch(() => ({})) : await res.text().then(t => ({ error: t })).catch(() => ({}))
+    const duration = Date.now() - start
+    await sb.from('koto_wp_commands').update({
+      status: res.ok ? 'success' : 'error',
+      response: responseData,
+      error: res.ok ? null : `HTTP ${res.status}`,
+      duration_ms: duration,
+      completed_at: new Date().toISOString(),
+    }).eq('id', cmd?.id)
+    return { ok: res.ok, data: responseData, status: res.status, duration }
+  } catch (e: any) {
+    const duration = Date.now() - start
+    await sb.from('koto_wp_commands').update({
+      status: 'error', error: e.message, duration_ms: duration,
+      completed_at: new Date().toISOString(),
+    }).eq('id', cmd?.id)
+    return { ok: false, data: {}, error: e.message, duration }
+  }
+}
+
 async function proxyToPlugin(site: any, endpoint: string, method = 'POST', body: any = {}) {
   const start = Date.now()
   const sb = getSupabase()
@@ -814,6 +855,429 @@ Rules:
     if (action === 'proxy') {
       return NextResponse.json(await proxyToPlugin(site, body.endpoint, body.method || 'POST', body.payload || {}))
     }
+
+    // ─── Search & Replace ──────────────────────────────────────────────────
+    // Multi-tenant Better-Search-Replace clone. Drives the wp-plugin koto-search-replace.php
+    // endpoints, persists undo journal in Supabase.
+
+    if (action === 'sr_list_tables') {
+      const result = await proxyToWPSC(site, 'search-replace/tables', {})
+      return NextResponse.json(result)
+    }
+
+    if (action === 'sr_list_jobs') {
+      const { data: jobs } = await sb
+        .from('koto_search_replace_jobs')
+        .select('*')
+        .eq('site_id', site_id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      return NextResponse.json({ jobs: jobs || [] })
+    }
+
+    if (action === 'sr_get_job') {
+      const { job_id } = body
+      const { data: job } = await sb.from('koto_search_replace_jobs').select('*').eq('id', job_id).single()
+      const { count: change_count } = await sb
+        .from('koto_search_replace_changes')
+        .select('id', { count: 'exact', head: true })
+        .eq('job_id', job_id)
+      return NextResponse.json({ job, change_count: change_count || 0 })
+    }
+
+    if (action === 'sr_get_samples') {
+      const { job_id, limit = 30 } = body
+      const { data: samples } = await sb
+        .from('koto_search_replace_changes')
+        .select('id, table_name, column_name, primary_key_value, before_value, after_value, is_restored')
+        .eq('job_id', job_id)
+        .order('id', { ascending: true })
+        .limit(limit)
+      return NextResponse.json({ samples: samples || [] })
+    }
+
+    if (action === 'sr_create_job') {
+      const { search, replace_with, options, scope, is_dry_run, client_id } = body
+      if (!search) return NextResponse.json({ error: 'search required' }, { status: 400 })
+      const { data: job, error } = await sb
+        .from('koto_search_replace_jobs')
+        .insert({
+          site_id,
+          agency_id: site.agency_id,
+          client_id: client_id || site.client_id || null,
+          search,
+          replace_with: replace_with || '',
+          options: options || {},
+          scope: scope || { tables: [] },
+          status: is_dry_run ? 'preview' : 'running',
+          is_dry_run: !!is_dry_run,
+          total_tables: Array.isArray(scope?.tables) ? scope.tables.length : 0,
+          started_at: new Date().toISOString(),
+        })
+        .select()
+        .single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ job })
+    }
+
+    if (action === 'sr_run_chunk') {
+      const { job_id, chunk_size = 200, sample_cap = 25 } = body
+      const { data: job } = await sb.from('koto_search_replace_jobs').select('*').eq('id', job_id).single()
+      if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+      if (job.status === 'complete' || job.status === 'undone' || job.status === 'failed') {
+        return NextResponse.json({ ok: true, done: true, job })
+      }
+
+      const tables: Array<{ name: string; primary_key: string; columns: string[] }> = job.scope?.tables || []
+      if (!tables.length) {
+        await sb.from('koto_search_replace_jobs').update({
+          status: 'failed', error: 'No tables in scope', completed_at: new Date().toISOString(),
+        }).eq('id', job_id)
+        return NextResponse.json({ error: 'No tables in scope' }, { status: 400 })
+      }
+
+      let tableIdx = job.current_table_index || 0
+      if (tableIdx >= tables.length) {
+        await sb.from('koto_search_replace_jobs').update({
+          status: 'complete', completed_at: new Date().toISOString(),
+        }).eq('id', job_id)
+        return NextResponse.json({ ok: true, done: true })
+      }
+
+      const t = tables[tableIdx]
+      const offset = job.current_offset || 0
+
+      const result = await proxyToWPSC(site, 'search-replace/scan', {
+        table: t.name,
+        primary_key: t.primary_key,
+        columns: t.columns,
+        search: job.search,
+        replace: job.replace_with,
+        options: job.options || {},
+        dry_run: job.is_dry_run,
+        offset,
+        limit: chunk_size,
+        sample_cap,
+      })
+
+      if (!result.ok) {
+        await sb.from('koto_search_replace_jobs').update({
+          status: 'failed', error: result.error || `Plugin error on ${t.name}`,
+          completed_at: new Date().toISOString(),
+        }).eq('id', job_id)
+        return NextResponse.json({ error: result.error || 'Plugin error', table: t.name }, { status: 500 })
+      }
+
+      const d = result.data || {}
+      const changes: Array<any> = Array.isArray(d.changes) ? d.changes : []
+      const samples: Array<any> = Array.isArray(d.sample) ? d.sample : []
+
+      // Persist undo journal (apply mode) — store full before/after
+      if (!job.is_dry_run && changes.length) {
+        const rows = changes.map((c: any) => ({
+          job_id,
+          agency_id: site.agency_id,
+          table_name: t.name,
+          primary_key_column: t.primary_key,
+          primary_key_value: String(c.pk),
+          column_name: c.column,
+          before_value: c.before ?? '',
+          after_value: c.after ?? '',
+        }))
+        const BATCH = 500
+        for (let i = 0; i < rows.length; i += BATCH) {
+          await sb.from('koto_search_replace_changes').insert(rows.slice(i, i + BATCH))
+        }
+      }
+      // Persist preview samples (dry-run mode) so the UI has something to show after page refresh
+      if (job.is_dry_run && samples.length) {
+        const rows = samples.map((s: any) => ({
+          job_id,
+          agency_id: site.agency_id,
+          table_name: t.name,
+          primary_key_column: t.primary_key,
+          primary_key_value: String(s.pk),
+          column_name: s.column,
+          before_value: s.before ?? '',
+          after_value: s.after ?? '',
+        }))
+        await sb.from('koto_search_replace_changes').insert(rows)
+      }
+
+      const hasMore = !!d.has_more
+      const nextOffset = Number(d.next_offset || 0)
+      const tableDone = !hasMore
+      const newTableIdx = tableDone ? tableIdx + 1 : tableIdx
+      const newOffset = tableDone ? 0 : nextOffset
+      const allDone = newTableIdx >= tables.length
+
+      await sb.from('koto_search_replace_jobs').update({
+        current_table: t.name,
+        current_table_index: newTableIdx,
+        current_offset: newOffset,
+        tables_completed: tableDone ? tableIdx + 1 : tableIdx,
+        total_rows_scanned: (job.total_rows_scanned || 0) + Number(d.scanned || 0),
+        total_matches: (job.total_matches || 0) + Number(d.matches || 0),
+        total_replacements: (job.total_replacements || 0) + Number(d.replacements || 0),
+        total_rows_changed: (job.total_rows_changed || 0) + Number(d.rows_changed || 0),
+        status: allDone ? 'complete' : 'running',
+        completed_at: allDone ? new Date().toISOString() : null,
+      }).eq('id', job_id)
+
+      return NextResponse.json({
+        ok: true,
+        table: t.name,
+        scanned: d.scanned,
+        matches: d.matches,
+        replacements: d.replacements,
+        rows_changed: d.rows_changed,
+        has_more: hasMore,
+        next_offset: newOffset,
+        next_table_index: newTableIdx,
+        done: allDone,
+        samples,
+      })
+    }
+
+    if (action === 'sr_pause_job') {
+      const { job_id } = body
+      await sb.from('koto_search_replace_jobs').update({ status: 'paused' }).eq('id', job_id)
+      return NextResponse.json({ ok: true })
+    }
+
+    if (action === 'sr_resume_job') {
+      const { job_id } = body
+      await sb.from('koto_search_replace_jobs').update({ status: 'running' }).eq('id', job_id)
+      return NextResponse.json({ ok: true })
+    }
+
+    if (action === 'sr_undo_job') {
+      const { job_id, batch_size = 200 } = body
+      const { data: job } = await sb.from('koto_search_replace_jobs').select('*').eq('id', job_id).single()
+      if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+      if (job.is_dry_run) return NextResponse.json({ error: 'Preview jobs have no undo journal' }, { status: 400 })
+
+      await sb.from('koto_search_replace_jobs').update({ status: 'undoing' }).eq('id', job_id)
+
+      // Stream changes in batches, restore each batch via the plugin.
+      let totalRestored = 0
+      let lastId = 0
+      let batchN = 0
+      const maxBatches = 500 // safety cap; UI can call again if hit
+      while (batchN < maxBatches) {
+        const { data: batch } = await sb
+          .from('koto_search_replace_changes')
+          .select('id, table_name, primary_key_column, primary_key_value, column_name, before_value')
+          .eq('job_id', job_id)
+          .eq('is_restored', false)
+          .gt('id', lastId)
+          .order('id', { ascending: true })
+          .limit(batch_size)
+        if (!batch || !batch.length) break
+
+        const payload = batch.map((c: any) => ({
+          table: c.table_name,
+          pk_column: c.primary_key_column,
+          pk_value: c.primary_key_value,
+          column: c.column_name,
+          before_value: c.before_value,
+        }))
+        const r = await proxyToWPSC(site, 'search-replace/restore', { changes: payload })
+        if (!r.ok) {
+          await sb.from('koto_search_replace_jobs').update({
+            status: 'failed', error: r.error || 'Restore failed',
+          }).eq('id', job_id)
+          return NextResponse.json({ error: r.error || 'Restore failed', restored_so_far: totalRestored }, { status: 500 })
+        }
+        const ids = batch.map((c: any) => c.id)
+        await sb.from('koto_search_replace_changes').update({ is_restored: true }).in('id', ids)
+        totalRestored += Number(r.data?.restored || 0)
+        lastId = batch[batch.length - 1].id
+        batchN++
+        if (batch.length < batch_size) break
+      }
+
+      await sb.from('koto_search_replace_jobs').update({
+        status: 'undone', completed_at: new Date().toISOString(),
+      }).eq('id', job_id)
+      return NextResponse.json({ ok: true, restored: totalRestored })
+    }
+
+    if (action === 'sr_delete_job') {
+      const { job_id } = body
+      await sb.from('koto_search_replace_jobs').delete().eq('id', job_id)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ─── /Search & Replace ─────────────────────────────────────────────────
+
+    // ─── WPSimpleCode pairing + detection ──────────────────────────────────
+
+    if (action === 'wpsc_detect') {
+      // GET /wp-json/wpsimplecode/v1/meta is public — no auth needed
+      try {
+        const url = `${site.site_url}/wp-json/wpsimplecode/v1/meta`
+        const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+        if (!res.ok) {
+          await sb.from('koto_wp_sites').update({ wpsc_detected: false }).eq('id', site_id)
+          return NextResponse.json({ detected: false, status: res.status })
+        }
+        const meta = await res.json().catch(() => ({}))
+        await sb.from('koto_wp_sites').update({
+          wpsc_detected: true,
+          wpsc_version: meta?.version || null,
+          wpsc_last_seen_at: new Date().toISOString(),
+        }).eq('id', site_id)
+        return NextResponse.json({ detected: true, meta })
+      } catch (e: any) {
+        await sb.from('koto_wp_sites').update({ wpsc_detected: false }).eq('id', site_id)
+        return NextResponse.json({ detected: false, error: e.message })
+      }
+    }
+
+    if (action === 'wpsc_pair') {
+      const { wpsc_api_key } = body
+      if (!wpsc_api_key) return NextResponse.json({ error: 'wpsc_api_key required' }, { status: 400 })
+      await sb.from('koto_wp_sites').update({ wpsc_api_key }).eq('id', site_id)
+      // Verify the key by hitting an authenticated endpoint
+      const verify = await proxyToWPSC({ ...site, wpsc_api_key }, 'access/roles', {})
+      if (!verify.ok) {
+        return NextResponse.json({ paired: false, error: verify.data?.error || `HTTP ${verify.status}` }, { status: 400 })
+      }
+      return NextResponse.json({ paired: true })
+    }
+
+    if (action === 'wpsc_clear_key') {
+      await sb.from('koto_wp_sites').update({ wpsc_api_key: null }).eq('id', site_id)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ─── Access Management ─────────────────────────────────────────────────
+
+    if (action === 'am_load') {
+      const remoteRes = await proxyToWPSC(site, 'access/roles', {})
+      const remote = remoteRes.ok ? remoteRes.data : { roles: {}, policy: {}, global_disable_file_edit: false }
+      const { data: stored } = await sb
+        .from('koto_access_policies')
+        .select('*')
+        .eq('site_id', site_id)
+        .maybeSingle()
+      return NextResponse.json({
+        roles: remote?.roles || {},
+        live_policy: remote?.policy || {},
+        global_disable_file_edit: !!remote?.global_disable_file_edit,
+        stored,
+        remote_ok: remoteRes.ok,
+        error: remoteRes.ok ? null : (remoteRes.data?.error || `HTTP ${remoteRes.status}`),
+      })
+    }
+
+    if (action === 'am_save') {
+      const { policy, snippet_overrides, file_editor_disabled_globally, client_id } = body
+      const { data, error } = await sb
+        .from('koto_access_policies')
+        .upsert({
+          site_id,
+          agency_id: site.agency_id,
+          client_id: client_id || site.client_id || null,
+          policy: policy || {},
+          snippet_overrides: snippet_overrides || {},
+          file_editor_disabled_globally: !!file_editor_disabled_globally,
+        }, { onConflict: 'site_id' })
+        .select()
+        .single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ policy: data })
+    }
+
+    if (action === 'am_apply') {
+      const { data: stored } = await sb
+        .from('koto_access_policies')
+        .select('*')
+        .eq('site_id', site_id)
+        .maybeSingle()
+      if (!stored) return NextResponse.json({ error: 'No saved policy. Save first.' }, { status: 400 })
+      const result = await proxyToWPSC(site, 'access/apply', {
+        policy: stored.policy || {},
+        global_disable_file_edit: !!stored.file_editor_disabled_globally,
+      })
+      if (!result.ok) return NextResponse.json({ error: result.data?.error || `HTTP ${result.status}` }, { status: 500 })
+      await sb.from('koto_access_policies').update({
+        last_applied_at: new Date().toISOString(),
+      }).eq('id', stored.id)
+      return NextResponse.json({ ok: true, applied: result.data?.applied || {} })
+    }
+
+    if (action === 'am_snapshot') {
+      const { note } = body
+      const result = await proxyToWPSC(site, 'access/snapshot', {})
+      if (!result.ok) return NextResponse.json({ error: result.data?.error || `HTTP ${result.status}` }, { status: 500 })
+      const { data: stored } = await sb.from('koto_access_policies').select('id').eq('site_id', site_id).maybeSingle()
+      const { data: snap, error } = await sb
+        .from('koto_access_snapshots')
+        .insert({
+          site_id,
+          agency_id: site.agency_id,
+          policy_id: stored?.id || null,
+          snapshot: result.data?.snapshot || {},
+          note: note || null,
+        })
+        .select()
+        .single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ snapshot: snap })
+    }
+
+    if (action === 'am_list_snapshots') {
+      const { data: snaps } = await sb
+        .from('koto_access_snapshots')
+        .select('id, created_at, note')
+        .eq('site_id', site_id)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      return NextResponse.json({ snapshots: snaps || [] })
+    }
+
+    if (action === 'am_revert') {
+      const { snapshot_id } = body
+      const { data: snap } = await sb
+        .from('koto_access_snapshots')
+        .select('*')
+        .eq('id', snapshot_id)
+        .single()
+      if (!snap) return NextResponse.json({ error: 'Snapshot not found' }, { status: 404 })
+      const result = await proxyToWPSC(site, 'access/revert', { snapshot: snap.snapshot })
+      if (!result.ok) return NextResponse.json({ error: result.data?.error || `HTTP ${result.status}` }, { status: 500 })
+      return NextResponse.json({ ok: true })
+    }
+
+    // ─── Snippets ──────────────────────────────────────────────────────────
+
+    if (action === 'snip_list') {
+      const result = await proxyToWPSC(site, 'snippets/list', {})
+      return NextResponse.json(result)
+    }
+
+    if (action === 'snip_save') {
+      const { snippet } = body
+      if (!snippet) return NextResponse.json({ error: 'snippet required' }, { status: 400 })
+      const result = await proxyToWPSC(site, 'snippets/save', snippet)
+      return NextResponse.json(result)
+    }
+
+    if (action === 'snip_delete') {
+      const { id } = body
+      const result = await proxyToWPSC(site, 'snippets/delete', { id })
+      return NextResponse.json(result)
+    }
+
+    if (action === 'snip_toggle') {
+      const { id, active } = body
+      const result = await proxyToWPSC(site, 'snippets/toggle', { id, active })
+      return NextResponse.json(result)
+    }
+
+    // ─── /WPSimpleCode ─────────────────────────────────────────────────────
 
     if (action === 'delete') {
       await sb.from('koto_wp_sites').delete().eq('id', site_id)

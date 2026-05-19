@@ -1,8 +1,12 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Globe, Plus, Plug, Loader2, CheckCircle, XCircle, FileText, BarChart2, Zap, Sparkles, Trash2, ExternalLink, Clock, MapPin, X, RefreshCw } from 'lucide-react'
+import { Globe, Plus, Plug, Loader2, CheckCircle, XCircle, FileText, BarChart2, Zap, Sparkles, Trash2, ExternalLink, Clock, MapPin, X, RefreshCw, Search, Code2, ShieldCheck } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import ClientSearchSelect from '../components/ClientSearchSelect'
+import SearchReplacePanel from '../components/kotoiq/SearchReplacePanel'
+import SnippetsPanel from '../components/kotoiq/SnippetsPanel'
+import AccessManagementPanel from '../components/kotoiq/AccessManagementPanel'
+import WPSCConnectionGate from '../components/kotoiq/WPSCConnectionGate'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
@@ -144,6 +148,9 @@ export default function WordPressControlPage(){
     {key:'actions',label:'Quick Actions',icon:Zap},
     {key:'pages',label:'Pages',icon:FileText,badge:siteData?.pages?.length||0},
     {key:'rankings',label:'Rankings',icon:BarChart2,badge:siteData?.rankings?.length||0},
+    {key:'search_replace',label:'Search & Replace',icon:Search},
+    {key:'snippets',label:'Snippets',icon:Code2},
+    {key:'access',label:'Access',icon:ShieldCheck},
     {key:'log',label:'Log',icon:Clock},
   ]
   const ACTIONS=[
@@ -401,6 +408,27 @@ export default function WordPressControlPage(){
                       </div>
                     )}
                   </div>
+                )}
+
+                {/* SEARCH & REPLACE */}
+                {tab==='search_replace'&&(
+                  <WPSCConnectionGate site={selected} onPaired={()=>selectSite(selected)}>
+                    <SearchReplacePanel site={selected}/>
+                  </WPSCConnectionGate>
+                )}
+
+                {/* SNIPPETS */}
+                {tab==='snippets'&&(
+                  <WPSCConnectionGate site={selected} onPaired={()=>selectSite(selected)}>
+                    <SnippetsPanel site={selected}/>
+                  </WPSCConnectionGate>
+                )}
+
+                {/* ACCESS */}
+                {tab==='access'&&(
+                  <WPSCConnectionGate site={selected} onPaired={()=>selectSite(selected)}>
+                    <AccessManagementPanel site={selected}/>
+                  </WPSCConnectionGate>
                 )}
 
                 {/* LOG */}

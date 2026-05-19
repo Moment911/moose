@@ -474,6 +474,7 @@ export default function Sidebar() {
               <NavLink to="/kotoiq-shell?shell=publish&sub=factory" icon={Sparkles} label="Page Factory" badge="NEW" badgeColor={GRN} hidden={!match('Page Factory') || !feat('page_builder')}/>
               <NavLink to="/kotoiq?tab=briefs" icon={Sparkles} label="PageIQ" hidden={true}/>
               <NavLink to="/wordpress" icon={Globe} label="WP Plugin" hidden={!match('WP Plugin') || !feat('wordpress_plugin')}/>
+              <NavLink to="/wpsimplecode" icon={Code2} label="WPSimpleCode" badge="NEW" badgeColor={R}/>
             </Section>
 
             {/* INTELLIGENCE */}
