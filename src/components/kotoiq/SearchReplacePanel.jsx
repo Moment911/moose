@@ -346,6 +346,21 @@ export default function SearchReplacePanel({ site }) {
             <Pause size={13} /> Pause
           </button>
         )}
+
+        {/* Undo last applied job — surfaces the per-job Undo from History to the top */}
+        {(() => {
+          const lastApplied = jobs.find(j => !j.is_dry_run && j.status === 'complete')
+          if (!lastApplied || jobRunning) return null
+          return (
+            <button
+              onClick={() => undoJob(lastApplied)}
+              style={{ ...btn({ bg: '#fff', color: AMB, border: `1.5px solid ${AMB}` }), marginTop: 12, width: '100%' }}
+              title={`Restore ${lastApplied.total_rows_changed || 0} row(s) from "${trim(lastApplied.search, 30)}" → "${trim(lastApplied.replace_with || '', 30)}"`}
+            >
+              <Undo2 size={13} /> Undo last run · {(lastApplied.total_rows_changed || 0).toLocaleString()} rows
+            </button>
+          )
+        })()}
       </div>
 
       {/* RIGHT — progress + samples + history */}
