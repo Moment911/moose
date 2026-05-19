@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Code2, Plug, Globe, Loader2, CheckCircle, XCircle, Search as SearchIcon, ShieldCheck, ExternalLink, RefreshCw } from 'lucide-react'
+import { Code2, Plug, Globe, Loader2, CheckCircle, XCircle, Search as SearchIcon, ShieldCheck, ExternalLink, RefreshCw, Plus, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
@@ -41,6 +42,7 @@ export default function WPSimpleCodePage() {
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('search_replace')
+  const [showAdd, setShowAdd] = useState(false)
 
   useEffect(() => { if (agencyId) loadSites() }, [agencyId])
 
@@ -90,7 +92,10 @@ export default function WPSimpleCodePage() {
           <div style={{ width:320, borderRight:'1px solid #e5e7eb', background:'#fafafa', display:'flex', flexDirection:'column', minHeight:0 }}>
             <div style={{ padding:'14px 16px 6px', display:'flex', alignItems:'center', gap:6 }}>
               <Globe size={13} color="#6b7280"/>
-              <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#374151' }}>Your WordPress sites ({sites.length})</div>
+              <div style={{ flex:1, fontFamily:FH, fontSize:12, fontWeight:700, color:'#374151' }}>Your WordPress sites ({sites.length})</div>
+              <button onClick={() => setShowAdd(true)} title="Add a site" style={{ display:'flex', alignItems:'center', gap:3, padding:'4px 8px', borderRadius:6, border:'none', background:R, color:'#fff', fontFamily:FH, fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                <Plus size={11}/> Add
+              </button>
             </div>
             <div style={{ padding:'0 16px 10px', fontSize:11, color:'#9ca3af', fontFamily:FB, lineHeight:1.4 }}>
               Shared with SEO → WP Plugin. Pair WPSimpleCode per site to unlock the tabs.
@@ -165,6 +170,8 @@ export default function WPSimpleCodePage() {
         </div>
       </div>
 
+      {showAdd && <AddSiteModal agencyId={agencyId} onClose={() => setShowAdd(false)} onAdded={async (newSite) => { setShowAdd(false); await loadSites(); if (newSite?.id) setSelected(newSite) }}/>}
+
       <style jsx>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .spin { animation: spin 1s linear infinite; display: inline-block; }
@@ -172,3 +179,79 @@ export default function WPSimpleCodePage() {
     </div>
   )
 }
+
+function AddSiteModal({ agencyId, onClose, onAdded }) {
+  const [siteUrl, setSiteUrl] = useState('https://')
+  const [siteName, setSiteName] = useState('')
+  const [wpscKey, setWpscKey] = useState('')
+  const [kotoKey, setKotoKey] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function submit() {
+    if (!siteUrl || !wpscKey) { toast.error('Site URL and WPSimpleCode API key are required'); return }
+    setBusy(true)
+    try {
+      const res = await fetch('/api/wp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'wpsc_add_site',
+          agency_id: agencyId || '00000000-0000-0000-0000-000000000099',
+          site_url: siteUrl.trim(),
+          site_name: siteName.trim() || null,
+          wpsc_api_key: wpscKey.trim(),
+          koto_api_key: kotoKey.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error); setBusy(false); return }
+      toast.success(`Added · WPSimpleCode v${data.version || '?'}`)
+      onAdded?.(data.site)
+    } catch (e) { toast.error(e.message) }
+    setBusy(false)
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.45)', display:'flex', alignItems:'flex-start', justifyContent:'center', paddingTop:80, zIndex:1000 }}>
+      <div style={{ background:'#fff', borderRadius:14, maxWidth:540, width:'100%', padding:22, boxShadow:'0 30px 80px rgba(0,0,0,.18)' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+          <Plus size={18} color={R}/>
+          <div style={{ fontFamily:FH, fontSize:17, fontWeight:800, color:BLK }}>Add a WordPress site</div>
+          <div style={{ flex:1 }}/>
+          <button onClick={onClose} style={{ background:'transparent', border:'none', color:'#9ca3af', cursor:'pointer' }}><X size={16}/></button>
+        </div>
+        <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:16, lineHeight:1.5 }}>
+          Install <strong>WPSimpleCode</strong> on the WP site first, then copy its API key from <em>WPSimpleCode → Settings</em>. The Koto plugin key is optional (only needed if you also use the SEO/builder features).
+        </div>
+
+        <div style={{ marginBottom:11 }}>
+          <Lbl>Site URL *</Lbl>
+          <input value={siteUrl} onChange={e => setSiteUrl(e.target.value)} placeholder="https://example.com" autoFocus style={inp()}/>
+        </div>
+        <div style={{ marginBottom:11 }}>
+          <Lbl>Friendly name (optional)</Lbl>
+          <input value={siteName} onChange={e => setSiteName(e.target.value)} placeholder="Acme Co." style={inp()}/>
+        </div>
+        <div style={{ marginBottom:11 }}>
+          <Lbl>WPSimpleCode API key *</Lbl>
+          <input value={wpscKey} onChange={e => setWpscKey(e.target.value)} placeholder="paste from WP admin → WPSimpleCode → Settings" style={{ ...inp(), fontFamily:'ui-monospace,Menlo,monospace' }}/>
+        </div>
+        <div style={{ marginBottom:18 }}>
+          <Lbl>Koto plugin API key <span style={{ fontWeight:400, color:'#9ca3af' }}>(optional)</span></Lbl>
+          <input value={kotoKey} onChange={e => setKotoKey(e.target.value)} placeholder="only if you also use Koto plugin features" style={{ ...inp(), fontFamily:'ui-monospace,Menlo,monospace' }}/>
+        </div>
+
+        <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+          <button onClick={onClose} disabled={busy} style={{ padding:'10px 16px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#fff', color:BLK, fontFamily:FH, fontSize:13, fontWeight:700, cursor:'pointer' }}>Cancel</button>
+          <button onClick={submit} disabled={busy || !siteUrl || !wpscKey} style={{ padding:'10px 18px', borderRadius:9, border:'none', background:R, color:'#fff', fontFamily:FH, fontSize:13, fontWeight:800, cursor:'pointer', opacity:(busy||!siteUrl||!wpscKey)?0.5:1, display:'flex', alignItems:'center', gap:6 }}>
+            {busy ? <Loader2 size={13} className="spin"/> : <Plug size={13}/>}
+            Verify & add
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const Lbl = ({ children }) => <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:BLK, marginBottom:5, textTransform:'uppercase', letterSpacing:'.04em' }}>{children}</div>
+const inp = (x={}) => ({ width:'100%', padding:'10px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, outline:'none', background:'#fff', boxSizing:'border-box', ...x })

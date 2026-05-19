@@ -1152,6 +1152,73 @@ Rules:
       return NextResponse.json({ ok: true })
     }
 
+    if (action === 'wpsc_add_site') {
+      const { site_url, site_name, wpsc_api_key, koto_api_key, client_id } = body
+      const finalAgency = agency_id || site?.agency_id
+      if (!site_url || !wpsc_api_key) return NextResponse.json({ error: 'site_url and wpsc_api_key required' }, { status: 400 })
+      if (!finalAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+      const cleanUrl = String(site_url).replace(/\/$/, '').toLowerCase()
+
+      // Verify the plugin responds
+      let detected = false; let version: string | null = null
+      try {
+        const r = await fetch(`${cleanUrl}/wp-json/wpsimplecode/v1/meta`, { signal: AbortSignal.timeout(8000) })
+        if (r.ok) { const m = await r.json().catch(() => ({})); detected = true; version = m?.version || null }
+      } catch {}
+      if (!detected) return NextResponse.json({ error: `WPSimpleCode not detected at ${cleanUrl}/wp-json/wpsimplecode/v1/meta` }, { status: 400 })
+
+      // Verify the key authenticates
+      const verifyRes = await fetch(`${cleanUrl}/wp-json/wpsimplecode/v1/access/roles`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${wpsc_api_key}`,
+          'X-WPSC-Key': wpsc_api_key,
+          'X-WPSC-Source': APP_URL,
+          'Content-Type': 'application/json',
+        },
+        body: '{}',
+        signal: AbortSignal.timeout(15000),
+      })
+      if (!verifyRes.ok) {
+        const txt = await verifyRes.text().catch(() => '')
+        return NextResponse.json({ error: `Auth failed (${verifyRes.status}). Make sure "Enable remote control" is checked in WPSimpleCode → Settings. ${txt.slice(0, 200)}` }, { status: 400 })
+      }
+
+      // Upsert into koto_wp_sites — match on site_url for de-duping
+      const { data: existing } = await sb.from('koto_wp_sites').select('id').eq('site_url', cleanUrl).maybeSingle()
+      let row: any
+      if (existing) {
+        const { data, error } = await sb.from('koto_wp_sites').update({
+          site_name: site_name || cleanUrl,
+          agency_id: finalAgency,
+          client_id: client_id || null,
+          wpsc_api_key,
+          wpsc_detected: true,
+          wpsc_version: version,
+          wpsc_last_seen_at: new Date().toISOString(),
+          ...(koto_api_key ? { api_key: koto_api_key } : {}),
+        }).eq('id', existing.id).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        row = data
+      } else {
+        const { data, error } = await sb.from('koto_wp_sites').insert({
+          site_url: cleanUrl,
+          site_name: site_name || cleanUrl,
+          agency_id: finalAgency,
+          client_id: client_id || null,
+          api_key: koto_api_key || '',
+          wpsc_api_key,
+          wpsc_detected: true,
+          wpsc_version: version,
+          wpsc_last_seen_at: new Date().toISOString(),
+          connected: false,
+        }).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        row = data
+      }
+      return NextResponse.json({ site: row, version })
+    }
+
     // ─── Access Management ─────────────────────────────────────────────────
 
     if (action === 'am_load') {
