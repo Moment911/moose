@@ -33,38 +33,42 @@ add_action('rest_api_init', function () {
 function wpsc_sr_list_tables($req) {
     global $wpdb;
     $prefix = $wpdb->prefix;
-    $like = $wpdb->esc_like($prefix) . '%';
-    $tables = $wpdb->get_results($wpdb->prepare(
-        "SELECT TABLE_NAME as name, TABLE_ROWS as rows
-         FROM INFORMATION_SCHEMA.TABLES
-         WHERE TABLE_SCHEMA = %s AND TABLE_NAME LIKE %s
-         ORDER BY TABLE_NAME",
-        DB_NAME, $like
-    ), ARRAY_A);
+
+    // SHOW TABLES + SHOW KEYS + SHOW COLUMNS — these only require permission on
+    // the table itself, unlike INFORMATION_SCHEMA which many managed hosts
+    // restrict for the WP DB user (saw this on LiteSpeed-backed hosts).
+    $like   = $wpdb->esc_like($prefix) . '%';
+    $tables = $wpdb->get_col($wpdb->prepare("SHOW TABLES LIKE %s", $like));
 
     $out = [];
-    foreach ((array) $tables as $t) {
-        $tname = $t['name'];
-        $pk = $wpdb->get_var($wpdb->prepare(
-            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-             WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND CONSTRAINT_NAME='PRIMARY'
-             ORDER BY ORDINAL_POSITION ASC LIMIT 1",
-            DB_NAME, $tname
-        ));
-        if (!$pk) continue;
-        $cols = $wpdb->get_col($wpdb->prepare(
-            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s
-               AND DATA_TYPE IN ('text','longtext','mediumtext','tinytext','varchar','char')
-             ORDER BY ORDINAL_POSITION ASC",
-            DB_NAME, $tname
-        ));
-        if (empty($cols)) continue;
+    foreach ((array) $tables as $tname) {
+        if (!is_string($tname) || strpos($tname, $prefix) !== 0) continue;
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $tname)) continue;
+
+        $key_rows = $wpdb->get_results("SHOW KEYS FROM `{$tname}` WHERE Key_name = 'PRIMARY'", ARRAY_A);
+        if (empty($key_rows) || empty($key_rows[0]['Column_name'])) continue;
+        $pk = $key_rows[0]['Column_name'];
+
+        $col_rows = $wpdb->get_results("SHOW COLUMNS FROM `{$tname}`", ARRAY_A);
+        if (empty($col_rows)) continue;
+        $text_cols = [];
+        foreach ($col_rows as $c) {
+            $type = isset($c['Type']) ? strtolower((string) $c['Type']) : '';
+            if (preg_match('/^(text|longtext|mediumtext|tinytext|varchar|char)/', $type)) {
+                $text_cols[] = $c['Field'];
+            }
+        }
+        if (empty($text_cols)) continue;
+
+        $rows_count = 0;
+        $status = $wpdb->get_row($wpdb->prepare("SHOW TABLE STATUS LIKE %s", $tname), ARRAY_A);
+        if ($status && isset($status['Rows'])) $rows_count = (int) $status['Rows'];
+
         $out[] = [
             'name'        => $tname,
-            'rows'        => (int) $t['rows'],
+            'rows'        => $rows_count,
             'primary_key' => $pk,
-            'columns'     => $cols,
+            'columns'     => $text_cols,
             'is_core'     => in_array(str_replace($prefix, '', $tname), [
                 'posts','postmeta','options','terms','termmeta',
                 'term_relationships','term_taxonomy','comments','commentmeta',
