@@ -60,24 +60,29 @@ export default function SearchReplacePanel({ site }) {
         body: JSON.stringify({ action: 'sr_list_tables', site_id: site.id }),
       })
       const data = await res.json()
+      console.log('[wpsc:sr_list_tables] response:', data)
 
-      // Surface auth/plugin errors instead of silently rendering an empty list.
-      // proxyToWPSC returns { ok, data, status }. On failure, data.data contains the WP error payload.
-      if (data?.ok === false) {
-        const msg = data?.data?.message || data?.data?.error || data?.error || `HTTP ${data?.status || '?'}`
-        setTablesError(msg)
-        setTables([])
-        setSelectedTables({})
-        return
-      }
       if (!site.wpsc_api_key) {
         setTablesError('This site has no WPSimpleCode API key paired. Pair it from the page above first.')
-        setTables([])
-        setSelectedTables({})
+        setTables([]); setSelectedTables({})
+        return
+      }
+      // Proxy reported a non-2xx from the plugin
+      if (data?.ok === false) {
+        const msg = data?.data?.message || data?.data?.error || data?.error || `HTTP ${data?.status || '?'}`
+        setTablesError(`${msg}\n\nRaw: ${JSON.stringify(data?.data).slice(0, 400)}`)
+        setTables([]); setSelectedTables({})
         return
       }
 
       const list = data?.data?.tables || data?.tables || []
+      if (!Array.isArray(list) || list.length === 0) {
+        // Surface what actually came back so the cause is debuggable.
+        setTablesError(`Plugin responded 200 but returned no tables.\n\nResponse keys: ${Object.keys(data?.data || {}).join(', ') || '(empty)'}\nRaw: ${JSON.stringify(data?.data).slice(0, 400)}`)
+        setTables([]); setSelectedTables({})
+        return
+      }
+
       setTables(list)
       const defaults = {}
       list.forEach(t => { if (t.is_core) defaults[t.name] = true })
@@ -255,16 +260,16 @@ export default function SearchReplacePanel({ site }) {
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Search &amp; Replace</div>
         </div>
         <div style={{ fontSize: 11, color: '#6b7280', fontFamily: FB, marginBottom: 16 }}>
-          Serialized-PHP-safe. Every applied change is journaled — undo any job from history.
+          Find anything — URL, word, phrase, phone number, email — and replace it. Serialized-PHP-safe. Every applied change is journaled, undo any job from history.
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <Label>Find</Label>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="https://old-domain.com" style={inp()} />
+          <Label>Find anything</Label>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="text, URL, phone number, word, phrase…" style={inp()} />
         </div>
         <div style={{ marginBottom: 12 }}>
-          <Label>Replace with</Label>
-          <input value={replaceWith} onChange={e => setReplaceWith(e.target.value)} placeholder="https://new-domain.com" style={inp()} />
+          <Label>Replace it with</Label>
+          <input value={replaceWith} onChange={e => setReplaceWith(e.target.value)} placeholder="what to replace it with (leave blank to delete)" style={inp()} />
         </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
