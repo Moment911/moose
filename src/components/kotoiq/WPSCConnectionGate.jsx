@@ -89,8 +89,10 @@ export default function WPSCConnectionGate({ site, onPaired, children }) {
         <div style={{fontFamily:FH,fontSize:16,fontWeight:800,color:BLK}}>Pair WPSimpleCode</div>
       </div>
       <div style={{fontSize:13,color:'#6b7280',fontFamily:FB,marginBottom:14,lineHeight:1.5}}>
-        WPSimpleCode is a free WordPress plugin that powers search &amp; replace, snippets, and access management.
-        Install it on this site, then paste its API key below.
+        WPSimpleCode is a separate, free WordPress plugin that powers search &amp; replace, snippets, and access management.
+        <br/><br/>
+        <strong>This site ({site?.site_url?.replace(/^https?:\/\//,'')})</strong> is already connected to KotoIQ via the Koto plugin —
+        but the WPSimpleCode plugin is its own thing. Install it on this site separately, then paste its API key below to enable the three tabs.
       </div>
 
       <div style={{padding:'10px 12px',background:'#f9fafb',borderRadius:9,marginBottom:14,display:'flex',gap:10,alignItems:'center'}}>

@@ -88,16 +88,19 @@ export default function WPSimpleCodePage() {
 
           {/* Site list rail */}
           <div style={{ width:320, borderRight:'1px solid #e5e7eb', background:'#fafafa', display:'flex', flexDirection:'column', minHeight:0 }}>
-            <div style={{ padding:'14px 16px 8px', display:'flex', alignItems:'center', gap:6 }}>
+            <div style={{ padding:'14px 16px 6px', display:'flex', alignItems:'center', gap:6 }}>
               <Globe size={13} color="#6b7280"/>
-              <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#374151' }}>Connected sites ({sites.length})</div>
+              <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#374151' }}>Your WordPress sites ({sites.length})</div>
+            </div>
+            <div style={{ padding:'0 16px 10px', fontSize:11, color:'#9ca3af', fontFamily:FB, lineHeight:1.4 }}>
+              Shared with SEO → WP Plugin. Pair WPSimpleCode per site to unlock the tabs.
             </div>
             <div style={{ flex:1, overflowY:'auto', padding:'0 12px 12px' }}>
               {loading ? (
                 <div style={{ padding:24, textAlign:'center', color:'#9ca3af', fontSize:12 }}><Loader2 size={14} className="spin"/> Loading…</div>
               ) : sites.length === 0 ? (
                 <div style={{ padding:24, textAlign:'center', color:'#9ca3af', fontSize:12, fontFamily:FB }}>
-                  No WordPress sites connected yet. Connect a site from the SEO area first.
+                  No WordPress sites connected yet. Connect a site from <strong>SEO → WP Plugin</strong> first.
                 </div>
               ) : sites.map(s => (
                 <SiteCard key={s.id} site={s} selected={selected?.id === s.id} onClick={() => pickSite(s)}/>
