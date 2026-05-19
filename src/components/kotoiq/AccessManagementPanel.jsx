@@ -43,7 +43,7 @@ export default function AccessManagementPanel({ site }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
-  useEffect(() => { if (site?.id) load() }, [site?.id])
+  useEffect(() => { if (site?.id) load() }, [site?.id, site?.wpsc_api_key])
 
   async function load() {
     setLoading(true); setError(null)

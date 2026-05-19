@@ -47,7 +47,8 @@ export default function SearchReplacePanel({ site }) {
   const [progress, setProgress] = useState(null) // {scanned, matches, table}
   const cancelRef = useRef(false)
 
-  useEffect(() => { if (site?.id) { loadTables(); loadJobs() } }, [site?.id])
+  // Re-run when wpsc_api_key changes (e.g. after the user just paired this site)
+  useEffect(() => { if (site?.id) { loadTables(); loadJobs() } }, [site?.id, site?.wpsc_api_key])
 
   async function loadTables() {
     if (!site?.id) return
