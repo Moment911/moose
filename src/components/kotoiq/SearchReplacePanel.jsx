@@ -274,7 +274,7 @@ export default function SearchReplacePanel({ site }) {
             <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}><Loader2 size={14} className="spin" /> Loading tables…</div>
           ) : tables.length === 0 ? (
             <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}>
-              No tables loaded. Make sure the plugin's koto-search-replace.php is deployed.
+              No tables loaded. Make sure WPSimpleCode is paired for this site.
             </div>
           ) : tables.map(t => (
             <label key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 6px', borderRadius: 6, cursor: 'pointer', background: selectedTables[t.name] ? `${T}10` : 'transparent' }}>
@@ -400,7 +400,7 @@ export default function SearchReplacePanel({ site }) {
           <div style={{ background: `${AMB}10`, border: `1px solid ${AMB}40`, borderRadius: 12, padding: 14, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <AlertTriangle size={16} color={AMB} style={{ flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 12, color: BLK, fontFamily: FB, lineHeight: 1.5 }}>
-              <strong>One-time setup:</strong> Deploy <code>wp-plugin/koto-search-replace.php</code> to the Koto plugin folder on this site and add <code>require_once __DIR__ . '/koto-search-replace.php';</code> to the main plugin file. Then refresh tables.
+              <strong>Tip:</strong> If the table picker is empty, make sure the WPSimpleCode plugin is installed on this site, Remote Control is enabled in <em>WPSimpleCode → Settings</em>, and the site has been paired in KotoIQ.
             </div>
           </div>
         )}
