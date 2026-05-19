@@ -1152,6 +1152,57 @@ Rules:
       return NextResponse.json({ ok: true })
     }
 
+    if (action === 'wpsc_disconnect') {
+      // Full remote disconnect: tell the plugin to disable remote control, then clear all keys.
+      const { also_clear_koto_key = false } = body
+      // Best-effort: tell the plugin first (even if it fails, we still clear locally)
+      let pluginDisabled = false
+      if (site?.wpsc_api_key) {
+        const r = await proxyToWPSC(site, 'disable-remote', {})
+        pluginDisabled = !!r.ok
+      }
+      const updates: any = {
+        wpsc_api_key: null,
+        wpsc_detected: false,
+        wpsc_version: null,
+      }
+      if (also_clear_koto_key) {
+        updates.api_key = ''
+        updates.connected = false
+      }
+      await sb.from('koto_wp_sites').update(updates).eq('id', site_id)
+      return NextResponse.json({ ok: true, plugin_disabled: pluginDisabled })
+    }
+
+    // Client-aware listing — clients in the agency joined to their koto_wp_sites row (if any).
+    // Returns one entry per client + a tail of "unassigned" sites with no client_id.
+    if (action === 'wpsc_list_clients') {
+      const finalAgency = agency_id || body?.agency_id
+      if (!finalAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+      const [{ data: clients }, { data: allSites }] = await Promise.all([
+        sb.from('clients')
+          .select('id, name, website, status, logo_url')
+          .eq('agency_id', finalAgency)
+          .is('deleted_at', null)
+          .order('name', { ascending: true }),
+        sb.from('koto_wp_sites')
+          .select('*')
+          .eq('agency_id', finalAgency)
+          .order('created_at', { ascending: false }),
+      ])
+      const siteByClient = new Map<string, any>()
+      const orphans: any[] = []
+      for (const s of allSites || []) {
+        if (s.client_id) siteByClient.set(s.client_id, s)
+        else orphans.push(s)
+      }
+      const rows = (clients || []).map(c => ({
+        client: c,
+        site: siteByClient.get(c.id) || null,
+      }))
+      return NextResponse.json({ rows, orphans })
+    }
+
     if (action === 'wpsc_add_site') {
       const { site_url, site_name, wpsc_api_key, koto_api_key, client_id } = body
       const finalAgency = agency_id || site?.agency_id

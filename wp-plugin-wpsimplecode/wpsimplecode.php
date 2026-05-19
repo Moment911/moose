@@ -70,6 +70,17 @@ add_action('rest_api_init', function () {
         },
         'permission_callback' => '__return_true',
     ]);
+
+    // Remote disconnect — turns off remote control. Called by Koto when an
+    // agency clicks "Disconnect". Site admin can re-enable on the Settings page.
+    register_rest_route(WPSC_REST_NS, '/disable-remote', [
+        'methods'  => 'POST',
+        'callback' => function () {
+            update_option(WPSC_OPT_REMOTE_ALLOWED, false);
+            return rest_ensure_response(['ok' => true, 'remote_allowed' => false]);
+        },
+        'permission_callback' => 'wpsc_perm_write',
+    ]);
 });
 
 // Load text domain for translations
