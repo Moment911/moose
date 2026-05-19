@@ -1,12 +1,8 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Globe, Plus, Plug, Loader2, CheckCircle, XCircle, FileText, BarChart2, Zap, Sparkles, Trash2, ExternalLink, Clock, MapPin, X, RefreshCw, Search, Code2, ShieldCheck } from 'lucide-react'
+import { Globe, Plus, Plug, Loader2, CheckCircle, XCircle, FileText, BarChart2, Zap, Sparkles, Trash2, ExternalLink, Clock, MapPin, X, RefreshCw, User, PowerOff } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import ClientSearchSelect from '../components/ClientSearchSelect'
-import SearchReplacePanel from '../components/kotoiq/SearchReplacePanel'
-import SnippetsPanel from '../components/kotoiq/SnippetsPanel'
-import AccessManagementPanel from '../components/kotoiq/AccessManagementPanel'
-import WPSCConnectionGate from '../components/kotoiq/WPSCConnectionGate'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
@@ -33,6 +29,9 @@ function SiteCard({site,selected,onClick}){
 export default function WordPressControlPage(){
   const {agencyId}=useAuth()
   const [sites,setSites]=useState([])
+  const [clientRows,setClientRows]=useState([])    // [{ client, site }]
+  const [orphans,setOrphans]=useState([])           // koto_wp_sites with no client_id
+  const [selectedClient,setSelectedClient]=useState(null)
   const [selected,setSelected]=useState(null)
   const [siteData,setSiteData]=useState(null)
   const [loading,setLoading]=useState(true)
@@ -62,11 +61,30 @@ export default function WordPressControlPage(){
 
   async function loadSites(){
     setLoading(true)
-    const res=await fetch(`/api/wp?agency_id=${agencyId||'00000000-0000-0000-0000-000000000099'}`)
-    const data=await res.json()
-    setSites(data.sites||[])
-    if(data.sites?.length&&!selected)selectSite(data.sites[0])
+    const ag=agencyId||'00000000-0000-0000-0000-000000000099'
+    try{
+      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'wpsc_list_clients',agency_id:ag})})
+      const data=await res.json()
+      const rows=data.rows||[]
+      const orph=data.orphans||[]
+      setClientRows(rows); setOrphans(orph)
+      // Flatten for legacy code that still reads `sites`
+      const flat=[...rows.filter(r=>r.site).map(r=>r.site),...orph]
+      setSites(flat)
+      if(flat.length&&!selected) selectSite(flat[0])
+    }catch(e){toast.error(e.message)}
     setLoading(false)
+  }
+
+  function pickClient(entry){
+    setSelectedClient(entry.client)
+    if(entry.site) selectSite(entry.site)
+    else { setSelected(null); setSiteData(null) }
+  }
+
+  function pickOrphan(site){
+    setSelectedClient(null)
+    selectSite(site)
   }
 
   async function selectSite(site){
@@ -102,10 +120,23 @@ export default function WordPressControlPage(){
   }
 
   async function deleteSite(id){
-    if(!confirm('Disconnect this site?'))return
+    if(!confirm('Permanently remove this site from KotoIQ? This deletes the connection row entirely.'))return
     await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',site_id:id,agency_id:agencyId||'00000000-0000-0000-0000-000000000099'})})
     setSites(s=>s.filter(x=>x.id!==id));if(selected?.id===id){setSelected(null);setSiteData(null)}
-    toast.success('Site disconnected')
+    toast.success('Site removed')
+    await loadSites()
+  }
+
+  async function disconnectRemote(id){
+    if(!confirm('Disconnect remotely?\n\nKoto will:\n• Tell WPSimpleCode (if paired) to disable remote control\n• Clear all API keys for this site\n• Set the connection to inactive\n\nThe client linkage is preserved so you can reconnect later.'))return
+    try{
+      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'wpsc_disconnect',site_id:id,also_clear_koto_key:true,agency_id:agencyId||'00000000-0000-0000-0000-000000000099'})})
+      const data=await res.json()
+      if(data.error)toast.error(data.error)
+      else toast.success(data.plugin_disabled?'Disconnected · remote control off on the site':'Disconnected locally')
+      await loadSites()
+      if(selected?.id===id){setSelected(null);setSiteData(null)}
+    }catch(e){toast.error(e.message)}
   }
 
   async function loadLocations(){
@@ -148,9 +179,6 @@ export default function WordPressControlPage(){
     {key:'actions',label:'Quick Actions',icon:Zap},
     {key:'pages',label:'Pages',icon:FileText,badge:siteData?.pages?.length||0},
     {key:'rankings',label:'Rankings',icon:BarChart2,badge:siteData?.rankings?.length||0},
-    {key:'search_replace',label:'Search & Replace',icon:Search},
-    {key:'snippets',label:'Snippets',icon:Code2},
-    {key:'access',label:'Access',icon:ShieldCheck},
     {key:'log',label:'Log',icon:Clock},
   ]
   const ACTIONS=[
@@ -166,10 +194,10 @@ export default function WordPressControlPage(){
       <Sidebar/>
       <div style={{flex:1,display:'flex',overflow:'hidden'}}>
         {/* Left panel */}
-        <div style={{width:252,background:'#fff',borderRight:'1px solid #e5e7eb',display:'flex',flexDirection:'column',flexShrink:0}}>
+        <div style={{width:280,background:'#fff',borderRight:'1px solid #e5e7eb',display:'flex',flexDirection:'column',flexShrink:0}}>
           <div style={{padding:'20px 16px 12px',borderBottom:'1px solid #f3f4f6'}}>
             <div style={{fontFamily:FH,fontSize:15,fontWeight:800,color:BLK,marginBottom:12,display:'flex',alignItems:'center',gap:7}}>
-              <Globe size={15} color={R}/> WordPress Sites
+              <Globe size={15} color={R}/> WP Plugin
             </div>
             <button onClick={()=>setShowConnect(true)} style={{width:'100%',padding:'9px',borderRadius:9,border:'none',background:R,color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
               <Plus size={13}/> Connect Site
@@ -177,8 +205,39 @@ export default function WordPressControlPage(){
           </div>
           <div style={{flex:1,overflowY:'auto',padding:'10px 12px'}}>
             {loading?<div style={{display:'flex',justifyContent:'center',padding:'32px 0'}}><Loader2 size={18} color={T} style={{animation:'spin 1s linear infinite'}}/></div>
-            :sites.length===0?<div style={{textAlign:'center',padding:'40px 16px',color:'#9ca3af',fontFamily:FB,fontSize:13,lineHeight:1.7}}>No sites connected.<br/><button onClick={()=>setShowConnect(true)} style={{color:R,background:'none',border:'none',cursor:'pointer',fontFamily:FH,fontWeight:700,fontSize:12,marginTop:8}}>Connect first site →</button></div>
-            :sites.map(s=><SiteCard key={s.id} site={s} selected={selected?.id===s.id} onClick={()=>selectSite(s)}/>)}
+            :clientRows.length===0&&orphans.length===0?<div style={{textAlign:'center',padding:'40px 16px',color:'#9ca3af',fontFamily:FB,fontSize:13,lineHeight:1.7}}>No active clients in this agency.<br/><button onClick={()=>setShowConnect(true)} style={{color:R,background:'none',border:'none',cursor:'pointer',fontFamily:FH,fontWeight:700,fontSize:12,marginTop:8}}>Connect a site →</button></div>
+            :<>
+              {clientRows.length>0&&<div style={{fontSize:10,fontFamily:FH,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.05em',padding:'4px 6px 8px'}}>Clients ({clientRows.length})</div>}
+              {clientRows.map(r=>{
+                const s=r.site
+                const isSel=s?selected?.id===s.id:selectedClient?.id===r.client.id
+                return(
+                <div key={r.client.id} onClick={()=>pickClient(r)} style={{background:'#fff',borderRadius:10,border:`1.5px solid ${isSel?R:'#e5e7eb'}`,padding:'9px 11px',cursor:'pointer',display:'flex',alignItems:'center',gap:9,marginBottom:5}}>
+                  {r.client.logo_url
+                    ?<img src={r.client.logo_url} alt="" style={{width:28,height:28,borderRadius:6,objectFit:'cover',background:'#f3f4f6',flexShrink:0}}/>
+                    :<div style={{width:28,height:28,borderRadius:6,background:`${R}15`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><User size={13} color={R}/></div>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:FH,fontSize:12,fontWeight:700,color:BLK,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.client.name}</div>
+                    <div style={{marginTop:3,display:'flex',gap:3}}>
+                      {s
+                        ?<span style={{fontSize:9,fontFamily:FH,fontWeight:700,color:s.connected?GRN:'#9ca3af',background:s.connected?`${GRN}15`:'#f3f4f6',padding:'1px 5px',borderRadius:4,textTransform:'uppercase',letterSpacing:'.03em'}}>{s.connected?'live':'idle'}</span>
+                        :<span style={{fontSize:9,fontFamily:FH,fontWeight:700,color:'#9ca3af',background:'#f3f4f6',padding:'1px 5px',borderRadius:4,textTransform:'uppercase',letterSpacing:'.03em'}}>no site</span>}
+                      {s?.wpsc_api_key&&<span style={{fontSize:9,fontFamily:FH,fontWeight:700,color:R,background:`${R}15`,padding:'1px 5px',borderRadius:4,textTransform:'uppercase',letterSpacing:'.03em'}}>WPSC</span>}
+                    </div>
+                  </div>
+                </div>
+              )})}
+              {orphans.length>0&&<div style={{fontSize:10,fontFamily:FH,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.05em',padding:'12px 6px 8px'}}>Unassigned ({orphans.length})</div>}
+              {orphans.map(s=>(
+                <div key={s.id} onClick={()=>pickOrphan(s)} style={{background:'#fff',borderRadius:10,border:`1.5px dashed ${selected?.id===s.id?R:'#e5e7eb'}`,padding:'9px 11px',cursor:'pointer',display:'flex',alignItems:'center',gap:9,marginBottom:5}}>
+                  <Dot on={s.connected}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:FH,fontSize:12,fontWeight:700,color:BLK,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.site_name||s.site_url}</div>
+                    <div style={{fontSize:10,color:'#9ca3af',fontFamily:FB,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.site_url.replace(/^https?:\/\//,'')}</div>
+                  </div>
+                </div>
+              ))}
+            </>}
           </div>
           <div style={{padding:'12px 14px',borderTop:'1px solid #f3f4f6',background:'#fafafa'}}>
             <div style={{fontFamily:FH,fontSize:11,fontWeight:700,color:BLK,marginBottom:7,textTransform:'uppercase',letterSpacing:'.06em'}}>Plugin Setup</div>
@@ -193,10 +252,24 @@ export default function WordPressControlPage(){
 
         {/* Right panel */}
         <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-          {!selected?(
+          {!selected&&selectedClient?(
+            <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 24px'}}>
+              <div style={{background:'#fff',borderRadius:14,border:'1px solid #e5e7eb',padding:28,maxWidth:520,width:'100%',textAlign:'center'}}>
+                <Plug size={30} color={R} style={{margin:'0 auto 12px'}}/>
+                <div style={{fontFamily:FH,fontSize:18,fontWeight:800,color:BLK,marginBottom:6}}>No WP site connected for {selectedClient.name}</div>
+                <div style={{fontSize:13,color:'#6b7280',fontFamily:FB,lineHeight:1.5,marginBottom:18}}>
+                  Install the Koto SEO plugin on this client's WordPress site, then click Connect Site to pair it.
+                  {selectedClient.website&&<><br/><br/>Their website on file: <strong>{selectedClient.website}</strong></>}
+                </div>
+                <button onClick={()=>{setConnectForm({site_url:selectedClient.website?(selectedClient.website.startsWith('http')?selectedClient.website:`https://${selectedClient.website}`):'',api_key:'',site_name:selectedClient.name,client_id:selectedClient.id});setShowConnect(true)}} style={{padding:'10px 18px',borderRadius:9,border:'none',background:R,color:'#fff',fontFamily:FH,fontSize:13,fontWeight:800,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:6}}>
+                  <Plus size={13}/> Connect a site for this client
+                </button>
+              </div>
+            </div>
+          ):!selected?(
             <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:12}}>
               <Globe size={44} color="#e5e7eb"/>
-              <div style={{fontFamily:FH,fontSize:16,fontWeight:700,color:'#d1d5db'}}>Select a site to get started</div>
+              <div style={{fontFamily:FH,fontSize:16,fontWeight:700,color:'#d1d5db'}}>Select a client to manage their WP integration</div>
             </div>
           ):(
             <>
@@ -217,7 +290,8 @@ export default function WordPressControlPage(){
                         <div style={{fontSize:12,color:'#999999',fontFamily:FB,textTransform:'uppercase',letterSpacing:'.05em'}}>{s.label}</div>
                       </div>
                     ))}
-                    <button onClick={()=>deleteSite(selected.id)} style={{padding:'7px 9px',borderRadius:8,border:'1px solid #e5e7eb',background:'transparent',color:'#999999',cursor:'pointer',marginLeft:4}}><Trash2 size={12}/></button>
+                    <button onClick={()=>disconnectRemote(selected.id)} title="Disconnect remotely" style={{padding:'7px 10px',borderRadius:8,border:`1px solid ${AMB}`,background:'transparent',color:AMB,cursor:'pointer',marginLeft:4,display:'inline-flex',alignItems:'center',gap:4,fontFamily:FH,fontSize:11,fontWeight:700}}><PowerOff size={11}/> Disconnect</button>
+                    <button onClick={()=>deleteSite(selected.id)} title="Permanently remove this site row" style={{padding:'7px 9px',borderRadius:8,border:'1px solid #e5e7eb',background:'transparent',color:'#999999',cursor:'pointer'}}><Trash2 size={12}/></button>
                   </div>
                 </div>
                 <div style={{display:'flex',gap:2}}>
@@ -410,26 +484,7 @@ export default function WordPressControlPage(){
                   </div>
                 )}
 
-                {/* SEARCH & REPLACE */}
-                {tab==='search_replace'&&(
-                  <WPSCConnectionGate site={selected} onPaired={()=>selectSite(selected)}>
-                    <SearchReplacePanel site={selected}/>
-                  </WPSCConnectionGate>
-                )}
-
-                {/* SNIPPETS */}
-                {tab==='snippets'&&(
-                  <WPSCConnectionGate site={selected} onPaired={()=>selectSite(selected)}>
-                    <SnippetsPanel site={selected}/>
-                  </WPSCConnectionGate>
-                )}
-
-                {/* ACCESS */}
-                {tab==='access'&&(
-                  <WPSCConnectionGate site={selected} onPaired={()=>selectSite(selected)}>
-                    <AccessManagementPanel site={selected}/>
-                  </WPSCConnectionGate>
-                )}
+                {/* WPSimpleCode features (search/replace, snippets, access) moved to /wpsimplecode */}
 
                 {/* LOG */}
                 {tab==='log'&&(

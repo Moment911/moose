@@ -407,7 +407,7 @@ function AppRoutes() {
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
           <Route path="/kotoiq/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
-                <Route path="/wordpress" element={<Navigate to="/kotoiq-shell?shell=publish" replace />} />
+                <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/wpsimplecode" element={<WPSimpleCodePage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
