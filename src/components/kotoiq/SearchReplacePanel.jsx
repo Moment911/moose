@@ -33,6 +33,7 @@ const IMAGE_PRESET_NOTE = 'Replaces URLs across post_content, postmeta, options,
 export default function SearchReplacePanel({ site }) {
   const [tables, setTables] = useState([])
   const [tablesLoading, setTablesLoading] = useState(false)
+  const [tablesError, setTablesError] = useState(null)
   const [selectedTables, setSelectedTables] = useState({}) // {tableName: true}
   const [search, setSearch] = useState('')
   const [replaceWith, setReplaceWith] = useState('')
@@ -50,7 +51,7 @@ export default function SearchReplacePanel({ site }) {
 
   async function loadTables() {
     if (!site?.id) return
-    setTablesLoading(true)
+    setTablesLoading(true); setTablesError(null)
     try {
       const res = await fetch('/api/wp', {
         method: 'POST',
@@ -58,13 +59,30 @@ export default function SearchReplacePanel({ site }) {
         body: JSON.stringify({ action: 'sr_list_tables', site_id: site.id }),
       })
       const data = await res.json()
+
+      // Surface auth/plugin errors instead of silently rendering an empty list.
+      // proxyToWPSC returns { ok, data, status }. On failure, data.data contains the WP error payload.
+      if (data?.ok === false) {
+        const msg = data?.data?.message || data?.data?.error || data?.error || `HTTP ${data?.status || '?'}`
+        setTablesError(msg)
+        setTables([])
+        setSelectedTables({})
+        return
+      }
+      if (!site.wpsc_api_key) {
+        setTablesError('This site has no WPSimpleCode API key paired. Pair it from the page above first.')
+        setTables([])
+        setSelectedTables({})
+        return
+      }
+
       const list = data?.data?.tables || data?.tables || []
       setTables(list)
-      // Default-select core text tables
       const defaults = {}
       list.forEach(t => { if (t.is_core) defaults[t.name] = true })
       setSelectedTables(defaults)
     } catch (e) {
+      setTablesError(e.message)
       toast.error('Could not load tables: ' + e.message)
     }
     setTablesLoading(false)
@@ -272,6 +290,17 @@ export default function SearchReplacePanel({ site }) {
         <div style={{ maxHeight: 220, overflowY: 'auto', border: '1.5px solid #e5e7eb', borderRadius: 9, padding: 6, marginBottom: 12 }}>
           {tablesLoading ? (
             <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}><Loader2 size={14} className="spin" /> Loading tables…</div>
+          ) : tablesError ? (
+            <div style={{ padding: 14, fontSize: 12, color: BLK, fontFamily: FB, lineHeight: 1.5 }}>
+              <div style={{ display:'flex', gap:6, alignItems:'flex-start', marginBottom:6 }}>
+                <AlertTriangle size={13} color={AMB} style={{ flexShrink:0, marginTop:1 }}/>
+                <strong>Couldn't load tables</strong>
+              </div>
+              <div style={{ color:'#6b7280', fontSize:11, marginBottom:8 }}>{tablesError}</div>
+              <div style={{ color:'#9ca3af', fontSize:11 }}>
+                Verify the site is paired, the WPSimpleCode plugin is active, and Remote Control is enabled in WP admin → WPSimpleCode → Settings.
+              </div>
+            </div>
           ) : tables.length === 0 ? (
             <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}>
               No tables loaded. Make sure WPSimpleCode is paired for this site.
