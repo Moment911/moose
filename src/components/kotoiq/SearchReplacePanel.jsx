@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import { Search, Replace as ReplaceIcon, Eye, Play, Undo2, Loader2, Database, Image as ImageIcon, AlertTriangle, CheckCircle2, Trash2, RefreshCw, Pause, Globe } from 'lucide-react'
+import { Search, Replace as ReplaceIcon, Eye, Play, Undo2, Loader2, Database, Image as ImageIcon, AlertTriangle, CheckCircle2, Trash2, RefreshCw, Pause, Globe, Phone } from 'lucide-react'
+import PhoneVariantsModal from './PhoneVariantsModal'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 
@@ -116,6 +117,7 @@ export default function SearchReplacePanel({ site }) {
   const [regex, setRegex] = useState(false)
   const [imageMode, setImageMode] = useState(false)
   const [showExamples, setShowExamples] = useState(false)
+  const [showPhoneTool, setShowPhoneTool] = useState(false)
   const [job, setJob] = useState(null)
   const [jobRunning, setJobRunning] = useState(false)
   const [samples, setSamples] = useState([])
@@ -390,10 +392,13 @@ export default function SearchReplacePanel({ site }) {
           Find anything — URL, word, phrase, phone number, email — and replace it. Serialized-PHP-safe. Every applied change is journaled, undo any job from history.
         </div>
 
-        {/* Examples — preset patterns that fill the inputs + toggle options */}
-        <div style={{ marginBottom: 10 }}>
-          <button onClick={() => setShowExamples(s => !s)} style={{ background: 'none', border: 'none', padding: 0, fontFamily: FH, fontSize: 11, fontWeight: 700, color: T, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-            {showExamples ? '▾' : '▸'} {showExamples ? 'Hide examples' : 'Need ideas? See examples'}
+        {/* Smart tools */}
+        <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <button onClick={() => setShowPhoneTool(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 7, border: `1.5px solid ${R}`, background: `${R}10`, color: R, fontFamily: FH, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
+            <Phone size={11}/> Phone variants
+          </button>
+          <button onClick={() => setShowExamples(s => !s)} style={{ background: 'none', border: 'none', padding: '6px 10px', fontFamily: FH, fontSize: 11, fontWeight: 700, color: T, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            {showExamples ? '▾' : '▸'} {showExamples ? 'Hide examples' : 'See examples'}
           </button>
           {showExamples && (
             <div style={{ marginTop: 8, padding: 10, background: '#fafafa', borderRadius: 9, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -679,6 +684,16 @@ export default function SearchReplacePanel({ site }) {
           </div>
         )}
       </div>
+
+      {showPhoneTool && (
+        <PhoneVariantsModal
+          site={site}
+          tables={tables}
+          defaultTables={selectedTables}
+          onClose={() => setShowPhoneTool(false)}
+          onAllReplaced={() => { setShowPhoneTool(false); loadJobs() }}
+        />
+      )}
 
       <style jsx>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
