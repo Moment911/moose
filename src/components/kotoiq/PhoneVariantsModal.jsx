@@ -128,7 +128,9 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
     const out = []
     for (let i = 0; i < variants.length; i++) {
       const v = variants[i]
-      setProgress({ current: i + 1, total: variants.length, label: v.label })
+      // Show the actual variant string being scanned (e.g. "833.228.3727"),
+      // not the template label ("555.123.4567" placeholder).
+      setProgress({ current: i + 1, total: variants.length, label: v.find })
       try {
         // Use the variant's own find string as a placeholder replace during scan;
         // never written (dry_run = true). The real replace string is built when
