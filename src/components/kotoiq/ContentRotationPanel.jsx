@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react'
-import { Repeat, Copy, Loader2, Trash2, AlertTriangle } from 'lucide-react'
+import { Repeat, Copy, Loader2, Trash2, AlertTriangle, ChevronDown, ChevronRight, Wrench } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 
@@ -19,6 +19,7 @@ export default function ContentRotationPanel({ site }) {
   const [postId, setPostId] = useState('')
   const [busy, setBusy] = useState(false)
   const [cache, setCache] = useState(null) // { post_id, cached_selections: { section: index } }
+  const [debugOpen, setDebugOpen] = useState(false) // Cache lookup is dev-only; hidden by default
 
   const moduleEntry = (site?.wpsc_modules || []).find(m => m?.slug === 'content-rotation')
   const moduleEnabled = moduleEntry ? moduleEntry.enabled !== false : false
@@ -105,48 +106,83 @@ export default function ContentRotationPanel({ site }) {
         </div>
       </div>
 
-      {/* Cache lookup */}
-      <div style={card()}>
-        <div style={{ fontFamily:FH, fontWeight:800, color:BLK, fontSize:13, marginBottom:10 }}>Cache lookup</div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <input
-            value={postId}
-            onChange={e => setPostId(e.target.value)}
-            placeholder="Post ID (e.g. 142)"
-            style={{ flex:1, maxWidth:220, padding:'8px 12px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:13, fontFamily:FB, outline:'none' }}
-          />
-          <button onClick={lookup} disabled={busy || !postId} style={primaryBtn()}>
-            {busy ? <Loader2 size={11} className="spin"/> : null} Look up
-          </button>
-          {cache && Object.keys(cache.cached_selections || {}).length > 0 && (
-            <button onClick={clearCache} disabled={busy} style={miniBtn({ color:R, borderColor:R })}>
-              <Trash2 size={10}/> Clear all
-            </button>
-          )}
-        </div>
+      {/* Cache lookup — hidden behind disclosure (developer-only tool) */}
+      <div style={{ ...card({ padding:0, overflow:'hidden' }) }}>
+        <button
+          onClick={() => setDebugOpen(o => !o)}
+          style={{
+            width:'100%', display:'flex', alignItems:'center', gap:8,
+            padding:'14px 18px', border:'none', background:'transparent',
+            cursor:'pointer', textAlign:'left',
+          }}
+          aria-expanded={debugOpen}
+        >
+          {debugOpen ? <ChevronDown size={14} color="#6b7280"/> : <ChevronRight size={14} color="#6b7280"/>}
+          <Wrench size={13} color="#6b7280"/>
+          <span style={{ fontFamily:FH, fontWeight:800, color:BLK, fontSize:13 }}>Cache debugging</span>
+          <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, marginLeft:4 }}>
+            — look up or clear the cached variant for a specific post (QA / troubleshooting)
+          </span>
+        </button>
 
-        {cache && (
-          <div style={{ marginTop:14, borderTop:'1px solid #f1f5f9', paddingTop:12 }}>
-            <div style={{ fontSize:11, color:'#6b7280', fontFamily:FH, fontWeight:700, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>
-              Cached selections for post {cache.post_id}
+        {debugOpen && (
+          <div style={{ padding:'4px 18px 18px', borderTop:'1px solid #f1f5f9' }}>
+            <p style={{ fontSize:12, color:'#6b7280', fontFamily:FB, lineHeight:1.5, margin:'10px 0 12px' }}>
+              When <code>[koto_rotate]</code> renders on a post, the picked variant is cached per-post for the TTL. Use this to inspect or clear that cache for a specific post — useful when QA'ing a page or forcing a re-roll.
+              {' '}<strong style={{ color:BLK }}>Find the post ID</strong> in WP admin: edit the post, the URL contains <code>?post=142&</code>.
+            </p>
+            <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+              <input
+                value={postId}
+                onChange={e => setPostId(e.target.value)}
+                placeholder="Post ID (e.g. 142)"
+                style={{ flex:1, maxWidth:220, padding:'8px 12px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:13, fontFamily:FB, outline:'none' }}
+              />
+              <button onClick={lookup} disabled={busy || !postId} style={primaryBtn()}>
+                {busy ? <Loader2 size={11} className="spin"/> : null} Look up
+              </button>
+              {cache && Object.keys(cache.cached_selections || {}).length > 0 && (
+                <button onClick={clearCache} disabled={busy} style={miniBtn({ color:R, borderColor:R })}>
+                  <Trash2 size={10}/> Clear all
+                </button>
+              )}
             </div>
-            {Object.keys(cache.cached_selections || {}).length === 0 ? (
-              <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, fontStyle:'italic' }}>No cached selections — next visit will pick fresh variants.</div>
-            ) : (
-              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, fontFamily:FB }}>
-                <thead><tr><th style={th()}>Section</th><th style={th()}>Cached variant index</th></tr></thead>
-                <tbody>
-                  {Object.entries(cache.cached_selections).map(([section, idx]) => (
-                    <tr key={section} style={{ borderTop:'1px solid #f1f5f9' }}>
-                      <td style={td()}><code style={{ fontSize:11 }}>{section}</code></td>
-                      <td style={td()}><Pill color={T} bg={`${T}15`}>variant {idx + 1}</Pill></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            {cache && (
+              <div style={{ marginTop:14, borderTop:'1px solid #f1f5f9', paddingTop:12 }}>
+                <div style={{ fontSize:11, color:'#6b7280', fontFamily:FH, fontWeight:700, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>
+                  Cached selections for post {cache.post_id}
+                </div>
+                {Object.keys(cache.cached_selections || {}).length === 0 ? (
+                  <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, fontStyle:'italic' }}>No cached selections — next visit will pick fresh variants.</div>
+                ) : (
+                  <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, fontFamily:FB }}>
+                    <thead><tr><th style={th()}>Section</th><th style={th()}>Cached variant index</th></tr></thead>
+                    <tbody>
+                      {Object.entries(cache.cached_selections).map(([section, idx]) => (
+                        <tr key={section} style={{ borderTop:'1px solid #f1f5f9' }}>
+                          <td style={td()}><code style={{ fontSize:11 }}>{section}</code></td>
+                          <td style={td()}><Pill color={T} bg={`${T}15`}>variant {idx + 1}</Pill></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             )}
           </div>
         )}
+      </div>
+
+      {/* Used-on auto-discovery — placeholder until the WP-side endpoint ships */}
+      <div style={{ ...card(), background:'#fafafa', border:'1px dashed #e5e7eb' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <Repeat size={13} color="#9ca3af"/>
+          <div style={{ fontFamily:FH, fontWeight:700, color:'#6b7280', fontSize:12 }}>Where it's running</div>
+        </div>
+        <p style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, lineHeight:1.5, marginTop:8 }}>
+          Auto-discovery of posts using <code>[koto_rotate]</code> ships in the next KotoIQ release. For now, search your WP admin for the shortcode or use the Cache debugging tool above with a known post ID.
+        </p>
       </div>
 
       <style jsx>{`
