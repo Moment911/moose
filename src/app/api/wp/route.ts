@@ -267,6 +267,42 @@ Rules:
       return NextResponse.json({ site, connected, site_info: siteInfo })
     }
 
+    // Agency-wide S&R job history — joins koto_search_replace_jobs to
+    // koto_wp_sites + clients so the panel can show "site X · client Y" per row.
+    if (action === 'sr_list_all_jobs') {
+      const finalAgency = agency_id || body?.agency_id
+      if (!finalAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+      const { data: jobs } = await sb
+        .from('koto_search_replace_jobs')
+        .select('*')
+        .eq('agency_id', finalAgency)
+        .order('created_at', { ascending: false })
+        .limit(200)
+      const siteIds = Array.from(new Set((jobs || []).map(j => j.site_id).filter(Boolean)))
+      const clientIds = Array.from(new Set((jobs || []).map(j => j.client_id).filter(Boolean)))
+      const [{ data: sites }, { data: clients }] = await Promise.all([
+        siteIds.length
+          ? sb.from('koto_wp_sites').select('id, site_url, site_name, client_id').in('id', siteIds)
+          : Promise.resolve({ data: [] }),
+        clientIds.length
+          ? sb.from('clients').select('id, name').in('id', clientIds)
+          : Promise.resolve({ data: [] }),
+      ])
+      const siteMap = new Map((sites || []).map(s => [s.id, s]))
+      const clientMap = new Map((clients || []).map(c => [c.id, c]))
+      const enriched = (jobs || []).map(j => {
+        const s = siteMap.get(j.site_id)
+        const c = clientMap.get(j.client_id) || (s?.client_id ? clientMap.get(s.client_id) : null)
+        return {
+          ...j,
+          site_url: s?.site_url || null,
+          site_name: s?.site_name || null,
+          client_name: c?.name || null,
+        }
+      })
+      return NextResponse.json({ jobs: enriched })
+    }
+
     // ─── Actions that DON'T require an existing site (run before the site guard) ──
 
     // Client-aware listing — clients in the agency joined to their koto_wp_sites row (if any).

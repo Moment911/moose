@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import { Search, Replace as ReplaceIcon, Eye, Play, Undo2, Loader2, Database, Image as ImageIcon, AlertTriangle, CheckCircle2, Trash2, RefreshCw, Pause } from 'lucide-react'
+import { Search, Replace as ReplaceIcon, Eye, Play, Undo2, Loader2, Database, Image as ImageIcon, AlertTriangle, CheckCircle2, Trash2, RefreshCw, Pause, Globe } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 
@@ -121,11 +121,14 @@ export default function SearchReplacePanel({ site }) {
   const [samples, setSamples] = useState([])
   const [jobs, setJobs] = useState([])
   const [selectedJobIds, setSelectedJobIds] = useState({}) // {jobId: true} — for multi-select undo
+  const [agencyWide, setAgencyWide] = useState(false)
   const [progress, setProgress] = useState(null) // {scanned, matches, table}
   const cancelRef = useRef(false)
 
   // Re-run when wpsc_api_key changes (e.g. after the user just paired this site)
   useEffect(() => { if (site?.id) { loadTables(); loadJobs() } }, [site?.id, site?.wpsc_api_key])
+  // Reload jobs when agency-wide toggle flips
+  useEffect(() => { if (site?.id) loadJobs() }, [agencyWide])
 
   async function loadTables() {
     if (!site?.id) return
@@ -173,10 +176,13 @@ export default function SearchReplacePanel({ site }) {
 
   async function loadJobs() {
     if (!site?.id) return
+    const payload = agencyWide
+      ? { action: 'sr_list_all_jobs', agency_id: site.agency_id }
+      : { action: 'sr_list_jobs', site_id: site.id }
     const res = await fetch('/api/wp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sr_list_jobs', site_id: site.id }),
+      body: JSON.stringify(payload),
     })
     const data = await res.json()
     setJobs(data.jobs || [])
@@ -559,8 +565,23 @@ export default function SearchReplacePanel({ site }) {
         )}
 
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>History</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>History</div>
+              <button
+                onClick={() => setAgencyWide(v => !v)}
+                title={agencyWide ? 'Showing every run in this agency — click for this site only' : 'Showing only this site — click for agency-wide history'}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  padding: '4px 8px', borderRadius: 6,
+                  border: `1px solid ${agencyWide ? R : '#e5e7eb'}`,
+                  background: agencyWide ? `${R}10` : '#fff',
+                  color: agencyWide ? R : '#6b7280',
+                  fontFamily: FH, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                }}>
+                <Globe size={10}/> {agencyWide ? 'All sites' : 'This site'}
+              </button>
+            </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={selectAllUndoable} style={mini()} title="Select all undoable runs">Select all</button>
               <button onClick={clearJobSelection} style={mini()}>Clear</button>
@@ -606,6 +627,16 @@ export default function SearchReplacePanel({ site }) {
                       <div style={{ flex: 1 }} />
                       <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB }}>{new Date(j.created_at).toLocaleString()}</span>
                     </div>
+
+                    {/* Site/client context — only shown in agency-wide view */}
+                    {agencyWide && (j.client_name || j.site_url) && (
+                      <div style={{ fontSize: 11, color: '#6b7280', fontFamily: FB, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Globe size={10} color="#9ca3af"/>
+                        {j.client_name && <strong style={{ color: BLK }}>{j.client_name}</strong>}
+                        {j.client_name && j.site_url && <span style={{ color: '#d1d5db' }}>·</span>}
+                        {j.site_url && <span>{j.site_url.replace(/^https?:\/\//,'')}</span>}
+                      </div>
+                    )}
 
                     {/* Find/Replace — no truncation, monospace, wraps on long values */}
                     <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 7, padding: '8px 10px', marginBottom: 8, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace', fontSize: 11, lineHeight: 1.55, wordBreak: 'break-all' }}>
