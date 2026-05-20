@@ -67,33 +67,215 @@ add_action('admin_post_kotoiq_save_settings', function () {
 function kotoiq_admin_dashboard_page() {
     if (!current_user_can('manage_options')) wp_die('forbidden');
     $remote_allowed = (bool) get_option(KOTOIQ_OPT_REMOTE_ALLOWED, false);
-    $snippets = kotoiq_snip_all();
-    $active_count = count(array_filter($snippets, function ($s) { return !empty($s['active']); }));
-    $policy = get_option(KOTOIQ_OPT_ACCESS_POLICY, []);
-    $managed_roles = is_array($policy) ? count($policy) : 0;
-    $modules = function_exists('koto_modules_list') ? koto_modules_list() : [];
+    $remote_host    = (string) get_option(KOTOIQ_OPT_REMOTE_HOST, '');
+    $snippets       = kotoiq_snip_all();
+    $active_count   = count(array_filter($snippets, function ($s) { return !empty($s['active']); }));
+    $policy         = get_option(KOTOIQ_OPT_ACCESS_POLICY, []);
+    $managed_roles  = is_array($policy) ? count($policy) : 0;
+    $modules        = function_exists('koto_modules_list') ? koto_modules_list() : [];
+    $modules_by_slug = [];
+    foreach ($modules as $m) $modules_by_slug[$m['slug']] = $m;
     $enabled_modules = count(array_filter($modules, function ($m) { return !empty($m['enabled']); }));
-    ?>
-    <div class="wrap">
-        <h1>KotoIQ</h1>
-        <p>Agency control plugin. Site-wide search &amp; replace, role-aware code snippets, granular access management, Elementor read/write endpoints, and content rotation shortcodes.</p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px;">
-            <?php kotoiq_admin_card('Search & Replace', 'Find &amp; replace text across your entire site, serialized-safe, with 1-click undo.', 'kotoiq-search-replace'); ?>
-            <?php kotoiq_admin_card('Snippets', sprintf('%d total, %d active', count($snippets), $active_count), 'kotoiq-snippets'); ?>
-            <?php kotoiq_admin_card('Access', sprintf('%d role(s) under managed policy', $managed_roles), 'kotoiq-access'); ?>
-            <?php kotoiq_admin_card('Settings', sprintf('%d/%d modules enabled · Remote: %s', $enabled_modules, count($modules), $remote_allowed ? 'ON' : 'off'), 'kotoiq-settings'); ?>
-        </div>
-    </div>
-    <?php
-}
 
-function kotoiq_admin_card($title, $desc, $slug) {
-    $url = admin_url('admin.php?page=' . $slug);
+    $koto_logo    = KOTOIQ_PLUGIN_URL . 'assets/koto-logo.svg';
+    $unified_logo = KOTOIQ_PLUGIN_URL . 'assets/unified-logo.svg';
+
+    // Each module: detailed description of what it actually does, plus a
+    // live stat pulled from the database where available.
+    $module_specs = [
+        'search-replace' => [
+            'icon'  => 'search',
+            'title' => 'Search & Replace',
+            'what'  => 'Find any text or URL across every database table and rewrite it in place. Handles serialized PHP correctly (the bug that corrupts widgets and theme settings when other plugins try). Preview mode shows you the diff before anything writes; live mode keeps a row-level undo journal so a one-click restore is always available.',
+            'stat'  => 'Endpoints: /wp-json/kotoiq/v1/search-replace/{tables,scan,restore}',
+            'page'  => 'kotoiq-search-replace',
+        ],
+        'snippets' => [
+            'icon'  => 'editor-code',
+            'title' => 'Code Snippets',
+            'what'  => 'Drop in PHP (server-side), HTML, JavaScript, or CSS without editing theme files. Choose where each runs — head, footer, admin only, frontend only, or everywhere. Per-snippet role gating means client editors can save text/JS but never execute PHP.',
+            'stat'  => sprintf('%d total · %d active', count($snippets), $active_count),
+            'page'  => 'kotoiq-snippets',
+        ],
+        'access' => [
+            'icon'  => 'lock',
+            'title' => 'Access Management',
+            'what'  => 'Per-role permission matrix for PHP snippets, file/theme/plugin editors, conversion pixels, and access management itself. Denials apply at runtime — even an administrator can be denied edit_themes if you set it. Global kill-switch mirrors DISALLOW_FILE_EDIT without touching wp-config.php. Snapshot + revert any time.',
+            'stat'  => sprintf('%d role%s under managed policy', $managed_roles, $managed_roles === 1 ? '' : 's'),
+            'page'  => 'kotoiq-access',
+        ],
+        'elementor-builder' => [
+            'icon'  => 'edit',
+            'title' => 'Elementor Builder',
+            'what'  => 'Read and write Elementor pages from the KotoIQ dashboard. Detects Elementor + Pro version, lists every builder-edited page, fetches the raw _elementor_data tree, and writes back through Elementor\'s own Document::save() (the only safe write path — handles CSS regen, revisions, and v4 atomic validation). Clone any page as a new draft for variant testing.',
+            'stat'  => defined('ELEMENTOR_VERSION')
+                ? ('Elementor ' . ELEMENTOR_VERSION . (defined('ELEMENTOR_PRO_VERSION') ? ' + Pro ' . ELEMENTOR_PRO_VERSION : ' (no Pro)'))
+                : 'Inactive — install Elementor to enable',
+            'page'  => null,
+        ],
+        'content-rotation' => [
+            'icon'  => 'image-rotate',
+            'title' => 'Content Rotation',
+            'what'  => 'The [koto_rotate cache="7d"] shortcode picks one of N content variants per page-load and caches the selection per-post for a configurable TTL. Google sees the page "updating" each cache rollover. Pairs with the Page Factory clone flow — content variants land as rotating shortcodes inside the cloned Elementor page.',
+            'stat'  => 'Shortcode: [koto_rotate cache="7d" section="intro"]',
+            'page'  => null,
+        ],
+    ];
+
+    // Brand tokens (Unified Marketing: navy + pink on cream).
+    $C_NAVY = '#201b51';
+    $C_NAVY_DEEP = '#15113a';
+    $C_PINK = '#cb1c6b';
+    $C_CREAM = '#faf9f6';
+    $C_LINE = '#e9e6dd';
+    $C_MUTED = '#6b7280';
     ?>
-    <div style="background:#fff;border:1px solid #c3c4c7;border-radius:6px;padding:16px;">
-        <h2 style="margin:0 0 8px;font-size:14px;"><?php echo esc_html($title); ?></h2>
-        <p style="margin:0 0 12px;color:#50575e;font-size:13px;"><?php echo wp_kses_post($desc); ?></p>
-        <a class="button button-secondary" href="<?php echo esc_url($url); ?>">Open</a>
+    <style>
+        .kotoiq-wrap { background: <?php echo $C_CREAM; ?>; margin: 20px -20px -10px -22px; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "DM Sans", "Segoe UI", Roboto, sans-serif; min-height: calc(100vh - 60px); }
+        @media (max-width: 782px) { .kotoiq-wrap { margin: 10px -10px -10px -10px; } }
+        .kotoiq-hero { padding: 40px 48px 36px; border-bottom: 1px solid <?php echo $C_LINE; ?>; background: linear-gradient(180deg, #fff 0%, <?php echo $C_CREAM; ?> 100%); }
+        .kotoiq-hero-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+        .kotoiq-koto-logo { height: 38px; width: auto; }
+        .kotoiq-unified-link { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: <?php echo $C_MUTED; ?>; font-size: 12px; }
+        .kotoiq-unified-link:hover { color: <?php echo $C_PINK; ?>; }
+        .kotoiq-unified-logo { height: 46px; width: auto; }
+        .kotoiq-eyebrow { display: inline-block; padding: 4px 10px; background: <?php echo $C_PINK; ?>15; color: <?php echo $C_PINK; ?>; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 4px; margin-bottom: 12px; }
+        .kotoiq-h1 { font-size: 36px; font-weight: 800; color: <?php echo $C_NAVY; ?>; margin: 0 0 8px; letter-spacing: -0.02em; line-height: 1.1; }
+        .kotoiq-tagline { font-size: 16px; color: <?php echo $C_NAVY_DEEP; ?>; opacity: 0.7; margin: 0; max-width: 720px; line-height: 1.5; }
+        .kotoiq-managed { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px dashed <?php echo $C_LINE; ?>; }
+        .kotoiq-managed-text { font-size: 13px; color: <?php echo $C_MUTED; ?>; }
+        .kotoiq-managed-text strong { color: <?php echo $C_NAVY; ?>; font-weight: 700; }
+        .kotoiq-managed-text a { color: <?php echo $C_PINK; ?>; text-decoration: none; font-weight: 600; }
+        .kotoiq-managed-text a:hover { text-decoration: underline; }
+
+        .kotoiq-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; background: #fff; border-bottom: 1px solid <?php echo $C_LINE; ?>; }
+        .kotoiq-stat { padding: 20px 24px; border-right: 1px solid <?php echo $C_LINE; ?>; }
+        .kotoiq-stat:last-child { border-right: none; }
+        .kotoiq-stat-num { font-size: 24px; font-weight: 800; color: <?php echo $C_NAVY; ?>; line-height: 1; }
+        .kotoiq-stat-num.pink { color: <?php echo $C_PINK; ?>; }
+        .kotoiq-stat-label { font-size: 11px; color: <?php echo $C_MUTED; ?>; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-top: 6px; }
+        .kotoiq-stat-sub { font-size: 12px; color: <?php echo $C_MUTED; ?>; margin-top: 4px; }
+
+        .kotoiq-section { padding: 36px 48px; }
+        .kotoiq-section-h { font-size: 11px; color: <?php echo $C_NAVY; ?>; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 800; margin: 0 0 18px; }
+        .kotoiq-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+        .kotoiq-mod { background: #fff; border: 1px solid <?php echo $C_LINE; ?>; border-radius: 10px; padding: 22px 24px; position: relative; transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+        .kotoiq-mod:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(32, 27, 81, 0.06); border-color: <?php echo $C_NAVY; ?>30; }
+        .kotoiq-mod-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .kotoiq-mod-icon { width: 32px; height: 32px; border-radius: 8px; background: <?php echo $C_NAVY; ?>; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .kotoiq-mod-icon .dashicons { color: #fff; font-size: 18px; width: 18px; height: 18px; }
+        .kotoiq-mod-title { font-size: 16px; font-weight: 700; color: <?php echo $C_NAVY; ?>; margin: 0; line-height: 1.2; }
+        .kotoiq-mod-status { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; margin-left: auto; }
+        .kotoiq-mod-status.on { background: <?php echo $C_PINK; ?>15; color: <?php echo $C_PINK; ?>; }
+        .kotoiq-mod-status.off { background: #f3f4f6; color: #9ca3af; }
+        .kotoiq-mod-what { font-size: 13px; color: <?php echo $C_NAVY_DEEP; ?>; opacity: 0.78; line-height: 1.55; margin: 0 0 12px; }
+        .kotoiq-mod-stat { font-size: 11px; color: <?php echo $C_MUTED; ?>; font-family: ui-monospace, "SF Mono", Menlo, monospace; background: <?php echo $C_CREAM; ?>; padding: 6px 10px; border-radius: 5px; border: 1px solid <?php echo $C_LINE; ?>; display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
+        .kotoiq-mod-action { margin-top: 14px; }
+        .kotoiq-mod-action a { font-size: 12px; color: <?php echo $C_PINK; ?>; text-decoration: none; font-weight: 700; }
+        .kotoiq-mod-action a:hover { text-decoration: underline; }
+
+        .kotoiq-cta { background: <?php echo $C_NAVY; ?>; color: #fff; border-radius: 12px; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 8px; }
+        .kotoiq-cta-text h3 { font-size: 18px; font-weight: 700; margin: 0 0 4px; color: #fff; }
+        .kotoiq-cta-text p { font-size: 13px; opacity: 0.75; margin: 0; max-width: 540px; }
+        .kotoiq-cta-btn { background: <?php echo $C_PINK; ?>; color: #fff; padding: 11px 20px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 13px; white-space: nowrap; transition: background .12s ease; }
+        .kotoiq-cta-btn:hover { background: #a8155a; color: #fff; }
+
+        .kotoiq-foot { padding: 24px 48px 36px; border-top: 1px solid <?php echo $C_LINE; ?>; color: <?php echo $C_MUTED; ?>; font-size: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .kotoiq-foot a { color: <?php echo $C_NAVY; ?>; text-decoration: none; }
+        .kotoiq-foot a:hover { color: <?php echo $C_PINK; ?>; }
+    </style>
+
+    <div class="kotoiq-wrap">
+
+        <!-- Hero -->
+        <div class="kotoiq-hero">
+            <div class="kotoiq-hero-row">
+                <img src="<?php echo esc_url($koto_logo); ?>" alt="Koto" class="kotoiq-koto-logo"/>
+                <a href="https://unifiedmktg.com" target="_blank" rel="noopener" class="kotoiq-unified-link" title="Managed by Unified Marketing">
+                    <span>powered by</span>
+                    <img src="<?php echo esc_url($unified_logo); ?>" alt="Unified Marketing" class="kotoiq-unified-logo"/>
+                </a>
+            </div>
+            <span class="kotoiq-eyebrow">v<?php echo esc_html(KOTOIQ_VERSION); ?> · Agency-managed</span>
+            <h1 class="kotoiq-h1">KotoIQ</h1>
+            <p class="kotoiq-tagline">One plugin that gives your agency surgical control over this WordPress site — site-wide search &amp; replace with undo, role-aware code snippets, granular permission lockdown, Elementor read/write endpoints, and content rotation shortcodes. Drive every feature from the KotoIQ dashboard, or use the local admin pages on the left.</p>
+            <div class="kotoiq-managed">
+                <div class="kotoiq-managed-text">
+                    Managed by <strong>Unified Marketing</strong> · <a href="https://unifiedmktg.com" target="_blank" rel="noopener">unifiedmktg.com</a> · Questions? Contact your account team.
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats strip -->
+        <div class="kotoiq-stats">
+            <div class="kotoiq-stat">
+                <div class="kotoiq-stat-num"><?php echo (int) $enabled_modules; ?><span style="font-size:14px;opacity:.4;">/<?php echo (int) count($modules); ?></span></div>
+                <div class="kotoiq-stat-label">Modules enabled</div>
+            </div>
+            <div class="kotoiq-stat">
+                <div class="kotoiq-stat-num pink"><?php echo (int) count($snippets); ?></div>
+                <div class="kotoiq-stat-label">Snippets</div>
+                <div class="kotoiq-stat-sub"><?php echo (int) $active_count; ?> active</div>
+            </div>
+            <div class="kotoiq-stat">
+                <div class="kotoiq-stat-num"><?php echo (int) $managed_roles; ?></div>
+                <div class="kotoiq-stat-label">Roles managed</div>
+            </div>
+            <div class="kotoiq-stat">
+                <div class="kotoiq-stat-num <?php echo $remote_allowed ? 'pink' : ''; ?>"><?php echo $remote_allowed ? 'On' : 'Off'; ?></div>
+                <div class="kotoiq-stat-label">Remote control</div>
+                <?php if ($remote_allowed && $remote_host): ?>
+                    <div class="kotoiq-stat-sub"><?php echo esc_html(parse_url($remote_host, PHP_URL_HOST) ?: $remote_host); ?></div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- What's inside -->
+        <div class="kotoiq-section">
+            <h2 class="kotoiq-section-h">What's inside</h2>
+            <div class="kotoiq-modules">
+                <?php foreach ($module_specs as $slug => $spec):
+                    $m = $modules_by_slug[$slug] ?? null;
+                    $enabled = $m && !empty($m['enabled']);
+                ?>
+                    <div class="kotoiq-mod">
+                        <div class="kotoiq-mod-head">
+                            <span class="kotoiq-mod-icon"><span class="dashicons dashicons-<?php echo esc_attr($spec['icon']); ?>"></span></span>
+                            <h3 class="kotoiq-mod-title"><?php echo esc_html($spec['title']); ?></h3>
+                            <span class="kotoiq-mod-status <?php echo $enabled ? 'on' : 'off'; ?>"><?php echo $enabled ? 'enabled' : 'off'; ?></span>
+                        </div>
+                        <p class="kotoiq-mod-what"><?php echo esc_html($spec['what']); ?></p>
+                        <div class="kotoiq-mod-stat"><?php echo esc_html($spec['stat']); ?></div>
+                        <?php if (!empty($spec['page'])): ?>
+                            <div class="kotoiq-mod-action">
+                                <a href="<?php echo esc_url(admin_url('admin.php?page=' . $spec['page'])); ?>">Open <?php echo esc_html($spec['title']); ?> →</a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="kotoiq-section" style="padding-top:0;">
+            <div class="kotoiq-cta">
+                <div class="kotoiq-cta-text">
+                    <h3><?php echo $remote_allowed ? 'Connected to the KotoIQ dashboard' : 'Connect this site to the KotoIQ dashboard'; ?></h3>
+                    <p><?php echo $remote_allowed
+                        ? 'Your agency can drive every module from hellokoto.com. Toggle the connection off any time from Settings.'
+                        : 'Enable remote control in Settings, paste your agency dashboard URL as the Allowed host, and copy the API key into the KotoIQ Control Center to pair this site.'; ?></p>
+                </div>
+                <a class="kotoiq-cta-btn" href="<?php echo esc_url(admin_url('admin.php?page=kotoiq-settings')); ?>">
+                    <?php echo $remote_allowed ? 'Manage connection' : 'Open Settings →'; ?>
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="kotoiq-foot">
+            <div>KotoIQ v<?php echo esc_html(KOTOIQ_VERSION); ?> · Built for agencies · <a href="https://hellokoto.com" target="_blank" rel="noopener">hellokoto.com</a></div>
+            <div>© <?php echo date('Y'); ?> Unified Marketing · <a href="https://unifiedmktg.com" target="_blank" rel="noopener">unifiedmktg.com</a></div>
+        </div>
     </div>
     <?php
 }

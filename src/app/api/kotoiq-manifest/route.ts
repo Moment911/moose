@@ -24,12 +24,12 @@ const MANIFEST = {
   plugin: 'kotoiq',
   latest_version: '2.0.0',
   download_url: `${APP_URL}/downloads/kotoiq-2.0.0.zip`,
-  sha256: '51b22c12e798019ef465bdbafce12890b177eb794ac841e28288d2497341409d',
+  sha256: '573823903bf45cd7a60a4f1350c2a1cf7622d7edd671779c89e00f1265ba6da6',
   released_at: '2026-05-19',
   channel: 'stable',
   changelog: 'Phase 4: unified KotoIQ plugin — search & replace + snippets + access + Elementor builder + content rotation, all under the module-loader contract. Versioned 2.0.0 so it sorts above the WPSimpleCode 1.x line.',
   history: [
-    { version: '2.0.0', released_at: '2026-05-19', note: 'Initial KotoIQ release. Replaces WPSimpleCode 1.2.0 + the legacy koto-builder-endpoints.php.' },
+    { version: '2.0.0', released_at: '2026-05-19', note: 'Initial KotoIQ release. Zip extracts to wpsimplecode/ so it overwrites the legacy 1.2.0 install in place — one plugin entry per site, no duplicate folders.' },
   ],
 }
 

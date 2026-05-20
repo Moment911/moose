@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" role="img" aria-label="Unified Marketing">
+  <style>
+    .u-word { font: 800 30px/1 'DM Sans', 'Helvetica Neue', Arial, sans-serif; fill: #201b51; letter-spacing: -0.5px; }
+    .u-mark { font: 700 13px/1 'DM Sans', 'Helvetica Neue', Arial, sans-serif; fill: #6b7280; letter-spacing: 2px; }
+    .u-dot  { fill: #cb1c6b; }
+  </style>
+  <text x="0" y="32" class="u-word">UNIFIED</text>
+  <circle class="u-dot" cx="146" cy="22" r="4"/>
+  <text x="0" y="52" class="u-mark">MARKETING</text>
+</svg>
