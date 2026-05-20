@@ -128,6 +128,7 @@ import MarketplacePage from '../views/MarketplacePage'
 import PageBuilderPage from '../views/PageBuilderPage'
 import WordPressControlPage from '../views/WordPressControlPage'
 import WPSimpleCodePage from '../views/WPSimpleCodePage'
+import ControlCenterPage from '../views/ControlCenterPage'
 import StatusPage from '../views/StatusPage'
 import DebugConsolePage from '../views/DebugConsolePage'
 // HelpCenterPage removed — /help routes to HelpPage instead
@@ -409,6 +410,7 @@ function AppRoutes() {
           <Route path="/kotoiq/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
                 <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/wpsimplecode" element={<WPSimpleCodePage />} />
+          <Route path="/control-center" element={<ControlCenterPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
           <Route path="/koto-proposal-builder/:clientId" element={<KotoProposalBuilderPage />} />
