@@ -65,10 +65,17 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
   }, [sourceDigits, targetDigits])
 
   function buildScope() {
-    // Prefer the user's existing selection if any; otherwise fall back to core
-    // text tables which is where phone numbers virtually always live.
-    const chosen = tables.filter(t => defaultTables[t.name] || t.is_core)
-    return { tables: chosen.map(t => ({ name: t.name, primary_key: t.primary_key, columns: t.columns })) }
+    // Phone numbers live in posts (post_content), postmeta (meta_value),
+    // options (option_value). Scoping down to these three tables keeps
+    // 16-variant scans fast — scanning every "is_core" table 16 times
+    // was timing out on large sites.
+    const phoneTableShortNames = ['posts', 'postmeta', 'options']
+    const chosen = tables.filter(t => {
+      const short = t.name.replace(/^.*?_/, '') // strip wpdb prefix
+      return phoneTableShortNames.includes(short)
+    })
+    // Fallback: if the prefix strip failed (custom prefix structure), use core
+    return { tables: (chosen.length ? chosen : tables.filter(t => t.is_core)).map(t => ({ name: t.name, primary_key: t.primary_key, columns: t.columns })) }
   }
 
   async function runJobToCompletion({ find, replaceWith, dryRun }) {
@@ -131,15 +138,22 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
       // Show the actual variant string being scanned (e.g. "833.228.3727"),
       // not the template label ("555.123.4567" placeholder).
       setProgress({ current: i + 1, total: variants.length, label: v.find })
-      try {
-        // Use the variant's own find string as a placeholder replace during scan;
-        // never written (dry_run = true). The real replace string is built when
-        // the user fills in Target and clicks Replace.
-        const r = await runJobToCompletion({ find: v.find, replaceWith: v.replace || v.find, dryRun: true })
+      // One retry on transient plugin errors (timeouts, intermittent 5xx)
+      let lastErr = null
+      let r = null
+      for (let attempt = 0; attempt < 2 && !r; attempt++) {
+        try {
+          r = await runJobToCompletion({ find: v.find, replaceWith: v.replace || v.find, dryRun: true })
+        } catch (e) {
+          lastErr = e.message || String(e)
+          if (attempt === 0) await new Promise(res => setTimeout(res, 600)) // brief backoff
+        }
+      }
+      if (r) {
         await deleteJobSilently(r.job_id)
         out.push({ ...v, count: r.matches })
-      } catch (e) {
-        out.push({ ...v, count: 0, error: e.message })
+      } else {
+        out.push({ ...v, count: 0, error: lastErr || 'Scan failed' })
       }
     }
     // Sort by count desc, then auto-select everything with >0 matches

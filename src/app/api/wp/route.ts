@@ -1092,11 +1092,17 @@ Rules:
       })
 
       if (!result.ok) {
+        // Surface the actual cause — network/timeout from the proxy, or the
+        // WP plugin's own error payload (data.error, data.message, or
+        // data.code).
+        const pluginErr = result.data?.message || result.data?.error || result.data?.code || null
+        const transportErr = result.error || null
+        const realErr = pluginErr || transportErr || `HTTP ${result.status || '?'} on ${t.name}`
         await sb.from('koto_search_replace_jobs').update({
-          status: 'failed', error: result.error || `Plugin error on ${t.name}`,
+          status: 'failed', error: realErr,
           completed_at: new Date().toISOString(),
         }).eq('id', job_id)
-        return NextResponse.json({ error: result.error || 'Plugin error', table: t.name }, { status: 500 })
+        return NextResponse.json({ error: realErr, table: t.name, status: result.status }, { status: 500 })
       }
 
       const d = result.data || {}
