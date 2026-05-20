@@ -127,9 +127,7 @@ import ScoutConversationExplorerPage from '../views/scout/ScoutConversationExplo
 import MarketplacePage from '../views/MarketplacePage'
 import PageBuilderPage from '../views/PageBuilderPage'
 import WordPressControlPage from '../views/WordPressControlPage'
-import WPSimpleCodePage from '../views/WPSimpleCodePage'
-import KotoIQSitesPage from '../views/KotoIQSitesPage'
-import ControlCenterPage from '../views/ControlCenterPage'
+import KotoIQWPPage from '../views/KotoIQWPPage'
 import StatusPage from '../views/StatusPage'
 import DebugConsolePage from '../views/DebugConsolePage'
 // HelpCenterPage removed — /help routes to HelpPage instead
@@ -410,9 +408,11 @@ function AppRoutes() {
           <Route path="/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
           <Route path="/kotoiq/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
                 <Route path="/wordpress" element={<WordPressControlPage />} />
-          <Route path="/wpsimplecode" element={<WPSimpleCodePage />} />
-          <Route path="/kotoiq-sites" element={<KotoIQSitesPage />} />
-          <Route path="/control-center" element={<ControlCenterPage />} />
+          <Route path="/kotoiq-wp" element={<KotoIQWPPage />} />
+          {/* Phase 9 redirects — the three legacy WP-management routes now point at /kotoiq-wp. */}
+          <Route path="/wpsimplecode" element={<Navigate to="/kotoiq-wp?view=client" replace />} />
+          <Route path="/kotoiq-sites" element={<Navigate to="/kotoiq-wp?view=client" replace />} />
+          <Route path="/control-center" element={<Navigate to="/kotoiq-wp?view=fleet" replace />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
           <Route path="/koto-proposal-builder/:clientId" element={<KotoProposalBuilderPage />} />

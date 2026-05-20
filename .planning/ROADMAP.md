@@ -167,3 +167,13 @@ Phases 7 and 8 were appended after Phases 1-6 code-completed — they are prereq
 | 6. Feedback Loop + Unified Shell + Pilot | 7/7 | Code complete (pilot pending) | - |
 | 7. Client Profile Seeder v1 — Internal Ingest + Gap Finder | 0/6 | Not started | - |
 | 8. Client Profile Seeder v2 — External Source Parsers | 0/5 | Not started | - |
+
+### Phase 9: Consolidate WordPress site management — unified /kotoiq-wp view replacing wpsimplecode + kotoiq-sites + control-center
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 8
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 9 to break down)

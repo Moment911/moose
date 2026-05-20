@@ -99,6 +99,10 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 9 added (2026-05-20): Consolidate /wpsimplecode + /kotoiq-sites + /control-center into a unified /kotoiq-wp view. Strategic UI consolidation — fleet ops + per-client deep dives in one place. Unified Marketing brand palette.
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
