@@ -52,6 +52,49 @@ async function proxyToWPSC(site: any, endpoint: string, body: any = {}) {
   }
 }
 
+async function proxyToWPSCMethod(site: any, method: 'GET'|'POST'|'PUT'|'DELETE', endpoint: string, body: any = {}) {
+  // Method-aware variant of proxyToWPSC — needed because the KotoIQ plugin's
+  // builder + SEO modules expose several GET / DELETE endpoints (builder/pages,
+  // agency/test, /pages, rotation-cache/{id}).
+  const start = Date.now()
+  const sb = getSupabase()
+  const key = site.wpsc_api_key || ''
+  const { data: cmd } = await sb.from('koto_wp_commands').insert({
+    site_id: site.id, agency_id: site.agency_id, command: `wpsc:${method}:${endpoint}`, payload: body, status: 'pending',
+  }).select().single()
+  try {
+    const url = `${site.site_url}/wp-json/wpsimplecode/v1/${endpoint}`
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'X-WPSC-Key': key,
+        'X-WPSC-Source': APP_URL,
+        'Content-Type': 'application/json',
+      },
+      body: method === 'GET' || method === 'DELETE' ? undefined : JSON.stringify(body || {}),
+      signal: AbortSignal.timeout(45000),
+    })
+    const responseData = res.ok ? await res.json().catch(() => ({})) : await res.text().then(t => ({ error: t })).catch(() => ({}))
+    const duration = Date.now() - start
+    await sb.from('koto_wp_commands').update({
+      status: res.ok ? 'success' : 'error',
+      response: responseData,
+      error: res.ok ? null : `HTTP ${res.status}`,
+      duration_ms: duration,
+      completed_at: new Date().toISOString(),
+    }).eq('id', cmd?.id)
+    return { ok: res.ok, data: responseData, status: res.status, duration }
+  } catch (e: any) {
+    const duration = Date.now() - start
+    await sb.from('koto_wp_commands').update({
+      status: 'error', error: e.message, duration_ms: duration,
+      completed_at: new Date().toISOString(),
+    }).eq('id', cmd?.id)
+    return { ok: false, data: {}, error: e.message, duration }
+  }
+}
+
 async function proxyToPlugin(site: any, endpoint: string, method = 'POST', body: any = {}) {
   const start = Date.now()
   const sb = getSupabase()
@@ -1403,6 +1446,50 @@ Rules:
       }
       await sb.from('koto_wp_sites').update(updates).eq('id', site_id)
       return NextResponse.json({ ok: true, plugin_disabled: pluginDisabled })
+    }
+
+    // ─── KotoIQ panel actions (per-site Builder / Rotation / SEO) ──────────
+
+    if (action === 'kotoiq_builder_pages') {
+      // GET /wpsimplecode/v1/builder/pages → list Elementor-edited pages.
+      // Also fires /builder/detect (POST) so the panel can show Elementor +
+      // Pro version + theme inline.
+      const [pages, detect] = await Promise.all([
+        proxyToWPSCMethod(site, 'GET',  'builder/pages'),
+        proxyToWPSCMethod(site, 'POST', 'builder/detect', {}),
+      ])
+      return NextResponse.json({ ok: pages.ok, data: pages.data, detect: detect.ok ? detect.data : null, status: pages.status })
+    }
+
+    if (action === 'kotoiq_rotation_cache_get') {
+      const post_id = Number(body.post_id || 0)
+      if (!post_id) return NextResponse.json({ ok: false, error: 'post_id required' })
+      const r = await proxyToWPSCMethod(site, 'GET', `builder/rotation-cache/${post_id}`)
+      return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
+    }
+
+    if (action === 'kotoiq_rotation_cache_del') {
+      const post_id = Number(body.post_id || 0)
+      if (!post_id) return NextResponse.json({ ok: false, error: 'post_id required' })
+      const r = await proxyToWPSCMethod(site, 'DELETE', `builder/rotation-cache/${post_id}`)
+      return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
+    }
+
+    if (action === 'kotoiq_seo_agency_test') {
+      const r = await proxyToWPSCMethod(site, 'GET', 'agency/test')
+      return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
+    }
+
+    if (action === 'kotoiq_seo_pages') {
+      const r = await proxyToWPSCMethod(site, 'GET', 'pages')
+      return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
+    }
+
+    if (action === 'kotoiq_seo_sitemap_rebuild') {
+      // POST — works with the existing proxyToWPSC, but keep the method-aware
+      // call for consistency with the other panel actions.
+      const r = await proxyToWPSCMethod(site, 'POST', 'sitemap/rebuild', {})
+      return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
     }
 
     // ─── Access Management ─────────────────────────────────────────────────

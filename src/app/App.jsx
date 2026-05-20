@@ -128,6 +128,7 @@ import MarketplacePage from '../views/MarketplacePage'
 import PageBuilderPage from '../views/PageBuilderPage'
 import WordPressControlPage from '../views/WordPressControlPage'
 import WPSimpleCodePage from '../views/WPSimpleCodePage'
+import KotoIQSitesPage from '../views/KotoIQSitesPage'
 import ControlCenterPage from '../views/ControlCenterPage'
 import StatusPage from '../views/StatusPage'
 import DebugConsolePage from '../views/DebugConsolePage'
@@ -410,6 +411,7 @@ function AppRoutes() {
           <Route path="/kotoiq/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
                 <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/wpsimplecode" element={<WPSimpleCodePage />} />
+          <Route path="/kotoiq-sites" element={<KotoIQSitesPage />} />
           <Route path="/control-center" element={<ControlCenterPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
