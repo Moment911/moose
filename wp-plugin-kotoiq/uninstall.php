@@ -20,6 +20,13 @@ $options = [
     'wpsc_snippets',
     // KotoIQ + module-loader.
     'koto_modules_enabled',
+    // SEO module — inherited from the standalone Koto SEO 2.0.0 plugin.
+    'koto_api_key',
+    'koto_agency_url',
+    'koto_client_id',
+    'koto_site_id',
+    'koto_last_sync',
+    'koto_last_automation',
 ];
 foreach ($options as $opt) {
     delete_option($opt);

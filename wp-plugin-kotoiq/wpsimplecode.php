@@ -3,7 +3,7 @@
  * Plugin Name:       KotoIQ
  * Plugin URI:        https://hellokoto.com/kotoiq
  * Description:       Agency control plugin — search & replace (serialized-safe), code snippets, role-based access, Elementor read/write builder endpoints, and content rotation shortcodes. One plugin per site, modules toggleable from the KotoIQ dashboard.
- * Version:           2.0.0
+ * Version:           2.1.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -19,7 +19,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('KOTOIQ_VERSION', '2.0.0');
+define('KOTOIQ_VERSION', '2.1.0');
 define('KOTOIQ_PLUGIN_FILE', __FILE__);
 define('KOTOIQ_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('KOTOIQ_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -63,6 +63,7 @@ require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/snippets.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/access.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/elementor-builder.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/content-rotation.php';
+require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/seo.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/admin.php';
 
 register_activation_hook(__FILE__, function () {

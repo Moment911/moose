@@ -120,6 +120,14 @@ function kotoiq_admin_dashboard_page() {
             'stat'  => 'Shortcode: [koto_rotate cache="7d" section="intro"]',
             'page'  => null,
         ],
+        'seo' => [
+            'icon'  => 'chart-line',
+            'title' => 'SEO & Page Factory',
+            'what'  => 'Yoast and Rank Math integration. Lists every published page with its SEO meta, generates city/state landing pages in batches with optional JSON-LD schema, publishes AI-written blog posts with focus keywords + meta descriptions, rebuilds the sitemap and pings Google + Bing on demand, and auto-pings the Koto platform whenever you publish a new post.',
+            'stat'  => (defined('WPSEO_VERSION') ? 'Yoast ' . WPSEO_VERSION : (defined('RANK_MATH_VERSION') ? 'Rank Math ' . RANK_MATH_VERSION : 'Yoast / Rank Math not detected'))
+                . ' · last sync: ' . (get_option('koto_last_sync') ?: 'never'),
+            'page'  => null,
+        ],
     ];
 
     // Brand tokens (Unified Marketing: navy + pink on cream).
