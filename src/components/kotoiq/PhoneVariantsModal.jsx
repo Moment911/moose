@@ -54,12 +54,13 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
   const sourceDigits = digitsOnly(source)
   const targetDigits = digitsOnly(target)
   const variants = useMemo(() => {
-    if (sourceDigits.length !== 10 || targetDigits.length !== 10) return []
+    if (sourceDigits.length !== 10) return []
     return VARIANTS.map(v => ({
       id: v.id,
       label: v.label,
       find: v.fn(sourceDigits),
-      replace: v.fn(targetDigits),
+      // If target is empty, replace is null — populated lazily before Replace runs
+      replace: targetDigits.length === 10 ? v.fn(targetDigits) : null,
     }))
   }, [sourceDigits, targetDigits])
 
@@ -120,7 +121,6 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
 
   async function scan() {
     if (sourceDigits.length !== 10) { toast.error('Enter a 10-digit source phone number'); return }
-    if (targetDigits.length !== 10) { toast.error('Enter a 10-digit target phone number'); return }
     setScanning(true)
     setResults([])
     setSelected({})
@@ -130,8 +130,11 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
       const v = variants[i]
       setProgress({ current: i + 1, total: variants.length, label: v.label })
       try {
-        const r = await runJobToCompletion({ find: v.find, replaceWith: v.replace, dryRun: true })
-        await deleteJobSilently(r.job_id) // don't pollute history with preview rows
+        // Use the variant's own find string as a placeholder replace during scan;
+        // never written (dry_run = true). The real replace string is built when
+        // the user fills in Target and clicks Replace.
+        const r = await runJobToCompletion({ find: v.find, replaceWith: v.replace || v.find, dryRun: true })
+        await deleteJobSilently(r.job_id)
         out.push({ ...v, count: r.matches })
       } catch (e) {
         out.push({ ...v, count: 0, error: e.message })
@@ -148,7 +151,16 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
   }
 
   async function replaceSelected() {
-    const toRun = results.filter(r => selected[r.id] && r.count > 0)
+    if (targetDigits.length !== 10) { toast.error('Enter a 10-digit target phone number first'); return }
+    // Re-build current replace strings from the latest target — modal lets user
+    // fill in target after scanning.
+    const variantById = new Map(variants.map(v => [v.id, v]))
+    const toRun = results
+      .filter(r => selected[r.id] && r.count > 0)
+      .map(r => {
+        const v = variantById.get(r.id)
+        return { ...r, replace: v?.replace || r.replace }
+      })
     if (!toRun.length) { toast.error('Select at least one variant with matches'); return }
     if (!confirm(`Apply ${toRun.length} replacement(s) on ${site.site_name || site.site_url}?\n\n${toRun.map(r => `  ${r.find} → ${r.replace}  (${r.count} matches)`).join('\n')}`)) return
 
@@ -199,10 +211,13 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
           </div>
         </div>
 
-        <button onClick={scan} disabled={scanning || replacing || sourceDigits.length !== 10 || targetDigits.length !== 10} style={{ ...primaryBtn({ bg: '#fff', color: BLK, border: '1.5px solid #e5e7eb' }), width: '100%', marginBottom: 14 }}>
+        <button onClick={scan} disabled={scanning || replacing || sourceDigits.length !== 10} style={{ ...primaryBtn({ bg: '#fff', color: BLK, border: '1.5px solid #e5e7eb' }), width: '100%', marginBottom: 14 }}>
           {scanning ? <Loader2 size={13} className="spin"/> : <Search size={13}/>}
           {scanning ? `Scanning ${progress.current}/${progress.total}… ${progress.label}` : 'Scan all 16 formats'}
         </button>
+        <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FB, marginTop: -10, marginBottom: 14, lineHeight: 1.4 }}>
+          Target phone is only required when you're ready to replace. Scan can run with just the source.
+        </div>
 
         {results.length > 0 && (
           <div style={{ background: '#fafafa', borderRadius: 9, border: '1px solid #f1f5f9', padding: 10, marginBottom: 12 }}>
@@ -229,7 +244,12 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12, color: BLK, wordBreak: 'break-all' }}>
-                        <span style={{ color: has ? '#991b1b' : '#9ca3af' }}>−</span> {r.find}  <span style={{ color: '#9ca3af' }}>→</span>  <span style={{ color: has ? '#166534' : '#9ca3af' }}>+</span> {r.replace}
+                        <span style={{ color: has ? '#991b1b' : '#9ca3af' }}>−</span> {r.find}
+                        {targetDigits.length === 10 ? (
+                          <>  <span style={{ color: '#9ca3af' }}>→</span>  <span style={{ color: has ? '#166534' : '#9ca3af' }}>+</span> {(variants.find(v => v.id === r.id)?.replace) || r.replace}</>
+                        ) : (
+                          <span style={{ color: '#9ca3af', fontStyle: 'italic', marginLeft: 6 }}>(enter target to see replacement)</span>
+                        )}
                       </div>
                       {r.error && <div style={{ fontSize: 10, color: AMB, fontFamily: FB, marginTop: 2 }}>scan error: {r.error}</div>}
                     </div>
@@ -246,7 +266,11 @@ export default function PhoneVariantsModal({ site, tables, defaultTables, onClos
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose} disabled={scanning || replacing} style={primaryBtn({ bg: '#fff', color: BLK, border: '1.5px solid #e5e7eb' })}>Close</button>
           {results.length > 0 && (
-            <button onClick={replaceSelected} disabled={!selectedCount || replacing || scanning} style={primaryBtn({ bg: R, color: '#fff' })}>
+            <button
+              onClick={replaceSelected}
+              disabled={!selectedCount || replacing || scanning || targetDigits.length !== 10}
+              title={targetDigits.length !== 10 ? 'Enter a 10-digit target phone first' : ''}
+              style={primaryBtn({ bg: R, color: '#fff' })}>
               {replacing ? <Loader2 size={13} className="spin"/> : <Play size={13}/>}
               {replacing ? `Replacing ${progress.current}/${progress.total}…` : `Replace ${selectedCount} selected format(s)`}
             </button>
