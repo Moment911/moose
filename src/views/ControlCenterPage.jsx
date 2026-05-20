@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useMemo } from 'react'
-import { Command, Globe, RefreshCw, Loader2, ExternalLink, Search, CheckCircle, XCircle, AlertTriangle, Plug, Settings, Code2, Power } from 'lucide-react'
+import { Command, Globe, RefreshCw, Loader2, ExternalLink, Search, CheckCircle, XCircle, AlertTriangle, Plug, Settings, Code2, Power, Download, UploadCloud } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
@@ -46,8 +46,65 @@ export default function ControlCenterPage() {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState('last') // last | site | client | status
   const [pinging, setPinging] = useState({})    // {site_id: true} during ping
+  const [updating, setUpdating] = useState({})  // {site_id: true} during update
+  const [bulkUpdating, setBulkUpdating] = useState(false)
+  const [manifest, setManifest] = useState(null)
 
   useEffect(() => { if (agencyId) load() }, [agencyId])
+  useEffect(() => {
+    fetch('/api/wpsc-manifest').then(r => r.json()).then(setManifest).catch(() => {})
+  }, [])
+
+  function compareVersion(a, b) {
+    if (!a || !b) return a === b ? 0 : a ? 1 : -1
+    const pa = String(a).split('.').map(n => parseInt(n, 10) || 0)
+    const pb = String(b).split('.').map(n => parseInt(n, 10) || 0)
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+      const x = pa[i] || 0, y = pb[i] || 0
+      if (x !== y) return x - y
+    }
+    return 0
+  }
+  const isOutdated = s => !!s.wpsc_api_key && manifest && compareVersion(s.wpsc_version, manifest.latest_version) < 0
+
+  async function pushUpdate(site) {
+    if (!manifest) { toast.error('Manifest not loaded yet'); return }
+    if (!confirm(`Push WPSimpleCode v${manifest.latest_version} to ${site.site_url.replace(/^https?:\/\//,'')}?\n\nDownloads from:\n${manifest.download_url}\nsha256: ${manifest.sha256.slice(0,16)}…`)) return
+    setUpdating(u => ({ ...u, [site.id]: true }))
+    try {
+      const r = await fetch('/api/wp', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'wpsc_update_plugin', site_id: site.id }),
+      })
+      const d = await r.json()
+      if (d.ok || d.new_version === manifest.latest_version) toast.success(`Updated ${site.site_url.replace(/^https?:\/\//,'')} → v${d.new_version || manifest.latest_version}`)
+      else toast.error(d.error || d.message || 'Update failed')
+      await load()
+    } catch (e) { toast.error(e.message) }
+    setUpdating(u => { const n = { ...u }; delete n[site.id]; return n })
+  }
+
+  async function bulkUpdate() {
+    if (!manifest) return
+    const targets = sites.filter(s => isOutdated(s))
+    if (!targets.length) { toast('Nothing to update — everything is on v' + manifest.latest_version); return }
+    if (!confirm(`Push WPSimpleCode v${manifest.latest_version} to ${targets.length} site(s)?`)) return
+    setBulkUpdating(true)
+    let ok = 0, fail = 0
+    for (const site of targets) {
+      try {
+        const r = await fetch('/api/wp', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ action:'wpsc_update_plugin', site_id: site.id }),
+        })
+        const d = await r.json()
+        if (d.ok || d.new_version === manifest.latest_version) ok++; else fail++
+      } catch { fail++ }
+    }
+    toast.success(`Updated ${ok} site(s) · ${fail} failed`)
+    setBulkUpdating(false)
+    await load()
+  }
 
   const effectiveAgency = agencyId || FALLBACK_AGENCY
 
@@ -156,6 +213,14 @@ export default function ControlCenterPage() {
             </>}
           </div>
           {fullName && <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>Signed in as <strong style={{ color:'#6b7280' }}>{fullName}</strong></span>}
+          {(() => {
+            const outdatedCount = sites.filter(isOutdated).length
+            return outdatedCount > 0 && (
+              <button onClick={bulkUpdate} disabled={bulkUpdating || !manifest} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'7px 11px', borderRadius:8, border:'none', background:R, color:'#fff', fontFamily:FH, fontSize:11, fontWeight:700, cursor:'pointer', opacity:bulkUpdating?0.6:1 }}>
+                {bulkUpdating ? <Loader2 size={11} className="spin"/> : <UploadCloud size={11}/>} Push v{manifest.latest_version} to {outdatedCount} site{outdatedCount===1?'':'s'}
+              </button>
+            )
+          })()}
           <button onClick={refreshAll} disabled={refreshingAll || loading} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'7px 11px', borderRadius:8, border:`1px solid ${R}`, background:'#fff', color:R, fontFamily:FH, fontSize:11, fontWeight:700, cursor:'pointer', opacity:(refreshingAll||loading)?0.6:1 }}>
             {refreshingAll ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Refresh all
           </button>
@@ -234,9 +299,12 @@ export default function ControlCenterPage() {
                         </td>
                         <td style={td()}>
                           {s.wpsc_api_key
-                            ? <span style={{ display:'inline-flex', alignItems:'center', gap:5 }}>
+                            ? <span style={{ display:'inline-flex', alignItems:'center', gap:5, flexWrap:'wrap' }}>
                                 <Pill color={R} bg={`${R}15`}>paired</Pill>
                                 {s.wpsc_version && <code style={{ fontSize:10, color:'#6b7280' }}>v{s.wpsc_version}</code>}
+                                {isOutdated(s) && (
+                                  <Pill color={AMB} bg={`${AMB}15`}>→ v{manifest.latest_version}</Pill>
+                                )}
                               </span>
                             : s.wpsc_detected
                               ? <Pill color={AMB} bg={`${AMB}15`}>detected, unpaired</Pill>
@@ -250,6 +318,11 @@ export default function ControlCenterPage() {
                         <td style={{ ...td(), textAlign:'right', color:'#6b7280' }}>{relativeTime(lastSeen)}</td>
                         <td style={{ ...td(), textAlign:'right' }}>
                           <div style={{ display:'inline-flex', gap:4 }}>
+                            {isOutdated(s) && (
+                              <button onClick={() => pushUpdate(s)} disabled={!!updating[s.id]} title={`Push v${manifest.latest_version}`} style={miniBtn({ color: R, borderColor: R, bg: `${R}10` })}>
+                                {updating[s.id] ? <Loader2 size={9} className="spin"/> : <UploadCloud size={9}/>} Update
+                              </button>
+                            )}
                             <button onClick={() => pingSite(s)} disabled={!!pinging[s.id]} title="Re-detect WPSimpleCode" style={miniBtn()}>
                               {pinging[s.id] ? <Loader2 size={9} className="spin"/> : <RefreshCw size={9}/>} Ping
                             </button>

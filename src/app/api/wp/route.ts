@@ -1290,6 +1290,49 @@ Rules:
       return NextResponse.json(result)
     }
 
+    if (action === 'wpsc_update_plugin') {
+      // Pull the canonical manifest from our own server, then proxy to the site
+      try {
+        const mres = await fetch(`${APP_URL}/api/wpsc-manifest`, { signal: AbortSignal.timeout(10000) })
+        if (!mres.ok) return NextResponse.json({ error: `Manifest fetch failed: HTTP ${mres.status}` }, { status: 500 })
+        const manifest = await mres.json()
+        const result = await proxyToWPSC(site, 'self-update', {
+          download_url: manifest.download_url,
+          sha256: manifest.sha256,
+          version: manifest.latest_version,
+        })
+        if (result.ok) {
+          // Give the WP site a beat to settle, then re-detect to confirm the
+          // new version landed
+          await new Promise(r => setTimeout(r, 1500))
+          try {
+            const detectRes = await fetch(`${site.site_url}/wp-json/wpsimplecode/v1/meta?nocache=${Date.now()}`, { signal: AbortSignal.timeout(8000) })
+            if (detectRes.ok) {
+              const meta = await detectRes.json()
+              const modules = Array.isArray(meta?.modules)
+                ? meta.modules.map((m: any) => typeof m === 'string' ? { slug: m, name: m, enabled: true } : m)
+                : []
+              await sb.from('koto_wp_sites').update({
+                wpsc_version: meta?.version || null,
+                wpsc_modules: modules,
+                wpsc_last_seen_at: new Date().toISOString(),
+              }).eq('id', site_id)
+              return NextResponse.json({ ...result.data, new_version: meta?.version, manifest_version: manifest.latest_version })
+            }
+          } catch {}
+        }
+        return NextResponse.json({
+          ok: result.ok,
+          ...(result.data || {}),
+          manifest_version: manifest.latest_version,
+          status: result.status,
+          error: result.ok ? null : (result.data?.message || result.data?.error || result.error || `HTTP ${result.status}`),
+        }, { status: result.ok ? 200 : 500 })
+      } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 })
+      }
+    }
+
     if (action === 'wpsc_modules_toggle') {
       const { slug, enabled } = body
       if (!slug) return NextResponse.json({ error: 'slug required' }, { status: 400 })
