@@ -30,6 +30,81 @@ const STATUS_PILL = {
 
 const IMAGE_PRESET_NOTE = 'Replaces URLs across post_content, postmeta, options, and attachment GUIDs. Same engine, just guides the table picker.'
 
+const EXAMPLES = [
+  {
+    title: 'Domain change (http → https)',
+    find: 'http://yoursite.com',
+    replace: 'https://yoursite.com',
+    note: 'Plain text replace. Updates every link/asset URL stored under the old domain.',
+  },
+  {
+    title: 'Old domain → new domain',
+    find: 'https://oldagency.com',
+    replace: 'https://newagency.com',
+    note: 'Migrate every reference to a different domain in one pass.',
+  },
+  {
+    title: 'CDN swap',
+    find: 'https://cdn.example.com/uploads/',
+    replace: 'https://newcdn.example.com/uploads/',
+    imageMode: true,
+    note: 'Image-URL replace — pre-selects all text tables since image sources live in post_content, postmeta and options.',
+  },
+  {
+    title: 'Phone number — exact format',
+    find: '833-228-3727',
+    replace: '833-228-3728',
+    note: 'Plain text. Only matches this exact format — see the next example to catch all formats at once.',
+  },
+  {
+    title: 'Phone — all formats (regex)',
+    find: '\\(?833\\)?[\\s-]?228[\\s-]?3727',
+    replace: '833-228-3728',
+    regex: true,
+    note: 'Matches 833-228-3727, (833) 228-3727, (833)228-3727, 833 228 3727, etc. Escape parens with \\(  \\).',
+  },
+  {
+    title: 'Email change',
+    find: 'old@example.com',
+    replace: 'new@example.com',
+    note: 'Plain text. Lowercased compare by default (uncheck Case-sensitive if you mean it).',
+  },
+  {
+    title: 'Delete a phrase entirely',
+    find: 'Limited time only — ',
+    replace: '',
+    note: 'Leave Replace empty to remove the matched text everywhere it occurs.',
+  },
+  {
+    title: 'Brand rename (case-sensitive)',
+    find: 'OldBrand',
+    replace: 'NewBrand',
+    caseSensitive: true,
+    note: 'When you only want to replace TitleCase versions of a word, not lowercased ones in URLs/code.',
+  },
+  {
+    title: 'Year update',
+    find: '© 2024',
+    replace: '© 2026',
+    note: 'Copyright year bump — works on the ©2024 too (without space) if you set up the find string with no space.',
+  },
+  {
+    title: 'Capture and preserve (regex)',
+    find: '(Mr\\.|Mrs\\.|Ms\\.)\\s+Smith',
+    replace: '$1 Jones',
+    regex: true,
+    note: '$1 inserts whatever the first parenthesized group matched. Use $1, $2, $3 for capture-group references.',
+  },
+]
+
+function applyExample(ex, setSearch, setReplaceWith, setCaseSensitive, setRegex, setImageMode) {
+  setSearch(ex.find || '')
+  setReplaceWith(ex.replace || '')
+  setCaseSensitive(!!ex.caseSensitive)
+  setRegex(!!ex.regex)
+  setImageMode(!!ex.imageMode)
+}
+
 export default function SearchReplacePanel({ site }) {
   const [tables, setTables] = useState([])
   const [tablesLoading, setTablesLoading] = useState(false)
@@ -40,6 +115,7 @@ export default function SearchReplacePanel({ site }) {
   const [caseSensitive, setCaseSensitive] = useState(false)
   const [regex, setRegex] = useState(false)
   const [imageMode, setImageMode] = useState(false)
+  const [showExamples, setShowExamples] = useState(false)
   const [job, setJob] = useState(null)
   const [jobRunning, setJobRunning] = useState(false)
   const [samples, setSamples] = useState([])
@@ -306,6 +382,39 @@ export default function SearchReplacePanel({ site }) {
         </div>
         <div style={{ fontSize: 11, color: '#6b7280', fontFamily: FB, marginBottom: 16 }}>
           Find anything — URL, word, phrase, phone number, email — and replace it. Serialized-PHP-safe. Every applied change is journaled, undo any job from history.
+        </div>
+
+        {/* Examples — preset patterns that fill the inputs + toggle options */}
+        <div style={{ marginBottom: 10 }}>
+          <button onClick={() => setShowExamples(s => !s)} style={{ background: 'none', border: 'none', padding: 0, fontFamily: FH, fontSize: 11, fontWeight: 700, color: T, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            {showExamples ? '▾' : '▸'} {showExamples ? 'Hide examples' : 'Need ideas? See examples'}
+          </button>
+          {showExamples && (
+            <div style={{ marginTop: 8, padding: 10, background: '#fafafa', borderRadius: 9, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {EXAMPLES.map((ex, i) => (
+                <button
+                  key={i}
+                  onClick={() => applyExample(ex, setSearch, setReplaceWith, setCaseSensitive, setRegex, setImageMode)}
+                  title={ex.note}
+                  style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 7, cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: BLK }}>{ex.title}</div>
+                    <div style={{ fontSize: 10, fontFamily: 'ui-monospace,Menlo,monospace', color: '#6b7280', marginTop: 3, lineHeight: 1.45, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: '#991b1b' }}>−</span> {ex.find}  <span style={{ color: '#166534' }}>+</span> {ex.replace || <em style={{ color: '#9ca3af' }}>(delete)</em>}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                    {ex.regex && <Pill color={R} bg={`${R}15`}>regex</Pill>}
+                    {ex.caseSensitive && <Pill color="#374151" bg="#e5e7eb">Aa</Pill>}
+                  </div>
+                </button>
+              ))}
+              <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FB, marginTop: 4, lineHeight: 1.4 }}>
+                Click any example to prefill the fields. Regex examples use <code>$1</code>/<code>$2</code> as capture-group references.
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: 12 }}>
