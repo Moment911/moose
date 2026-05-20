@@ -169,18 +169,30 @@ export default function WPSimpleCodePage() {
 
           {/* Left rail — clients (+ orphan sites) — collapsible */}
           <div style={{ width: railOpen ? 340 : 56, transition:'width .18s ease', borderRight:'1px solid #e5e7eb', background:'#fafafa', display:'flex', flexDirection:'column', minHeight:0 }}>
+            {!railOpen ? (
+              <div style={{ padding:'14px 8px 8px', display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+                <button onClick={() => setRailOpen(true)} title={`Switch client (${rows.length})`} style={{ width:36, height:36, borderRadius:9, border:'1px solid #e5e7eb', background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                  <ChevronRight size={14} color={R}/>
+                </button>
+                <div style={{ fontFamily:FH, fontSize:10, fontWeight:700, color:'#9ca3af', writingMode:'vertical-rl', transform:'rotate(180deg)', letterSpacing:'.05em', textTransform:'uppercase' }}>
+                  {rows.length} clients
+                </div>
+              </div>
+            ) : (
+              <>
             <div style={{ padding:'14px 16px 4px', display:'flex', alignItems:'center', gap:6 }}>
               <User size={13} color="#6b7280"/>
               <div style={{ flex:1, fontFamily:FH, fontSize:12, fontWeight:700, color:'#374151' }}>Clients ({rows.length})</div>
               <button onClick={() => setShowAdd(true)} title="Connect a WP site" style={addBtn()}>
                 <Plus size={11}/> Connect
               </button>
+              {selected && <button onClick={() => setRailOpen(false)} title="Collapse list" style={{ ...mini(), padding:'4px 6px' }}><ChevronLeft size={11}/></button>}
             </div>
             <div style={{ padding:'0 16px 8px', fontSize:11, color:'#9ca3af', fontFamily:FB, lineHeight:1.4 }}>
               Active clients in your agency. Pair WPSimpleCode per client to unlock the tabs.
             </div>
 
-            <div style={{ flex:1, overflowY:'auto', padding:'0 12px 12px', display: railOpen ? 'block' : 'none' }}>
+            <div style={{ flex:1, overflowY:'auto', padding:'0 12px 12px' }}>
               {loading ? (
                 <div style={{ padding:24, textAlign:'center', color:'#9ca3af', fontSize:12 }}><Loader2 size={14} className="spin"/> Loading…</div>
               ) : rows.length === 0 && orphans.length === 0 ? (
@@ -216,6 +228,8 @@ export default function WPSimpleCodePage() {
                 </>
               )}
             </div>
+              </>
+            )}
           </div>
 
           {/* Content */}
