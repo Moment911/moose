@@ -590,8 +590,9 @@ export default function SearchReplacePanel({ site }) {
                 const isUndoable = !j.is_dry_run && j.status === 'complete'
                 const isSelected = !!selectedJobIds[j.id]
                 return (
-                  <div key={j.id} style={{ padding: 10, background: isSelected ? `${AMB}10` : '#fafafa', borderRadius: 9, border: `1px solid ${isSelected ? AMB : '#f1f5f9'}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <div key={j.id} style={{ padding: 12, background: isSelected ? `${AMB}10` : '#fafafa', borderRadius: 9, border: `1px solid ${isSelected ? AMB : '#f1f5f9'}` }}>
+                    {/* Top row: checkbox + status pills + timestamp */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -602,17 +603,27 @@ export default function SearchReplacePanel({ site }) {
                       />
                       <Pill color={pill.color} bg={pill.bg}>{pill.label}</Pill>
                       {j.is_dry_run && <Pill>preview</Pill>}
-                      <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: BLK, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        "{trim(j.search, 30)}" → "{trim(j.replace_with || '', 30)}"
-                      </span>
+                      <div style={{ flex: 1 }} />
                       <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB }}>{new Date(j.created_at).toLocaleString()}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: 14, fontSize: 11, fontFamily: FB, color: '#6b7280', marginBottom: 8 }}>
-                      <span>{(j.total_rows_scanned || 0).toLocaleString()} scanned</span>
-                      <span>{(j.total_matches || 0).toLocaleString()} matches</span>
-                      <span>{(j.total_rows_changed || 0).toLocaleString()} rows changed</span>
-                      <span>{j.tables_completed || 0}/{j.total_tables || 0} tables</span>
+
+                    {/* Find/Replace — no truncation, monospace, wraps on long values */}
+                    <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 7, padding: '8px 10px', marginBottom: 8, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace', fontSize: 11, lineHeight: 1.55, wordBreak: 'break-all' }}>
+                      <div style={{ color: '#991b1b' }}><span style={{ display: 'inline-block', width: 12, fontWeight: 700 }}>−</span>{j.search || <em style={{ color: '#9ca3af' }}>(empty)</em>}</div>
+                      <div style={{ color: '#166534' }}><span style={{ display: 'inline-block', width: 12, fontWeight: 700 }}>+</span>{j.replace_with || <em style={{ color: '#9ca3af' }}>(deleted)</em>}</div>
                     </div>
+
+                    {/* Stats row */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 11, fontFamily: FB, color: '#6b7280', marginBottom: 8 }}>
+                      <span>{(j.total_rows_scanned || 0).toLocaleString()} scanned</span>
+                      <span>· {(j.total_matches || 0).toLocaleString()} matches</span>
+                      <span>· {(j.total_rows_changed || 0).toLocaleString()} rows changed</span>
+                      <span>· {j.tables_completed || 0}/{j.total_tables || 0} tables</span>
+                      {j.options?.regex && <Pill color={R} bg={`${R}15`}>regex</Pill>}
+                      {j.options?.case_sensitive && <Pill color="#374151" bg="#e5e7eb">Aa</Pill>}
+                    </div>
+
+                    {/* Action row */}
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => loadSamplesFor(j.id)} style={mini()}><Eye size={10} /> Samples</button>
                       {isUndoable && (

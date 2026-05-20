@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Code2, Plug, Globe, Loader2, CheckCircle, XCircle, Search as SearchIcon, ShieldCheck, ExternalLink, RefreshCw, Plus, X, User, PowerOff } from 'lucide-react'
+import { Code2, Plug, Globe, Loader2, CheckCircle, XCircle, Search as SearchIcon, ShieldCheck, ExternalLink, RefreshCw, Plus, X, User, PowerOff, ChevronLeft, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
@@ -65,7 +65,7 @@ function OrphanSiteCard({ site, selected, onClick }) {
 }
 
 export default function WPSimpleCodePage() {
-  const { agencyId } = useAuth()
+  const { agencyId, agencyName, fullName } = useAuth()
   const [rows, setRows] = useState([])         // [{ client, site }]
   const [orphans, setOrphans] = useState([])   // sites with no client_id
   const [selected, setSelected] = useState(null) // { type:'client', entry } | { type:'orphan', site }
@@ -73,8 +73,12 @@ export default function WPSimpleCodePage() {
   const [tab, setTab] = useState('search_replace')
   const [showAdd, setShowAdd] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [railOpen, setRailOpen] = useState(true)
 
   useEffect(() => { if (agencyId) load() }, [agencyId])
+
+  // When the user picks a client/site, auto-collapse the rail so the content can take focus.
+  useEffect(() => { if (selected) setRailOpen(false) }, [selected?.entry?.client?.id, selected?.site?.id])
 
   const effectiveAgency = agencyId || FALLBACK_AGENCY
 
@@ -131,23 +135,40 @@ export default function WPSimpleCodePage() {
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column' }}>
 
-        <div style={{ padding:'18px 28px', borderBottom:'1px solid #e5e7eb', background:'#fff', display:'flex', alignItems:'center', gap:14 }}>
-          <div style={{ width:38, height:38, borderRadius:10, background:`${R}12`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <Code2 size={20} color={R}/>
+        <div style={{ padding:'14px 28px', borderBottom:'1px solid #e5e7eb', background:'#fff', display:'flex', alignItems:'center', gap:14 }}>
+          <div style={{ width:34, height:34, borderRadius:9, background:`${R}12`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            <Code2 size={18} color={R}/>
           </div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontFamily:FH, fontSize:20, fontWeight:900, color:BLK, lineHeight:1.1 }}>WPSimpleCode</div>
-            <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:2 }}>
-              Site-wide search &amp; replace, role-aware code snippets, and access management — across every paired WordPress site.
-            </div>
+
+          {/* Breadcrumb: WPSimpleCode › Agency › Client */}
+          <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
+            <span style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK }}>WPSimpleCode</span>
+            {agencyName && <>
+              <span style={{ color:'#d1d5db', fontSize:14 }}>›</span>
+              <span style={{ fontFamily:FH, fontSize:13, fontWeight:600, color:'#6b7280' }}>{agencyName}</span>
+            </>}
+            {(() => {
+              const c = selected?.type === 'client' ? selected.entry.client : null
+              const s = selected?.type === 'orphan' ? selected.site : null
+              const label = c ? c.name : s ? (s.site_name || s.site_url.replace(/^https?:\/\//,'')) : null
+              if (!label) return null
+              return <>
+                <span style={{ color:'#d1d5db', fontSize:14 }}>›</span>
+                <span style={{ fontFamily:FH, fontSize:13, fontWeight:800, color:R, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:280 }}>{label}</span>
+              </>
+            })()}
           </div>
+
+          {fullName && (
+            <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>Signed in as <strong style={{ color:'#6b7280' }}>{fullName}</strong></span>
+          )}
           <button onClick={load} style={mini()}><RefreshCw size={12}/> Refresh</button>
         </div>
 
         <div style={{ flex:1, display:'flex', minHeight:0 }}>
 
-          {/* Left rail — clients (+ orphan sites) */}
-          <div style={{ width:340, borderRight:'1px solid #e5e7eb', background:'#fafafa', display:'flex', flexDirection:'column', minHeight:0 }}>
+          {/* Left rail — clients (+ orphan sites) — collapsible */}
+          <div style={{ width: railOpen ? 340 : 56, transition:'width .18s ease', borderRight:'1px solid #e5e7eb', background:'#fafafa', display:'flex', flexDirection:'column', minHeight:0 }}>
             <div style={{ padding:'14px 16px 4px', display:'flex', alignItems:'center', gap:6 }}>
               <User size={13} color="#6b7280"/>
               <div style={{ flex:1, fontFamily:FH, fontSize:12, fontWeight:700, color:'#374151' }}>Clients ({rows.length})</div>
@@ -159,7 +180,7 @@ export default function WPSimpleCodePage() {
               Active clients in your agency. Pair WPSimpleCode per client to unlock the tabs.
             </div>
 
-            <div style={{ flex:1, overflowY:'auto', padding:'0 12px 12px' }}>
+            <div style={{ flex:1, overflowY:'auto', padding:'0 12px 12px', display: railOpen ? 'block' : 'none' }}>
               {loading ? (
                 <div style={{ padding:24, textAlign:'center', color:'#9ca3af', fontSize:12 }}><Loader2 size={14} className="spin"/> Loading…</div>
               ) : rows.length === 0 && orphans.length === 0 ? (
