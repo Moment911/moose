@@ -48,12 +48,20 @@ export default function ControlCenterPage() {
   const [pinging, setPinging] = useState({})    // {site_id: true} during ping
   const [updating, setUpdating] = useState({})  // {site_id: true} during update
   const [bulkUpdating, setBulkUpdating] = useState(false)
-  const [manifest, setManifest] = useState(null)
+  // Two manifests: legacy WPSimpleCode 1.x sites use wpsimplecode, KotoIQ 2.x+ sites use kotoiq.
+  // The site row's wpsc_plugin column tells us which one to apply.
+  const [manifests, setManifests] = useState({ wpsimplecode: null, kotoiq: null })
 
   useEffect(() => { if (agencyId) load() }, [agencyId])
   useEffect(() => {
-    fetch('/api/wpsc-manifest').then(r => r.json()).then(setManifest).catch(() => {})
+    Promise.all([
+      fetch('/api/wpsc-manifest').then(r => r.json()).catch(() => null),
+      fetch('/api/kotoiq-manifest').then(r => r.json()).catch(() => null),
+    ]).then(([wpsc, kotoiq]) => setManifests({ wpsimplecode: wpsc, kotoiq }))
   }, [])
+
+  const manifestFor = s => (s?.wpsc_plugin === 'kotoiq' ? manifests.kotoiq : manifests.wpsimplecode)
+  const anyManifest = manifests.kotoiq || manifests.wpsimplecode
 
   function compareVersion(a, b) {
     if (!a || !b) return a === b ? 0 : a ? 1 : -1
@@ -65,11 +73,18 @@ export default function ControlCenterPage() {
     }
     return 0
   }
-  const isOutdated = s => !!s.wpsc_api_key && manifest && compareVersion(s.wpsc_version, manifest.latest_version) < 0
+  const isOutdated = s => {
+    if (!s.wpsc_api_key) return false
+    const m = manifestFor(s)
+    if (!m) return false
+    return compareVersion(s.wpsc_version, m.latest_version) < 0
+  }
 
   async function pushUpdate(site) {
-    if (!manifest) { toast.error('Manifest not loaded yet'); return }
-    if (!confirm(`Push WPSimpleCode v${manifest.latest_version} to ${site.site_url.replace(/^https?:\/\//,'')}?\n\nDownloads from:\n${manifest.download_url}\nsha256: ${manifest.sha256.slice(0,16)}…`)) return
+    const m = manifestFor(site)
+    if (!m) { toast.error('Manifest not loaded yet'); return }
+    const label = site.wpsc_plugin === 'kotoiq' ? 'KotoIQ' : 'WPSimpleCode'
+    if (!confirm(`Push ${label} v${m.latest_version} to ${site.site_url.replace(/^https?:\/\//,'')}?\n\nDownloads from:\n${m.download_url}\nsha256: ${m.sha256.slice(0,16)}…`)) return
     setUpdating(u => ({ ...u, [site.id]: true }))
     try {
       const r = await fetch('/api/wp', {
@@ -77,7 +92,7 @@ export default function ControlCenterPage() {
         body: JSON.stringify({ action:'wpsc_update_plugin', site_id: site.id }),
       })
       const d = await r.json()
-      if (d.ok || d.new_version === manifest.latest_version) toast.success(`Updated ${site.site_url.replace(/^https?:\/\//,'')} → v${d.new_version || manifest.latest_version}`)
+      if (d.ok || d.new_version === m.latest_version) toast.success(`Updated ${site.site_url.replace(/^https?:\/\//,'')} → v${d.new_version || m.latest_version}`)
       else toast.error(d.error || d.message || 'Update failed')
       await load()
     } catch (e) { toast.error(e.message) }
@@ -85,20 +100,30 @@ export default function ControlCenterPage() {
   }
 
   async function bulkUpdate() {
-    if (!manifest) return
     const targets = sites.filter(s => isOutdated(s))
-    if (!targets.length) { toast('Nothing to update — everything is on v' + manifest.latest_version); return }
-    if (!confirm(`Push WPSimpleCode v${manifest.latest_version} to ${targets.length} site(s)?`)) return
+    if (!targets.length) {
+      const versions = [manifests.kotoiq?.latest_version, manifests.wpsimplecode?.latest_version].filter(Boolean).join(' / ')
+      toast('Nothing to update — fleet on v' + versions)
+      return
+    }
+    // Targets may span both plugin variants. Confirm with counts per variant.
+    const kotoiqCount = targets.filter(s => s.wpsc_plugin === 'kotoiq').length
+    const wpscCount = targets.length - kotoiqCount
+    const parts = []
+    if (kotoiqCount) parts.push(`${kotoiqCount} KotoIQ → v${manifests.kotoiq?.latest_version}`)
+    if (wpscCount)   parts.push(`${wpscCount} WPSimpleCode → v${manifests.wpsimplecode?.latest_version}`)
+    if (!confirm(`Push updates to ${targets.length} site(s)?\n\n${parts.join('\n')}`)) return
     setBulkUpdating(true)
     let ok = 0, fail = 0
     for (const site of targets) {
+      const m = manifestFor(site)
       try {
         const r = await fetch('/api/wp', {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ action:'wpsc_update_plugin', site_id: site.id }),
         })
         const d = await r.json()
-        if (d.ok || d.new_version === manifest.latest_version) ok++; else fail++
+        if (d.ok || (m && d.new_version === m.latest_version)) ok++; else fail++
       } catch { fail++ }
     }
     toast.success(`Updated ${ok} site(s) · ${fail} failed`)
@@ -214,10 +239,13 @@ export default function ControlCenterPage() {
           </div>
           {fullName && <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>Signed in as <strong style={{ color:'#6b7280' }}>{fullName}</strong></span>}
           {(() => {
-            const outdatedCount = sites.filter(isOutdated).length
-            return outdatedCount > 0 && (
-              <button onClick={bulkUpdate} disabled={bulkUpdating || !manifest} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'7px 11px', borderRadius:8, border:'none', background:R, color:'#fff', fontFamily:FH, fontSize:11, fontWeight:700, cursor:'pointer', opacity:bulkUpdating?0.6:1 }}>
-                {bulkUpdating ? <Loader2 size={11} className="spin"/> : <UploadCloud size={11}/>} Push v{manifest.latest_version} to {outdatedCount} site{outdatedCount===1?'':'s'}
+            const outdated = sites.filter(isOutdated)
+            if (!outdated.length) return null
+            // Bulk button spans both variants — show "Push updates to N sites" with no version,
+            // since the fleet may have a mix of KotoIQ + WPSimpleCode targets.
+            return (
+              <button onClick={bulkUpdate} disabled={bulkUpdating || !anyManifest} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'7px 11px', borderRadius:8, border:'none', background:R, color:'#fff', fontFamily:FH, fontSize:11, fontWeight:700, cursor:'pointer', opacity:bulkUpdating?0.6:1 }}>
+                {bulkUpdating ? <Loader2 size={11} className="spin"/> : <UploadCloud size={11}/>} Push updates to {outdated.length} site{outdated.length===1?'':'s'}
               </button>
             )
           })()}
@@ -302,8 +330,8 @@ export default function ControlCenterPage() {
                             ? <span style={{ display:'inline-flex', alignItems:'center', gap:5, flexWrap:'wrap' }}>
                                 <Pill color={R} bg={`${R}15`}>paired</Pill>
                                 {s.wpsc_version && <code style={{ fontSize:10, color:'#6b7280' }}>v{s.wpsc_version}</code>}
-                                {isOutdated(s) && (
-                                  <Pill color={AMB} bg={`${AMB}15`}>→ v{manifest.latest_version}</Pill>
+                                {isOutdated(s) && manifestFor(s) && (
+                                  <Pill color={AMB} bg={`${AMB}15`}>→ v{manifestFor(s).latest_version}</Pill>
                                 )}
                               </span>
                             : s.wpsc_detected
@@ -318,8 +346,8 @@ export default function ControlCenterPage() {
                         <td style={{ ...td(), textAlign:'right', color:'#6b7280' }}>{relativeTime(lastSeen)}</td>
                         <td style={{ ...td(), textAlign:'right' }}>
                           <div style={{ display:'inline-flex', gap:4 }}>
-                            {isOutdated(s) && (
-                              <button onClick={() => pushUpdate(s)} disabled={!!updating[s.id]} title={`Push v${manifest.latest_version}`} style={miniBtn({ color: R, borderColor: R, bg: `${R}10` })}>
+                            {isOutdated(s) && manifestFor(s) && (
+                              <button onClick={() => pushUpdate(s)} disabled={!!updating[s.id]} title={`Push v${manifestFor(s).latest_version}`} style={miniBtn({ color: R, borderColor: R, bg: `${R}10` })}>
                                 {updating[s.id] ? <Loader2 size={9} className="spin"/> : <UploadCloud size={9}/>} Update
                               </button>
                             )}

@@ -340,12 +340,18 @@ Rules:
       if (!finalAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
       const cleanUrl = String(site_url).replace(/\/$/, '').toLowerCase()
 
-      let detected = false; let version: string | null = null
+      let detected = false; let version: string | null = null; let pluginIdentity: string = 'wpsimplecode'
       try {
         const r = await fetch(`${cleanUrl}/wp-json/wpsimplecode/v1/meta`, { signal: AbortSignal.timeout(8000) })
-        if (r.ok) { const m = await r.json().catch(() => ({})); detected = true; version = m?.version || null }
+        if (r.ok) {
+          const m = await r.json().catch(() => ({}))
+          detected = true
+          version = m?.version || null
+          // KotoIQ 2.0+ returns plugin: 'kotoiq'. Legacy WPSimpleCode 1.x omits the field.
+          pluginIdentity = m?.plugin === 'kotoiq' ? 'kotoiq' : 'wpsimplecode'
+        }
       } catch {}
-      if (!detected) return NextResponse.json({ error: `WPSimpleCode not detected at ${cleanUrl}/wp-json/wpsimplecode/v1/meta` }, { status: 400 })
+      if (!detected) return NextResponse.json({ error: `KotoIQ / WPSimpleCode plugin not detected at ${cleanUrl}/wp-json/wpsimplecode/v1/meta` }, { status: 400 })
 
       const verifyRes = await fetch(`${cleanUrl}/wp-json/wpsimplecode/v1/access/roles`, {
         method: 'POST',
@@ -373,6 +379,7 @@ Rules:
           wpsc_api_key,
           wpsc_detected: true,
           wpsc_version: version,
+          wpsc_plugin: pluginIdentity,
           wpsc_last_seen_at: new Date().toISOString(),
           ...(koto_api_key ? { api_key: koto_api_key } : {}),
         }).eq('id', existing.id).select().single()
@@ -388,6 +395,7 @@ Rules:
           wpsc_api_key,
           wpsc_detected: true,
           wpsc_version: version,
+          wpsc_plugin: pluginIdentity,
           wpsc_last_seen_at: new Date().toISOString(),
           connected: false,
         }).select().single()
@@ -1269,9 +1277,14 @@ Rules:
             ? { slug: m, name: m, enabled: true, version: meta?.version || null }
             : m
         )
+        // KotoIQ 2.0+ returns plugin: 'kotoiq' in /meta. Legacy WPSimpleCode
+        // 1.x omits the field — default to 'wpsimplecode'. Controls which
+        // /api/*-manifest the Control Center fetches for this site.
+        const pluginIdentity = meta?.plugin === 'kotoiq' ? 'kotoiq' : 'wpsimplecode'
         await sb.from('koto_wp_sites').update({
           wpsc_detected: true,
           wpsc_version: meta?.version || null,
+          wpsc_plugin: pluginIdentity,
           wpsc_last_seen_at: new Date().toISOString(),
           wpsc_modules: modules,
         }).eq('id', site_id)
@@ -1291,9 +1304,13 @@ Rules:
     }
 
     if (action === 'wpsc_update_plugin') {
-      // Pull the canonical manifest from our own server, then proxy to the site
+      // Pull the manifest matching the site's plugin identity, then proxy
+      // to the site. Sites on KotoIQ 2.x fetch /api/kotoiq-manifest; legacy
+      // WPSimpleCode 1.x sites keep using /api/wpsc-manifest. Prevents the
+      // KotoIQ fleet from being prompted to "update" to wpsimplecode-1.2.0.
+      const manifestPath = site?.wpsc_plugin === 'kotoiq' ? '/api/kotoiq-manifest' : '/api/wpsc-manifest'
       try {
-        const mres = await fetch(`${APP_URL}/api/wpsc-manifest`, { signal: AbortSignal.timeout(10000) })
+        const mres = await fetch(`${APP_URL}${manifestPath}`, { signal: AbortSignal.timeout(10000) })
         if (!mres.ok) return NextResponse.json({ error: `Manifest fetch failed: HTTP ${mres.status}` }, { status: 500 })
         const manifest = await mres.json()
         const result = await proxyToWPSC(site, 'self-update', {
@@ -1312,8 +1329,10 @@ Rules:
               const modules = Array.isArray(meta?.modules)
                 ? meta.modules.map((m: any) => typeof m === 'string' ? { slug: m, name: m, enabled: true } : m)
                 : []
+              const newPluginIdentity = meta?.plugin === 'kotoiq' ? 'kotoiq' : 'wpsimplecode'
               await sb.from('koto_wp_sites').update({
                 wpsc_version: meta?.version || null,
+                wpsc_plugin: newPluginIdentity,
                 wpsc_modules: modules,
                 wpsc_last_seen_at: new Date().toISOString(),
               }).eq('id', site_id)
