@@ -30,7 +30,15 @@
 
 if (!defined('ABSPATH')) exit;
 
+koto_register_module([
+    'slug'        => 'snippets',
+    'name'        => 'Snippets',
+    'description' => 'Code snippet manager — PHP (server-side), HTML/JS/CSS (head/footer injection), per-snippet role gating.',
+    'version'     => '1.1.0',
+]);
+
 add_action('rest_api_init', function () {
+    if (!koto_is_module_enabled('snippets')) return;
     register_rest_route(WPSC_REST_NS, '/snippets/list', [
         'methods'  => 'POST',
         'callback' => 'wpsc_snip_list',
@@ -158,8 +166,8 @@ function wpsc_snip_toggle($req) {
  * Runtime executor — fires snippets at appropriate hooks. Errors are caught
  * per snippet so one broken snippet can't take down the site.
  */
-add_action('init', 'wpsc_snip_execute_php', 5);
-add_action('admin_init', 'wpsc_snip_execute_php_admin', 5);
+add_action('init', function () { if (koto_is_module_enabled('snippets')) wpsc_snip_execute_php(); }, 5);
+add_action('admin_init', function () { if (koto_is_module_enabled('snippets')) wpsc_snip_execute_php_admin(); }, 5);
 function wpsc_snip_execute_php() {
     foreach (wpsc_snip_active_by_type('php') as $sn) {
         $loc = $sn['location'] ?? 'everywhere';
@@ -190,10 +198,10 @@ function wpsc_snip_run_php($sn) {
     }
 }
 
-add_action('wp_head',     'wpsc_snip_output_head', 999);
-add_action('admin_head',  'wpsc_snip_output_head', 999);
-add_action('wp_footer',   'wpsc_snip_output_footer', 999);
-add_action('admin_footer','wpsc_snip_output_footer', 999);
+add_action('wp_head',     function () { if (koto_is_module_enabled('snippets')) wpsc_snip_output_head(); }, 999);
+add_action('admin_head',  function () { if (koto_is_module_enabled('snippets')) wpsc_snip_output_head(); }, 999);
+add_action('wp_footer',   function () { if (koto_is_module_enabled('snippets')) wpsc_snip_output_footer(); }, 999);
+add_action('admin_footer',function () { if (koto_is_module_enabled('snippets')) wpsc_snip_output_footer(); }, 999);
 
 function wpsc_snip_output_head() {
     foreach (wpsc_snip_active_renderable() as $sn) {

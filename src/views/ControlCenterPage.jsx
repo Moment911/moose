@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useMemo } from 'react'
-import { Command, Globe, RefreshCw, Loader2, ExternalLink, Search, CheckCircle, XCircle, AlertTriangle, Plug, Settings, Code2 } from 'lucide-react'
+import { Command, Globe, RefreshCw, Loader2, ExternalLink, Search, CheckCircle, XCircle, AlertTriangle, Plug, Settings, Code2, Power } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
@@ -244,11 +244,7 @@ export default function ControlCenterPage() {
                         </td>
                         <td style={td()}>
                           {s.wpsc_api_key ? (
-                            <div style={{ display:'flex', gap:3, flexWrap:'wrap' }}>
-                              <Pill color="#374151" bg="#e5e7eb">S&amp;R</Pill>
-                              <Pill color="#374151" bg="#e5e7eb">snippets</Pill>
-                              <Pill color="#374151" bg="#e5e7eb">access</Pill>
-                            </div>
+                            <ModuleChips site={s} onToggled={load}/>
                           ) : <span style={{ color:'#9ca3af' }}>—</span>}
                         </td>
                         <td style={{ ...td(), textAlign:'right', color:'#6b7280' }}>{relativeTime(lastSeen)}</td>
@@ -279,6 +275,61 @@ export default function ControlCenterPage() {
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .spin { animation: spin 1s linear infinite; display: inline-block; }
       `}</style>
+    </div>
+  )
+}
+
+function ModuleChips({ site, onToggled }) {
+  // wpsc_modules from koto_wp_sites is either:
+  //   v1.1.x: [{slug, name, version, enabled, always_on}, ...]
+  //   v1.0.x (cached): same shape after normalization in wpsc_detect
+  //   missing: site never detected with module list — show the 3 v1.0 defaults
+  const raw = Array.isArray(site.wpsc_modules) && site.wpsc_modules.length
+    ? site.wpsc_modules
+    : [{slug:'search-replace',name:'S&R',enabled:true},{slug:'snippets',name:'snippets',enabled:true},{slug:'access',name:'access',enabled:true}]
+  const [busy, setBusy] = useState({})
+
+  async function toggle(slug, nextEnabled) {
+    setBusy(b => ({ ...b, [slug]: true }))
+    try {
+      const r = await fetch('/api/wp', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'wpsc_modules_toggle', site_id: site.id, slug, enabled: nextEnabled }),
+      })
+      const d = await r.json()
+      if (d.ok || d.data?.ok) toast.success(`${slug} ${nextEnabled ? 'enabled' : 'disabled'} on ${site.site_url.replace(/^https?:\/\//,'')}`)
+      else toast.error(d.error || d.data?.error || d.data?.message || 'Toggle failed')
+      onToggled?.()
+    } catch (e) { toast.error(e.message) }
+    setBusy(b => { const next = { ...b }; delete next[slug]; return next })
+  }
+
+  return (
+    <div style={{ display:'flex', gap:3, flexWrap:'wrap' }}>
+      {raw.map(m => {
+        const enabled = m.enabled !== false
+        const display = ({ 'search-replace':'S&R', 'snippets':'snippets', 'access':'access' }[m.slug]) || m.slug
+        return (
+          <button
+            key={m.slug}
+            onClick={() => !m.always_on && !busy[m.slug] && toggle(m.slug, !enabled)}
+            disabled={!!m.always_on}
+            title={m.always_on ? `${m.name} (always on)` : `Click to ${enabled ? 'disable' : 'enable'} ${m.name}`}
+            style={{
+              display:'inline-flex', alignItems:'center', gap:3,
+              padding:'2px 7px', borderRadius:5,
+              fontSize:10, fontWeight:700, fontFamily:FH, textTransform:'uppercase', letterSpacing:'.04em',
+              color: enabled ? '#374151' : '#9ca3af',
+              background: enabled ? '#e5e7eb' : 'transparent',
+              border: enabled ? '1px solid transparent' : '1px dashed #d1d5db',
+              cursor: m.always_on ? 'default' : 'pointer',
+              opacity: busy[m.slug] ? 0.5 : 1,
+            }}>
+            {busy[m.slug] ? <Loader2 size={9} className="spin"/> : <Power size={9}/>}
+            {display}
+          </button>
+        )
+      })}
     </div>
   )
 }

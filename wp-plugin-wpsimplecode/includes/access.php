@@ -30,7 +30,15 @@
 
 if (!defined('ABSPATH')) exit;
 
+koto_register_module([
+    'slug'        => 'access',
+    'name'        => 'Access Management',
+    'description' => 'Per-role capability matrix — PHP snippets, file editor, theme/plugin editor, pixels, snapshot + revert.',
+    'version'     => '1.1.0',
+]);
+
 add_action('rest_api_init', function () {
+    if (!koto_is_module_enabled('access')) return;
     register_rest_route(WPSC_REST_NS, '/access/roles', [
         'methods'  => 'POST',
         'callback' => 'wpsc_am_roles',
@@ -188,6 +196,7 @@ function wpsc_am_features_to_caps($features) {
  */
 add_filter('user_has_cap', 'wpsc_am_user_has_cap_filter', 10, 4);
 function wpsc_am_user_has_cap_filter($allcaps, $caps, $args, $user) {
+    if (!koto_is_module_enabled('access')) return $allcaps;
     static $policy_cache = null;
     static $global_disable = null;
     if ($policy_cache === null) {

@@ -12,7 +12,15 @@
 
 if (!defined('ABSPATH')) exit;
 
+koto_register_module([
+    'slug'        => 'search-replace',
+    'name'        => 'Search & Replace',
+    'description' => 'Site-wide text/URL replacement with serialized-PHP safety, chunked scanning for large sites, and a per-row undo journal.',
+    'version'     => '1.1.0',
+]);
+
 add_action('rest_api_init', function () {
+    if (!koto_is_module_enabled('search-replace')) return;
     register_rest_route(WPSC_REST_NS, '/search-replace/tables', [
         'methods'  => 'POST',
         'callback' => 'wpsc_sr_list_tables',

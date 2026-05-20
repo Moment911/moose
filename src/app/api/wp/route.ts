@@ -1253,23 +1253,55 @@ Rules:
     if (action === 'wpsc_detect') {
       // GET /wp-json/wpsimplecode/v1/meta is public — no auth needed
       try {
-        const url = `${site.site_url}/wp-json/wpsimplecode/v1/meta`
+        const url = `${site.site_url}/wp-json/wpsimplecode/v1/meta?nocache=${Date.now()}`
         const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
         if (!res.ok) {
           await sb.from('koto_wp_sites').update({ wpsc_detected: false }).eq('id', site_id)
           return NextResponse.json({ detected: false, status: res.status })
         }
         const meta = await res.json().catch(() => ({}))
+        // v1.0.x reports modules as ['search-replace','access','snippets'] (strings).
+        // v1.1.x reports modules as objects [{slug, name, version, enabled, ...}].
+        // Normalize to the object shape for storage either way.
+        const rawModules = Array.isArray(meta?.modules) ? meta.modules : []
+        const modules = rawModules.map((m: any) =>
+          typeof m === 'string'
+            ? { slug: m, name: m, enabled: true, version: meta?.version || null }
+            : m
+        )
         await sb.from('koto_wp_sites').update({
           wpsc_detected: true,
           wpsc_version: meta?.version || null,
           wpsc_last_seen_at: new Date().toISOString(),
+          wpsc_modules: modules,
         }).eq('id', site_id)
-        return NextResponse.json({ detected: true, meta })
+        return NextResponse.json({ detected: true, meta, modules })
       } catch (e: any) {
         await sb.from('koto_wp_sites').update({ wpsc_detected: false }).eq('id', site_id)
         return NextResponse.json({ detected: false, error: e.message })
       }
+    }
+
+    if (action === 'wpsc_modules_list') {
+      const result = await proxyToWPSC(site, 'modules/list', {})
+      if (result.ok && Array.isArray(result.data?.modules)) {
+        await sb.from('koto_wp_sites').update({ wpsc_modules: result.data.modules }).eq('id', site_id)
+      }
+      return NextResponse.json(result)
+    }
+
+    if (action === 'wpsc_modules_toggle') {
+      const { slug, enabled } = body
+      if (!slug) return NextResponse.json({ error: 'slug required' }, { status: 400 })
+      const result = await proxyToWPSC(site, 'modules/toggle', { slug, enabled: !!enabled })
+      if (result.ok) {
+        // Refresh stored module state
+        const listed = await proxyToWPSC(site, 'modules/list', {})
+        if (listed.ok && Array.isArray(listed.data?.modules)) {
+          await sb.from('koto_wp_sites').update({ wpsc_modules: listed.data.modules }).eq('id', site_id)
+        }
+      }
+      return NextResponse.json(result)
     }
 
     if (action === 'wpsc_pair') {

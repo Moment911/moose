@@ -49,6 +49,17 @@ add_action('admin_post_wpsc_save_settings', function () {
     $host = isset($_POST['remote_host']) ? sanitize_text_field(wp_unslash((string) $_POST['remote_host'])) : '';
     update_option(WPSC_OPT_REMOTE_HOST, $host);
     update_option(WPSC_OPT_DISABLE_FILE_EDIT, !empty($_POST['disable_file_edit']));
+
+    // Modules — checkbox set means enabled; missing means disabled
+    if (function_exists('koto_modules_list')) {
+        $posted = isset($_POST['modules']) && is_array($_POST['modules']) ? $_POST['modules'] : [];
+        $next   = [];
+        foreach (koto_modules_list() as $m) {
+            $next[$m['slug']] = !empty($posted[$m['slug']]) || !empty($m['always_on']);
+        }
+        update_option(KOTO_MODULES_OPTION, $next);
+    }
+
     wp_redirect(add_query_arg('saved', 1, admin_url('admin.php?page=wpsimplecode-settings')));
     exit;
 });
@@ -308,6 +319,27 @@ function wpsc_admin_settings_page() {
                 </td></tr>
             </table>
 
+            <h2>Modules</h2>
+            <p class="description" style="margin-bottom:10px;">Enable or disable individual feature modules. Disabled modules don't load their REST endpoints, admin pages, or runtime hooks — but settings and stored data are preserved across re-enables.</p>
+            <table class="wp-list-table widefat striped" style="margin-bottom:24px;">
+                <thead><tr><th style="width:80px;">Enabled</th><th>Module</th><th>Version</th><th>Description</th></tr></thead>
+                <tbody>
+                <?php if (function_exists('koto_modules_list')): foreach (koto_modules_list() as $m): ?>
+                    <tr>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="modules[<?php echo esc_attr($m['slug']); ?>]" value="1" <?php checked($m['enabled']); ?> <?php disabled($m['always_on']); ?>/>
+                                <?php if ($m['always_on']) echo '<span style="color:#9ca3af;font-size:11px;">always on</span>'; ?>
+                            </label>
+                        </td>
+                        <td><strong><?php echo esc_html($m['name']); ?></strong><br><code style="font-size:11px;color:#6b7280;"><?php echo esc_html($m['slug']); ?></code></td>
+                        <td><code><?php echo esc_html($m['version']); ?></code></td>
+                        <td><?php echo esc_html($m['description']); ?></td>
+                    </tr>
+                <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+
             <h2>Global Lockdowns</h2>
             <table class="form-table" role="presentation">
                 <tr><th>Disable file editor globally</th><td>
@@ -333,6 +365,7 @@ function wpsc_admin_settings_page() {
             <li><code>POST /search-replace/{tables,scan,restore}</code></li>
             <li><code>POST /access/{roles,apply,snapshot,revert}</code></li>
             <li><code>POST /snippets/{list,save,delete,toggle}</code></li>
+            <li><code>POST /modules/{list,toggle}</code> — per-module enable/disable (new in 1.1.0)</li>
         </ul>
     </div>
     <?php

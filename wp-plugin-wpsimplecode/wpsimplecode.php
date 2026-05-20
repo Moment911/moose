@@ -3,7 +3,7 @@
  * Plugin Name:       WPSimpleCode
  * Plugin URI:        https://wpsimplecode.com
  * Description:       Search & replace text across your entire site (serialized-safe), manage code snippets with text-only or full-PHP role-based access, and lock down file editor / theme / plugin / pixel permissions per WordPress role. Includes 1-click undo journal for every replacement.
- * Version:           1.0.1
+ * Version:           1.1.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -19,7 +19,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('WPSC_VERSION', '1.0.1');
+define('WPSC_VERSION', '1.1.0');
 define('WPSC_PLUGIN_FILE', __FILE__);
 define('WPSC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WPSC_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -34,6 +34,7 @@ define('WPSC_OPT_DISABLE_FILE_EDIT','wpsc_disable_file_edit_global');
 define('WPSC_OPT_SNIPPETS',         'wpsc_snippets');
 
 require_once WPSC_PLUGIN_DIR . 'includes/auth.php';
+require_once WPSC_PLUGIN_DIR . 'includes/module-loader.php';
 require_once WPSC_PLUGIN_DIR . 'includes/search-replace.php';
 require_once WPSC_PLUGIN_DIR . 'includes/access.php';
 require_once WPSC_PLUGIN_DIR . 'includes/snippets.php';
@@ -59,12 +60,13 @@ add_action('rest_api_init', function () {
     register_rest_route(WPSC_REST_NS, '/meta', [
         'methods'  => 'GET',
         'callback' => function () {
+            $modules = function_exists('koto_modules_list') ? koto_modules_list() : [];
             return rest_ensure_response([
-                'name'      => 'WPSimpleCode',
-                'version'   => WPSC_VERSION,
-                'wp_version'=> get_bloginfo('version'),
-                'php'       => phpversion(),
-                'modules'   => ['search-replace', 'access', 'snippets'],
+                'name'           => 'WPSimpleCode',
+                'version'        => WPSC_VERSION,
+                'wp_version'     => get_bloginfo('version'),
+                'php'            => phpversion(),
+                'modules'        => $modules,
                 'remote_allowed' => (bool) get_option(WPSC_OPT_REMOTE_ALLOWED, false),
             ]);
         },
