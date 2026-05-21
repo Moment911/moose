@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { TrendingUp, Loader2, RefreshCw, Globe, MapPin, AlertTriangle, ExternalLink, CheckCircle, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
 /**
  * SEOPanel — wraps the seo module's REST surface for a paired WP site.

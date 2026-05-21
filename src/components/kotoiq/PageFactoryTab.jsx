@@ -5,7 +5,7 @@ import {
   Layers, Target, Activity, Zap, TrendingUp, Phone, MessageCircle, Star, HelpCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { BLK, GRN, AMB, R } from '../../lib/theme'
+import { BLK, GRN, AMB, R, DESIGN, } from '../../lib/theme'
 import { useKotoIQRefreshKey } from '../../context/KotoIQDataContext'
 import FreshnessBadge from './FreshnessBadge'
 

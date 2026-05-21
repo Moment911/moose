@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react'
 import { Phone, X, Search, Loader2, CheckCircle2, AlertTriangle, Eye, Play } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
 /**
  * PhoneVariantsModal

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Code2, Plus, Trash2, Power, AlertTriangle, Loader2, Save, X } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
 const TYPES = [
   { key: 'php',  label: 'PHP',  cap: 'execute_php_snippets', danger: true },

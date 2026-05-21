@@ -5,7 +5,7 @@ import {
   ChevronRight, Clock, X, Sparkles, FileText, Wrench, Eye, Hand,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, BLK, GRN, AMB, DST } from '../../lib/theme'
+import { R, BLK, GRN, AMB, DST, DESIGN, } from '../../lib/theme'
 
 const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }

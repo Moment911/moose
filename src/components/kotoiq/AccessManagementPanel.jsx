@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { ShieldCheck, Save, UploadCloud, Camera, History, Undo2, Loader2, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
 const FEATURES = [
   { key: 'php_snippets',       label: 'PHP Snippets',      levels: [['', '—'], ['full','Full PHP'], ['text','Text-only'], ['none','None']] },

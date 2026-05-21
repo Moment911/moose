@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Plug, Loader2, CheckCircle2, AlertTriangle, ExternalLink, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
 /**
  * WPSCConnectionGate

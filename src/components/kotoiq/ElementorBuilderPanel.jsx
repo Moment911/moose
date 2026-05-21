@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Edit3, Loader2, ExternalLink, RefreshCw, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
 /**
  * ElementorBuilderPanel — read-only inventory of Elementor-edited pages for a

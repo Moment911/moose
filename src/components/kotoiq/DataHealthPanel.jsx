@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react'
-import { BLK, GRN, AMB, R } from '../../lib/theme'
+import { BLK, GRN, AMB, R, DESIGN, } from '../../lib/theme'
 import { useKotoIQRefreshKey } from '../../context/KotoIQDataContext'
 
 const SF = "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"

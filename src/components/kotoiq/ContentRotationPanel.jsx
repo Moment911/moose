@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Repeat, Copy, Loader2, Trash2, AlertTriangle, ChevronDown, ChevronRight, Wrench } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
 /**
  * ContentRotationPanel — shortcode reference + per-post cache lookup/clear.
