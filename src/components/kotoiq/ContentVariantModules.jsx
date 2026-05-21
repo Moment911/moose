@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { LayoutGrid, Loader2, Sparkles, Copy, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, DESIGN } from '../../lib/theme'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
@@ -72,11 +72,11 @@ export default function ContentVariantModules({ clientId, agencyId }) {
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+        <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
           <LayoutGrid size={18} color={AMB} /> Content Variant Modules
         </div>
         <button onClick={generateAll} disabled={generatingAll || generating}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", cursor: generatingAll ? 'wait' : 'pointer', opacity: generatingAll ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, border: 'none', background: "#0a0a0a", color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: DESIGN.fonts.body, cursor: generatingAll ? 'wait' : 'pointer', opacity: generatingAll ? 0.6 : 1 }}>
           {generatingAll ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
           {generatingAll ? 'Generating All...' : 'Generate All Variants'}
         </button>
@@ -102,7 +102,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
                 onClick={() => setExpanded(expanded === mod.id ? null : mod.id)}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: T + '10', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: FH, fontSize: 13, fontWeight: 800, color: T }}>{(mod.label[0] || '').toUpperCase()}</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
+                  <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
                   <div style={{ fontSize: 12, color: '#1f1f22' }}>{mod.desc}</div>
                 </div>
                 {hasResult && <CheckCircle size={16} color={GRN} />}
@@ -119,7 +119,7 @@ export default function ContentVariantModules({ clientId, agencyId }) {
                   {(hasResult.variants || []).map((v, vi) => (
                     <div key={vi} style={{ marginBottom: 12, padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #ececef', position: 'relative' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: T, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>Variant {vi + 1}</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: T, fontFamily: DESIGN.fonts.body }}>Variant {vi + 1}</span>
                         <button onClick={() => copyToClipboard(v.content || v)}
                           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, border: '1px solid #ececef', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b6b70' }}>
                           <Copy size={10} /> Copy

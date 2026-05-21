@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../hooks/useAuth'
-import { T, R, GRN, FB } from '../../../lib/theme'
+import { T, R, GRN, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.12 live pipeline ribbon (D-23).

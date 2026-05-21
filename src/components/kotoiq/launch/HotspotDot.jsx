@@ -1,5 +1,5 @@
 "use client"
-import { R, AMB } from '../../../lib/theme'
+import { R, AMB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.11 hotspot dot.

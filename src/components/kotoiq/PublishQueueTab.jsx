@@ -4,7 +4,7 @@ import {
   Loader2, Play, Square, RotateCcw, CheckCircle2,
   XCircle, Clock, Zap, AlertTriangle, ChevronDown, ChevronRight
 } from 'lucide-react'
-import { FH } from '../../lib/theme'
+import { FH, DESIGN } from '../../lib/theme'
 
 /**
  * KotoIQ Publish Queue Dashboard (ORCH-04)
@@ -154,7 +154,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
 
   if (!campaigns.length) {
     return (
-      <div style={{ padding: 40, textAlign: 'center', color: '#8e8e93', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
+      <div style={{ padding: 40, textAlign: 'center', color: '#8e8e93', fontFamily: DESIGN.fonts.body }}>
         <Zap size={32} style={{ marginBottom: 8, opacity: 0.4 }} />
         <div style={{ fontSize: 15, fontWeight: 600 }}>No campaigns yet</div>
         <div style={{ fontSize: 13, marginTop: 4 }}>Create a campaign in the Builder tab to start publishing.</div>
@@ -163,7 +163,7 @@ export default function PublishQueueTab({ agencyId, campaigns: initialCampaigns 
   }
 
   return (
-    <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
+    <div style={{ fontFamily: DESIGN.fonts.body }}>
       {/* Header */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -454,7 +454,7 @@ function ActionButton({ icon: Icon, label, color, loading: isLoading, onClick })
         fontSize: 12, fontWeight: 600, color,
         cursor: isLoading ? 'not-allowed' : 'pointer',
         opacity: isLoading ? 0.5 : 1,
-        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+        fontFamily: DESIGN.fonts.body,
         transition: 'all 0.15s',
       }}
     >

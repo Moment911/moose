@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { profileFetch, profileStreamSeed } from '../../lib/kotoiqProfileFetch'
 import Sidebar from '../../components/Sidebar'
 import { Shield } from 'lucide-react'
-import { W, BLK, FB, FH, R } from '../../lib/theme'
+import { W, BLK, FB, FH, R, DESIGN } from '../../lib/theme'
 
 import IngestPanel from '../../components/kotoiq/launch/IngestPanel'
 import StreamingNarration from '../../components/kotoiq/launch/StreamingNarration'
@@ -236,18 +236,20 @@ export default function LaunchPage() {
     }
   }
 
-  // ── Auth guard (matches KotoIQShellPage pattern) ─────────────────────────
+  // ── Auth guard ──────────────────────────────────────────────────────────
   if (!agencyId) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', background: W, fontFamily: FB }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: DESIGN.colors.cream, fontFamily: DESIGN.fonts.body }}>
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
-            <Shield size={48} color={R} style={{ margin: '0 auto 16px', opacity: 0.4 }} />
-            <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK, marginBottom: 8 }}>
-              Login Required
+            <div style={{ width: 64, height: 64, borderRadius: DESIGN.radius.lg, background: DESIGN.colors.warmGray, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <Shield size={30} color={DESIGN.colors.navy} style={{ opacity: 0.5 }} />
             </div>
-            <div style={{ fontSize: 14, color: '#374151' }}>
+            <div style={{ fontFamily: DESIGN.fonts.heading, fontSize: 28, fontWeight: DESIGN.fontWeight.bold, color: DESIGN.colors.navy, marginBottom: 8, letterSpacing: '0.02em' }}>
+              LOGIN REQUIRED
+            </div>
+            <div style={{ fontSize: DESIGN.fontSize.base, color: DESIGN.colors.textSecondary }}>
               You need to be logged into an agency to use KotoIQ.
             </div>
           </div>
@@ -259,7 +261,7 @@ export default function LaunchPage() {
   const pendingMarginNotes = (profile?.margin_notes || []).filter((n) => n.status === 'pending')
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: W, fontFamily: FB, color: BLK }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: DESIGN.colors.cream, fontFamily: DESIGN.fonts.body, color: DESIGN.colors.navy }}>
       <style>{KEYFRAMES}</style>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

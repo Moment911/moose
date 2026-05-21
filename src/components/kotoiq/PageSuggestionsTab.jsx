@@ -6,7 +6,7 @@ import {
   XCircle, Sparkles, Globe, BarChart2, Upload, Play, Eye, Filter,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { FH, FB, BLK, T, R, GRN } from '../../lib/theme'
+import { FH, FB, BLK, T, R, GRN, DESIGN } from '../../lib/theme'
 import HtmlComposer from './HtmlComposer'
 
 const API_GAPS = '/api/builder/gaps'

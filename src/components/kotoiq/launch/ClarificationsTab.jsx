@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { CheckCircle2 } from 'lucide-react'
-import { GRN, BLK, T, FB, FH } from '../../../lib/theme'
+import { GRN, BLK, T, FB, FH, DESIGN } from '../../../lib/theme'
 import { profileFetch } from '../../../lib/kotoiqProfileFetch'
 import ClarificationCard from './ClarificationCard'
 

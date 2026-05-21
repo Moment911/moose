@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react'
 import { Lightbulb } from 'lucide-react'
-import { T, GRY, BLK, FH, FB } from '../../../lib/theme'
+import { T, GRY, BLK, FH, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.5 margin note (D-10).

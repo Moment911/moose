@@ -1,6 +1,6 @@
 "use client"
 import { Check, Loader, CloudOff } from 'lucide-react'
-import { T, GRN, AMB, FB } from '../../../lib/theme'
+import { T, GRN, AMB, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.13 auto-save indicator.

@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from 'react'
-import { T, AMB, FH, FB } from '../../../lib/theme'
+import { T, AMB, FH, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.4 page-wide drop zone (D-09) — v1 stub per RESEARCH §11.

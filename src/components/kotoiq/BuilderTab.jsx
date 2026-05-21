@@ -6,7 +6,7 @@ import {
   Plus, ChevronRight, Globe, FileText, Lock, Unlock
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { FH } from '../../lib/theme'
+import { FH, DESIGN } from '../../lib/theme'
 
 /**
  * KotoIQ Builder Tab — Template Ingest + Slot Editor (ELEM-07, ELEM-08, ELEM-09, UI-04)
@@ -170,7 +170,7 @@ export default function BuilderTab({ clientId, agencyId }) {
   // ═══════════════════════════════════════════════════════════════════════
 
   return (
-    <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
+    <div style={{ fontFamily: DESIGN.fonts.body }}>
       {/* Tab bar */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid #ececef', paddingBottom: 12 }}>
         <TabButton active={view === 'templates'} onClick={() => setView('templates')}>Templates</TabButton>

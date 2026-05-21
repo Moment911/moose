@@ -6,7 +6,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
 
 const QUICK_PROMPTS = [
   { label: 'What should I work on?', text: 'What are the top 3 things I should work on this week for this client?' },
@@ -85,7 +85,7 @@ function renderMarkdown(text) {
   return blocks.map((b, i) => {
     if (b.type === 'h') {
       const sizes = { 1: 20, 2: 17, 3: 15 }
-      return <div key={i} style={{ fontSize: sizes[b.level], fontWeight: 800, color: BLK, margin: '14px 0 6px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>{renderInline(b.text)}</div>
+      return <div key={i} style={{ fontSize: sizes[b.level], fontWeight: 800, color: BLK, margin: '14px 0 6px', fontFamily: DESIGN.fonts.body }}>{renderInline(b.text)}</div>
     }
     if (b.type === 'ul') {
       return (
@@ -296,7 +296,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               padding: '10px 14px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+              fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: DESIGN.fonts.body,
             }}>
             <Plus size={14} /> New conversation
           </button>
@@ -349,13 +349,9 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
           <div style={{ width: 34, height: 34, borderRadius: 10, background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Brain size={18} color="#0a0a0a" />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK }}>
-              KotoBrain
-            </div>
-            <div style={{ fontSize: 11, color: '#6b6b70' }}>
-              Tool-using agent — runs audits, fetches data, chains engines
-            </div>
+          <div>
+            <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK }}>Ask KotoIQ</div>
+            <div style={{ fontSize: 11, color: '#6b6b70' }}>Conversational intelligence across all client data</div>
           </div>
         </div>
 
@@ -372,7 +368,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               <div style={{ width: 64, height: 64, borderRadius: 20, background: T + '15', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Brain size={32} color="#0a0a0a" />
               </div>
-              <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 6 }}>
+              <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 22, fontWeight: 800, color: BLK, marginBottom: 6 }}>
                 What do you want to know?
               </div>
               <div style={{ fontSize: 14, color: '#6b6b70', marginBottom: 24, lineHeight: 1.6 }}>
@@ -385,7 +381,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                   <button key={i} onClick={() => send(p.text)}
                     style={{
                       padding: '8px 14px', borderRadius: 20, border: `1.5px solid #ececef`, background: '#fff',
-                      color: T, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+                      color: T, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: DESIGN.fonts.body,
                       display: 'flex', alignItems: 'center', gap: 6,
                     }}>
                     <Sparkles size={11} /> {p.label}
@@ -431,7 +427,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
                   style={{
                     padding: '5px 11px', borderRadius: 16, border: '1px solid #ececef', background: '#fff',
                     color: '#4b5563', fontSize: 11, fontWeight: 600, cursor: sending ? 'wait' : 'pointer',
-                    opacity: sending ? 0.5 : 1, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+                    opacity: sending ? 0.5 : 1, fontFamily: DESIGN.fonts.body,
                   }}>
                   {p.label}
                 </button>
@@ -448,7 +444,7 @@ export default function AskKotoIQTab({ clientId, agencyId }) {
               placeholder="Ask anything about this client's SEO, rankings, or next steps... (Shift+Enter for newline)"
               rows={1}
               style={{
-                flex: 1, border: 'none', outline: 'none', resize: 'none', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+                flex: 1, border: 'none', outline: 'none', resize: 'none', fontFamily: DESIGN.fonts.body,
                 fontSize: 14, color: BLK, background: 'transparent', minHeight: 24, maxHeight: 160, padding: '4px 0',
               }}
             />
@@ -639,7 +635,7 @@ function MessageBubble({ message, onActionClick }) {
                 style={{
                   padding: '6px 12px', borderRadius: 8, border: `1.5px solid ${T}`, background: '#fff',
                   color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex',
-                  alignItems: 'center', gap: 5, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+                  alignItems: 'center', gap: 5, fontFamily: DESIGN.fonts.body,
                 }}>
                 {a.label} <ChevronRight size={11} />
               </button>

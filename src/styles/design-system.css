@@ -1,52 +1,107 @@
-/* ── Koto Design System CSS ──────────────────────────────────────────────── */
-/* See DESIGN.md for full specification and rationale. */
+/* ── Koto Design System CSS — Unified Marketing Aesthetic ────────────────── */
+/* Fonts: DM Sans (body), Bebas Neue (display), DM Serif Display (accent)   */
+/* Palette: Navy #201B51, Pink #CB1C6B, Cream #FAF9F6, Warm Gray #F5F3EE    */
 
-/*
-  Brand:
-    Accent: #cb1c6b (pink — single accent, used sparingly)
-    Teal:   #00C2CB (data-positive metrics only)
+/* ── Google Fonts — loaded via <link> in layout.tsx for best performance ── */
+/* Fonts: Bebas Neue, DM Sans, DM Serif Display, JetBrains Mono             */
 
-  Neutrals (warm):
-    Black:  #201b51
-    Gray-1: #4a4674
-    Gray-2: #6B6560
-    Gray-3: #6b6789
-    Gray-4: #e8e6ef
+/* ── CSS Custom Properties (mirror DESIGN object in theme.ts) ──────────── */
+:root {
+  --kiq-navy:        #201B51;
+  --kiq-pink:        #CB1C6B;
+  --kiq-cream:       #FAF9F6;
+  --kiq-warm-gray:   #F5F3EE;
+  --kiq-muted:       #6B6789;
+  --kiq-border:      #E8E5DF;
+  --kiq-white:       #ffffff;
+  --kiq-success:     #16a34a;
+  --kiq-warning:     #f59e0b;
+  --kiq-error:       #DC2626;
+  --kiq-info:        #5B8DEF;
 
-  Backgrounds:
-    BG-0:   #FFFFFF
-    BG-1:   #faf9f6 (warm linen)
-    BG-2:   #f5f3ee
+  --font-heading:    'Bebas Neue', sans-serif;
+  --font-body:       'DM Sans', sans-serif;
+  --font-accent:     'DM Serif Display', serif;
+  --font-mono:       'JetBrains Mono', monospace;
 
-  Borders (warm):
-    Default: #e8e6ef
-    Subtle:  #F0ECE8
+  --radius-sm:       8px;
+  --radius-md:       12px;
+  --radius-lg:       16px;
+  --radius-xl:       20px;
+  --radius-pill:     50px;
 
-  Semantic:
-    Success:  #16A34A / #F0FDF4
-    Warning:  #D97706 / #FFFBEB
-    Danger:   #DC2626 / #FEF2F2
-    Info:     #2563EB / #EFF6FF
-*/
-
-body {
-  font-family: 'DM Sans', -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --shadow-sm:       0 1px 3px rgba(32, 27, 81, 0.04);
+  --shadow-md:       0 4px 12px rgba(32, 27, 81, 0.06);
+  --shadow-lg:       0 8px 24px rgba(32, 27, 81, 0.08);
 }
 
-/* Typography scale */
-.ds-title { font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; font-size: 24px; font-weight: 400; color: #201b51; letter-spacing: -0.01em; }
-.ds-subtitle { font-size: 13px; font-weight: 400; color: #6b6789; }
-.ds-body { font-size: 14px; font-weight: 400; color: #4a4674; line-height: 1.6; }
-.ds-caption { font-size: 12px; font-weight: 400; color: #6b6789; }
-.ds-label { font-size: 11px; font-weight: 600; color: #6b6789; text-transform: uppercase; letter-spacing: 0.06em; }
-.ds-mono { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 13px; }
+/* ── Base ───────────────────────────────────────────────────────────────────── */
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--kiq-navy);
+}
 
-/* Animations */
-@keyframes ds-spin { to { transform: rotate(360deg); } }
-@keyframes ds-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-@keyframes ds-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+/* ── Typography scale ──────────────────────────────────────────────────────── */
+.ds-display   { font-family: var(--font-heading); font-weight: 700; color: var(--kiq-navy); letter-spacing: 0.02em; text-transform: uppercase; }
+.ds-title     { font-family: var(--font-body); font-size: 24px; font-weight: 700; color: var(--kiq-navy); letter-spacing: -0.3px; }
+.ds-subtitle  { font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--kiq-muted); }
+.ds-body      { font-family: var(--font-body); font-size: 15px; font-weight: 500; color: var(--kiq-muted); line-height: 1.6; }
+.ds-caption   { font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--kiq-muted); }
+.ds-label     { font-family: var(--font-body); font-size: 11px; font-weight: 600; color: var(--kiq-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.ds-mono      { font-family: var(--font-mono); font-size: 13px; }
+.ds-accent    { font-family: var(--font-accent); font-style: italic; color: var(--kiq-pink); }
 
-.ds-spin { animation: ds-spin 1s linear infinite; }
+/* ── Animations ────────────────────────────────────────────────────────────── */
+@keyframes ds-spin     { to { transform: rotate(360deg); } }
+@keyframes ds-pulse    { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes ds-fade-in  { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ds-slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin        { to { transform: rotate(360deg); } }
+
+.ds-spin  { animation: ds-spin 1s linear infinite; }
 .ds-pulse { animation: ds-pulse 1.5s ease-in-out infinite; }
+
+/* ── Scrollbar (KotoIQ panels) ─────────────────────────────────────────────── */
+.kiq-scroll::-webkit-scrollbar { width: 6px; }
+.kiq-scroll::-webkit-scrollbar-track { background: transparent; }
+.kiq-scroll::-webkit-scrollbar-thumb { background: var(--kiq-border); border-radius: 3px; }
+.kiq-scroll::-webkit-scrollbar-thumb:hover { background: var(--kiq-muted); }
+
+/* ── Tooltip ───────────────────────────────────────────────────────────────── */
+.kiq-tooltip {
+  position: relative;
+}
+.kiq-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--kiq-navy);
+  color: var(--kiq-cream);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  z-index: 50;
+  box-shadow: var(--shadow-md);
+}
+.kiq-tooltip:hover::after {
+  opacity: 1;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .koto-no-motion, .koto-no-motion * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

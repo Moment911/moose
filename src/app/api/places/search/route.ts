@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
-const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || ''
+const GOOGLE_KEY = process.env.GOOGLE_PLACES_KEY
+  || process.env.GOOGLE_PLACES_API_KEY
+  || process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY
+  || process.env.GOOGLE_API_KEY
+  || ''
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,12 +20,14 @@ export async function POST(req: NextRequest) {
       }, { status: 200 }) // 200 so UI can show the message
     }
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
     const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': GOOGLE_KEY,
         'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.nationalPhoneNumber,places.websiteUri,places.photos',
+        'Referer': appUrl,
       },
       body: JSON.stringify({ textQuery: query.trim(), maxResultCount: 5 }),
     })

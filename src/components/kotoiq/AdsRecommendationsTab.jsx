@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, Loader2, Filter } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
@@ -53,10 +53,10 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="ads-recommendations" />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Recommendations</div>
+        <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 20, fontWeight: 800, color: BLK }}>Recommendations</div>
         {pendingCount > 0 && statusFilter === 'pending' && (
           <button onClick={bulkApprove}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: GRN, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", cursor: 'pointer' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: GRN, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: DESIGN.fonts.body, cursor: 'pointer' }}>
             <CheckCircle size={14} /> Approve All ({pendingCount})
           </button>
         )}
@@ -66,13 +66,13 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {TYPES.map(t => (
           <button key={t.id} onClick={() => setType(t.id)}
-            style={{ padding: '8px 16px', borderRadius: 8, border: type === t.id ? `2px solid ${T}` : '1px solid #ececef', background: type === t.id ? '#f0f9ff' : '#fff', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: type === t.id ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
+            style={{ padding: '8px 16px', borderRadius: 8, border: type === t.id ? `2px solid ${T}` : '1px solid #ececef', background: type === t.id ? '#f0f9ff' : '#fff', fontFamily: DESIGN.fonts.body, fontWeight: 700, fontSize: 13, color: type === t.id ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
             {t.label}
           </button>
         ))}
         <div style={{ flex: 1 }} />
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
+          style={{ padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: DESIGN.fonts.body }}>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
@@ -83,14 +83,14 @@ export default function AdsRecommendationsTab({ clientId, agencyId }) {
       {loading ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div> : (
         <>
           {recs.length === 0 && <div style={{ ...card, textAlign: 'center', padding: 40, color: '#8e8e93' }}>
-            <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontWeight: 700 }}>No {statusFilter || ''} recommendations</div>
+            <div style={{ fontFamily: DESIGN.fonts.body, fontWeight: 700 }}>No {statusFilter || ''} recommendations</div>
             <div style={{ fontSize: 13 }}>Run an analysis to generate recommendations</div>
           </div>}
 
           {recs.map((r, i) => (
             <div key={i} style={{ ...card, display: 'flex', alignItems: 'flex-start', gap: 14 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: BLK, marginBottom: 4 }}>
+                <div style={{ fontFamily: DESIGN.fonts.body, fontWeight: 700, fontSize: 14, color: BLK, marginBottom: 4 }}>
                   {type === 'negatives' && `[${r.proposed_match_type}] ${r.search_term}`}
                   {type === 'new_keywords' && `${r.keyword} (${r.proposed_match_type})`}
                   {type === 'ad_copy' && `${r.platform?.toUpperCase()} — Variant ${r.variant_label || 'A'}`}
