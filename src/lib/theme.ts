@@ -13,7 +13,7 @@ export const DESIGN = {
     pink:        '#CB1C6B',   // Accent — CTAs, highlights, active states
     cream:       '#FAF9F6',   // Warm background — replaces cold gray
     warmGray:    '#F5F3EE',   // Card/section backgrounds
-    mutedText:   '#6B6789',   // Body text — purple-gray, softer than black
+    mutedText:   '#4A4566',   // Body text — readable purple-gray
 
     // Semantic
     success:     '#16a34a',
@@ -26,8 +26,8 @@ export const DESIGN = {
     border:      '#E8E5DF',   // Warm border (not cold gray)
     borderLight: '#F0EDE8',
     textPrimary: '#201B51',   // Same as navy
-    textSecondary: '#6B6789',
-    textMuted:   '#9B97B2',
+    textSecondary: '#4A4566', // Darkened for readability (was #6B6789)
+    textMuted:   '#7B778F',   // Labels/captions — darkened (was #9B97B2)
     iconBg:      '#F0EDE8',   // Icon container background
     hoverBg:     '#F5F3EE',   // Row/button hover
   },
@@ -42,8 +42,8 @@ export const DESIGN = {
 
   // Font sizes (px) — adjust to scale all type up or down
   fontSize: {
-    xs:     11,
-    sm:     13,
+    xs:     12,
+    sm:     14,
     base:   15,
     md:     16,
     lg:     18,

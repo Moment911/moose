@@ -777,7 +777,7 @@ export default function KotoIQPage() {
   const [keywords, setKeywords] = useState([])
   const [kwTotal, setKwTotal] = useState(0)
   // Client state from unified ClientContext (persists across tab switches)
-  const { clients: ctxClients, selectedClient, selectClientById, clientId: ctxClientId } = useClient()
+  const { clients: ctxClients, selectedClient, selectClientById, clientId: ctxClientId, refreshClients } = useClient()
   const clients = ctxClients
   const clientId = ctxClientId || ''
   const setClientId = useCallback((v) => {
@@ -920,8 +920,8 @@ export default function KotoIQPage() {
     }
   }, []) // run once on mount
 
-  // Clients loaded from ClientContext (no local fetch needed)
-  const loadClients = useCallback(() => {}, []) // no-op, kept for compatibility with saveClient callback
+  // Clients loaded from ClientContext — refreshClients re-fetches the list after add/edit
+  const loadClients = refreshClients
 
   useEffect(() => {
     // Load portfolio overview
