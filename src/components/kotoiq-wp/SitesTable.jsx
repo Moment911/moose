@@ -76,7 +76,7 @@ export default function SitesTable({
               >
                 <td style={td()}><StatusDot kind={dot} label={both ? 'Both plugins live' : one ? 'Partially active' : 'Inactive'}/></td>
                 <td style={td()}>
-                  <div style={{ fontFamily: FH, fontWeight: 700, color: NAVY, fontSize: 12 }}>
+                  <div style={{ fontFamily: FB, fontWeight: 700, color: NAVY, fontSize: 12 }}>
                     {s.site_name || s.site_url.replace(/^https?:\/\//, '')}
                   </div>
                   <a
@@ -163,7 +163,7 @@ function StatusDot({ kind, label }) {
 const Pill = ({ children, color, bg }) => (
   <span style={{
     display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 5,
-    fontSize: 10, fontWeight: 700, color, background: bg, fontFamily: FH,
+    fontSize: 10, fontWeight: 700, color, background: bg, fontFamily: FB,
     textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap',
   }}>{children}</span>
 )
@@ -214,7 +214,7 @@ function ModuleChips({ site, onToggled }) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 3,
               padding: '2px 7px', borderRadius: 5,
-              fontSize: 10, fontWeight: 700, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.04em',
+              fontSize: 10, fontWeight: 700, fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.04em',
               color: enabled ? '#374151' : '#9ca3af',
               background: enabled ? '#e5e7eb' : 'transparent',
               border: enabled ? '1px solid transparent' : '1px dashed #d1d5db',
@@ -244,6 +244,6 @@ function relativeTime(date) {
   return `${d}d ago`
 }
 
-const th = (x = {}) => ({ textAlign: x.textAlign || 'left', padding: '12px 14px', fontFamily: FH, fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', whiteSpace: 'nowrap', ...x })
+const th = (x = {}) => ({ textAlign: x.textAlign || 'left', padding: '12px 14px', fontFamily: FB, fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', whiteSpace: 'nowrap', ...x })
 const td = (x = {}) => ({ padding: '12px 14px', verticalAlign: 'top', ...x })
-const miniBtn = (x = {}) => ({ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '5px 8px', borderRadius: 6, border: `1px solid ${x.borderColor || LINE}`, background: x.bg || '#fff', color: x.color || '#6b7280', fontSize: 10, fontFamily: FH, fontWeight: 700, cursor: 'pointer' })
+const miniBtn = (x = {}) => ({ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '5px 8px', borderRadius: 6, border: `1px solid ${x.borderColor || LINE}`, background: x.bg || '#fff', color: x.color || '#6b7280', fontSize: 10, fontFamily: FB, fontWeight: 700, cursor: 'pointer' })

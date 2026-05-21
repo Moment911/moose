@@ -226,7 +226,7 @@ export default function FleetView({ onSelectSite }) {
                 border: `1px solid ${sortKey === k ? PINK : LINE}`,
                 background: sortKey === k ? `${PINK}10` : '#fff',
                 color: sortKey === k ? PINK : '#6b7280',
-                fontFamily: FH, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                fontFamily: FB, fontSize: 11, fontWeight: 700, cursor: 'pointer',
               }}
             >
               {label}
@@ -241,7 +241,7 @@ export default function FleetView({ onSelectSite }) {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 5,
                 padding: '8px 13px', borderRadius: 8, border: 'none',
-                background: PINK, color: '#fff', fontFamily: FH, fontSize: 11, fontWeight: 700,
+                background: PINK, color: '#fff', fontFamily: FB, fontSize: 11, fontWeight: 700,
                 cursor: 'pointer', opacity: bulkUpdating ? 0.6 : 1,
               }}
             >
@@ -256,7 +256,7 @@ export default function FleetView({ onSelectSite }) {
               display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '8px 13px', borderRadius: 8,
               border: `1px solid ${NAVY}`, background: '#fff', color: NAVY,
-              fontFamily: FH, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              fontFamily: FB, fontSize: 11, fontWeight: 700, cursor: 'pointer',
               opacity: (refreshingAll || loading) ? 0.6 : 1,
             }}
           >

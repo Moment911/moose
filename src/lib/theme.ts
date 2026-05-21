@@ -118,8 +118,10 @@ export const AMB = DESIGN.colors.warning
 export const W   = DESIGN.colors.white
 
 // Font stacks (legacy aliases)
-export const FH = DESIGN.fonts.heading
-export const FB = DESIGN.fonts.body
+// FH is used by 112+ files for buttons, labels, card titles — must stay readable
+export const FH = DESIGN.fonts.body    // Was Proxima Nova — now DM Sans (readable at all sizes)
+export const FB = DESIGN.fonts.body    // Body text
+export const FD = DESIGN.fonts.heading // Display-only: Bebas Neue (use ONLY for large headings)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // KOTOIQ COMPONENT STYLES — Pre-built style objects for consistent UI

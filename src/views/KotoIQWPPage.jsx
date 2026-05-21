@@ -88,15 +88,15 @@ export default function KotoIQWPPage() {
             <Globe size={18} color={PINK}/>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: NAVY, letterSpacing: '-0.01em' }}>
+            <span style={{ fontFamily: FB, fontSize: 16, fontWeight: 800, color: NAVY, letterSpacing: '-0.01em' }}>
               KotoIQ WP
             </span>
             {agencyName && <>
               <span style={{ color: '#d1d5db', fontSize: 14 }}>›</span>
-              <span style={{ fontFamily: FH, fontSize: 13, fontWeight: 600, color: '#6b7280' }}>{agencyName}</span>
+              <span style={{ fontFamily: FB, fontSize: 13, fontWeight: 600, color: '#6b7280' }}>{agencyName}</span>
             </>}
             <span style={{ color: '#d1d5db', fontSize: 14 }}>›</span>
-            <span style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: PINK }}>
+            <span style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: PINK }}>
               {view === 'fleet' ? 'Fleet' : 'Client'}
             </span>
           </div>
@@ -110,7 +110,7 @@ export default function KotoIQWPPage() {
               display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '7px 11px', borderRadius: 8,
               border: `1px solid ${LINE}`, background: '#fff', color: NAVY,
-              fontFamily: FH, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              fontFamily: FB, fontSize: 11, fontWeight: 700, cursor: 'pointer',
             }}
           >
             <RefreshCw size={11}/> Refresh

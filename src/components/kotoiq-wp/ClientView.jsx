@@ -134,7 +134,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
             >
               <ChevronRight size={14} color={PINK}/>
             </button>
-            <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 700, color: '#9ca3af', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '.05em', textTransform: 'uppercase' }}>
+            <div style={{ fontFamily: FB, fontSize: 10, fontWeight: 700, color: '#9ca3af', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '.05em', textTransform: 'uppercase' }}>
               {rows.length} clients
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
           <>
             <div style={{ padding: '14px 16px 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
               <User size={13} color="#6b7280"/>
-              <div style={{ flex: 1, fontFamily: FH, fontSize: 12, fontWeight: 800, color: NAVY }}>Clients ({rows.length})</div>
+              <div style={{ flex: 1, fontFamily: FB, fontSize: 12, fontWeight: 800, color: NAVY }}>Clients ({rows.length})</div>
               <button onClick={() => setShowAdd(true)} title="Connect a WP site" style={addBtn()}>
                 <Plus size={11}/> Connect
               </button>
@@ -176,7 +176,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   ))}
                   {orphans.length > 0 && (
                     <>
-                      <div style={{ padding: '12px 6px 6px', fontSize: 10, fontFamily: FH, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                      <div style={{ padding: '12px 6px 6px', fontSize: 10, fontFamily: FB, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em' }}>
                         Unassigned sites ({orphans.length})
                       </div>
                       {orphans.map(s => (
@@ -201,7 +201,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
         {!selected ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#9ca3af', fontFamily: FB, fontSize: 13, padding: 40, textAlign: 'center' }}>
             <Plug size={32} color="#d1d5db" style={{ marginBottom: 12 }}/>
-            <div style={{ fontSize: 14, fontFamily: FH, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Pick a client to manage their WordPress integration</div>
+            <div style={{ fontSize: 14, fontFamily: FB, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Pick a client to manage their WordPress integration</div>
             <div style={{ maxWidth: 380 }}>
               Or switch to <strong>Fleet</strong> view from the top toggle to see every site at once.
             </div>
@@ -212,7 +212,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
             <div style={{ padding: '14px 28px 0', borderBottom: `1px solid ${LINE}`, background: '#fff' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: NAVY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontFamily: FB, fontSize: 15, fontWeight: 800, color: NAVY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {activeClient?.name || (activeSite?.site_name || activeSite?.site_url)}
                   </div>
                   <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB, display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
@@ -250,7 +250,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                           padding: '9px 14px', borderRadius: '8px 8px 0 0', border: 'none',
                           background: active ? CREAM : 'transparent',
                           color: active ? NAVY : (enabled ? '#9ca3af' : '#d1d5db'),
-                          fontSize: 12, fontWeight: active ? 700 : 500, fontFamily: FH, cursor: 'pointer',
+                          fontSize: 12, fontWeight: active ? 700 : 500, fontFamily: FB, cursor: 'pointer',
                           opacity: enabled ? 1 : 0.55,
                           whiteSpace: 'nowrap',
                           borderBottom: active ? `2px solid ${PINK}` : '2px solid transparent',
@@ -280,7 +280,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
               ) : (
                 <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${LINE}`, padding: 28, maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
                   <Plug size={28} color={PINK} style={{ margin: '0 auto 10px' }}/>
-                  <div style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: NAVY, marginBottom: 6 }}>
+                  <div style={{ fontFamily: FB, fontSize: 17, fontWeight: 800, color: NAVY, marginBottom: 6 }}>
                     No WP site connected for {activeClient?.name}
                   </div>
                   <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, lineHeight: 1.5, marginBottom: 18 }}>
@@ -330,7 +330,7 @@ function StatusPills({ site }) {
 }
 
 const Pill = ({ children, color, bg }) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontFamily: FH, fontWeight: 700, color, background: bg, padding: '2px 6px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '.04em' }}>{children}</span>
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontFamily: FB, fontWeight: 700, color, background: bg, padding: '2px 6px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '.04em' }}>{children}</span>
 )
 
 function ClientCard({ entry, selected, onClick }) {
@@ -341,7 +341,7 @@ function ClientCard({ entry, selected, onClick }) {
         ? <img src={client.logo_url} alt="" style={{ width: 30, height: 30, borderRadius: 6, objectFit: 'cover', background: '#f3f4f6', flexShrink: 0 }}/>
         : <div style={{ width: 30, height: 30, borderRadius: 6, background: `${PINK}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><User size={14} color={PINK}/></div>}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: NAVY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.name}</div>
+        <div style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: NAVY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.name}</div>
         <div style={{ marginTop: 3 }}><StatusPills site={site}/></div>
       </div>
     </div>
@@ -353,7 +353,7 @@ function OrphanSiteCard({ site, selected, onClick }) {
     <div onClick={onClick} style={{ background: '#fff', borderRadius: 12, border: `1.5px dashed ${selected ? PINK : LINE}`, padding: '10px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
       <Globe size={16} color="#9ca3af" style={{ flexShrink: 0 }}/>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: NAVY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{site.site_name || site.site_url}</div>
+        <div style={{ fontFamily: FB, fontSize: 12, fontWeight: 700, color: NAVY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{site.site_name || site.site_url}</div>
         <div style={{ marginTop: 3 }}><StatusPills site={site}/></div>
       </div>
     </div>
@@ -396,7 +396,7 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
       <div style={{ background: '#fff', borderRadius: 14, maxWidth: 540, width: '100%', padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,.18)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <Plus size={18} color={PINK}/>
-          <div style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: NAVY }}>
+          <div style={{ fontFamily: FB, fontSize: 17, fontWeight: 800, color: NAVY }}>
             {prefillClient ? `Connect a site for ${prefillClient.name}` : 'Add a WordPress site'}
           </div>
           <div style={{ flex: 1 }}/>
@@ -420,7 +420,7 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
         </div>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} disabled={busy} style={{ padding: '10px 16px', borderRadius: 9, border: `1.5px solid ${LINE}`, background: '#fff', color: NAVY, fontFamily: FH, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+          <button onClick={onClose} disabled={busy} style={{ padding: '10px 16px', borderRadius: 9, border: `1.5px solid ${LINE}`, background: '#fff', color: NAVY, fontFamily: FB, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
           <button onClick={submit} disabled={busy || !siteUrl || !wpscKey} style={primaryBtn({ disabled: busy || !siteUrl || !wpscKey })}>
             {busy ? <Loader2 size={13} className="spin"/> : <Plug size={13}/>} Verify &amp; connect
           </button>
@@ -430,8 +430,8 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
   )
 }
 
-const Lbl = ({ children }) => <div style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.04em' }}>{children}</div>
+const Lbl = ({ children }) => <div style={{ fontFamily: FB, fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.04em' }}>{children}</div>
 const inp = (x = {}) => ({ width: '100%', padding: '10px 12px', borderRadius: 9, border: `1.5px solid ${LINE}`, fontSize: 13, fontFamily: FB, outline: 'none', background: '#fff', boxSizing: 'border-box', ...x })
-const mini = (x = {}) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 7, border: `1px solid ${x.borderColor || LINE}`, background: x.bg || '#fff', color: x.color || '#6b7280', fontFamily: FH, fontSize: 11, fontWeight: 700, cursor: 'pointer' })
-const addBtn = () => ({ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 8px', borderRadius: 6, border: 'none', background: PINK, color: '#fff', fontFamily: FH, fontSize: 11, fontWeight: 700, cursor: 'pointer' })
-const primaryBtn = (x = {}) => ({ padding: '10px 18px', borderRadius: 9, border: 'none', background: PINK, color: '#fff', fontFamily: FH, fontSize: 13, fontWeight: 800, cursor: 'pointer', opacity: x.disabled ? 0.5 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 })
+const mini = (x = {}) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 7, border: `1px solid ${x.borderColor || LINE}`, background: x.bg || '#fff', color: x.color || '#6b7280', fontFamily: FB, fontSize: 11, fontWeight: 700, cursor: 'pointer' })
+const addBtn = () => ({ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 8px', borderRadius: 6, border: 'none', background: PINK, color: '#fff', fontFamily: FB, fontSize: 11, fontWeight: 700, cursor: 'pointer' })
+const primaryBtn = (x = {}) => ({ padding: '10px 18px', borderRadius: 9, border: 'none', background: PINK, color: '#fff', fontFamily: FB, fontSize: 13, fontWeight: 800, cursor: 'pointer', opacity: x.disabled ? 0.5 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 })

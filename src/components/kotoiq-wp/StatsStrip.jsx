@@ -69,14 +69,14 @@ function Stat({ label, value, sub, color = '#201b51', last }) {
       borderRight: last ? 'none' : `1px solid ${LINE}`,
     }}>
       <div style={{
-        fontFamily: FH,
+        fontFamily: FB,
         fontSize: 26, fontWeight: 900, color,
         lineHeight: 1, letterSpacing: '-0.02em',
       }}>
         {Number(value).toLocaleString()}
       </div>
       <div style={{
-        fontSize: 10, color: '#6b7280', fontFamily: FH,
+        fontSize: 10, color: '#6b7280', fontFamily: FB,
         textTransform: 'uppercase', letterSpacing: '0.06em',
         marginTop: 6, fontWeight: 700,
       }}>

@@ -35,7 +35,7 @@ export default function ViewToggle({ value, onChange }) {
               border: 'none',
               background: active ? NAVY : 'transparent',
               color: active ? '#fff' : '#6b7280',
-              fontFamily: FH,
+              fontFamily: FB,
               fontSize: 12,
               fontWeight: 800,
               letterSpacing: '0.02em',
