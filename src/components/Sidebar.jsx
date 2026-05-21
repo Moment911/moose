@@ -533,6 +533,7 @@ export default function Sidebar() {
               <NavLink to="/integrations" icon={Plug} label="Integrations" hidden={!match('Integrations') || !feat('team_management')}/>
               <NavLink to="/integrations/ghl" icon={Zap} label="GoHighLevel" sub hidden={!match('GoHighLevel') || !feat('team_management')}/>
               <NavLink to="/billing" icon={CreditCard} label="Billing" hidden={!match('Billing') || !feat('client_billing')}/>
+              <NavLink to="/design" icon={Edit2} label="Design Settings" hidden={!match('Design')}/>
               <NavLink to="/agency-settings" startsWith icon={Settings} label="Settings" hidden={!match('Settings') || !feat('team_management')}/>
               <NavLink to="/help" icon={HelpCircle} label="Help Center" hidden={!match('Help Center') || !feat('help_center')}/>
             </Section>

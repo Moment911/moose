@@ -103,6 +103,7 @@ import BuildProposalPage from '../views/demos/BuildProposalPage'
 import { DEMO_CONFIGS } from '../views/demos/demoConfigs'
 import AgencySignupPage from '../views/AgencySignupPage'
 import AgencySettingsPage from '../views/AgencySettingsPage'
+import DesignSettingsPage from '../views/DesignSettingsPage'
 import DbSetupPage from '../views/DbSetupPage'
 import BillingPage from '../views/BillingPage'
 import AgentPage from '../views/AgentPage'
@@ -389,6 +390,7 @@ function AppRoutes() {
           <Route path="/portal/:token" element={<ClientPortalPage />} />
           <Route path="/portal/preview/:clientId" element={<ClientPortalPage />} />
           <Route path="/agency-settings" element={<AgencySettingsPage />} />
+          <Route path="/design" element={<DesignSettingsPage />} />
           <Route path="/setup" element={<AgencySettingsPage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
