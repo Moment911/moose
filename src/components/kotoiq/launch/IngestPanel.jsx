@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react'
-import { T, BLK, FH, FB } from '../../../lib/theme'
+import { T, BLK, FH, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §4.1 ingest panel.

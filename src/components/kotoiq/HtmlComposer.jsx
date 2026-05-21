@@ -4,7 +4,7 @@ import {
   X, Smartphone, Tablet, Monitor, Code2, Eye, Copy, Check,
   Maximize2, Minimize2, RotateCcw,
 } from 'lucide-react'
-import { FH, FB, BLK } from '../../lib/theme'
+import { FH, FB, BLK, DESIGN } from '../../lib/theme'
 
 /**
  * HtmlComposer — split-pane visual HTML editor

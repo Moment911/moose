@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef } from 'react'
-import { DST, BLK, FH, FB } from '../../../lib/theme'
+import { DST, BLK, FH, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §4.14 destructive confirmation.

@@ -1,6 +1,6 @@
 "use client"
 import { AlertTriangle, X } from 'lucide-react'
-import { R, BLK, GRY, FH, FB } from '../../../lib/theme'
+import { R, BLK, GRY, FH, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.6 discrepancy callout (D-11).

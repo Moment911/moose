@@ -5,7 +5,7 @@ import {
   Plug, AlertCircle, CheckCircle, Trash2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { FH, FB, BLK, GRN, R } from '../../lib/theme'
+import { FH, FB, BLK, GRN, R, DESIGN } from '../../lib/theme'
 
 const API = '/api/wp'
 

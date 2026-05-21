@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useEffect } from 'react'
-import { T, R, AMB, BLK, DST, FB } from '../../../lib/theme'
+import { T, R, AMB, BLK, DST, FB, DESIGN } from '../../../lib/theme'
 
 // Mirror of HALO_THRESHOLDS from server config — duplicated here because
 // profileConfig.ts is server-only ('server-only' import would crash the

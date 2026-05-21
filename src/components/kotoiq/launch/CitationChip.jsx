@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react'
 import { FileText, Phone, BookOpen, Edit3, Sparkles, Paperclip } from 'lucide-react'
-import { T, AMB, BLK, FH } from '../../../lib/theme'
+import { T, AMB, BLK, FH, DESIGN } from '../../../lib/theme'
 
 const ICON_MAP = {
   onboarding_form: FileText,

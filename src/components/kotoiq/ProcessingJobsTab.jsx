@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Clock, Loader2, CheckCircle, XCircle, AlertCircle, Play, Pause, ChevronDown, ChevronUp, RefreshCw,
 } from 'lucide-react'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
@@ -108,7 +108,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
           <Clock size={30} color="#0a0a0a" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Background Jobs</div>
+          <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 4 }}>Background Jobs</div>
           <div style={{ fontSize: 13, color: '#1f1f22' }}>Live visibility into long-running processing jobs across every engine.</div>
         </div>
         <button onClick={load} disabled={loading} style={{
@@ -187,7 +187,7 @@ export default function ProcessingJobsTab({ clientId, agencyId }) {
                       </div>
                     </div>
 
-                    <div style={{ fontSize: 12, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, minWidth: 80, textAlign: 'right' }}>
+                    <div style={{ fontSize: 12, color: '#1f1f22', fontFamily: DESIGN.fonts.body, fontWeight: 700, minWidth: 80, textAlign: 'right' }}>
                       {elapsed(j.started_at || j.created_at, j.completed_at)}
                     </div>
 

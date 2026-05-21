@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { FileText, Loader2, BarChart2, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
@@ -54,15 +54,15 @@ export default function AdsReportsTab({ clientId, agencyId }) {
   return (
     <div>
       <HowItWorks tool="ads-reports" />
-      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 16 }}>Ads Reports</div>
+      <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 16 }}>Ads Reports</div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button onClick={() => setTab('summary')}
-          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'summary' ? `2px solid ${T}` : '1px solid #ececef', background: tab === 'summary' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'summary' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'summary' ? `2px solid ${T}` : '1px solid #ececef', background: tab === 'summary' ? '#f0f9ff' : '#fff', fontFamily: DESIGN.fonts.body, fontWeight: 700, fontSize: 13, color: tab === 'summary' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
           Weekly Summary
         </button>
         <button onClick={() => setTab('comparison')}
-          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'comparison' ? `2px solid ${T}` : '1px solid #ececef', background: tab === 'comparison' ? '#f0f9ff' : '#fff', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: tab === 'comparison' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', borderRadius: 8, border: tab === 'comparison' ? `2px solid ${T}` : '1px solid #ececef', background: tab === 'comparison' ? '#f0f9ff' : '#fff', fontFamily: DESIGN.fonts.body, fontWeight: 700, fontSize: 13, color: tab === 'comparison' ? '#5aa0ff' : '#6b6b70', cursor: 'pointer' }}>
           Period Comparison
         </button>
       </div>
@@ -71,7 +71,7 @@ export default function AdsReportsTab({ clientId, agencyId }) {
       {tab === 'summary' && (
         <div>
           <button onClick={generateSummary} disabled={loadingSummary}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', marginBottom: 16, opacity: loadingSummary ? 0.6 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: DESIGN.fonts.body, cursor: 'pointer', marginBottom: 16, opacity: loadingSummary ? 0.6 : 1 }}>
             {loadingSummary ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <FileText size={16} />}
             {loadingSummary ? 'Generating...' : 'Generate Weekly Summary'}
           </button>
@@ -79,21 +79,21 @@ export default function AdsReportsTab({ clientId, agencyId }) {
           {summary && (
             <>
               <div style={{ ...card, borderLeft: `4px solid ${T}` }}>
-                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>{summary.headline}</div>
-                <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", whiteSpace: 'pre-wrap' }}>{summary.executive_summary_md}</div>
+                <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>{summary.headline}</div>
+                <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, fontFamily: DESIGN.fonts.body, whiteSpace: 'pre-wrap' }}>{summary.executive_summary_md}</div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
                 <div style={card}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: GRN, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 8 }}>WINS</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: GRN, fontFamily: DESIGN.fonts.body, marginBottom: 8 }}>WINS</div>
                   {(summary.wins || []).map((w, i) => <div key={i} style={{ fontSize: 13, marginBottom: 6, paddingLeft: 12, borderLeft: `2px solid ${GRN}` }}>{w}</div>)}
                 </div>
                 <div style={card}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: R, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 8 }}>CONCERNS</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: R, fontFamily: DESIGN.fonts.body, marginBottom: 8 }}>CONCERNS</div>
                   {(summary.concerns || []).map((c, i) => <div key={i} style={{ fontSize: 13, marginBottom: 6, paddingLeft: 12, borderLeft: `2px solid ${R}` }}>{c}</div>)}
                 </div>
                 <div style={card}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: T, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 8 }}>NEXT WEEK</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: T, fontFamily: DESIGN.fonts.body, marginBottom: 8 }}>NEXT WEEK</div>
                   {(summary.next_week_priorities || []).map((p, i) => <div key={i} style={{ fontSize: 13, marginBottom: 6, paddingLeft: 12, borderLeft: `2px solid ${T}` }}>{p}</div>)}
                 </div>
               </div>
@@ -107,12 +107,12 @@ export default function AdsReportsTab({ clientId, agencyId }) {
         <div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
             <select value={compRange} onChange={e => setCompRange(e.target.value)}
-              style={{ padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+              style={{ padding: '8px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: DESIGN.fonts.body }}>
               <option value="week">Week-over-Week</option>
               <option value="month">Month-over-Month</option>
             </select>
             <button onClick={runComparison} disabled={loadingComparison}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: loadingComparison ? 0.6 : 1 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: DESIGN.fonts.body, cursor: 'pointer', opacity: loadingComparison ? 0.6 : 1 }}>
               {loadingComparison ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <TrendingUp size={16} />}
               {loadingComparison ? 'Comparing...' : 'Compare Periods'}
             </button>
@@ -120,10 +120,10 @@ export default function AdsReportsTab({ clientId, agencyId }) {
 
           {comparison?.narrative && (
             <div style={{ ...card, borderLeft: `4px solid ${T}` }}>
-              <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", whiteSpace: 'pre-wrap' }}>{comparison.narrative.narrative_md}</div>
+              <div style={{ fontSize: 14, color: '#1f1f22', lineHeight: 1.7, fontFamily: DESIGN.fonts.body, whiteSpace: 'pre-wrap' }}>{comparison.narrative.narrative_md}</div>
               {comparison.narrative.key_takeaways?.length > 0 && (
                 <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #ececef' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: T, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 8 }}>KEY TAKEAWAYS</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: T, fontFamily: DESIGN.fonts.body, marginBottom: 8 }}>KEY TAKEAWAYS</div>
                   {comparison.narrative.key_takeaways.map((t, i) => <div key={i} style={{ fontSize: 13, marginBottom: 6, paddingLeft: 12, borderLeft: `2px solid ${T}` }}>{t}</div>)}
                 </div>
               )}
@@ -132,8 +132,8 @@ export default function AdsReportsTab({ clientId, agencyId }) {
 
           {comparison?.deltas?.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Campaign Deltas</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+              <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Campaign Deltas</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: DESIGN.fonts.body }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Campaign', 'Cost Δ', 'Conv Δ', 'CPA Δ', 'Flag'].map(h => (

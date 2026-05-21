@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Target, Loader2, Zap, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
@@ -40,9 +40,9 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
     <div>
       <HowItWorks tool="ads-intent-gaps" />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK }}>Intent Gap Analysis</div>
+        <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 20, fontWeight: 800, color: BLK }}>Intent Gap Analysis</div>
         <button onClick={runAnalysis} disabled={analyzing}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: analyzing ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: DESIGN.fonts.body, cursor: 'pointer', opacity: analyzing ? 0.6 : 1 }}>
           {analyzing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
           {analyzing ? 'Analyzing...' : 'Find Gaps'}
         </button>
@@ -51,7 +51,7 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
       {loading ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><Loader2 size={24} color="#0a0a0a" style={{ animation: 'spin 1s linear infinite' }} /></div> : (
         <>
           <div style={{ ...card, background: '#f0f9ff', borderColor: '#bae6fd' }}>
-            <div style={{ fontSize: 13, color: '#0369a1', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+            <div style={{ fontSize: 13, color: '#0369a1', fontFamily: DESIGN.fonts.body }}>
               <strong>{gaps.length}</strong> GSC queries with 100+ organic impressions that you're not bidding on.
               {recs.length > 0 && <> AI recommended <strong>{recs.length}</strong> new keywords to add.</>}
             </div>
@@ -60,8 +60,8 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
           {/* Keyword Recommendations */}
           {recs.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Recommended New Keywords</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+              <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Recommended New Keywords</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: DESIGN.fonts.body }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Keyword', 'Intent', 'Match', 'Est. Clicks/mo', 'Est. CPC', 'Priority', 'Status'].map(h => (
@@ -95,8 +95,8 @@ export default function AdsIntentGapsTab({ clientId, agencyId }) {
           {/* GSC Gaps Table */}
           {gaps.length > 0 && (
             <div style={card}>
-              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Uncovered GSC Queries</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}>
+              <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Uncovered GSC Queries</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: DESIGN.fonts.body }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #ececef' }}>
                     {['Query', 'GSC Impressions', 'GSC Clicks', 'Avg Position', 'Ads Coverage'].map(h => (

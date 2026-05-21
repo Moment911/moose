@@ -2,7 +2,7 @@
 import { useMemo } from 'react'
 import EditableSpan from './EditableSpan'
 import CitationChip from './CitationChip'
-import { BLK, FB, FH } from '../../../lib/theme'
+import { BLK, FB, FH, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.2 narrative prose briefing.

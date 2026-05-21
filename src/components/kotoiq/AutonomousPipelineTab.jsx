@@ -5,7 +5,7 @@ import {
   Download, Copy, Eye, ChevronDown, ChevronUp, FileText,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
@@ -48,7 +48,7 @@ function ScoreBadge({ score, label }) {
   const color = s >= 85 ? GRN : s >= 60 ? AMB : s > 0 ? '#e9695c' : '#d1d5db'
   return (
     <div style={{ background: '#fff', border: '1px solid #ececef', borderRadius: 10, padding: '10px 14px', textAlign: 'center', minWidth: 96 }}>
-      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color }}>{s || '—'}</div>
+      <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 22, fontWeight: 900, color }}>{s || '—'}</div>
       <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700, color: '#1f1f22', marginTop: 2 }}>{label}</div>
     </div>
   )
@@ -145,7 +145,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             <Zap size={28} color="#0a0a0a" />
           </div>
           <div>
-            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 22, fontWeight: 900, color: BLK }}>Auto-Pilot Content Generation</div>
+            <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 22, fontWeight: 900, color: BLK }}>Auto-Pilot Content Generation</div>
             <div style={{ fontSize: 13, color: '#1f1f22' }}>Give it a keyword, it runs an 8-step pipeline and ships publish-ready content.</div>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             disabled={running}
             style={{
               flex: 1, padding: '14px 16px', borderRadius: 10, border: '1px solid #d1d5db',
-              fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", color: BLK, outline: 'none',
+              fontSize: 15, fontFamily: DESIGN.fonts.body, color: BLK, outline: 'none',
             }}
           />
           <button
@@ -167,7 +167,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             disabled={running || !keyword.trim()}
             style={{
               padding: '14px 26px', borderRadius: 10, border: 'none', background: "#0a0a0a", color: '#fff',
-              fontSize: 14, fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
+              fontSize: 14, fontWeight: 800, fontFamily: DESIGN.fonts.body,
               cursor: running ? 'wait' : 'pointer', opacity: running || !keyword.trim() ? 0.6 : 1,
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
@@ -185,7 +185,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
       {/* Progress panel */}
       {(running || result) && (
         <div style={card}>
-          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Pipeline Progress</div>
+          <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Pipeline Progress</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {mergedSteps.map((s, i) => (
               <div key={s.key} style={{
@@ -207,7 +207,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
       {result && (
         <>
           <div style={card}>
-            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Scores</div>
+            <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Scores</div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <ScoreBadge score={result.human_score} label="Human" />
               <ScoreBadge score={result.topicality_score} label="Topicality" />
@@ -228,7 +228,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
           {result.content_html && (
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Eye size={16} color="#0a0a0a" /> Content Preview
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -258,7 +258,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
             <div style={card}>
               <button onClick={() => setSchemaOpen(!schemaOpen)} style={{
                 display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'none', border: 'none',
-                padding: 0, cursor: 'pointer', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK,
+                padding: 0, cursor: 'pointer', fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK,
               }}>
                 {schemaOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 Schema JSON-LD ({result.schema_json_ld.length})
@@ -282,7 +282,7 @@ export default function AutonomousPipelineTab({ clientId, agencyId }) {
       {/* History */}
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Clock size={16} color="#0a0a0a" /> Pipeline History
           </div>
           <button onClick={loadHistory} disabled={historyLoading} style={{

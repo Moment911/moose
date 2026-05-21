@@ -1,5 +1,5 @@
 "use client"
-import { GRN, AMB, R, BLK, FH, FB } from '../../../lib/theme'
+import { GRN, AMB, R, BLK, FH, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.7 + §4.8 soft launch gate (D-13 + D-14).

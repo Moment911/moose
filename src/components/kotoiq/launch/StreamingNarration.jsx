@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from 'react'
-import { T, BLK, FB } from '../../../lib/theme'
+import { T, BLK, FB, DESIGN } from '../../../lib/theme'
 
 /**
  * UI-SPEC §5.1 streaming narration (D-07).

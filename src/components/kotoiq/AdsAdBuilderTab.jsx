@@ -2,12 +2,12 @@
 import { useState } from 'react'
 import { Zap, Loader2, Copy, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
 import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
-const input = { width: '100%', padding: '10px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", boxSizing: 'border-box' }
-const label = { fontSize: 12, fontWeight: 700, color: '#1f1f22', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", marginBottom: 4, display: 'block' }
+const input = { width: '100%', padding: '10px 12px', border: '1px solid #ececef', borderRadius: 8, fontSize: 13, fontFamily: DESIGN.fonts.body, boxSizing: 'border-box' }
+const label = { fontSize: 12, fontWeight: 700, color: '#1f1f22', fontFamily: DESIGN.fonts.body, marginBottom: 4, display: 'block' }
 
 const PLATFORMS = [
   { id: 'google', name: 'Google RSA', desc: '15 headlines + 4 descriptions' },
@@ -43,14 +43,14 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
   return (
     <div>
       <HowItWorks tool="ads-ad-builder" />
-      <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 16 }}>Ad Copy Builder</div>
+      <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 16 }}>Ad Copy Builder</div>
 
       {/* Platform Selector */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         {PLATFORMS.map(p => (
           <button key={p.id} onClick={() => { setPlatform(p.id); setResult(null) }}
             style={{ flex: 1, padding: '14px', borderRadius: 10, border: platform === p.id ? `2px solid ${T}` : '2px solid #ececef', background: platform === p.id ? '#f0f9ff' : '#fff', cursor: 'pointer', textAlign: 'left' }}>
-            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: platform === p.id ? '#5aa0ff' : BLK }}>{p.name}</div>
+            <div style={{ fontFamily: DESIGN.fonts.body, fontWeight: 800, fontSize: 14, color: platform === p.id ? '#5aa0ff' : BLK }}>{p.name}</div>
             <div style={{ fontSize: 11, color: '#6b6b70', marginTop: 2 }}>{p.desc}</div>
           </button>
         ))}
@@ -58,7 +58,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
 
       {/* Brief Form */}
       <div style={card}>
-        <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Creative Brief</div>
+        <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Creative Brief</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div>
             <span style={label}>Offer / CTA</span>
@@ -82,7 +82,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
           </div>
         </div>
         <button onClick={generate} disabled={generating || !brief.offer}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", cursor: 'pointer', opacity: generating || !brief.offer ? 0.6 : 1 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: "#0a0a0a", color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: DESIGN.fonts.body, cursor: 'pointer', opacity: generating || !brief.offer ? 0.6 : 1 }}>
           {generating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={16} />}
           {generating ? 'Generating...' : 'Generate Ad Copy'}
         </button>
@@ -94,7 +94,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
           {/* Google RSA */}
           {platform === 'google' && result.headlines && (
             <div style={card}>
-              <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Google RSA — 15 Headlines + 4 Descriptions</div>
+              <div style={{ fontFamily: DESIGN.fonts.body, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Google RSA — 15 Headlines + 4 Descriptions</div>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#6b6b70', marginBottom: 8 }}>HEADLINES</div>
                 {result.headlines.map((h, i) => (
@@ -129,7 +129,7 @@ export default function AdsAdBuilderTab({ clientId, agencyId }) {
               {result.variants.map((v, i) => (
                 <div key={i} style={card}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: T }}>Variant {String.fromCharCode(65 + i)}</span>
+                    <span style={{ fontFamily: DESIGN.fonts.body, fontWeight: 800, fontSize: 14, color: T }}>Variant {String.fromCharCode(65 + i)}</span>
                     {v.hook_concept && <span style={{ fontSize: 11, color: '#6b6b70', fontStyle: 'italic' }}>{v.hook_concept}</span>}
                   </div>
                   {Object.entries(v).filter(([k]) => !['hook_concept', 'creative_brief'].includes(k)).map(([key, val]) => (

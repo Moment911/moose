@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react'
 import { MoreVertical } from 'lucide-react'
-import { R, AMB, T, BLK, FH, FB } from '../../../lib/theme'
+import { R, AMB, T, BLK, FH, FB, DESIGN } from '../../../lib/theme'
 
 // UI-SPEC §4.10 severity copy + §5.8 pill colors.
 const SEVERITY_PILL = {

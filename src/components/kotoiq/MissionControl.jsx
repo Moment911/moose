@@ -8,7 +8,7 @@ import {
   Layers, Eraser, Calendar, Play,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
 import { useKotoIQData } from '../../context/KotoIQDataContext'
 import DataHealthPanel from './DataHealthPanel'
 
@@ -120,10 +120,10 @@ function AnimatedScore({ value, color }) {
     frame = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(frame)
   }, [value])
-  return <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif", fontSize: 20, fontWeight: 900, color, animation: 'mc-count .3s ease' }}>{display}</span>
+  return <span style={{ fontFamily: DESIGN.fonts.body, fontSize: 20, fontWeight: 900, color, animation: 'mc-count .3s ease' }}>{display}</span>
 }
 
-const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif"
+const SF = DESIGN.fonts.body
 
 export default function MissionControl({ clientId, agencyId, clients, onSwitchTab, onEditClient, onRunQuickScan, onRunDeepEnrich, onRunSync, syncing, enriching }) {
   // Surface a shared refresh signal — bumped when Launch All completes so

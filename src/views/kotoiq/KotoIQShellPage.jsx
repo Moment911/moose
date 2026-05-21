@@ -6,7 +6,7 @@ import { profileFetch } from '../../lib/kotoiqProfileFetch'
 import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 import { Brain, Search, Send, SlidersHorizontal, Settings, Shield } from 'lucide-react'
-import { R, T, BLK, GRY, FH, FB } from '../../lib/theme'
+import { R, T, BLK, GRY, FH, FB, DESIGN, buttonPill } from '../../lib/theme'
 import KotoIQPage from '../KotoIQPage'
 import BuilderTab from '../../components/kotoiq/BuilderTab'
 import PublishQueueTab from '../../components/kotoiq/PublishQueueTab'
@@ -101,65 +101,88 @@ export default function KotoIQShellPage() {
   }, [])
   const topOffset = impersonating ? 36 : 0
 
+  // Reusable sub-tab renderer
+  const SubTabBar = ({ items, current, onSelect }) => (
+    <div style={{ padding: '14px 40px 0', borderBottom: `1px solid ${DESIGN.colors.border}`, display: 'flex', gap: 6 }}>
+      {items.map(s => {
+        const active = current === s.key
+        const label = s.badge ? `${s.label} (${s.badge})` : s.label
+        return (
+          <button key={s.key} onClick={() => onSelect(s.key)} style={{
+            padding: '10px 22px', fontSize: DESIGN.fontSize.sm, fontWeight: active ? DESIGN.fontWeight.bold : DESIGN.fontWeight.medium,
+            fontFamily: DESIGN.fonts.body, color: active ? DESIGN.colors.pink : DESIGN.colors.textMuted,
+            background: 'none', border: 'none',
+            borderBottom: active ? `2px solid ${DESIGN.colors.pink}` : '2px solid transparent',
+            cursor: 'pointer', transition: `all ${DESIGN.transition.fast}`,
+          }}>
+            {label}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   // Auth guard
   if (!agencyId) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', background: '#fff', fontFamily: FB }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: DESIGN.colors.cream, fontFamily: DESIGN.fonts.body }}>
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
-            <Shield size={48} color={R} style={{ margin: '0 auto 16px', opacity: .4 }} />
-            <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK, marginBottom: 8 }}>Login Required</div>
-            <div style={{ fontSize: 14, color: '#374151' }}>You need to be logged into an agency to use KotoIQ.</div>
+            <div style={{ width: 64, height: 64, borderRadius: DESIGN.radius.lg, background: DESIGN.colors.warmGray, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <Shield size={30} color={DESIGN.colors.navy} style={{ opacity: .5 }} />
+            </div>
+            <div style={{ fontFamily: DESIGN.fonts.heading, fontSize: 28, fontWeight: DESIGN.fontWeight.bold, color: DESIGN.colors.navy, marginBottom: 8, letterSpacing: '0.02em' }}>LOGIN REQUIRED</div>
+            <div style={{ fontSize: DESIGN.fontSize.base, color: DESIGN.colors.textSecondary }}>You need to be logged into an agency to use KotoIQ.</div>
           </div>
         </div>
       </div>
     )
   }
 
-  // Intel tab renders the full KotoIQPage — key forces remount on client change
+  // Intel tab renders the full KotoIQPage
   if (shell === 'intel') {
     return <KotoIQPage key={clientId} />
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#ffffff', fontFamily: FB }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: DESIGN.colors.cream, fontFamily: DESIGN.fonts.body }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* ── Top navigation bar ──────────────────────────────────── */}
         <div style={{
-          background: '#fff',
-          borderBottom: '1px solid #e5e7eb',
+          background: DESIGN.colors.white,
+          borderBottom: `1px solid ${DESIGN.colors.border}`,
           flexShrink: 0,
           paddingTop: topOffset,
         }}>
           {/* Title row */}
-          <div style={{ padding: '16px 40px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Brain size={18} color="#fff" />
+          <div style={{ padding: '18px 40px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 38, height: 38, borderRadius: DESIGN.radius.md, background: DESIGN.colors.navy, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Brain size={18} color={DESIGN.colors.cream} />
             </div>
-            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>KotoIQ</div>
+            <div style={{ fontFamily: DESIGN.fonts.heading, fontSize: 26, fontWeight: DESIGN.fontWeight.bold, color: DESIGN.colors.navy, letterSpacing: '0.02em' }}>KOTOIQ</div>
           </div>
 
           {/* Shell tabs */}
-          <div style={{ display: 'flex', gap: 0, padding: '0 40px', marginTop: 16 }}>
+          <div style={{ display: 'flex', gap: 4, padding: '0 40px', marginTop: 18 }}>
             {SHELL_TABS.map(t => {
               const active = shell === t.key
               const Icon = t.icon
               return (
                 <button key={t.key} onClick={() => setShell(t.key)} style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '10px 20px',
-                  fontSize: 14, fontWeight: active ? 800 : 600,
-                  fontFamily: FH,
-                  color: active ? BLK : '#6b7280',
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  padding: '10px 22px',
+                  fontSize: DESIGN.fontSize.sm, fontWeight: active ? DESIGN.fontWeight.bold : DESIGN.fontWeight.medium,
+                  fontFamily: DESIGN.fonts.body,
+                  color: active ? DESIGN.colors.pink : DESIGN.colors.textMuted,
                   background: 'none', border: 'none',
-                  borderBottom: active ? `2px solid ${BLK}` : '2px solid transparent',
+                  borderBottom: active ? `2px solid ${DESIGN.colors.pink}` : '2px solid transparent',
                   cursor: 'pointer',
-                  transition: 'all .15s',
+                  transition: `all ${DESIGN.transition.fast}`,
                 }}>
-                  <Icon size={16} /> {t.label}
+                  <Icon size={16} color={active ? DESIGN.colors.pink : DESIGN.colors.textMuted} /> {t.label}
                 </button>
               )
             })}
@@ -167,31 +190,13 @@ export default function KotoIQShellPage() {
         </div>
 
         {/* ── Content area ────────────────────────────────────────── */}
-        <div style={{ flex: 1, overflow: 'auto', background: '#fff' }}>
+        <div className="kiq-scroll" style={{ flex: 1, overflow: 'auto', background: DESIGN.colors.cream }}>
 
           {/* ── Publish ──────────────────────────────────────────── */}
           {shell === 'publish' && (
             <div>
-              {/* Sub-tabs */}
-              <div style={{ padding: '12px 40px 0', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 0 }}>
-                {PUBLISH_SUBS.map(s => {
-                  const active = sub === s.key
-                  return (
-                    <button key={s.key} onClick={() => setSub(s.key)} style={{
-                      padding: '8px 18px', fontSize: 13, fontWeight: active ? 700 : 500,
-                      fontFamily: FH, color: active ? BLK : '#9ca3af',
-                      background: 'none', border: 'none',
-                      borderBottom: active ? `2px solid ${BLK}` : '2px solid transparent',
-                      cursor: 'pointer', transition: 'all .15s',
-                    }}>
-                      {s.label}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Sub content */}
-              <div style={{ padding: '24px 40px' }}>
+              <SubTabBar items={PUBLISH_SUBS} current={sub} onSelect={setSub} />
+              <div style={{ padding: '28px 40px' }}>
                 {sub === 'factory' && <PageSuggestionsTab key={clientId} clientId={clientId} agencyId={agencyId} />}
                 {sub === 'builder' && <BuilderTab key={clientId} agencyId={agencyId} />}
                 {sub === 'composer' && <CampaignComposerTab key={clientId} agencyId={agencyId} />}
@@ -203,56 +208,22 @@ export default function KotoIQShellPage() {
           {/* ── Tune ─────────────────────────────────────────────── */}
           {shell === 'tune' && (
             <div>
-              {/* Sub-tabs */}
-              <div style={{ padding: '12px 40px 0', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 0 }}>
-                {TUNE_SUBS.map(s => {
-                  const active = sub === s.key
-                  return (
-                    <button key={s.key} onClick={() => setSub(s.key)} style={{
-                      padding: '8px 18px', fontSize: 13, fontWeight: active ? 700 : 500,
-                      fontFamily: FH, color: active ? BLK : '#9ca3af',
-                      background: 'none', border: 'none',
-                      borderBottom: active ? `2px solid ${BLK}` : '2px solid transparent',
-                      cursor: 'pointer', transition: 'all .15s',
-                    }}>
-                      {s.label}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <div style={{ padding: '24px 40px' }}>
+              <SubTabBar items={TUNE_SUBS} current={sub} onSelect={setSub} />
+              <div style={{ padding: '28px 40px' }}>
                 {sub === 'attribution' && <AttributionTab key={clientId} agencyId={agencyId} />}
                 {sub === 'decay' && <ContentDecayTab key={clientId} agencyId={agencyId} />}
               </div>
             </div>
           )}
 
-          {/* ── Pipeline (Orchestrator + Needs Clarity) ──────────── */}
+          {/* ── Pipeline ─────────────────────────────────────────── */}
           {shell === 'pipeline' && (
             <div>
-              {/* Sub-tabs */}
-              <div style={{ padding: '12px 40px 0', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 0 }}>
-                {PIPELINE_SUBS.map(s => {
-                  const active = sub === s.key
-                  const labelWithBadge = s.key === 'clarity' && clarityCount > 0
-                    ? `${s.label} (${clarityCount})`
-                    : s.label
-                  return (
-                    <button key={s.key} onClick={() => setSub(s.key)} style={{
-                      padding: '8px 18px', fontSize: 13, fontWeight: active ? 700 : 500,
-                      fontFamily: FH, color: active ? BLK : '#9ca3af',
-                      background: 'none', border: 'none',
-                      borderBottom: active ? `2px solid ${BLK}` : '2px solid transparent',
-                      cursor: 'pointer', transition: 'all .15s',
-                    }}>
-                      {labelWithBadge}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Sub content */}
+              <SubTabBar
+                items={PIPELINE_SUBS.map(s => s.key === 'clarity' && clarityCount > 0 ? { ...s, badge: clarityCount } : s)}
+                current={sub}
+                onSelect={setSub}
+              />
               {sub === 'orchestrator' && (
                 <div style={{ padding: '40px' }}>
                   <PipelineOrchestratorTab clientId={clientId} agencyId={agencyId} />
@@ -267,39 +238,36 @@ export default function KotoIQShellPage() {
           {/* ── Settings ─────────────────────────────────────────── */}
           {shell === 'settings' && (
             <div style={{ padding: '40px' }}>
-              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Settings & Connections</div>
-              <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Manage WordPress connections, API keys, and publishing defaults.</div>
+              <div style={{ fontFamily: DESIGN.fonts.body, fontSize: DESIGN.fontSize.xl, fontWeight: DESIGN.fontWeight.bold, color: DESIGN.colors.navy, marginBottom: 8 }}>Settings & Connections</div>
+              <div style={{ fontSize: DESIGN.fontSize.base, color: DESIGN.colors.textSecondary, marginBottom: 28, lineHeight: 1.5 }}>Manage WordPress connections, API keys, and publishing defaults.</div>
 
-              {/* WordPress Connection Manager (full component) */}
-              <div style={{ marginBottom: 32 }}>
+              <div style={{ marginBottom: 36 }}>
                 <WordPressConnectionManager agencyId={agencyId} />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-                {/* API Keys */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px' }}>
-                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>API Keys</div>
-                  <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 18 }}>
+                <div style={{ background: DESIGN.colors.white, borderRadius: DESIGN.radius.lg, border: `1px solid ${DESIGN.colors.border}`, padding: '26px', boxShadow: DESIGN.shadow.sm }}>
+                  <div style={{ fontFamily: DESIGN.fonts.body, fontSize: DESIGN.fontSize.md, fontWeight: DESIGN.fontWeight.bold, color: DESIGN.colors.navy, marginBottom: 8 }}>API Keys</div>
+                  <div style={{ fontSize: DESIGN.fontSize.sm, color: DESIGN.colors.textSecondary, lineHeight: 1.6 }}>
                     Google Search Console, Analytics, and PageSpeed API keys. Coming soon.
                   </div>
                   <div style={{
-                    marginTop: 16, padding: '8px 16px', borderRadius: 8,
-                    background: '#f9fafb', fontSize: 12, fontWeight: 600, color: '#9ca3af',
+                    marginTop: 18, padding: '8px 18px', borderRadius: DESIGN.radius.pill,
+                    background: DESIGN.colors.warmGray, fontSize: DESIGN.fontSize.sm, fontWeight: DESIGN.fontWeight.semibold, color: DESIGN.colors.textMuted,
                     display: 'inline-block',
                   }}>
                     Coming Soon
                   </div>
                 </div>
 
-                {/* Cadence Defaults */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px' }}>
-                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>Cadence Defaults</div>
-                  <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+                <div style={{ background: DESIGN.colors.white, borderRadius: DESIGN.radius.lg, border: `1px solid ${DESIGN.colors.border}`, padding: '26px', boxShadow: DESIGN.shadow.sm }}>
+                  <div style={{ fontFamily: DESIGN.fonts.body, fontSize: DESIGN.fontSize.md, fontWeight: DESIGN.fontWeight.bold, color: DESIGN.colors.navy, marginBottom: 8 }}>Cadence Defaults</div>
+                  <div style={{ fontSize: DESIGN.fontSize.sm, color: DESIGN.colors.textSecondary, lineHeight: 1.6 }}>
                     Default publish cadence for new campaigns (burst, drip, weekly). Coming soon.
                   </div>
                   <div style={{
-                    marginTop: 16, padding: '8px 16px', borderRadius: 8,
-                    background: '#f9fafb', fontSize: 12, fontWeight: 600, color: '#9ca3af',
+                    marginTop: 18, padding: '8px 18px', borderRadius: DESIGN.radius.pill,
+                    background: DESIGN.colors.warmGray, fontSize: DESIGN.fontSize.sm, fontWeight: DESIGN.fontWeight.semibold, color: DESIGN.colors.textMuted,
                     display: 'inline-block',
                   }}>
                     Coming Soon

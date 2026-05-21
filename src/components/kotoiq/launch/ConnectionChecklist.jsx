@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, Circle, Loader2, Link2, Shield, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { R, T, BLK, GRN, AMB, FH, FB } from '../../../lib/theme'
+import { R, T, BLK, GRN, AMB, FH, FB, DESIGN } from '../../../lib/theme'
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #ececef', padding: '20px 22px', marginBottom: 14 }
 
