@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -278,17 +278,41 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   {tab === 'seo'               && <SEOPanel              site={activeSite}/>}
                 </WPSCConnectionGate>
               ) : (
-                <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${LINE}`, padding: 28, maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
-                  <Plug size={28} color={PINK} style={{ margin: '0 auto 10px' }}/>
-                  <div style={{ fontFamily: FB, fontSize: 17, fontWeight: 800, color: NAVY, marginBottom: 6 }}>
+                <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${LINE}`, padding: 32, maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
+                  <Plug size={28} color={PINK} style={{ margin: '0 auto 12px' }}/>
+                  <div style={{ fontFamily: FB, fontSize: 18, fontWeight: 700, color: NAVY, marginBottom: 8 }}>
                     No WP site connected for {activeClient?.name}
                   </div>
-                  <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, lineHeight: 1.5, marginBottom: 18 }}>
-                    Install <strong>KotoIQ</strong> on this client's site, then click <em>Connect</em> to pair it.
+                  <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.6, marginBottom: 24 }}>
+                    Download the KotoIQ plugin, install it on your client's WordPress site, then come back and click Connect to pair it.
                   </div>
-                  <button onClick={() => setShowAdd(true)} style={primaryBtn()}>
-                    <Plus size={13}/> Connect a site for this client
-                  </button>
+
+                  {/* Step-by-step instructions */}
+                  <div style={{ textAlign: 'left', background: '#FAF9F6', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: `1px solid ${LINE}` }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Setup Steps</div>
+                    {[
+                      { step: '1', text: 'Download the KotoIQ WordPress plugin below' },
+                      { step: '2', text: 'In WordPress admin, go to Plugins → Add New → Upload Plugin' },
+                      { step: '3', text: 'Upload the .zip file and click Install Now, then Activate' },
+                      { step: '4', text: 'Go to KotoIQ → Settings in WP admin and copy the API key' },
+                      { step: '5', text: 'Come back here and click Connect to paste the key' },
+                    ].map(({ step, text }) => (
+                      <div key={step} style={{ display: 'flex', gap: 12, marginBottom: 10, alignItems: 'flex-start' }}>
+                        <div style={{ width: 24, height: 24, borderRadius: 12, background: PINK, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{step}</div>
+                        <div style={{ fontSize: 14, color: '#4A4566', fontFamily: FB, lineHeight: 1.5 }}>{text}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <a href="/downloads/kotoiq-2.1.0.zip" download
+                      style={{ ...primaryBtn(), textDecoration: 'none', display: 'inline-flex' }}>
+                      <Download size={14}/> Download KotoIQ Plugin
+                    </a>
+                    <button onClick={() => setShowAdd(true)} style={mini({ borderColor: PINK, color: PINK })}>
+                      <Plus size={13}/> Connect a site
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

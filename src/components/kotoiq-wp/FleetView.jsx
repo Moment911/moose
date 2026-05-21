@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useMemo } from 'react'
-import { Loader2, RefreshCw, Search, UploadCloud } from 'lucide-react'
+import { Loader2, RefreshCw, Search, UploadCloud, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, BLK, FH, FB } from '../../lib/theme'
@@ -249,6 +249,17 @@ export default function FleetView({ onSelectSite }) {
               Push updates to {outdatedCount} site{outdatedCount === 1 ? '' : 's'}
             </button>
           )}
+          <a href="/downloads/kotoiq-2.1.0.zip" download
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '8px 13px', borderRadius: 8,
+              border: `1px solid ${LINE}`, background: '#fff', color: NAVY,
+              fontFamily: FB, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              textDecoration: 'none',
+            }}
+          >
+            <Download size={11}/> Download Plugin
+          </a>
           <button
             onClick={refreshAll}
             disabled={refreshingAll || loading}
