@@ -68,7 +68,7 @@ function AnalysisSection({ title: sectionTitle, checks, defaultOpen = false }) {
   )
 }
 
-function PageEditor({ page, siteId, onSaved, siteDiag, allPages }) {
+function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile }) {
   const [editing, setEditing] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState(null)
@@ -137,9 +137,15 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages }) {
           page_url: page.url,
           page_content: pageContent,
           page_type: page.type,
-          business_name: siteDiag?.site_name || '',
+          business_name: companyProfile?.business_name || siteDiag?.site_name || '',
           tagline: siteDiag?.tagline || '',
           site_url: siteDiag?.site_url || '',
+          industry: companyProfile?.industry || '',
+          location: companyProfile?.location || '',
+          target_customer: companyProfile?.target_customer || '',
+          unique_value: companyProfile?.unique_value || '',
+          services: companyProfile?.services || '',
+          company_summary: companyProfile?.summary || '',
           all_pages: (allPages || []).map(p => ({ title: p.title, url: p.url })),
         }),
       })
@@ -437,12 +443,155 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages }) {
   )
 }
 
+// ── Company Profile Section ─────────────────────────────────────────────
+function CompanyProfile({ siteId, profile, onSave }) {
+  const [open, setOpen] = useState(!profile?.summary)
+  const [editing, setEditing] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const [form, setForm] = useState({
+    business_name: profile?.business_name || '',
+    industry: profile?.industry || '',
+    location: profile?.location || '',
+    target_customer: profile?.target_customer || '',
+    unique_value: profile?.unique_value || '',
+    services: profile?.services || '',
+    summary: profile?.summary || '',
+  })
+
+  const scanAllPages = async () => {
+    setScanning(true)
+    try {
+      const res = await fetch('/api/wp/seo-optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'scan_business', site_id: siteId }),
+      })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error); setScanning(false); return }
+      const next = { ...form, ...data }
+      setForm(next)
+      onSave(next)
+      toast.success('AI scanned all pages and built a company profile')
+    } catch (e) { toast.error(e.message) }
+    setScanning(false)
+  }
+
+  const save = () => {
+    onSave(form)
+    setEditing(false)
+    toast.success('Company profile saved')
+  }
+
+  return (
+    <div style={card()}>
+      <button onClick={() => setOpen(!open)} style={{
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+        border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', padding: 0,
+      }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: `${DESIGN.colors.navy}12`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Sparkles size={16} color={DESIGN.colors.navy} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 15 }}>Company Profile</div>
+          <div style={{ fontSize: 13, color: DESIGN.colors.textSecondary, fontFamily: FB, marginTop: 2 }}>
+            {form.summary ? 'AI uses this context for all SEO and AEO optimization' : 'Tell the AI about this business so it writes better SEO'}
+          </div>
+        </div>
+        <ChevronDown size={14} color={DESIGN.colors.textMuted} style={{ transform: open ? 'rotate(0)' : 'rotate(-90deg)', transition: 'transform 150ms' }} />
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${DESIGN.colors.borderLight}` }}>
+          {/* AI scan button */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <button onClick={scanAllPages} disabled={scanning} style={{
+              ...primaryBtn(), background: DESIGN.colors.navy,
+              opacity: scanning ? 0.6 : 1, cursor: scanning ? 'wait' : 'pointer',
+            }}>
+              {scanning ? <Loader2 size={12} className="spin" /> : <Sparkles size={12} />}
+              {scanning ? 'Scanning all pages...' : 'AI: Scan Site & Build Profile'}
+            </button>
+            <button onClick={() => setEditing(!editing)} style={miniBtn()}>
+              <Edit2 size={12} /> {editing ? 'Close' : 'Edit Manually'}
+            </button>
+          </div>
+
+          {/* AI-generated summary */}
+          {form.summary && !editing && (
+            <div style={{ padding: '14px 16px', background: DESIGN.colors.warmGray, borderRadius: 10, marginBottom: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: DESIGN.colors.textMuted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI Business Summary</div>
+              <div style={{ fontSize: 14, color: DESIGN.colors.navy, lineHeight: 1.6, fontFamily: FB }}>{form.summary}</div>
+            </div>
+          )}
+
+          {/* Quick info pills (when not editing) */}
+          {!editing && (form.industry || form.location || form.target_customer) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+              {form.industry && <span style={{ padding: '4px 12px', borderRadius: 20, background: `${DESIGN.colors.pink}10`, color: DESIGN.colors.pink, fontSize: 12, fontWeight: 600 }}>{form.industry}</span>}
+              {form.location && <span style={{ padding: '4px 12px', borderRadius: 20, background: `${DESIGN.colors.navy}10`, color: DESIGN.colors.navy, fontSize: 12, fontWeight: 600 }}>{form.location}</span>}
+              {form.target_customer && <span style={{ padding: '4px 12px', borderRadius: 20, background: `${GRN}10`, color: GRN, fontSize: 12, fontWeight: 600 }}>{form.target_customer}</span>}
+            </div>
+          )}
+
+          {/* Edit form */}
+          {editing && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={lbl}>Business Name</label>
+                <input value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })} placeholder="e.g. 4R Method" style={inp()} />
+              </div>
+              <div>
+                <label style={lbl}>Industry</label>
+                <input value={form.industry} onChange={e => setForm({ ...form, industry: e.target.value })} placeholder="e.g. Functional Medicine" style={inp()} />
+              </div>
+              <div>
+                <label style={lbl}>Location / Service Area</label>
+                <input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Fort Lauderdale, FL" style={inp()} />
+              </div>
+              <div>
+                <label style={lbl}>Target Customer</label>
+                <input value={form.target_customer} onChange={e => setForm({ ...form, target_customer: e.target.value })} placeholder="e.g. Adults with chronic health issues" style={inp()} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={lbl}>Key Services (comma-separated)</label>
+                <input value={form.services} onChange={e => setForm({ ...form, services: e.target.value })} placeholder="e.g. IV therapy, hormone optimization, weight management" style={inp()} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={lbl}>What Makes Them Different</label>
+                <input value={form.unique_value} onChange={e => setForm({ ...form, unique_value: e.target.value })} placeholder="e.g. Doctor-led, personalized protocols, root cause approach" style={inp()} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={lbl}>Business Summary (AI uses this for every optimization)</label>
+                <textarea value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })} rows={3} placeholder="AI will generate this when you scan, or write your own..." style={{ ...inp(), resize: 'vertical', lineHeight: 1.5 }} />
+              </div>
+              <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8 }}>
+                <button onClick={save} style={primaryBtn()}>
+                  <Save size={12} /> Save Profile
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function SEOPanel({ site }) {
   const [diag, setDiag] = useState(null)
   const [pages, setPages] = useState([])
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [batchProgress, setBatchProgress] = useState(null) // { current, total, currentPage }
+  const [batchProgress, setBatchProgress] = useState(null)
+  // Company profile — persisted in localStorage per site
+  const [companyProfile, setCompanyProfile] = useState(() => {
+    if (typeof window === 'undefined') return {}
+    try { return JSON.parse(localStorage.getItem('kiq_seo_profile_' + site?.id) || '{}') } catch { return {} }
+  })
+  const saveProfile = (p) => {
+    setCompanyProfile(p)
+    if (typeof window !== 'undefined') localStorage.setItem('kiq_seo_profile_' + site?.id, JSON.stringify(p))
+  }
 
   const moduleEntry = (site?.wpsc_modules || []).find(m => m?.slug === 'seo')
   const moduleEnabled = moduleEntry ? moduleEntry.enabled !== false : false
@@ -505,6 +654,9 @@ export default function SEOPanel({ site }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
+      {/* Company Profile — context for all AI optimizations */}
+      <CompanyProfile siteId={site.id} profile={companyProfile} onSave={saveProfile} />
+
       {/* Connection + diagnostics */}
       <div style={card()}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
@@ -542,7 +694,7 @@ export default function SEOPanel({ site }) {
                 const cr = await fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'kotoiq_seo_content_get', site_id: site.id, post_id: p.id }) })
                 const cd = await cr.json()
                 const content = cd?.data?.content || ''
-                const ar = await fetch('/api/wp/seo-optimize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ page_title: p.title, page_url: p.url, page_content: content, page_type: p.type, business_name: diag?.site_name, tagline: diag?.tagline, site_url: diag?.site_url, all_pages: pages.map(x => ({ title: x.title, url: x.url })) }) })
+                const ar = await fetch('/api/wp/seo-optimize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ page_title: p.title, page_url: p.url, page_content: content, page_type: p.type, business_name: companyProfile?.business_name || diag?.site_name, tagline: diag?.tagline, site_url: diag?.site_url, industry: companyProfile?.industry, location: companyProfile?.location, target_customer: companyProfile?.target_customer, unique_value: companyProfile?.unique_value, services: companyProfile?.services, company_summary: companyProfile?.summary, all_pages: pages.map(x => ({ title: x.title, url: x.url })) }) })
                 const ai = await ar.json()
                 if (ai.focus_keyword) {
                   await fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'sync_push', site_id: site.id, changes: [{ type: 'seo_meta', post_id: p.id, data: { seo_title: ai.seo_title, meta_description: ai.meta_description, focus_keyword: ai.focus_keyword } }] }) })
@@ -561,11 +713,14 @@ export default function SEOPanel({ site }) {
           <button onClick={rebuildSitemap} disabled={busy} style={primaryBtn()}>
             {busy ? <Loader2 size={11} className="spin" /> : <Globe size={11} />} Rebuild sitemap & ping
           </button>
-          {diag?.site_url && (
-            <a href={`${diag.site_url}/sitemap.xml`} target="_blank" rel="noreferrer" style={{ ...miniBtn(), textDecoration: 'none' }}>
-              <ExternalLink size={11} /> sitemap.xml
+          {diag?.site_url && (<>
+            <a href={`${diag.site_url}/kotoiq-sitemap.xml`} target="_blank" rel="noreferrer" style={{ ...miniBtn(), textDecoration: 'none' }}>
+              <ExternalLink size={11} /> KotoIQ Sitemap
             </a>
-          )}
+            <a href={`${diag.site_url}/wp-sitemap.xml`} target="_blank" rel="noreferrer" style={{ ...miniBtn(), textDecoration: 'none' }}>
+              <ExternalLink size={11} /> WP Sitemap
+            </a>
+          </>)}
         </div>
       </div>
 
@@ -624,7 +779,7 @@ export default function SEOPanel({ site }) {
               </thead>
               <tbody>
                 {pages.slice(0, 50).map(p => (
-                  <PageEditor key={p.id} page={p} siteId={site.id} onSaved={load} siteDiag={diag} allPages={pages} />
+                  <PageEditor key={p.id} page={p} siteId={site.id} onSaved={load} siteDiag={diag} allPages={pages} companyProfile={companyProfile} />
                 ))}
               </tbody>
             </table>
