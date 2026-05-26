@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-03-PLAN.md
-last_updated: "2026-05-26T22:55:03.101Z"
+stopped_at: Completed 10-04-PLAN.md
+last_updated: "2026-05-26T23:29:31.513Z"
 last_activity: 2026-05-26 -- Phase 10 planning complete
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 28
-  completed_plans: 18
-  percent: 64
+  completed_plans: 19
+  percent: 68
 ---
 
 # Project State
@@ -76,6 +76,7 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 | Phase 07 P08 | 25min | 6 tasks | 10 files |
 | Phase 10 P02 | 7min | 2 tasks | 9 files |
 | Phase 10 P03 | 11min | 2 tasks | 8 files |
+| Phase 10 P04 | 18min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,10 @@ Recent decisions affecting current work:
 - [Phase 10]: Phase 8 profileIntegrationsVault reused for koto_wp_sites.app_password_encrypted — same KEK, same agency_id AAD binding, same EncryptedPayload shape
 - [Phase 10]: shimRpc never throws on HTTP/transport error — discriminated-union response forces callers to handle ok/error explicitly
 - [Phase 10]: pairSite uses audit-then-verify-then-persist ordering: pair_completed audit row, then health.ping, then storeSiteCredentials — broken pair never leaves half-paired site state
+- [Phase 10]: Plan 10-04: file.write confined to wp-content/uploads/kotoiq/** (NOT all wp-content); wire path MUST start with uploads/kotoiq/ or 403 fires
+- [Phase 10]: Plan 10-04: 501 stub callback hosted in dispatcher.php so verb-table.php stays pure data and grep count returns exactly 7 stub mappings
+- [Phase 10]: Plan 10-04: function_exists() guards dropped on new verb files (require_once guarantees single-load) saving 14 LOC and bringing budget under 500
+- [Phase 10]: Plan 10-04: TS runtime guards mirror PHP deny-list + path-confinement exactly so misuse never round-trips
 
 ### Pending Todos
 
@@ -174,8 +179,8 @@ UAT test data still seeded (reuse for the gauntlet):
 
 ## Session Continuity
 
-Last session: 2026-05-26T22:54:58.000Z
-Stopped at: Completed 10-03-PLAN.md
+Last session: 2026-05-26T23:29:05.135Z
+Stopped at: Completed 10-04-PLAN.md
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
