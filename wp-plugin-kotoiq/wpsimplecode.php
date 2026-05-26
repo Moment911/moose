@@ -3,7 +3,7 @@
  * Plugin Name:       KotoIQ
  * Plugin URI:        https://hellokoto.com/kotoiq
  * Description:       All-in-one agency SEO & site management plugin. Built-in SEO engine (replaces Yoast/Rank Math), real-time sync with KotoIQ platform, search & replace, code snippets, role-based access, Elementor builder, and content rotation. One plugin per site.
- * Version:           3.0.0
+ * Version:           3.0.1
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -19,7 +19,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('KOTOIQ_VERSION', '3.0.0');
+define('KOTOIQ_VERSION', '3.0.1');
 define('KOTOIQ_PLUGIN_FILE', __FILE__);
 define('KOTOIQ_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('KOTOIQ_PLUGIN_URL', plugin_dir_url(__FILE__));

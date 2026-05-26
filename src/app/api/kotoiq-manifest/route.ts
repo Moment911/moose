@@ -22,13 +22,15 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
 const MANIFEST = {
   plugin: 'kotoiq',
-  latest_version: '3.0.0',
-  download_url: `${APP_URL}/downloads/kotoiq-3.0.0.zip`,
-  sha256: '9b4bf4f6d5a51709dd4f76290e68dbba806cfceb0767c0ffe6d9d9cb6e8858f4',
-  released_at: '2026-05-19',
+  latest_version: '3.0.1',
+  download_url: `${APP_URL}/downloads/kotoiq-3.0.1.zip`,
+  sha256: 'dbd2a8a1bab62938009b3c394d0983770672f5dbef1e097344b8a98982fc705e',
+  released_at: '2026-05-26',
   channel: 'stable',
-  changelog: 'SEO & Page Factory v3.0 — built-in SEO engine replaces Yoast/Rank Math. Native meta titles, descriptions, focus keywords, JSON-LD schema, Open Graph tags, sitemap rebuild, auto-ping on publish.',
+  changelog: 'Self-update auto-pins the Allowed host on first authenticated push instead of failing with no_allowed_host. New POST /config/allowed-host endpoint lets the KotoIQ dashboard set the pin remotely at pair time.',
   history: [
+    { version: '3.0.1', released_at: '2026-05-26', note: 'Self-update no longer requires manual Allowed host configuration — first authenticated push auto-pins from the download URL. New /config/allowed-host endpoint for remote configuration.' },
+    { version: '3.0.0', released_at: '2026-05-19', note: 'SEO & Page Factory v3.0 — built-in SEO engine replaces Yoast/Rank Math. Native meta titles, descriptions, focus keywords, JSON-LD schema, Open Graph tags, sitemap rebuild, auto-ping on publish.' },
     { version: '2.1.0', released_at: '2026-05-19', note: 'SEO module lifted from standalone Koto SEO 2.0.0. 6 modules total. Legacy koto_api_key still accepted on koto/v1 + hlseo/v1 routes for back-compat.' },
     { version: '2.0.0', released_at: '2026-05-19', note: 'Initial KotoIQ release. Zip extracts to wpsimplecode/ so it overwrites the legacy 1.2.0 install in place — one plugin entry per site, no duplicate folders.' },
   ],

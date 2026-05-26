@@ -32,7 +32,22 @@ add_action('rest_api_init', function () {
         'callback' => 'kotoiq_self_update_info',
         'permission_callback' => 'kotoiq_perm_read',
     ]);
+    kotoiq_register_rest_route('/config/allowed-host', [
+        'methods'  => 'POST',
+        'callback' => 'kotoiq_set_allowed_host',
+        'permission_callback' => 'kotoiq_perm_write',
+    ]);
 });
+
+function kotoiq_set_allowed_host($req) {
+    $p = $req->get_json_params();
+    $host = isset($p['host']) ? trim((string) $p['host']) : '';
+    if ($host === '' || stripos($host, 'https://') !== 0) {
+        return new WP_Error('bad_host', 'host must be an https:// URL', ['status' => 400]);
+    }
+    update_option(KOTOIQ_OPT_REMOTE_HOST, $host);
+    return rest_ensure_response(['ok' => true, 'allowed_host' => $host]);
+}
 
 function kotoiq_self_update_info($req) {
     return rest_ensure_response([
@@ -56,7 +71,17 @@ function kotoiq_self_update($req) {
 
     $allowed_host = trim((string) get_option(KOTOIQ_OPT_REMOTE_HOST, ''));
     if ($allowed_host === '') {
-        return new WP_Error('no_allowed_host', 'Self-update requires an Allowed host configured in KotoIQ → Settings', ['status' => 400]);
+        // Auto-pin from the authenticated caller's download URL. The Bearer
+        // token already proved the caller is trusted; using the URL they
+        // sent as the pin is equivalent to a manual one-time setting and
+        // matches auth.php behaviour (which treats empty allowed_host as
+        // "no origin check yet"). After this call the pin is fixed.
+        $parts = wp_parse_url($url);
+        if (empty($parts['scheme']) || empty($parts['host'])) {
+            return new WP_Error('bad_url', 'download_url is not a valid URL', ['status' => 400]);
+        }
+        $allowed_host = $parts['scheme'] . '://' . $parts['host'];
+        update_option(KOTOIQ_OPT_REMOTE_HOST, $allowed_host);
     }
     if (stripos($url, $allowed_host) !== 0) {
         return new WP_Error('host_mismatch', "Download URL must start with the allowed host ({$allowed_host})", ['status' => 400]);

@@ -2,38 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready-for-pilot
-stopped_at: M1 code-complete + infra green; Phase 8 UI scope-cut to next milestone; remaining work is human UAT + PILOT-01 operator test
-last_updated: "2026-05-17T03:00:00.000Z"
-last_activity: 2026-05-16
+status: executing
+stopped_at: Phase 08 UI-SPEC approved
+last_updated: "2026-05-20T21:38:46.561Z"
+last_activity: 2026-05-20 -- Phase 9 planning complete
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 15
+  total_phases: 9
+  completed_phases: 2
+  total_plans: 16
   completed_plans: 15
-  percent: 100
-trainer_initiative:
-  status: in-progress
-  plans_complete: 2
-  plans_total: 3
-  current_plan: 03-ui
-  last_update: "2026-04-21"
-  notes: Plans 01 (schema) + 02 (API dispatcher) landed. Plan 03 (UI) in progress on clean M1-complete baseline.
-kotoiq_plans_initiative:
-  status: code-complete-pending-migration
-  shipped:
-    - "Migration 20260616_kotoiq_plans (kotoiq_plans + kotoiq_plan_steps tables)"
-    - "Agent rename: chat surface = KotoBrain; product/platform = KotoIQ (commits 47b33db, 0c89da0)"
-    - "planBuilderEngine.ts — Claude Sonnet planner with full tool catalog (commit 0c89da0)"
-    - "planExecutorEngine.ts — single-step executor with depends_on graph + artifact extraction"
-    - "7 API actions in /api/kotoiq dispatcher: plan_create, plan_list, plan_get, plan_approve, plan_execute_next, plan_pause, plan_archive"
-    - "KotoBrain create_plan tool — chat input becomes a plan"
-    - "PlansTab.jsx — list + timeline + approve/run-next/run-remaining/pause/archive"
-    - "SideNav 'Plans' entry (Overview group) + KOTOIQ_NAV_GROUPS Strategy entry"
-  pending_action: "Apply migration 20260616_kotoiq_plans via Supabase SQL Editor (PlansTab calls 500 until tables exist in prod)"
-  next: "Background-actions refactor — all tab actions through Workflow DevKit queue + global tray; PlansTab as pilot"
-infra_fixes:
-  - "2026-05-16: deleted-then-shimmed src/lib/theme.js — was 9-export stub silently shadowing 162-line theme.ts for ~30+ files. Fixed brand inconsistency (T was cyan in stub vs unified teal in .ts) and 117+ Webpack 'Attempted import error' warnings for cardStyle/badgeStyle/buttonPrimary/DST/etc. Shim re-exports theme.ts so legacy `.js`-resolving imports still work."
+  percent: 94
 ---
 
 # Project State
@@ -49,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 Phase: 8 (code-complete + verified)
 Plan: All 15 plans code-complete
-Status: Ready for pilot + human UAT
-Last activity: 2026-04-21
+Status: Ready to execute
+Last activity: 2026-05-20 -- Phase 9 planning complete
 
 Progress: [██████████] 100% code-complete; 88% toward M1 done-done (pending human UAT + PILOT-01 operator test)
 
@@ -166,6 +144,7 @@ Both Phase 7 blockers resolved in this session:
 2. **React "Expected static flag was missing" Sidebar crash on Turbopack** — workaround only; root fix deferred. Use `next dev --no-turbo` for dev UAT until Next 16.x / React 19 patches the fiber reconciliation bug (or until Sidebar is refactored to use `hidden` props instead of conditional JSX fragments at line 426).
 
 **Phase 8 infra (2026-04-21):**
+
 - ✅ Migration `20260520_kotoiq_agency_integrations` applied to prod Supabase (14 cols, 4 indexes, 1 trigger)
 - ✅ Env vars set: `KOTO_AGENCY_INTEGRATIONS_KEK` (prod+preview+dev), `GOOGLE_CLIENT_ID/SECRET` (prod+preview+dev), `GOOGLE_PLACES_KEY` (prod+preview+dev). `NEXT_PUBLIC_GOOGLE_CLIENT_*` removed (was browser-leaking the OAuth secret).
 - ✅ Phase 8 code patched to accept canonical env names (commit `9becf78`): `GOOGLE_CLIENT_ID || GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_PLACES_KEY || GOOGLE_PLACES_API_KEY`.
@@ -173,12 +152,14 @@ Both Phase 7 blockers resolved in this session:
 - 🟡 **Plan 08-08 UI scope-cut** — zero JSX callers for `seed_form_url`, `seed_website`, `seed_upload`, `seed_gbp_*`. Declared "API-complete, UI v1 next milestone". PILOT-01 runs against Phase 7 internal ingest (Momenta already in Koto with onboarding data).
 
 UAT test data still seeded (reuse for the gauntlet):
+
 - FULL client: `45f441e2-dfa8-426f-a959-566c3a984065` (UAT_SEED__RDC Restoration (full))
 - PARTIAL client: `82d1175a-68ed-4713-a4e7-640048220f5c` (UAT_SEED__Partial Restoration Co (gaps))
 - Agency: `00000000-0000-0000-0000-000000000099` (Momenta Marketing)
 - Cleanup SQL: `UPDATE clients SET deleted_at = now() WHERE name LIKE 'UAT_SEED__%';`
 
 **M1 closure gates remaining:**
+
 - Human UAT gauntlet on Phase 7 PROF-01..PROF-05 (unblocked — run `next dev --no-turbo`)
 - PILOT-01 — 20 live hyperlocal pages on momentamktg.com with per-page KPI rollup, attribution, CWV, IndexNow confirmations
 

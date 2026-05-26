@@ -1421,11 +1421,16 @@ Rules:
       if (!wpsc_api_key) return NextResponse.json({ error: 'wpsc_api_key required' }, { status: 400 })
       await sb.from('koto_wp_sites').update({ wpsc_api_key }).eq('id', site_id)
       // Verify the key by hitting an authenticated endpoint
-      const verify = await proxyToWPSC({ ...site, wpsc_api_key }, 'access/roles', {})
+      const paired_site = { ...site, wpsc_api_key }
+      const verify = await proxyToWPSC(paired_site, 'access/roles', {})
       if (!verify.ok) {
         return NextResponse.json({ paired: false, error: verify.data?.error || `HTTP ${verify.status}` }, { status: 400 })
       }
-      return NextResponse.json({ paired: true })
+      // Push the Allowed host so self-update works out of the box. Best-effort —
+      // sites on plugins pre-3.0.1 don't have /config/allowed-host yet, so a
+      // 404 here is non-fatal; the site owner can still set it manually.
+      const hostPin = await proxyToWPSC(paired_site, 'config/allowed-host', { host: APP_URL })
+      return NextResponse.json({ paired: true, allowed_host_set: hostPin.ok })
     }
 
     if (action === 'wpsc_clear_key') {
