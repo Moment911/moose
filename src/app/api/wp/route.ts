@@ -409,7 +409,14 @@ Rules:
       })
       if (!verifyRes.ok) {
         const txt = await verifyRes.text().catch(() => '')
-        return NextResponse.json({ error: `Auth failed (${verifyRes.status}). Make sure "Enable remote control" is checked in WPSimpleCode → Settings. ${txt.slice(0, 200)}` }, { status: 400 })
+        const hint = txt.includes('remote control is disabled')
+          ? 'Go to your WordPress admin → KotoIQ (or WPSimpleCode) → Settings and check "Enable remote control", then try connecting again.'
+          : txt.includes('No API key')
+          ? 'The plugin has no API key set. Go to WordPress admin → KotoIQ → Settings and generate an API key.'
+          : txt.includes('Invalid API key')
+          ? 'The API key you entered doesn\'t match the one on the site. Copy the key from WordPress admin → KotoIQ → Settings.'
+          : `Check the plugin is installed and active on the site. Error: ${txt.slice(0, 150)}`
+        return NextResponse.json({ error: `Connection failed: ${hint}` }, { status: 400 })
       }
 
       const { data: existing } = await sb.from('koto_wp_sites').select('id').eq('site_url', cleanUrl).maybeSingle()
