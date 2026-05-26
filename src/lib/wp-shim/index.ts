@@ -44,3 +44,10 @@ export type {
     DualRunLogRow,
     ShimPairingRow,
 } from './types'
+
+// ── Typed verb wrappers (Plan 10-04, 20 core verbs) ───────────────────────
+// Each wrapper is a thin signature-with-types layer over shimRpc plus a
+// runtime guard for high-risk verbs. The barrel below re-exports both the
+// functions and their request/response interface types so downstream plans
+// can pin call sites with full type safety.
+export * from './verbs'
