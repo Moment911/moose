@@ -20,6 +20,8 @@ import {
     cronTrigger,
     cronUnschedule,
     databaseUpdateBulk,
+    elementorClone,
+    elementorSave,
     eventsLogTail,
     fileDelete,
     fileExists,
@@ -428,6 +430,106 @@ describe('verbs/index — Plan 10-05 runtime guards', () => {
         await expect(
             webhookSet(SITE, { event: 'save_post', url: 'http://hellokoto.com/x' }),
         ).rejects.toThrow(/https/i)
+        expect(shimRpc).not.toHaveBeenCalled()
+    })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Plan 10-06 — elementor.* host-bound verb wrappers + guards
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('verbs/index — Plan 10-06 elementor wrapper contracts', () => {
+    it('elementorSave passes verb=elementor.save with post_id=int', async () => {
+        await elementorSave(SITE, { post_id: 42, elementor_data: [{ id: 'x' }] })
+        expect(shimRpc).toHaveBeenCalledWith(SITE, 'elementor.save', {
+            post_id: 42,
+            elementor_data: [{ id: 'x' }],
+        })
+    })
+
+    it('elementorSave passes verb=elementor.save with post_id="new" + title', async () => {
+        await elementorSave(SITE, { post_id: 'new', title: 'Hello', elementor_data: [] })
+        expect(shimRpc).toHaveBeenCalledWith(SITE, 'elementor.save', {
+            post_id: 'new',
+            title: 'Hello',
+            elementor_data: [],
+        })
+    })
+
+    it('elementorClone passes verb=elementor.clone with source_post_id', async () => {
+        await elementorClone(SITE, { source_post_id: 7 })
+        expect(shimRpc).toHaveBeenCalledWith(SITE, 'elementor.clone', { source_post_id: 7 })
+    })
+
+    it('elementorClone passes verb=elementor.clone with post_meta + allowlist', async () => {
+        await elementorClone(SITE, {
+            source_post_id: 7,
+            post_meta: { rank_math_title: 'X' },
+            meta_prefix_allowlist: ['rank_math_'],
+        })
+        expect(shimRpc).toHaveBeenCalledWith(SITE, 'elementor.clone', {
+            source_post_id: 7,
+            post_meta: { rank_math_title: 'X' },
+            meta_prefix_allowlist: ['rank_math_'],
+        })
+    })
+})
+
+describe('verbs/index — Plan 10-06 elementor runtime guards', () => {
+    it('elementorSave throws when post_id="new" + missing title BEFORE shimRpc', async () => {
+        await expect(
+            elementorSave(SITE, { post_id: 'new', elementor_data: [] }),
+        ).rejects.toThrow(/title.*required|new/i)
+        expect(shimRpc).not.toHaveBeenCalled()
+    })
+
+    it('elementorSave throws when elementor_data is a JSON string BEFORE shimRpc', async () => {
+        await expect(
+            // @ts-expect-error — intentional misuse: string instead of array
+            elementorSave(SITE, { post_id: 1, elementor_data: '[]' }),
+        ).rejects.toThrow(/array|JSON string/i)
+        expect(shimRpc).not.toHaveBeenCalled()
+    })
+
+    it('elementorSave throws when idempotency_key has invalid chars BEFORE shimRpc', async () => {
+        await expect(
+            elementorSave(SITE, {
+                post_id: 1,
+                elementor_data: [],
+                idempotency_key: 'bad key with spaces!',
+            }),
+        ).rejects.toThrow(/idempotency_key/i)
+        expect(shimRpc).not.toHaveBeenCalled()
+    })
+
+    it('elementorClone throws when post_meta non-empty + allowlist missing BEFORE shimRpc', async () => {
+        await expect(
+            elementorClone(SITE, {
+                source_post_id: 7,
+                post_meta: { rank_math_title: 'X' },
+            }),
+        ).rejects.toThrow(/meta_prefix_allowlist/i)
+        expect(shimRpc).not.toHaveBeenCalled()
+    })
+
+    it('elementorClone throws when post_meta key does not match any prefix BEFORE shimRpc', async () => {
+        await expect(
+            elementorClone(SITE, {
+                source_post_id: 7,
+                post_meta: { _yoast_wpseo_title: 'X' },
+                meta_prefix_allowlist: ['rank_math_'],
+            }),
+        ).rejects.toThrow(/does not match|allowed prefix/i)
+        expect(shimRpc).not.toHaveBeenCalled()
+    })
+
+    it('elementorClone throws when idempotency_key has invalid chars BEFORE shimRpc', async () => {
+        await expect(
+            elementorClone(SITE, {
+                source_post_id: 7,
+                idempotency_key: 'bad key!',
+            }),
+        ).rejects.toThrow(/idempotency_key/i)
         expect(shimRpc).not.toHaveBeenCalled()
     })
 })

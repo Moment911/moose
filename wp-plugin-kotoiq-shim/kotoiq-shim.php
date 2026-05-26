@@ -68,6 +68,7 @@ require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-webhook.php';
 // Runtime hooks (installed on every request — not behind RPC).
 require_once KOTOIQ_SHIM_DIR . 'runtime/access-filter.php';
 require_once KOTOIQ_SHIM_DIR . 'runtime/snippets.php';
+require_once KOTOIQ_SHIM_DIR . 'shortcodes/koto-rotate.php';
 
 // ─── Activation ────────────────────────────────────────────────────────────
 register_activation_hook(__FILE__, function () {

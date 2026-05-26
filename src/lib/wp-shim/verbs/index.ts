@@ -582,6 +582,94 @@ export async function webhookSet(
     return shimRpc<WebhookSetResponse>(siteUrl, 'webhook.set', { ...args })
 }
 
+// ─── Phase 10 Plan 10-06 — elementor.* host-bound verbs ────────────────────
+
+export interface ElementorSaveArgs {
+    post_id: number | 'new'
+    elementor_data: Array<unknown> // Elementor element tree — array (NOT a JSON string)
+    page_settings?: Record<string, unknown>
+    status?: 'draft' | 'publish' | 'private'
+    title?: string // required if post_id === 'new'
+    slug?: string
+    post_type?: 'page' | 'post' | string
+    idempotency_key?: string
+}
+export interface ElementorSaveResponse {
+    ok: true
+    post_id: number
+    url: string
+    status: string
+    elementor_version: string | null
+    css_regenerated: boolean
+    idempotent?: boolean
+    element_count: number
+}
+export async function elementorSave(
+    siteUrl: string,
+    args: ElementorSaveArgs,
+): Promise<ShimRpcResponse<ElementorSaveResponse>> {
+    if (args.post_id === 'new' && (!args.title || args.title === '')) {
+        throw new TypeError('[wp-shim] elementor.save: title is required when post_id === "new"')
+    }
+    if (!Array.isArray(args.elementor_data)) {
+        throw new TypeError(
+            '[wp-shim] elementor.save: elementor_data must be an array (not a JSON string)',
+        )
+    }
+    if (args.idempotency_key && !/^[A-Za-z0-9_-]{1,64}$/.test(args.idempotency_key)) {
+        throw new TypeError(
+            '[wp-shim] elementor.save: idempotency_key must match /^[A-Za-z0-9_-]{1,64}$/',
+        )
+    }
+    return shimRpc<ElementorSaveResponse>(siteUrl, 'elementor.save', { ...args })
+}
+
+export interface ElementorCloneArgs {
+    source_post_id: number
+    title?: string
+    slug?: string
+    status?: 'draft' | 'publish' | 'private'
+    elementor_data?: Array<unknown>
+    page_settings?: Record<string, unknown>
+    body_html?: string
+    post_meta?: Record<string, string>
+    meta_prefix_allowlist?: string[] // REQUIRED if post_meta is non-empty
+    idempotency_key?: string
+}
+export interface ElementorCloneResponse {
+    ok: true
+    post_id: number
+    source_id: number
+    url: string
+    status: string
+}
+export async function elementorClone(
+    siteUrl: string,
+    args: ElementorCloneArgs,
+): Promise<ShimRpcResponse<ElementorCloneResponse>> {
+    if (args.post_meta && Object.keys(args.post_meta).length > 0) {
+        if (!args.meta_prefix_allowlist || args.meta_prefix_allowlist.length === 0) {
+            throw new TypeError(
+                '[wp-shim] elementor.clone: meta_prefix_allowlist is required when post_meta is non-empty',
+            )
+        }
+        const allowed = args.meta_prefix_allowlist
+        for (const k of Object.keys(args.post_meta)) {
+            if (!allowed.some((p) => k.startsWith(p))) {
+                throw new TypeError(
+                    `[wp-shim] elementor.clone: meta key "${k}" does not match any allowed prefix`,
+                )
+            }
+        }
+    }
+    if (args.idempotency_key && !/^[A-Za-z0-9_-]{1,64}$/.test(args.idempotency_key)) {
+        throw new TypeError(
+            '[wp-shim] elementor.clone: idempotency_key must match /^[A-Za-z0-9_-]{1,64}$/',
+        )
+    }
+    return shimRpc<ElementorCloneResponse>(siteUrl, 'elementor.clone', { ...args })
+}
+
 // ─── snippet convenience wrappers (option.get/update under the hood) ──────
 // Snippet CRUD goes through option.get/option.update against the
 // 'kotoiq_shim_snippets' option — there's no dedicated verb because the
