@@ -6,57 +6,88 @@ const client = new Anthropic()
 /**
  * POST /api/wp/seo-optimize
  *
- * AI-powered SEO + AEO optimization. Reads page content and generates
- * optimal SEO title, meta description, focus keyword, and FAQ schema
- * for both traditional search and AI answer engines.
+ * AI-powered SEO + AEO optimization. Reads page content plus business
+ * context to generate optimal metadata for both Google and AI answer engines.
  */
 export async function POST(req: NextRequest) {
   try {
-    const { page_title, page_url, page_content, page_type, business_name, industry } = await req.json()
+    const {
+      page_title, page_url, page_content, page_type,
+      business_name, industry, tagline, site_url,
+      all_pages, // array of { title, url } for internal linking context
+    } = await req.json()
 
     if (!page_content && !page_title) {
       return NextResponse.json({ error: 'page_content or page_title required' }, { status: 400 })
     }
 
-    // Truncate content to avoid token limits
-    const content = (page_content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 8000)
+    // Strip HTML, truncate content
+    const content = (page_content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 10000)
+
+    // Build business context from available info
+    const bizContext = [
+      business_name && `Business Name: ${business_name}`,
+      tagline && `Tagline: ${tagline}`,
+      industry && `Industry: ${industry}`,
+      site_url && `Website: ${site_url}`,
+    ].filter(Boolean).join('\n')
+
+    // Build site structure context for internal linking
+    const sitePages = (all_pages || []).slice(0, 30).map((p: any) => `- ${p.title} (${p.url})`).join('\n')
 
     const msg = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
+      max_tokens: 2000,
       messages: [{
         role: 'user',
-        content: `You are an expert SEO and AEO (Answer Engine Optimization) specialist. Analyze this web page and generate optimized SEO metadata.
+        content: `You are an expert SEO and AEO (Answer Engine Optimization) specialist working for a marketing agency. Your job is to deeply understand what this business does, who their customers are, and what services they offer, then write SEO metadata that actually drives qualified traffic.
 
-PAGE TITLE: ${page_title || 'Unknown'}
-PAGE URL: ${page_url || 'Unknown'}
-PAGE TYPE: ${page_type || 'page'}
-BUSINESS: ${business_name || 'Unknown'}
-INDUSTRY: ${industry || 'Unknown'}
+BUSINESS CONTEXT:
+${bizContext || 'Not provided — infer from the page content.'}
 
-PAGE CONTENT (first 8000 chars):
+PAGE BEING OPTIMIZED:
+Title: ${page_title || 'Unknown'}
+URL: ${page_url || 'Unknown'}
+Type: ${page_type || 'page'}
+
+PAGE CONTENT (stripped HTML):
 ${content}
 
-Generate the following in JSON format:
+${sitePages ? `OTHER PAGES ON THIS SITE (for context on what the business offers):\n${sitePages}` : ''}
 
-1. "focus_keyword" — The single best keyword/phrase this page should rank for. 2-4 words, high intent, specific to what the page offers. Think about what someone would actually search on Google.
+INSTRUCTIONS:
+First, understand what this business actually does. Read the content carefully. Identify:
+- What services/products they offer
+- Who their target customer is
+- What geographic area they serve (if local)
+- What makes them different
 
-2. "seo_title" — An optimized SEO title (50-60 characters). Must include the focus keyword near the beginning. Include a power word or number. Make it compelling enough to click.
+Then generate the following as JSON:
 
-3. "meta_description" — A meta description (140-155 characters). Must include the focus keyword naturally. Include a clear value proposition and a soft call-to-action. This shows up in Google search results — make it sell.
+1. "focus_keyword" — The single best keyword/phrase (2-5 words) that a real customer would search on Google to find this exact page. Be specific to the service and location if applicable. Don't be generic. Think: what would someone type into Google right before they call this business?
 
-4. "faq_schema" — Array of 3-5 FAQ items that AI answer engines (ChatGPT, Gemini, Perplexity) would want to cite. Each has "question" and "answer". Questions should be natural queries people ask about this topic. Answers should be direct, factual, 1-3 sentences. This is AEO — optimizing for AI engines to cite this page.
+2. "seo_title" — SEO title, 50-60 characters. Focus keyword near the start. Include the business name or location. Make it clear what the user gets if they click. No clickbait.
 
-5. "secondary_keywords" — Array of 3-5 related keywords/phrases this page could also rank for (LSI keywords).
+3. "meta_description" — 140-155 characters. Must read naturally, include the focus keyword, state what the business does and why someone should choose them. End with a soft CTA. This text appears in Google results — it needs to sell the click.
 
-6. "reasoning" — One sentence explaining your keyword choice and optimization strategy.
+4. "faq_schema" — Array of 4-6 FAQ items optimized for AI answer engines (ChatGPT, Gemini, Perplexity). Each has "question" and "answer".
+   - Questions should be real questions potential customers ask (not generic SEO questions)
+   - Answers should be direct, factual, 2-3 sentences max
+   - Include specifics from the page content (pricing, process, credentials, areas served)
+   - AI engines cite pages that give clear, direct answers — write for that
+   - Include at least one question about "what is [service]" and one about "why choose [business]"
 
-Respond with ONLY valid JSON, no markdown, no explanation outside the JSON.`
+5. "secondary_keywords" — Array of 4-6 related search terms (long-tail and LSI keywords). Include location-modified variants if the business is local.
+
+6. "og_description" — A shorter, punchier version (80-100 chars) for social media sharing.
+
+7. "reasoning" — 2-3 sentences explaining: what the business does, who the customer is, and why you chose this keyword strategy.
+
+Respond with ONLY valid JSON. No markdown wrapping, no explanation outside JSON.`
       }],
     })
 
     const text = (msg.content[0] as any).text || ''
-    // Parse JSON from response (handle potential markdown wrapping)
     const jsonStr = text.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim()
     const result = JSON.parse(jsonStr)
 

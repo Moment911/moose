@@ -68,7 +68,7 @@ function AnalysisSection({ title: sectionTitle, checks, defaultOpen = false }) {
   )
 }
 
-function PageEditor({ page, siteId, onSaved }) {
+function PageEditor({ page, siteId, onSaved, siteDiag, allPages }) {
   const [editing, setEditing] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState(null)
@@ -93,7 +93,7 @@ function PageEditor({ page, siteId, onSaved }) {
       const contentData = await contentRes.json()
       const pageContent = contentData?.data?.content || contentData?.data?.content_html || ''
 
-      // Call AI optimizer
+      // Call AI optimizer with full business context
       const res = await fetch('/api/wp/seo-optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -102,6 +102,10 @@ function PageEditor({ page, siteId, onSaved }) {
           page_url: page.url,
           page_content: pageContent,
           page_type: page.type,
+          business_name: siteDiag?.site_name || '',
+          tagline: siteDiag?.tagline || '',
+          site_url: siteDiag?.site_url || '',
+          all_pages: (allPages || []).map(p => ({ title: p.title, url: p.url })),
         }),
       })
       const data = await res.json()
@@ -399,6 +403,7 @@ export default function SEOPanel({ site }) {
   const [pages, setPages] = useState([])
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [batchProgress, setBatchProgress] = useState(null) // { current, total, currentPage }
 
   const moduleEntry = (site?.wpsc_modules || []).find(m => m?.slug === 'seo')
   const moduleEnabled = moduleEntry ? moduleEntry.enabled !== false : false
@@ -486,25 +491,28 @@ export default function SEOPanel({ site }) {
 
         <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
           <button onClick={async () => {
-            if (!confirm(`AI Optimize all ${totalPages} pages? This will generate SEO titles, descriptions, and keywords for every page without meta. Cost: ~$0.01 per page.`)) return
-            setBusy(true)
-            let done = 0
             const noMeta = pages.filter(p => !p.has_seo_meta)
             const targets = noMeta.length > 0 ? noMeta : pages.slice(0, 10)
+            if (!confirm(`AI Optimize ${targets.length} page${targets.length === 1 ? '' : 's'}${noMeta.length > 0 ? ' (all pages missing meta)' : ''}?\n\nThis generates SEO titles, descriptions, keywords, and AEO FAQ schema for each page, then pushes to WordPress.\n\nEstimated cost: ~$${(targets.length * 0.01).toFixed(2)}`)) return
+            setBusy(true)
+            let done = 0
+            setBatchProgress({ current: 0, total: targets.length, currentPage: '' })
             for (const p of targets) {
+              setBatchProgress({ current: done, total: targets.length, currentPage: p.title })
               try {
                 const cr = await fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'kotoiq_seo_content_get', site_id: site.id, post_id: p.id }) })
                 const cd = await cr.json()
                 const content = cd?.data?.content || ''
-                const ar = await fetch('/api/wp/seo-optimize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ page_title: p.title, page_url: p.url, page_content: content, page_type: p.type }) })
+                const ar = await fetch('/api/wp/seo-optimize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ page_title: p.title, page_url: p.url, page_content: content, page_type: p.type, business_name: diag?.site_name, tagline: diag?.tagline, site_url: diag?.site_url, all_pages: pages.map(x => ({ title: x.title, url: x.url })) }) })
                 const ai = await ar.json()
                 if (ai.focus_keyword) {
                   await fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'sync_push', site_id: site.id, changes: [{ type: 'seo_meta', post_id: p.id, data: { seo_title: ai.seo_title, meta_description: ai.meta_description, focus_keyword: ai.focus_keyword } }] }) })
                   done++
-                  toast.success(`${done}/${targets.length}: ${p.title}`, { duration: 2000 })
+                  setBatchProgress({ current: done, total: targets.length, currentPage: p.title })
                 }
               } catch {}
             }
+            setBatchProgress(null)
             toast.success(`AI optimized ${done} pages. Refreshing...`)
             await load()
             setBusy(false)
@@ -521,6 +529,33 @@ export default function SEOPanel({ site }) {
           )}
         </div>
       </div>
+
+      {/* Batch progress banner */}
+      {batchProgress && (
+        <div style={{ background: DESIGN.colors.navy, borderRadius: 14, padding: '18px 22px', color: '#fff', fontFamily: FB }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>
+                AI Optimizing: {batchProgress.current} / {batchProgress.total} pages
+              </div>
+              <div style={{ fontSize: 13, opacity: 0.7, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {batchProgress.current < batchProgress.total ? `Working on: ${batchProgress.currentPage}` : 'Finishing up...'}
+              </div>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FB }}>
+              {Math.round((batchProgress.current / batchProgress.total) * 100)}%
+            </div>
+          </div>
+          <div style={{ height: 6, background: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', background: DESIGN.colors.pink, borderRadius: 3,
+              width: `${(batchProgress.current / batchProgress.total) * 100}%`,
+              transition: 'width 0.5s ease',
+            }} />
+          </div>
+        </div>
+      )}
 
       {/* Pages with SEO meta — editable */}
       <div style={card({ padding: 0, overflow: 'hidden' })}>
@@ -550,7 +585,7 @@ export default function SEOPanel({ site }) {
               </thead>
               <tbody>
                 {pages.slice(0, 50).map(p => (
-                  <PageEditor key={p.id} page={p} siteId={site.id} onSaved={load} />
+                  <PageEditor key={p.id} page={p} siteId={site.id} onSaved={load} siteDiag={diag} allPages={pages} />
                 ))}
               </tbody>
             </table>
