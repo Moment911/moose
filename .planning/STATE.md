@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-02-PLAN.md (thin-shim skeleton + pairing + self-update + manifest)
-last_updated: "2026-05-26T22:39:50.794Z"
+stopped_at: Completed 10-03-PLAN.md
+last_updated: "2026-05-26T22:55:03.101Z"
 last_activity: 2026-05-26 -- Phase 10 planning complete
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 28
-  completed_plans: 17
-  percent: 61
+  completed_plans: 18
+  percent: 64
 ---
 
 # Project State
@@ -75,6 +75,7 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 | Phase 07 P06 | 10min | 1 tasks | 2 files |
 | Phase 07 P08 | 25min | 6 tasks | 10 files |
 | Phase 10 P02 | 7min | 2 tasks | 9 files |
+| Phase 10 P03 | 11min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Recent decisions affecting current work:
 - [Phase 10]: Pubkey wire format is base64(raw 32 bytes), not PEM — pairing rejects anything else
 - [Phase 10]: No public /meta endpoint on the v4 shim — closes v3's information-leakage hole
 - [Phase 10]: kotoiq_service role grants content-edit caps only (no manage_options/install/theme/user caps)
+- [Phase 10]: Phase 8 profileIntegrationsVault reused for koto_wp_sites.app_password_encrypted — same KEK, same agency_id AAD binding, same EncryptedPayload shape
+- [Phase 10]: shimRpc never throws on HTTP/transport error — discriminated-union response forces callers to handle ok/error explicitly
+- [Phase 10]: pairSite uses audit-then-verify-then-persist ordering: pair_completed audit row, then health.ping, then storeSiteCredentials — broken pair never leaves half-paired site state
 
 ### Pending Todos
 
@@ -170,8 +174,8 @@ UAT test data still seeded (reuse for the gauntlet):
 
 ## Session Continuity
 
-Last session: 2026-05-26T22:39:50.791Z
-Stopped at: Completed 10-02-PLAN.md (thin-shim skeleton + pairing + self-update + manifest)
+Last session: 2026-05-26T22:54:58.000Z
+Stopped at: Completed 10-03-PLAN.md
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)

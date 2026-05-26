@@ -184,12 +184,12 @@ Plans:
 
 **Requirements**: SHIM-FOUNDATION, SHIM-PLUGIN-SKELETON, SHIM-DASHBOARD-CLIENT, SHIM-CORE-VERBS, SHIM-HARDENED-VERBS, SHIM-ELEMENTOR-AND-ROTATION, SHIM-DASHBOARD-PORTS-A, SHIM-SITEMAP-COMPOSER, SHIM-TEMPLATE-CAPTURE-AND-PUSH, SHIM-DUAL-RUN-SHADOW, SHIM-CUTOVER, SHIM-V3-SUNSET
 **Depends on:** Phase 9
-**Plans:** 2/12 plans executed
+**Plans:** 3/12 plans executed
 
 Plans:
 - [x] 10-01-PLAN.md — Foundation: Vercel envs + Supabase migration (templates, push_history, dual_run_log, shim_pairings) + Wave-0 test scaffolds + verb whitelist
 - [x] 10-02-PLAN.md — Plugin skeleton: `wp-plugin-kotoiq-shim/` (separate from v3) with Ed25519 auth + pairing + self-update + RPC dispatcher
-- [ ] 10-03-PLAN.md — Dashboard signing client: shimRpc + wpFetch + pairSite + credentialsVault (App Password encryption)
+- [x] 10-03-PLAN.md — Dashboard signing client: shimRpc + wpFetch + pairSite + credentialsVault (App Password encryption)
 - [ ] 10-04-PLAN.md — Core generic verbs (20): health, post, meta, option (deny-list), file (path-confined), cron, plugin, taxonomy, events
 - [ ] 10-05-PLAN.md — Hardened verbs (5) + snippets runtime + webhook emitter: query.select (whitelist), capability.apply, transient.delete_prefix, database.update_bulk, webhook.set
 - [ ] 10-06-PLAN.md — Elementor verbs (2) + koto_rotate shortcode: elementor.save + elementor.clone (with dashboard-supplied meta_prefix_allowlist — no hardcoded SEO-plugin names); generic variant-rotation shortcode
