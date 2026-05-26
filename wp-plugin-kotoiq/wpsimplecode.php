@@ -64,6 +64,7 @@ require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/access.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/elementor-builder.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/content-rotation.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/seo.php';
+require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/sync.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/admin.php';
 
 register_activation_hook(__FILE__, function () {
