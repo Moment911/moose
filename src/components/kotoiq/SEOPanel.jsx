@@ -14,7 +14,7 @@ import { analyzeSEO } from '../../lib/seoAnalyzer'
 
 // ── Inline editor for a single page's SEO meta ──────────────────────────
 // ── SEO Score ring (mini) ────────────────────────────────────────────────
-function MiniScoreRing({ score, size = 32 }) {
+function MiniScoreRing({ score, size = 38 }) {
   const color = score >= 80 ? GRN : score >= 60 ? AMB : score >= 40 ? '#f97316' : '#DC2626'
   const radius = size / 2 - 3
   const circ = 2 * Math.PI * radius
@@ -26,7 +26,7 @@ function MiniScoreRing({ score, size = 32 }) {
         <circle cx={size/2} cy={size/2} r={radius} stroke={color} strokeWidth="3" fill="none"
           strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color, fontFamily: FB }}>{score}</div>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color, fontFamily: FB }}>{score}</div>
     </div>
   )
 }
@@ -305,58 +305,58 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile 
           onMouseLeave={e => e.currentTarget.style.background = analysis ? DESIGN.colors.warmGray : 'transparent'}>
           <td style={td()}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <MiniScoreRing score={analysis ? analysis.score : (quickScore ?? 0)} />
+              <MiniScoreRing score={analysis ? analysis.score : (quickScore ?? 0)} size={38} />
               <div>
-                <div style={{ fontFamily: FB, fontWeight: 600, color: DESIGN.colors.navy, fontSize: 13 }}>{page.title || '(untitled)'}</div>
-                {page.meta_desc && <div style={{ fontSize: 12, color: DESIGN.colors.textSecondary, marginTop: 3, lineHeight: 1.4, maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page.meta_desc}</div>}
-                <a href={page.url} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: DESIGN.colors.pink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 3 }}>
-                  view <ExternalLink size={9} />
+                <div style={{ fontFamily: FB, fontWeight: 600, color: DESIGN.colors.navy, fontSize: 15 }}>{page.title || '(untitled)'}</div>
+                {page.meta_desc && <div style={{ fontSize: 13, color: DESIGN.colors.textSecondary, marginTop: 4, lineHeight: 1.5, maxWidth: 420, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page.meta_desc}</div>}
+                <a href={page.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: DESIGN.colors.pink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontWeight: 500 }}>
+                  View page <ExternalLink size={10} />
                 </a>
               </div>
             </div>
           </td>
           <td style={td()}><Pill>{page.type}</Pill></td>
-          <td style={td()}>{page.focus_kw ? <code style={{ fontSize: 12, color: DESIGN.colors.pink, fontFamily: DESIGN.fonts.mono }}>{page.focus_kw}</code> : <span style={{ color: DESIGN.colors.textMuted }}>—</span>}</td>
+          <td style={td()}>{page.focus_kw ? <code style={{ fontSize: 13, color: DESIGN.colors.pink, fontFamily: DESIGN.fonts.mono, fontWeight: 500 }}>{page.focus_kw}</code> : <span style={{ color: DESIGN.colors.textMuted, fontSize: 13 }}>No keyword</span>}</td>
           <td style={{ ...td(), textAlign: 'center' }}>
             {page.has_seo_meta ? <CheckCircle size={14} color={GRN} /> : <XCircle size={14} color={DESIGN.colors.border} />}
           </td>
           <td style={{ ...td(), textAlign: 'right', color: DESIGN.colors.textMuted }}>{page.word_count}</td>
           <td style={{ ...td(), textAlign: 'center' }}>
-            <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-              <button onClick={aiOptimize} disabled={aiGenerating || !!contentFixing} title="AI writes SEO title, description, keyword" style={{
-                padding: '5px 9px', borderRadius: 6, border: 'none',
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <button onClick={aiOptimize} disabled={aiGenerating || !!contentFixing} title="AI writes optimized SEO title, description, and focus keyword" style={{
+                padding: '8px 14px', borderRadius: 50, border: 'none',
                 background: DESIGN.colors.pink, color: '#fff', cursor: aiGenerating ? 'wait' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 3,
-                fontSize: 10, fontWeight: 600, fontFamily: FB, opacity: aiGenerating ? 0.6 : 1,
+                display: 'flex', alignItems: 'center', gap: 5,
+                fontSize: 13, fontWeight: 600, fontFamily: FB, opacity: aiGenerating ? 0.6 : 1,
               }}>
-                {aiGenerating ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
-                Meta
+                {aiGenerating ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
+                AI Meta
               </button>
               <button onClick={() => runContentFix('auto')} disabled={!!contentFixing || aiGenerating} title="AI rewrites page content to maximize SEO score, then pushes to WordPress" style={{
-                padding: '5px 9px', borderRadius: 6, border: 'none',
+                padding: '8px 14px', borderRadius: 50, border: 'none',
                 background: DESIGN.colors.navy, color: '#fff', cursor: contentFixing ? 'wait' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 3,
-                fontSize: 10, fontWeight: 600, fontFamily: FB, opacity: contentFixing === 'auto' ? 0.6 : 1,
+                display: 'flex', alignItems: 'center', gap: 5,
+                fontSize: 13, fontWeight: 600, fontFamily: FB, opacity: contentFixing === 'auto' ? 0.6 : 1,
               }}>
-                {contentFixing === 'auto' ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
-                Fix
+                {contentFixing === 'auto' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
+                AI Fix
               </button>
-              <button onClick={() => runContentFix('checklist')} disabled={!!contentFixing || aiGenerating} title="AI generates a manual checklist of what to fix" style={{
-                padding: '5px 9px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
+              <button onClick={() => runContentFix('checklist')} disabled={!!contentFixing || aiGenerating} title="AI generates a manual checklist of what to fix on this page" style={{
+                padding: '8px 14px', borderRadius: 50, border: `1.5px solid ${DESIGN.colors.border}`,
                 background: '#fff', cursor: contentFixing ? 'wait' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 3,
-                fontSize: 10, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
+                display: 'flex', alignItems: 'center', gap: 5,
+                fontSize: 13, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
                 opacity: contentFixing === 'checklist' ? 0.6 : 1,
               }}>
-                {contentFixing === 'checklist' ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={10} />}
+                {contentFixing === 'checklist' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={13} />}
                 Audit
               </button>
-              <button onClick={() => setEditing(true)} title="Edit SEO meta manually" style={{
-                padding: '5px 9px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
-                background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3,
-                fontSize: 10, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
+              <button onClick={() => setEditing(true)} title="Manually edit SEO title, description, keyword" style={{
+                padding: '8px 14px', borderRadius: 50, border: `1.5px solid ${DESIGN.colors.border}`,
+                background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+                fontSize: 13, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
               }}>
-                <Edit2 size={10} />
+                <Edit2 size={13} /> Edit
               </button>
             </div>
           </td>
@@ -452,40 +452,40 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile 
   // Editing mode — expanded row with input fields
   return (
     <>
-      <tr style={{ borderTop: `1px solid ${DESIGN.colors.pink}40`, background: `${DESIGN.colors.pink}06` }}>
-        <td colSpan={6} style={{ padding: '16px 14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <MiniScoreRing score={quickScore ?? 0} size={36} />
+      <tr style={{ borderTop: `2px solid ${DESIGN.colors.pink}60`, background: `${DESIGN.colors.pink}04` }}>
+        <td colSpan={6} style={{ padding: '24px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <div style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <MiniScoreRing score={quickScore ?? 0} size={44} />
               <div>
-                <div>Editing SEO for: {page.title}</div>
-                <div style={{ fontSize: 11, fontWeight: 500, color: DESIGN.colors.textMuted, marginTop: 2 }}>Score updates as you type</div>
+                <div style={{ fontSize: 17 }}>Editing: {page.title}</div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: DESIGN.colors.textMuted, marginTop: 3 }}>Score updates live as you type</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={aiOptimize} disabled={aiGenerating || saving} style={{
-                padding: '6px 14px', borderRadius: 50, border: `1px solid ${DESIGN.colors.pink}40`,
-                background: `${DESIGN.colors.pink}08`, color: DESIGN.colors.pink, fontSize: 12, fontWeight: 600,
-                fontFamily: FB, cursor: aiGenerating ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                padding: '10px 20px', borderRadius: 50, border: `1.5px solid ${DESIGN.colors.pink}40`,
+                background: `${DESIGN.colors.pink}08`, color: DESIGN.colors.pink, fontSize: 14, fontWeight: 600,
+                fontFamily: FB, cursor: aiGenerating ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6,
                 opacity: aiGenerating ? 0.6 : 1,
               }}>
-                {aiGenerating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
+                {aiGenerating ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
                 {aiGenerating ? 'Generating...' : 'AI Optimize'}
               </button>
               <button onClick={cancel} disabled={saving} style={{
-                padding: '6px 14px', borderRadius: 50, border: `1px solid ${DESIGN.colors.border}`,
-                background: '#fff', color: DESIGN.colors.navy, fontSize: 12, fontWeight: 600,
-                fontFamily: FB, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                padding: '10px 20px', borderRadius: 50, border: `1.5px solid ${DESIGN.colors.border}`,
+                background: '#fff', color: DESIGN.colors.navy, fontSize: 14, fontWeight: 600,
+                fontFamily: FB, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
               }}>
-                <X size={12} /> Cancel
+                <X size={14} /> Cancel
               </button>
               <button onClick={save} disabled={saving} style={{
-                padding: '6px 14px', borderRadius: 50, border: 'none',
-                background: DESIGN.colors.pink, color: '#fff', fontSize: 12, fontWeight: 600,
+                padding: '10px 24px', borderRadius: 50, border: 'none',
+                background: DESIGN.colors.pink, color: '#fff', fontSize: 14, fontWeight: 600,
                 fontFamily: FB, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.6 : 1,
-                display: 'flex', alignItems: 'center', gap: 4,
+                display: 'flex', alignItems: 'center', gap: 6,
               }}>
-                {saving ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={12} />}
+                {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
                 {saving ? 'Pushing...' : 'Save & Push to Site'}
               </button>
             </div>
@@ -792,17 +792,16 @@ export default function SEOPanel({ site }) {
 
       {/* Connection + diagnostics */}
       <div style={card()}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <div style={iconWrap}><TrendingUp size={16} color={R} /></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+          <div style={iconWrap}><TrendingUp size={20} color={R} /></div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 16 }}>SEO & Page Factory</div>
-            <div style={{ fontSize: 13, color: DESIGN.colors.textSecondary, fontFamily: FB, marginTop: 2 }}>
-              {moduleEntry?.version && <code style={{ marginRight: 6 }}>v{moduleEntry.version}</code>}
-              Built-in SEO engine. Edit meta titles, descriptions, and keywords below.
+            <div style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 20 }}>SEO & Page Factory</div>
+            <div style={{ fontSize: 15, color: DESIGN.colors.textSecondary, fontFamily: FB, marginTop: 4, lineHeight: 1.5 }}>
+              Built-in SEO engine. Use AI to optimize every page for Google search and AI answer engines.
             </div>
           </div>
           <button onClick={load} disabled={loading} style={miniBtn()}>
-            {loading ? <Loader2 size={11} className="spin" /> : <RefreshCw size={11} />} Refresh
+            {loading ? <Loader2 size={14} className="spin" /> : <RefreshCw size={14} />} Refresh
           </button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
@@ -859,24 +858,24 @@ export default function SEOPanel({ site }) {
 
       {/* Batch progress banner */}
       {batchProgress && (
-        <div style={{ background: DESIGN.colors.navy, borderRadius: 14, padding: '18px 22px', color: '#fff', fontFamily: FB }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+        <div style={{ background: DESIGN.colors.navy, borderRadius: 16, padding: '24px 28px', color: '#fff', fontFamily: FB, boxShadow: DESIGN.shadow.lg }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+            <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700 }}>
+              <div style={{ fontSize: 18, fontWeight: 700 }}>
                 AI Optimizing: {batchProgress.current} / {batchProgress.total} pages
               </div>
-              <div style={{ fontSize: 13, opacity: 0.7, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: 15, opacity: 0.7, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {batchProgress.current < batchProgress.total ? `Working on: ${batchProgress.currentPage}` : 'Finishing up...'}
               </div>
             </div>
-            <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FB }}>
+            <div style={{ fontSize: 28, fontWeight: 700, fontFamily: FB }}>
               {Math.round((batchProgress.current / batchProgress.total) * 100)}%
             </div>
           </div>
-          <div style={{ height: 6, background: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' }}>
+          <div style={{ height: 8, background: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{
-              height: '100%', background: DESIGN.colors.pink, borderRadius: 3,
+              height: '100%', background: DESIGN.colors.pink, borderRadius: 4,
               width: `${(batchProgress.current / batchProgress.total) * 100}%`,
               transition: 'width 0.5s ease',
             }} />
@@ -886,12 +885,12 @@ export default function SEOPanel({ site }) {
 
       {/* Pages with SEO meta — editable */}
       <div style={card({ padding: 0, overflow: 'hidden' })}>
-        <div style={{ padding: '14px 18px', borderBottom: `1px solid ${DESIGN.colors.borderLight}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '18px 22px', borderBottom: `1px solid ${DESIGN.colors.borderLight}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
           <div>
-            <span style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 14 }}>SEO Meta</span>
-            <span style={{ fontSize: 12, color: DESIGN.colors.textMuted, marginLeft: 8 }}>Click Edit to update any page's SEO. Changes push to WordPress instantly.</span>
+            <span style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 18 }}>All Pages</span>
+            <span style={{ fontSize: 14, color: DESIGN.colors.textMuted, marginLeft: 10 }}>Use AI Meta, AI Fix, Audit, or Edit on any page</span>
           </div>
-          <span style={{ fontSize: 12, color: DESIGN.colors.textMuted, fontWeight: 600 }}>{pagesWithMeta}/{totalPages} have meta</span>
+          <span style={{ fontSize: 14, padding: '5px 14px', borderRadius: 50, background: pagesWithMeta === totalPages && totalPages > 0 ? `${GRN}12` : `${AMB}12`, color: pagesWithMeta === totalPages && totalPages > 0 ? GRN : AMB, fontWeight: 600 }}>{pagesWithMeta}/{totalPages} have meta</span>
         </div>
         {loading ? (
           <div style={{ padding: 32, textAlign: 'center', color: DESIGN.colors.textMuted, fontSize: 13 }}><Loader2 size={14} className="spin" /> Loading...</div>
@@ -934,19 +933,19 @@ export default function SEOPanel({ site }) {
 }
 
 const Pill = ({ children }) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: 6, fontSize: 11, fontFamily: FB, fontWeight: 600, color: DESIGN.colors.textMuted, background: DESIGN.colors.warmGray, textTransform: 'uppercase', letterSpacing: '.04em' }}>{children}</span>
+  <span style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 12px', borderRadius: 8, fontSize: 13, fontFamily: FB, fontWeight: 600, color: DESIGN.colors.textSecondary, background: DESIGN.colors.warmGray, textTransform: 'uppercase', letterSpacing: '.03em' }}>{children}</span>
 )
 const Stat = ({ label, value, color = DESIGN.colors.navy }) => (
-  <div style={{ background: DESIGN.colors.warmGray, border: `1px solid ${DESIGN.colors.border}`, borderRadius: 10, padding: '12px 14px' }}>
-    <div style={{ fontSize: 14, fontWeight: 700, color, fontFamily: FB, lineHeight: 1.2 }}>{value}</div>
-    <div style={{ fontSize: 11, color: DESIGN.colors.textMuted, fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 4, fontWeight: 600 }}>{label}</div>
+  <div style={{ background: DESIGN.colors.warmGray, border: `1px solid ${DESIGN.colors.border}`, borderRadius: 12, padding: '16px 18px' }}>
+    <div style={{ fontSize: 18, fontWeight: 700, color, fontFamily: FB, lineHeight: 1.2 }}>{value}</div>
+    <div style={{ fontSize: 13, color: DESIGN.colors.textMuted, fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 6, fontWeight: 600 }}>{label}</div>
   </div>
 )
-const card = (x = {}) => ({ background: '#fff', borderRadius: 14, border: `1px solid ${DESIGN.colors.border}`, padding: 20, ...x })
-const iconWrap = { width: 34, height: 34, borderRadius: 10, background: `${R}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
-const miniBtn = (x = {}) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '8px 14px', borderRadius: 50, border: `1px solid ${DESIGN.colors.border}`, background: '#fff', color: DESIGN.colors.navy, fontFamily: FB, fontSize: 12, fontWeight: 600, cursor: 'pointer' })
-const primaryBtn = () => ({ padding: '10px 18px', borderRadius: 50, border: 'none', background: DESIGN.colors.pink, color: '#fff', fontFamily: FB, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 })
-const th = (x = {}) => ({ textAlign: 'left', padding: '12px 14px', fontFamily: FB, fontSize: 11, fontWeight: 600, color: DESIGN.colors.textMuted, textTransform: 'uppercase', letterSpacing: '.06em', whiteSpace: 'nowrap', ...x })
-const td = (x = {}) => ({ padding: '12px 14px', verticalAlign: 'top', ...x })
-const lbl = { fontSize: 12, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB, marginBottom: 5, display: 'block' }
-const inp = () => ({ width: '100%', padding: '10px 13px', borderRadius: 10, border: `1px solid ${DESIGN.colors.border}`, fontSize: 14, fontFamily: FB, color: DESIGN.colors.navy, background: '#fff', outline: 'none', boxSizing: 'border-box' })
+const card = (x = {}) => ({ background: '#fff', borderRadius: 16, border: `1px solid ${DESIGN.colors.border}`, padding: 24, boxShadow: DESIGN.shadow.sm, ...x })
+const iconWrap = { width: 40, height: 40, borderRadius: 12, background: `${R}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+const miniBtn = (x = {}) => ({ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 20px', borderRadius: 50, border: `1px solid ${DESIGN.colors.border}`, background: '#fff', color: DESIGN.colors.navy, fontFamily: FB, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: `all ${DESIGN.transition.fast}` })
+const primaryBtn = () => ({ padding: '12px 24px', borderRadius: 50, border: 'none', background: DESIGN.colors.pink, color: '#fff', fontFamily: FB, fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, transition: `all ${DESIGN.transition.fast}` })
+const th = (x = {}) => ({ textAlign: 'left', padding: '14px 16px', fontFamily: FB, fontSize: 12, fontWeight: 600, color: DESIGN.colors.textMuted, textTransform: 'uppercase', letterSpacing: '.06em', whiteSpace: 'nowrap', ...x })
+const td = (x = {}) => ({ padding: '16px 16px', verticalAlign: 'top', ...x })
+const lbl = { fontSize: 14, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB, marginBottom: 6, display: 'block' }
+const inp = () => ({ width: '100%', padding: '12px 16px', borderRadius: 12, border: `1px solid ${DESIGN.colors.border}`, fontSize: 15, fontFamily: FB, color: DESIGN.colors.navy, background: '#fff', outline: 'none', boxSizing: 'border-box' })
