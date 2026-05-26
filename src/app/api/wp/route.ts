@@ -1520,6 +1520,11 @@ Rules:
       return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
     }
 
+    if (action === 'kotoiq_seo_sitemaps') {
+      const r = await proxyToWPSCMethod(site, 'GET', 'seo/sitemaps')
+      return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
+    }
+
     if (action === 'kotoiq_seo_content_get') {
       const postId = body.post_id
       if (!postId) return NextResponse.json({ error: 'post_id required' }, { status: 400 })

@@ -716,6 +716,7 @@ export default function SEOPanel({ site }) {
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [batchProgress, setBatchProgress] = useState(null)
+  const [sitemaps, setSitemaps] = useState([])
   // Company profile — persisted in localStorage per site
   const [companyProfile, setCompanyProfile] = useState(() => {
     if (typeof window === 'undefined') return {}
@@ -744,6 +745,12 @@ export default function SEOPanel({ site }) {
       const d2 = await r2.json()
       if (d1.ok) setDiag(d1.data); else toast.error(d1.error || d1.data?.error || 'Diagnostics failed')
       if (d2.ok) setPages(d2.data?.pages || [])
+      // Fetch sitemaps
+      try {
+        const sr = await fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'kotoiq_seo_sitemaps', site_id: site.id }) })
+        const sd = await sr.json()
+        if (sd.ok && sd.data?.sitemaps) setSitemaps(sd.data.sitemaps)
+      } catch {}
     } catch (e) { toast.error(e.message) }
     setLoading(false)
   }
@@ -845,16 +852,64 @@ export default function SEOPanel({ site }) {
           <button onClick={rebuildSitemap} disabled={busy} style={primaryBtn()}>
             {busy ? <Loader2 size={11} className="spin" /> : <Globe size={11} />} Rebuild sitemap & ping
           </button>
-          {diag?.site_url && (<>
+          {diag?.site_url && (
             <a href={`${diag.site_url}/kotoiq-sitemap.xml`} target="_blank" rel="noreferrer" style={{ ...miniBtn(), textDecoration: 'none' }}>
-              <ExternalLink size={11} /> KotoIQ Sitemap
+              <ExternalLink size={14} /> Master Sitemap
             </a>
-            <a href={`${diag.site_url}/wp-sitemap.xml`} target="_blank" rel="noreferrer" style={{ ...miniBtn(), textDecoration: 'none' }}>
-              <ExternalLink size={11} /> WP Sitemap
-            </a>
-          </>)}
+          )}
         </div>
       </div>
+
+      {/* Sitemaps card */}
+      {sitemaps.length > 0 && (
+        <div style={card()}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <Globe size={20} color={DESIGN.colors.navy} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 17 }}>Sitemaps</div>
+              <div style={{ fontSize: 14, color: DESIGN.colors.textSecondary, marginTop: 2 }}>SEO and AEO sitemaps for search engines and AI answer engines</div>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+            {/* Master index first */}
+            {diag?.site_url && (
+              <a href={`${diag.site_url}/kotoiq-sitemap.xml`} target="_blank" rel="noreferrer" style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px',
+                background: `${DESIGN.colors.pink}06`, border: `1.5px solid ${DESIGN.colors.pink}30`,
+                borderRadius: 12, textDecoration: 'none', transition: `all ${DESIGN.transition.fast}`,
+              }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: `${DESIGN.colors.pink}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Globe size={16} color={DESIGN.colors.pink} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: DESIGN.colors.navy }}>Master Index</div>
+                  <div style={{ fontSize: 12, color: DESIGN.colors.textMuted, marginTop: 1 }}>Submit this to Google & Bing</div>
+                </div>
+                <ExternalLink size={14} color={DESIGN.colors.pink} />
+              </a>
+            )}
+            {sitemaps.map(sm => (
+              <a key={sm.slug} href={sm.url} target="_blank" rel="noreferrer" style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px',
+                background: DESIGN.colors.warmGray, border: `1px solid ${DESIGN.colors.border}`,
+                borderRadius: 12, textDecoration: 'none', transition: `all ${DESIGN.transition.fast}`,
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: DESIGN.colors.navy }}>{sm.name}</span>
+                    {sm.type === 'aeo' && <span style={{ padding: '2px 8px', borderRadius: 10, background: `${DESIGN.colors.pink}12`, color: DESIGN.colors.pink, fontSize: 11, fontWeight: 700 }}>AEO</span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: DESIGN.colors.textMuted, marginTop: 2 }}>
+                    {sm.count != null ? `${sm.count} items` : sm.type === 'aeo' ? 'FAQ pages for AI engines' : 'Auto-generated'}
+                    {sm.lastmod ? ` · ${sm.lastmod.slice(0, 10)}` : ''}
+                  </div>
+                </div>
+                <ExternalLink size={13} color={DESIGN.colors.textMuted} />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Batch progress banner */}
       {batchProgress && (
