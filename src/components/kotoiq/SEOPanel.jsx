@@ -73,9 +73,53 @@ function PageEditor({ page, siteId, onSaved }) {
   const [analyzing, setAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [aiGenerating, setAiGenerating] = useState(false)
+  const [aiResult, setAiResult] = useState(null)
   const [title, setTitle] = useState(page.seo_title || '')
   const [desc, setDesc] = useState(page.meta_desc || '')
   const [kw, setKw] = useState(page.focus_kw || '')
+  const [faqSchema, setFaqSchema] = useState(null)
+
+  // AI writes everything: keyword, title, description, FAQ schema
+  const aiOptimize = async () => {
+    setAiGenerating(true)
+    try {
+      // Fetch full page content
+      const contentRes = await fetch('/api/wp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'kotoiq_seo_content_get', site_id: siteId, post_id: page.id }),
+      })
+      const contentData = await contentRes.json()
+      const pageContent = contentData?.data?.content || contentData?.data?.content_html || ''
+
+      // Call AI optimizer
+      const res = await fetch('/api/wp/seo-optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          page_title: page.title,
+          page_url: page.url,
+          page_content: pageContent,
+          page_type: page.type,
+        }),
+      })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error); setAiGenerating(false); return }
+
+      // Fill fields with AI results
+      setKw(data.focus_keyword || '')
+      setTitle(data.seo_title || '')
+      setDesc(data.meta_description || '')
+      setFaqSchema(data.faq_schema || null)
+      setAiResult(data)
+      setEditing(true)
+      toast.success('AI generated SEO + AEO optimization. Review and save.')
+    } catch (e) {
+      toast.error('AI optimization failed: ' + e.message)
+    }
+    setAiGenerating(false)
+  }
 
   const runAnalysis = async () => {
     setAnalyzing(true)
@@ -176,7 +220,16 @@ function PageEditor({ page, siteId, onSaved }) {
           </td>
           <td style={{ ...td(), textAlign: 'right', color: DESIGN.colors.textMuted }}>{page.word_count}</td>
           <td style={{ ...td(), textAlign: 'center' }}>
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              <button onClick={aiOptimize} disabled={aiGenerating} title="AI writes SEO title, description, keyword, and FAQ schema" style={{
+                padding: '5px 10px', borderRadius: 6, border: 'none',
+                background: DESIGN.colors.pink, color: '#fff', cursor: aiGenerating ? 'wait' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: 3,
+                fontSize: 11, fontWeight: 600, fontFamily: FB, opacity: aiGenerating ? 0.6 : 1,
+              }}>
+                {aiGenerating ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={11} />}
+                {aiGenerating ? 'AI...' : 'AI'}
+              </button>
               <button onClick={runAnalysis} disabled={analyzing} title="Run SEO analysis" style={{
                 padding: '5px 8px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
                 background: '#fff', cursor: analyzing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 3,
@@ -228,6 +281,15 @@ function PageEditor({ page, siteId, onSaved }) {
               <Edit2 size={14} color={DESIGN.colors.pink} /> Editing SEO for: {page.title}
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={aiOptimize} disabled={aiGenerating || saving} style={{
+                padding: '6px 14px', borderRadius: 50, border: `1px solid ${DESIGN.colors.pink}40`,
+                background: `${DESIGN.colors.pink}08`, color: DESIGN.colors.pink, fontSize: 12, fontWeight: 600,
+                fontFamily: FB, cursor: aiGenerating ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                opacity: aiGenerating ? 0.6 : 1,
+              }}>
+                {aiGenerating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
+                {aiGenerating ? 'Generating...' : 'AI Optimize'}
+              </button>
               <button onClick={cancel} disabled={saving} style={{
                 padding: '6px 14px', borderRadius: 50, border: `1px solid ${DESIGN.colors.border}`,
                 background: '#fff', color: DESIGN.colors.navy, fontSize: 12, fontWeight: 600,
@@ -271,6 +333,47 @@ function PageEditor({ page, siteId, onSaved }) {
               {desc.length}/160 characters {desc.length > 160 ? '(too long for Google snippet)' : ''}
             </div>
           </div>
+
+          {/* AI results: FAQ schema + secondary keywords */}
+          {aiResult && (
+            <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {/* FAQ Schema for AEO */}
+              {aiResult.faq_schema && aiResult.faq_schema.length > 0 && (
+                <div style={{ padding: '14px 16px', background: DESIGN.colors.warmGray, borderRadius: 10, gridColumn: '1 / -1' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: DESIGN.colors.navy, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Sparkles size={13} color={DESIGN.colors.pink} /> AEO FAQ Schema (for AI answer engines)
+                  </div>
+                  {aiResult.faq_schema.map((faq, i) => (
+                    <div key={i} style={{ marginBottom: 10, padding: '10px 12px', background: '#fff', borderRadius: 8, border: `1px solid ${DESIGN.colors.border}` }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: DESIGN.colors.navy, marginBottom: 4 }}>Q: {faq.question}</div>
+                      <div style={{ fontSize: 13, color: DESIGN.colors.textSecondary, lineHeight: 1.5 }}>A: {faq.answer}</div>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 11, color: DESIGN.colors.textMuted, marginTop: 6 }}>
+                    This FAQ schema helps ChatGPT, Gemini, and Perplexity cite your page as an answer source.
+                  </div>
+                </div>
+              )}
+              {/* Secondary keywords */}
+              {aiResult.secondary_keywords && (
+                <div style={{ padding: '14px 16px', background: DESIGN.colors.warmGray, borderRadius: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: DESIGN.colors.navy, marginBottom: 8 }}>Related Keywords (LSI)</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {aiResult.secondary_keywords.map((k, i) => (
+                      <span key={i} style={{ padding: '4px 10px', borderRadius: 20, background: '#fff', border: `1px solid ${DESIGN.colors.border}`, fontSize: 12, color: DESIGN.colors.navy, fontWeight: 500 }}>{k}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* AI reasoning */}
+              {aiResult.reasoning && (
+                <div style={{ padding: '14px 16px', background: DESIGN.colors.warmGray, borderRadius: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: DESIGN.colors.navy, marginBottom: 6 }}>AI Strategy</div>
+                  <div style={{ fontSize: 13, color: DESIGN.colors.textSecondary, lineHeight: 1.5 }}>{aiResult.reasoning}</div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Preview */}
           <div style={{ marginTop: 14, padding: '14px 16px', background: '#fff', borderRadius: 10, border: `1px solid ${DESIGN.colors.border}` }}>
@@ -382,6 +485,32 @@ export default function SEOPanel({ site }) {
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+          <button onClick={async () => {
+            if (!confirm(`AI Optimize all ${totalPages} pages? This will generate SEO titles, descriptions, and keywords for every page without meta. Cost: ~$0.01 per page.`)) return
+            setBusy(true)
+            let done = 0
+            const noMeta = pages.filter(p => !p.has_seo_meta)
+            const targets = noMeta.length > 0 ? noMeta : pages.slice(0, 10)
+            for (const p of targets) {
+              try {
+                const cr = await fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'kotoiq_seo_content_get', site_id: site.id, post_id: p.id }) })
+                const cd = await cr.json()
+                const content = cd?.data?.content || ''
+                const ar = await fetch('/api/wp/seo-optimize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ page_title: p.title, page_url: p.url, page_content: content, page_type: p.type }) })
+                const ai = await ar.json()
+                if (ai.focus_keyword) {
+                  await fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'sync_push', site_id: site.id, changes: [{ type: 'seo_meta', post_id: p.id, data: { seo_title: ai.seo_title, meta_description: ai.meta_description, focus_keyword: ai.focus_keyword } }] }) })
+                  done++
+                  toast.success(`${done}/${targets.length}: ${p.title}`, { duration: 2000 })
+                }
+              } catch {}
+            }
+            toast.success(`AI optimized ${done} pages. Refreshing...`)
+            await load()
+            setBusy(false)
+          }} disabled={busy} style={{ ...primaryBtn(), background: DESIGN.colors.navy }}>
+            {busy ? <Loader2 size={11} className="spin" /> : <Sparkles size={11} />} AI Optimize All Pages
+          </button>
           <button onClick={rebuildSitemap} disabled={busy} style={primaryBtn()}>
             {busy ? <Loader2 size={11} className="spin" /> : <Globe size={11} />} Rebuild sitemap & ping
           </button>
