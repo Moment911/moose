@@ -1455,6 +1455,34 @@ Rules:
       return NextResponse.json({ ok: true, plugin_disabled: pluginDisabled })
     }
 
+    // ─── Sync: push changes to WordPress site in real time ─────────────────
+
+    if (action === 'sync_push') {
+      // Push a batch of changes (SEO meta, content, publish, create, delete)
+      // to the connected WordPress site via the sync module.
+      const changes = body.changes || []
+      if (!changes.length) return NextResponse.json({ error: 'No changes to push' }, { status: 400 })
+      if (!site?.wpsc_api_key) return NextResponse.json({ error: 'Site not connected - no API key' }, { status: 400 })
+
+      const result = await proxyToWPSC(site, 'sync/push', {
+        changes,
+        source: 'kotoiq-platform',
+      })
+      return NextResponse.json({ ok: result.ok, ...result.data, duration: result.duration })
+    }
+
+    if (action === 'sync_status') {
+      if (!site?.wpsc_api_key) return NextResponse.json({ error: 'Site not connected' }, { status: 400 })
+      const result = await proxyToWPSCMethod(site, 'GET', 'sync/status')
+      return NextResponse.json({ ok: result.ok, ...result.data })
+    }
+
+    if (action === 'sync_log') {
+      if (!site?.wpsc_api_key) return NextResponse.json({ error: 'Site not connected' }, { status: 400 })
+      const result = await proxyToWPSCMethod(site, 'GET', 'sync/log')
+      return NextResponse.json({ ok: result.ok, ...result.data })
+    }
+
     // ─── KotoIQ panel actions (per-site Builder / Rotation / SEO) ──────────
 
     if (action === 'kotoiq_builder_pages') {

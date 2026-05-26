@@ -123,9 +123,8 @@ function kotoiq_admin_dashboard_page() {
         'seo' => [
             'icon'  => 'chart-line',
             'title' => 'SEO & Page Factory',
-            'what'  => 'Yoast and Rank Math integration. Lists every published page with its SEO meta, generates city/state landing pages in batches with optional JSON-LD schema, publishes AI-written blog posts with focus keywords + meta descriptions, rebuilds the sitemap and pings Google + Bing on demand, and auto-pings the Koto platform whenever you publish a new post.',
-            'stat'  => (defined('WPSEO_VERSION') ? 'Yoast ' . WPSEO_VERSION : (defined('RANK_MATH_VERSION') ? 'Rank Math ' . RANK_MATH_VERSION : 'Yoast / Rank Math not detected'))
-                . ' · last sync: ' . (get_option('koto_last_sync') ?: 'never'),
+            'what'  => 'Built-in SEO engine. Manages meta titles, descriptions, focus keywords, and Open Graph tags for every page. Generates city/state landing pages in batches with JSON-LD schema, publishes AI-written blog posts, rebuilds the sitemap and pings Google + Bing, and auto-syncs with the KotoIQ platform whenever you publish. No Yoast or Rank Math required.',
+            'stat'  => 'KotoIQ SEO (built-in) · last sync: ' . (get_option('koto_last_sync') ?: 'never'),
             'page'  => null,
         ],
     ];

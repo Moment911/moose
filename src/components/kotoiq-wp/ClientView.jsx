@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, ChevronLeft, ChevronRight, Download, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -12,6 +12,7 @@ import AccessManagementPanel  from '../kotoiq/AccessManagementPanel'
 import ElementorBuilderPanel  from '../kotoiq/ElementorBuilderPanel'
 import ContentRotationPanel   from '../kotoiq/ContentRotationPanel'
 import SEOPanel               from '../kotoiq/SEOPanel'
+import SyncPanel              from '../kotoiq/SyncPanel'
 
 /**
  * ClientView — per-client deep-dive: collapsible clients-first left rail +
@@ -37,6 +38,7 @@ const TABS = [
   { key: 'elementor_builder', label: 'Builder',          icon: Edit3,       slug: 'elementor-builder' },
   { key: 'content_rotation',  label: 'Rotation',         icon: Repeat,      slug: 'content-rotation' },
   { key: 'seo',               label: 'SEO',              icon: TrendingUp,  slug: 'seo' },
+  { key: 'sync',              label: 'Sync',             icon: RefreshCw,   slug: 'sync' },
 ]
 
 export default function ClientView({ preselectedSiteId, onClearSelection }) {
@@ -276,6 +278,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   {tab === 'elementor_builder' && <ElementorBuilderPanel site={activeSite}/>}
                   {tab === 'content_rotation'  && <ContentRotationPanel  site={activeSite}/>}
                   {tab === 'seo'               && <SEOPanel              site={activeSite}/>}
+                  {tab === 'sync'              && <SyncPanel             site={activeSite}/>}
                 </WPSCConnectionGate>
               ) : (
                 <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${LINE}`, padding: 32, maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
