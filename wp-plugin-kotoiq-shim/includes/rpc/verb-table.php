@@ -46,8 +46,8 @@ return [
     'option.delete'           => 'kotoiq_shim_verb_option_delete',
     'file.write'              => 'kotoiq_shim_verb_file_write',
     'file.delete'             => 'kotoiq_shim_verb_file_delete',
-    'elementor.save'          => 'kotoiq_shim_verb_not_yet_implemented',
-    'elementor.clone'         => 'kotoiq_shim_verb_not_yet_implemented',
+    'elementor.save'          => 'kotoiq_shim_verb_elementor_save',
+    'elementor.clone'         => 'kotoiq_shim_verb_elementor_clone',
     'capability.apply'        => 'kotoiq_shim_verb_capability_apply',
     'transient.delete_prefix' => 'kotoiq_shim_verb_transient_delete_prefix',
 

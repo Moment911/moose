@@ -59,6 +59,7 @@ require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-query.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-database.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-transient.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-capability.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-elementor.php';
 // webhook-emitter.php defines the allowed-events constant the verb handler reads
 // at validation time, so it must load before verbs-webhook.php.
 require_once KOTOIQ_SHIM_DIR . 'runtime/webhook-emitter.php';
