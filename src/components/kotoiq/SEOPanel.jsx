@@ -5,19 +5,15 @@ import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
 /**
- * SEOPanel — wraps the seo module's REST surface for a paired WP site.
+ * SEOPanel — KotoIQ's built-in SEO engine overview for a paired WP site.
  *
  * Read:
- *   • action=kotoiq_seo_agency_test → diagnostics + Yoast/Rank Math version
+ *   • action=kotoiq_seo_agency_test → diagnostics + SEO engine status
  *   • action=kotoiq_seo_pages       → published pages with SEO meta
  *
  * Write (one-click actions):
- *   • action=kotoiq_seo_sitemap_rebuild → rebuild Yoast/Rank Math sitemap + ping
- *   • action=kotoiq_seo_ping_engines    → ping Google + Bing only
- *
- * Page Factory (city/state landing pages, blog generation, content CRUD) lives
- * on dedicated platform pages — this panel is the per-site overview + quick
- * actions.
+ *   • action=kotoiq_seo_sitemap_rebuild → rebuild sitemap + ping Google & Bing
+ *   • action=kotoiq_seo_ping_engines    → ping search engines only
  */
 export default function SEOPanel({ site }) {
   const [diag, setDiag] = useState(null)
@@ -69,15 +65,16 @@ export default function SEOPanel({ site }) {
           <div style={{ fontFamily:FH, fontWeight:800, color:BLK, fontSize:15 }}>SEO module is disabled</div>
         </div>
         <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>
-          Enable it from the Control Center modules table to activate Yoast/Rank Math sync, page factory, sitemap rebuild, and auto-ping on publish.
+          Enable it from the Control Center modules table to activate SEO meta management, page factory, sitemap rebuild, and auto-ping on publish.
         </div>
       </div>
     )
   }
 
-  const seoPlugin = diag?.seo_plugin === 'yoast' ? `Yoast ${diag?.yoast_version}`
-    : diag?.seo_plugin === 'rankmath' ? `Rank Math ${diag?.rankmath_version}`
-    : 'None detected'
+  const seoPlugin = diag?.seo_engine === 'kotoiq' ? 'KotoIQ (built-in)'
+    : diag?.seo_plugin === 'yoast' ? `Yoast ${diag?.yoast_version} (legacy)`
+    : diag?.seo_plugin === 'rankmath' ? `Rank Math ${diag?.rankmath_version} (legacy)`
+    : 'KotoIQ'
 
   const pagesWithMeta = pages.filter(p => p.has_seo_meta).length
   const totalPages = pages.length
@@ -93,7 +90,7 @@ export default function SEOPanel({ site }) {
             <div style={{ fontFamily:FH, fontWeight:800, color:BLK, fontSize:15 }}>SEO &amp; Page Factory</div>
             <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:2 }}>
               {moduleEntry?.version && <code style={{ marginRight:6 }}>v{moduleEntry.version}</code>}
-              Yoast/Rank Math integration · sitemap rebuild · auto-ping on publish.
+              Built-in SEO engine · meta titles · descriptions · sitemap · auto-ping on publish.
             </div>
           </div>
           <button onClick={load} disabled={loading} style={miniBtn()}>
@@ -119,7 +116,7 @@ export default function SEOPanel({ site }) {
           )}
           {!diag?.gsc_connected && (
             <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, padding:'7px 10px' }}>
-              Tip: connect Google Search Console via Yoast / Rank Math / Site Kit for ranking data.
+              Tip: connect Google Search Console in KotoIQ → Connect APIs for ranking data.
             </div>
           )}
         </div>

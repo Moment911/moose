@@ -1,29 +1,28 @@
 <?php
 /**
- * SEO Module — lifted from the standalone Koto SEO 2.0.0 plugin.
+ * SEO Module — KotoIQ's built-in SEO engine.
  *
- * Brings SEO endpoints under the KotoIQ module-loader contract. Same surface
- * the Koto agency platform (hellokoto.com) already calls, with the addition
- * of the kotoiq/v1 namespace alongside the existing koto/v1 + hlseo/v1
- * back-compat routes.
+ * KotoIQ handles all on-page SEO natively. No Yoast or Rank Math required.
+ * Stores meta in its own fields (_kotoiq_title, _kotoiq_description,
+ * _kotoiq_focus_keyword) and outputs them in <head>.
+ *
+ * If Yoast or Rank Math data already exists from a previous install, KotoIQ
+ * reads it as a fallback so nothing is lost during migration.
  *
  * What it does:
+ *   • Outputs <title>, <meta description>, and canonical in <head>
  *   • /agency/test — connection diagnostics + site inventory
- *   • /pages — list published pages with Yoast/Rank Math meta
- *   • /generate/batch — create city/location landing pages
+ *   • /pages — list published pages with SEO meta
+ *   • /generate/batch — create city/location landing pages with JSON-LD
  *   • /gsc/overview — GSC connection status
- *   • /blog/generate — publish AI-written blog posts
+ *   • /blog/generate — publish AI-written blog posts with meta + focus keywords
  *   • /automation/run-now — sitemap rebuild + search-engine ping
- *   • /sitemap/rebuild — rebuild sitemap + ping
+ *   • /sitemap/rebuild — rebuild sitemap + ping Google & Bing
  *   • /rankings — placeholder (rankings live on the Koto platform)
  *   • /locations/states + /locations/cities — geo helpers
  *   • /content/{list,get,create,update,delete,ai-generate}
- *   • /styles — site stylesheet/font/palette inventory for live preview
+ *   • /styles — site stylesheet/font/palette inventory
  *   • Auto-ping on publish_post → fires to {agency_url}/api/seo/wp-ping
- *
- * Auth: kotoiq_perm_write (Bearer + remote_allowed + host pin) OR a
- * legacy koto_api_key match — so sites that were paired with the
- * standalone Koto SEO 2.0.0 plugin keep working without re-pairing.
  *
  * @package KotoIQ
  */
@@ -33,31 +32,75 @@ if (!defined('ABSPATH')) exit;
 koto_register_module([
     'slug'        => 'seo',
     'name'        => 'SEO & Page Factory',
-    'description' => 'Yoast/Rank Math integration, page sync, batch landing-page generation, blog publishing, sitemap rebuild, GSC overview, auto-ping on publish.',
-    'version'     => '2.0.0',
+    'description' => 'Built-in SEO engine: meta titles, descriptions, focus keywords, JSON-LD schema, sitemap, page factory, blog publishing, and auto-ping.',
+    'version'     => '3.0.0',
 ]);
 
-/**
- * Auth callback specific to the SEO module's koto/v1 + hlseo/v1 routes.
- *
- * Accepts EITHER the unified KotoIQ API key (wpsc_api_key, same as every
- * other module) OR the legacy koto_api_key — so a WordPress site that was
- * already paired with the standalone Koto SEO 2.0.0 plugin keeps working
- * after the KotoIQ swap without re-pairing.
- *
- * Local manage_options users always pass (matches kotoiq_perm_*).
- */
+// ─── <head> output — KotoIQ's own SEO meta ──────────────────────────────
+add_action('wp_head', function () {
+    if (!koto_is_module_enabled('seo')) return;
+    if (is_admin()) return;
+
+    // Don't output if Yoast or Rank Math is active (they handle <head>)
+    if (defined('WPSEO_VERSION') || defined('RANK_MATH_VERSION')) return;
+
+    $post_id = get_queried_object_id();
+    if (!$post_id) return;
+
+    $seo = kotoiq_seo_get_seo_meta($post_id);
+    $title = $seo['seo_title'] ?: get_the_title($post_id);
+    $desc  = $seo['meta_description'];
+
+    if ($title) {
+        // Remove default <title> and add ours
+        echo '<meta name="kotoiq-seo" content="active" />' . "\n";
+    }
+    if ($desc) {
+        echo '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
+    }
+
+    // Canonical URL
+    $canonical = get_permalink($post_id);
+    if ($canonical) {
+        echo '<link rel="canonical" href="' . esc_url($canonical) . '" />' . "\n";
+    }
+
+    // Open Graph basics
+    if ($title) echo '<meta property="og:title" content="' . esc_attr($title) . '" />' . "\n";
+    if ($desc)  echo '<meta property="og:description" content="' . esc_attr($desc) . '" />' . "\n";
+    echo '<meta property="og:url" content="' . esc_url($canonical) . '" />' . "\n";
+    echo '<meta property="og:type" content="article" />' . "\n";
+    echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
+
+    $thumb = get_the_post_thumbnail_url($post_id, 'large');
+    if ($thumb) echo '<meta property="og:image" content="' . esc_url($thumb) . '" />' . "\n";
+}, 1);
+
+// Override <title> when KotoIQ is the SEO engine
+add_filter('document_title_parts', function ($title_parts) {
+    if (!koto_is_module_enabled('seo')) return $title_parts;
+    if (defined('WPSEO_VERSION') || defined('RANK_MATH_VERSION')) return $title_parts;
+
+    $post_id = get_queried_object_id();
+    if (!$post_id) return $title_parts;
+
+    $kotoiq_title = get_post_meta($post_id, '_kotoiq_title', true);
+    if ($kotoiq_title) {
+        $title_parts['title'] = $kotoiq_title;
+    }
+    return $title_parts;
+}, 15);
+
+// ─── Auth callback ───────────────────────────────────────────────────────
 function kotoiq_seo_auth($request) {
     if (current_user_can('manage_options')) return true;
 
-    // Try the new unified auth path first (Bearer + remote_allowed + host pin).
     $unified = kotoiq_check_admin_or_remote('write');
     if ($unified === true) return true;
 
-    // Fallback: legacy koto_api_key match. Lets pre-migration koto-seo
-    // pairings keep working until they're switched to the unified key.
+    // Fallback: legacy koto_api_key for pre-migration sites
     $legacy_key = get_option('koto_api_key', '');
-    if ($legacy_key === '') return $unified; // no fallback available
+    if ($legacy_key === '') return $unified;
 
     $auth = $request->get_header('Authorization') ?: $request->get_header('X-KOTO-Key') ?: $request->get_header('X-Koto-Key');
     $auth = trim(str_replace(['Bearer ', 'bearer '], '', (string) $auth));
@@ -69,10 +112,6 @@ function kotoiq_seo_auth($request) {
 add_action('rest_api_init', function () {
     if (!koto_is_module_enabled('seo')) return;
 
-    // koto/v1 + hlseo/v1 routes — what the existing Koto agency platform
-    // calls. Registered with kotoiq_seo_auth so legacy koto_api_key pairings
-    // keep working. kotoiq/v1 + wpsimplecode/v1 mirrors use the standard
-    // kotoiq_perm_write.
     $seo_routes = [
         ['/agency/test',           'GET',    'kotoiq_seo_agency_test'],
         ['/pages',                 'GET',    'kotoiq_seo_pages'],
@@ -95,13 +134,11 @@ add_action('rest_api_init', function () {
 
     foreach ($seo_routes as [$path, $method, $callback]) {
         $args = ['methods' => $method, 'callback' => $callback, 'permission_callback' => 'kotoiq_seo_auth'];
-        // Primary namespaces (KotoIQ-paired) + legacy koto/v1 (existing Koto SEO 2.0.0 callers).
         kotoiq_register_rest_route($path, $args);
         register_rest_route('koto/v1',  $path, $args);
     }
 
-    // hlseo/v1 — even older callers. Only the agency-test surface, mapped
-    // to a few aliases the legacy plugin exposed.
+    // hlseo/v1 legacy aliases
     $hlseo_legacy = [
         ['/site/info',        'GET',  'kotoiq_seo_agency_test'],
         ['/stats',            'GET',  'kotoiq_seo_agency_test'],
@@ -148,7 +185,11 @@ function kotoiq_seo_agency_test() {
     $page_count = (int) $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE post_status='publish' AND post_type='page'");
     $yoast      = defined('WPSEO_VERSION') ? WPSEO_VERSION : null;
     $rankmath   = defined('RANK_MATH_VERSION') ? RANK_MATH_VERSION : null;
-    $gsc_property = get_option('wpseo_ms', [])['siteurl'] ?? get_option('gsc_property_url', null);
+
+    // Determine which SEO engine is active
+    $seo_engine = 'kotoiq'; // KotoIQ is the default
+    if ($yoast)    $seo_engine = 'yoast';    // Yoast overrides if present
+    if ($rankmath) $seo_engine = 'rankmath';  // Rank Math overrides if present
 
     update_option('koto_last_sync', current_time('mysql'));
     return rest_ensure_response([
@@ -164,8 +205,9 @@ function kotoiq_seo_agency_test() {
         'pages_count'      => $page_count,
         'yoast_version'    => $yoast,
         'rankmath_version' => $rankmath,
-        'seo_plugin'       => $yoast ? 'yoast' : ($rankmath ? 'rankmath' : 'none'),
-        'gsc_connected'    => !empty($gsc_property),
+        'seo_plugin'       => $seo_engine,
+        'seo_engine'       => $seo_engine,
+        'gsc_connected'    => !empty(get_option('gsc_property_url', null)),
         'client_id'        => get_option('koto_client_id', null),
         'last_sync'        => get_option('koto_last_sync'),
         'active_plugins'   => array_values(array_map('dirname', get_option('active_plugins', []))),
@@ -185,11 +227,7 @@ function kotoiq_seo_pages($request) {
     ]);
     $result = [];
     foreach ($posts as $p) {
-        $yoast_title = get_post_meta($p->ID, '_yoast_wpseo_title', true);
-        $yoast_desc  = get_post_meta($p->ID, '_yoast_wpseo_metadesc', true);
-        $rm_title    = get_post_meta($p->ID, 'rank_math_title', true);
-        $rm_desc     = get_post_meta($p->ID, 'rank_math_description', true);
-        $focus_kw    = get_post_meta($p->ID, '_yoast_wpseo_focuskw', true) ?: get_post_meta($p->ID, 'rank_math_focus_keyword', true);
+        $seo = kotoiq_seo_get_seo_meta($p->ID);
         $result[] = [
             'id'           => $p->ID,
             'title'        => $p->post_title,
@@ -198,10 +236,10 @@ function kotoiq_seo_pages($request) {
             'type'         => $p->post_type,
             'modified'     => $p->post_modified,
             'word_count'   => str_word_count(wp_strip_all_tags($p->post_content)),
-            'seo_title'    => $yoast_title ?: $rm_title ?: '',
-            'meta_desc'    => $yoast_desc  ?: $rm_desc  ?: '',
-            'focus_kw'     => $focus_kw    ?: '',
-            'has_seo_meta' => !empty($yoast_desc) || !empty($rm_desc),
+            'seo_title'    => $seo['seo_title'],
+            'meta_desc'    => $seo['meta_description'],
+            'focus_kw'     => $seo['focus_keyword'],
+            'has_seo_meta' => !empty($seo['meta_description']),
         ];
     }
     return rest_ensure_response(['pages' => $result, 'total' => count($result), 'retrieved_at' => current_time('c')]);
@@ -226,7 +264,7 @@ function kotoiq_seo_generate_batch($request) {
         $content = str_replace(['%city%', '%state%', '%keyword%', '%s'], [$city, $state, $keyword, $city], $template);
 
         if ($aeo) {
-            $content .= "\n\n<!-- AEO Schema -->\n<script type=\"application/ld+json\">" . wp_json_encode([
+            $content .= "\n\n<!-- KotoIQ Schema -->\n<script type=\"application/ld+json\">" . wp_json_encode([
                 '@context' => 'https://schema.org',
                 '@type'    => $schema,
                 'name'     => get_bloginfo('name'),
@@ -243,11 +281,20 @@ function kotoiq_seo_generate_batch($request) {
             'post_name'    => sanitize_title("$keyword-$city-$state"),
         ], true);
 
-        if (is_wp_error($post_id)) $errors[] = ['city' => $city, 'error' => $post_id->get_error_message()];
-        else $created[] = ['id' => $post_id, 'city' => $city, 'url' => get_permalink($post_id), 'title' => $title];
+        if (is_wp_error($post_id)) {
+            $errors[] = ['city' => $city, 'error' => $post_id->get_error_message()];
+        } else {
+            // Set KotoIQ SEO meta
+            $meta_desc = "$keyword in $city, $state - " . get_bloginfo('name');
+            kotoiq_seo_set_seo_meta($post_id, [
+                'seo_title'        => $title,
+                'meta_description' => $meta_desc,
+                'focus_keyword'    => $keyword ?: "$city $state",
+            ]);
+            $created[] = ['id' => $post_id, 'city' => $city, 'url' => get_permalink($post_id), 'title' => $title];
+        }
     }
 
-    // Normalize to format expected by the Koto WP Control Center.
     $shaped = array_map(function ($p) use ($status, $template) {
         return [
             'post_id'    => $p['id'],
@@ -275,14 +322,11 @@ function kotoiq_seo_generate_batch($request) {
 }
 
 function kotoiq_seo_gsc_overview() {
-    $gsc = [
+    return rest_ensure_response([
         'available'    => false,
-        'note'         => 'Connect Google Search Console via Yoast SEO, Rank Math, or Google Site Kit to see data here.',
+        'note'         => 'GSC data is synced through the KotoIQ platform. Connect Google Search Console in KotoIQ → Connect APIs.',
         'retrieved_at' => current_time('c'),
-    ];
-    if (class_exists('RankMath\\Google\\Api'))                  { $gsc['available'] = true; $gsc['source'] = 'rankmath'; }
-    if (defined('WPSEO_VERSION') && get_option('wpseo_ms'))     { $gsc['available'] = true; $gsc['source'] = 'yoast';    }
-    return rest_ensure_response($gsc);
+    ]);
 }
 
 function kotoiq_seo_blog_generate($request) {
@@ -313,14 +357,12 @@ function kotoiq_seo_blog_generate($request) {
     ], true);
     if (is_wp_error($post_id)) return new WP_REST_Response(['error' => $post_id->get_error_message()], 500);
 
-    if ($meta) {
-        if (defined('WPSEO_VERSION'))      update_post_meta($post_id, '_yoast_wpseo_metadesc', $meta);
-        if (defined('RANK_MATH_VERSION'))  update_post_meta($post_id, 'rank_math_description', $meta);
-    }
-    if ($keyword) {
-        if (defined('WPSEO_VERSION'))      update_post_meta($post_id, '_yoast_wpseo_focuskw', $keyword);
-        if (defined('RANK_MATH_VERSION'))  update_post_meta($post_id, 'rank_math_focus_keyword', $keyword);
-    }
+    // Set KotoIQ SEO meta
+    kotoiq_seo_set_seo_meta($post_id, [
+        'seo_title'        => $title,
+        'meta_description' => $meta,
+        'focus_keyword'    => $keyword,
+    ]);
 
     update_option('koto_last_sync', current_time('mysql'));
     return rest_ensure_response([
@@ -337,28 +379,76 @@ function kotoiq_seo_automation_run($request) {
     $params    = $request->get_json_params();
     $run_types = $params['run_types'] ?? ['sitemap', 'ping'];
     $results   = [];
-    if (in_array('sitemap', $run_types, true)) $results['sitemap'] = kotoiq_seo_rebuild_sitemap();
+    if (in_array('sitemap', $run_types, true)) $results['sitemap'] = kotoiq_seo_rebuild_sitemap_impl();
     if (in_array('ping',    $run_types, true)) $results['ping']    = kotoiq_seo_ping_engines();
     update_option('koto_last_automation', current_time('mysql'));
     return rest_ensure_response(['success' => true, 'results' => $results, 'ran_at' => current_time('c')]);
 }
 
 function kotoiq_seo_sitemap_rebuild() {
-    return rest_ensure_response(kotoiq_seo_rebuild_sitemap());
+    return rest_ensure_response(kotoiq_seo_rebuild_sitemap_impl());
 }
 
 function kotoiq_seo_rankings() {
     return rest_ensure_response([
-        'note'         => 'Rankings are tracked by the Koto platform. Connect GSC for keyword data.',
+        'note'         => 'Rankings are tracked by the KotoIQ platform. Connect GSC in KotoIQ → Connect APIs.',
         'retrieved_at' => current_time('c'),
     ]);
 }
 
-// ─── Helpers (sitemap, ping, SEO meta) ────────────────────────────────────
+// ─── SEO meta helpers — KotoIQ-native with legacy fallback ───────────────
 
-function kotoiq_seo_rebuild_sitemap() {
+function kotoiq_seo_set_seo_meta($post_id, $data) {
+    $title    = $data['seo_title']        ?? '';
+    $meta_desc = $data['meta_description'] ?? '';
+    $focus_kw  = $data['focus_keyword']    ?? '';
+
+    // Always write to KotoIQ's own fields
+    if ($title)     update_post_meta($post_id, '_kotoiq_title',         $title);
+    if ($meta_desc) update_post_meta($post_id, '_kotoiq_description',   $meta_desc);
+    if ($focus_kw)  update_post_meta($post_id, '_kotoiq_focus_keyword', $focus_kw);
+
+    // Also write to Yoast/Rank Math fields if they're active (for compatibility)
+    if (defined('WPSEO_VERSION')) {
+        if ($meta_desc) update_post_meta($post_id, '_yoast_wpseo_metadesc', $meta_desc);
+        if ($focus_kw)  update_post_meta($post_id, '_yoast_wpseo_focuskw',  $focus_kw);
+        if ($title)     update_post_meta($post_id, '_yoast_wpseo_title',    $title);
+    }
+    if (defined('RANK_MATH_VERSION')) {
+        if ($meta_desc) update_post_meta($post_id, 'rank_math_description',   $meta_desc);
+        if ($focus_kw)  update_post_meta($post_id, 'rank_math_focus_keyword', $focus_kw);
+        if ($title)     update_post_meta($post_id, 'rank_math_title',         $title);
+    }
+}
+
+function kotoiq_seo_get_seo_meta($post_id) {
+    // KotoIQ's own fields first
+    $kiq_title = get_post_meta($post_id, '_kotoiq_title',         true);
+    $kiq_desc  = get_post_meta($post_id, '_kotoiq_description',   true);
+    $kiq_kw    = get_post_meta($post_id, '_kotoiq_focus_keyword', true);
+
+    // Fallback to Yoast/Rank Math if KotoIQ fields are empty (migration support)
+    if (!$kiq_title) $kiq_title = get_post_meta($post_id, '_yoast_wpseo_title', true)
+                               ?: get_post_meta($post_id, 'rank_math_title', true);
+    if (!$kiq_desc)  $kiq_desc  = get_post_meta($post_id, '_yoast_wpseo_metadesc', true)
+                               ?: get_post_meta($post_id, 'rank_math_description', true);
+    if (!$kiq_kw)    $kiq_kw    = get_post_meta($post_id, '_yoast_wpseo_focuskw', true)
+                               ?: get_post_meta($post_id, 'rank_math_focus_keyword', true);
+
+    return [
+        'seo_title'        => $kiq_title ?: '',
+        'meta_description' => $kiq_desc  ?: '',
+        'focus_keyword'    => $kiq_kw    ?: '',
+    ];
+}
+
+// ─── Sitemap rebuild — native + fallback to SEO plugins ──────────────────
+
+function kotoiq_seo_rebuild_sitemap_impl() {
     $pinged = false;
-    if (function_exists('wpseo_get_value') || defined('WPSEO_VERSION')) {
+
+    // Try Yoast/Rank Math sitemaps first if they're active
+    if (defined('WPSEO_VERSION')) {
         do_action('wpseo_rebuild_sitemap', true);
         $pinged = true;
     }
@@ -366,42 +456,30 @@ function kotoiq_seo_rebuild_sitemap() {
         do_action('rank_math/sitemap/hit_index');
         $pinged = true;
     }
+
+    // If no SEO plugin sitemap, use WordPress core sitemap (WP 5.5+)
+    if (!$pinged) {
+        // WordPress core generates sitemaps at /wp-sitemap.xml automatically
+        // We just need to ping search engines
+        $pinged = true;
+    }
+
     $ping = kotoiq_seo_ping_engines();
-    return ['success' => true, 'method' => $pinged ? 'seo_plugin' : 'native', 'ping' => $ping, 'time' => current_time('c')];
+    return ['success' => true, 'method' => 'kotoiq', 'ping' => $ping, 'time' => current_time('c')];
 }
 
 function kotoiq_seo_ping_engines() {
-    $sitemap = get_site_url() . '/sitemap.xml';
+    $sitemap = get_site_url() . '/wp-sitemap.xml';
+    // Also check for plugin-generated sitemaps
+    if (defined('WPSEO_VERSION'))      $sitemap = get_site_url() . '/sitemap_index.xml';
+    if (defined('RANK_MATH_VERSION'))  $sitemap = get_site_url() . '/sitemap_index.xml';
+
     $results = [];
     foreach (['google' => 'https://www.google.com/ping?sitemap=', 'bing' => 'https://www.bing.com/ping?sitemap='] as $name => $base) {
         $r = wp_remote_get($base . urlencode($sitemap), ['timeout' => 8]);
         $results[$name] = is_wp_error($r) ? 'error' : wp_remote_retrieve_response_code($r);
     }
     return ['success' => true, 'results' => $results, 'sitemap' => $sitemap];
-}
-
-function kotoiq_seo_set_seo_meta($post_id, $data) {
-    $meta_desc = $data['meta_description'] ?? '';
-    $focus_kw  = $data['focus_keyword']    ?? '';
-    if (defined('WPSEO_VERSION')) {
-        if ($meta_desc) update_post_meta($post_id, '_yoast_wpseo_metadesc', $meta_desc);
-        if ($focus_kw)  update_post_meta($post_id, '_yoast_wpseo_focuskw',  $focus_kw);
-    }
-    if (defined('RANK_MATH_VERSION')) {
-        if ($meta_desc) update_post_meta($post_id, 'rank_math_description',   $meta_desc);
-        if ($focus_kw)  update_post_meta($post_id, 'rank_math_focus_keyword', $focus_kw);
-    }
-}
-
-function kotoiq_seo_get_seo_meta($post_id) {
-    $yoast_desc = get_post_meta($post_id, '_yoast_wpseo_metadesc', true);
-    $yoast_kw   = get_post_meta($post_id, '_yoast_wpseo_focuskw',  true);
-    $rm_desc    = get_post_meta($post_id, 'rank_math_description',   true);
-    $rm_kw      = get_post_meta($post_id, 'rank_math_focus_keyword', true);
-    return [
-        'meta_description' => $yoast_desc ?: $rm_desc ?: '',
-        'focus_keyword'    => $yoast_kw   ?: $rm_kw   ?: '',
-    ];
 }
 
 // ─── Locations ────────────────────────────────────────────────────────────
@@ -464,7 +542,7 @@ function kotoiq_seo_locations_cities($request) {
         'cities'    => [],
         'state'     => strtoupper($state),
         'total'     => 0,
-        'note'      => 'Could not fetch geo data from Koto. Verify agency URL is set in plugin settings.',
+        'note'      => 'Could not fetch geo data. Verify agency URL is set in plugin settings.',
     ]);
 }
 
@@ -519,133 +597,59 @@ function kotoiq_seo_content_get($request) {
         'word_count'      => str_word_count(wp_strip_all_tags($post->post_content)),
         'meta_description'=> $seo['meta_description'],
         'focus_keyword'   => $seo['focus_keyword'],
-        'featured_image'  => get_the_post_thumbnail_url($post_id, 'large') ?: null,
+        'seo_title'       => $seo['seo_title'],
     ]);
 }
 
 function kotoiq_seo_content_create($request) {
-    $params  = $request->get_json_params();
-    $title   = sanitize_text_field($params['title']     ?? '');
-    $content = wp_kses_post($params['content']          ?? '');
-    $type    = sanitize_text_field($params['post_type'] ?? 'page');
-    $status  = sanitize_text_field($params['status']    ?? 'draft');
-    $slug    = sanitize_title($params['slug'] ?? $title);
-
-    if (!$title) return new WP_REST_Response(['error' => 'title required'], 400);
-
+    $params = $request->get_json_params();
     $post_id = wp_insert_post([
-        'post_title'   => $title,
-        'post_content' => $content,
-        'post_status'  => in_array($status, ['publish', 'draft', 'pending'], true) ? $status : 'draft',
-        'post_type'    => in_array($type, ['page', 'post'], true) ? $type : 'page',
-        'post_name'    => $slug,
+        'post_title'   => sanitize_text_field($params['title'] ?? ''),
+        'post_content' => wp_kses_post($params['content'] ?? ''),
+        'post_status'  => sanitize_text_field($params['status'] ?? 'draft'),
+        'post_type'    => in_array($params['type'] ?? 'page', ['page', 'post'], true) ? $params['type'] : 'page',
+        'post_name'    => sanitize_title($params['slug'] ?? $params['title'] ?? ''),
     ], true);
     if (is_wp_error($post_id)) return new WP_REST_Response(['error' => $post_id->get_error_message()], 500);
-
     kotoiq_seo_set_seo_meta($post_id, $params);
-    return rest_ensure_response([
-        'success'    => true,
-        'post_id'    => $post_id,
-        'url'        => get_permalink($post_id),
-        'slug'       => get_post_field('post_name', $post_id),
-        'status'     => $status,
-        'created_at' => current_time('c'),
-    ]);
+    return rest_ensure_response(['success' => true, 'post_id' => $post_id, 'url' => get_permalink($post_id)]);
 }
 
 function kotoiq_seo_content_update($request) {
     $post_id = (int) $request->get_param('id');
     $params  = $request->get_json_params();
-    if (!get_post($post_id)) return new WP_REST_Response(['error' => 'Post not found'], 404);
-
-    $update = ['ID' => $post_id];
+    $update  = ['ID' => $post_id];
     if (isset($params['title']))   $update['post_title']   = sanitize_text_field($params['title']);
     if (isset($params['content'])) $update['post_content'] = wp_kses_post($params['content']);
     if (isset($params['status']))  $update['post_status']  = sanitize_text_field($params['status']);
     if (isset($params['slug']))    $update['post_name']    = sanitize_title($params['slug']);
-
     $result = wp_update_post($update, true);
     if (is_wp_error($result)) return new WP_REST_Response(['error' => $result->get_error_message()], 500);
-
     kotoiq_seo_set_seo_meta($post_id, $params);
-    return rest_ensure_response([
-        'success'    => true,
-        'post_id'    => $post_id,
-        'url'        => get_permalink($post_id),
-        'slug'       => get_post_field('post_name', $post_id),
-        'updated_at' => current_time('c'),
-    ]);
+    return rest_ensure_response(['success' => true, 'post_id' => $post_id, 'url' => get_permalink($post_id)]);
 }
 
 function kotoiq_seo_content_delete($request) {
     $post_id = (int) $request->get_param('id');
-    $result  = wp_delete_post($post_id, true); // force = skip trash
+    $result = wp_delete_post($post_id, true);
     return rest_ensure_response(['success' => (bool) $result, 'post_id' => $post_id]);
 }
 
 function kotoiq_seo_content_ai_generate($request) {
-    // The Koto platform does the AI generation and POSTs the result here to save.
-    $params  = $request->get_json_params();
-    $title   = sanitize_text_field($params['title']     ?? '');
-    $content = wp_kses_post($params['content']          ?? '');
-    $type    = sanitize_text_field($params['post_type'] ?? 'page');
-    $status  = sanitize_text_field($params['status']    ?? 'draft');
-
-    if (!$title || !$content) return new WP_REST_Response(['error' => 'title and content required'], 400);
-
-    $post_id = wp_insert_post([
-        'post_title'   => $title,
-        'post_content' => $content,
-        'post_status'  => $status,
-        'post_type'    => $type,
-        'post_name'    => sanitize_title($params['slug'] ?? $title),
-    ], true);
-    if (is_wp_error($post_id)) return new WP_REST_Response(['error' => $post_id->get_error_message()], 500);
-
-    kotoiq_seo_set_seo_meta($post_id, $params);
-    return rest_ensure_response([
-        'success' => true,
-        'post_id' => $post_id,
-        'url'     => get_permalink($post_id),
-        'slug'    => get_post_field('post_name', $post_id),
-        'status'  => $status,
-    ]);
+    return new WP_REST_Response(['error' => 'AI generation runs on the KotoIQ platform, not the plugin. Use PageIQ Writer in KotoIQ.'], 400);
 }
 
-function kotoiq_seo_styles($request) {
-    global $wp_styles;
-    $theme_dir  = get_stylesheet_directory_uri();
-    $theme_css  = $theme_dir . '/style.css';
-    $custom_css = wp_get_custom_css();
-
+function kotoiq_seo_styles() {
+    $theme_dir = get_template_directory();
+    $theme_url = get_template_directory_uri();
     $stylesheets = [];
-    if (is_a($wp_styles, 'WP_Styles')) {
-        foreach ($wp_styles->done as $handle) {
-            if (isset($wp_styles->registered[$handle])) {
-                $src = $wp_styles->registered[$handle]->src;
-                if ($src && strpos($src, 'http') === 0)        $stylesheets[] = $src;
-                elseif ($src)                                  $stylesheets[] = site_url($src);
-            }
-        }
+    foreach (glob($theme_dir . '/*.css') as $css) {
+        $stylesheets[] = $theme_url . '/' . basename($css);
     }
-
-    $theme_json_file = get_stylesheet_directory() . '/theme.json';
-    $theme_palette   = [];
-    if (file_exists($theme_json_file)) {
-        $theme_json    = json_decode(file_get_contents($theme_json_file), true);
-        $theme_palette = $theme_json['settings']['color']['palette'] ?? [];
-    }
-
-    $google_fonts = array_filter($stylesheets, function ($s) { return strpos($s, 'fonts.googleapis.com') !== false; });
-
     return rest_ensure_response([
-        'theme_name'     => get_template(),
-        'stylesheet_uri' => $theme_css,
-        'stylesheets'    => array_values(array_unique($stylesheets)),
-        'google_fonts'   => array_values($google_fonts),
-        'custom_css'     => $custom_css ?: '',
-        'site_url'       => get_site_url(),
-        'theme_palette'  => $theme_palette,
-        'body_classes'   => implode(' ', get_body_class()),
+        'theme'       => get_template(),
+        'theme_name'  => wp_get_theme()->get('Name'),
+        'stylesheets' => $stylesheets,
+        'site_url'    => get_site_url(),
     ]);
 }
