@@ -80,6 +80,41 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages }) {
   const [kw, setKw] = useState(page.focus_kw || '')
   const [faqSchema, setFaqSchema] = useState(null)
 
+  // Quick score on mount — uses available data without fetching content.
+  // Gives an instant score for every row in the table.
+  const [quickScore, setQuickScore] = useState(null)
+  useEffect(() => {
+    const siteUrl = page.url ? (() => { try { return new URL(page.url).origin } catch { return '' } })() : ''
+    const result = analyzeSEO({
+      title: page.title,
+      url: page.url,
+      slug: page.slug,
+      content: '',  // no content yet — checks that need content will fail, which is accurate
+      seo_title: page.seo_title || page.title || '',
+      meta_desc: page.meta_desc || '',
+      focus_kw: page.focus_kw || '',
+      word_count: page.word_count || 0,
+      type: page.type,
+    }, siteUrl)
+    setQuickScore(result.score)
+  }, [page.seo_title, page.meta_desc, page.focus_kw, page.word_count])
+
+  // Re-score whenever the user edits fields (live feedback while typing)
+  useEffect(() => {
+    if (!editing) return
+    const siteUrl = page.url ? (() => { try { return new URL(page.url).origin } catch { return '' } })() : ''
+    const result = analyzeSEO({
+      title: page.title, url: page.url, slug: page.slug, content: '',
+      seo_title: title || page.title || '',
+      meta_desc: desc || '',
+      focus_kw: kw || '',
+      word_count: page.word_count || 0,
+      type: page.type,
+    }, siteUrl)
+    setQuickScore(result.score)
+    if (analysis) setAnalysis(null) // clear deep analysis when fields change
+  }, [title, desc, kw, editing])
+
   // AI writes everything: keyword, title, description, FAQ schema
   const aiOptimize = async () => {
     setAiGenerating(true)
@@ -207,7 +242,7 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages }) {
           onMouseLeave={e => e.currentTarget.style.background = analysis ? DESIGN.colors.warmGray : 'transparent'}>
           <td style={td()}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {analysis && <MiniScoreRing score={analysis.score} />}
+              <MiniScoreRing score={analysis ? analysis.score : (quickScore ?? 0)} />
               <div>
                 <div style={{ fontFamily: FB, fontWeight: 600, color: DESIGN.colors.navy, fontSize: 13 }}>{page.title || '(untitled)'}</div>
                 {page.meta_desc && <div style={{ fontSize: 12, color: DESIGN.colors.textSecondary, marginTop: 3, lineHeight: 1.4, maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page.meta_desc}</div>}
@@ -234,13 +269,13 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages }) {
                 {aiGenerating ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={11} />}
                 {aiGenerating ? 'AI...' : 'AI'}
               </button>
-              <button onClick={runAnalysis} disabled={analyzing} title="Run SEO analysis" style={{
+              <button onClick={runAnalysis} disabled={analyzing} title="Run deep SEO analysis with full content" style={{
                 padding: '5px 8px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
                 background: '#fff', cursor: analyzing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 3,
                 fontSize: 11, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
               }}>
                 {analyzing ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={11} />}
-                {analysis ? analysis.score : 'Score'}
+                {analysis ? 'Details' : 'Analyze'}
               </button>
               <button onClick={() => setEditing(true)} title="Edit SEO meta" style={{
                 padding: '5px 8px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
@@ -281,8 +316,12 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages }) {
       <tr style={{ borderTop: `1px solid ${DESIGN.colors.pink}40`, background: `${DESIGN.colors.pink}06` }}>
         <td colSpan={6} style={{ padding: '16px 14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Edit2 size={14} color={DESIGN.colors.pink} /> Editing SEO for: {page.title}
+            <div style={{ fontFamily: FB, fontWeight: 700, color: DESIGN.colors.navy, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <MiniScoreRing score={quickScore ?? 0} size={36} />
+              <div>
+                <div>Editing SEO for: {page.title}</div>
+                <div style={{ fontSize: 11, fontWeight: 500, color: DESIGN.colors.textMuted, marginTop: 2 }}>Score updates as you type</div>
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={aiOptimize} disabled={aiGenerating || saving} style={{
