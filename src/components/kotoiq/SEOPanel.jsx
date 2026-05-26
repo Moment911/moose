@@ -79,6 +79,63 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile 
   const [desc, setDesc] = useState(page.meta_desc || '')
   const [kw, setKw] = useState(page.focus_kw || '')
   const [faqSchema, setFaqSchema] = useState(null)
+  const [contentFixing, setContentFixing] = useState(false) // 'auto' | 'checklist' | false
+  const [checklist, setChecklist] = useState(null)
+  const [autoFixResult, setAutoFixResult] = useState(null)
+
+  // Fetch content and run content fix (auto or checklist mode)
+  const runContentFix = async (mode) => {
+    setContentFixing(mode)
+    try {
+      const cr = await fetch('/api/wp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'kotoiq_seo_content_get', site_id: siteId, post_id: page.id }),
+      })
+      const cd = await cr.json()
+      const content = cd?.data?.content || cd?.data?.content_html || ''
+
+      const res = await fetch('/api/wp/seo-content-fix', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode,
+          site_id: siteId,
+          post_id: page.id,
+          page_title: page.title,
+          page_url: page.url,
+          page_slug: page.slug,
+          page_content: content,
+          page_type: page.type,
+          word_count: page.word_count,
+          focus_keyword: kw || page.focus_kw,
+          seo_title: title || page.seo_title,
+          meta_description: desc || page.meta_desc,
+          business_name: companyProfile?.business_name || siteDiag?.site_name,
+          industry: companyProfile?.industry,
+          location: companyProfile?.location,
+          target_customer: companyProfile?.target_customer,
+          services: companyProfile?.services,
+          unique_value: companyProfile?.unique_value,
+          company_summary: companyProfile?.summary,
+        }),
+      })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error); setContentFixing(false); return }
+
+      if (mode === 'checklist') {
+        setChecklist(data)
+        toast.success(`Checklist ready: ${data.fixes?.length || 0} fixes identified`)
+      } else {
+        setAutoFixResult(data)
+        if (data.pushed) {
+          toast.success(`Content optimized and pushed to WordPress! Estimated score: ${data.estimated_score}/100`)
+          if (onSaved) onSaved()
+        } else {
+          toast.success(`Content optimized. Estimated score: ${data.estimated_score}/100`)
+        }
+      }
+    } catch (e) { toast.error('Content fix failed: ' + e.message) }
+    setContentFixing(false)
+  }
 
   // Quick score on mount — uses available data without fetching content.
   // Gives an instant score for every row in the table.
@@ -265,30 +322,41 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile 
           </td>
           <td style={{ ...td(), textAlign: 'right', color: DESIGN.colors.textMuted }}>{page.word_count}</td>
           <td style={{ ...td(), textAlign: 'center' }}>
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              <button onClick={aiOptimize} disabled={aiGenerating} title="AI writes SEO title, description, keyword, and FAQ schema" style={{
-                padding: '5px 10px', borderRadius: 6, border: 'none',
+            <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+              <button onClick={aiOptimize} disabled={aiGenerating || !!contentFixing} title="AI writes SEO title, description, keyword" style={{
+                padding: '5px 9px', borderRadius: 6, border: 'none',
                 background: DESIGN.colors.pink, color: '#fff', cursor: aiGenerating ? 'wait' : 'pointer',
                 display: 'flex', alignItems: 'center', gap: 3,
-                fontSize: 11, fontWeight: 600, fontFamily: FB, opacity: aiGenerating ? 0.6 : 1,
+                fontSize: 10, fontWeight: 600, fontFamily: FB, opacity: aiGenerating ? 0.6 : 1,
               }}>
-                {aiGenerating ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={11} />}
-                {aiGenerating ? 'AI...' : 'AI'}
+                {aiGenerating ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
+                Meta
               </button>
-              <button onClick={runAnalysis} disabled={analyzing} title="Run deep SEO analysis with full content" style={{
-                padding: '5px 8px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
-                background: '#fff', cursor: analyzing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 3,
-                fontSize: 11, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
+              <button onClick={() => runContentFix('auto')} disabled={!!contentFixing || aiGenerating} title="AI rewrites page content to maximize SEO score, then pushes to WordPress" style={{
+                padding: '5px 9px', borderRadius: 6, border: 'none',
+                background: DESIGN.colors.navy, color: '#fff', cursor: contentFixing ? 'wait' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: 3,
+                fontSize: 10, fontWeight: 600, fontFamily: FB, opacity: contentFixing === 'auto' ? 0.6 : 1,
               }}>
-                {analyzing ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={11} />}
-                {analysis ? 'Details' : 'Analyze'}
+                {contentFixing === 'auto' ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
+                Fix
               </button>
-              <button onClick={() => setEditing(true)} title="Edit SEO meta" style={{
-                padding: '5px 8px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
+              <button onClick={() => runContentFix('checklist')} disabled={!!contentFixing || aiGenerating} title="AI generates a manual checklist of what to fix" style={{
+                padding: '5px 9px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
+                background: '#fff', cursor: contentFixing ? 'wait' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: 3,
+                fontSize: 10, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
+                opacity: contentFixing === 'checklist' ? 0.6 : 1,
+              }}>
+                {contentFixing === 'checklist' ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={10} />}
+                Audit
+              </button>
+              <button onClick={() => setEditing(true)} title="Edit SEO meta manually" style={{
+                padding: '5px 9px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
                 background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3,
-                fontSize: 11, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
+                fontSize: 10, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
               }}>
-                <Edit2 size={11} /> Edit
+                <Edit2 size={10} />
               </button>
             </div>
           </td>
@@ -309,6 +377,71 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile 
                   <AnalysisSection title="Content Readability" checks={analysis.sections.contentReadability} defaultOpen={false} />
                 </div>
               </div>
+            </td>
+          </tr>
+        )}
+        {/* Checklist results */}
+        {checklist && (
+          <tr style={{ background: '#fff' }}>
+            <td colSpan={6} style={{ padding: '16px 18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: DESIGN.colors.navy, fontFamily: FB }}>SEO Fix Checklist</div>
+                  <span style={{ padding: '3px 10px', borderRadius: 20, background: `${DESIGN.colors.pink}12`, color: DESIGN.colors.pink, fontSize: 12, fontWeight: 600 }}>
+                    {checklist.score_before}/100 → {checklist.score_after}/100
+                  </span>
+                </div>
+                <button onClick={() => setChecklist(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: DESIGN.colors.textMuted }}>
+                  <X size={14} />
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {(checklist.fixes || []).map((fix, i) => (
+                  <div key={i} style={{
+                    padding: '12px 14px', borderRadius: 10,
+                    background: fix.status === 'pass' ? `${GRN}08` : fix.status === 'warn' ? `${AMB}08` : '#DC262608',
+                    border: `1px solid ${fix.status === 'pass' ? GRN + '20' : fix.status === 'warn' ? AMB + '20' : '#DC262620'}`,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: fix.status === 'pass' ? 0 : 6 }}>
+                      {fix.status === 'pass' ? <CheckCircle size={14} color={GRN} /> : fix.status === 'warn' ? <AlertTriangle size={14} color={AMB} /> : <XCircle size={14} color="#DC2626" />}
+                      <span style={{ fontSize: 13, fontWeight: 600, color: DESIGN.colors.navy, flex: 1, fontFamily: FB }}>{fix.check}</span>
+                      {fix.impact && <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: fix.impact === 'high' ? '#DC262612' : fix.impact === 'medium' ? AMB + '12' : DESIGN.colors.warmGray, color: fix.impact === 'high' ? '#DC2626' : fix.impact === 'medium' ? AMB : DESIGN.colors.textMuted }}>{fix.impact}</span>}
+                    </div>
+                    {fix.status !== 'pass' && (
+                      <div style={{ paddingLeft: 22 }}>
+                        {fix.current && <div style={{ fontSize: 12, color: DESIGN.colors.textMuted, marginBottom: 3, fontFamily: FB }}>Current: {fix.current}</div>}
+                        <div style={{ fontSize: 13, color: DESIGN.colors.navy, fontFamily: FB, lineHeight: 1.5 }}>Fix: {fix.fix}</div>
+                        {fix.location && <div style={{ fontSize: 11, color: DESIGN.colors.textMuted, marginTop: 3 }}>Location: {fix.location}</div>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </td>
+          </tr>
+        )}
+        {/* Auto-fix results */}
+        {autoFixResult && (
+          <tr style={{ background: `${GRN}06` }}>
+            <td colSpan={6} style={{ padding: '16px 18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CheckCircle size={16} color={GRN} />
+                  <div style={{ fontSize: 14, fontWeight: 700, color: DESIGN.colors.navy, fontFamily: FB }}>
+                    Content Optimized {autoFixResult.pushed ? '& Pushed to WordPress' : ''}
+                  </div>
+                  <span style={{ padding: '3px 10px', borderRadius: 20, background: `${GRN}12`, color: GRN, fontSize: 12, fontWeight: 700 }}>
+                    Est. {autoFixResult.estimated_score}/100
+                  </span>
+                </div>
+                <button onClick={() => setAutoFixResult(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: DESIGN.colors.textMuted }}>
+                  <X size={14} />
+                </button>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: DESIGN.colors.navy, marginBottom: 8, fontFamily: FB }}>Changes made:</div>
+              <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: DESIGN.colors.textSecondary, fontFamily: FB, lineHeight: 1.6 }}>
+                {(autoFixResult.changes_made || []).map((c, i) => <li key={i}>{c}</li>)}
+              </ul>
             </td>
           </tr>
         )}
