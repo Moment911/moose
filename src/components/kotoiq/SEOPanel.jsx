@@ -1,8 +1,9 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react'
-import { TrendingUp, Loader2, RefreshCw, Globe, AlertTriangle, ExternalLink, CheckCircle, XCircle, Edit2, Save, X, Sparkles } from 'lucide-react'
+import { TrendingUp, Loader2, RefreshCw, Globe, AlertTriangle, ExternalLink, CheckCircle, XCircle, Edit2, Save, X, Sparkles, BarChart2, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
+import { analyzeSEO } from '../../lib/seoAnalyzer'
 
 /**
  * SEOPanel — KotoIQ's built-in SEO engine with inline editing.
@@ -12,12 +13,101 @@ import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN } from '../../lib/theme'
  */
 
 // ── Inline editor for a single page's SEO meta ──────────────────────────
+// ── SEO Score ring (mini) ────────────────────────────────────────────────
+function MiniScoreRing({ score, size = 32 }) {
+  const color = score >= 80 ? GRN : score >= 60 ? AMB : score >= 40 ? '#f97316' : '#DC2626'
+  const radius = size / 2 - 3
+  const circ = 2 * Math.PI * radius
+  const offset = circ - (score / 100) * circ
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={radius} stroke={DESIGN.colors.border} strokeWidth="3" fill="none" />
+        <circle cx={size/2} cy={size/2} r={radius} stroke={color} strokeWidth="3" fill="none"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color, fontFamily: FB }}>{score}</div>
+    </div>
+  )
+}
+
+// ── Analysis section for a page ─────────────────────────────────────────
+function AnalysisSection({ title: sectionTitle, checks, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen)
+  const passed = checks.filter(c => c.status === 'pass').length
+  const failed = checks.filter(c => c.status === 'fail').length
+  const warns = checks.filter(c => c.status === 'warn').length
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <button onClick={() => setOpen(!open)} style={{
+        display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 0',
+        border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: FB, textAlign: 'left',
+      }}>
+        <ChevronDown size={12} color={DESIGN.colors.textMuted} style={{ transform: open ? 'rotate(0)' : 'rotate(-90deg)', transition: 'transform 150ms' }} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: DESIGN.colors.navy, flex: 1 }}>{sectionTitle}</span>
+        {failed > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#DC2626', background: '#DC262612', padding: '2px 8px', borderRadius: 10 }}>{failed} Error{failed > 1 ? 's' : ''}</span>}
+        {warns > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: AMB, background: AMB + '12', padding: '2px 8px', borderRadius: 10 }}>{warns} Warning{warns > 1 ? 's' : ''}</span>}
+        {failed === 0 && warns === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: GRN, background: GRN + '12', padding: '2px 8px', borderRadius: 10 }}>All passed</span>}
+      </button>
+      {open && (
+        <div style={{ paddingLeft: 4, paddingBottom: 8 }}>
+          {checks.map((check, i) => (
+            <div key={check.id + i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 0', fontSize: 13, fontFamily: FB }}>
+              {check.status === 'pass' ? <CheckCircle size={14} color={GRN} style={{ marginTop: 2, flexShrink: 0 }} /> :
+               check.status === 'warn' ? <AlertTriangle size={14} color={AMB} style={{ marginTop: 2, flexShrink: 0 }} /> :
+               <XCircle size={14} color="#DC2626" style={{ marginTop: 2, flexShrink: 0 }} />}
+              <div>
+                <div style={{ color: check.status === 'pass' ? DESIGN.colors.textSecondary : DESIGN.colors.navy, lineHeight: 1.4 }}>{check.label}</div>
+                {check.suggestion && <div style={{ fontSize: 12, color: DESIGN.colors.textMuted, marginTop: 2 }}>{check.suggestion}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function PageEditor({ page, siteId, onSaved }) {
   const [editing, setEditing] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysis, setAnalysis] = useState(null)
   const [saving, setSaving] = useState(false)
   const [title, setTitle] = useState(page.seo_title || '')
   const [desc, setDesc] = useState(page.meta_desc || '')
   const [kw, setKw] = useState(page.focus_kw || '')
+
+  const runAnalysis = async () => {
+    setAnalyzing(true)
+    try {
+      // Fetch full page content for analysis
+      const res = await fetch('/api/wp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'kotoiq_seo_content_get', site_id: siteId, post_id: page.id }),
+      })
+      const data = await res.json()
+      const content = data?.data?.content || data?.data?.content_html || ''
+      const siteUrl = page.url ? new URL(page.url).origin : ''
+
+      const result = analyzeSEO({
+        title: page.title,
+        url: page.url,
+        slug: page.slug,
+        content,
+        seo_title: title || page.seo_title || page.title,
+        meta_desc: desc || page.meta_desc || '',
+        focus_kw: kw || page.focus_kw || '',
+        word_count: page.word_count || 0,
+        type: page.type,
+      }, siteUrl)
+
+      setAnalysis(result)
+    } catch (e) {
+      toast.error('Analysis failed: ' + e.message)
+    }
+    setAnalyzing(false)
+  }
 
   const save = async () => {
     setSaving(true)
@@ -63,32 +153,68 @@ function PageEditor({ page, siteId, onSaved }) {
 
   if (!editing) {
     return (
-      <tr style={{ borderTop: `1px solid ${DESIGN.colors.borderLight}` }}
-        onMouseEnter={e => e.currentTarget.style.background = DESIGN.colors.warmGray}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-        <td style={td()}>
-          <div style={{ fontFamily: FB, fontWeight: 600, color: DESIGN.colors.navy, fontSize: 13 }}>{page.title || '(untitled)'}</div>
-          {page.meta_desc && <div style={{ fontSize: 12, color: DESIGN.colors.textSecondary, marginTop: 3, lineHeight: 1.4, maxWidth: 420, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page.meta_desc}</div>}
-          <a href={page.url} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: DESIGN.colors.pink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 3 }}>
-            view <ExternalLink size={9} />
-          </a>
-        </td>
-        <td style={td()}><Pill>{page.type}</Pill></td>
-        <td style={td()}>{page.focus_kw ? <code style={{ fontSize: 12, color: DESIGN.colors.pink, fontFamily: DESIGN.fonts.mono }}>{page.focus_kw}</code> : <span style={{ color: DESIGN.colors.textMuted }}>—</span>}</td>
-        <td style={{ ...td(), textAlign: 'center' }}>
-          {page.has_seo_meta ? <CheckCircle size={14} color={GRN} /> : <XCircle size={14} color={DESIGN.colors.border} />}
-        </td>
-        <td style={{ ...td(), textAlign: 'right', color: DESIGN.colors.textMuted }}>{page.word_count}</td>
-        <td style={{ ...td(), textAlign: 'center' }}>
-          <button onClick={() => setEditing(true)} title="Edit SEO meta" style={{
-            padding: '5px 8px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
-            background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3,
-            fontSize: 11, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
-          }}>
-            <Edit2 size={11} /> Edit
-          </button>
-        </td>
-      </tr>
+      <>
+        <tr style={{ borderTop: `1px solid ${DESIGN.colors.borderLight}` }}
+          onMouseEnter={e => e.currentTarget.style.background = DESIGN.colors.warmGray}
+          onMouseLeave={e => e.currentTarget.style.background = analysis ? DESIGN.colors.warmGray : 'transparent'}>
+          <td style={td()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {analysis && <MiniScoreRing score={analysis.score} />}
+              <div>
+                <div style={{ fontFamily: FB, fontWeight: 600, color: DESIGN.colors.navy, fontSize: 13 }}>{page.title || '(untitled)'}</div>
+                {page.meta_desc && <div style={{ fontSize: 12, color: DESIGN.colors.textSecondary, marginTop: 3, lineHeight: 1.4, maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page.meta_desc}</div>}
+                <a href={page.url} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: DESIGN.colors.pink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 3 }}>
+                  view <ExternalLink size={9} />
+                </a>
+              </div>
+            </div>
+          </td>
+          <td style={td()}><Pill>{page.type}</Pill></td>
+          <td style={td()}>{page.focus_kw ? <code style={{ fontSize: 12, color: DESIGN.colors.pink, fontFamily: DESIGN.fonts.mono }}>{page.focus_kw}</code> : <span style={{ color: DESIGN.colors.textMuted }}>—</span>}</td>
+          <td style={{ ...td(), textAlign: 'center' }}>
+            {page.has_seo_meta ? <CheckCircle size={14} color={GRN} /> : <XCircle size={14} color={DESIGN.colors.border} />}
+          </td>
+          <td style={{ ...td(), textAlign: 'right', color: DESIGN.colors.textMuted }}>{page.word_count}</td>
+          <td style={{ ...td(), textAlign: 'center' }}>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button onClick={runAnalysis} disabled={analyzing} title="Run SEO analysis" style={{
+                padding: '5px 8px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
+                background: '#fff', cursor: analyzing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 3,
+                fontSize: 11, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
+              }}>
+                {analyzing ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={11} />}
+                {analysis ? analysis.score : 'Score'}
+              </button>
+              <button onClick={() => setEditing(true)} title="Edit SEO meta" style={{
+                padding: '5px 8px', borderRadius: 6, border: `1px solid ${DESIGN.colors.border}`,
+                background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3,
+                fontSize: 11, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
+              }}>
+                <Edit2 size={11} /> Edit
+              </button>
+            </div>
+          </td>
+        </tr>
+        {/* Analysis results row */}
+        {analysis && (
+          <tr style={{ background: DESIGN.colors.warmGray }}>
+            <td colSpan={6} style={{ padding: '12px 16px' }}>
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                <div style={{ minWidth: 200, flex: 1 }}>
+                  <AnalysisSection title="Basic SEO" checks={analysis.sections.basicSeo} defaultOpen={true} />
+                </div>
+                <div style={{ minWidth: 200, flex: 1 }}>
+                  <AnalysisSection title="Additional" checks={analysis.sections.additional} defaultOpen={false} />
+                </div>
+                <div style={{ minWidth: 200, flex: 1 }}>
+                  <AnalysisSection title="Title Readability" checks={analysis.sections.titleReadability} defaultOpen={false} />
+                  <AnalysisSection title="Content Readability" checks={analysis.sections.contentReadability} defaultOpen={false} />
+                </div>
+              </div>
+            </td>
+          </tr>
+        )}
+      </>
     )
   }
 

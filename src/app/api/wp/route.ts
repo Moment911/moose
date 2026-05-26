@@ -1520,6 +1520,13 @@ Rules:
       return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
     }
 
+    if (action === 'kotoiq_seo_content_get') {
+      const postId = body.post_id
+      if (!postId) return NextResponse.json({ error: 'post_id required' }, { status: 400 })
+      const r = await proxyToWPSCMethod(site, 'GET', `content/${postId}`)
+      return NextResponse.json({ ok: r.ok, data: r.data, status: r.status })
+    }
+
     if (action === 'kotoiq_seo_sitemap_rebuild') {
       // POST — works with the existing proxyToWPSC, but keep the method-aware
       // call for consistency with the other panel actions.
