@@ -319,13 +319,93 @@ add_action('wp_head', function () {
     }
 }, 2);
 
-// ── Admin columns — show SEO score in posts/pages list ──────────────────
+// ── Admin columns — SEO score + inline editing in posts/pages list ───────
 add_filter('manage_posts_columns', 'kotoiq_seo_admin_columns');
 add_filter('manage_pages_columns', 'kotoiq_seo_admin_columns');
 function kotoiq_seo_admin_columns($columns) {
     if (!koto_is_module_enabled('seo')) return $columns;
-    $columns['kotoiq_seo'] = 'SEO';
+    $columns['kotoiq_seo'] = 'KotoIQ SEO';
     return $columns;
+}
+
+// Real SEO scoring — checks quality, not just field presence
+function kotoiq_seo_calculate_score($post_id) {
+    $post = get_post($post_id);
+    if (!$post) return ['score' => 0, 'checks' => 0, 'total' => 0, 'issues' => []];
+
+    $seo   = function_exists('kotoiq_seo_get_seo_meta') ? kotoiq_seo_get_seo_meta($post_id) : [];
+    $title = $seo['seo_title'] ?? get_post_meta($post_id, '_kotoiq_title', true);
+    $desc  = $seo['meta_description'] ?? get_post_meta($post_id, '_kotoiq_description', true);
+    $kw    = $seo['focus_keyword'] ?? get_post_meta($post_id, '_kotoiq_focus_keyword', true);
+
+    $content  = strtolower(wp_strip_all_tags($post->post_content));
+    $kwLower  = strtolower($kw);
+    $titleLow = strtolower($title ?: $post->post_title);
+    $descLow  = strtolower($desc);
+    $slug     = $post->post_name;
+    $wordCount = str_word_count($content);
+
+    $passed = 0;
+    $total  = 0;
+    $issues = [];
+
+    // 1. Focus keyword set
+    $total++;
+    if ($kw) { $passed++; } else { $issues[] = 'No focus keyword'; }
+
+    // 2. Keyword in title
+    if ($kw) {
+        $total++;
+        if (stripos($titleLow, $kwLower) !== false) { $passed++; } else { $issues[] = 'Keyword missing from title'; }
+    }
+
+    // 3. Keyword in description
+    if ($kw) {
+        $total++;
+        if ($desc && stripos($descLow, $kwLower) !== false) { $passed++; } else { $issues[] = 'Keyword missing from description'; }
+    }
+
+    // 4. Keyword in URL
+    if ($kw) {
+        $total++;
+        $kwSlug = str_replace(' ', '-', $kwLower);
+        if (stripos($slug, $kwSlug) !== false) { $passed++; } else { $issues[] = 'Keyword missing from URL'; }
+    }
+
+    // 5. Keyword in content
+    if ($kw) {
+        $total++;
+        if (stripos($content, $kwLower) !== false) { $passed++; } else { $issues[] = 'Keyword missing from content'; }
+    }
+
+    // 6. Title length
+    $total++;
+    $titleLen = strlen($title ?: $post->post_title);
+    if ($titleLen >= 30 && $titleLen <= 60) { $passed++; } else { $issues[] = 'Title length: ' . $titleLen . '/60'; }
+
+    // 7. Description exists and length
+    $total++;
+    $descLen = strlen($desc);
+    if ($descLen >= 120 && $descLen <= 160) { $passed++; }
+    elseif ($descLen > 0) { /* partial credit */ $passed += 0.5; $issues[] = 'Description: ' . $descLen . ' chars'; }
+    else { $issues[] = 'No meta description'; }
+
+    // 8. Word count
+    $total++;
+    if ($wordCount >= 300) { $passed++; } else { $issues[] = 'Only ' . $wordCount . ' words'; }
+
+    // 9. Keyword density
+    if ($kw && $wordCount > 50) {
+        $total++;
+        $kwCount = substr_count($content, $kwLower);
+        $kwWords = str_word_count($kw);
+        $density = ($kwCount * $kwWords / $wordCount) * 100;
+        if ($density >= 0.5 && $density <= 2.5) { $passed++; } else { $issues[] = 'Keyword density: ' . round($density, 1) . '%'; }
+    }
+
+    $score = $total > 0 ? round(($passed / $total) * 100) : 0;
+    return ['score' => $score, 'checks' => $passed, 'total' => $total, 'issues' => $issues,
+            'title' => $title, 'desc' => $desc, 'kw' => $kw];
 }
 
 add_action('manage_posts_custom_column', 'kotoiq_seo_admin_column_content', 10, 2);
@@ -333,21 +413,127 @@ add_action('manage_pages_custom_column', 'kotoiq_seo_admin_column_content', 10, 
 function kotoiq_seo_admin_column_content($column, $post_id) {
     if ($column !== 'kotoiq_seo') return;
 
-    $title = get_post_meta($post_id, '_kotoiq_title', true);
-    $desc  = get_post_meta($post_id, '_kotoiq_description', true);
-    $kw    = get_post_meta($post_id, '_kotoiq_focus_keyword', true);
+    $result = kotoiq_seo_calculate_score($post_id);
+    $score  = $result['score'];
+    $color  = $score >= 70 ? '#16a34a' : ($score >= 40 ? '#f59e0b' : '#dc2626');
+    $kw     = $result['kw'];
+    $title  = $result['title'];
+    $desc   = $result['desc'];
+    $issues = $result['issues'];
 
-    $checks = 0;
-    $total  = 3;
-    if ($kw)    $checks++;
-    if ($title) $checks++;
-    if ($desc)  $checks++;
-
-    $score = round(($checks / $total) * 100);
-    $color = $score >= 80 ? '#16a34a' : ($score >= 40 ? '#f59e0b' : '#dc2626');
-
-    echo '<div style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;background:' . $color . '15;color:' . $color . ';font-size:12px;font-weight:700;">';
+    // Score badge
+    echo '<div style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;background:' . $color . '15;color:' . $color . ';font-size:12px;font-weight:700;cursor:pointer;" onclick="kiqToggleInline(' . $post_id . ')" title="Click to edit SEO">';
     echo $score . '/100';
     echo '</div>';
-    if (!$kw) echo '<div style="font-size:11px;color:#9ca3af;margin-top:2px;">No keyword</div>';
+
+    // Top issue
+    if (!empty($issues)) {
+        echo '<div style="font-size:11px;color:#9ca3af;margin-top:2px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' . esc_attr(implode(', ', $issues)) . '">';
+        echo esc_html($issues[0]);
+        echo '</div>';
+    }
+
+    // Inline edit form (hidden by default)
+    echo '<div id="kiq-inline-' . $post_id . '" style="display:none;margin-top:8px;padding:12px;background:#faf9f6;border:1px solid #e8e5df;border-radius:10px;max-width:360px;">';
+
+    // Focus keyword
+    echo '<div style="margin-bottom:8px;">';
+    echo '<label style="font-size:11px;font-weight:600;color:#201b51;display:block;margin-bottom:3px;">Focus Keyword</label>';
+    echo '<input type="text" id="kiq-kw-' . $post_id . '" value="' . esc_attr($kw) . '" placeholder="e.g. plumber fort lauderdale" style="width:100%;padding:6px 10px;border:1px solid #e8e5df;border-radius:6px;font-size:13px;box-sizing:border-box;" />';
+    echo '</div>';
+
+    // SEO Title
+    echo '<div style="margin-bottom:8px;">';
+    echo '<label style="font-size:11px;font-weight:600;color:#201b51;display:block;margin-bottom:3px;">SEO Title</label>';
+    echo '<input type="text" id="kiq-title-' . $post_id . '" value="' . esc_attr($title) . '" placeholder="' . esc_attr(get_the_title($post_id)) . '" style="width:100%;padding:6px 10px;border:1px solid #e8e5df;border-radius:6px;font-size:13px;box-sizing:border-box;" />';
+    echo '</div>';
+
+    // Meta Description
+    echo '<div style="margin-bottom:10px;">';
+    echo '<label style="font-size:11px;font-weight:600;color:#201b51;display:block;margin-bottom:3px;">Meta Description</label>';
+    echo '<textarea id="kiq-desc-' . $post_id . '" rows="2" placeholder="Write a compelling description..." style="width:100%;padding:6px 10px;border:1px solid #e8e5df;border-radius:6px;font-size:13px;box-sizing:border-box;resize:vertical;">' . esc_textarea($desc) . '</textarea>';
+    echo '</div>';
+
+    // Save button
+    echo '<div style="display:flex;gap:6px;">';
+    echo '<button type="button" onclick="kiqSaveInline(' . $post_id . ')" style="padding:6px 16px;border-radius:20px;border:none;background:#cb1c6b;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Save</button>';
+    echo '<button type="button" onclick="kiqToggleInline(' . $post_id . ')" style="padding:6px 12px;border-radius:20px;border:1px solid #e8e5df;background:#fff;color:#201b51;font-size:12px;font-weight:600;cursor:pointer;">Cancel</button>';
+    echo '</div>';
+
+    echo '</div>';
 }
+
+// ── Inline edit JavaScript + AJAX handler ───────────────────────────────
+add_action('admin_footer', function () {
+    $screen = get_current_screen();
+    if (!$screen || !in_array($screen->base, ['edit'])) return;
+    if (!koto_is_module_enabled('seo')) return;
+    ?>
+    <script>
+    function kiqToggleInline(id) {
+        var el = document.getElementById('kiq-inline-' + id);
+        if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+    function kiqSaveInline(id) {
+        var kw    = document.getElementById('kiq-kw-' + id).value;
+        var title = document.getElementById('kiq-title-' + id).value;
+        var desc  = document.getElementById('kiq-desc-' + id).value;
+        var btn   = event.target;
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+
+        var data = new FormData();
+        data.append('action', 'kotoiq_inline_seo_save');
+        data.append('post_id', id);
+        data.append('kw', kw);
+        data.append('title', title);
+        data.append('desc', desc);
+        data.append('nonce', '<?php echo wp_create_nonce('kotoiq_inline_seo'); ?>');
+
+        fetch(ajaxurl, { method: 'POST', body: data })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    btn.textContent = 'Saved!';
+                    btn.style.background = '#16a34a';
+                    setTimeout(function() { location.reload(); }, 500);
+                } else {
+                    btn.textContent = 'Error';
+                    btn.style.background = '#dc2626';
+                    setTimeout(function() { btn.textContent = 'Save'; btn.disabled = false; btn.style.background = '#cb1c6b'; }, 2000);
+                }
+            })
+            .catch(function() {
+                btn.textContent = 'Error';
+                setTimeout(function() { btn.textContent = 'Save'; btn.disabled = false; btn.style.background = '#cb1c6b'; }, 2000);
+            });
+    }
+    </script>
+    <?php
+});
+
+// ── AJAX handler for inline save ────────────────────────────────────────
+add_action('wp_ajax_kotoiq_inline_seo_save', function () {
+    check_ajax_referer('kotoiq_inline_seo', 'nonce');
+    if (!current_user_can('manage_options')) wp_send_json_error('Forbidden');
+
+    $post_id = (int) ($_POST['post_id'] ?? 0);
+    if (!$post_id || !get_post($post_id)) wp_send_json_error('Invalid post');
+
+    $kw    = sanitize_text_field(wp_unslash($_POST['kw'] ?? ''));
+    $title = sanitize_text_field(wp_unslash($_POST['title'] ?? ''));
+    $desc  = sanitize_text_field(wp_unslash($_POST['desc'] ?? ''));
+
+    update_post_meta($post_id, '_kotoiq_focus_keyword', $kw);
+    update_post_meta($post_id, '_kotoiq_title', $title);
+    update_post_meta($post_id, '_kotoiq_description', $desc);
+
+    // Compat writes
+    if (function_exists('kotoiq_seo_set_seo_meta')) {
+        kotoiq_seo_set_seo_meta($post_id, [
+            'seo_title' => $title, 'meta_description' => $desc, 'focus_keyword' => $kw,
+        ]);
+    }
+
+    wp_send_json_success(['post_id' => $post_id]);
+});
