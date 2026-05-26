@@ -18,6 +18,22 @@
 
 if (!defined('ABSPATH')) exit;
 
+if (!function_exists('kotoiq_shim_verb_not_yet_implemented')) {
+    /**
+     * Stub handler used by verb-table.php entries that have not yet been
+     * wired to a real handler. Returns 501. Plans 10-05 / 10-06 replace
+     * each remaining stub mapping with a real handler.
+     */
+    function kotoiq_shim_verb_not_yet_implemented($args) {
+        unset($args);
+        return new WP_Error(
+            'not_implemented',
+            'Verb stub — implemented in a later plan',
+            ['status' => 501]
+        );
+    }
+}
+
 add_action('rest_api_init', function () {
     register_rest_route(KOTOIQ_SHIM_REST_NS, '/rpc', [
         'methods'             => 'POST',

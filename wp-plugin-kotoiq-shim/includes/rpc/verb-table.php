@@ -2,77 +2,50 @@
 /**
  * Verb table — single PHP-side mirror of src/lib/wp-shim/verbList.ts.
  *
- * Keys MUST stay in lock-step with the canonical 27-verb list. Drift
- * causes dispatcher 400s for otherwise-valid dashboard calls.
+ * Pure data: this file MUST NOT define functions or run logic. All handler
+ * functions live in the corresponding includes/rpc/verbs-*.php files,
+ * which are loaded by kotoiq-shim.php before this table is required.
  *
- * Only `health.ping` ships with a real handler in Plan 10-02. All other
- * verbs point at the not-yet-implemented stub; Plans 10-04 / 10-05 / 10-06
- * replace those entries with real handlers.
+ * Plan 10-04 fills in 20 of 27 entries with real handlers; the remaining
+ * 7 stubs (query.select, capability.apply, transient.delete_prefix,
+ * elementor.save, elementor.clone, database.update_bulk, webhook.set)
+ * are wired in Plans 10-05 (5 entries) and 10-06 (2 entries).
+ *
+ * Drift between this file and src/lib/wp-shim/verbList.ts causes the
+ * dispatcher to 400 otherwise-valid dashboard calls. The Plan 10-02
+ * acceptance grep enforces parity from the TypeScript side; this header
+ * documents the contract from the PHP side.
  *
  * @package KotoIQShim
  */
 
 if (!defined('ABSPATH')) exit;
 
-if (!function_exists('kotoiq_shim_verb_not_yet_implemented')) {
-    /**
-     * Stub handler — returns a 501 for verbs declared but not yet wired.
-     * Plans 10-04 / 10-05 / 10-06 replace the verb-table entries pointing
-     * here with real handler functions.
-     */
-    function kotoiq_shim_verb_not_yet_implemented($args) {
-        return new WP_Error(
-            'not_implemented',
-            'Verb stub — implemented in a later plan',
-            ['status' => 501]
-        );
-    }
-}
-
-if (!function_exists('kotoiq_shim_verb_health_ping')) {
-    /**
-     * health.ping — the only real handler at this stage. Returns enough
-     * for the dashboard to confirm pairing + version + WP / PHP info.
-     * Does NOT enumerate active plugins (that's health.diagnostics).
-     */
-    function kotoiq_shim_verb_health_ping($args) {
-        return rest_ensure_response([
-            'shim_version'      => KOTOIQ_SHIM_VERSION,
-            'wp_version'        => get_bloginfo('version'),
-            'php_version'       => phpversion(),
-            'site_url'          => get_site_url(),
-            'time'              => time(),
-            'elementor_version' => defined('ELEMENTOR_VERSION') ? ELEMENTOR_VERSION : null,
-        ]);
-    }
-}
-
-// ─── Verb → handler map ────────────────────────────────────────────────────
-// MUST match src/lib/wp-shim/verbList.ts exactly. Vitest enforces TS side;
-// Plan 02 acceptance criteria enforce PHP side via node parse of this file.
+// The 501 stub callback used for un-wired verbs is declared in
+// includes/rpc/dispatcher.php so this file stays pure data.
 
 return [
     // ── Read verbs (12) ────────────────────────────────────────────────────
     'health.ping'             => 'kotoiq_shim_verb_health_ping',
-    'health.diagnostics'      => 'kotoiq_shim_verb_not_yet_implemented',
-    'post.get_meta_bulk'      => 'kotoiq_shim_verb_not_yet_implemented',
-    'option.get'              => 'kotoiq_shim_verb_not_yet_implemented',
-    'option.list_by_prefix'   => 'kotoiq_shim_verb_not_yet_implemented',
+    'health.diagnostics'      => 'kotoiq_shim_verb_health_diagnostics',
+    'post.get_meta_bulk'      => 'kotoiq_shim_verb_post_get_meta_bulk',
+    'option.get'              => 'kotoiq_shim_verb_option_get',
+    'option.list_by_prefix'   => 'kotoiq_shim_verb_option_list_by_prefix',
     'query.select'            => 'kotoiq_shim_verb_not_yet_implemented',
-    'file.read'               => 'kotoiq_shim_verb_not_yet_implemented',
-    'file.exists'             => 'kotoiq_shim_verb_not_yet_implemented',
-    'events.log_tail'         => 'kotoiq_shim_verb_not_yet_implemented',
-    'cron.list'               => 'kotoiq_shim_verb_not_yet_implemented',
-    'plugin.list'             => 'kotoiq_shim_verb_not_yet_implemented',
-    'taxonomy.list'           => 'kotoiq_shim_verb_not_yet_implemented',
+    'file.read'               => 'kotoiq_shim_verb_file_read',
+    'file.exists'             => 'kotoiq_shim_verb_file_exists',
+    'events.log_tail'         => 'kotoiq_shim_verb_events_log_tail',
+    'cron.list'               => 'kotoiq_shim_verb_cron_list',
+    'plugin.list'             => 'kotoiq_shim_verb_plugin_list',
+    'taxonomy.list'           => 'kotoiq_shim_verb_taxonomy_list',
 
     // ── Write verbs (10) ───────────────────────────────────────────────────
-    'meta.update'             => 'kotoiq_shim_verb_not_yet_implemented',
-    'meta.delete'             => 'kotoiq_shim_verb_not_yet_implemented',
-    'option.update'           => 'kotoiq_shim_verb_not_yet_implemented',
-    'option.delete'           => 'kotoiq_shim_verb_not_yet_implemented',
-    'file.write'              => 'kotoiq_shim_verb_not_yet_implemented',
-    'file.delete'             => 'kotoiq_shim_verb_not_yet_implemented',
+    'meta.update'             => 'kotoiq_shim_verb_meta_update',
+    'meta.delete'             => 'kotoiq_shim_verb_meta_delete',
+    'option.update'           => 'kotoiq_shim_verb_option_update',
+    'option.delete'           => 'kotoiq_shim_verb_option_delete',
+    'file.write'              => 'kotoiq_shim_verb_file_write',
+    'file.delete'             => 'kotoiq_shim_verb_file_delete',
     'elementor.save'          => 'kotoiq_shim_verb_not_yet_implemented',
     'elementor.clone'         => 'kotoiq_shim_verb_not_yet_implemented',
     'capability.apply'        => 'kotoiq_shim_verb_not_yet_implemented',
@@ -80,8 +53,8 @@ return [
 
     // ── Operation verbs (5) ────────────────────────────────────────────────
     'database.update_bulk'    => 'kotoiq_shim_verb_not_yet_implemented',
-    'cron.trigger'            => 'kotoiq_shim_verb_not_yet_implemented',
-    'cron.unschedule'         => 'kotoiq_shim_verb_not_yet_implemented',
-    'plugin.toggle'           => 'kotoiq_shim_verb_not_yet_implemented',
+    'cron.trigger'            => 'kotoiq_shim_verb_cron_trigger',
+    'cron.unschedule'         => 'kotoiq_shim_verb_cron_unschedule',
+    'plugin.toggle'           => 'kotoiq_shim_verb_plugin_toggle',
     'webhook.set'             => 'kotoiq_shim_verb_not_yet_implemented',
 ];

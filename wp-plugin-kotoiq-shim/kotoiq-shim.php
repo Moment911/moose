@@ -44,6 +44,18 @@ require_once KOTOIQ_SHIM_DIR . 'includes/pairing.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/self-update.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/dispatcher.php';
 
+// Verb handler groups (registered in the order they appear in verb-table.php).
+// events.php is required FIRST so the emit helper is defined before any
+// other handler tries to call it for audit logging.
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-events.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-health.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-meta.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-option.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-file.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-taxonomy.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-plugin.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-cron.php';
+
 // ─── Activation ────────────────────────────────────────────────────────────
 register_activation_hook(__FILE__, function () {
     // Defaults: pairing window closed, no features pre-enabled.
