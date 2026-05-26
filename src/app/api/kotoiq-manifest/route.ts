@@ -22,8 +22,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
 const MANIFEST = {
   plugin: 'kotoiq',
-  latest_version: '2.1.0',
-  download_url: `${APP_URL}/downloads/kotoiq-2.1.0.zip`,
+  latest_version: '3.0.0',
+  download_url: `${APP_URL}/downloads/kotoiq-3.0.0.zip`,
   sha256: '9b4bf4f6d5a51709dd4f76290e68dbba806cfceb0767c0ffe6d9d9cb6e8858f4',
   released_at: '2026-05-19',
   channel: 'stable',

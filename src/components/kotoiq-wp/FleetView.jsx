@@ -249,7 +249,7 @@ export default function FleetView({ onSelectSite }) {
               Push updates to {outdatedCount} site{outdatedCount === 1 ? '' : 's'}
             </button>
           )}
-          <a href="/downloads/kotoiq-2.1.0.zip" download
+          <a href="/downloads/kotoiq-3.0.0.zip" download
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '8px 13px', borderRadius: 8,

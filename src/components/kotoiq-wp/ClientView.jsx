@@ -308,7 +308,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   </div>
 
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <a href="/downloads/kotoiq-2.1.0.zip" download
+                    <a href="/downloads/kotoiq-3.0.0.zip" download
                       style={{ ...primaryBtn(), textDecoration: 'none', display: 'inline-flex' }}>
                       <Download size={14}/> Download KotoIQ Plugin
                     </a>
