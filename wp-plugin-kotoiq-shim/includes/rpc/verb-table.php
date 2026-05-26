@@ -6,10 +6,10 @@
  * functions live in the corresponding includes/rpc/verbs-*.php files,
  * which are loaded by kotoiq-shim.php before this table is required.
  *
- * Plan 10-04 fills in 20 of 27 entries with real handlers; the remaining
- * 7 stubs (query.select, capability.apply, transient.delete_prefix,
- * elementor.save, elementor.clone, database.update_bulk, webhook.set)
- * are wired in Plans 10-05 (5 entries) and 10-06 (2 entries).
+ * Plan 10-04 filled 20 of 27 entries; Plan 10-05 wires query.select,
+ * capability.apply, transient.delete_prefix, database.update_bulk, and
+ * webhook.set. The remaining 2 stubs (elementor.save, elementor.clone) are
+ * wired in Plan 10-06.
  *
  * Drift between this file and src/lib/wp-shim/verbList.ts causes the
  * dispatcher to 400 otherwise-valid dashboard calls. The Plan 10-02
@@ -31,7 +31,7 @@ return [
     'post.get_meta_bulk'      => 'kotoiq_shim_verb_post_get_meta_bulk',
     'option.get'              => 'kotoiq_shim_verb_option_get',
     'option.list_by_prefix'   => 'kotoiq_shim_verb_option_list_by_prefix',
-    'query.select'            => 'kotoiq_shim_verb_not_yet_implemented',
+    'query.select'            => 'kotoiq_shim_verb_query_select',
     'file.read'               => 'kotoiq_shim_verb_file_read',
     'file.exists'             => 'kotoiq_shim_verb_file_exists',
     'events.log_tail'         => 'kotoiq_shim_verb_events_log_tail',
@@ -48,11 +48,11 @@ return [
     'file.delete'             => 'kotoiq_shim_verb_file_delete',
     'elementor.save'          => 'kotoiq_shim_verb_not_yet_implemented',
     'elementor.clone'         => 'kotoiq_shim_verb_not_yet_implemented',
-    'capability.apply'        => 'kotoiq_shim_verb_not_yet_implemented',
-    'transient.delete_prefix' => 'kotoiq_shim_verb_not_yet_implemented',
+    'capability.apply'        => 'kotoiq_shim_verb_capability_apply',
+    'transient.delete_prefix' => 'kotoiq_shim_verb_transient_delete_prefix',
 
     // ── Operation verbs (5) ────────────────────────────────────────────────
-    'database.update_bulk'    => 'kotoiq_shim_verb_not_yet_implemented',
+    'database.update_bulk'    => 'kotoiq_shim_verb_database_update_bulk',
     'cron.trigger'            => 'kotoiq_shim_verb_cron_trigger',
     'cron.unschedule'         => 'kotoiq_shim_verb_cron_unschedule',
     'plugin.toggle'           => 'kotoiq_shim_verb_plugin_toggle',

@@ -30,7 +30,13 @@ const path = require('node:path')
 
 // ─── argv parsing ──────────────────────────────────────────────────────────
 function parseArgs(argv) {
-  const out = { pluginDir: 'wp-plugin-kotoiq-shim', budget: 500, strict: false }
+  // Default budget raised from 500 → 650 in Phase 10 Plan 10-05. The original
+  // 500-LOC ceiling under-counted the 5 hardened verbs + 3 runtime files
+  // delivered in this plan; the planner's own recommendation in 10-04-SUMMARY
+  // was "trim aggressively OR raise the budget". After trimming, the realistic
+  // floor with runtime files included is ~600 LOC; 650 provides ~50 LOC of
+  // headroom for Plan 10-06's 2 elementor verbs.
+  const out = { pluginDir: 'wp-plugin-kotoiq-shim', budget: 650, strict: false }
   for (let i = 2; i < argv.length; i += 1) {
     const a = argv[i]
     if (a === '--plugin-dir') {

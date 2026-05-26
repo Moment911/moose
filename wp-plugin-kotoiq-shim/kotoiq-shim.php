@@ -55,6 +55,13 @@ require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-file.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-taxonomy.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-plugin.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-cron.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-query.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-database.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-transient.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-capability.php';
+
+// Runtime hooks (installed on every request — not behind RPC).
+require_once KOTOIQ_SHIM_DIR . 'runtime/access-filter.php';
 
 // ─── Activation ────────────────────────────────────────────────────────────
 register_activation_hook(__FILE__, function () {
