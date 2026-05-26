@@ -35,20 +35,36 @@ add_action('admin_menu', function () {
     add_submenu_page('kotoiq', 'Settings',         'Settings',         'manage_options', 'kotoiq-settings',         'kotoiq_admin_settings_page');
 });
 
-add_action('admin_post_kotoiq_regen_key', function () {
+add_action('admin_post_kotoiq_open_pairing', function () {
     if (!current_user_can('manage_options')) wp_die('forbidden');
-    check_admin_referer('kotoiq_regen_key');
-    update_option(KOTOIQ_OPT_API_KEY, wp_generate_password(40, false, false));
-    wp_redirect(add_query_arg('regenerated', 1, admin_url('admin.php?page=kotoiq-settings')));
+    check_admin_referer('kotoiq_open_pairing');
+    kotoiq_open_pairing_window();
+    update_option(KOTOIQ_OPT_REMOTE_ALLOWED, true);
+    wp_redirect(add_query_arg('pairing_open', 1, admin_url('admin.php?page=kotoiq-settings')));
+    exit;
+});
+
+add_action('admin_post_kotoiq_close_pairing', function () {
+    if (!current_user_can('manage_options')) wp_die('forbidden');
+    check_admin_referer('kotoiq_close_pairing');
+    kotoiq_close_pairing_window();
+    wp_redirect(add_query_arg('pairing_closed', 1, admin_url('admin.php?page=kotoiq-settings')));
+    exit;
+});
+
+add_action('admin_post_kotoiq_local_unpair', function () {
+    if (!current_user_can('manage_options')) wp_die('forbidden');
+    check_admin_referer('kotoiq_local_unpair');
+    delete_option(KOTOIQ_OPT_API_KEY);
+    update_option(KOTOIQ_OPT_REMOTE_ALLOWED, false);
+    kotoiq_close_pairing_window();
+    wp_redirect(add_query_arg('unpaired', 1, admin_url('admin.php?page=kotoiq-settings')));
     exit;
 });
 
 add_action('admin_post_kotoiq_save_settings', function () {
     if (!current_user_can('manage_options')) wp_die('forbidden');
     check_admin_referer('kotoiq_save_settings');
-    update_option(KOTOIQ_OPT_REMOTE_ALLOWED, !empty($_POST['remote_allowed']));
-    $host = isset($_POST['remote_host']) ? sanitize_text_field(wp_unslash((string) $_POST['remote_host'])) : '';
-    update_option(KOTOIQ_OPT_REMOTE_HOST, $host);
     update_option(KOTOIQ_OPT_DISABLE_FILE_EDIT, !empty($_POST['disable_file_edit']));
 
     if (function_exists('koto_modules_list')) {
@@ -67,7 +83,6 @@ add_action('admin_post_kotoiq_save_settings', function () {
 function kotoiq_admin_dashboard_page() {
     if (!current_user_can('manage_options')) wp_die('forbidden');
     $remote_allowed = (bool) get_option(KOTOIQ_OPT_REMOTE_ALLOWED, false);
-    $remote_host    = (string) get_option(KOTOIQ_OPT_REMOTE_HOST, '');
     $snippets       = kotoiq_snip_all();
     $active_count   = count(array_filter($snippets, function ($s) { return !empty($s['active']); }));
     $policy         = get_option(KOTOIQ_OPT_ACCESS_POLICY, []);
@@ -228,11 +243,19 @@ function kotoiq_admin_dashboard_page() {
                 <div class="kotoiq-stat-num"><?php echo (int) $managed_roles; ?></div>
                 <div class="kotoiq-stat-label">Roles managed</div>
             </div>
+            <?php
+                $api_key_set = (string) get_option(KOTOIQ_OPT_API_KEY, '') !== '';
+                $pairing_rem = function_exists('kotoiq_pairing_window_remaining') ? kotoiq_pairing_window_remaining() : 0;
+                $pair_status = $api_key_set ? 'Paired' : ($pairing_rem > 0 ? 'Ready' : 'Unpaired');
+                $dash_url    = (string) get_option(KOTOIQ_OPT_DASHBOARD_URL, '');
+            ?>
             <div class="kotoiq-stat">
-                <div class="kotoiq-stat-num <?php echo $remote_allowed ? 'pink' : ''; ?>"><?php echo $remote_allowed ? 'On' : 'Off'; ?></div>
-                <div class="kotoiq-stat-label">Remote control</div>
-                <?php if ($remote_allowed && $remote_host): ?>
-                    <div class="kotoiq-stat-sub"><?php echo esc_html(parse_url($remote_host, PHP_URL_HOST) ?: $remote_host); ?></div>
+                <div class="kotoiq-stat-num <?php echo $api_key_set ? 'pink' : ''; ?>"><?php echo esc_html($pair_status); ?></div>
+                <div class="kotoiq-stat-label">Dashboard pairing</div>
+                <?php if ($api_key_set && $dash_url): ?>
+                    <div class="kotoiq-stat-sub"><?php echo esc_html(parse_url($dash_url, PHP_URL_HOST) ?: $dash_url); ?></div>
+                <?php elseif ($pairing_rem > 0): ?>
+                    <div class="kotoiq-stat-sub"><?php echo (int) ceil($pairing_rem / 60); ?> min left</div>
                 <?php endif; ?>
             </div>
         </div>
@@ -267,13 +290,13 @@ function kotoiq_admin_dashboard_page() {
         <div class="kotoiq-section" style="padding-top:0;">
             <div class="kotoiq-cta">
                 <div class="kotoiq-cta-text">
-                    <h3><?php echo $remote_allowed ? 'Connected to the KotoIQ dashboard' : 'Connect this site to the KotoIQ dashboard'; ?></h3>
-                    <p><?php echo $remote_allowed
-                        ? 'Your agency can drive every module from hellokoto.com. Toggle the connection off any time from Settings.'
-                        : 'Enable remote control in Settings, paste your agency dashboard URL as the Allowed host, and copy the API key into the KotoIQ Control Center to pair this site.'; ?></p>
+                    <h3><?php echo $api_key_set ? 'Connected to the KotoIQ dashboard' : 'Connect this site to the KotoIQ dashboard'; ?></h3>
+                    <p><?php echo $api_key_set
+                        ? 'Your agency can drive every module from the dashboard. Unpair locally from Settings any time, or the dashboard can fire /destruct to disconnect remotely.'
+                        : 'Open a 10-minute pairing window in Settings, then click Pair on this site in the KotoIQ dashboard. The dashboard generates the API key — you don\'t paste anything here.'; ?></p>
                 </div>
                 <a class="kotoiq-cta-btn" href="<?php echo esc_url(admin_url('admin.php?page=kotoiq-settings')); ?>">
-                    <?php echo $remote_allowed ? 'Manage connection' : 'Open Settings →'; ?>
+                    <?php echo $api_key_set ? 'Manage connection' : 'Open Settings →'; ?>
                 </a>
             </div>
         </div>
@@ -481,32 +504,65 @@ function kotoiq_admin_access_page() {
 function kotoiq_admin_settings_page() {
     if (!current_user_can('manage_options')) wp_die('forbidden');
     $api_key = (string) get_option(KOTOIQ_OPT_API_KEY, '');
-    $remote_allowed = (bool) get_option(KOTOIQ_OPT_REMOTE_ALLOWED, false);
-    $remote_host = (string) get_option(KOTOIQ_OPT_REMOTE_HOST, '');
+    $dashboard_url = (string) get_option(KOTOIQ_OPT_DASHBOARD_URL, '');
     $disable_file_edit = (bool) get_option(KOTOIQ_OPT_DISABLE_FILE_EDIT, false);
+    $is_paired = $api_key !== '';
+    $pairing_remaining = function_exists('kotoiq_pairing_window_remaining') ? kotoiq_pairing_window_remaining() : 0;
+    $pair_url = esc_url(rest_url(trailingslashit(KOTOIQ_REST_NS) . 'pair'));
     ?>
     <div class="wrap">
         <h1>KotoIQ Settings</h1>
 
         <?php if (!empty($_GET['saved'])): ?><div class="notice notice-success is-dismissible"><p>Settings saved.</p></div><?php endif; ?>
-        <?php if (!empty($_GET['regenerated'])): ?><div class="notice notice-success is-dismissible"><p>API key regenerated.</p></div><?php endif; ?>
+        <?php if (!empty($_GET['pairing_open'])): ?><div class="notice notice-success is-dismissible"><p>Pairing window opened. The KotoIQ dashboard has 10 minutes to claim this site.</p></div><?php endif; ?>
+        <?php if (!empty($_GET['pairing_closed'])): ?><div class="notice is-dismissible"><p>Pairing window closed.</p></div><?php endif; ?>
+        <?php if (!empty($_GET['unpaired'])): ?><div class="notice notice-warning is-dismissible"><p>Site unpaired locally. The dashboard's stored key no longer works.</p></div><?php endif; ?>
+
+        <h2>Dashboard Pairing</h2>
+        <table class="form-table" role="presentation">
+            <tr><th>Status</th><td>
+                <?php if ($is_paired): ?>
+                    <span style="color:#15803d;font-weight:600;">● Paired</span>
+                    <?php if ($dashboard_url): ?> with <code><?php echo esc_html($dashboard_url); ?></code><?php endif; ?>
+                    <p class="description">The dashboard holds the API key and can issue commands, push updates, or fire <code>/destruct</code> to unpair remotely.</p>
+                <?php elseif ($pairing_remaining > 0): ?>
+                    <span style="color:#b45309;font-weight:600;">● Ready to pair</span>
+                    — window closes in <?php echo (int) ceil($pairing_remaining / 60); ?> min.
+                    <p class="description">Go to the KotoIQ dashboard and click <strong>Pair site</strong> on this site within the next <?php echo (int) ceil($pairing_remaining / 60); ?> minutes.</p>
+                <?php else: ?>
+                    <span style="color:#6b7280;font-weight:600;">● Unpaired</span>
+                    <p class="description">Open a pairing window below so the KotoIQ dashboard can claim this site. The dashboard generates the API key — you don't paste anything here.</p>
+                <?php endif; ?>
+            </td></tr>
+            <tr><th>Pair endpoint</th><td>
+                <code style="background:#f6f7f7;padding:6px 10px;border-radius:4px;display:inline-block;"><?php echo $pair_url; ?></code>
+                <p class="description">The dashboard POSTs <code>{ api_key, dashboard_url }</code> here while the pairing window is open.</p>
+            </td></tr>
+        </table>
+
+        <?php if (!$is_paired): ?>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-bottom:16px;">
+            <input type="hidden" name="action" value="kotoiq_open_pairing"/>
+            <?php wp_nonce_field('kotoiq_open_pairing'); ?>
+            <button class="button button-primary" type="submit"><?php echo $pairing_remaining > 0 ? 'Extend pairing window' : 'Open pairing window (10 min)'; ?></button>
+            <?php if ($pairing_remaining > 0): ?>
+                &nbsp;
+                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=kotoiq_close_pairing'), 'kotoiq_close_pairing')); ?>" class="button">Close window now</a>
+            <?php endif; ?>
+        </form>
+        <?php else: ?>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-bottom:16px;" onsubmit="return confirm('Unpair locally? The dashboard will no longer be able to issue commands until you re-pair.')">
+            <input type="hidden" name="action" value="kotoiq_local_unpair"/>
+            <?php wp_nonce_field('kotoiq_local_unpair'); ?>
+            <button class="button" type="submit">Unpair this site locally</button>
+        </form>
+        <?php endif; ?>
+
+        <hr style="margin:24px 0;"/>
 
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <input type="hidden" name="action" value="kotoiq_save_settings"/>
             <?php wp_nonce_field('kotoiq_save_settings'); ?>
-            <h2>Remote Control</h2>
-            <table class="form-table" role="presentation">
-                <tr><th>Enable remote control</th><td>
-                    <label><input type="checkbox" name="remote_allowed" value="1" <?php checked($remote_allowed); ?>/> Allow the KotoIQ dashboard to drive this site via the REST API.</label>
-                </td></tr>
-                <tr><th><label for="remote-host">Allowed host (optional)</label></th><td>
-                    <input id="remote-host" type="text" name="remote_host" class="regular-text" value="<?php echo esc_attr($remote_host); ?>" placeholder="https://hellokoto.com"/>
-                    <p class="description">If set, only requests whose Origin/Referer/X-KotoIQ-Source header contains this string are accepted.</p>
-                </td></tr>
-                <tr><th>API key</th><td>
-                    <code style="background:#f6f7f7;padding:6px 10px;border-radius:4px;display:inline-block;"><?php echo esc_html($api_key); ?></code>
-                </td></tr>
-            </table>
 
             <h2>Modules</h2>
             <p class="description" style="margin-bottom:10px;">Enable or disable individual feature modules. Disabled modules don't load their REST endpoints, admin pages, or runtime hooks — but settings and stored data are preserved across re-enables.</p>
@@ -537,14 +593,6 @@ function kotoiq_admin_settings_page() {
             </table>
 
             <p><button class="button button-primary" type="submit">Save</button></p>
-        </form>
-
-        <hr style="margin:32px 0;"/>
-
-        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" onsubmit="return confirm('Regenerate API key? Existing remote integrations will need to be updated.')">
-            <input type="hidden" name="action" value="kotoiq_regen_key"/>
-            <?php wp_nonce_field('kotoiq_regen_key'); ?>
-            <p><button class="button" type="submit">Regenerate API key</button></p>
         </form>
 
         <h2>REST endpoints</h2>

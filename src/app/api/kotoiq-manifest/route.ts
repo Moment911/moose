@@ -22,13 +22,14 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
 const MANIFEST = {
   plugin: 'kotoiq',
-  latest_version: '3.0.1',
-  download_url: `${APP_URL}/downloads/kotoiq-3.0.1.zip`,
-  sha256: 'dbd2a8a1bab62938009b3c394d0983770672f5dbef1e097344b8a98982fc705e',
+  latest_version: '3.1.0',
+  download_url: `${APP_URL}/downloads/kotoiq-3.1.0.zip`,
+  sha256: 'fe8974b6c6ba1f270e0bd806724a6f44098fb639a0c492c0643019703f9bf676',
   released_at: '2026-05-26',
   channel: 'stable',
-  changelog: 'Self-update auto-pins the Allowed host on first authenticated push instead of failing with no_allowed_host. New POST /config/allowed-host endpoint lets the KotoIQ dashboard set the pin remotely at pair time.',
+  changelog: 'Dashboard-controlled pairing. Plugin no longer auto-generates an API key — the dashboard issues it via /pair while the site owner holds a 10-min pairing window open in WP admin. New /destruct kill switch lets the dashboard unpair (and optionally deactivate) remotely. Allowed host requirement removed.',
   history: [
+    { version: '3.1.0', released_at: '2026-05-26', note: 'Dashboard issues the API key (POST /pair gated by a 10-min pairing window opened from WP admin). Kill switch /destruct lets the dashboard unpair and optionally deactivate. Allowed host check removed — Bearer token is the trust boundary.' },
     { version: '3.0.1', released_at: '2026-05-26', note: 'Self-update no longer requires manual Allowed host configuration — first authenticated push auto-pins from the download URL. New /config/allowed-host endpoint for remote configuration.' },
     { version: '3.0.0', released_at: '2026-05-19', note: 'SEO & Page Factory v3.0 — built-in SEO engine replaces Yoast/Rank Math. Native meta titles, descriptions, focus keywords, JSON-LD schema, Open Graph tags, sitemap rebuild, auto-ping on publish.' },
     { version: '2.1.0', released_at: '2026-05-19', note: 'SEO module lifted from standalone Koto SEO 2.0.0. 6 modules total. Legacy koto_api_key still accepted on koto/v1 + hlseo/v1 routes for back-compat.' },

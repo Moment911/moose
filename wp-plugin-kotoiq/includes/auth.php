@@ -7,7 +7,10 @@
  * Remote mode is off by default. Site owner must:
  *   - Enable it on the Settings page (KOTOIQ_OPT_REMOTE_ALLOWED = true)
  *   - The Bearer token in the request must match KOTOIQ_OPT_API_KEY
- *   - Optionally lock the request origin to KOTOIQ_OPT_REMOTE_HOST
+ *
+ * Token is the trust boundary — no origin pinning, no host whitelist.
+ * Site owner revokes by flipping remote_allowed off or firing /destruct
+ * from the dashboard.
  *
  * The wpsc_perm_* function names exist as aliases so module bodies that
  * still reference the old WPSimpleCode permission names continue to
@@ -39,22 +42,6 @@ function kotoiq_check_admin_or_remote($mode = 'read') {
     $presented = kotoiq_extract_bearer_token();
     if (!$presented || !hash_equals($stored_key, $presented)) {
         return new WP_Error('rest_forbidden', 'Invalid API key.', ['status' => 403]);
-    }
-
-    $pinned_host = trim((string) get_option(KOTOIQ_OPT_REMOTE_HOST, ''));
-    if ($pinned_host !== '') {
-        $origin_hdr = isset($_SERVER['HTTP_ORIGIN']) ? (string) $_SERVER['HTTP_ORIGIN'] : '';
-        $referer    = isset($_SERVER['HTTP_REFERER']) ? (string) $_SERVER['HTTP_REFERER'] : '';
-        $x_source   = isset($_SERVER['HTTP_X_KOTOIQ_SOURCE']) ? (string) $_SERVER['HTTP_X_KOTOIQ_SOURCE'] :
-                     (isset($_SERVER['HTTP_X_WPSC_SOURCE']) ? (string) $_SERVER['HTTP_X_WPSC_SOURCE'] : '');
-        $candidates = array_filter([$origin_hdr, $referer, $x_source]);
-        $matched = false;
-        foreach ($candidates as $c) {
-            if (stripos($c, $pinned_host) !== false) { $matched = true; break; }
-        }
-        if (!$matched && !empty($candidates)) {
-            return new WP_Error('rest_forbidden', 'Origin not allowed.', ['status' => 403]);
-        }
     }
 
     return true;

@@ -3,7 +3,7 @@
  * Plugin Name:       KotoIQ
  * Plugin URI:        https://hellokoto.com/kotoiq
  * Description:       All-in-one agency SEO & site management plugin. Built-in SEO engine (replaces Yoast/Rank Math), real-time sync with KotoIQ platform, search & replace, code snippets, role-based access, Elementor builder, and content rotation. One plugin per site.
- * Version:           3.0.1
+ * Version:           3.1.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -19,7 +19,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('KOTOIQ_VERSION', '3.0.1');
+define('KOTOIQ_VERSION', '3.1.0');
 define('KOTOIQ_PLUGIN_FILE', __FILE__);
 define('KOTOIQ_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('KOTOIQ_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -35,10 +35,12 @@ define('KOTOIQ_REST_NS_LEGACY', 'wpsimplecode/v1');
 // API key, allowed host, snippets, and access policy without re-pairing.
 define('KOTOIQ_OPT_API_KEY',          'wpsc_api_key');
 define('KOTOIQ_OPT_REMOTE_ALLOWED',   'wpsc_remote_allowed');
-define('KOTOIQ_OPT_REMOTE_HOST',      'wpsc_remote_host');
+define('KOTOIQ_OPT_REMOTE_HOST',      'wpsc_remote_host'); // legacy — not read for gating any more
 define('KOTOIQ_OPT_ACCESS_POLICY',    'wpsc_access_policy');
 define('KOTOIQ_OPT_DISABLE_FILE_EDIT','wpsc_disable_file_edit_global');
 define('KOTOIQ_OPT_SNIPPETS',         'wpsc_snippets');
+define('KOTOIQ_OPT_PAIRING_READY',    'kotoiq_pairing_ready'); // unix ts when pairing window expires
+define('KOTOIQ_OPT_DASHBOARD_URL',    'kotoiq_dashboard_url'); // set during /pair
 
 // Back-compat aliases — old WPSC_* constant names. Lets us paste-port
 // module bodies verbatim during the migration; remove once every module
@@ -58,6 +60,7 @@ if (!defined('WPSC_OPT_SNIPPETS'))       define('WPSC_OPT_SNIPPETS',       KOTOI
 require_once KOTOIQ_PLUGIN_DIR . 'includes/auth.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/module-loader.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/self-update.php';
+require_once KOTOIQ_PLUGIN_DIR . 'includes/pairing.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/search-replace.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/snippets.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/access.php';
@@ -71,9 +74,9 @@ require_once KOTOIQ_PLUGIN_DIR . 'includes/modules/sync.php';
 require_once KOTOIQ_PLUGIN_DIR . 'includes/admin.php';
 
 register_activation_hook(__FILE__, function () {
-    if (!get_option(KOTOIQ_OPT_API_KEY)) {
-        update_option(KOTOIQ_OPT_API_KEY, wp_generate_password(40, false, false));
-    }
+    // Plugin starts unpaired — no auto-generated key. The dashboard issues
+    // the key during the /pair handshake. Site owner opens the pairing
+    // window via WP admin → KotoIQ → Settings → "Ready to pair."
     if (get_option(KOTOIQ_OPT_REMOTE_ALLOWED, null) === null) {
         update_option(KOTOIQ_OPT_REMOTE_ALLOWED, false);
     }

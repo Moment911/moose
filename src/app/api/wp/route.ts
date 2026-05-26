@@ -1417,20 +1417,85 @@ Rules:
     }
 
     if (action === 'wpsc_pair') {
-      const { wpsc_api_key } = body
-      if (!wpsc_api_key) return NextResponse.json({ error: 'wpsc_api_key required' }, { status: 400 })
-      await sb.from('koto_wp_sites').update({ wpsc_api_key }).eq('id', site_id)
-      // Verify the key by hitting an authenticated endpoint
-      const paired_site = { ...site, wpsc_api_key }
-      const verify = await proxyToWPSC(paired_site, 'access/roles', {})
-      if (!verify.ok) {
-        return NextResponse.json({ paired: false, error: verify.data?.error || `HTTP ${verify.status}` }, { status: 400 })
+      // KotoIQ 3.1.0+ flow: dashboard generates the API key and POSTs it to
+      // the site's /pair endpoint while the site owner has the pairing
+      // window open. No Bearer required for /pair (the pairing window
+      // is the only gate). After /pair succeeds, the dashboard stores
+      // the key in koto_wp_sites and uses it for all future calls.
+      //
+      // Back-compat: if the caller passes wpsc_api_key (legacy flow,
+      // pre-3.1.0 sites where the plugin auto-generated the key), we
+      // store it and verify like before.
+      const { wpsc_api_key: provided_key } = body
+
+      if (provided_key) {
+        // Legacy flow — plugin already has a key, dashboard is just storing it.
+        await sb.from('koto_wp_sites').update({ wpsc_api_key: provided_key }).eq('id', site_id)
+        const verify = await proxyToWPSC({ ...site, wpsc_api_key: provided_key }, 'access/roles', {})
+        if (!verify.ok) {
+          return NextResponse.json({ paired: false, error: verify.data?.error || `HTTP ${verify.status}` }, { status: 400 })
+        }
+        return NextResponse.json({ paired: true, mode: 'legacy' })
       }
-      // Push the Allowed host so self-update works out of the box. Best-effort —
-      // sites on plugins pre-3.0.1 don't have /config/allowed-host yet, so a
-      // 404 here is non-fatal; the site owner can still set it manually.
-      const hostPin = await proxyToWPSC(paired_site, 'config/allowed-host', { host: APP_URL })
-      return NextResponse.json({ paired: true, allowed_host_set: hostPin.ok })
+
+      // New flow — generate a key and push it to /pair.
+      const newKey = (globalThis.crypto?.randomUUID?.() || '').replace(/-/g, '') + (globalThis.crypto?.randomUUID?.() || '').replace(/-/g, '').slice(0, 8)
+      const pairUrl = `${site.site_url}/wp-json/kotoiq/v1/pair`
+      try {
+        const res = await fetch(pairUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: newKey, dashboard_url: APP_URL }),
+          signal: AbortSignal.timeout(15000),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          return NextResponse.json({
+            paired: false,
+            error: data?.message || data?.error || `HTTP ${res.status}`,
+            code: data?.code,
+            hint: data?.code === 'not_ready' || data?.code === 'pairing_expired'
+              ? 'Open the pairing window in WP Admin → KotoIQ → Settings → "Open pairing window," then try again.'
+              : data?.code === 'already_paired'
+              ? 'Site already paired. Fire wpsc_destruct first, or unpair locally in WP Admin.'
+              : undefined,
+          }, { status: 400 })
+        }
+        await sb.from('koto_wp_sites').update({
+          wpsc_api_key: newKey,
+          wpsc_version: data?.version || null,
+          wpsc_detected: true,
+        }).eq('id', site_id)
+        return NextResponse.json({ paired: true, mode: 'pair', version: data?.version, site_name: data?.site_name })
+      } catch (e: any) {
+        return NextResponse.json({ paired: false, error: e.message }, { status: 500 })
+      }
+    }
+
+    if (action === 'wpsc_destruct') {
+      // Kill switch — clears the API key on the WP plugin and optionally
+      // deactivates the plugin entirely. Use deactivate:true for hostile
+      // unpair (client refusing to release credentials).
+      const { deactivate = false, also_clear_koto_key = false } = body
+      let r: any = { ok: false }
+      if (site?.wpsc_api_key) {
+        r = await proxyToWPSC(site, 'destruct', { deactivate: !!deactivate })
+      }
+      const updates: any = {
+        wpsc_api_key: null,
+        wpsc_detected: false,
+        wpsc_version: null,
+      }
+      if (also_clear_koto_key) {
+        updates.api_key = ''
+        updates.connected = false
+      }
+      await sb.from('koto_wp_sites').update(updates).eq('id', site_id)
+      return NextResponse.json({
+        ok: true,
+        plugin_response: r.ok ? r.data : { error: r.data?.error || `HTTP ${r.status}` },
+        deactivated: !!(r.ok && deactivate),
+      })
     }
 
     if (action === 'wpsc_clear_key') {
