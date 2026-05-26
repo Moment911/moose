@@ -401,3 +401,213 @@ export async function eventsLogTail(
 ): Promise<ShimRpcResponse<EventsLogTailResponse>> {
     return shimRpc<EventsLogTailResponse>(siteUrl, 'events.log_tail', { ...args })
 }
+
+// ─── Phase 10 Plan 10-05 — hardened verbs ──────────────────────────────────
+// Each wrapper adds defense-in-depth runtime guards that fail fast BEFORE
+// shimRpc fires (the PHP side re-validates). Misuse never round-trips.
+
+// query.select named-query whitelist (mirrors verbs-query.php).
+// Adding a name here without a matching PHP whitelist entry will surface as
+// `unknown_query` at the server — the dashboard guard catches typos locally.
+const NAMED_QUERIES = new Set<string>([
+    'posts.list_by_meta',
+    'posts.list_by_meta_key_prefix',
+    'options.list_by_prefix',
+    'transients.list_by_prefix',
+    'database.list_text_tables',
+    'postmeta.list_by_key',
+    'posts.list_by_post_type',
+])
+
+export interface QuerySelectArgs {
+    name: string
+    params?: Record<string, string | number | null>
+}
+export interface QuerySelectResponse<T = Record<string, unknown>> {
+    rows: T[]
+    count: number
+}
+export async function querySelect<T = Record<string, unknown>>(
+    siteUrl: string,
+    args: QuerySelectArgs,
+): Promise<ShimRpcResponse<QuerySelectResponse<T>>> {
+    if (typeof args.name !== 'string' || args.name === '') {
+        throw new TypeError('[wp-shim] query.select: name must be a non-empty string')
+    }
+    if (args.name !== '__list_queries__' && !NAMED_QUERIES.has(args.name)) {
+        throw new TypeError(
+            `[wp-shim] query.select: unknown named query "${args.name}" (not in whitelist)`,
+        )
+    }
+    return shimRpc<QuerySelectResponse<T>>(siteUrl, 'query.select', { ...args })
+}
+
+// capability.apply — administrator role is locked, manage_options/
+// install_plugins/edit_files/etc. cannot be granted.
+const PROTECTED_ROLES = new Set<string>(['administrator'])
+const ALWAYS_DENIED_CAPS = new Set<string>([
+    'manage_options',
+    'install_plugins',
+    'edit_themes',
+    'edit_plugins',
+    'edit_files',
+    'unfiltered_html',
+    'create_users',
+])
+export interface CapabilityApplyArgs {
+    role_slug: string
+    add_caps?: string[]
+    remove_caps?: string[]
+}
+export interface CapabilityApplyResponse {
+    ok: true
+    role: string
+    added: string[]
+    removed: string[]
+    errors: Array<{ cap: string; code: string; message?: string }>
+}
+export async function capabilityApply(
+    siteUrl: string,
+    args: CapabilityApplyArgs,
+): Promise<ShimRpcResponse<CapabilityApplyResponse>> {
+    if (typeof args.role_slug !== 'string' || args.role_slug === '') {
+        throw new TypeError('[wp-shim] capability.apply: role_slug required')
+    }
+    if (PROTECTED_ROLES.has(args.role_slug)) {
+        throw new TypeError(
+            `[wp-shim] capability.apply: role "${args.role_slug}" is protected — administrator cannot be modified via this verb`,
+        )
+    }
+    if (Array.isArray(args.add_caps)) {
+        for (const c of args.add_caps) {
+            if (ALWAYS_DENIED_CAPS.has(c)) {
+                throw new TypeError(
+                    `[wp-shim] capability.apply: cap "${c}" is in ALWAYS_DENIED_CAPS (administrator-only)`,
+                )
+            }
+        }
+    }
+    return shimRpc<CapabilityApplyResponse>(siteUrl, 'capability.apply', { ...args })
+}
+
+// transient.delete_prefix — empty prefix is rejected (would wipe all transients).
+export interface TransientDeletePrefixArgs {
+    prefix: string
+}
+export interface TransientDeletePrefixResponse {
+    ok: true
+    removed_count: number
+}
+export async function transientDeletePrefix(
+    siteUrl: string,
+    args: TransientDeletePrefixArgs,
+): Promise<ShimRpcResponse<TransientDeletePrefixResponse>> {
+    if (typeof args.prefix !== 'string' || args.prefix === '') {
+        throw new TypeError(
+            '[wp-shim] transient.delete_prefix: empty prefix would delete every transient',
+        )
+    }
+    if (!/^[A-Za-z0-9_-]{1,100}$/.test(args.prefix)) {
+        throw new TypeError(
+            '[wp-shim] transient.delete_prefix: prefix must match /^[A-Za-z0-9_-]{1,100}$/',
+        )
+    }
+    return shimRpc<TransientDeletePrefixResponse>(siteUrl, 'transient.delete_prefix', { ...args })
+}
+
+// database.update_bulk — capped at 200 updates per call.
+export interface DatabaseUpdateBulkEntry {
+    table: string
+    pk_col: string
+    pk_val: number
+    column: string
+    value: string
+}
+export interface DatabaseUpdateBulkArgs {
+    updates: DatabaseUpdateBulkEntry[]
+}
+export interface DatabaseUpdateBulkResponse {
+    applied: number
+    errors: Array<{ table?: string; code: string; message?: string }>
+}
+export async function databaseUpdateBulk(
+    siteUrl: string,
+    args: DatabaseUpdateBulkArgs,
+): Promise<ShimRpcResponse<DatabaseUpdateBulkResponse>> {
+    if (!Array.isArray(args.updates)) {
+        throw new TypeError('[wp-shim] database.update_bulk: updates must be an array')
+    }
+    if (args.updates.length > 200) {
+        throw new TypeError(
+            '[wp-shim] database.update_bulk: updates capped at 200 per call (got ' +
+                args.updates.length +
+                ')',
+        )
+    }
+    return shimRpc<DatabaseUpdateBulkResponse>(siteUrl, 'database.update_bulk', { ...args })
+}
+
+// webhook.set — event must be in allowed list, url must be https:// or null.
+const WEBHOOK_ALLOWED_EVENTS = new Set<string>([
+    'save_post',
+    'publish_post',
+    'delete_post',
+    'trashed_post',
+    'wp_login',
+    'wp_logout',
+    'shim_health_check_failed',
+])
+export interface WebhookSetArgs {
+    event: string
+    url: string | null
+}
+export interface WebhookSetResponse {
+    ok: true
+    event: string
+    url: string | null
+    all_webhooks: Record<string, string>
+}
+export async function webhookSet(
+    siteUrl: string,
+    args: WebhookSetArgs,
+): Promise<ShimRpcResponse<WebhookSetResponse>> {
+    if (!WEBHOOK_ALLOWED_EVENTS.has(args.event)) {
+        throw new TypeError(
+            `[wp-shim] webhook.set: event "${args.event}" is not in the allowed-events list`,
+        )
+    }
+    if (args.url !== null && (typeof args.url !== 'string' || !args.url.startsWith('https://'))) {
+        throw new TypeError('[wp-shim] webhook.set: url must start with https:// (or be null)')
+    }
+    return shimRpc<WebhookSetResponse>(siteUrl, 'webhook.set', { ...args })
+}
+
+// ─── snippet convenience wrappers (option.get/update under the hood) ──────
+// Snippet CRUD goes through option.get/option.update against the
+// 'kotoiq_shim_snippets' option — there's no dedicated verb because the
+// shim already supports generic option r/w. These wrappers add types.
+export interface Snippet {
+    id: string
+    kind: 'php' | 'html_head' | 'html_footer' | 'js_head' | 'js_footer' | 'css'
+    scope: 'frontend' | 'admin' | 'both'
+    code: string
+    active: boolean
+}
+const SNIPPETS_OPTION_NAME = 'kotoiq_shim_snippets'
+export async function snippetsList(
+    siteUrl: string,
+): Promise<ShimRpcResponse<OptionGetResponse>> {
+    return shimRpc<OptionGetResponse>(siteUrl, 'option.get', { name: SNIPPETS_OPTION_NAME })
+}
+export async function snippetsSave(
+    siteUrl: string,
+    snippets: Snippet[],
+): Promise<ShimRpcResponse<OptionUpdateResponse>> {
+    // Option name is NOT on the deny-list — skip the assertOptionWriteAllowed
+    // path to allow the kotoiq_shim_snippets write to flow without a guard.
+    return shimRpc<OptionUpdateResponse>(siteUrl, 'option.update', {
+        name: SNIPPETS_OPTION_NAME,
+        value: snippets,
+        autoload: false,
+    })
+}

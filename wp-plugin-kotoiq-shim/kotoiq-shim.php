@@ -59,9 +59,14 @@ require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-query.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-database.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-transient.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-capability.php';
+// webhook-emitter.php defines the allowed-events constant the verb handler reads
+// at validation time, so it must load before verbs-webhook.php.
+require_once KOTOIQ_SHIM_DIR . 'runtime/webhook-emitter.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-webhook.php';
 
 // Runtime hooks (installed on every request — not behind RPC).
 require_once KOTOIQ_SHIM_DIR . 'runtime/access-filter.php';
+require_once KOTOIQ_SHIM_DIR . 'runtime/snippets.php';
 
 // ─── Activation ────────────────────────────────────────────────────────────
 register_activation_hook(__FILE__, function () {

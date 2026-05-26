@@ -56,5 +56,5 @@ return [
     'cron.trigger'            => 'kotoiq_shim_verb_cron_trigger',
     'cron.unschedule'         => 'kotoiq_shim_verb_cron_unschedule',
     'plugin.toggle'           => 'kotoiq_shim_verb_plugin_toggle',
-    'webhook.set'             => 'kotoiq_shim_verb_not_yet_implemented',
+    'webhook.set'             => 'kotoiq_shim_verb_webhook_set',
 ];
