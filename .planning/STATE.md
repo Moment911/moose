@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 08 UI-SPEC approved
-last_updated: "2026-05-20T21:38:46.561Z"
-last_activity: 2026-05-20 -- Phase 9 planning complete
+stopped_at: Completed 10-02-PLAN.md (thin-shim skeleton + pairing + self-update + manifest)
+last_updated: "2026-05-26T22:39:50.794Z"
+last_activity: 2026-05-26 -- Phase 10 planning complete
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 2
-  total_plans: 16
-  completed_plans: 15
-  percent: 94
+  total_plans: 28
+  completed_plans: 17
+  percent: 61
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 Phase: 8 (code-complete + verified)
 Plan: All 15 plans code-complete
 Status: Ready to execute
-Last activity: 2026-05-20 -- Phase 9 planning complete
+Last activity: 2026-05-26 -- Phase 10 planning complete
 
 Progress: [██████████] 100% code-complete; 88% toward M1 done-done (pending human UAT + PILOT-01 operator test)
 
@@ -74,11 +74,13 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 | Phase 07 P05 | 8min | 2 tasks | 4 files |
 | Phase 07 P06 | 10min | 1 tasks | 2 files |
 | Phase 07 P08 | 25min | 6 tasks | 10 files |
+| Phase 10 P02 | 7min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- Phase 10 added (2026-05-26): KotoIQ WP plugin thin-shim pivot — move all business logic out of the plugin into the dashboard. Plugin becomes a minimal authenticated RPC shim. Goal: hostile client with WP file access cannot reconstruct KotoIQ's value from plugin source.
 - Phase 9 added (2026-05-20): Consolidate /wpsimplecode + /kotoiq-sites + /control-center into a unified /kotoiq-wp view. Strategic UI consolidation — fleet ops + per-client deep dives in one place. Unified Marketing brand palette.
 
 ### Decisions
@@ -119,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase 07]: Plan 8: ConversationalBot extension via 5 optional props w/ safe defaults — existing KotoIQPage caller untouched (backward-compat extension contract)
 - [Phase 07]: Plan 8: position:fixed + raw getBoundingClientRect (no scrollX/Y) + capture-phase scroll listener — keeps HotspotDots anchored when scrolling inside scrollable shells
 - [Phase 07]: Plan 8: Worst-severity-per-field grouping in ClarificationsOverlay — ONE HotspotDot per field with count badge mitigates T-07-26 by construction
+- [Phase 10]: Pubkey wire format is base64(raw 32 bytes), not PEM — pairing rejects anything else
+- [Phase 10]: No public /meta endpoint on the v4 shim — closes v3's information-leakage hole
+- [Phase 10]: kotoiq_service role grants content-edit caps only (no manage_options/install/theme/user caps)
 
 ### Pending Todos
 
@@ -165,9 +170,9 @@ UAT test data still seeded (reuse for the gauntlet):
 
 ## Session Continuity
 
-Last session: 2026-04-20T03:41:51.771Z
-Stopped at: Phase 08 UI-SPEC approved
-Resume file: .planning/phases/08-client-profile-seeder-v2-external-source-parsers/08-UI-SPEC.md
+Last session: 2026-05-26T22:39:50.791Z
+Stopped at: Completed 10-02-PLAN.md (thin-shim skeleton + pairing + self-update + manifest)
+Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
 
