@@ -91,6 +91,10 @@ function kotoiq_sync_push($request) {
                 if (!empty($data['meta_description'])) update_post_meta($post_id, '_kotoiq_description',   sanitize_text_field($data['meta_description']));
                 if (!empty($data['focus_keyword']))    update_post_meta($post_id, '_kotoiq_focus_keyword', sanitize_text_field($data['focus_keyword']));
 
+                // Schema fields (FAQ schema from AI optimizer)
+                if (!empty($data['schema_type']))      update_post_meta($post_id, '_kotoiq_schema_type',   sanitize_text_field($data['schema_type']));
+                if (!empty($data['schema_custom']))    update_post_meta($post_id, '_kotoiq_schema_custom', wp_unslash($data['schema_custom']));
+
                 // Also write to Yoast/Rank Math if present (compatibility)
                 if (function_exists('kotoiq_seo_set_seo_meta')) {
                     kotoiq_seo_set_seo_meta($post_id, $data);

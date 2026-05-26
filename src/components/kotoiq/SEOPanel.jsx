@@ -210,13 +210,61 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile 
       if (data.error) { toast.error(data.error); setAiGenerating(false); return }
 
       // Fill fields with AI results
-      setKw(data.focus_keyword || '')
-      setTitle(data.seo_title || '')
-      setDesc(data.meta_description || '')
+      const newKw = data.focus_keyword || ''
+      const newTitle = data.seo_title || ''
+      const newDesc = data.meta_description || ''
+      setKw(newKw)
+      setTitle(newTitle)
+      setDesc(newDesc)
       setFaqSchema(data.faq_schema || null)
       setAiResult(data)
       setEditing(true)
-      toast.success('AI generated SEO + AEO optimization. Review and save.')
+
+      // Auto-push meta + FAQ schema to WordPress
+      toast.loading('Pushing to WordPress...', { id: 'ai-push' })
+      try {
+        // Build FAQ schema JSON-LD if present
+        let schemaCustom = null
+        if (data.faq_schema && data.faq_schema.length > 0) {
+          schemaCustom = JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            'mainEntity': data.faq_schema.map(faq => ({
+              '@type': 'Question',
+              'name': faq.question,
+              'acceptedAnswer': { '@type': 'Answer', 'text': faq.answer },
+            })),
+          })
+        }
+
+        const pushRes = await fetch('/api/wp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'sync_push',
+            site_id: siteId,
+            changes: [{
+              type: 'seo_meta',
+              post_id: page.id,
+              data: {
+                seo_title: newTitle,
+                meta_description: newDesc,
+                focus_keyword: newKw,
+                ...(schemaCustom ? { schema_custom: schemaCustom, schema_type: 'FAQPage' } : {}),
+              },
+            }],
+          }),
+        })
+        const pushData = await pushRes.json()
+        if (pushData.ok !== false && pushData.applied > 0) {
+          toast.success('AI optimized and pushed to WordPress!', { id: 'ai-push' })
+          if (onSaved) onSaved()
+        } else {
+          toast.success('AI generated. Push manually with Save & Push.', { id: 'ai-push' })
+        }
+      } catch {
+        toast.success('AI generated. Push manually with Save & Push.', { id: 'ai-push' })
+      }
     } catch (e) {
       toast.error('AI optimization failed: ' + e.message)
     }
