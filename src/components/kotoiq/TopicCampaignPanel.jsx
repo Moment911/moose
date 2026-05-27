@@ -62,6 +62,31 @@ export default function TopicCampaignPanel({ site }) {
   const [editedHeroAlt, setEditedHeroAlt] = useState('')
   const [editedPostType, setEditedPostType] = useState('page')
   const [editedFocusKw, setEditedFocusKw] = useState('')
+  const [editedWrapper, setEditedWrapper] = useState('')
+  const [editedCaptureUrl, setEditedCaptureUrl] = useState('')
+  const [editedCaptureBusy, setEditedCaptureBusy] = useState(false)
+  const [editedCaptureInfo, setEditedCaptureInfo] = useState(null)
+
+  // Capture from URL inside the editor modal — same /capture_styling action
+  // as the campaign-creation wizard, but writes into editedWrapper so the
+  // operator can re-style an existing campaign without recreating it.
+  async function captureStylingInEditor() {
+    const url = editedCaptureUrl.trim()
+    if (!url) { toast.error('Paste a URL first'); return }
+    setEditedCaptureBusy(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'capture_styling', agency_id: agencyId, url }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      setEditedWrapper(d.wrapper || '')
+      setEditedCaptureInfo({ used_selector: d.used_selector, notes: d.notes })
+      toast.success(`Captured via "${d.used_selector}" — save changes + Re-deploy all to apply`)
+    } catch (e) { toast.error(e.message) }
+    setEditedCaptureBusy(false)
+  }
   const [focusKwTemplate, setFocusKwTemplate] = useState('[topic] in [koto_city] [koto_state_abbr]')
   const [styleCaptureUrl, setStyleCaptureUrl] = useState('')
   const [capturing, setCapturing] = useState(false)
@@ -371,6 +396,7 @@ export default function TopicCampaignPanel({ site }) {
           hero_image_alt: editedHeroAlt,
           post_type: editedPostType,
           focus_keyword_template: editedFocusKw,
+          custom_html_wrapper: editedWrapper,
         }),
       })
       const d = await r.json()
@@ -754,6 +780,9 @@ export default function TopicCampaignPanel({ site }) {
               setEditedHeroAlt(campaign.hero_image_alt || '')
               setEditedPostType(campaign.post_type || 'page')
               setEditedFocusKw(campaign.focus_keyword_template || '[topic] in [koto_city] [koto_state_abbr]')
+              setEditedWrapper(campaign.custom_html_wrapper || '')
+              setEditedCaptureUrl('')
+              setEditedCaptureInfo(null)
               setEditorOpen(true)
             }} style={miniBtn()}>
               <Edit3 size={11}/> Edit master
@@ -1146,6 +1175,11 @@ export default function TopicCampaignPanel({ site }) {
           heroAlt={editedHeroAlt} setHeroAlt={setEditedHeroAlt}
           postType={editedPostType} setPostType={setEditedPostType}
           focusKw={editedFocusKw} setFocusKw={setEditedFocusKw}
+          wrapper={editedWrapper} setWrapper={setEditedWrapper}
+          captureUrl={editedCaptureUrl} setCaptureUrl={setEditedCaptureUrl}
+          captureBusy={editedCaptureBusy}
+          captureInfo={editedCaptureInfo}
+          onCapture={captureStylingInEditor}
           campaignTopic={campaign?.topic || ''}
           onSave={saveMasterEdits}
           onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
@@ -1199,7 +1233,7 @@ export default function TopicCampaignPanel({ site }) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, focusKw, setFocusKw, campaignTopic, onSave, onClose }) {
+function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, focusKw, setFocusKw, wrapper, setWrapper, captureUrl, setCaptureUrl, captureBusy, captureInfo, onCapture, campaignTopic, onSave, onClose }) {
   // Preview the focus keyword resolved for a sample city
   const sampleResolved = (focusKw || '')
     .replace(/\[topic\]/gi, campaignTopic)
@@ -1344,6 +1378,36 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
           <EditorBlock label="JSON-LD Schema template">
             <textarea value={master.schema_jsonld_template || ''} onChange={e => patch('schema_jsonld_template', e.target.value)} rows={8}
               style={inp({ resize:'vertical', fontFamily:'ui-monospace,Menlo,monospace', fontSize:11 })}/>
+          </EditorBlock>
+          <EditorBlock label="Custom HTML wrapper (theme styling)">
+            <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', marginBottom:8, lineHeight:1.5 }}>
+              Paste your theme&rsquo;s page HTML or capture from an existing styled URL. Use <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_HEADLINE}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_SUB}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_MEDIA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{SECTIONS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{FAQS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{CTA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{SERVICE_AREAS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{RELATED_SERVICES}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HOWTO}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{COMPARISON}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{LOCAL_DATA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{DIRECT_ANSWER}}'}</code> placeholders. Add <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{NO_STYLES}}'}</code> to skip the default base CSS. After saving, click <strong>Re-deploy all</strong> to apply.
+            </div>
+            <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center' }}>
+              <input
+                value={captureUrl}
+                onChange={e => setCaptureUrl(e.target.value)}
+                placeholder="https://unifiedmktg.com/about/ — paste an existing styled page URL"
+                style={{ ...inp(), flex:1 }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onCapture() } }}
+              />
+              <button onClick={onCapture} disabled={captureBusy || !captureUrl.trim()} style={miniBtn({ color:T, borderColor:T })}>
+                {captureBusy ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture from URL
+              </button>
+              {wrapper && (
+                <button onClick={() => setWrapper('')} style={miniBtn()}>
+                  <X size={11}/> Clear
+                </button>
+              )}
+            </div>
+            {captureInfo && (
+              <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
+                <strong>Captured:</strong> {captureInfo.notes}
+              </div>
+            )}
+            <textarea value={wrapper} onChange={e => setWrapper(e.target.value)} rows={10}
+              placeholder={'<div class="my-template">\n  {{HERO_MEDIA}}\n  <h1>{{HERO_HEADLINE}}</h1>\n  {{SECTIONS}}\n  {{FAQS}}\n  {{SERVICE_AREAS}}\n</div>'}
+              style={{ ...inp(), resize:'vertical', minHeight:160, fontFamily:'ui-monospace,Menlo,monospace', fontSize:12 }}/>
           </EditorBlock>
         </div>
       </div>
