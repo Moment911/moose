@@ -520,7 +520,7 @@ Rules:
       } catch {}
       if (!shimVersion) {
         return NextResponse.json({
-          error: `KotoIQ Shim plugin not detected at ${cleanUrl}. Install kotoiq-shim-4.0.3.zip on the site first.`,
+          error: `KotoIQ Shim plugin not detected at ${cleanUrl}. Install the KotoIQ plugin on the site first.`,
           hint: 'install_plugin',
         }, { status: 400 })
       }

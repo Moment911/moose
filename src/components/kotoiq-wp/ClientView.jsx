@@ -307,9 +307,9 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   </div>
 
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <a href="/downloads/kotoiq-shim-4.0.3.zip" download
+                    <a href="/api/kotoiq-shim-latest" download
                       style={{ ...primaryBtn(), textDecoration: 'none', display: 'inline-flex' }}>
-                      <Download size={14}/> Download KotoIQ Plugin v4.0.3
+                      <Download size={14}/> Download KotoIQ Plugin
                     </a>
                     <button onClick={() => setShowAdd(true)} style={mini({ borderColor: PINK, color: PINK })}>
                       <Plus size={13}/> Connect a site
@@ -529,8 +529,8 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
                 Download the zip and upload via <em>WP admin → Plugins → Add New → Upload Plugin</em>. Activate it.
               </div>
               <div style={{ marginLeft: 30 }}>
-                <a href="https://hellokoto.com/downloads/kotoiq-shim-4.0.3.zip" target="_blank" rel="noopener noreferrer" style={pillLink()}>
-                  <Download size={11}/> kotoiq-shim-4.0.3.zip
+                <a href="https://hellokoto.com/api/kotoiq-shim-latest" target="_blank" rel="noopener noreferrer" style={pillLink()}>
+                  <Download size={11}/> kotoiq-latest.zip
                 </a>
               </div>
             </div>
