@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import {
   Sparkles, Loader2, ChevronRight, ChevronLeft, MapPin, RefreshCw, Upload,
   AlertTriangle, CheckCircle2, Wand2, FileText, File, ExternalLink, Eye, X,
-  Edit3, History, Save, Code, Coins,
+  Edit3, History, Save, Code, Coins, TrendingUp, MousePointerClick, Users, Target,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
@@ -63,6 +63,12 @@ export default function TopicCampaignPanel({ site }) {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [inspectDeploy, setInspectDeploy] = useState(null)
   const [redeploying, setRedeploying] = useState(false)
+
+  // Performance (Search Console + GA4)
+  const [perfOpen, setPerfOpen] = useState(false)
+  const [perf, setPerf] = useState(null)
+  const [perfLoading, setPerfLoading] = useState(false)
+  const [perfWindow, setPerfWindow] = useState(28)
 
   const isV4 = site?.shim_version === 'v4'
 
@@ -287,6 +293,21 @@ export default function TopicCampaignPanel({ site }) {
     } catch (e) { toast.error(e.message) }
   }
 
+  async function loadPerf(days = perfWindow) {
+    if (!campaign?.id) return
+    setPerfLoading(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'get_performance', agency_id: agencyId, campaign_id: campaign.id, days }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      setPerf(d)
+    } catch (e) { toast.error(e.message) }
+    setPerfLoading(false)
+  }
+
   async function redeployAll() {
     if (!campaign?.id) return
     if (!confirm(`Re-deploy this campaign to all previously-published cities? The existing WP posts will be updated in place (no new URLs).`)) return
@@ -481,6 +502,11 @@ export default function TopicCampaignPanel({ site }) {
                 </button>
               )}
               {deployHistory.length > 0 && (
+                <button onClick={() => { setPerfOpen(o => !o); if (!perf) loadPerf() }} style={miniBtn({ color:T, borderColor:T })}>
+                  <TrendingUp size={11}/> Performance
+                </button>
+              )}
+              {deployHistory.length > 0 && (
                 <button onClick={redeployAll} disabled={redeploying} style={miniBtn({ color:R, borderColor:R })}>
                   {redeploying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Re-deploy all
                 </button>
@@ -496,6 +522,100 @@ export default function TopicCampaignPanel({ site }) {
               </>
             )}
           </div>
+
+          {perfOpen && (
+            <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid #e5e7eb' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                <TrendingUp size={14} color={T}/>
+                <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:13, color:BLK }}>
+                  Performance — last {perf?.window_days || perfWindow} days
+                </div>
+                <select value={perfWindow} onChange={e => { const d = Number(e.target.value); setPerfWindow(d); loadPerf(d) }} style={{ ...inp(), width:'auto', padding:'4px 8px', fontSize:12 }}>
+                  <option value={7}>7d</option>
+                  <option value={28}>28d</option>
+                  <option value={90}>90d</option>
+                </select>
+                <button onClick={() => loadPerf()} disabled={perfLoading} style={miniBtn()}>
+                  {perfLoading ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Refresh
+                </button>
+              </div>
+
+              {perfLoading && (
+                <div style={{ display:'flex', alignItems:'center', gap:8, fontFamily:FB, fontSize:13, color:'#6b7280' }}>
+                  <Loader2 size={14} className="spin"/> Pulling Search Console + GA4…
+                </div>
+              )}
+
+              {!perfLoading && perf?.error_hint && (
+                <div style={{ display:'flex', alignItems:'center', gap:8, color:AMB, fontFamily:FB, fontSize:13 }}>
+                  <AlertTriangle size={13}/> {perf.error_hint}
+                </div>
+              )}
+
+              {!perfLoading && perf && !perf.error_hint && (
+                <>
+                  <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+                    <Pill color={perf.gsc_connected ? GRN : '#9ca3af'} bg={`${perf.gsc_connected ? GRN : '#9ca3af'}15`}>
+                      GSC {perf.gsc_connected ? 'connected' : 'not connected'}
+                    </Pill>
+                    <Pill color={perf.ga4_connected ? GRN : '#9ca3af'} bg={`${perf.ga4_connected ? GRN : '#9ca3af'}15`}>
+                      GA4 {perf.ga4_connected ? 'connected' : 'not connected'}
+                    </Pill>
+                  </div>
+
+                  {/* Totals */}
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:10, marginBottom:14 }}>
+                    <MetricCard icon={MousePointerClick} label="Clicks" value={perf.totals?.clicks} color={T}/>
+                    <MetricCard icon={Eye} label="Impressions" value={perf.totals?.impressions} color={T}/>
+                    <MetricCard icon={Users} label="Sessions" value={perf.totals?.sessions} color={GRN}/>
+                    <MetricCard icon={Users} label="Users" value={perf.totals?.users} color={GRN}/>
+                    <MetricCard icon={Target} label="Conversions" value={perf.totals?.conversions} color={R}/>
+                  </div>
+                  {perf.totals?.best_city && (
+                    <div style={{ marginBottom:14, padding:10, background:'#fff', border:'1px solid #e5e7eb', borderRadius:8, fontSize:13, fontFamily:FB, color:'#6b7280' }}>
+                      <strong style={{ color:BLK }}>Top performer:</strong> {perf.totals.best_city.city}, {perf.totals.best_city.state_abbr} — {perf.totals.best_city.clicks} clicks
+                    </div>
+                  )}
+
+                  {/* Per-URL table */}
+                  <div style={{ maxHeight:360, overflowY:'auto', border:'1px solid #e5e7eb', borderRadius:8, background:'#fff' }}>
+                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, fontFamily:FB }}>
+                      <thead style={{ position:'sticky', top:0, background:'#fafafa', zIndex:1 }}>
+                        <tr>
+                          <th style={th()}>City</th>
+                          <th style={th({ width:65, textAlign:'right' })}>Clicks</th>
+                          <th style={th({ width:75, textAlign:'right' })}>Impress.</th>
+                          <th style={th({ width:60, textAlign:'right' })}>Pos</th>
+                          <th style={th({ width:65, textAlign:'right' })}>Sess.</th>
+                          <th style={th({ width:60, textAlign:'right' })}>Users</th>
+                          <th style={th({ width:50, textAlign:'right' })}>Conv.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(perf.per_url || {}).map(([url, p]) => (
+                          <tr key={url} style={{ borderTop:'1px solid #f1f5f9' }}>
+                            <td style={td()}>
+                              <a href={url} target="_blank" rel="noopener noreferrer" style={{ color:BLK, textDecoration:'none' }}>
+                                {p.city}, {p.state_abbr}
+                              </a>
+                            </td>
+                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.clicks}</td>
+                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:'#6b7280' })}>{p.impressions}</td>
+                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:p.position > 0 && p.position <= 10 ? GRN : p.position > 0 && p.position <= 30 ? AMB : '#9ca3af' })}>
+                              {p.position > 0 ? p.position.toFixed(1) : '—'}
+                            </td>
+                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.sessions}</td>
+                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:'#6b7280' })}>{p.users}</td>
+                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.conversions}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {historyOpen && deployHistory.length > 0 && (
             <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid #e5e7eb' }}>
@@ -973,6 +1093,17 @@ const stateNames = {
   WI:'Wisconsin', WY:'Wyoming', DC:'District of Columbia', PR:'Puerto Rico',
 }
 function stateName(abbr) { return stateNames[abbr] || abbr }
+
+function MetricCard({ icon: Icon, label, value, color }) {
+  return (
+    <div style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:8, padding:'10px 12px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4, fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em' }}>
+        <Icon size={11} color={color}/> {label}
+      </div>
+      <div style={{ fontSize:20, fontFamily:FH, fontWeight:800, color:BLK }}>{(value ?? 0).toLocaleString()}</div>
+    </div>
+  )
+}
 
 function timeAgo(s) {
   if (!s) return ''

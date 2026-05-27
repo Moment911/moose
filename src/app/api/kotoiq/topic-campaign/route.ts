@@ -7,6 +7,7 @@ import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
 import { postGetMetaBulk } from '@/lib/wp-shim/verbs'
+import { getAccessToken, fetchSearchConsoleData, fetchGA4Data, loadClientConnections } from '@/lib/seoService'
 import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 
 // ─── POST /api/kotoiq/topic-campaign ───────────────────────────────────────
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
             case 'get_campaign':      return getCampaign(supabase, agencyId, body)
             case 'list_deploys':      return listDeploys(supabase, agencyId, body)
             case 'redeploy':          return redeployCampaign(supabase, agencyId, body)
+            case 'get_performance':   return getPerformance(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -459,6 +461,161 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     }).eq('id', campaignId)
 
     return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length })
+}
+
+/**
+ * Pull Search Console + GA4 data for every deployed page in a campaign and
+ * join by URL. Returns per-city metrics + campaign totals + top queries.
+ *
+ * Date window defaults to the last 28 days. Caller can pass `days` to widen.
+ */
+async function getPerformance(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const days = Math.max(7, Math.min(365, Number(body.days) || 28))
+
+    const { data: campaign, error: ce } = await supabase
+        .from('koto_topic_campaigns')
+        .select('id, agency_id, client_id, site_id, topic')
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (ce || !campaign) return NextResponse.json({ error: ce?.message || 'campaign not found' }, { status: 404 })
+
+    const { data: deploys } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('id, city, state_abbr, wp_post_url, status')
+        .eq('campaign_id', campaignId)
+        .eq('status', 'published')
+        .not('wp_post_url', 'is', null)
+    const liveDeploys = deploys || []
+
+    if (!campaign.client_id) {
+        return NextResponse.json({
+            ok: true,
+            window_days: days,
+            error_hint: 'Campaign has no client_id — connect GSC/GA4 via the client to see performance.',
+            deploys: liveDeploys, totals: null, per_url: {},
+        })
+    }
+
+    const connections = await loadClientConnections(campaign.client_id)
+    const scConn = connections.find((c: any) => c.provider === 'google_search_console') || null
+    const ga4Conn = connections.find((c: any) => c.provider === 'google_analytics' || c.provider === 'ga4') || null
+
+    const today = new Date()
+    const start = new Date(today.getTime() - days * 86400 * 1000)
+    const ymd = (d: Date) => d.toISOString().slice(0, 10)
+    const startDate = ymd(start), endDate = ymd(today)
+
+    let scData: any = null, ga4Data: any = null
+    try {
+        if (scConn) {
+            const tok = await getAccessToken(scConn)
+            const siteUrl = scConn.account_id || scConn.site_url || ''
+            if (tok && siteUrl) {
+                scData = await fetchSearchConsoleData(tok, siteUrl, startDate, endDate)
+            }
+        }
+    } catch {}
+    try {
+        if (ga4Conn) {
+            const tok = await getAccessToken(ga4Conn)
+            const propId = ga4Conn.property_id || ga4Conn.account_id
+            if (tok && propId) {
+                ga4Data = await fetchGA4Data(tok, propId, startDate, endDate)
+            }
+        }
+    } catch {}
+
+    // Index GSC rows by page URL (strip trailing slash + protocol for matching)
+    const norm = (u: string) => String(u || '').replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+    const gscByPage: Record<string, { clicks: number; impressions: number; ctr: number; position: number; queries: Array<{ query: string; clicks: number; impressions: number }> }> = {}
+    for (const row of (scData?.rows || [])) {
+        const [query, page] = row.keys || []
+        const k = norm(page)
+        if (!gscByPage[k]) gscByPage[k] = { clicks: 0, impressions: 0, ctr: 0, position: 0, queries: [] }
+        gscByPage[k].clicks += row.clicks || 0
+        gscByPage[k].impressions += row.impressions || 0
+        gscByPage[k].queries.push({ query, clicks: row.clicks || 0, impressions: row.impressions || 0 })
+    }
+    // Recompute weighted average position + sort top queries per page
+    for (const k of Object.keys(gscByPage)) {
+        const rec = gscByPage[k]
+        const totalImp = rec.impressions
+        let weighted = 0
+        for (const q of rec.queries) weighted += (q.impressions / Math.max(totalImp, 1)) * 0
+        // Recompute position from the raw rows
+        let posSum = 0, posWeight = 0
+        for (const row of (scData?.rows || [])) {
+            const [, page] = row.keys || []
+            if (norm(page) !== k) continue
+            posSum += (row.position || 0) * (row.impressions || 0)
+            posWeight += row.impressions || 0
+        }
+        rec.position = posWeight > 0 ? posSum / posWeight : 0
+        rec.ctr = totalImp > 0 ? rec.clicks / totalImp : 0
+        rec.queries.sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
+        rec.queries = rec.queries.slice(0, 5)
+    }
+
+    // Index GA4 rows by pagePath (strip protocol + host since GA4 returns path only)
+    const ga4ByPath: Record<string, { sessions: number; users: number; conversions: number; bounce_rate_sum: number; row_count: number }> = {}
+    for (const row of (ga4Data?.rows || [])) {
+        const path = String(row.dimensionValues?.[0]?.value || '')
+        const k = path.replace(/\/$/, '').toLowerCase()
+        if (!ga4ByPath[k]) ga4ByPath[k] = { sessions: 0, users: 0, conversions: 0, bounce_rate_sum: 0, row_count: 0 }
+        ga4ByPath[k].sessions += Number(row.metricValues?.[0]?.value || 0)
+        ga4ByPath[k].users    += Number(row.metricValues?.[1]?.value || 0)
+        ga4ByPath[k].bounce_rate_sum += Number(row.metricValues?.[2]?.value || 0)
+        ga4ByPath[k].conversions += Number(row.metricValues?.[3]?.value || 0)
+        ga4ByPath[k].row_count++
+    }
+
+    // Build per-deploy result by matching its URL against GSC + GA4
+    const per_url: Record<string, any> = {}
+    let totalClicks = 0, totalImpressions = 0, totalSessions = 0, totalUsers = 0, totalConv = 0
+    let bestCity: any = null
+    for (const d of liveDeploys) {
+        const fullKey = norm(d.wp_post_url)
+        const pathKey = '/' + fullKey.split('/').slice(1).join('/')
+        const gsc = gscByPage[fullKey] || null
+        const ga4 = ga4ByPath[pathKey.replace(/\/$/, '').toLowerCase()] || null
+        const rec = {
+            city: d.city, state_abbr: d.state_abbr, url: d.wp_post_url,
+            clicks: gsc?.clicks || 0,
+            impressions: gsc?.impressions || 0,
+            ctr: gsc?.ctr || 0,
+            position: gsc?.position || 0,
+            sessions: ga4?.sessions || 0,
+            users: ga4?.users || 0,
+            conversions: ga4?.conversions || 0,
+            top_queries: gsc?.queries || [],
+        }
+        per_url[d.wp_post_url] = rec
+        totalClicks += rec.clicks
+        totalImpressions += rec.impressions
+        totalSessions += rec.sessions
+        totalUsers += rec.users
+        totalConv += rec.conversions
+        if (!bestCity || rec.clicks > (bestCity.clicks || 0)) bestCity = rec
+    }
+
+    return NextResponse.json({
+        ok: true,
+        window_days: days,
+        gsc_connected: !!scConn && !!scData,
+        ga4_connected: !!ga4Conn && !!ga4Data,
+        totals: {
+            clicks: totalClicks,
+            impressions: totalImpressions,
+            sessions: totalSessions,
+            users: totalUsers,
+            conversions: totalConv,
+            best_city: bestCity ? { city: bestCity.city, state_abbr: bestCity.state_abbr, clicks: bestCity.clicks } : null,
+        },
+        per_url,
+    })
 }
 
 /**
