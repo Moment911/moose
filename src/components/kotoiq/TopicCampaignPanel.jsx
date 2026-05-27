@@ -4,6 +4,7 @@ import {
   Sparkles, Loader2, ChevronRight, ChevronLeft, MapPin, RefreshCw, Upload,
   AlertTriangle, CheckCircle2, Wand2, FileText, File, ExternalLink, Eye, X,
   Edit3, History, Save, Code, Coins, TrendingUp, MousePointerClick, Users, Target,
+  Download,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
@@ -658,6 +659,35 @@ export default function TopicCampaignPanel({ site }) {
                 <button onClick={() => loadPerf()} disabled={perfLoading} style={miniBtn()}>
                   {perfLoading ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Refresh
                 </button>
+                <a
+                  href={`/api/kotoiq/topic-campaign-csv?campaign_id=${campaign?.id}&agency_id=${agencyId}&days=${perfWindow}`}
+                  onClick={async (e) => {
+                    e.preventDefault()
+                    try {
+                      const r = await fetch('/api/kotoiq/topic-campaign', {
+                        method:'POST', headers:{'Content-Type':'application/json'},
+                        body: JSON.stringify({ action:'export_performance_csv', agency_id: agencyId, campaign_id: campaign.id, days: perfWindow }),
+                      })
+                      if (!r.ok) { toast.error('CSV export failed'); return }
+                      const blob = await r.blob()
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url
+                      const cd = r.headers.get('content-disposition') || ''
+                      const m = cd.match(/filename="?([^";]+)"?/)
+                      a.download = m ? m[1] : `${campaign?.topic || 'campaign'}-performance.csv`
+                      document.body.appendChild(a)
+                      a.click()
+                      a.remove()
+                      URL.revokeObjectURL(url)
+                      toast.success('CSV downloaded')
+                    } catch (err) { toast.error(err.message) }
+                  }}
+                  style={{ ...miniBtn({ color:T, borderColor:T }), textDecoration:'none' }}
+                  title="Download per-city performance + scores as CSV"
+                >
+                  <Download size={11}/> Download CSV
+                </a>
               </div>
 
               {perfLoading && (

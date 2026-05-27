@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
             case 'verify_live':       return await verifyLiveDeploys(supabase, agencyId, body)
             case 'resync_seo_meta':   return await resyncSeoMeta(supabase, agencyId, body)
             case 'capture_styling':   return await captureStyling(body)
+            case 'export_performance_csv': return await exportPerformanceCsv(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -207,6 +208,9 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         .update({ status: 'deploying' })
         .eq('id', campaignId)
 
+    // Upload hero image to WP media library once for the batch
+    const featuredMediaId = await ensureFeaturedMedia(supabase, campaign, site, creds)
+
     // Pre-compute sibling URLs for internal linking. Includes BOTH the new
     // cities in this batch AND any previously-published cities for this
     // campaign — so an incremental deploy weaves the new pages into the
@@ -260,6 +264,7 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             excerpt: resolved.metaDescription,
             status: 'publish',
         }
+        if (featuredMediaId) wpBody.featured_media = featuredMediaId
         if (resolved.jsonLd) {
             // Plugin v4.1.0+ registers _kotoiq_schema_jsonld with
             // show_in_rest:true. Writes here are echoed via wp_head.
@@ -423,6 +428,9 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     let updated = 0
     let failed = 0
 
+    // Upload hero image once for re-deploys too (caches if unchanged)
+    const featuredMediaId = await ensureFeaturedMedia(supabase, campaign, site, creds)
+
     // Sibling links for internal linking — use stored URLs from prior deploys.
     const siblingLinks = existingDeploys
         .filter((x: any) => x.wp_post_url)
@@ -445,6 +453,7 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             content: resolved.bodyHtml,
             excerpt: resolved.metaDescription,
         }
+        if (featuredMediaId) updBody.featured_media = featuredMediaId
         if (resolved.jsonLd) updBody.meta = { _kotoiq_schema_jsonld: resolved.jsonLd }
 
         const wpResp = await wpFetchJson<{ id?: number; link?: string }>(
@@ -479,6 +488,152 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     }).eq('id', campaignId)
 
     return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length })
+}
+
+/**
+ * Upload the campaign's hero image to the WP media library and cache the
+ * returned attachment ID on the campaign row. Subsequent deploys reuse
+ * the cached ID without re-uploading. Returns the attachment ID or null
+ * if the image is missing/unreachable.
+ *
+ * Called from deploy() and redeployCampaign() before posting each page,
+ * so the page can include featured_media:<id> — which Yoast and RankMath
+ * read for og:image.
+ */
+async function ensureFeaturedMedia(
+    supabase: any,
+    campaign: any,
+    site: { site_url: string },
+    creds: { username: string; appPassword: string; fingerprint: string },
+): Promise<number | null> {
+    const imageUrl = campaign.hero_image_url || ''
+    if (!imageUrl) return null
+
+    // Cached and still pointing at the same source URL? Reuse.
+    if (
+        campaign.wp_featured_media_id &&
+        campaign.wp_featured_media_source_url === imageUrl
+    ) {
+        return campaign.wp_featured_media_id
+    }
+
+    // Fetch the image bytes
+    let bytes: ArrayBuffer
+    let contentType = 'image/jpeg'
+    let filename = 'koto-hero.jpg'
+    try {
+        const res = await fetch(imageUrl, { signal: AbortSignal.timeout(20_000) })
+        if (!res.ok) return null
+        contentType = res.headers.get('content-type') || 'image/jpeg'
+        bytes = await res.arrayBuffer()
+        const u = new URL(imageUrl)
+        const base = u.pathname.split('/').pop() || 'koto-hero.jpg'
+        filename = base.replace(/[^a-zA-Z0-9.\-_]/g, '_').slice(-80) || 'koto-hero.jpg'
+    } catch {
+        return null
+    }
+
+    // Upload via /wp/v2/media. WP REST accepts the raw binary body with
+    // Content-Disposition for the filename. App Password auth applies.
+    const buf = Buffer.from(bytes)
+    const url = `${site.site_url.replace(/\/$/, '')}/wp-json/wp/v2/media`
+    const auth = 'Basic ' + Buffer.from(`${creds.username}:${creds.appPassword}`).toString('base64')
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                Authorization: auth,
+                'Content-Type': contentType,
+                'Content-Disposition': `attachment; filename="${filename}"`,
+            },
+            body: buf,
+            signal: AbortSignal.timeout(30_000),
+        })
+        if (!res.ok) return null
+        const data = await res.json().catch(() => null) as { id?: number } | null
+        if (!data?.id) return null
+        // Cache the attachment ID so re-deploys skip the upload
+        await supabase
+            .from('koto_topic_campaigns')
+            .update({
+                wp_featured_media_id: data.id,
+                wp_featured_media_source_url: imageUrl,
+            })
+            .eq('id', campaign.id)
+        return data.id
+    } catch {
+        return null
+    }
+}
+
+/**
+ * Export campaign performance as CSV. Mirrors the data in the Performance
+ * panel — per-city clicks, impressions, position, sessions, users,
+ * conversions, RankMath score, plus the campaign topic + URL.
+ */
+async function exportPerformanceCsv(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+
+    // Reuse get_performance for the heavy lifting, then format as CSV
+    const perfResp = await getPerformance(supabase, agencyId, { campaign_id: campaignId, days: body.days || 28 })
+    const perfData: any = await perfResp.json()
+    if (!perfData.ok) return NextResponse.json({ error: perfData.error || 'performance fetch failed' }, { status: 502 })
+
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns').select('topic').eq('id', campaignId).eq('agency_id', agencyId).single()
+    const topic = campaign?.topic || 'campaign'
+
+    // Also pull RankMath scores from deploys
+    const { data: deploys } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('wp_post_url, rank_math_score, resolved_meta_title')
+        .eq('campaign_id', campaignId)
+        .eq('status', 'published')
+    const scoreByUrl: Record<string, { score: number | null; meta_title: string }> = {}
+    for (const d of (deploys || [])) {
+        scoreByUrl[d.wp_post_url] = { score: d.rank_math_score, meta_title: d.resolved_meta_title || '' }
+    }
+
+    const rows: string[] = [
+        ['City', 'State', 'URL', 'Meta Title', 'RankMath Score', 'Clicks', 'Impressions', 'CTR (%)', 'Position', 'Sessions', 'Users', 'Conversions'].join(','),
+    ]
+    for (const [url, p] of Object.entries(perfData.per_url || {}) as any) {
+        const extra = scoreByUrl[url] || { score: null, meta_title: '' }
+        const ctr = p.impressions > 0 ? (p.ctr * 100).toFixed(2) : '0'
+        rows.push([
+            csvCell(p.city),
+            csvCell(p.state_abbr),
+            csvCell(url),
+            csvCell(extra.meta_title),
+            extra.score != null ? String(extra.score) : '',
+            String(p.clicks || 0),
+            String(p.impressions || 0),
+            ctr,
+            p.position > 0 ? p.position.toFixed(2) : '',
+            String(p.sessions || 0),
+            String(p.users || 0),
+            String(p.conversions || 0),
+        ].join(','))
+    }
+    const csv = rows.join('\r\n')
+    const filename = `${topic.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-performance-${perfData.window_days || 28}d.csv`
+
+    return new NextResponse(csv, {
+        headers: {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Cache-Control': 'no-store',
+        },
+    })
+}
+
+function csvCell(v: any): string {
+    const s = String(v ?? '')
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"'
+    }
+    return s
 }
 
 /**
@@ -707,6 +862,7 @@ async function retryFailedDeploys(supabase: any, agencyId: string, body: any) {
     const siblingLinks = (published || []).map((x: any) => ({ city: x.city, state_abbr: x.state_abbr, url: x.wp_post_url }))
 
     const restBase = campaign.post_type === 'post' ? 'posts' : 'pages'
+    const featuredMediaId = await ensureFeaturedMedia(supabase, campaign, site, creds)
     let succeeded = 0
     let stillFailed = 0
     const results: any[] = []
@@ -727,6 +883,7 @@ async function retryFailedDeploys(supabase: any, agencyId: string, body: any) {
             title: resolved.title, slug: resolved.slug, content: resolved.bodyHtml,
             excerpt: resolved.metaDescription, status: 'publish',
         }
+        if (featuredMediaId) wpBody.featured_media = featuredMediaId
         if (resolved.jsonLd) wpBody.meta = { _kotoiq_schema_jsonld: resolved.jsonLd }
 
         const wpResp = await wpFetchJson<{ id?: number; link?: string; slug?: string }>(
