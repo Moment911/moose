@@ -69,6 +69,7 @@ require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-webhook.php';
 require_once KOTOIQ_SHIM_DIR . 'runtime/access-filter.php';
 require_once KOTOIQ_SHIM_DIR . 'runtime/snippets.php';
 require_once KOTOIQ_SHIM_DIR . 'shortcodes/koto-rotate.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/sitemap-server.php';
 
 // ─── Activation ────────────────────────────────────────────────────────────
 register_activation_hook(__FILE__, function () {
@@ -79,8 +80,14 @@ register_activation_hook(__FILE__, function () {
     if (get_option(KOTOIQ_SHIM_OPT_FEATURES_ENABLED, null) === null) {
         update_option(KOTOIQ_SHIM_OPT_FEATURES_ENABLED, []);
     }
+    // Notify rewrite-rule owners (sitemap-server.php) so they can flush.
+    do_action('kotoiq_shim_activate');
     // koto_service user + kotoiq_service role are created at pair time
     // (per D-Pairing-user USER-LOCKED), NOT at activation.
+});
+
+register_deactivation_hook(__FILE__, function () {
+    do_action('kotoiq_shim_deactivate');
 });
 
 // ─── i18n ──────────────────────────────────────────────────────────────────

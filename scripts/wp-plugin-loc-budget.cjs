@@ -41,9 +41,15 @@ function parseArgs(argv) {
   // ternaries, multi-statement lines), the realistic floor is ~100 LOC for
   // verbs-elementor.php alone — the floor matches the ~50 LOC of plumbing in
   // v3's elementor-builder.php once you strip the route-registration shell that
-  // v4 does NOT need. 750 budget = 706 actual + ~44 LOC headroom for Plan 10-11
-  // cutover refinements without another bump.
-  const out = { pluginDir: 'wp-plugin-kotoiq-shim', budget: 750, strict: false }
+  // v4 does NOT need.
+  //
+  // Bumped 750 → 800 in Phase 10 Plan 10-08 to land sitemap-server.php
+  // (~26 business-logic LOC) — a generic static-XML serve handler with a
+  // 25-hour freshness gate and a WP-core /wp-sitemap.xml fallback redirect.
+  // The handler contains zero sitemap-composition logic; that all lives in
+  // src/lib/wp-shim/ports/sitemapPort.ts (TS, dashboard side). The +50 LOC
+  // budget bump leaves ~38 LOC headroom for Plan 10-11 cutover refinements.
+  const out = { pluginDir: 'wp-plugin-kotoiq-shim', budget: 800, strict: false }
   for (let i = 2; i < argv.length; i += 1) {
     const a = argv[i]
     if (a === '--plugin-dir') {

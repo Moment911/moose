@@ -64,3 +64,7 @@ export * from './ports/redirectsPort'
 export * from './ports/snippetsPort'
 export * from './ports/accessPort'
 export * from './ports/searchReplacePort'
+
+// ── Dashboard ports (Plan 10-08 — sitemap composition + push + serve check) ─
+export * from './ports/sitemapPort'
+export * from './ports/sitemapServe'
