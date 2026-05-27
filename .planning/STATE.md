@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-07-PLAN.md — 5 dashboard ports shipped (seo/redirects/snippets/access/search-replace)
-last_updated: "2026-05-27T01:47:13.998Z"
+stopped_at: Completed 10-08-PLAN.md — sitemap composer (dashboard TS) + Vercel Cron + thin sitemap-server.php fallback
+last_updated: "2026-05-27T02:13:40.274Z"
 last_activity: 2026-05-26 -- Phase 10 planning complete
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 28
-  completed_plans: 22
-  percent: 79
+  completed_plans: 23
+  percent: 82
 ---
 
 # Project State
@@ -80,6 +80,7 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 | Phase 10 P05 | 10min | 2 tasks | 8 files |
 | Phase 10 P06 | 18m 18s | 2 tasks | 3 files |
 | Phase 10 P07 | 88m | 2 tasks | 11 files |
+| Phase 10 P08 | 20min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,7 @@ Recent decisions affecting current work:
 - [Phase 10]: Plan 10-07: Used php-serialize@5.1.3 (modern MIT) instead of php-unserialize @ ~3.x (unsatisfiable npm version range)
 - [Phase 10]: Plan 10-07: Redirect enforcement runtime intentionally NOT carried in v4 — operational decision per 60-day side-by-side cutover
 - [Phase 10]: Plan 10-07: Cross-engine SEO writes UNCONDITIONAL (always write Yoast + RankMath companion keys) — plugin source remains IP-clean
+- [Phase 10]: Plan 10-08: dashboard composes sitemap XML in TypeScript (sitemapPort.ts); plugin sitemap-server.php is a 26-LOC static-file serve with 25-hour freshness gate and /wp-sitemap.xml fallback (defense in depth per CONTEXT.md D-Sitemap-strategy USER-LOCKED). Daily Vercel Cron at 04:00 UTC refreshes all v4 sites.
 
 ### Pending Todos
 
@@ -190,8 +192,8 @@ UAT test data still seeded (reuse for the gauntlet):
 
 ## Session Continuity
 
-Last session: 2026-05-27T01:47:05.058Z
-Stopped at: Completed 10-07-PLAN.md — 5 dashboard ports shipped (seo/redirects/snippets/access/search-replace)
+Last session: 2026-05-27T02:13:40.215Z
+Stopped at: Completed 10-08-PLAN.md — sitemap composer (dashboard TS) + Vercel Cron + thin sitemap-server.php fallback
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)

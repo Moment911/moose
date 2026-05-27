@@ -184,7 +184,7 @@ Plans:
 
 **Requirements**: SHIM-FOUNDATION, SHIM-PLUGIN-SKELETON, SHIM-DASHBOARD-CLIENT, SHIM-CORE-VERBS, SHIM-HARDENED-VERBS, SHIM-ELEMENTOR-AND-ROTATION, SHIM-DASHBOARD-PORTS-A, SHIM-SITEMAP-COMPOSER, SHIM-TEMPLATE-CAPTURE-AND-PUSH, SHIM-DUAL-RUN-SHADOW, SHIM-CUTOVER, SHIM-V3-SUNSET
 **Depends on:** Phase 9
-**Plans:** 7/12 plans executed
+**Plans:** 8/12 plans executed
 
 Plans:
 - [x] 10-01-PLAN.md — Foundation: Vercel envs + Supabase migration (templates, push_history, dual_run_log, shim_pairings) + Wave-0 test scaffolds + verb whitelist
@@ -194,7 +194,7 @@ Plans:
 - [x] 10-05-PLAN.md — Hardened verbs (5) + snippets runtime + webhook emitter: query.select (whitelist), capability.apply, transient.delete_prefix, database.update_bulk, webhook.set
 - [x] 10-06-PLAN.md — Elementor verbs (2) + koto_rotate shortcode: elementor.save + elementor.clone (with dashboard-supplied meta_prefix_allowlist — no hardcoded SEO-plugin names); generic variant-rotation shortcode
 - [x] 10-07-PLAN.md — Dashboard ports A: seoPort + redirectsPort + snippetsPort + accessPort (FEATURE_CAP_MAP) + searchReplacePort (TS serialized-PHP-safe walk)
-- [ ] 10-08-PLAN.md — Dashboard sitemap composer + push via file.write + Vercel Cron daily refresh + generic PHP sitemap-server (with WP-core fallback)
+- [x] 10-08-PLAN.md — Dashboard sitemap composer + push via file.write + Vercel Cron daily refresh + generic PHP sitemap-server (with WP-core fallback)
 - [ ] 10-09-PLAN.md — Template capture + push (CONTEXT.md Option B locked): variableExtractor + captureTemplate + pushTemplate + content-rotation wrapping + Templates UI tab in KotoIQ WP view
 - [ ] 10-10-PLAN.md — Dual-run shadow mode (CONTEXT.md D-TypeScript-port-equivalence locked): dualRunRouter (mode inactive/active/promoted/rolled_back) + diffEngine + operator UI panel
 - [ ] 10-11-PLAN.md — Cutover ops: build-shim-zip + pair-site + promote-site + kill-switch + parity-gauntlet CLI scripts + WP admin pairing page + CUTOVER-PLAYBOOK.md + pilot pair (human checkpoint)
