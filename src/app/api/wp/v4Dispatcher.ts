@@ -89,6 +89,8 @@ const V4_ROUTABLE_ACTIONS = new Set<string>([
     'kotoiq_rotation_cache_get',
     'kotoiq_rotation_cache_del',
     'kotoiq_rotation_posts_list',
+    // OverviewPanel
+    'kotoiq_overview_pages_recent',
     // SEOPanel
     'kotoiq_seo_agency_test',
     'kotoiq_seo_pages',
@@ -721,6 +723,46 @@ export async function dispatchV4ActionIfPaired(
                 const r = await optionDelete(site.site_url, { name: `kotoiq_rotation_cache_${post_id}` })
                 if (!r.ok) return envelopeErr(r.error.message, r.status, { code: r.error.code })
                 return envelopeOk({ deleted: true }, r.status)
+            }
+            case 'kotoiq_overview_pages_recent': {
+                // Top N most-recently-modified pages + posts for the Overview
+                // panel. Light weight — just id, title, type, modified, link.
+                const creds = await loadSiteCredentials(sb, site.agency_id, site.id).catch(() => null)
+                if (!creds) return envelopeErr('Site has no paired credentials', 401)
+                type WpPost = {
+                    id: number
+                    title?: { rendered?: string } | string
+                    link?: string
+                    status?: string
+                    modified?: string
+                }
+                const fields = '_fields=id,title,link,status,modified'
+                const params = `per_page=10&orderby=modified&order=desc&status=publish&${fields}`
+                const [pagesRes, postsRes] = await Promise.all([
+                    wpFetchJson<WpPost[]>(site.site_url, `/wp/v2/pages?${params}`, creds),
+                    wpFetchJson<WpPost[]>(site.site_url, `/wp/v2/posts?${params}`, creds),
+                ])
+                const pickTitle = (t: WpPost['title']) =>
+                    typeof t === 'string' ? t : t?.rendered || '(untitled)'
+                const out: Array<{
+                    id: number
+                    title: string
+                    url: string
+                    type: 'post' | 'page'
+                    modified: string
+                }> = []
+                if (pagesRes.ok && Array.isArray(pagesRes.data)) {
+                    for (const p of pagesRes.data) {
+                        out.push({ id: p.id, title: pickTitle(p.title), url: p.link || '', type: 'page', modified: p.modified || '' })
+                    }
+                }
+                if (postsRes.ok && Array.isArray(postsRes.data)) {
+                    for (const p of postsRes.data) {
+                        out.push({ id: p.id, title: pickTitle(p.title), url: p.link || '', type: 'post', modified: p.modified || '' })
+                    }
+                }
+                out.sort((a, b) => (b.modified || '').localeCompare(a.modified || ''))
+                return envelopeOk({ pages: out.slice(0, 10) }, 200)
             }
             case 'kotoiq_rotation_posts_list': {
                 // Auto-discover posts using [koto_rotate] by searching post

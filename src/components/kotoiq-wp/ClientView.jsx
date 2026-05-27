@@ -1,11 +1,12 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, Trash2, ChevronLeft, ChevronRight, Download, RefreshCw } from 'lucide-react'
+import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, Trash2, ChevronLeft, ChevronRight, Download, RefreshCw, LayoutDashboard } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 
 import WPSCConnectionGate     from '../kotoiq/WPSCConnectionGate'
+import OverviewPanel           from '../kotoiq/OverviewPanel'
 import SearchReplacePanel     from '../kotoiq/SearchReplacePanel'
 import SnippetsPanel          from '../kotoiq/SnippetsPanel'
 import AccessManagementPanel  from '../kotoiq/AccessManagementPanel'
@@ -32,6 +33,7 @@ const CREAM = '#faf9f6'
 const LINE  = '#e9e6dd'
 
 const TABS = [
+  { key: 'overview',          label: 'Overview',         icon: LayoutDashboard, slug: null },
   { key: 'search_replace',    label: 'Search & Replace', icon: SearchIcon,  slug: 'search-replace' },
   { key: 'snippets',          label: 'Snippets',         icon: Code2,       slug: 'snippets' },
   { key: 'access',            label: 'Access',           icon: ShieldCheck, slug: 'access' },
@@ -47,7 +49,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
   const [orphans, setOrphans] = useState([])
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('search_replace')
+  const [tab, setTab] = useState('overview')
   const [showAdd, setShowAdd] = useState(false)
   const [busy, setBusy] = useState(false)
   const [railOpen, setRailOpen] = useState(!preselectedSiteId)
@@ -304,6 +306,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px', background: CREAM }}>
               {activeSite ? (
                 <WPSCConnectionGate site={activeSite} onPaired={load}>
+                  {tab === 'overview'          && <OverviewPanel         site={activeSite}/>}
                   {tab === 'search_replace'    && <SearchReplacePanel    site={activeSite}/>}
                   {tab === 'snippets'          && <SnippetsPanel         site={activeSite}/>}
                   {tab === 'access'            && <AccessManagementPanel site={activeSite}/>}

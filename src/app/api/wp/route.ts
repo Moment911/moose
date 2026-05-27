@@ -1687,6 +1687,66 @@ Rules:
       })
     }
 
+    if (action === 'kotoiq_overview_activity') {
+      // Combined recent-activity feed for one site. Pulls from
+      // koto_wp_push_history (sync_push, sync_push_partial, etc.) and
+      // koto_wp_shim_pairings (pair_completed, health_verified, destruct, etc.).
+      // Works for both v3 and v4 sites.
+      const [pushRes, pairRes] = await Promise.all([
+        sb.from('koto_wp_push_history')
+          .select('id, status, pushed_at, variable_values, error_message, pushed_post_url')
+          .eq('target_site_id', site_id)
+          .order('pushed_at', { ascending: false })
+          .limit(30),
+        sb.from('koto_wp_shim_pairings')
+          .select('id, event, created_at, notes, dashboard_pubkey_fingerprint')
+          .eq('site_id', site_id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ])
+      type ActivityRow = {
+        id: string
+        kind: 'push' | 'pair'
+        event: string
+        time: string
+        detail: string
+        url?: string | null
+        error?: string | null
+      }
+      const events: ActivityRow[] = []
+      for (const r of pushRes.data || []) {
+        const vv: any = r.variable_values || {}
+        const kind = vv.kind || r.status
+        const detail = vv.applied != null && vv.failed != null
+          ? `${vv.applied} applied · ${vv.failed} failed`
+          : Object.keys(vv.types || {}).join(', ') || r.status
+        events.push({
+          id: String(r.id),
+          kind: 'push',
+          event: kind,
+          time: r.pushed_at,
+          detail,
+          url: r.pushed_post_url || null,
+          error: r.error_message || null,
+        })
+      }
+      for (const r of pairRes.data || []) {
+        const notes: any = r.notes || {}
+        events.push({
+          id: String(r.id),
+          kind: 'pair',
+          event: r.event,
+          time: r.created_at,
+          detail: notes.plugin_version
+            ? `WP ${notes.wp_version || '?'} · PHP ${notes.php_version || '?'} · plugin ${notes.plugin_version}`
+            : notes.error_message || notes.stage || '',
+          error: notes.error_message || null,
+        })
+      }
+      events.sort((a, b) => (b.time || '').localeCompare(a.time || ''))
+      return NextResponse.json({ ok: true, events: events.slice(0, 50) })
+    }
+
     if (action === 'shim_delete_site') {
       // Remove the site row entirely. Best-effort destruct first if the site
       // is v4-paired, then delete koto_wp_sites + any per-site rows that
