@@ -230,13 +230,16 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             },
         )
 
-        // After WP returns the new post ID, write SEO meta (title, description)
-        // to Yoast + RankMath + KotoIQ-native keys so whichever SEO engine is
-        // active picks them up. Skipped on failure.
+        // After WP returns the new post ID, write SEO meta (title, description,
+        // focus keyword) to Yoast + RankMath + KotoIQ-native keys so whichever
+        // SEO engine is active picks them up. Skipped on failure.
+        // Focus keyword = "<topic> <city>" — the exact query operators try to
+        // rank these pages on. RankMath uses it for the on-page audit score.
         if (wpResp.ok && wpResp.data?.id) {
             await writeSeoMeta(site.site_url, wpResp.data.id, {
                 seo_title: resolved.metaTitle,
                 meta_description: resolved.metaDescription,
+                focus_keyword: `${campaign.topic} ${loc.city}`.toLowerCase(),
             }).catch(() => null) // best-effort
         }
 
@@ -385,6 +388,7 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             await writeSeoMeta(site.site_url, d.wp_post_id, {
                 seo_title: resolved.metaTitle,
                 meta_description: resolved.metaDescription,
+                focus_keyword: `${campaign.topic} ${d.city}`.toLowerCase(),
             }).catch(() => null)
             await supabase.from('koto_topic_campaign_deploys').update({
                 resolved_title: resolved.title,

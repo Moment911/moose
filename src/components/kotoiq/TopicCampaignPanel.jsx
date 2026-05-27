@@ -32,6 +32,8 @@ export default function TopicCampaignPanel({ site }) {
   const [faqCount, setFaqCount] = useState(6)
   const [generating, setGenerating] = useState(false)
   const [campaign, setCampaign] = useState(null) // { id, topic, master, ... }
+  const [savedCampaigns, setSavedCampaigns] = useState([])
+  const [loadingSaved, setLoadingSaved] = useState(false)
 
   // Step 2 state
   const [states, setStates] = useState([])
@@ -69,6 +71,40 @@ export default function TopicCampaignPanel({ site }) {
     }).catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Load saved campaigns when on step 1 with no campaign loaded
+  async function loadSavedCampaigns() {
+    if (!site?.id) return
+    setLoadingSaved(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list_campaigns', agency_id: agencyId, site_id: site.id }),
+      })
+      const d = await r.json()
+      if (d.ok) setSavedCampaigns(d.campaigns || [])
+    } catch {}
+    setLoadingSaved(false)
+  }
+
+  useEffect(() => {
+    if (step === 1 && !campaign && site?.id) loadSavedCampaigns()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, campaign, site?.id])
+
+  async function openCampaign(campaignId) {
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_campaign', agency_id: agencyId, campaign_id: campaignId }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      setCampaign(d.campaign)
+      setStep(2)
+      toast.success(`Loaded "${d.campaign.topic}"`)
+    } catch (e) { toast.error(e.message) }
+  }
 
   async function generateMaster() {
     if (!topic.trim()) { toast.error('Topic required'); return }
@@ -281,13 +317,56 @@ export default function TopicCampaignPanel({ site }) {
         </div>
       </div>
 
+      {/* Saved campaigns (only on step 1 with no active campaign) */}
+      {step === 1 && !campaign && savedCampaigns.length > 0 && (
+        <div style={card({ background:'#fafafa' })}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+            <History size={18} color={T}/>
+            <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:15, color:BLK }}>
+              Saved campaigns ({savedCampaigns.length})
+            </div>
+            <button onClick={loadSavedCampaigns} disabled={loadingSaved} style={miniBtn()}>
+              {loadingSaved ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Refresh
+            </button>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:10 }}>
+            {savedCampaigns.map(c => (
+              <div key={c.id} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:10, padding:14, cursor:'pointer' }}
+                onClick={() => openCampaign(c.id)}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+                  <Sparkles size={14} color={R}/>
+                  <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:14, color:BLK, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {c.topic}
+                  </div>
+                  <Pill color={c.post_type === 'post' ? T : '#6b7280'} bg={`${c.post_type === 'post' ? T : '#6b7280'}15`}>{c.post_type}</Pill>
+                </div>
+                <div style={{ fontSize:11, fontFamily:FB, color:'#6b7280', display:'flex', alignItems:'center', gap:10 }}>
+                  <StatusDot status={c.status}/>
+                  <span>{c.status}</span>
+                  {c.last_deploy_count > 0 && (
+                    <span style={{ marginLeft:'auto' }}>{c.last_deploy_count} deployed</span>
+                  )}
+                </div>
+                {c.last_deploy_at && (
+                  <div style={{ marginTop:4, fontSize:11, fontFamily:FB, color:'#9ca3af' }}>
+                    Last deploy {timeAgo(c.last_deploy_at)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ───────────── STEP 1 ───────────── */}
       {step === 1 && (
         <div style={card()}>
           <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
             <Sparkles size={20} color={R}/>
-            <div>
-              <div style={{ fontFamily:FH, fontWeight:800, fontSize:20, color:BLK }}>Tell Claude what to write</div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontFamily:FH, fontWeight:800, fontSize:20, color:BLK }}>
+                {savedCampaigns.length > 0 ? 'Start a new campaign' : 'Tell Claude what to write'}
+              </div>
               <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280', marginTop:2 }}>
                 AI writes one master with rotation variants + location tokens. You deploy it across N cities, each gets a unique page.
               </div>
@@ -833,6 +912,23 @@ const stateNames = {
   WI:'Wisconsin', WY:'Wyoming', DC:'District of Columbia', PR:'Puerto Rico',
 }
 function stateName(abbr) { return stateNames[abbr] || abbr }
+
+function timeAgo(s) {
+  if (!s) return ''
+  try {
+    const diff = (Date.now() - new Date(s).getTime()) / 1000
+    if (diff < 60) return 'just now'
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`
+    if (diff < 604800) return `${Math.floor(diff/86400)}d ago`
+    return new Date(s).toLocaleDateString(undefined, { month:'short', day:'numeric' })
+  } catch { return s }
+}
+
+function StatusDot({ status }) {
+  const c = status === 'deployed' ? GRN : status === 'ready' ? T : status === 'deploying' ? AMB : '#9ca3af'
+  return <span style={{ width:7, height:7, borderRadius:'50%', background:c, display:'inline-block' }}/>
+}
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
