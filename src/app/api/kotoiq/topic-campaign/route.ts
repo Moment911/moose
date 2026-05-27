@@ -8,6 +8,7 @@ import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
 import { postGetMetaBulk } from '@/lib/wp-shim/verbs'
 import { getAccessToken, fetchSearchConsoleData, fetchGA4Data, loadClientConnections } from '@/lib/seoService'
+import { fetchCruxData } from '@/lib/builder/cruxClient'
 import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 
 // ─── POST /api/kotoiq/topic-campaign ───────────────────────────────────────
@@ -464,6 +465,23 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
 }
 
 /**
+ * Daily Search Console series per page — used for sparkline trend lines.
+ * Returns rows like { keys: [page, date], clicks, impressions }.
+ */
+async function fetchGscDailyByPage(accessToken: string, siteUrl: string, startDate: string, endDate: string) {
+    try {
+        const res = await fetch(`https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ startDate, endDate, dimensions: ['page', 'date'], rowLimit: 5000, aggregationType: 'auto' }),
+            signal: AbortSignal.timeout(15_000),
+        })
+        if (!res.ok) return null
+        return res.json()
+    } catch { return null }
+}
+
+/**
  * Pull Search Console + GA4 data for every deployed page in a campaign and
  * join by URL. Returns per-city metrics + campaign totals + top queries.
  *
@@ -508,13 +526,20 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
     const ymd = (d: Date) => d.toISOString().slice(0, 10)
     const startDate = ymd(start), endDate = ymd(today)
 
-    let scData: any = null, ga4Data: any = null
+    let scData: any = null, ga4Data: any = null, scDailyData: any = null
+    let scSiteUrl = ''
     try {
         if (scConn) {
             const tok = await getAccessToken(scConn)
-            const siteUrl = scConn.account_id || scConn.site_url || ''
-            if (tok && siteUrl) {
-                scData = await fetchSearchConsoleData(tok, siteUrl, startDate, endDate)
+            scSiteUrl = scConn.account_id || scConn.site_url || ''
+            if (tok && scSiteUrl) {
+                // Two calls: aggregate page+query rows AND daily series for sparklines.
+                const [agg, daily] = await Promise.all([
+                    fetchSearchConsoleData(tok, scSiteUrl, startDate, endDate),
+                    fetchGscDailyByPage(tok, scSiteUrl, startDate, endDate),
+                ])
+                scData = agg
+                scDailyData = daily
             }
         }
     } catch {}
@@ -572,6 +597,33 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
         ga4ByPath[k].row_count++
     }
 
+    // Index daily series per page
+    const dailyByPage: Record<string, Array<{ date: string; clicks: number; impressions: number }>> = {}
+    for (const row of (scDailyData?.rows || [])) {
+        const [page, date] = row.keys || []
+        const k = norm(page)
+        if (!dailyByPage[k]) dailyByPage[k] = []
+        dailyByPage[k].push({ date, clicks: row.clicks || 0, impressions: row.impressions || 0 })
+    }
+    for (const k of Object.keys(dailyByPage)) {
+        dailyByPage[k].sort((a, b) => a.date.localeCompare(b.date))
+    }
+
+    // Fetch CrUX (Core Web Vitals) per URL in parallel — best-effort
+    const cruxKey = process.env.GOOGLE_CRUX_API_KEY || process.env.CRUX_API_KEY || ''
+    const cruxByUrl: Record<string, any> = {}
+    if (cruxKey) {
+        const cruxResults = await Promise.all(
+            liveDeploys.map((d: any) =>
+                fetchCruxData(d.wp_post_url, cruxKey).catch(() => null),
+            ),
+        )
+        liveDeploys.forEach((d: any, i: number) => {
+            const r = cruxResults[i]
+            if (r) cruxByUrl[d.wp_post_url] = r
+        })
+    }
+
     // Build per-deploy result by matching its URL against GSC + GA4
     const per_url: Record<string, any> = {}
     let totalClicks = 0, totalImpressions = 0, totalSessions = 0, totalUsers = 0, totalConv = 0
@@ -581,6 +633,8 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
         const pathKey = '/' + fullKey.split('/').slice(1).join('/')
         const gsc = gscByPage[fullKey] || null
         const ga4 = ga4ByPath[pathKey.replace(/\/$/, '').toLowerCase()] || null
+        const daily = dailyByPage[fullKey] || []
+        const crux = cruxByUrl[d.wp_post_url] || null
         const rec = {
             city: d.city, state_abbr: d.state_abbr, url: d.wp_post_url,
             clicks: gsc?.clicks || 0,
@@ -591,6 +645,13 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
             users: ga4?.users || 0,
             conversions: ga4?.conversions || 0,
             top_queries: gsc?.queries || [],
+            daily, // [{date, clicks, impressions}] sorted ascending
+            cwv: crux ? {
+                lcp_p75_ms: crux.lcp_p75_ms,
+                cls_p75: crux.cls_p75,
+                inp_p75_ms: crux.inp_p75_ms,
+                source: crux.source, // crux_url | crux_origin
+            } : null,
         }
         per_url[d.wp_post_url] = rec
         totalClicks += rec.clicks

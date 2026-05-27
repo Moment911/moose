@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Sparkles, Loader2, ChevronRight, ChevronLeft, MapPin, RefreshCw, Upload,
   AlertTriangle, CheckCircle2, Wand2, FileText, File, ExternalLink, Eye, X,
@@ -69,6 +69,7 @@ export default function TopicCampaignPanel({ site }) {
   const [perf, setPerf] = useState(null)
   const [perfLoading, setPerfLoading] = useState(false)
   const [perfWindow, setPerfWindow] = useState(28)
+  const [expandedRows, setExpandedRows] = useState(new Set())
 
   const isV4 = site?.shim_version === 'v4'
 
@@ -578,37 +579,60 @@ export default function TopicCampaignPanel({ site }) {
                   )}
 
                   {/* Per-URL table */}
-                  <div style={{ maxHeight:360, overflowY:'auto', border:'1px solid #e5e7eb', borderRadius:8, background:'#fff' }}>
+                  <div style={{ maxHeight:420, overflowY:'auto', border:'1px solid #e5e7eb', borderRadius:8, background:'#fff' }}>
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, fontFamily:FB }}>
                       <thead style={{ position:'sticky', top:0, background:'#fafafa', zIndex:1 }}>
                         <tr>
+                          <th style={th({ width:20 })}></th>
                           <th style={th()}>City</th>
-                          <th style={th({ width:65, textAlign:'right' })}>Clicks</th>
-                          <th style={th({ width:75, textAlign:'right' })}>Impress.</th>
-                          <th style={th({ width:60, textAlign:'right' })}>Pos</th>
-                          <th style={th({ width:65, textAlign:'right' })}>Sess.</th>
-                          <th style={th({ width:60, textAlign:'right' })}>Users</th>
+                          <th style={th({ width:90 })}>Trend</th>
+                          <th style={th({ width:55, textAlign:'right' })}>Clicks</th>
+                          <th style={th({ width:65, textAlign:'right' })}>Impress.</th>
+                          <th style={th({ width:50, textAlign:'right' })}>Pos</th>
+                          <th style={th({ width:55, textAlign:'right' })}>Sess.</th>
                           <th style={th({ width:50, textAlign:'right' })}>Conv.</th>
+                          <th style={th({ width:85 })}>CWV</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {Object.entries(perf.per_url || {}).map(([url, p]) => (
-                          <tr key={url} style={{ borderTop:'1px solid #f1f5f9' }}>
-                            <td style={td()}>
-                              <a href={url} target="_blank" rel="noopener noreferrer" style={{ color:BLK, textDecoration:'none' }}>
-                                {p.city}, {p.state_abbr}
-                              </a>
-                            </td>
-                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.clicks}</td>
-                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:'#6b7280' })}>{p.impressions}</td>
-                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:p.position > 0 && p.position <= 10 ? GRN : p.position > 0 && p.position <= 30 ? AMB : '#9ca3af' })}>
-                              {p.position > 0 ? p.position.toFixed(1) : '—'}
-                            </td>
-                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.sessions}</td>
-                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:'#6b7280' })}>{p.users}</td>
-                            <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.conversions}</td>
-                          </tr>
-                        ))}
+                        {Object.entries(perf.per_url || {}).map(([url, p]) => {
+                          const expanded = expandedRows.has(url)
+                          return (
+                            <React.Fragment key={url}>
+                              <tr style={{ borderTop:'1px solid #f1f5f9', cursor:'pointer' }}
+                                onClick={() => {
+                                  setExpandedRows(prev => {
+                                    const next = new Set(prev)
+                                    if (next.has(url)) next.delete(url); else next.add(url)
+                                    return next
+                                  })
+                                }}>
+                                <td style={td({ width:20, color:'#9ca3af' })}>{expanded ? '▾' : '▸'}</td>
+                                <td style={td()}>
+                                  <a href={url} target="_blank" rel="noopener noreferrer" style={{ color:BLK, textDecoration:'none' }} onClick={e => e.stopPropagation()}>
+                                    {p.city}, {p.state_abbr}
+                                  </a>
+                                </td>
+                                <td style={td()}><Sparkline data={p.daily || []}/></td>
+                                <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.clicks}</td>
+                                <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:'#6b7280' })}>{p.impressions}</td>
+                                <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:p.position > 0 && p.position <= 10 ? GRN : p.position > 0 && p.position <= 30 ? AMB : '#9ca3af' })}>
+                                  {p.position > 0 ? p.position.toFixed(1) : '—'}
+                                </td>
+                                <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.sessions}</td>
+                                <td style={td({ textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' })}>{p.conversions}</td>
+                                <td style={td()}><CWVBadges cwv={p.cwv}/></td>
+                              </tr>
+                              {expanded && (
+                                <tr style={{ background:'#fafafa' }}>
+                                  <td colSpan={9} style={{ padding:'10px 20px' }}>
+                                    <ExpandedRowDetail p={p}/>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -1093,6 +1117,100 @@ const stateNames = {
   WI:'Wisconsin', WY:'Wyoming', DC:'District of Columbia', PR:'Puerto Rico',
 }
 function stateName(abbr) { return stateNames[abbr] || abbr }
+
+function Sparkline({ data }) {
+  if (!data || data.length === 0) return <span style={{ color:'#d1d5db', fontSize:11 }}>—</span>
+  const w = 80, h = 22
+  const values = data.map(d => d.clicks)
+  const max = Math.max(...values, 1)
+  const stepX = data.length > 1 ? w / (data.length - 1) : 0
+  const points = values.map((v, i) => `${i * stepX},${h - (v / max) * (h - 2) - 1}`).join(' ')
+  const totalClicks = values.reduce((s, v) => s + v, 0)
+  const half = Math.floor(values.length / 2)
+  const firstHalf = values.slice(0, half).reduce((s, v) => s + v, 0)
+  const secondHalf = values.slice(half).reduce((s, v) => s + v, 0)
+  const trend = secondHalf > firstHalf * 1.1 ? GRN : secondHalf < firstHalf * 0.9 ? R : '#9ca3af'
+  return (
+    <svg width={w} height={h} style={{ display:'block' }}>
+      <polyline points={points} fill="none" stroke={trend} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {totalClicks === 0 && (
+        <line x1="0" y1={h/2} x2={w} y2={h/2} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="2 2"/>
+      )}
+    </svg>
+  )
+}
+
+function CWVBadges({ cwv }) {
+  if (!cwv) return <span style={{ color:'#d1d5db', fontSize:11 }}>—</span>
+  const lcpOk = cwv.lcp_p75_ms != null && cwv.lcp_p75_ms <= 2500
+  const lcpPoor = cwv.lcp_p75_ms != null && cwv.lcp_p75_ms > 4000
+  const lcpColor = lcpOk ? GRN : lcpPoor ? R : AMB
+  const clsOk = cwv.cls_p75 != null && cwv.cls_p75 <= 0.1
+  const clsPoor = cwv.cls_p75 != null && cwv.cls_p75 > 0.25
+  const clsColor = clsOk ? GRN : clsPoor ? R : AMB
+  const inpOk = cwv.inp_p75_ms != null && cwv.inp_p75_ms <= 200
+  const inpPoor = cwv.inp_p75_ms != null && cwv.inp_p75_ms > 500
+  const inpColor = inpOk ? GRN : inpPoor ? R : AMB
+  return (
+    <div style={{ display:'flex', gap:3, fontSize:10, fontFamily:'ui-monospace,Menlo,monospace' }} title={cwv.source === 'crux_origin' ? 'Origin-level fallback (low traffic)' : 'URL-level'}>
+      <span style={cwvBadge(lcpColor)} title={`LCP p75 ${cwv.lcp_p75_ms ?? '—'}ms — good ≤2500`}>L</span>
+      <span style={cwvBadge(clsColor)} title={`CLS p75 ${cwv.cls_p75 ?? '—'} — good ≤0.10`}>C</span>
+      <span style={cwvBadge(inpColor)} title={`INP p75 ${cwv.inp_p75_ms ?? '—'}ms — good ≤200`}>I</span>
+    </div>
+  )
+}
+const cwvBadge = (c) => ({ display:'inline-flex', alignItems:'center', justifyContent:'center', width:18, height:18, borderRadius:4, color:'#fff', background:c, fontWeight:700 })
+
+function ExpandedRowDetail({ p }) {
+  const hasQueries = (p.top_queries || []).length > 0
+  return (
+    <div style={{ display:'grid', gridTemplateColumns:hasQueries ? '1fr 1fr' : '1fr', gap:14 }}>
+      {hasQueries && (
+        <div>
+          <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>
+            Top queries
+          </div>
+          <table style={{ width:'100%', fontSize:12, fontFamily:FB }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign:'left', padding:'4px 8px', fontSize:10, color:'#9ca3af' }}>Query</th>
+                <th style={{ textAlign:'right', padding:'4px 8px', fontSize:10, color:'#9ca3af', width:50 }}>Clicks</th>
+                <th style={{ textAlign:'right', padding:'4px 8px', fontSize:10, color:'#9ca3af', width:60 }}>Impr.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {p.top_queries.map((q, i) => (
+                <tr key={i} style={{ borderTop:'1px solid #f1f5f9' }}>
+                  <td style={{ padding:'5px 8px' }}>{q.query}</td>
+                  <td style={{ padding:'5px 8px', textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' }}>{q.clicks}</td>
+                  <td style={{ padding:'5px 8px', textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:'#6b7280' }}>{q.impressions}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div>
+        <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>
+          Core Web Vitals (p75)
+        </div>
+        {p.cwv ? (
+          <table style={{ width:'100%', fontSize:12, fontFamily:FB }}>
+            <tbody>
+              <tr><td style={{ padding:'4px 8px', color:'#6b7280' }}>LCP</td><td style={{ padding:'4px 8px', fontFamily:'ui-monospace,Menlo,monospace' }}>{p.cwv.lcp_p75_ms ? `${(p.cwv.lcp_p75_ms / 1000).toFixed(2)}s` : '—'}</td><td style={{ padding:'4px 8px', fontSize:10, color:'#9ca3af' }}>good ≤ 2.5s</td></tr>
+              <tr><td style={{ padding:'4px 8px', color:'#6b7280' }}>CLS</td><td style={{ padding:'4px 8px', fontFamily:'ui-monospace,Menlo,monospace' }}>{p.cwv.cls_p75 != null ? p.cwv.cls_p75.toFixed(3) : '—'}</td><td style={{ padding:'4px 8px', fontSize:10, color:'#9ca3af' }}>good ≤ 0.10</td></tr>
+              <tr><td style={{ padding:'4px 8px', color:'#6b7280' }}>INP</td><td style={{ padding:'4px 8px', fontFamily:'ui-monospace,Menlo,monospace' }}>{p.cwv.inp_p75_ms ? `${p.cwv.inp_p75_ms}ms` : '—'}</td><td style={{ padding:'4px 8px', fontSize:10, color:'#9ca3af' }}>good ≤ 200ms</td></tr>
+            </tbody>
+          </table>
+        ) : (
+          <div style={{ fontSize:12, fontFamily:FB, color:'#9ca3af', fontStyle:'italic' }}>
+            No CrUX data yet — usually needs 28+ days of traffic to populate.
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function MetricCard({ icon: Icon, label, value, color }) {
   return (
