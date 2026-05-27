@@ -10,6 +10,15 @@ import { postGetMetaBulk } from '@/lib/wp-shim/verbs'
 import { getAccessToken, fetchSearchConsoleData, fetchGA4Data, loadClientConnections } from '@/lib/seoService'
 import { fetchCruxData } from '@/lib/builder/cruxClient'
 import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
+import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
+
+// Thin name wrapper — local handle for the per-location ACS lookup used in
+// deploy + redeploy. Returns null on any failure (missing key, city not found,
+// API outage) so the "By the Numbers" block silently skips.
+async function fetchLocalDataForCity(loc: LocationContext) {
+    if (!loc?.city || !loc?.stateAbbr) return null
+    return fetchCityLocalData(loc.city, loc.stateAbbr)
+}
 
 // ─── POST /api/kotoiq/topic-campaign ───────────────────────────────────────
 //
@@ -300,6 +309,13 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
 
     for (const loc of locations) {
         const cityKey = `${loc.city.toLowerCase().trim()}|${(loc.stateAbbr || '').toUpperCase()}`
+        // Pre-compute the canonical URL so the schema graph can use it as the
+        // base for @id values. Slug is derived deterministically from the
+        // resolved hero headline; matches the URL WP will assign.
+        const probeCtx: ResolveContext = { location: loc, phone: campaign.phone || undefined, companyName: campaign.company_name || undefined }
+        const probeResolved = resolveMaster(campaign.master as TopicCampaignMaster, probeCtx)
+        const pageUrl = `${siteOrigin}/${probeResolved.slug}/`
+        const localData = await fetchLocalDataForCity(loc).catch(() => null)
         const ctx: ResolveContext = {
             location: loc,
             phone: campaign.phone || undefined,
@@ -314,6 +330,8 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
                 state_abbr: loc.stateAbbr,
                 url: r.url,
             })),
+            pageUrl,
+            ...(localData ? { localData } : {}),
         }
         const resolved = resolveMaster(
             campaign.master as TopicCampaignMaster,
@@ -510,6 +528,8 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
 
     for (const d of existingDeploys) {
         const cityKey = `${String(d.city || '').toLowerCase().trim()}|${String(d.state_abbr || '').toUpperCase()}`
+        const locForFetch = { city: d.city, state: d.state, stateAbbr: d.state_abbr } as LocationContext
+        const localData = await fetchLocalDataForCity(locForFetch).catch(() => null)
         const ctx: ResolveContext = {
             location: { city: d.city, state: d.state, stateAbbr: d.state_abbr, zip: d.zip || undefined, county: d.county || undefined },
             phone: campaign.phone || undefined,
@@ -524,6 +544,8 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
                 state_abbr: d.state_abbr,
                 url: r.url,
             })),
+            pageUrl: d.wp_post_url || undefined,
+            ...(localData ? { localData } : {}),
         }
         const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
 

@@ -125,7 +125,29 @@ Produce a JSON object with this EXACT shape:
     "title_template": "<50-60 chars, includes [koto_city] and [koto_state_abbr] and [koto_company_name]>",
     "description_template": "<140-160 chars, includes [koto_city], value prop, includes [koto_phone] if natural>"
   },
-  "schema_jsonld_template": "<STRINGIFIED valid JSON with @context, @graph containing LocalBusiness + WebPage + FAQPage. LocalBusiness must include name ([koto_company_name]), telephone ([koto_phone]), areaServed (city/state). FAQPage must mirror the FAQs above with tokens. The string MUST be valid JSON after [koto_*] tokens are replaced>"
+  "direct_answer_template": "<40-60 word self-contained answer paragraph rendered above the hero. Treat as the page's TL;DR — purpose-written to be lifted verbatim into AI search answer cards (Perplexity, ChatGPT Search, Google AI Overviews). MUST contain the topic word AND [koto_city]. Open with a declarative sentence, no 'we' / 'you' / 'our' in the first sentence.>",
+  "howto": {
+    "title_template": "<H2 heading like 'How to Choose <Topic> in [koto_city]' or 'How <Topic> Works in [koto_city]'>",
+    "steps": [
+      { "name_template": "<step 1 short name>", "text_template": "<step 1 description, 25-50 words, includes [koto_city] in 1-2 of the 5 steps>" },
+      { "name_template": "<step 2 short name>", "text_template": "<step 2 description>" },
+      { "name_template": "<step 3 short name>", "text_template": "<step 3 description>" },
+      { "name_template": "<step 4 short name>", "text_template": "<step 4 description>" },
+      { "name_template": "<step 5 short name>", "text_template": "<step 5 description>" }
+    ]
+  },
+  "comparison": {
+    "title_template": "<H2 heading like 'Local vs. National <Topic> in [koto_city]'>",
+    "columns": ["", "Local [koto_city] Agency", "National Provider"],
+    "rows": [
+      { "label_template": "<dimension 1, e.g. 'Response time'>", "cells_template": ["<local advantage>", "<national tradeoff>"] },
+      { "label_template": "<dimension 2, e.g. 'Knowledge of [koto_city] market'>", "cells_template": ["<local advantage>", "<national tradeoff>"] },
+      { "label_template": "<dimension 3, e.g. 'Pricing transparency'>", "cells_template": ["<local advantage>", "<national tradeoff>"] },
+      { "label_template": "<dimension 4>", "cells_template": ["<local advantage>", "<national tradeoff>"] },
+      { "label_template": "<dimension 5>", "cells_template": ["<local advantage>", "<national tradeoff>"] }
+    ]
+  },
+  "schema_jsonld_template": "<STRINGIFIED valid JSON with @context, @graph containing LocalBusiness + WebPage + FAQPage. LocalBusiness must include name ([koto_company_name]), telephone ([koto_phone]), areaServed (city/state). FAQPage must mirror the FAQs above with tokens. The string MUST be valid JSON after [koto_*] tokens are replaced. Note: WebPage Speakable + Service entity + HowTo + Dataset are appended automatically at deploy time, you do NOT need to include them here.>"
 }
 
 Return ONLY the JSON object. No explanation, no markdown.`

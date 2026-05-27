@@ -43,6 +43,19 @@ export interface ResolveContext {
      *  "SEO in Austin" if that campaign has a deployed Austin page).
      *  Filtering to the current city happens inside resolveMaster. */
     relatedServices?: Array<{ topic: string; city: string; state_abbr?: string; url: string }>
+    /** Canonical URL of the page being rendered — used to build @id values
+     *  inside the JSON-LD @graph so entities can cross-reference each other.
+     *  Optional: if absent, @id values are omitted (less linkable but valid). */
+    pageUrl?: string
+    /** Census/local statistical data for the city — when present, renders a
+     *  "By the Numbers" block + adds a Dataset entry to the schema graph with
+     *  citation back to the source. Optional. */
+    localData?: {
+        sourceLabel: string // e.g. "US Census Bureau ACS 5-Year Estimates (2018-2022)"
+        sourceUrl: string   // direct link back to data.census.gov for citation
+        fetchedAt: string   // ISO timestamp — surfaced as dateModified on the Dataset
+        items: Array<{ label: string; value: string }>
+    }
     /** Optional seed for variant determinism. Defaults to `city|state`. */
     seed?: string
 }
@@ -242,6 +255,24 @@ export interface TopicCampaignMaster {
         description_template: string
     }
     schema_jsonld_template?: string
+    /** Optional 40-60 word self-contained answer paragraph rendered above the
+     *  hero. Lifted verbatim by AI search engines into their answer cards.
+     *  If absent, falls back to the first FAQ answer at resolve time. */
+    direct_answer_template?: string
+    /** Optional HowTo block — a numbered checklist of steps. Rendered as
+     *  ordered list + emitted as schema.org/HowTo in the @graph so AI engines
+     *  can pull it into how-to answer surfaces. */
+    howto?: {
+        title_template: string
+        steps: Array<{ name_template: string; text_template: string }>
+    }
+    /** Optional comparison table — e.g. "Local vs. National {topic}". Rendered
+     *  as <table> + emitted as schema.org/Table in the @graph. */
+    comparison?: {
+        title_template: string
+        columns: string[] // e.g. ["", "Local Agency", "National Agency"]
+        rows: Array<{ label_template: string; cells_template: string[] }>
+    }
 }
 
 /**
@@ -291,6 +322,47 @@ export function resolveMaster(
 
     const title = stripHtml(heroHeadline).trim()
 
+    // Direct-answer paragraph — 40-60 word self-contained answer at the very
+    // top of the body, before the hero. AI search engines (Perplexity,
+    // ChatGPT Search, Google AI Overviews) lift this into their answer cards.
+    // Opt-in only: requires master.direct_answer_template to be explicitly
+    // set. Existing campaigns without this field render unchanged on redeploy.
+    const directAnswerText = master.direct_answer_template
+        ? stripHtml(resolveTokens(master.direct_answer_template, ctx)).trim().slice(0, 600)
+        : ''
+    const directAnswerHtml = directAnswerText
+        ? `<section class="koto-direct-answer"><p>${escapeHtml(directAnswerText)}</p></section>`
+        : ''
+
+    // HowTo block — ordered list of steps for buying/evaluating the service.
+    // Mirrored into schema.org/HowTo in the @graph so AI engines can lift it
+    // into "how-to" answer surfaces. Optional — only rendered when master.howto
+    // exists.
+    const howtoHtml = master.howto && master.howto.steps.length
+        ? `<section class="koto-howto">\n  <h2>${escapeHtml(stripHtml(resolveTokens(master.howto.title_template, ctx)))}</h2>\n  <ol>\n${master.howto.steps.map((s, i) => {
+            const name = stripHtml(resolveTokens(s.name_template, ctx)).trim()
+            const text = stripHtml(resolveTokens(s.text_template, ctx)).trim()
+            return `    <li><strong>${escapeHtml(name)}</strong> — ${escapeHtml(text)}</li>`
+        }).join('\n')}\n  </ol>\n</section>`
+        : ''
+
+    // Comparison table block — labeled columns + rows. Mirrored into a
+    // schema.org/Table entry in the @graph. Optional.
+    const comparisonHtml = master.comparison && master.comparison.rows.length
+        ? `<section class="koto-comparison">\n  <h2>${escapeHtml(stripHtml(resolveTokens(master.comparison.title_template, ctx)))}</h2>\n  <table>\n    <thead><tr>${master.comparison.columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>\n    <tbody>\n${master.comparison.rows.map(r => {
+            const label = stripHtml(resolveTokens(r.label_template, ctx)).trim()
+            const cells = r.cells_template.map(c => stripHtml(resolveTokens(c, ctx)).trim())
+            return `      <tr><th scope="row">${escapeHtml(label)}</th>${cells.map(c => `<td>${escapeHtml(c)}</td>`).join('')}</tr>`
+        }).join('\n')}\n    </tbody>\n  </table>\n</section>`
+        : ''
+
+    // Local data ("By the Numbers") block — Census ACS stats per city,
+    // rendered as a citation-attached <dl>. Verbatim values, sourceUrl footer.
+    // Mirrored into schema.org/Dataset in the @graph. Optional.
+    const localDataHtml = ctx.localData && ctx.localData.items.length
+        ? `<section class="koto-local-data">\n  <h2>${escapeHtml(ctx.location.city)}${ctx.location.stateAbbr ? `, ${escapeHtml(ctx.location.stateAbbr)}` : ''} by the Numbers</h2>\n  <dl>\n${ctx.localData.items.map(it => `    <dt>${escapeHtml(it.label)}</dt>\n    <dd>${escapeHtml(it.value)}</dd>`).join('\n')}\n  </dl>\n  <p class="koto-cite">Source: <a href="${escapeHtml(ctx.localData.sourceUrl)}" rel="noopener" target="_blank">${escapeHtml(ctx.localData.sourceLabel)}</a></p>\n</section>`
+        : ''
+
     // Hero media block — video takes precedence over image. Stays empty if
     // neither is provided.
     const heroMediaHtml = ctx.heroVideoUrl
@@ -323,7 +395,21 @@ export function resolveMaster(
     // Scoped to .koto-* classes so it doesn't fight theme-applied styles
     // on existing elements. Operators can override via Custom HTML wrapper.
     const baseStyles = `<style>
-.koto-hero,.koto-service-areas,.koto-related-services,.koto-cta,.koto-faq{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
+.koto-hero,.koto-service-areas,.koto-related-services,.koto-cta,.koto-faq,.koto-direct-answer,.koto-howto,.koto-comparison,.koto-local-data{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
+.koto-direct-answer{background:#f8fafc;border-left:4px solid #1e3a8a;font-size:1.1rem;line-height:1.6;color:#1a2332}
+.koto-direct-answer p{margin:0;font-weight:500}
+.koto-howto ol{margin:1rem 0;padding-left:1.5rem;line-height:1.7;color:#334155}
+.koto-howto li{margin:.5rem 0}
+.koto-howto strong{color:#1a2332}
+.koto-comparison table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}
+.koto-comparison th,.koto-comparison td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid #e2e8f0;vertical-align:top}
+.koto-comparison thead th{background:#f1f5f9;color:#1a2332;font-weight:700}
+.koto-comparison tbody th{font-weight:600;color:#475569;background:#fafafa}
+.koto-local-data dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem 1.5rem;margin:1rem 0}
+.koto-local-data dt{font-size:.8rem;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:.15rem}
+.koto-local-data dd{margin:0 0 .5rem;font-size:1.15rem;font-weight:700;color:#1a2332;font-variant-numeric:tabular-nums}
+.koto-local-data .koto-cite{font-size:.8rem;color:#6b7280;margin-top:1rem;border-top:1px solid #e5e7eb;padding-top:.75rem}
+.koto-local-data .koto-cite a{color:#1e3a8a;text-decoration:underline}
 .koto-hero h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;color:#1a2332}
 .koto-hero-sub{font-size:1.1rem;color:#475569;line-height:1.6}
 .koto-hero-media img,.koto-hero-media video{max-width:100%;height:auto;border-radius:10px;margin:0 0 1rem}
@@ -357,18 +443,26 @@ a[href^="tel:"]:hover{text-decoration:underline}
     const bodyHtml = stylesPrefix + (customWrapper
         ? customWrapper
             .replace(/\{\{NO_STYLES\}\}/g, '')
+            .replace(/\{\{DIRECT_ANSWER\}\}/g, directAnswerHtml)
             .replace(/\{\{HERO_HEADLINE\}\}/g, escapeHtml(stripHtml(heroHeadline)))
             .replace(/\{\{HERO_SUB\}\}/g, ensureParagraphs(heroSub))
             .replace(/\{\{HERO_MEDIA\}\}/g, heroMediaHtml)
             .replace(/\{\{SECTIONS\}\}/g, sectionHtml)
+            .replace(/\{\{HOWTO\}\}/g, howtoHtml)
+            .replace(/\{\{COMPARISON\}\}/g, comparisonHtml)
             .replace(/\{\{FAQS\}\}/g, faqsHtml)
+            .replace(/\{\{LOCAL_DATA\}\}/g, localDataHtml)
             .replace(/\{\{CTA\}\}/g, ctaHtml)
             .replace(/\{\{SERVICE_AREAS\}\}/g, serviceAreasHtml)
             .replace(/\{\{RELATED_SERVICES\}\}/g, relatedServicesHtml)
         : [
+            directAnswerHtml,
             `<header class="koto-hero">${heroMediaHtml ? '\n  ' + heroMediaHtml : ''}\n  <h1>${escapeHtml(stripHtml(heroHeadline))}</h1>\n  <div class="koto-hero-sub">${ensureParagraphs(heroSub)}</div>\n</header>`,
             sectionHtml,
+            howtoHtml,
+            comparisonHtml,
             faqsHtml,
+            localDataHtml,
             ctaHtml,
             relatedServicesHtml,
             serviceAreasHtml,
@@ -377,17 +471,15 @@ a[href^="tel:"]:hover{text-decoration:underline}
     const metaTitle = resolveTitle(master.meta.title_template, ctx)
     const metaDescription = resolveTokens(master.meta.description_template, ctx)
 
-    // JSON-LD — caller passes the master template; we substitute tokens then
-    // attempt to keep it as compact JSON. If invalid JSON, return as-is so
-    // the operator can debug.
+    // JSON-LD — start from Claude's template (typically a @graph with
+    // LocalBusiness + WebPage + FAQPage), then enrich it at resolve time
+    // with Speakable, Service (areaServed=this city), HowTo, Dataset, etc.
+    // This keeps Claude's prompt simple while letting us bolt on every
+    // AI-search-friendly entity we can derive deterministically.
     let jsonLd: string | null = null
     if (master.schema_jsonld_template) {
-        const resolved = resolveTokens(master.schema_jsonld_template, ctx)
-        try {
-            jsonLd = JSON.stringify(JSON.parse(resolved))
-        } catch {
-            jsonLd = resolved
-        }
+        const resolvedTpl = resolveTokens(master.schema_jsonld_template, ctx)
+        jsonLd = enrichSchemaGraph(resolvedTpl, master, ctx, { title, metaDescription: stripHtml(metaDescription).trim() })
     }
 
     return {
@@ -398,6 +490,141 @@ a[href^="tel:"]:hover{text-decoration:underline}
         bodyHtml,
         jsonLd,
     }
+}
+
+/**
+ * Enrich Claude's @graph with additional AI-search-friendly entities derived
+ * from the master + context. Always-additive: never removes Claude's entries,
+ * only adds + decorates.
+ *
+ * Adds:
+ *   - @id values on WebPage / WebSite / LocalBusiness so other entities can
+ *     reference them (real linked-data graph, not isolated entries)
+ *   - Speakable selectors on WebPage targeting our direct-answer block + h1
+ *   - Service entity with areaServed=this city, provider=LocalBusiness if present
+ *   - HowTo entity if master.howto exists
+ *   - Dataset entity if ctx.localData (Census) exists, with sourceUrl citation
+ *
+ * Returns the compact JSON string. If Claude's template doesn't parse as
+ * valid JSON, falls back to returning the resolved string verbatim so the
+ * operator can debug (matches prior behavior).
+ */
+function enrichSchemaGraph(
+    resolvedTpl: string,
+    master: TopicCampaignMaster,
+    ctx: ResolveContext,
+    page: { title: string; metaDescription: string },
+): string {
+    let parsed: any
+    try {
+        parsed = JSON.parse(resolvedTpl)
+    } catch {
+        return resolvedTpl
+    }
+
+    // Normalize to a @graph shape regardless of whether Claude emitted one
+    // top-level object or already a @graph wrapper.
+    let graph: any[]
+    if (Array.isArray(parsed['@graph'])) graph = parsed['@graph']
+    else if (Array.isArray(parsed)) graph = parsed
+    else graph = [parsed]
+
+    const url = ctx.pageUrl || ''
+    const baseId = url || `urn:koto:${ctx.location.city.toLowerCase()}-${ctx.location.stateAbbr || ''}`
+    const webPageId = `${baseId}#webpage`
+    const serviceId = `${baseId}#service`
+    const businessId = `${baseId}#localbusiness`
+    const datasetId = `${baseId}#dataset`
+    const howtoId = `${baseId}#howto`
+
+    // ── Annotate existing WebPage / WebSite / LocalBusiness with @id ───────
+    let webPage = graph.find(e => e?.['@type'] === 'WebPage' || (Array.isArray(e?.['@type']) && e['@type'].includes('WebPage')))
+    if (webPage) {
+        webPage['@id'] = webPage['@id'] || webPageId
+        if (url) webPage.url = webPage.url || url
+        webPage.name = webPage.name || page.title
+        webPage.description = webPage.description || page.metaDescription
+        // Speakable — voice assistants read these selectors aloud.
+        webPage.speakable = {
+            '@type': 'SpeakableSpecification',
+            cssSelector: ['.koto-direct-answer', '.koto-hero h1', '.koto-hero-sub'],
+        }
+    } else {
+        graph.push({
+            '@type': 'WebPage',
+            '@id': webPageId,
+            ...(url ? { url } : {}),
+            name: page.title,
+            description: page.metaDescription,
+            speakable: {
+                '@type': 'SpeakableSpecification',
+                cssSelector: ['.koto-direct-answer', '.koto-hero h1', '.koto-hero-sub'],
+            },
+        })
+    }
+
+    const localBusiness = graph.find(e => e?.['@type'] === 'LocalBusiness' || (Array.isArray(e?.['@type']) && e['@type'].includes('LocalBusiness')))
+    if (localBusiness) {
+        localBusiness['@id'] = localBusiness['@id'] || businessId
+    }
+
+    // ── Service entity ─────────────────────────────────────────────────────
+    // Tightens entity↔location association — AI engines use this to confirm
+    // "yes this page is about {topic} in {city}". Skip if Claude already
+    // emitted a Service we shouldn't duplicate.
+    const existingService = graph.find(e => e?.['@type'] === 'Service')
+    if (!existingService) {
+        const cityName = ctx.location.city
+        const stateName = ctx.location.state || ctx.location.stateAbbr
+        graph.push({
+            '@type': 'Service',
+            '@id': serviceId,
+            name: `${master.topic} in ${cityName}${stateName ? `, ${stateName}` : ''}`,
+            serviceType: master.topic,
+            areaServed: {
+                '@type': 'City',
+                name: cityName,
+                ...(stateName ? { containedInPlace: { '@type': 'State', name: stateName } } : {}),
+            },
+            ...(localBusiness ? { provider: { '@id': businessId } } : ctx.companyName ? { provider: { '@type': 'LocalBusiness', name: ctx.companyName } } : {}),
+        })
+    }
+
+    // ── HowTo entity ──────────────────────────────────────────────────────
+    if (master.howto && master.howto.steps.length) {
+        graph.push({
+            '@type': 'HowTo',
+            '@id': howtoId,
+            name: stripHtml(resolveTokens(master.howto.title_template, ctx)).trim(),
+            step: master.howto.steps.map((s, i) => ({
+                '@type': 'HowToStep',
+                position: i + 1,
+                name: stripHtml(resolveTokens(s.name_template, ctx)).trim(),
+                text: stripHtml(resolveTokens(s.text_template, ctx)).trim(),
+            })),
+        })
+    }
+
+    // ── Dataset entity (Census "By the Numbers") ───────────────────────────
+    if (ctx.localData && ctx.localData.items.length) {
+        graph.push({
+            '@type': 'Dataset',
+            '@id': datasetId,
+            name: `${ctx.location.city}${ctx.location.stateAbbr ? `, ${ctx.location.stateAbbr}` : ''} demographic and economic data`,
+            description: `Population, income, and housing statistics for ${ctx.location.city}.`,
+            url: ctx.localData.sourceUrl,
+            isAccessibleForFree: true,
+            ...(ctx.localData.fetchedAt ? { dateModified: ctx.localData.fetchedAt } : {}),
+            creator: { '@type': 'GovernmentOrganization', name: 'US Census Bureau', url: 'https://www.census.gov' },
+            distribution: { '@type': 'DataDownload', encodingFormat: 'text/html', contentUrl: ctx.localData.sourceUrl },
+            spatialCoverage: {
+                '@type': 'Place',
+                name: `${ctx.location.city}${ctx.location.stateAbbr ? `, ${ctx.location.stateAbbr}` : ''}`,
+            },
+        })
+    }
+
+    return JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })
 }
 
 function resolveOne(variants: string[], ctx: ResolveContext, sectionKey: string): string {

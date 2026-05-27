@@ -77,6 +77,15 @@ export const DATA_SOURCES = {
     threshold_key: 'geo-zip',
   },
 
+  us_acs_5year_places: {
+    name: 'US Census Bureau — ACS 5-Year Estimates (Places)',
+    url: 'https://api.census.gov/data/2022/acs/acs5?get=NAME,B01003_001E,B19013_001E,B25001_001E,B01002_001E,B25077_001E&for=place:*&in=state:{STATE_FIPS}',
+    api_docs: 'https://www.census.gov/data/developers/data-sets/acs-5year.html',
+    source_type: 'government-federal',
+    notes: 'Per-place demographic + economic stats (population, median household income, housing units, median age, median home value). Requires CENSUS_API_KEY. Vintage 2022 covers 2018-2022. Used by AI Pages topic-campaign to render the "{City} by the Numbers" block with inline citation back to data.census.gov. See src/lib/wp-shim/censusLocalData.ts for the fetch wrapper.',
+    threshold_key: 'industry-naics',
+  },
+
   // ── INDUSTRY CLASSIFICATIONS ──────────────────────────────────────────────
 
   naics_codes: {
