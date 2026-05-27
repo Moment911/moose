@@ -194,11 +194,18 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         .update({ status: 'deploying' })
         .eq('id', campaignId)
 
-    // Pre-compute sibling URLs for internal linking. Each location gets a
-    // predicted /slug/ — WP may suffix on collision, but the v2 redeploy
-    // can stitch real URLs later if needed.
+    // Pre-compute sibling URLs for internal linking. Includes BOTH the new
+    // cities in this batch AND any previously-published cities for this
+    // campaign — so an incremental deploy weaves the new pages into the
+    // existing cluster instead of creating an island.
     const siteOrigin = String(site.site_url || '').replace(/\/$/, '')
-    const siblingLinks = locations.map(loc => {
+    const { data: priorDeploys } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('city, state_abbr, wp_post_url')
+        .eq('campaign_id', campaignId)
+        .eq('status', 'published')
+        .not('wp_post_url', 'is', null)
+    const newSiblings = locations.map(loc => {
         const ctx: ResolveContext = {
             location: loc,
             phone: campaign.phone || undefined,
@@ -207,6 +214,12 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         const r = resolveMaster(campaign.master as TopicCampaignMaster, ctx)
         return { city: loc.city, state_abbr: loc.stateAbbr, url: `${siteOrigin}/${r.slug}/` }
     })
+    const priorSiblings = (priorDeploys || []).map((x: any) => ({ city: x.city, state_abbr: x.state_abbr, url: x.wp_post_url }))
+    // Dedupe by city — newSiblings win if a city appears in both (rare).
+    const siblingsByCity = new Map<string, { city: string; state_abbr?: string; url: string }>()
+    for (const s of priorSiblings) siblingsByCity.set(s.city, s)
+    for (const s of newSiblings) siblingsByCity.set(s.city, s)
+    const siblingLinks = Array.from(siblingsByCity.values())
 
     for (const loc of locations) {
         const ctx: ResolveContext = {
