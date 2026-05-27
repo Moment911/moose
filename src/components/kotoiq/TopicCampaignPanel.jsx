@@ -62,6 +62,9 @@ export default function TopicCampaignPanel({ site }) {
   const [editedPostType, setEditedPostType] = useState('page')
   const [editedFocusKw, setEditedFocusKw] = useState('')
   const [focusKwTemplate, setFocusKwTemplate] = useState('[topic] in [koto_city] [koto_state_abbr]')
+  const [styleCaptureUrl, setStyleCaptureUrl] = useState('')
+  const [capturing, setCapturing] = useState(false)
+  const [captureInfo, setCaptureInfo] = useState(null) // { used_selector, notes }
   const [deployHistory, setDeployHistory] = useState([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [inspectDeploy, setInspectDeploy] = useState(null)
@@ -320,6 +323,23 @@ export default function TopicCampaignPanel({ site }) {
     setPerfLoading(false)
   }
 
+  async function captureStyling() {
+    if (!styleCaptureUrl.trim()) { toast.error('Paste a URL first'); return }
+    setCapturing(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'capture_styling', agency_id: agencyId, url: styleCaptureUrl.trim() }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      setCustomHtml(d.wrapper || '')
+      setCaptureInfo({ used_selector: d.used_selector, notes: d.notes })
+      toast.success(`Captured via "${d.used_selector}"`)
+    } catch (e) { toast.error(e.message) }
+    setCapturing(false)
+  }
+
   async function resyncSeo() {
     if (!campaign?.id) return
     if (!confirm('Re-write SEO title + description + focus keyword to Yoast + RankMath + KotoIQ for every published city in this campaign?')) return
@@ -523,10 +543,27 @@ export default function TopicCampaignPanel({ site }) {
             </Field>
           )}
 
-          <Field label="Custom HTML wrapper (optional)" hint="Use {{HERO_HEADLINE}}, {{HERO_SUB}}, {{HERO_MEDIA}}, {{SECTIONS}}, {{FAQS}}, {{CTA}}, {{SERVICE_AREAS}} placeholders. Leave blank for clean semantic HTML.">
-            <textarea value={customHtml} onChange={e => setCustomHtml(e.target.value)} rows={4}
+          <Field label="Custom HTML wrapper (optional)" hint="Use {{HERO_HEADLINE}}, {{HERO_SUB}}, {{HERO_MEDIA}}, {{SECTIONS}}, {{FAQS}}, {{CTA}}, {{SERVICE_AREAS}} placeholders. Add {{NO_STYLES}} to skip the default base CSS.">
+            <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center' }}>
+              <input
+                value={styleCaptureUrl}
+                onChange={e => setStyleCaptureUrl(e.target.value)}
+                placeholder="https://unifiedmktg.com/about/ — paste an existing styled page URL"
+                style={{ ...inp(), flex:1 }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); captureStyling() } }}
+              />
+              <button onClick={captureStyling} disabled={capturing || !styleCaptureUrl.trim()} style={miniBtn({ color:T, borderColor:T })}>
+                {capturing ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture from URL
+              </button>
+            </div>
+            {captureInfo && (
+              <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
+                <strong>Captured:</strong> {captureInfo.notes}
+              </div>
+            )}
+            <textarea value={customHtml} onChange={e => setCustomHtml(e.target.value)} rows={6}
               placeholder={'<div class="my-template">\n  {{HERO_MEDIA}}\n  <h1>{{HERO_HEADLINE}}</h1>\n  {{SECTIONS}}\n  {{FAQS}}\n  {{SERVICE_AREAS}}\n</div>'}
-              style={{ ...inp(), resize:'vertical', minHeight:80, fontFamily:'ui-monospace,Menlo,monospace', fontSize:12 }}/>
+              style={{ ...inp(), resize:'vertical', minHeight:120, fontFamily:'ui-monospace,Menlo,monospace', fontSize:12 }}/>
           </Field>
 
           <div style={{ marginTop:18, display:'flex', justifyContent:'flex-end', gap:10 }}>

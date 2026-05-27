@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
             case 'retry_failed':      return await retryFailedDeploys(supabase, agencyId, body)
             case 'verify_live':       return await verifyLiveDeploys(supabase, agencyId, body)
             case 'resync_seo_meta':   return await resyncSeoMeta(supabase, agencyId, body)
+            case 'capture_styling':   return await captureStyling(body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -478,6 +479,107 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     }).eq('id', campaignId)
 
     return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length })
+}
+
+/**
+ * Capture styling from a URL on the client's site. Fetches the page,
+ * locates the main content area, and returns a custom HTML wrapper that
+ * mirrors the source page's div structure with {{TOKEN}} placeholders
+ * for our content blocks.
+ *
+ * The deployed page inherits the source page's class chain → theme CSS
+ * applies automatically. Works for Avada, Divi, Elementor, Gutenberg —
+ * anything that uses a sensible content wrapper element.
+ */
+async function captureStyling(body: any) {
+    const url = String(body.url || '').trim()
+    if (!url) return NextResponse.json({ error: 'url required' }, { status: 400 })
+    let target: URL
+    try { target = new URL(url) } catch { return NextResponse.json({ error: 'invalid URL' }, { status: 400 }) }
+    if (!['http:', 'https:'].includes(target.protocol)) {
+        return NextResponse.json({ error: 'URL must be http or https' }, { status: 400 })
+    }
+
+    let html = ''
+    try {
+        const res = await fetch(target.toString(), {
+            signal: AbortSignal.timeout(15_000),
+            headers: { 'User-Agent': 'Mozilla/5.0 (KotoIQ/4.1; +https://hellokoto.com)' },
+            redirect: 'follow',
+        })
+        if (!res.ok) return NextResponse.json({ error: `Source page returned HTTP ${res.status}` }, { status: 502 })
+        const ct = res.headers.get('content-type') || ''
+        if (!ct.includes('text/html')) {
+            return NextResponse.json({ error: `Expected HTML, got ${ct}` }, { status: 502 })
+        }
+        html = await res.text()
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : 'fetch failed'
+        return NextResponse.json({ error: `Could not fetch ${url}: ${msg}` }, { status: 502 })
+    }
+
+    // Use cheerio for robust HTML parsing
+    const cheerioMod = await import('cheerio')
+    const $ = cheerioMod.load(html)
+
+    // Find the content container — try selectors in order of specificity
+    const selectors = [
+        'article .entry-content',          // standard WP
+        '.entry-content',                  // theme-styled WP content
+        'article',                         // semantic article
+        'main .fusion-row',                // Avada
+        'main',                            // semantic main
+        '.et_pb_section',                  // Divi
+        '.elementor-section',              // Elementor
+        '#content',                        // common ID
+        '#primary',                        // common ID
+        'body > div',                      // last resort
+    ]
+
+    let $container: any = null
+    let usedSelector = ''
+    for (const sel of selectors) {
+        const found = $(sel).first()
+        if (found.length > 0 && (found.text() || '').trim().length > 100) {
+            $container = found
+            usedSelector = sel
+            break
+        }
+    }
+
+    if (!$container) {
+        return NextResponse.json({
+            error: 'Could not detect a content container on the source page. Pick a page with substantial body content (e.g. an About or Services page).',
+        }, { status: 422 })
+    }
+
+    // Strip nav, header, footer, sidebar, comments, asides — anything that's
+    // clearly not content but might have been nested inside our container.
+    $container.find('nav, header, footer, aside, .sidebar, .menu, #comments, .comments, .post-navigation, .related-posts, script, style, form').remove()
+
+    // Replace the inner content with our placeholders. We preserve the
+    // container's outer tag + classes so theme styles still target it.
+    const outerTag = ($container[0] as any).tagName?.toLowerCase() || 'div'
+    const classAttr = $container.attr('class') || ''
+    const idAttr = $container.attr('id') || ''
+
+    const placeholder = `{{HERO_MEDIA}}\n<h1>{{HERO_HEADLINE}}</h1>\n<div class="koto-hero-sub">{{HERO_SUB}}</div>\n{{SECTIONS}}\n{{FAQS}}\n{{CTA}}\n{{SERVICE_AREAS}}`
+
+    const wrapper = `<${outerTag}${idAttr ? ` id="${idAttr}"` : ''}${classAttr ? ` class="${classAttr}"` : ''}>\n${placeholder}\n</${outerTag}>`
+
+    // Sample of what the source's inner HTML looks like (capped, for preview)
+    const sampleSourceHtml = $container.html()?.slice(0, 1200) || ''
+
+    return NextResponse.json({
+        ok: true,
+        wrapper,
+        used_selector: usedSelector,
+        source_url: url,
+        sample_source_html: sampleSourceHtml,
+        outer_tag: outerTag,
+        class_attr: classAttr,
+        notes: `Detected content container via "${usedSelector}". Wrapper preserves the outer ${outerTag}${classAttr ? `.${classAttr.split(/\s+/)[0]}` : ''} so theme CSS targets your deployed pages.`,
+    })
 }
 
 /**
