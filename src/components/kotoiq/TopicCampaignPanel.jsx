@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import {
   Sparkles, Loader2, ChevronRight, ChevronLeft, MapPin, RefreshCw, Upload,
   AlertTriangle, CheckCircle2, Wand2, FileText, File, ExternalLink, Eye, X,
+  Edit3, History, Save, Code, Coins,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
@@ -44,6 +45,14 @@ export default function TopicCampaignPanel({ site }) {
   // Step 3 state
   const [deploying, setDeploying] = useState(false)
   const [deployResults, setDeployResults] = useState(null)
+
+  // Master editor + deploy history
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [editedMaster, setEditedMaster] = useState(null)
+  const [deployHistory, setDeployHistory] = useState([])
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [inspectDeploy, setInspectDeploy] = useState(null)
+  const [redeploying, setRedeploying] = useState(false)
 
   const isV4 = site?.shim_version === 'v4'
 
@@ -187,7 +196,67 @@ export default function TopicCampaignPanel({ site }) {
     setCities([])
     setSelectedCities(new Set())
     setDeployResults(null)
+    setEditorOpen(false)
+    setEditedMaster(null)
+    setDeployHistory([])
+    setHistoryOpen(false)
   }
+
+  async function loadDeployHistory() {
+    if (!campaign?.id) return
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'list_deploys', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.ok) setDeployHistory(d.deploys || [])
+    } catch {}
+  }
+
+  async function saveMasterEdits() {
+    if (!editedMaster) return
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          action:'update_master',
+          agency_id: agencyId,
+          campaign_id: campaign.id,
+          master: editedMaster,
+        }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      setCampaign(d.campaign)
+      setEditedMaster(null)
+      setEditorOpen(false)
+      toast.success('Master saved')
+    } catch (e) { toast.error(e.message) }
+  }
+
+  async function redeployAll() {
+    if (!campaign?.id) return
+    if (!confirm(`Re-deploy this campaign to all previously-published cities? The existing WP posts will be updated in place (no new URLs).`)) return
+    setRedeploying(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'redeploy', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      toast.success(`Re-deployed ${d.updated} · ${d.failed} failed`)
+      await loadDeployHistory()
+    } catch (e) { toast.error(e.message) }
+    setRedeploying(false)
+  }
+
+  // Auto-load deploy history when a campaign is loaded
+  useEffect(() => {
+    if (campaign?.id) loadDeployHistory()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaign?.id])
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
@@ -273,13 +342,33 @@ export default function TopicCampaignPanel({ site }) {
         </div>
       )}
 
-      {/* Show master preview after step 1 */}
+      {/* Show master summary after step 1 */}
       {campaign && step >= 2 && (
         <div style={card({ background:'#fafafa' })}>
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-            <CheckCircle2 size={16} color={GRN}/>
-            <div style={{ fontFamily:FH, fontWeight:800, fontSize:14, color:BLK }}>Master ready</div>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+            <CheckCircle2 size={18} color={GRN}/>
+            <div style={{ fontFamily:FH, fontWeight:800, fontSize:15, color:BLK }}>Master ready</div>
             <span style={pill(GRN, `${GRN}15`)}>{campaign.master?.sections?.length || 0} sections · {campaign.master?.faqs?.length || 0} FAQs</span>
+            {campaign.tokens_used > 0 && (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontFamily:FB, color:'#9ca3af' }}>
+                <Coins size={11}/> {campaign.tokens_used.toLocaleString()} tokens
+              </span>
+            )}
+            <div style={{ marginLeft:'auto', display:'flex', gap:8 }}>
+              <button onClick={() => { setEditedMaster(structuredClone(campaign.master)); setEditorOpen(true) }} style={miniBtn()}>
+                <Edit3 size={11}/> Edit master
+              </button>
+              {deployHistory.length > 0 && (
+                <button onClick={() => setHistoryOpen(o => !o)} style={miniBtn()}>
+                  <History size={11}/> History ({deployHistory.length})
+                </button>
+              )}
+              {deployHistory.length > 0 && (
+                <button onClick={redeployAll} disabled={redeploying} style={miniBtn({ color:R, borderColor:R })}>
+                  {redeploying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Re-deploy all
+                </button>
+              )}
+            </div>
           </div>
           <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280' }}>
             <strong>Topic:</strong> {campaign.topic}
@@ -290,6 +379,49 @@ export default function TopicCampaignPanel({ site }) {
               </>
             )}
           </div>
+
+          {historyOpen && deployHistory.length > 0 && (
+            <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid #e5e7eb' }}>
+              <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>
+                Deploy history
+              </div>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, fontFamily:FB }}>
+                <thead>
+                  <tr>
+                    <th style={th()}>City</th>
+                    <th style={th()}>Meta title</th>
+                    <th style={th({ width:90 })}>Schema</th>
+                    <th style={th({ width:90 })}>Status</th>
+                    <th style={th({ width:90 })}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deployHistory.slice(0, 40).map(d => (
+                    <tr key={d.id} style={{ borderTop:'1px solid #f1f5f9' }}>
+                      <td style={td()}>{d.city}, {d.state_abbr}</td>
+                      <td style={td({ color:'#6b7280', fontSize:12, maxWidth:280, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' })}>{d.resolved_meta_title || '—'}</td>
+                      <td style={td()}>{d.resolved_jsonld ? <Pill color={T} bg={`${T}15`}>JSON-LD</Pill> : <span style={{ color:'#d1d5db' }}>—</span>}</td>
+                      <td style={td()}>
+                        {d.status === 'published'
+                          ? <Pill color={GRN} bg={`${GRN}15`}>Published</Pill>
+                          : <Pill color={R} bg={`${R}15`}>Failed</Pill>}
+                      </td>
+                      <td style={td()}>
+                        <button onClick={() => setInspectDeploy(d)} style={{ background:'transparent', border:'none', color:T, cursor:'pointer', padding:0, marginRight:8 }} title="Inspect resolved SEO + schema">
+                          <Eye size={13}/>
+                        </button>
+                        {d.wp_post_url && (
+                          <a href={d.wp_post_url} target="_blank" rel="noopener noreferrer" style={{ color:'#6b7280', display:'inline-flex' }}>
+                            <ExternalLink size={13}/>
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -436,6 +568,16 @@ export default function TopicCampaignPanel({ site }) {
         </div>
       )}
 
+      {/* Master Editor overlay */}
+      {editorOpen && editedMaster && (
+        <MasterEditor master={editedMaster} setMaster={setEditedMaster} onSave={saveMasterEdits} onClose={() => { setEditorOpen(false); setEditedMaster(null) }}/>
+      )}
+
+      {/* Inspect deploy overlay */}
+      {inspectDeploy && (
+        <DeployInspector deploy={inspectDeploy} onClose={() => setInspectDeploy(null)}/>
+      )}
+
       {/* Preview overlay */}
       {preview?.open && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
@@ -478,6 +620,157 @@ export default function TopicCampaignPanel({ site }) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+function MasterEditor({ master, setMaster, onSave, onClose }) {
+  function patch(path, value) {
+    setMaster(prev => {
+      const next = structuredClone(prev)
+      let cur = next
+      const keys = path.split('.')
+      for (let i = 0; i < keys.length - 1; i++) {
+        const k = keys[i]
+        const idx = /^\d+$/.test(k) ? Number(k) : k
+        cur = cur[idx]
+      }
+      const last = keys[keys.length - 1]
+      cur[/^\d+$/.test(last) ? Number(last) : last] = value
+      return next
+    })
+  }
+
+  return (
+    <div style={overlay()} onClick={onClose}>
+      <div style={{ ...modal(), maxWidth:1000, height:'92vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
+        <div style={modalHeader()}>
+          <Edit3 size={18} color={R}/>
+          <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>Edit master</div>
+          <button onClick={onSave} style={primaryBtn()}><Save size={13}/> Save changes</button>
+          <button onClick={onClose} style={miniBtn()}><X size={11}/></button>
+        </div>
+        <div style={{ flex:1, overflow:'auto', padding:22, display:'flex', flexDirection:'column', gap:18 }}>
+
+          {/* Hero */}
+          <EditorBlock label="Hero — H1 variants">
+            {master.hero.headline_variants.map((v, i) => (
+              <textarea key={i} value={v} onChange={e => patch(`hero.headline_variants.${i}`, e.target.value)} rows={2} style={inp({ resize:'vertical', fontFamily:FB, fontSize:14 })}/>
+            ))}
+          </EditorBlock>
+          <EditorBlock label="Hero — subheadline variants">
+            {master.hero.subheadline_variants.map((v, i) => (
+              <textarea key={i} value={v} onChange={e => patch(`hero.subheadline_variants.${i}`, e.target.value)} rows={3} style={inp({ resize:'vertical', fontFamily:FB, fontSize:13 })}/>
+            ))}
+          </EditorBlock>
+
+          {/* Sections */}
+          {master.sections.map((s, si) => (
+            <EditorBlock key={si} label={`Section ${si + 1}`}>
+              <Field label="Heading template">
+                <input value={s.heading_template} onChange={e => patch(`sections.${si}.heading_template`, e.target.value)} style={inp()}/>
+              </Field>
+              <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginTop:8, marginBottom:6 }}>Body variants</div>
+              {s.body_variants.map((v, vi) => (
+                <textarea key={vi} value={v} onChange={e => patch(`sections.${si}.body_variants.${vi}`, e.target.value)} rows={5} style={inp({ resize:'vertical', fontFamily:FB, fontSize:13 })}/>
+              ))}
+            </EditorBlock>
+          ))}
+
+          {/* FAQs */}
+          {master.faqs.map((f, fi) => (
+            <EditorBlock key={fi} label={`FAQ ${fi + 1}`}>
+              <Field label="Question template">
+                <input value={f.question_template} onChange={e => patch(`faqs.${fi}.question_template`, e.target.value)} style={inp()}/>
+              </Field>
+              <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginTop:8, marginBottom:6 }}>Answer variants</div>
+              {f.answer_variants.map((v, vi) => (
+                <textarea key={vi} value={v} onChange={e => patch(`faqs.${fi}.answer_variants.${vi}`, e.target.value)} rows={3} style={inp({ resize:'vertical', fontFamily:FB, fontSize:13 })}/>
+              ))}
+            </EditorBlock>
+          ))}
+
+          {/* CTA + Meta + Schema */}
+          <EditorBlock label="CTA">
+            <Field label="Headline"><input value={master.cta.headline} onChange={e => patch('cta.headline', e.target.value)} style={inp()}/></Field>
+            <Field label="Body"><textarea value={master.cta.body} onChange={e => patch('cta.body', e.target.value)} rows={3} style={inp({ resize:'vertical' })}/></Field>
+          </EditorBlock>
+          <EditorBlock label="SEO Meta">
+            <Field label="Meta title template" hint="50-60 chars, includes [koto_city]">
+              <input value={master.meta.title_template} onChange={e => patch('meta.title_template', e.target.value)} style={inp()}/>
+            </Field>
+            <Field label="Meta description template" hint="140-160 chars">
+              <textarea value={master.meta.description_template} onChange={e => patch('meta.description_template', e.target.value)} rows={2} style={inp({ resize:'vertical' })}/>
+            </Field>
+          </EditorBlock>
+          <EditorBlock label="JSON-LD Schema template">
+            <textarea value={master.schema_jsonld_template || ''} onChange={e => patch('schema_jsonld_template', e.target.value)} rows={8}
+              style={inp({ resize:'vertical', fontFamily:'ui-monospace,Menlo,monospace', fontSize:11 })}/>
+          </EditorBlock>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EditorBlock({ label, children }) {
+  return (
+    <div style={{ background:'#fafafa', border:'1px solid #e5e7eb', borderRadius:10, padding:16 }}>
+      <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:BLK, marginBottom:10 }}>{label}</div>
+      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function DeployInspector({ deploy, onClose }) {
+  let prettyJsonld = ''
+  if (deploy.resolved_jsonld) {
+    try { prettyJsonld = JSON.stringify(JSON.parse(deploy.resolved_jsonld), null, 2) }
+    catch { prettyJsonld = deploy.resolved_jsonld }
+  }
+  return (
+    <div style={overlay()} onClick={onClose}>
+      <div style={{ ...modal(), maxWidth:880, maxHeight:'90vh', overflow:'hidden', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
+        <div style={modalHeader()}>
+          <MapPin size={16} color={T}/>
+          <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:15 }}>{deploy.city}, {deploy.state_abbr}</div>
+          {deploy.wp_post_url && (
+            <a href={deploy.wp_post_url} target="_blank" rel="noopener noreferrer" style={miniBtn({ color:T, borderColor:T, textDecoration:'none' })}>
+              <ExternalLink size={11}/> Open
+            </a>
+          )}
+          <button onClick={onClose} style={miniBtn()}><X size={11}/></button>
+        </div>
+        <div style={{ flex:1, overflow:'auto', padding:22, display:'flex', flexDirection:'column', gap:16 }}>
+          <InspectRow label="Status" value={deploy.status}/>
+          <InspectRow label="WP post type" value={deploy.wp_post_type}/>
+          <InspectRow label="WP post ID" value={deploy.wp_post_id ? String(deploy.wp_post_id) : '—'}/>
+          <InspectRow label="Slug" value={deploy.resolved_slug || '—'} mono/>
+          <InspectRow label="Title" value={deploy.resolved_title || '—'}/>
+          <InspectRow label="Meta title" value={deploy.resolved_meta_title || '—'} mono/>
+          <InspectRow label="Meta description" value={deploy.resolved_meta_description || '—'}/>
+          {deploy.error && <InspectRow label="Error" value={deploy.error} mono error/>}
+          {prettyJsonld && (
+            <div>
+              <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+                <Code size={11}/> JSON-LD Schema
+              </div>
+              <pre style={{ background:'#0b1220', color:'#e2e8f0', padding:14, borderRadius:8, fontSize:11, fontFamily:'ui-monospace,Menlo,monospace', whiteSpace:'pre-wrap', maxHeight:360, overflow:'auto' }}>{prettyJsonld}</pre>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function InspectRow({ label, value, mono, error }) {
+  return (
+    <div>
+      <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5 }}>{label}</div>
+      <div style={{ fontSize:14, fontFamily: mono ? 'ui-monospace,Menlo,monospace' : FB, color: error ? R : BLK, wordBreak:'break-word' }}>{value}</div>
+    </div>
+  )
+}
+
 function Step({ n, label, active, done, disabled }) {
   const color = done ? GRN : active ? R : disabled ? '#d1d5db' : '#9ca3af'
   return (
@@ -517,7 +810,10 @@ function stateName(abbr) { return stateNames[abbr] || abbr }
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const card = (x={}) => ({ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:22, ...x })
-const inp = () => ({ width:'100%', padding:'9px 12px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:14, fontFamily:FB, outline:'none', background:'#fff' })
+const inp = (x={}) => ({ width:'100%', padding:'9px 12px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:14, fontFamily:FB, outline:'none', background:'#fff', ...x })
+const overlay = () => ({ position:'fixed', inset:0, background:'rgba(0,0,0,.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:24 })
+const modal = () => ({ background:'#fff', borderRadius:14, width:'100%' })
+const modalHeader = () => ({ padding:'14px 20px', borderBottom:'1px solid #e5e7eb', display:'flex', alignItems:'center', gap:10 })
 const miniBtn = (x={}) => ({ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 13px', borderRadius:8, border:`1px solid ${x.borderColor||'#e5e7eb'}`, background:'#fff', color:x.color||'#6b7280', fontFamily:FH, fontSize:13, fontWeight:700, cursor:'pointer' })
 const primaryBtn = () => ({ display:'inline-flex', alignItems:'center', gap:7, padding:'10px 18px', borderRadius:9, border:'none', background:R, color:'#fff', fontFamily:FH, fontSize:14, fontWeight:700, cursor:'pointer' })
 const pill = (color, bg) => ({ display:'inline-flex', alignItems:'center', padding:'4px 10px', borderRadius:6, fontSize:11, fontFamily:FH, fontWeight:700, color, background:bg, textTransform:'uppercase', letterSpacing:'.04em' })

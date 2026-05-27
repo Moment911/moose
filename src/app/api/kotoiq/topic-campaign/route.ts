@@ -5,6 +5,7 @@ import { generateTopicCampaignMaster } from '@/lib/wp-shim/topicCampaignGenerato
 import { resolveMaster, type LocationContext, type ResolveContext, type TopicCampaignMaster } from '@/lib/wp-shim/tokenResolver'
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
+import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
 import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 
 // ─── POST /api/kotoiq/topic-campaign ───────────────────────────────────────
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
             case 'list_campaigns':    return listCampaigns(supabase, agencyId, body)
             case 'get_campaign':      return getCampaign(supabase, agencyId, body)
             case 'list_deploys':      return listDeploys(supabase, agencyId, body)
+            case 'redeploy':          return redeployCampaign(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -200,29 +202,43 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             campaign.custom_html_wrapper || undefined,
         )
 
-        // Build the body. If there's a JSON-LD schema, embed it inline so WP
-        // serves it as part of the post content (avoids needing a plugin
-        // header injection for v1).
-        const body = resolved.jsonLd
-            ? `${resolved.bodyHtml}\n\n<script type="application/ld+json">${resolved.jsonLd}</script>`
-            : resolved.bodyHtml
+        // Body is content only — JSON-LD goes to post meta because KSES
+        // strips <script> tags from content for users without
+        // unfiltered_html (kotoiq_service intentionally lacks it).
+        const wpBody: Record<string, unknown> = {
+            title: resolved.title,
+            slug: resolved.slug,
+            content: resolved.bodyHtml,
+            excerpt: resolved.metaDescription,
+            status: 'publish',
+        }
+        if (resolved.jsonLd) {
+            // Plugin v4.1.0+ registers _kotoiq_schema_jsonld with
+            // show_in_rest:true. Writes here are echoed via wp_head.
+            // Older plugins ignore the unknown meta key.
+            wpBody.meta = { _kotoiq_schema_jsonld: resolved.jsonLd }
+        }
 
-        const wpResp = await wpFetchJson<{ id?: number; link?: string; error?: string }>(
+        const wpResp = await wpFetchJson<{ id?: number; link?: string; slug?: string; error?: string }>(
             site.site_url,
             `/wp/v2/${restBase}`,
             creds,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: resolved.title,
-                    slug: resolved.slug,
-                    content: body,
-                    excerpt: resolved.metaDescription,
-                    status: 'publish',
-                }),
+                body: JSON.stringify(wpBody),
             },
         )
+
+        // After WP returns the new post ID, write SEO meta (title, description)
+        // to Yoast + RankMath + KotoIQ-native keys so whichever SEO engine is
+        // active picks them up. Skipped on failure.
+        if (wpResp.ok && wpResp.data?.id) {
+            await writeSeoMeta(site.site_url, wpResp.data.id, {
+                seo_title: resolved.metaTitle,
+                meta_description: resolved.metaDescription,
+            }).catch(() => null) // best-effort
+        }
 
         const deployRow: any = {
             campaign_id: campaignId,
@@ -235,8 +251,11 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             county: loc.county || null,
             wp_post_type: restBase === 'posts' ? 'post' : 'page',
             resolved_title: resolved.title,
-            resolved_slug: resolved.slug,
-            rendered_html_bytes: body.length,
+            resolved_slug: wpResp.data?.slug || resolved.slug, // store WP's actual slug (handles collisions)
+            resolved_meta_title: resolved.metaTitle,
+            resolved_meta_description: resolved.metaDescription,
+            resolved_jsonld: resolved.jsonLd || null,
+            rendered_html_bytes: resolved.bodyHtml.length,
         }
         if (wpResp.ok) {
             deployRow.wp_post_id = wpResp.data?.id || null
@@ -297,6 +316,95 @@ async function getCampaign(supabase: any, agencyId: string, body: any) {
         .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, campaign: data })
+}
+
+async function redeployCampaign(supabase: any, agencyId: string, body: any) {
+    // Re-resolve the master and PATCH each existing post by its stored
+    // wp_post_id. Updates content + meta + schema in place. Operator usually
+    // calls this after editing the master and wanting the change to flow
+    // to all previously-deployed cities without creating duplicate URLs.
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+
+    const { data: campaign, error: ce } = await supabase
+        .from('koto_topic_campaigns')
+        .select('*')
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (ce || !campaign) return NextResponse.json({ error: ce?.message || 'campaign not found' }, { status: 404 })
+
+    const { data: existingDeploys } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .eq('status', 'published')
+        .not('wp_post_id', 'is', null)
+    if (!existingDeploys || existingDeploys.length === 0) {
+        return NextResponse.json({ error: 'no previously-published deploys to update' }, { status: 400 })
+    }
+
+    const { data: site } = await supabase
+        .from('koto_wp_sites')
+        .select('*')
+        .eq('id', existingDeploys[0].site_id)
+        .single()
+    if (!site || site.shim_version !== 'v4') {
+        return NextResponse.json({ error: 'redeploy requires the original v4-paired site' }, { status: 400 })
+    }
+    const creds = await loadSiteCredentials(supabase, agencyId, site.id).catch(() => null)
+    if (!creds) return NextResponse.json({ error: 'site has no paired credentials' }, { status: 401 })
+
+    const restBase = campaign.post_type === 'post' ? 'posts' : 'pages'
+    let updated = 0
+    let failed = 0
+
+    for (const d of existingDeploys) {
+        const ctx: ResolveContext = {
+            location: { city: d.city, state: d.state, stateAbbr: d.state_abbr, zip: d.zip || undefined, county: d.county || undefined },
+            phone: campaign.phone || undefined,
+            companyName: campaign.company_name || undefined,
+        }
+        const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
+
+        const updBody: Record<string, unknown> = {
+            title: resolved.title,
+            content: resolved.bodyHtml,
+            excerpt: resolved.metaDescription,
+        }
+        if (resolved.jsonLd) updBody.meta = { _kotoiq_schema_jsonld: resolved.jsonLd }
+
+        const wpResp = await wpFetchJson<{ id?: number; link?: string }>(
+            site.site_url,
+            `/wp/v2/${restBase}/${d.wp_post_id}`,
+            creds,
+            { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updBody) },
+        )
+
+        if (wpResp.ok) {
+            await writeSeoMeta(site.site_url, d.wp_post_id, {
+                seo_title: resolved.metaTitle,
+                meta_description: resolved.metaDescription,
+            }).catch(() => null)
+            await supabase.from('koto_topic_campaign_deploys').update({
+                resolved_title: resolved.title,
+                resolved_meta_title: resolved.metaTitle,
+                resolved_meta_description: resolved.metaDescription,
+                resolved_jsonld: resolved.jsonLd || null,
+                rendered_html_bytes: resolved.bodyHtml.length,
+            }).eq('id', d.id)
+            updated++
+        } else {
+            failed++
+        }
+    }
+
+    await supabase.from('koto_topic_campaigns').update({
+        last_deploy_at: new Date().toISOString(),
+        last_deploy_count: updated,
+    }).eq('id', campaignId)
+
+    return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length })
 }
 
 async function listCities(body: any) {

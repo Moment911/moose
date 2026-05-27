@@ -63,9 +63,12 @@ create table if not exists koto_topic_campaign_deploys (
     wp_post_url text,
     wp_post_type text not null default 'page',
 
-    -- Resolved content (for re-deploy / debugging)
+    -- Resolved content (for re-deploy / debugging / dashboard visibility)
     resolved_title text,
     resolved_slug text,
+    resolved_meta_title text,
+    resolved_meta_description text,
+    resolved_jsonld text,
     rendered_html_bytes int,
 
     -- Status
