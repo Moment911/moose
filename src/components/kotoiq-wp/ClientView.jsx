@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, ChevronLeft, ChevronRight, Download, RefreshCw } from 'lucide-react'
+import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, Trash2, ChevronLeft, ChevronRight, Download, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -95,16 +95,43 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
 
   async function disconnect() {
     if (!activeSite) return
-    if (!confirm(`Disconnect ${activeClient?.name || activeSite.site_url}?\n\nKotoIQ will:\n• Tell the plugin to disable remote control\n• Clear the API key locally\n\nThe plugin stays installed; the site admin can re-enable from WP admin if needed.`)) return
+    const isV4 = activeSite.shim_version === 'v4'
+    const action = isV4 ? 'shim_destruct_v4' : 'wpsc_disconnect'
+    const message = isV4
+      ? `Disconnect ${activeClient?.name || activeSite.site_url}?\n\nKotoIQ will:\n• Tell the plugin to clear its stored pubkey + App Password (signed /destruct)\n• Clear all v4 credentials locally\n\nThe plugin stays installed; the site admin can re-pair from WP admin if needed.`
+      : `Disconnect ${activeClient?.name || activeSite.site_url}?\n\nKotoIQ will:\n• Tell the plugin to disable remote control\n• Clear the API key locally\n\nThe plugin stays installed; the site admin can re-enable from WP admin if needed.`
+    if (!confirm(message)) return
     setBusy(true)
     try {
       const res = await fetch('/api/wp', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'wpsc_disconnect', site_id: activeSite.id }),
+        body: JSON.stringify({ action, site_id: activeSite.id }),
       })
       const data = await res.json()
       if (data.error) toast.error(data.error)
-      else { toast.success(data.plugin_disabled ? 'Disconnected · remote control off on the site' : 'Disconnected locally · plugin unreachable'); await load() }
+      else {
+        const ok = isV4 ? data.remote_ok : data.plugin_disabled
+        toast.success(ok ? 'Disconnected · plugin cleared its key' : 'Disconnected locally · plugin unreachable')
+        await load()
+      }
+    } catch (e) { toast.error(e.message) }
+    setBusy(false)
+  }
+
+  async function deleteSite() {
+    if (!activeSite) return
+    const label = activeClient?.name || activeSite.site_url
+    if (!confirm(`Delete this site row?\n\nSite: ${label}\nURL: ${activeSite.site_url}\n\nKotoIQ will:\n• Best-effort tell the plugin to clear its pairing\n• Permanently delete the site row from the database\n• Forget all pair history, modules, and stored credentials\n\nThis cannot be undone. The plugin stays installed — re-add the site to re-pair.`)) return
+    if (!confirm(`Really delete ${label}? Last chance.`)) return
+    setBusy(true)
+    try {
+      const res = await fetch('/api/wp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'shim_delete_site', site_id: activeSite.id }),
+      })
+      const data = await res.json()
+      if (data.error) toast.error(data.error)
+      else { toast.success('Site deleted'); setSelected(null); await load() }
     } catch (e) { toast.error(e.message) }
     setBusy(false)
   }
@@ -229,9 +256,14 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   </div>
                 </div>
                 {activeSite ? <StatusPills site={activeSite}/> : null}
-                {activeSite?.wpsc_api_key && (
-                  <button onClick={disconnect} disabled={busy} style={mini({ color: PINK, borderColor: PINK })} title="Disable remote control + clear keys">
+                {activeSite && (activeSite.shim_version === 'v4' || activeSite.wpsc_api_key) && (
+                  <button onClick={disconnect} disabled={busy} style={mini({ color: PINK, borderColor: PINK })} title={activeSite.shim_version === 'v4' ? 'Clear the v4 pairing (signed /destruct)' : 'Disable remote control + clear keys'}>
                     <PowerOff size={11}/> Disconnect
+                  </button>
+                )}
+                {activeSite && (
+                  <button onClick={deleteSite} disabled={busy} style={mini({ color: '#dc2626', borderColor: '#fecaca' })} title="Permanently delete this site row">
+                    <Trash2 size={11}/> Delete
                   </button>
                 )}
               </div>

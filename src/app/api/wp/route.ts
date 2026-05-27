@@ -1635,6 +1635,82 @@ Rules:
       return NextResponse.json({ ok: true })
     }
 
+    if (action === 'shim_destruct_v4') {
+      // v4-aware disconnect. Signs an envelope and POSTs to the shim's
+      // /destruct REST route → plugin clears its stored pubkey + revokes the
+      // App Password. We then clear v4 fields locally regardless of whether
+      // the remote call succeeded — the dashboard's source-of-truth is
+      // cleanable even if the WP site is offline.
+      const { deactivate = false } = body
+      if (site?.shim_version !== 'v4') {
+        return NextResponse.json({ error: 'Not a v4-paired site — use wpsc_disconnect for v3 sites' }, { status: 400 })
+      }
+      const { shimDestruct } = await import('@/lib/wp-shim/shimDestruct')
+      const remote = await shimDestruct(site.site_url, { deactivate: !!deactivate })
+
+      // Always clear local v4 fields, even on remote failure.
+      await sb.from('koto_wp_sites').update({
+        shim_version: null,
+        app_password_username: null,
+        app_password_encrypted: null,
+        app_password_payload_version: null,
+        dashboard_pubkey_fingerprint: null,
+        paired_at_v4: null,
+        wpsc_modules: [],
+      }).eq('id', site_id)
+
+      // Best-effort audit row.
+      try {
+        await sb.from('koto_wp_shim_pairings').insert({
+          agency_id: site.agency_id,
+          site_id: site.id,
+          event: 'destruct',
+          dashboard_pubkey_fingerprint: site.dashboard_pubkey_fingerprint || null,
+          notes: {
+            remote_ok: remote.ok,
+            remote_error: remote.error || null,
+            deactivate_requested: !!deactivate,
+            deactivate_scheduled: remote.deactivateScheduled || false,
+          },
+        })
+      } catch {}
+
+      return NextResponse.json({
+        ok: true,
+        remote_ok: remote.ok,
+        remote_error: remote.error || null,
+        key_cleared: remote.keyCleared || false,
+        deactivate_scheduled: remote.deactivateScheduled || false,
+        note: remote.ok
+          ? 'Site unpaired. Plugin cleared its key.'
+          : 'Local credentials cleared. Plugin was unreachable — its stored pubkey may persist. Re-pair will fail until /destruct runs on the site or the plugin is reinstalled.',
+      })
+    }
+
+    if (action === 'shim_delete_site') {
+      // Remove the site row entirely. Best-effort destruct first if the site
+      // is v4-paired, then delete koto_wp_sites + any per-site rows that
+      // reference it via ON DELETE CASCADE (or are orphaned by design).
+      if (site?.shim_version === 'v4') {
+        try {
+          const { shimDestruct } = await import('@/lib/wp-shim/shimDestruct')
+          await shimDestruct(site.site_url, { deactivate: false })
+        } catch {
+          // best-effort — we're deleting the row regardless
+        }
+      } else if (site?.wpsc_api_key) {
+        // v3 best-effort — tell the plugin to disable remote control before
+        // we lose the key we'd need to do it.
+        try {
+          await proxyToWPSC(site, 'destruct', { deactivate: false })
+        } catch {}
+      }
+
+      const { error } = await sb.from('koto_wp_sites').delete().eq('id', site_id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ ok: true, deleted: true })
+    }
+
     if (action === 'wpsc_disconnect') {
       // Full remote disconnect: tell the plugin to disable remote control, then clear all keys.
       const { also_clear_koto_key = false } = body
