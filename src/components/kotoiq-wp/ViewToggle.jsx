@@ -20,6 +20,7 @@ export default function ViewToggle({ value, onChange }) {
         { key: 'fleet',     label: 'Fleet'     },
         { key: 'client',    label: 'Client'    },
         { key: 'templates', label: 'Templates' },
+        { key: 'dualrun',   label: 'Dual-run'  },
       ].map(opt => {
         const active = value === opt.key
         return (

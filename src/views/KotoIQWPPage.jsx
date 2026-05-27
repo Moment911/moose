@@ -8,6 +8,7 @@ import ViewToggle from '../components/kotoiq-wp/ViewToggle'
 import FleetView   from '../components/kotoiq-wp/FleetView'
 import ClientView  from '../components/kotoiq-wp/ClientView'
 import KotoIQWPTemplatesTab from './kotoiq/KotoIQWPTemplatesTab'
+import KotoIQWPDualRunPanel from './kotoiq/KotoIQWPDualRunPanel'
 
 /**
  * KotoIQWPPage — unified WordPress site management at /kotoiq-wp.
@@ -36,11 +37,11 @@ function readInitial() {
   const params = new URLSearchParams(window.location.search)
   const urlView = params.get('view')
   const urlSite = params.get('site')
-  if (urlView === 'fleet' || urlView === 'client' || urlView === 'templates') {
+  if (urlView === 'fleet' || urlView === 'client' || urlView === 'templates' || urlView === 'dualrun') {
     return { view: urlView, siteId: urlSite || null }
   }
   const stored = window.localStorage?.getItem(VIEW_LS_KEY)
-  const validStored = stored === 'client' || stored === 'templates' ? stored : 'fleet'
+  const validStored = stored === 'client' || stored === 'templates' || stored === 'dualrun' ? stored : 'fleet'
   return { view: validStored, siteId: urlSite || null }
 }
 
@@ -99,7 +100,10 @@ export default function KotoIQWPPage() {
             </>}
             <span style={{ color: '#d1d5db', fontSize: 14 }}>›</span>
             <span style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: PINK }}>
-              {view === 'fleet' ? 'Fleet' : view === 'templates' ? 'Templates' : 'Client'}
+              {view === 'fleet' ? 'Fleet'
+                : view === 'templates' ? 'Templates'
+                : view === 'dualrun' ? 'Dual-run'
+                : 'Client'}
             </span>
           </div>
 
@@ -138,6 +142,9 @@ export default function KotoIQWPPage() {
         )}
         {hydrated && view === 'templates' && (
           <KotoIQWPTemplatesTab key={`templates-${refreshNonce}`}/>
+        )}
+        {hydrated && view === 'dualrun' && (
+          <KotoIQWPDualRunPanel key={`dualrun-${refreshNonce}`}/>
         )}
       </div>
     </div>
