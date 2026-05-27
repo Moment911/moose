@@ -251,23 +251,12 @@ export async function POST(req: NextRequest) {
     const { action, agency_id, site_id } = body
     const sb = getSupabase()
 
-    // ── DEPRECATION GATE (Phase 10 Plan 12 — v3 sunset) ─────────────────────
-    // Only sunset-era actions reach the dispatcher. Everything else returns
-    // 410 Gone with a successor pointer. See @deprecated note at top of file.
-    if (typeof action === 'string' && action.length > 0 && !ALLOWED_ACTIONS.has(action)) {
-      return NextResponse.json(
-        {
-          error: 'deprecated',
-          message:
-            "This action is deprecated. Phase 10 thin-shim pivot moved all business logic to the dashboard. " +
-            "Use src/lib/wp-shim/* (shimRpc / shimRpcBatch) which talks to /wp-json/kotoiq-shim/v1/rpc.",
-          successor: '/wp-json/kotoiq-shim/v1/rpc',
-          allowed_actions: Array.from(ALLOWED_ACTIONS),
-          requested_action: action,
-        },
-        { status: 410, headers: { 'Cache-Control': 'no-store' } },
-      )
-    }
+    // Phase 10 Plan 12 deprecation gate REMOVED 2026-05-27 — the executor
+    // gated every action at deploy time, breaking the whole dashboard. The
+    // actual day-60 sunset fires via scripts/cutover/sunset-v3.cjs against
+    // koto_wp_sites rows, not by 410-ing the API. v3 actions stay live until
+    // sunset script runs. ALLOWED_ACTIONS const left in place above for the
+    // sunset script to reference.
 
     // Save plugin welcome page content (with AI design)
     if (action === 'save_welcome_content') {
