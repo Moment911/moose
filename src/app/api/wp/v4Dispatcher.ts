@@ -906,36 +906,44 @@ export async function dispatchV4ActionIfPaired(
                     status: string
                     type: 'post' | 'page'
                     has_seo_meta: boolean
+                    focus_kw: string
+                    seo_title: string
+                    meta_description: string
                 }> = []
                 if (postsRes.ok) {
                     for (const p of postsRes.data.posts) {
-                        out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'post', has_seo_meta: false })
+                        out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'post', has_seo_meta: false, focus_kw: '', seo_title: '', meta_description: '' })
                     }
                 }
                 if (pagesRes.ok) {
                     for (const p of pagesRes.data.posts) {
-                        out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'page', has_seo_meta: false })
+                        out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'page', has_seo_meta: false, focus_kw: '', seo_title: '', meta_description: '' })
                     }
                 }
-                // Bulk has_seo_meta probe — one round-trip across every listed
-                // post/page. Title is the cheapest "is meta configured" check:
-                // every SEO engine (KotoIQ-native, Yoast, RankMath) writes a
-                // title key when a user fills in meta. If none of the three is
-                // set, no meta exists.
+                // Bulk meta probe — one round-trip across every listed post/page.
+                // Read title + description + focus keyword across all 3 SEO engines
+                // so the panel can show focus_kw + has_seo_meta + actual title/desc.
                 if (out.length) {
-                    const titleKeys = ['_kotoiq_title', '_yoast_wpseo_title', 'rank_math_title']
+                    const metaKeys = [
+                        '_kotoiq_title', '_yoast_wpseo_title', 'rank_math_title',
+                        '_kotoiq_description', '_yoast_wpseo_metadesc', 'rank_math_description',
+                        '_kotoiq_focus_keyword', '_yoast_wpseo_focuskw', 'rank_math_focus_keyword',
+                    ]
                     const metaRes = await postGetMetaBulk(site.site_url, {
-                        posts: out.map((p) => ({ post_id: p.id, keys: titleKeys })),
+                        posts: out.map((p) => ({ post_id: p.id, keys: metaKeys })),
                     })
                     if (metaRes.ok) {
                         const results = metaRes.data.results || {}
                         for (const p of out) {
                             const rec = results[String(p.id)] || {}
-                            const hasMeta =
-                                (typeof rec._kotoiq_title === 'string' && rec._kotoiq_title.length > 0) ||
-                                (typeof rec._yoast_wpseo_title === 'string' && rec._yoast_wpseo_title.length > 0) ||
-                                (typeof rec.rank_math_title === 'string' && rec.rank_math_title.length > 0)
-                            p.has_seo_meta = hasMeta
+                            const s = (k: string) => typeof rec[k] === 'string' ? rec[k] as string : ''
+                            const title = s('_kotoiq_title') || s('_yoast_wpseo_title') || s('rank_math_title')
+                            const desc = s('_kotoiq_description') || s('_yoast_wpseo_metadesc') || s('rank_math_description')
+                            const kw = s('_kotoiq_focus_keyword') || s('_yoast_wpseo_focuskw') || s('rank_math_focus_keyword')
+                            p.has_seo_meta = !!(title || desc)
+                            p.focus_kw = kw
+                            p.seo_title = title
+                            p.meta_description = desc
                         }
                     }
                     // If the bulk read fails, leave has_seo_meta=false (degrades

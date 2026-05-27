@@ -60,12 +60,17 @@ export default function TopicCampaignPanel({ site }) {
   const [editedHeroVideo, setEditedHeroVideo] = useState('')
   const [editedHeroAlt, setEditedHeroAlt] = useState('')
   const [editedPostType, setEditedPostType] = useState('page')
+  const [editedFocusKw, setEditedFocusKw] = useState('')
+  const [focusKwTemplate, setFocusKwTemplate] = useState('[topic] in [koto_city] [koto_state_abbr]')
   const [deployHistory, setDeployHistory] = useState([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [inspectDeploy, setInspectDeploy] = useState(null)
   const [redeploying, setRedeploying] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [verifying, setVerifying] = useState(false)
+
+  // Re-sync SEO meta button state
+  const [resyncing, setResyncing] = useState(false)
 
   // Performance (Search Console + GA4)
   const [perfOpen, setPerfOpen] = useState(false)
@@ -142,6 +147,7 @@ export default function TopicCampaignPanel({ site }) {
           hero_image_url: heroImageUrl.trim() || null,
           hero_video_url: heroVideoUrl.trim() || null,
           hero_image_alt: heroImageAlt.trim() || null,
+          focus_keyword_template: focusKwTemplate.trim() || null,
           variants_per_section: Number(variantsPerSection) || 4,
           faq_count: Number(faqCount) || 6,
         }),
@@ -287,6 +293,7 @@ export default function TopicCampaignPanel({ site }) {
           hero_video_url: editedHeroVideo,
           hero_image_alt: editedHeroAlt,
           post_type: editedPostType,
+          focus_keyword_template: editedFocusKw,
         }),
       })
       const d = await r.json()
@@ -311,6 +318,23 @@ export default function TopicCampaignPanel({ site }) {
       setPerf(d)
     } catch (e) { toast.error(e.message) }
     setPerfLoading(false)
+  }
+
+  async function resyncSeo() {
+    if (!campaign?.id) return
+    if (!confirm('Re-write SEO title + description + focus keyword to Yoast + RankMath + KotoIQ for every published city in this campaign?')) return
+    setResyncing(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'resync_seo_meta', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      toast.success(`SEO meta: ${d.written} written, ${d.failed} failed`)
+      await loadDeployHistory()
+    } catch (e) { toast.error(e.message) }
+    setResyncing(false)
   }
 
   async function retryFailed() {
@@ -535,6 +559,7 @@ export default function TopicCampaignPanel({ site }) {
                 setEditedHeroVideo(campaign.hero_video_url || '')
                 setEditedHeroAlt(campaign.hero_image_alt || '')
                 setEditedPostType(campaign.post_type || 'page')
+                setEditedFocusKw(campaign.focus_keyword_template || '[topic] in [koto_city] [koto_state_abbr]')
                 setEditorOpen(true)
               }} style={miniBtn()}>
                 <Edit3 size={11}/> Edit master
@@ -557,6 +582,11 @@ export default function TopicCampaignPanel({ site }) {
               {deployHistory.length > 0 && (
                 <button onClick={verifyLive} disabled={verifying} style={miniBtn({ color:T, borderColor:T })}>
                   {verifying ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Verify live
+                </button>
+              )}
+              {deployHistory.some(d => d.status === 'published') && (
+                <button onClick={resyncSeo} disabled={resyncing} style={miniBtn({ color:T, borderColor:T })}>
+                  {resyncing ? <Loader2 size={11} className="spin"/> : <Wand2 size={11}/>} Re-sync SEO meta
                 </button>
               )}
               {deployHistory.length > 0 && (
@@ -893,6 +923,8 @@ export default function TopicCampaignPanel({ site }) {
           heroVideo={editedHeroVideo} setHeroVideo={setEditedHeroVideo}
           heroAlt={editedHeroAlt} setHeroAlt={setEditedHeroAlt}
           postType={editedPostType} setPostType={setEditedPostType}
+          focusKw={editedFocusKw} setFocusKw={setEditedFocusKw}
+          campaignTopic={campaign?.topic || ''}
           onSave={saveMasterEdits}
           onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
         />
@@ -945,7 +977,15 @@ export default function TopicCampaignPanel({ site }) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, onSave, onClose }) {
+function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, focusKw, setFocusKw, campaignTopic, onSave, onClose }) {
+  // Preview the focus keyword resolved for a sample city
+  const sampleResolved = (focusKw || '')
+    .replace(/\[topic\]/gi, campaignTopic)
+    .replace(/\[koto_city\]/g, 'Austin')
+    .replace(/\[koto_state_abbr\]/g, 'TX')
+    .replace(/\[koto_state\]/g, 'Texas')
+    .trim()
+    .toLowerCase()
   function patch(path, value) {
     setMaster(prev => {
       const next = structuredClone(prev)
@@ -972,6 +1012,16 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
           <button onClick={onClose} style={miniBtn()}><X size={11}/></button>
         </div>
         <div style={{ flex:1, overflow:'auto', padding:22, display:'flex', flexDirection:'column', gap:18 }}>
+
+          {/* Focus keyword template (resolved per-city for SEO) */}
+          <EditorBlock label="Focus keyword (per-city)">
+            <Field label="Template" hint="Use [koto_city], [koto_state], [koto_state_abbr]. Write it like you'd type it into RankMath's focus keyword field. Resolved + written to Yoast + RankMath + KotoIQ on every deploy.">
+              <input value={focusKw} onChange={e => setFocusKw(e.target.value)} placeholder="[topic] in [koto_city] [koto_state_abbr]" style={inp()}/>
+            </Field>
+            <div style={{ marginTop:6, fontSize:12, fontFamily:FB, color:'#6b7280' }}>
+              <strong>Sample for Austin, TX:</strong> <code style={{ background:'#f1f5f9', padding:'2px 8px', borderRadius:4 }}>{sampleResolved || '—'}</code>
+            </div>
+          </EditorBlock>
 
           {/* Campaign-level tokens (resolved everywhere) */}
           <EditorBlock label="Campaign settings">

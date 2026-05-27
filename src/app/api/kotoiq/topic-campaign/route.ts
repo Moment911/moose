@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
             case 'get_performance':   return await getPerformance(supabase, agencyId, body)
             case 'retry_failed':      return await retryFailedDeploys(supabase, agencyId, body)
             case 'verify_live':       return await verifyLiveDeploys(supabase, agencyId, body)
+            case 'resync_seo_meta':   return await resyncSeoMeta(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -95,6 +96,7 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
         notes: body.notes || null,
         post_type: body.post_type === 'post' ? 'post' : 'page',
         custom_html_wrapper: body.custom_html_wrapper || null,
+        focus_keyword_template: body.focus_keyword_template || null,
         master,
         status: 'draft',
         tokens_used: totalTokens,
@@ -120,6 +122,7 @@ async function updateMaster(supabase: any, agencyId: string, body: any) {
     if (body.hero_image_url !== undefined) patch.hero_image_url = body.hero_image_url || null
     if (body.hero_video_url !== undefined) patch.hero_video_url = body.hero_video_url || null
     if (body.hero_image_alt !== undefined) patch.hero_image_alt = body.hero_image_alt || null
+    if (body.focus_keyword_template !== undefined) patch.focus_keyword_template = body.focus_keyword_template || null
     if (body.status) patch.status = body.status
     patch.updated_at = new Date().toISOString()
 
@@ -280,12 +283,16 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         // Focus keyword = "<topic> <city>" — the exact query operators try to
         // rank these pages on. RankMath uses it for the on-page audit score.
         let rankMathScore: number | null = null
+        let seoMetaError: string | null = null
         if (wpResp.ok && wpResp.data?.id) {
-            await writeSeoMeta(site.site_url, wpResp.data.id, {
+            const seoRes = await writeSeoMeta(site.site_url, wpResp.data.id, {
                 seo_title: resolved.metaTitle,
                 meta_description: resolved.metaDescription,
-                focus_keyword: `${campaign.topic} ${loc.city}`.toLowerCase(),
-            }).catch(() => null) // best-effort
+                focus_keyword: resolveFocusKeyword(campaign, loc),
+            }).catch((e: any) => ({ ok: false, error: { code: 'throw', message: e?.message || 'unknown' }, status: 0 } as const))
+            if (!seoRes.ok) {
+                seoMetaError = `${seoRes.error.code}: ${seoRes.error.message}`
+            }
             // Read back RankMath's on-page score (if RankMath is active) for
             // dashboard visibility. Score is in the `rank_math_seo_score`
             // post meta after the SEO meta writes settle.
@@ -314,6 +321,9 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             deployRow.wp_post_id = wpResp.data?.id || null
             deployRow.wp_post_url = wpResp.data?.link || null
             deployRow.status = 'published'
+            // If SEO meta write failed but the post itself published, surface
+            // the error so the operator can re-sync via the new action below.
+            if (seoMetaError) deployRow.error = `SEO meta partial: ${seoMetaError}`
         } else {
             deployRow.status = 'failed'
             deployRow.error = wpResp.error || `HTTP ${wpResp.status}`
@@ -447,7 +457,7 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             await writeSeoMeta(site.site_url, d.wp_post_id, {
                 seo_title: resolved.metaTitle,
                 meta_description: resolved.metaDescription,
-                focus_keyword: `${campaign.topic} ${d.city}`.toLowerCase(),
+                focus_keyword: resolveFocusKeyword(campaign, { city: d.city, state: d.state, stateAbbr: d.state_abbr }),
             }).catch(() => null)
             await supabase.from('koto_topic_campaign_deploys').update({
                 resolved_title: resolved.title,
@@ -468,6 +478,94 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     }).eq('id', campaignId)
 
     return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length })
+}
+
+/**
+ * Resolve the focus-keyword template against a location. Operator can set
+ * a free-form template on the campaign, with [koto_city] / [koto_state] /
+ * [koto_state_abbr] tokens. Default (when template is null/empty) is
+ * `${topic} ${city}` lowercase — matches the original hardcoded shape.
+ */
+function resolveFocusKeyword(
+    campaign: { topic?: string; focus_keyword_template?: string | null },
+    loc: { city: string; state?: string; stateAbbr?: string },
+): string {
+    const tmpl = (campaign.focus_keyword_template || '').trim()
+    if (tmpl) {
+        return tmpl
+            .replace(/\[koto_city\]/g, loc.city || '')
+            .replace(/\[koto_state_abbr\]/g, loc.stateAbbr || '')
+            .replace(/\[koto_state\]/g, loc.state || '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase()
+    }
+    return `${campaign.topic || ''} ${loc.city || ''}`.trim().toLowerCase()
+}
+
+/**
+ * Force-rewrite SEO meta (title, description, focus keyword) to Yoast +
+ * RankMath + KotoIQ-native keys for every published deploy. Useful when:
+ *   - meta writes silently failed on the original deploy
+ *   - operator changed the master's meta templates and wants to backfill
+ *   - SEO panel shows "No keyword" even after a deploy completed
+ */
+async function resyncSeoMeta(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns').select('*').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    const { data: published } = await supabase
+        .from('koto_topic_campaign_deploys').select('*')
+        .eq('campaign_id', campaignId).eq('status', 'published').not('wp_post_id', 'is', null)
+    if (!published || published.length === 0) {
+        return NextResponse.json({ ok: true, written: 0, failed: 0, message: 'No published deploys to re-sync' })
+    }
+
+    const { data: site } = await supabase
+        .from('koto_wp_sites').select('*').eq('id', published[0].site_id).single()
+    if (!site || site.shim_version !== 'v4') {
+        return NextResponse.json({ error: 're-sync requires a v4-paired site' }, { status: 400 })
+    }
+
+    let written = 0, failed = 0
+    const errors: Array<{ city: string; error: string }> = []
+    for (const d of published) {
+        const ctx: ResolveContext = {
+            location: { city: d.city, state: d.state, stateAbbr: d.state_abbr, zip: d.zip || undefined, county: d.county || undefined },
+            phone: campaign.phone || undefined,
+            companyName: campaign.company_name || undefined,
+        }
+        // Re-resolve so meta reflects any master edits since deploy.
+        const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx)
+        const r = await writeSeoMeta(site.site_url, d.wp_post_id, {
+            seo_title: resolved.metaTitle,
+            meta_description: resolved.metaDescription,
+            focus_keyword: `${campaign.topic} ${d.city}`.toLowerCase(),
+        }).catch((e: any) => ({ ok: false, error: { code: 'throw', message: e?.message || 'unknown' }, status: 0 } as const))
+        if (r.ok) {
+            written++
+            // Clear any prior "SEO meta partial" error on this row.
+            if (d.error?.startsWith('SEO meta partial')) {
+                await supabase.from('koto_topic_campaign_deploys').update({ error: null }).eq('id', d.id)
+            }
+            // Update stored resolved values to match what was just written.
+            await supabase.from('koto_topic_campaign_deploys').update({
+                resolved_meta_title: resolved.metaTitle,
+                resolved_meta_description: resolved.metaDescription,
+            }).eq('id', d.id)
+        } else {
+            failed++
+            errors.push({ city: d.city, error: `${r.error.code}: ${r.error.message}` })
+            await supabase.from('koto_topic_campaign_deploys')
+                .update({ error: `SEO meta: ${r.error.code}: ${r.error.message}` })
+                .eq('id', d.id)
+        }
+    }
+    return NextResponse.json({ ok: true, written, failed, errors })
 }
 
 /**
@@ -546,7 +644,7 @@ async function retryFailedDeploys(supabase: any, agencyId: string, body: any) {
             await writeSeoMeta(site.site_url, wpResp.data.id, {
                 seo_title: resolved.metaTitle,
                 meta_description: resolved.metaDescription,
-                focus_keyword: `${campaign.topic} ${d.city}`.toLowerCase(),
+                focus_keyword: resolveFocusKeyword(campaign, { city: d.city, state: d.state, stateAbbr: d.state_abbr }),
             }).catch(() => null)
             patch.wp_post_id = wpResp.data.id
             patch.wp_post_url = wpResp.data.link
