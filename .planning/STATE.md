@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 10-11-PLAN.md
-last_updated: "2026-05-27T03:15:40.674Z"
-last_activity: 2026-05-27 -- Phase 10 Plan 09 complete (template capture + push UI tab)
+status: "Phase 10 closed. Outstanding operator actions: pilot pair (Plan 11 Task 3) + day-60 sunset firing (Plan 12 Task 3). Both calendar-gated."
+stopped_at: Completed 10-12-PLAN.md (Phase 10 engineering-complete; calendar-gated sunset firing deferred to operator at day-60)
+last_updated: "2026-05-27T03:35:10.845Z"
+last_activity: 2026-05-27 -- Phase 10 Plan 12 complete (v3 sunset toolchain + /api/wp deprecation + dual manifest deprecation + ROADMAP closure + Deferred-to-M2 inventory)
 progress:
   total_phases: 10
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 28
-  completed_plans: 26
-  percent: 93
+  completed_plans: 27
+  percent: 96
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 8 (code-complete + verified)
-Plan: All 15 plans code-complete; Phase 10 Plan 09 complete (Option B page-design ships)
-Status: Ready to execute Plan 10-10 (dual-run shadow)
-Last activity: 2026-05-27 -- Phase 10 Plan 09 complete (template capture + push UI tab)
+Phase: 10 (CODE-COMPLETE — 12/12 plans; calendar-gated sunset firing waits for day-60 from pilot promotion)
+Plan: All 28 plans code-complete (Phases 1-8 + Phase 10); Phase 10 closed in ROADMAP.md
+Status: Phase 10 closed. Outstanding operator actions: pilot pair (Plan 11 Task 3) + day-60 sunset firing (Plan 12 Task 3). Both calendar-gated.
+Last activity: 2026-05-27 -- Phase 10 Plan 12 complete (v3 sunset toolchain + /api/wp deprecation + dual manifest deprecation + ROADMAP closure + Deferred-to-M2 inventory)
 
 Progress: [██████████] 100% code-complete; 88% toward M1 done-done (pending human UAT + PILOT-01 operator test)
 
@@ -84,6 +84,7 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 | Phase 10 P09 | 11m 27s | 2 tasks | 10 files |
 | Phase 10 P10 | 9min | 2 tasks | 11 files |
 | Phase 10 P11 | 20min | 2 tasks | 10 files |
+| Phase 10 P12 | 12m 5s | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,10 @@ Recent decisions affecting current work:
 - [Phase 10]: tsx-spawn bridge for server-only TS — .cjs CLIs invoke pairSite + dualRunRouter via 'npx tsx --eval' with JSON-delimited driver
 - [Phase 10]: promote-site --force bypasses 7-day clock gate ONLY, never major_diff/error/traffic gates
 - [Phase 10]: Manifest endpoint 503 LOUD on missing KOTOIQ_SHIM_DIST_SHA256 instead of 200 with null fields — surfaces misconfig in Vercel logs
+- [Phase 10]: Plan 10-12: 3-gate sunset (promoted + 60-day + zero major_diff in 30d). Override flags for A+B only; major_diff has NO override — make unsafe ops literally unavailable
+- [Phase 10]: Plan 10-12: ALLOWED_ACTIONS = 6-name superset (3 canonical + 3 legacy aliases) so sunset-window operations keep working through 60-day overlap
+- [Phase 10]: Plan 10-12: Both /api/kotoiq-manifest AND /api/wpsc-manifest get sunset notices because legacy fleet routes via either channel based on wpsc_plugin field
+- [Phase 10]: Plan 10-12: Test-mode fixture-injection (SUNSET_V3_TEST_MODE=1 + JSON envs) — no mocking framework needed; 11 tests in <600ms
 
 ### Pending Todos
 
@@ -200,8 +205,8 @@ UAT test data still seeded (reuse for the gauntlet):
 
 ## Session Continuity
 
-Last session: 2026-05-27T03:15:36.177Z
-Stopped at: Completed 10-11-PLAN.md
+Last session: 2026-05-27T03:35:10.842Z
+Stopped at: Completed 10-12-PLAN.md (Phase 10 engineering-complete; calendar-gated sunset firing deferred to operator at day-60)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)

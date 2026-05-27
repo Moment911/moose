@@ -167,7 +167,7 @@ Phases 7 and 8 were appended after Phases 1-6 code-completed — they are prereq
 | 6. Feedback Loop + Unified Shell + Pilot | 7/7 | Code complete (pilot pending) | - |
 | 7. Client Profile Seeder v1 — Internal Ingest + Gap Finder | 0/6 | Not started | - |
 | 8. Client Profile Seeder v2 — External Source Parsers | 0/5 | Not started | - |
-| 10. KotoIQ WP plugin thin-shim pivot | 12/12 | Complete | 2026-05-27 |
+| 10. KotoIQ WP plugin thin-shim pivot | 12/12 | Complete   | 2026-05-27 |
 
 ### Phase 9: Consolidate WordPress site management — unified /kotoiq-wp view replacing wpsimplecode + kotoiq-sites + control-center
 
