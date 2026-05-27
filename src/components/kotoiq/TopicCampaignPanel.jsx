@@ -88,6 +88,41 @@ export default function TopicCampaignPanel({ site }) {
   const [llmsPreview, setLlmsPreview] = useState(null) // { content, byte_count } | null
   const [llmsResult, setLlmsResult] = useState(null) // last publish outcome
 
+  // Shim plugin update
+  const [shimUpdating, setShimUpdating] = useState(false)
+  const [shimUpdateResult, setShimUpdateResult] = useState(null)
+  const [latestShimVersion, setLatestShimVersion] = useState(null)
+
+  async function checkLatestShimVersion() {
+    try {
+      const r = await fetch('/api/kotoiq-shim-manifest', { cache: 'no-store' })
+      const d = await r.json()
+      if (d?.version) setLatestShimVersion(d.version)
+    } catch {}
+  }
+
+  async function updateShim() {
+    if (!site?.id || shimUpdating) return
+    setShimUpdating(true); setShimUpdateResult(null)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'shim_update', agency_id: agencyId, site_id: site.id }),
+      })
+      const d = await r.json()
+      setShimUpdateResult(d)
+      // Refresh the latest-version cache after a successful update.
+      if (d.ok) checkLatestShimVersion()
+    } catch (e) {
+      setShimUpdateResult({ ok: false, error: String(e?.message || e) })
+    }
+    setShimUpdating(false)
+  }
+
+  useEffect(() => {
+    checkLatestShimVersion()
+  }, [])
+
   async function previewLlmsTxt() {
     if (!site?.id || llmsBusy) return
     setLlmsBusy('preview'); setLlmsResult(null)
@@ -474,6 +509,38 @@ export default function TopicCampaignPanel({ site }) {
           </div>
         </div>
       </div>
+
+      {/* Plugin update — only when paired AND latest version differs from installed */}
+      {step === 1 && !campaign && isV4 && site?.site_url && latestShimVersion && site?.plugin_version && latestShimVersion !== site.plugin_version && (
+        <div style={card({ background:'#fffbeb', borderColor:'#fde68a' })}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <RefreshCw size={16} color="#b45309"/>
+            <div style={{ flex:1 }}>
+              <div style={{ fontFamily:FH, fontWeight:800, fontSize:14, color:'#92400e' }}>
+                Plugin update available: v{site.plugin_version} → v{latestShimVersion}
+              </div>
+              <div style={{ fontFamily:FB, fontSize:12, color:'#78350f', marginTop:2 }}>
+                One click installs the latest kotoiq-shim on this site. WP_Upgrader verifies the sha256 before activating. Live pages stay served throughout.
+              </div>
+            </div>
+            <button onClick={updateShim} disabled={shimUpdating} style={miniBtn({ background:'#b45309', color:'#fff', borderColor:'#b45309' })}>
+              {shimUpdating ? <Loader2 size={11} className="spin"/> : null} Update plugin
+            </button>
+          </div>
+          {shimUpdateResult && (
+            <div style={{ marginTop:10, padding:'8px 10px', borderRadius:6, fontSize:12, fontFamily:FB,
+              background: shimUpdateResult.ok ? '#ecfdf5' : '#fef2f2',
+              color: shimUpdateResult.ok ? '#065f46' : '#991b1b',
+              border: `1px solid ${shimUpdateResult.ok ? '#a7f3d0' : '#fecaca'}` }}>
+              {shimUpdateResult.ok
+                ? shimUpdateResult.alreadyUpToDate
+                  ? <>✓ Already on v{shimUpdateResult.to_version}</>
+                  : <>✓ Updated v{shimUpdateResult.from_version} → v{shimUpdateResult.to_version}</>
+                : <>✗ {shimUpdateResult.error || shimUpdateResult.code || 'update failed'}{(shimUpdateResult.error || '').toLowerCase().includes('checksum') ? <span style={{ display:'block', marginTop:4, fontSize:11 }}>sha256 mismatch — try again or contact support.</span> : null}</>}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Site-wide tools: llms.txt — visible on step 1, only when site is paired */}
       {step === 1 && !campaign && isV4 && site?.site_url && (

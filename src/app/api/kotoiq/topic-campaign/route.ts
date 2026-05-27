@@ -6,12 +6,13 @@ import { resolveMaster, type LocationContext, type ResolveContext, type TopicCam
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
-import { postGetMetaBulk } from '@/lib/wp-shim/verbs'
+import { postGetMetaBulk, healthDiagnostics } from '@/lib/wp-shim/verbs'
 import { getAccessToken, fetchSearchConsoleData, fetchGA4Data, loadClientConnections } from '@/lib/seoService'
 import { fetchCruxData } from '@/lib/builder/cruxClient'
 import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
 import { buildLlmsTxt, publishLlmsTxt } from '@/lib/wp-shim/llmsTxtBuilder'
+import { shimSelfUpdate } from '@/lib/wp-shim/shimSelfUpdate'
 
 // Thin name wrapper — local handle for the per-location ACS lookup used in
 // deploy + redeploy. Returns null on any failure (missing key, city not found,
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
             case 'export_performance_csv': return await exportPerformanceCsv(supabase, agencyId, body)
             case 'publish_llms_txt':  return await publishLlmsTxtForSite(supabase, agencyId, body)
             case 'preview_llms_txt':  return await previewLlmsTxtForSite(supabase, agencyId, body)
+            case 'shim_update':       return await shimUpdateForSite(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -174,6 +176,85 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
+}
+
+/**
+ * shim_update action — pulls the latest shim version from the manifest
+ * endpoint, signs a self-update envelope, sends it to the site, and
+ * re-reads the plugin version from health.diagnostics to confirm. Lets
+ * the operator update a paired site's shim plugin from the dashboard
+ * without leaving the AI Pages panel.
+ */
+async function shimUpdateForSite(supabase: any, agencyId: string, body: any) {
+    const siteId = String(body.site_id || '')
+    if (!siteId) return NextResponse.json({ error: 'site_id required' }, { status: 400 })
+    const { data: site } = await supabase
+        .from('koto_wp_sites')
+        .select('id, site_url, shim_version, plugin_version')
+        .eq('id', siteId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (!site?.site_url) return NextResponse.json({ error: 'site not found or missing site_url' }, { status: 404 })
+    if (site.shim_version !== 'v4') return NextResponse.json({ error: 'site is not on the v4 channel (paired via thin shim)' }, { status: 400 })
+
+    // Pull the latest version + sha256 from our own manifest endpoint.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+    let manifest: any = null
+    try {
+        const r = await fetch(`${appUrl}/api/kotoiq-shim-manifest`, { cache: 'no-store', signal: AbortSignal.timeout(10_000) })
+        if (!r.ok) return NextResponse.json({ ok: false, error: `manifest HTTP ${r.status}` }, { status: 500 })
+        manifest = await r.json()
+    } catch (e: any) {
+        return NextResponse.json({ ok: false, error: `manifest fetch failed: ${String(e?.message || e)}` }, { status: 500 })
+    }
+    if (!manifest?.sha256 || !manifest?.download_url || !manifest?.version) {
+        return NextResponse.json({ ok: false, error: 'manifest incomplete', manifest }, { status: 500 })
+    }
+    const currentVersion = String(site.plugin_version || 'unknown')
+    if (currentVersion === manifest.version) {
+        return NextResponse.json({
+            ok: true, alreadyUpToDate: true,
+            from_version: currentVersion, to_version: manifest.version,
+        })
+    }
+
+    const result = await shimSelfUpdate(site.site_url, {
+        download_url: manifest.download_url,
+        sha256: manifest.sha256,
+        version: manifest.version,
+    })
+    if (!result.ok) {
+        return NextResponse.json({
+            ok: false,
+            error: result.error?.message || `HTTP ${result.httpStatus}`,
+            code: result.error?.code,
+        })
+    }
+
+    // Re-read the installed version via health.diagnostics (auth-gated, so
+    // it actually reflects what's running) after WP_Upgrader settles. The
+    // plugin reports its version in the shim_version field of the diag.
+    await new Promise(r => setTimeout(r, 1500))
+    let newVersion: string | null = null
+    try {
+        const diag = await healthDiagnostics(site.site_url)
+        if (diag.ok && (diag.data as any)?.shim_version) {
+            newVersion = String((diag.data as any).shim_version)
+        }
+    } catch {}
+
+    // Trust the manifest version as the fallback — the shim verified sha256
+    // before invoking Plugin_Upgrader, so what's installed matches.
+    const finalVersion = newVersion || manifest.version
+    await supabase.from('koto_wp_sites').update({ plugin_version: finalVersion }).eq('id', siteId)
+
+    return NextResponse.json({
+        ok: true,
+        from_version: currentVersion,
+        to_version: newVersion,
+        manifest_version: manifest.version,
+        installer_payload: result.data,
+    })
 }
 
 /**
