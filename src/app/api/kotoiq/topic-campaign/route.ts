@@ -164,6 +164,57 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
     return NextResponse.json({ ok: true, resolved })
 }
 
+/**
+ * Build a map of (city, state_abbr) → array of cross-campaign URLs for a
+ * given site. Used by both deploy and redeploy to render a "Related Services
+ * in {City}" block on each page when another campaign on the same site has a
+ * published page for that same city.
+ *
+ * Excludes the current campaign so it doesn't link to itself. Scoped by
+ * site_id because cross-linking only makes sense on the same domain.
+ */
+async function buildCrossCampaignMap(
+    supabase: any,
+    siteId: string,
+    excludeCampaignId: string,
+): Promise<Map<string, Array<{ topic: string; city: string; state_abbr: string; url: string }>>> {
+    const out = new Map<string, Array<{ topic: string; city: string; state_abbr: string; url: string }>>()
+    if (!siteId) return out
+
+    // Other campaigns on this site (excluding the current one)
+    const { data: otherCampaigns } = await supabase
+        .from('koto_topic_campaigns')
+        .select('id, topic')
+        .eq('site_id', siteId)
+        .neq('id', excludeCampaignId)
+    if (!otherCampaigns || otherCampaigns.length === 0) return out
+
+    const idToTopic = new Map<string, string>()
+    for (const c of otherCampaigns) idToTopic.set(c.id, c.topic || 'Service')
+
+    const { data: otherDeploys } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('campaign_id, city, state_abbr, wp_post_url')
+        .in('campaign_id', otherCampaigns.map((c: any) => c.id))
+        .eq('status', 'published')
+        .not('wp_post_url', 'is', null)
+
+    for (const d of (otherDeploys || [])) {
+        if (!d.city || !d.wp_post_url) continue
+        const stateAbbr = String(d.state_abbr || '').toUpperCase()
+        const key = `${String(d.city).toLowerCase().trim()}|${stateAbbr}`
+        const topic = idToTopic.get(d.campaign_id) || 'Service'
+        const bucket = out.get(key) || []
+        // Dedupe within a city by topic — if the same topic somehow has two
+        // deploys in one city (shouldn't, but guard anyway), keep the first.
+        if (!bucket.some(x => x.topic === topic)) {
+            bucket.push({ topic, city: d.city, state_abbr: stateAbbr, url: d.wp_post_url })
+        }
+        out.set(key, bucket)
+    }
+    return out
+}
+
 async function deployCampaign(supabase: any, agencyId: string, body: any) {
     const campaignId = String(body.campaign_id || '')
     const siteId = String(body.site_id || '')
@@ -238,7 +289,17 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
     for (const s of newSiblings) siblingsByCity.set(s.city, s)
     const siblingLinks = Array.from(siblingsByCity.values())
 
+    // Cross-campaign clustering — find OTHER campaigns deployed to this same
+    // WP site that have published pages in the SAME cities as the current
+    // batch. On the resulting per-city page, render a "Related Services in
+    // {City}" block linking to those other campaigns' pages.
+    //
+    // Scoped by site_id (not client_id) because cross-linking must stay on
+    // the same domain — that's where the SEO + UX benefit lives.
+    const crossByCity = await buildCrossCampaignMap(supabase, siteId, campaignId)
+
     for (const loc of locations) {
+        const cityKey = `${loc.city.toLowerCase().trim()}|${(loc.stateAbbr || '').toUpperCase()}`
         const ctx: ResolveContext = {
             location: loc,
             phone: campaign.phone || undefined,
@@ -247,6 +308,12 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             heroVideoUrl: campaign.hero_video_url || undefined,
             heroImageAlt: campaign.hero_image_alt || undefined,
             siblingLinks,
+            relatedServices: (crossByCity.get(cityKey) || []).map(r => ({
+                topic: r.topic,
+                city: loc.city,
+                state_abbr: loc.stateAbbr,
+                url: r.url,
+            })),
         }
         const resolved = resolveMaster(
             campaign.master as TopicCampaignMaster,
@@ -436,7 +503,13 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
         .filter((x: any) => x.wp_post_url)
         .map((x: any) => ({ city: x.city, state_abbr: x.state_abbr, url: x.wp_post_url }))
 
+    // Cross-campaign clustering — same as deploy, scoped to this site.
+    // Re-deploys refresh the cluster so newly-added campaigns appear as
+    // "Related Services in {City}" links on previously-deployed pages.
+    const crossByCity = await buildCrossCampaignMap(supabase, site.id, campaignId)
+
     for (const d of existingDeploys) {
+        const cityKey = `${String(d.city || '').toLowerCase().trim()}|${String(d.state_abbr || '').toUpperCase()}`
         const ctx: ResolveContext = {
             location: { city: d.city, state: d.state, stateAbbr: d.state_abbr, zip: d.zip || undefined, county: d.county || undefined },
             phone: campaign.phone || undefined,
@@ -445,6 +518,12 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             heroVideoUrl: campaign.hero_video_url || undefined,
             heroImageAlt: campaign.hero_image_alt || undefined,
             siblingLinks,
+            relatedServices: (crossByCity.get(cityKey) || []).map(r => ({
+                topic: r.topic,
+                city: d.city,
+                state_abbr: d.state_abbr,
+                url: r.url,
+            })),
         }
         const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
 
@@ -1034,6 +1113,29 @@ async function fetchGscDailyByPage(accessToken: string, siteUrl: string, startDa
 }
 
 /**
+ * Daily Search Console series per (page, query) — powers per-query sparklines
+ * in the expanded performance row. Returns rows like
+ *   { keys: [page, query, date], clicks, impressions }.
+ *
+ * Limited to 25k rows (~25 pages × ~30 queries × 28 days ≈ 21k, comfortable
+ * for our typical batch sizes). If a campaign has more, the lowest-traffic
+ * queries get truncated server-side by GSC — which is fine because we only
+ * surface the top 5 queries per page anyway.
+ */
+async function fetchGscDailyByPageQuery(accessToken: string, siteUrl: string, startDate: string, endDate: string) {
+    try {
+        const res = await fetch(`https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ startDate, endDate, dimensions: ['page', 'query', 'date'], rowLimit: 25000, aggregationType: 'auto' }),
+            signal: AbortSignal.timeout(20_000),
+        })
+        if (!res.ok) return null
+        return res.json()
+    } catch { return null }
+}
+
+/**
  * Pull Search Console + GA4 data for every deployed page in a campaign and
  * join by URL. Returns per-city metrics + campaign totals + top queries.
  *
@@ -1078,20 +1180,24 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
     const ymd = (d: Date) => d.toISOString().slice(0, 10)
     const startDate = ymd(start), endDate = ymd(today)
 
-    let scData: any = null, ga4Data: any = null, scDailyData: any = null
+    let scData: any = null, ga4Data: any = null, scDailyData: any = null, scDailyByQueryData: any = null
     let scSiteUrl = ''
     try {
         if (scConn) {
             const tok = await getAccessToken(scConn)
             scSiteUrl = scConn.account_id || scConn.site_url || ''
             if (tok && scSiteUrl) {
-                // Two calls: aggregate page+query rows AND daily series for sparklines.
-                const [agg, daily] = await Promise.all([
+                // Three calls: aggregate page+query rows, per-page daily series
+                // (overall sparkline), and per-page-per-query daily series
+                // (in-row top-query sparklines).
+                const [agg, daily, dailyByQuery] = await Promise.all([
                     fetchSearchConsoleData(tok, scSiteUrl, startDate, endDate),
                     fetchGscDailyByPage(tok, scSiteUrl, startDate, endDate),
+                    fetchGscDailyByPageQuery(tok, scSiteUrl, startDate, endDate),
                 ])
                 scData = agg
                 scDailyData = daily
+                scDailyByQueryData = dailyByQuery
             }
         }
     } catch {}
@@ -1161,6 +1267,23 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
         dailyByPage[k].sort((a, b) => a.date.localeCompare(b.date))
     }
 
+    // Index daily series per (page, query) — powers per-query sparklines in
+    // the expanded performance row. Nested map: pageKey → query → daily[].
+    const dailyByPageQuery: Record<string, Record<string, Array<{ date: string; clicks: number; impressions: number }>>> = {}
+    for (const row of (scDailyByQueryData?.rows || [])) {
+        const [page, query, date] = row.keys || []
+        if (!page || !query || !date) continue
+        const k = norm(page)
+        if (!dailyByPageQuery[k]) dailyByPageQuery[k] = {}
+        if (!dailyByPageQuery[k][query]) dailyByPageQuery[k][query] = []
+        dailyByPageQuery[k][query].push({ date, clicks: row.clicks || 0, impressions: row.impressions || 0 })
+    }
+    for (const k of Object.keys(dailyByPageQuery)) {
+        for (const q of Object.keys(dailyByPageQuery[k])) {
+            dailyByPageQuery[k][q].sort((a, b) => a.date.localeCompare(b.date))
+        }
+    }
+
     // Fetch CrUX (Core Web Vitals) per URL in parallel — best-effort
     const cruxKey = process.env.GOOGLE_CRUX_API_KEY || process.env.CRUX_API_KEY || ''
     const cruxByUrl: Record<string, any> = {}
@@ -1187,6 +1310,13 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
         const ga4 = ga4ByPath[pathKey.replace(/\/$/, '').toLowerCase()] || null
         const daily = dailyByPage[fullKey] || []
         const crux = cruxByUrl[d.wp_post_url] || null
+        // Attach per-query daily series to each top query so the frontend can
+        // render an inline sparkline next to each query in the expanded row.
+        const queryDailyMap = dailyByPageQuery[fullKey] || {}
+        const topQueries = (gsc?.queries || []).map(q => ({
+            ...q,
+            daily: queryDailyMap[q.query] || [],
+        }))
         const rec = {
             city: d.city, state_abbr: d.state_abbr, url: d.wp_post_url,
             clicks: gsc?.clicks || 0,
@@ -1196,7 +1326,7 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
             sessions: ga4?.sessions || 0,
             users: ga4?.users || 0,
             conversions: ga4?.conversions || 0,
-            top_queries: gsc?.queries || [],
+            top_queries: topQueries,
             daily, // [{date, clicks, impressions}] sorted ascending
             cwv: crux ? {
                 lcp_p75_ms: crux.lcp_p75_ms,

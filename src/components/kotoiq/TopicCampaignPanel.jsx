@@ -1294,9 +1294,9 @@ const stateNames = {
 }
 function stateName(abbr) { return stateNames[abbr] || abbr }
 
-function Sparkline({ data }) {
+function Sparkline({ data, width = 80, height = 22, strokeWidth = 1.5 }) {
   if (!data || data.length === 0) return <span style={{ color:'#d1d5db', fontSize:11 }}>—</span>
-  const w = 80, h = 22
+  const w = width, h = height
   const values = data.map(d => d.clicks)
   const max = Math.max(...values, 1)
   const stepX = data.length > 1 ? w / (data.length - 1) : 0
@@ -1308,7 +1308,7 @@ function Sparkline({ data }) {
   const trend = secondHalf > firstHalf * 1.1 ? GRN : secondHalf < firstHalf * 0.9 ? R : '#9ca3af'
   return (
     <svg width={w} height={h} style={{ display:'block' }}>
-      <polyline points={points} fill="none" stroke={trend} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <polyline points={points} fill="none" stroke={trend} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
       {totalClicks === 0 && (
         <line x1="0" y1={h/2} x2={w} y2={h/2} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="2 2"/>
       )}
@@ -1350,6 +1350,7 @@ function ExpandedRowDetail({ p }) {
             <thead>
               <tr>
                 <th style={{ textAlign:'left', padding:'4px 8px', fontSize:10, color:'#9ca3af' }}>Query</th>
+                <th style={{ textAlign:'center', padding:'4px 8px', fontSize:10, color:'#9ca3af', width:60 }}>Trend</th>
                 <th style={{ textAlign:'right', padding:'4px 8px', fontSize:10, color:'#9ca3af', width:50 }}>Clicks</th>
                 <th style={{ textAlign:'right', padding:'4px 8px', fontSize:10, color:'#9ca3af', width:60 }}>Impr.</th>
               </tr>
@@ -1358,6 +1359,11 @@ function ExpandedRowDetail({ p }) {
               {p.top_queries.map((q, i) => (
                 <tr key={i} style={{ borderTop:'1px solid #f1f5f9' }}>
                   <td style={{ padding:'5px 8px' }}>{q.query}</td>
+                  <td style={{ padding:'5px 8px', textAlign:'center' }}>
+                    <div style={{ display:'inline-block', verticalAlign:'middle' }}>
+                      <Sparkline data={q.daily || []} width={56} height={16} strokeWidth={1.25}/>
+                    </div>
+                  </td>
                   <td style={{ padding:'5px 8px', textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace' }}>{q.clicks}</td>
                   <td style={{ padding:'5px 8px', textAlign:'right', fontFamily:'ui-monospace,Menlo,monospace', color:'#6b7280' }}>{q.impressions}</td>
                 </tr>

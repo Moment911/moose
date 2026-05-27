@@ -38,6 +38,11 @@ export interface ResolveContext {
     /** Sibling cities to link from this page (internal linking).
      *  Each entry: { city, state_abbr, url } */
     siblingLinks?: Array<{ city: string; state_abbr?: string; url: string }>
+    /** Other-campaign pages in the SAME city as this one — for cross-service
+     *  internal linking (e.g. on a "Website Design in Austin" page, link to
+     *  "SEO in Austin" if that campaign has a deployed Austin page).
+     *  Filtering to the current city happens inside resolveMaster. */
+    relatedServices?: Array<{ topic: string; city: string; state_abbr?: string; url: string }>
     /** Optional seed for variant determinism. Defaults to `city|state`. */
     seed?: string
 }
@@ -301,12 +306,24 @@ export function resolveMaster(
         ? `<section class="koto-service-areas">\n  <h2>Service Areas</h2>\n  <p>We also serve nearby cities:</p>\n  <ul>\n${siblings.map(s => `    <li><a href="${escapeHtml(s.url)}">${escapeHtml(s.city)}${s.state_abbr ? `, ${escapeHtml(s.state_abbr)}` : ''}</a></li>`).join('\n')}\n  </ul>\n</section>`
         : ''
 
+    // Cross-campaign linking — render a "Related Services in {City}" block
+    // listing OTHER topics deployed for the SAME city (e.g. Website Design +
+    // SEO + PPC all in Austin). Each link points to the other campaign's
+    // page for this city. Filtered to current city by exact match.
+    const related = (ctx.relatedServices || []).filter(r =>
+        r.city === ctx.location.city &&
+        (!r.state_abbr || !ctx.location.stateAbbr || r.state_abbr === ctx.location.stateAbbr),
+    )
+    const relatedServicesHtml = related.length
+        ? `<section class="koto-related-services">\n  <h2>Related Services in ${escapeHtml(ctx.location.city)}</h2>\n  <ul>\n${related.map(r => `    <li><a href="${escapeHtml(r.url)}">${escapeHtml(r.topic)} in ${escapeHtml(r.city)}${r.state_abbr ? `, ${escapeHtml(r.state_abbr)}` : ''}</a></li>`).join('\n')}\n  </ul>\n</section>`
+        : ''
+
     // Base style block — keeps pages legible on any theme that doesn't
     // apply its own content typography (Avada, Divi, some custom themes).
     // Scoped to .koto-* classes so it doesn't fight theme-applied styles
     // on existing elements. Operators can override via Custom HTML wrapper.
     const baseStyles = `<style>
-.koto-hero,.koto-service-areas,.koto-cta,.koto-faq{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
+.koto-hero,.koto-service-areas,.koto-related-services,.koto-cta,.koto-faq{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
 .koto-hero h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;color:#1a2332}
 .koto-hero-sub{font-size:1.1rem;color:#475569;line-height:1.6}
 .koto-hero-media img,.koto-hero-media video{max-width:100%;height:auto;border-radius:10px;margin:0 0 1rem}
@@ -324,10 +341,11 @@ section{margin:1.5rem 0}
 .koto-cta h2{color:#fff}
 .koto-cta p{color:rgba(255,255,255,.95)}
 .koto-cta a{color:#fff;font-weight:700;text-decoration:underline}
-.koto-service-areas ul{list-style:none;padding:0;margin:1rem 0;display:flex;flex-wrap:wrap;gap:.5rem}
-.koto-service-areas li{margin:0}
-.koto-service-areas a{display:inline-block;padding:.5rem 1rem;background:#f1f5f9;border-radius:6px;color:#1e3a8a;text-decoration:none;font-weight:600;font-size:.95rem}
-.koto-service-areas a:hover{background:#dbeafe}
+.koto-service-areas ul,.koto-related-services ul{list-style:none;padding:0;margin:1rem 0;display:flex;flex-wrap:wrap;gap:.5rem}
+.koto-service-areas li,.koto-related-services li{margin:0}
+.koto-service-areas a,.koto-related-services a{display:inline-block;padding:.5rem 1rem;background:#f1f5f9;border-radius:6px;color:#1e3a8a;text-decoration:none;font-weight:600;font-size:.95rem}
+.koto-service-areas a:hover,.koto-related-services a:hover{background:#dbeafe}
+.koto-related-services{border-left:3px solid #1e3a8a}
 a[href^="tel:"]{color:#1e3a8a;font-weight:700;text-decoration:none;white-space:nowrap}
 a[href^="tel:"]:hover{text-decoration:underline}
 </style>`
@@ -346,11 +364,13 @@ a[href^="tel:"]:hover{text-decoration:underline}
             .replace(/\{\{FAQS\}\}/g, faqsHtml)
             .replace(/\{\{CTA\}\}/g, ctaHtml)
             .replace(/\{\{SERVICE_AREAS\}\}/g, serviceAreasHtml)
+            .replace(/\{\{RELATED_SERVICES\}\}/g, relatedServicesHtml)
         : [
             `<header class="koto-hero">${heroMediaHtml ? '\n  ' + heroMediaHtml : ''}\n  <h1>${escapeHtml(stripHtml(heroHeadline))}</h1>\n  <div class="koto-hero-sub">${ensureParagraphs(heroSub)}</div>\n</header>`,
             sectionHtml,
             faqsHtml,
             ctaHtml,
+            relatedServicesHtml,
             serviceAreasHtml,
         ].filter(Boolean).join('\n'))
 
