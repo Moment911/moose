@@ -6,6 +6,7 @@ import { resolveMaster, type LocationContext, type ResolveContext, type TopicCam
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
+import { postGetMetaBulk } from '@/lib/wp-shim/verbs'
 import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 
 // ─── POST /api/kotoiq/topic-campaign ───────────────────────────────────────
@@ -107,6 +108,9 @@ async function updateMaster(supabase: any, agencyId: string, body: any) {
     if (body.notes !== undefined) patch.notes = body.notes || null
     if (body.post_type) patch.post_type = body.post_type === 'post' ? 'post' : 'page'
     if (body.custom_html_wrapper !== undefined) patch.custom_html_wrapper = body.custom_html_wrapper || null
+    if (body.hero_image_url !== undefined) patch.hero_image_url = body.hero_image_url || null
+    if (body.hero_video_url !== undefined) patch.hero_video_url = body.hero_video_url || null
+    if (body.hero_image_alt !== undefined) patch.hero_image_alt = body.hero_image_alt || null
     if (body.status) patch.status = body.status
     patch.updated_at = new Date().toISOString()
 
@@ -190,11 +194,29 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         .update({ status: 'deploying' })
         .eq('id', campaignId)
 
+    // Pre-compute sibling URLs for internal linking. Each location gets a
+    // predicted /slug/ — WP may suffix on collision, but the v2 redeploy
+    // can stitch real URLs later if needed.
+    const siteOrigin = String(site.site_url || '').replace(/\/$/, '')
+    const siblingLinks = locations.map(loc => {
+        const ctx: ResolveContext = {
+            location: loc,
+            phone: campaign.phone || undefined,
+            companyName: campaign.company_name || undefined,
+        }
+        const r = resolveMaster(campaign.master as TopicCampaignMaster, ctx)
+        return { city: loc.city, state_abbr: loc.stateAbbr, url: `${siteOrigin}/${r.slug}/` }
+    })
+
     for (const loc of locations) {
         const ctx: ResolveContext = {
             location: loc,
             phone: campaign.phone || undefined,
             companyName: campaign.company_name || undefined,
+            heroImageUrl: campaign.hero_image_url || undefined,
+            heroVideoUrl: campaign.hero_video_url || undefined,
+            heroImageAlt: campaign.hero_image_alt || undefined,
+            siblingLinks,
         }
         const resolved = resolveMaster(
             campaign.master as TopicCampaignMaster,
@@ -235,12 +257,17 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         // SEO engine is active picks them up. Skipped on failure.
         // Focus keyword = "<topic> <city>" — the exact query operators try to
         // rank these pages on. RankMath uses it for the on-page audit score.
+        let rankMathScore: number | null = null
         if (wpResp.ok && wpResp.data?.id) {
             await writeSeoMeta(site.site_url, wpResp.data.id, {
                 seo_title: resolved.metaTitle,
                 meta_description: resolved.metaDescription,
                 focus_keyword: `${campaign.topic} ${loc.city}`.toLowerCase(),
             }).catch(() => null) // best-effort
+            // Read back RankMath's on-page score (if RankMath is active) for
+            // dashboard visibility. Score is in the `rank_math_seo_score`
+            // post meta after the SEO meta writes settle.
+            rankMathScore = await readRankMathScore(site.site_url, wpResp.data.id, creds).catch(() => null)
         }
 
         const deployRow: any = {
@@ -259,6 +286,7 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             resolved_meta_description: resolved.metaDescription,
             resolved_jsonld: resolved.jsonLd || null,
             rendered_html_bytes: resolved.bodyHtml.length,
+            rank_math_score: rankMathScore,
         }
         if (wpResp.ok) {
             deployRow.wp_post_id = wpResp.data?.id || null
@@ -362,11 +390,20 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     let updated = 0
     let failed = 0
 
+    // Sibling links for internal linking — use stored URLs from prior deploys.
+    const siblingLinks = existingDeploys
+        .filter((x: any) => x.wp_post_url)
+        .map((x: any) => ({ city: x.city, state_abbr: x.state_abbr, url: x.wp_post_url }))
+
     for (const d of existingDeploys) {
         const ctx: ResolveContext = {
             location: { city: d.city, state: d.state, stateAbbr: d.state_abbr, zip: d.zip || undefined, county: d.county || undefined },
             phone: campaign.phone || undefined,
             companyName: campaign.company_name || undefined,
+            heroImageUrl: campaign.hero_image_url || undefined,
+            heroVideoUrl: campaign.hero_video_url || undefined,
+            heroImageAlt: campaign.hero_image_alt || undefined,
+            siblingLinks,
         }
         const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
 
@@ -409,6 +446,25 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     }).eq('id', campaignId)
 
     return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length })
+}
+
+/**
+ * Best-effort read of RankMath's calculated on-page score from post meta.
+ * Returns null if RankMath isn't installed or the score hasn't been
+ * calculated yet. Doesn't throw.
+ */
+async function readRankMathScore(siteUrl: string, postId: number, _creds: unknown): Promise<number | null> {
+    try {
+        const res = await postGetMetaBulk(siteUrl, {
+            posts: [{ post_id: postId, keys: ['rank_math_seo_score'] }],
+        })
+        if (!res.ok) return null
+        const v = res.data.results?.[String(postId)]?.rank_math_seo_score
+        const n = Number(v)
+        return isFinite(n) && n > 0 ? n : null
+    } catch {
+        return null
+    }
 }
 
 async function listCities(body: any) {

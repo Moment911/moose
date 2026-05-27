@@ -29,6 +29,15 @@ export interface ResolveContext {
     location: LocationContext
     phone?: string // already formatted, e.g. "(512) 555-1234"
     companyName?: string
+    /** Optional hero image URL — injected at top of hero HTML. */
+    heroImageUrl?: string
+    /** Optional hero video URL — injected at top of hero HTML (mp4/webm). Takes precedence over image. */
+    heroVideoUrl?: string
+    /** Alt text for hero image. Defaults to title. */
+    heroImageAlt?: string
+    /** Sibling cities to link from this page (internal linking).
+     *  Each entry: { city, state_abbr, url } */
+    siblingLinks?: Array<{ city: string; state_abbr?: string; url: string }>
     /** Optional seed for variant determinism. Defaults to `city|state`. */
     seed?: string
 }
@@ -234,19 +243,39 @@ export function resolveMaster(
     const ctaHeadline = resolveTokens(master.cta.headline, ctx)
     const ctaHtml = `<section class="koto-cta">\n  <h2>${escapeHtml(stripHtml(ctaHeadline))}</h2>\n  <div>${ensureParagraphs(cta)}</div>\n</section>`
 
+    const title = stripHtml(heroHeadline).trim()
+
+    // Hero media block — video takes precedence over image. Stays empty if
+    // neither is provided.
+    const heroMediaHtml = ctx.heroVideoUrl
+        ? `<div class="koto-hero-media"><video controls preload="metadata" playsinline src="${escapeHtml(ctx.heroVideoUrl)}"></video></div>`
+        : ctx.heroImageUrl
+        ? `<div class="koto-hero-media"><img src="${escapeHtml(ctx.heroImageUrl)}" alt="${escapeHtml(ctx.heroImageAlt || title)}" loading="eager"/></div>`
+        : ''
+
+    // Internal linking — render a "Service areas" block listing the OTHER
+    // cities in the same campaign. Each city links to its slug.
+    const siblings = (ctx.siblingLinks || []).filter(s => s.city !== ctx.location.city)
+    const serviceAreasHtml = siblings.length
+        ? `<section class="koto-service-areas">\n  <h2>Service Areas</h2>\n  <p>We also serve nearby cities:</p>\n  <ul>\n${siblings.map(s => `    <li><a href="${escapeHtml(s.url)}">${escapeHtml(s.city)}${s.state_abbr ? `, ${escapeHtml(s.state_abbr)}` : ''}</a></li>`).join('\n')}\n  </ul>\n</section>`
+        : ''
+
     // Compose body
     const bodyHtml = customWrapper
         ? customWrapper
             .replace(/\{\{HERO_HEADLINE\}\}/g, escapeHtml(stripHtml(heroHeadline)))
             .replace(/\{\{HERO_SUB\}\}/g, ensureParagraphs(heroSub))
+            .replace(/\{\{HERO_MEDIA\}\}/g, heroMediaHtml)
             .replace(/\{\{SECTIONS\}\}/g, sectionHtml)
             .replace(/\{\{FAQS\}\}/g, faqsHtml)
             .replace(/\{\{CTA\}\}/g, ctaHtml)
+            .replace(/\{\{SERVICE_AREAS\}\}/g, serviceAreasHtml)
         : [
-            `<header class="koto-hero">\n  <h1>${escapeHtml(stripHtml(heroHeadline))}</h1>\n  <div class="koto-hero-sub">${ensureParagraphs(heroSub)}</div>\n</header>`,
+            `<header class="koto-hero">${heroMediaHtml ? '\n  ' + heroMediaHtml : ''}\n  <h1>${escapeHtml(stripHtml(heroHeadline))}</h1>\n  <div class="koto-hero-sub">${ensureParagraphs(heroSub)}</div>\n</header>`,
             sectionHtml,
             faqsHtml,
             ctaHtml,
+            serviceAreasHtml,
         ].filter(Boolean).join('\n')
 
     const metaTitle = resolveTitle(master.meta.title_template, ctx)
@@ -265,7 +294,6 @@ export function resolveMaster(
         }
     }
 
-    const title = stripHtml(heroHeadline).trim()
     return {
         title,
         slug: buildSlug(title, ctx),

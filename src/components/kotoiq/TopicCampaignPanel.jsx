@@ -28,6 +28,9 @@ export default function TopicCampaignPanel({ site }) {
   const [postType, setPostType] = useState('page')
   const [notes, setNotes] = useState('')
   const [customHtml, setCustomHtml] = useState('')
+  const [heroImageUrl, setHeroImageUrl] = useState('')
+  const [heroVideoUrl, setHeroVideoUrl] = useState('')
+  const [heroImageAlt, setHeroImageAlt] = useState('')
   const [variantsPerSection, setVariantsPerSection] = useState(4)
   const [faqCount, setFaqCount] = useState(6)
   const [generating, setGenerating] = useState(false)
@@ -53,6 +56,9 @@ export default function TopicCampaignPanel({ site }) {
   const [editedMaster, setEditedMaster] = useState(null)
   const [editedPhone, setEditedPhone] = useState('')
   const [editedCompanyName, setEditedCompanyName] = useState('')
+  const [editedHeroImage, setEditedHeroImage] = useState('')
+  const [editedHeroVideo, setEditedHeroVideo] = useState('')
+  const [editedHeroAlt, setEditedHeroAlt] = useState('')
   const [deployHistory, setDeployHistory] = useState([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [inspectDeploy, setInspectDeploy] = useState(null)
@@ -123,6 +129,9 @@ export default function TopicCampaignPanel({ site }) {
           notes: notes.trim() || null,
           post_type: postType,
           custom_html_wrapper: customHtml.trim() || null,
+          hero_image_url: heroImageUrl.trim() || null,
+          hero_video_url: heroVideoUrl.trim() || null,
+          hero_image_alt: heroImageAlt.trim() || null,
           variants_per_section: Number(variantsPerSection) || 4,
           faq_count: Number(faqCount) || 6,
         }),
@@ -264,6 +273,9 @@ export default function TopicCampaignPanel({ site }) {
           master: editedMaster,
           phone: editedPhone,
           company_name: editedCompanyName,
+          hero_image_url: editedHeroImage,
+          hero_video_url: editedHeroVideo,
+          hero_image_alt: editedHeroAlt,
         }),
       })
       const d = await r.json()
@@ -410,9 +422,23 @@ export default function TopicCampaignPanel({ site }) {
               style={{ ...inp(), resize:'vertical', minHeight:60 }}/>
           </Field>
 
-          <Field label="Custom HTML wrapper (optional)" hint="Use {{HERO_HEADLINE}}, {{HERO_SUB}}, {{SECTIONS}}, {{FAQS}}, {{CTA}} placeholders. Leave blank for clean semantic HTML.">
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+            <Field label="Hero image URL (optional)" hint="Paste any public image URL. Becomes the hero image on every deployed page.">
+              <input value={heroImageUrl} onChange={e => setHeroImageUrl(e.target.value)} placeholder="https://cdn.example.com/hero.jpg" style={inp()}/>
+            </Field>
+            <Field label="Hero video URL (optional)" hint="Paste mp4/webm URL. Takes precedence over image if both are set.">
+              <input value={heroVideoUrl} onChange={e => setHeroVideoUrl(e.target.value)} placeholder="https://cdn.example.com/hero.mp4" style={inp()}/>
+            </Field>
+          </div>
+          {heroImageUrl && (
+            <Field label="Image alt text (optional)" hint="For accessibility + SEO. Defaults to the page title.">
+              <input value={heroImageAlt} onChange={e => setHeroImageAlt(e.target.value)} placeholder="Website design team at work" style={inp()}/>
+            </Field>
+          )}
+
+          <Field label="Custom HTML wrapper (optional)" hint="Use {{HERO_HEADLINE}}, {{HERO_SUB}}, {{HERO_MEDIA}}, {{SECTIONS}}, {{FAQS}}, {{CTA}}, {{SERVICE_AREAS}} placeholders. Leave blank for clean semantic HTML.">
             <textarea value={customHtml} onChange={e => setCustomHtml(e.target.value)} rows={4}
-              placeholder={'<div class="my-template">\n  <h1>{{HERO_HEADLINE}}</h1>\n  {{SECTIONS}}\n  {{FAQS}}\n</div>'}
+              placeholder={'<div class="my-template">\n  {{HERO_MEDIA}}\n  <h1>{{HERO_HEADLINE}}</h1>\n  {{SECTIONS}}\n  {{FAQS}}\n  {{SERVICE_AREAS}}\n</div>'}
               style={{ ...inp(), resize:'vertical', minHeight:80, fontFamily:'ui-monospace,Menlo,monospace', fontSize:12 }}/>
           </Field>
 
@@ -442,6 +468,9 @@ export default function TopicCampaignPanel({ site }) {
                 setEditedMaster(structuredClone(campaign.master))
                 setEditedPhone(campaign.phone || '')
                 setEditedCompanyName(campaign.company_name || '')
+                setEditedHeroImage(campaign.hero_image_url || '')
+                setEditedHeroVideo(campaign.hero_video_url || '')
+                setEditedHeroAlt(campaign.hero_image_alt || '')
                 setEditorOpen(true)
               }} style={miniBtn()}>
                 <Edit3 size={11}/> Edit master
@@ -478,6 +507,7 @@ export default function TopicCampaignPanel({ site }) {
                   <tr>
                     <th style={th()}>City</th>
                     <th style={th()}>Meta title</th>
+                    <th style={th({ width:90 })}>RankMath</th>
                     <th style={th({ width:90 })}>Schema</th>
                     <th style={th({ width:90 })}>Status</th>
                     <th style={th({ width:90 })}></th>
@@ -488,6 +518,7 @@ export default function TopicCampaignPanel({ site }) {
                     <tr key={d.id} style={{ borderTop:'1px solid #f1f5f9' }}>
                       <td style={td()}>{d.city}, {d.state_abbr}</td>
                       <td style={td({ color:'#6b7280', fontSize:12, maxWidth:280, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' })}>{d.resolved_meta_title || '—'}</td>
+                      <td style={td()}>{d.rank_math_score ? <Pill color={d.rank_math_score >= 80 ? GRN : d.rank_math_score >= 60 ? AMB : R} bg={`${d.rank_math_score >= 80 ? GRN : d.rank_math_score >= 60 ? AMB : R}15`}>{d.rank_math_score}/100</Pill> : <span style={{ color:'#d1d5db' }}>—</span>}</td>
                       <td style={td()}>{d.resolved_jsonld ? <Pill color={T} bg={`${T}15`}>JSON-LD</Pill> : <span style={{ color:'#d1d5db' }}>—</span>}</td>
                       <td style={td()}>
                         {d.status === 'published'
@@ -662,6 +693,9 @@ export default function TopicCampaignPanel({ site }) {
           master={editedMaster} setMaster={setEditedMaster}
           phone={editedPhone} setPhone={setEditedPhone}
           companyName={editedCompanyName} setCompanyName={setEditedCompanyName}
+          heroImage={editedHeroImage} setHeroImage={setEditedHeroImage}
+          heroVideo={editedHeroVideo} setHeroVideo={setEditedHeroVideo}
+          heroAlt={editedHeroAlt} setHeroAlt={setEditedHeroAlt}
           onSave={saveMasterEdits}
           onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
         />
@@ -714,7 +748,7 @@ export default function TopicCampaignPanel({ site }) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, onSave, onClose }) {
+function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, onSave, onClose }) {
   function patch(path, value) {
     setMaster(prev => {
       const next = structuredClone(prev)
@@ -752,6 +786,33 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
                 <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(512) 555-1234" style={inp()}/>
               </Field>
             </div>
+          </EditorBlock>
+
+          <EditorBlock label="Hero media">
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <Field label="Hero image URL" hint="Public URL — applied to every city's hero">
+                <input value={heroImage} onChange={e => setHeroImage(e.target.value)} placeholder="https://cdn.example.com/hero.jpg" style={inp()}/>
+              </Field>
+              <Field label="Hero video URL" hint="mp4/webm — takes precedence over image if both set">
+                <input value={heroVideo} onChange={e => setHeroVideo(e.target.value)} placeholder="https://cdn.example.com/hero.mp4" style={inp()}/>
+              </Field>
+            </div>
+            {heroImage && (
+              <Field label="Image alt text" hint="Defaults to the page title">
+                <input value={heroAlt} onChange={e => setHeroAlt(e.target.value)} style={inp()}/>
+              </Field>
+            )}
+            {(heroImage || heroVideo) && (
+              <div style={{ marginTop:10, padding:10, background:'#fff', borderRadius:8, border:'1px solid #e5e7eb' }}>
+                <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>Preview</div>
+                {heroVideo ? (
+                  <video controls preload="metadata" style={{ maxWidth:'100%', maxHeight:220, borderRadius:6 }} src={heroVideo}/>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={heroImage} alt={heroAlt || 'hero preview'} style={{ maxWidth:'100%', maxHeight:220, borderRadius:6 }} onError={(e) => { e.currentTarget.style.display = 'none' }}/>
+                )}
+              </div>
+            )}
           </EditorBlock>
 
           {/* Hero */}
