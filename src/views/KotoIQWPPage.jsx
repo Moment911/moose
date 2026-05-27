@@ -7,6 +7,7 @@ import { R, BLK, FH, FB } from '../lib/theme'
 import ViewToggle from '../components/kotoiq-wp/ViewToggle'
 import FleetView   from '../components/kotoiq-wp/FleetView'
 import ClientView  from '../components/kotoiq-wp/ClientView'
+import KotoIQWPTemplatesTab from './kotoiq/KotoIQWPTemplatesTab'
 
 /**
  * KotoIQWPPage — unified WordPress site management at /kotoiq-wp.
@@ -35,11 +36,12 @@ function readInitial() {
   const params = new URLSearchParams(window.location.search)
   const urlView = params.get('view')
   const urlSite = params.get('site')
-  if (urlView === 'fleet' || urlView === 'client') {
+  if (urlView === 'fleet' || urlView === 'client' || urlView === 'templates') {
     return { view: urlView, siteId: urlSite || null }
   }
   const stored = window.localStorage?.getItem(VIEW_LS_KEY)
-  return { view: stored === 'client' ? 'client' : 'fleet', siteId: urlSite || null }
+  const validStored = stored === 'client' || stored === 'templates' ? stored : 'fleet'
+  return { view: validStored, siteId: urlSite || null }
 }
 
 export default function KotoIQWPPage() {
@@ -97,7 +99,7 @@ export default function KotoIQWPPage() {
             </>}
             <span style={{ color: '#d1d5db', fontSize: 14 }}>›</span>
             <span style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: PINK }}>
-              {view === 'fleet' ? 'Fleet' : 'Client'}
+              {view === 'fleet' ? 'Fleet' : view === 'templates' ? 'Templates' : 'Client'}
             </span>
           </div>
 
@@ -133,6 +135,9 @@ export default function KotoIQWPPage() {
             preselectedSiteId={siteId}
             onClearSelection={() => setState(s => ({ ...s, siteId: null }))}
           />
+        )}
+        {hydrated && view === 'templates' && (
+          <KotoIQWPTemplatesTab key={`templates-${refreshNonce}`}/>
         )}
       </div>
     </div>

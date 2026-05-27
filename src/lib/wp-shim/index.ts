@@ -68,3 +68,11 @@ export * from './ports/searchReplacePort'
 // ── Dashboard ports (Plan 10-08 — sitemap composition + push + serve check) ─
 export * from './ports/sitemapPort'
 export * from './ports/sitemapServe'
+
+// ── Templates (Plan 10-09 — Option B capture-and-push page-design model) ────
+// Capture an Elementor page from a sandbox site as a reusable template with
+// {variable} placeholders + push the template to N target sites by composing
+// final Elementor JSON via variable substitution. Content rotation arrays
+// wrap with [koto_rotate] shortcode (Plan 10-06 generic variant-picker).
+// Push history persists every attempt for diff + replay.
+export * from './templates'

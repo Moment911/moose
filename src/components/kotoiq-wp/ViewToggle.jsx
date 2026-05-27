@@ -17,8 +17,9 @@ export default function ViewToggle({ value, onChange }) {
       border: '1px solid #e9e6dd',
     }}>
       {[
-        { key: 'fleet',  label: 'Fleet'  },
-        { key: 'client', label: 'Client' },
+        { key: 'fleet',     label: 'Fleet'     },
+        { key: 'client',    label: 'Client'    },
+        { key: 'templates', label: 'Templates' },
       ].map(opt => {
         const active = value === opt.key
         return (
