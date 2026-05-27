@@ -63,6 +63,8 @@ export default function TopicCampaignPanel({ site }) {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [inspectDeploy, setInspectDeploy] = useState(null)
   const [redeploying, setRedeploying] = useState(false)
+  const [retrying, setRetrying] = useState(false)
+  const [verifying, setVerifying] = useState(false)
 
   // Performance (Search Console + GA4)
   const [perfOpen, setPerfOpen] = useState(false)
@@ -309,6 +311,43 @@ export default function TopicCampaignPanel({ site }) {
     setPerfLoading(false)
   }
 
+  async function retryFailed() {
+    if (!campaign?.id) return
+    setRetrying(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'retry_failed', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      toast.success(`Retried ${d.retried} · ${d.succeeded} succeeded · ${d.still_failed} still failed`)
+      await loadDeployHistory()
+    } catch (e) { toast.error(e.message) }
+    setRetrying(false)
+  }
+
+  async function verifyLive() {
+    if (!campaign?.id) return
+    setVerifying(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'verify_live', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      const msg = d.corrected > 0
+        ? `Verified ${d.checked} · ${d.corrected} were live but marked failed — corrected`
+        : d.gone > 0
+        ? `Verified ${d.checked} · ${d.gone} missing on WP (deleted there?)`
+        : `Verified ${d.checked} · all match local status`
+      toast.success(msg)
+      await loadDeployHistory()
+    } catch (e) { toast.error(e.message) }
+    setVerifying(false)
+  }
+
   async function redeployAll() {
     if (!campaign?.id) return
     if (!confirm(`Re-deploy this campaign to all previously-published cities? The existing WP posts will be updated in place (no new URLs).`)) return
@@ -505,6 +544,16 @@ export default function TopicCampaignPanel({ site }) {
               {deployHistory.length > 0 && (
                 <button onClick={() => { setPerfOpen(o => !o); if (!perf) loadPerf() }} style={miniBtn({ color:T, borderColor:T })}>
                   <TrendingUp size={11}/> Performance
+                </button>
+              )}
+              {deployHistory.some(d => d.status === 'failed') && (
+                <button onClick={retryFailed} disabled={retrying} style={miniBtn({ color:AMB, borderColor:AMB })}>
+                  {retrying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Retry failed ({deployHistory.filter(d => d.status === 'failed').length})
+                </button>
+              )}
+              {deployHistory.length > 0 && (
+                <button onClick={verifyLive} disabled={verifying} style={miniBtn({ color:T, borderColor:T })}>
+                  {verifying ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Verify live
                 </button>
               )}
               {deployHistory.length > 0 && (

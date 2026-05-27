@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
             case 'list_deploys':      return await listDeploys(supabase, agencyId, body)
             case 'redeploy':          return await redeployCampaign(supabase, agencyId, body)
             case 'get_performance':   return await getPerformance(supabase, agencyId, body)
+            case 'retry_failed':      return await retryFailedDeploys(supabase, agencyId, body)
+            case 'verify_live':       return await verifyLiveDeploys(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -466,6 +468,195 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     }).eq('id', campaignId)
 
     return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length })
+}
+
+/**
+ * Re-attempt deploys for cities that previously failed in this campaign.
+ * Reuses the same resolve + WP POST logic as the main deploy action, but
+ * scoped to status='failed' rows. UPDATES the existing deploy row instead
+ * of creating a new one — so the operator can see the history (when it
+ * first failed, what the error was, when it succeeded on retry).
+ */
+async function retryFailedDeploys(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+
+    const { data: campaign, error: ce } = await supabase
+        .from('koto_topic_campaigns').select('*').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (ce || !campaign) return NextResponse.json({ error: ce?.message || 'campaign not found' }, { status: 404 })
+
+    const { data: failed } = await supabase
+        .from('koto_topic_campaign_deploys').select('*').eq('campaign_id', campaignId).eq('status', 'failed')
+    if (!failed || failed.length === 0) {
+        return NextResponse.json({ ok: true, retried: 0, succeeded: 0, still_failed: 0, message: 'No failed deploys to retry' })
+    }
+
+    const { data: site } = await supabase
+        .from('koto_wp_sites').select('*').eq('id', failed[0].site_id).single()
+    if (!site || site.shim_version !== 'v4') {
+        return NextResponse.json({ error: 'retry requires a v4-paired site' }, { status: 400 })
+    }
+    const creds = await loadSiteCredentials(supabase, agencyId, site.id).catch(() => null)
+    if (!creds) return NextResponse.json({ error: 'site has no paired credentials' }, { status: 401 })
+
+    // Sibling links — include every PUBLISHED deploy so retries weave back in.
+    const { data: published } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('city, state_abbr, wp_post_url')
+        .eq('campaign_id', campaignId).eq('status', 'published').not('wp_post_url', 'is', null)
+    const siblingLinks = (published || []).map((x: any) => ({ city: x.city, state_abbr: x.state_abbr, url: x.wp_post_url }))
+
+    const restBase = campaign.post_type === 'post' ? 'posts' : 'pages'
+    let succeeded = 0
+    let stillFailed = 0
+    const results: any[] = []
+
+    for (const d of failed) {
+        const loc = { city: d.city, state: d.state, stateAbbr: d.state_abbr, zip: d.zip || undefined, county: d.county || undefined }
+        const ctx: ResolveContext = {
+            location: loc,
+            phone: campaign.phone || undefined,
+            companyName: campaign.company_name || undefined,
+            heroImageUrl: campaign.hero_image_url || undefined,
+            heroVideoUrl: campaign.hero_video_url || undefined,
+            heroImageAlt: campaign.hero_image_alt || undefined,
+            siblingLinks,
+        }
+        const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
+        const wpBody: Record<string, unknown> = {
+            title: resolved.title, slug: resolved.slug, content: resolved.bodyHtml,
+            excerpt: resolved.metaDescription, status: 'publish',
+        }
+        if (resolved.jsonLd) wpBody.meta = { _kotoiq_schema_jsonld: resolved.jsonLd }
+
+        const wpResp = await wpFetchJson<{ id?: number; link?: string; slug?: string }>(
+            site.site_url, `/wp/v2/${restBase}`, creds,
+            { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(wpBody) },
+        )
+
+        const patch: any = {
+            resolved_title: resolved.title,
+            resolved_slug: wpResp.data?.slug || resolved.slug,
+            resolved_meta_title: resolved.metaTitle,
+            resolved_meta_description: resolved.metaDescription,
+            resolved_jsonld: resolved.jsonLd || null,
+            rendered_html_bytes: resolved.bodyHtml.length,
+        }
+        if (wpResp.ok && wpResp.data?.id) {
+            await writeSeoMeta(site.site_url, wpResp.data.id, {
+                seo_title: resolved.metaTitle,
+                meta_description: resolved.metaDescription,
+                focus_keyword: `${campaign.topic} ${d.city}`.toLowerCase(),
+            }).catch(() => null)
+            patch.wp_post_id = wpResp.data.id
+            patch.wp_post_url = wpResp.data.link
+            patch.status = 'published'
+            patch.error = null
+            patch.rank_math_score = await readRankMathScore(site.site_url, wpResp.data.id, creds).catch(() => null)
+            succeeded++
+        } else {
+            patch.status = 'failed'
+            patch.error = (wpResp.ok ? null : wpResp.error) || `HTTP ${wpResp.status}`
+            stillFailed++
+        }
+        const { data: updated } = await supabase
+            .from('koto_topic_campaign_deploys').update(patch).eq('id', d.id).select().single()
+        results.push(updated)
+    }
+
+    return NextResponse.json({ ok: true, retried: failed.length, succeeded, still_failed: stillFailed, results })
+}
+
+/**
+ * For every deploy with a stored wp_post_id, fetch the live post via
+ * /wp/v2/{pages,posts}/{id} and reconcile the local status. Catches
+ * "post was actually published but we recorded it as failed" cases
+ * (e.g. WP returned a non-standard success shape that wpFetchJson
+ * couldn't parse, but the post landed anyway).
+ */
+async function verifyLiveDeploys(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns').select('*').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    const { data: deploys } = await supabase
+        .from('koto_topic_campaign_deploys').select('*').eq('campaign_id', campaignId)
+    if (!deploys || deploys.length === 0) {
+        return NextResponse.json({ ok: true, verified: 0, corrected: 0, message: 'No deploys to verify' })
+    }
+
+    const { data: site } = await supabase
+        .from('koto_wp_sites').select('*').eq('id', deploys[0].site_id).single()
+    if (!site) return NextResponse.json({ error: 'site row not found' }, { status: 404 })
+    const creds = await loadSiteCredentials(supabase, agencyId, site.id).catch(() => null)
+    if (!creds) return NextResponse.json({ error: 'site has no paired credentials' }, { status: 401 })
+
+    const restBase = campaign.post_type === 'post' ? 'posts' : 'pages'
+    let verified = 0, corrected = 0, gone = 0
+    const reconciliation: any[] = []
+
+    for (const d of deploys) {
+        // 1. If we have a wp_post_id, check it directly
+        if (d.wp_post_id) {
+            const r = await wpFetchJson<{ id?: number; link?: string; status?: string; slug?: string; title?: any }>(
+                site.site_url, `/wp/v2/${restBase}/${d.wp_post_id}?_fields=id,link,status,slug,title`, creds,
+            )
+            if (r.ok && r.data?.status === 'publish') {
+                verified++
+                reconciliation.push({ id: d.id, city: d.city, found: true, status: 'published', url: r.data.link })
+                if (d.status !== 'published') {
+                    await supabase.from('koto_topic_campaign_deploys').update({
+                        status: 'published', wp_post_url: r.data.link, error: null,
+                    }).eq('id', d.id)
+                    corrected++
+                }
+                continue
+            }
+            // Post id existed but post is gone or not publish
+            if (r.status === 404) {
+                await supabase.from('koto_topic_campaign_deploys').update({
+                    status: 'failed', error: 'Post no longer exists on WP (deleted manually?)',
+                }).eq('id', d.id)
+                gone++
+                reconciliation.push({ id: d.id, city: d.city, found: false, status: 'deleted' })
+                continue
+            }
+        }
+
+        // 2. No wp_post_id (failed before WP returned an id) — search by slug
+        if (d.resolved_slug) {
+            const r = await wpFetchJson<Array<{ id?: number; link?: string; status?: string; slug?: string }>>(
+                site.site_url, `/wp/v2/${restBase}?slug=${encodeURIComponent(d.resolved_slug)}&_fields=id,link,status,slug`, creds,
+            )
+            const hit = Array.isArray(r.data) ? r.data[0] : null
+            if (hit?.id && hit.status === 'publish') {
+                await supabase.from('koto_topic_campaign_deploys').update({
+                    status: 'published',
+                    wp_post_id: hit.id,
+                    wp_post_url: hit.link,
+                    error: null,
+                }).eq('id', d.id)
+                verified++
+                corrected++
+                reconciliation.push({ id: d.id, city: d.city, found: true, status: 'recovered', url: hit.link })
+                continue
+            }
+        }
+
+        reconciliation.push({ id: d.id, city: d.city, found: false, status: d.status })
+    }
+
+    return NextResponse.json({
+        ok: true,
+        checked: deploys.length,
+        verified,
+        corrected, // status updated from failed → published
+        gone, // post existed in our DB but missing on WP
+        reconciliation,
+    })
 }
 
 /**
