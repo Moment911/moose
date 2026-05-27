@@ -158,7 +158,7 @@ export default function AccessManagementPanel({ site }) {
   }
 
   if (loading) return <Centered><Loader2 className="spin" size={18}/> Loading roles…</Centered>
-  if (error && !Object.keys(roles).length) return <Centered><AlertTriangle color={AMB} size={20}/><div style={{marginTop:8,fontFamily:FB,color:'#6b7280',fontSize:13}}>{error}</div><div style={{marginTop:8,fontSize:12,color:'#9ca3af'}}>Pair WPSimpleCode on this site first (Settings → WPSimpleCode tab).</div></Centered>
+  if (error && !Object.keys(roles).length) return <Centered><AlertTriangle color={AMB} size={20}/><div style={{marginTop:8,fontFamily:FB,color:'#6b7280',fontSize:13}}>{error}</div><div style={{marginTop:8,fontSize:12,color:'#9ca3af'}}>Pair the KotoIQ plugin on this site first.</div></Centered>
 
   const roleSlugs = Object.keys(roles)
 

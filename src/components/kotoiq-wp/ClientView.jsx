@@ -287,16 +287,16 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                     No WP site connected for {activeClient?.name}
                   </div>
                   <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.6, marginBottom: 24 }}>
-                    Download the KotoIQ Shim plugin, install on the WP site, open a pairing window, then click Connect. The dashboard issues the API key — you never paste anything.
+                    Download the KotoIQ plugin, install on the WP site, open a pairing window, then click Connect. The dashboard issues the API key — you never paste anything.
                   </div>
 
                   {/* Step-by-step instructions */}
                   <div style={{ textAlign: 'left', background: '#FAF9F6', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: `1px solid ${LINE}` }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Setup Steps</div>
                     {[
-                      { step: '1', text: 'Download the KotoIQ Shim plugin (v4.0.1) below' },
+                      { step: '1', text: 'Download the KotoIQ plugin (v4.0.2) below' },
                       { step: '2', text: 'In WordPress admin: Plugins → Add New → Upload Plugin → upload the .zip, Activate' },
-                      { step: '3', text: 'In WP admin → KotoIQ Shim → Settings, click "Open pairing window" (10 min)' },
+                      { step: '3', text: 'In WP admin → KotoIQ → Settings, click "Open pairing window" (10 min)' },
                       { step: '4', text: 'Click Connect a site below — enter URL, click Pair now' },
                     ].map(({ step, text }) => (
                       <div key={step} style={{ display: 'flex', gap: 12, marginBottom: 10, alignItems: 'flex-start' }}>
@@ -307,9 +307,9 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   </div>
 
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <a href="/downloads/kotoiq-shim-4.0.1.zip" download
+                    <a href="/downloads/kotoiq-shim-4.0.2.zip" download
                       style={{ ...primaryBtn(), textDecoration: 'none', display: 'inline-flex' }}>
-                      <Download size={14}/> Download Shim Plugin v4.0.1
+                      <Download size={14}/> Download KotoIQ Plugin v4.0.2
                     </a>
                     <button onClick={() => setShowAdd(true)} style={mini({ borderColor: PINK, color: PINK })}>
                       <Plus size={13}/> Connect a site
@@ -479,7 +479,7 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
           <button
             onClick={() => { setMode('v4'); setStep(1); setErrorMsg(null) }}
             style={modeTab(mode === 'v4')}>
-            <ShieldCheck size={12}/> v4 Shim (recommended)
+            <ShieldCheck size={12}/> v4 KotoIQ (recommended)
           </button>
           <button
             onClick={() => { setMode('v3'); setErrorMsg(null) }}
@@ -523,14 +523,14 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
             <div style={stepCard()}>
               <div style={stepHeader()}>
                 <span style={stepNum()}>1</span>
-                <div style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: NAVY }}>Install the shim plugin on {host}</div>
+                <div style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: NAVY }}>Install the KotoIQ plugin on {host}</div>
               </div>
               <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginLeft: 30, marginBottom: 8 }}>
                 Download the zip and upload via <em>WP admin → Plugins → Add New → Upload Plugin</em>. Activate it.
               </div>
               <div style={{ marginLeft: 30 }}>
-                <a href="https://hellokoto.com/downloads/kotoiq-shim-4.0.1.zip" target="_blank" rel="noopener noreferrer" style={pillLink()}>
-                  <Download size={11}/> kotoiq-shim-4.0.1.zip
+                <a href="https://hellokoto.com/downloads/kotoiq-shim-4.0.2.zip" target="_blank" rel="noopener noreferrer" style={pillLink()}>
+                  <Download size={11}/> kotoiq-shim-4.0.2.zip
                 </a>
               </div>
             </div>
@@ -542,7 +542,7 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
                 <div style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: NAVY }}>Open a 10-minute pairing window</div>
               </div>
               <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginLeft: 30, marginBottom: 8 }}>
-                In WP admin: <strong>KotoIQ Shim → Settings → Open pairing window</strong>. Or via wp-cli:
+                In WP admin: <strong>KotoIQ → Settings → Open pairing window</strong>. Or via wp-cli:
               </div>
               <code style={codeBlock()}>
                 {`ssh user@${host || 'example.com'} 'wp option update kotoiq_shim_pairing_ready $(( $(date +%s) + 600 ))'`}
