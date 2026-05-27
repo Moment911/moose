@@ -80,6 +80,17 @@ function kotoiq_shim_auth_check($req) {
     }
     set_transient($nonce_key, 1, 90);
 
+    // Record successful dashboard contact for the admin-page "last seen"
+    // indicator. Single local option write — no outbound HTTP, no telemetry.
+    // Throttled to once per minute via the `kotoiq_shim_last_seen` option
+    // value itself (skip write if updated within the last 60 seconds) so a
+    // bursty deploy doesn't hammer the options table.
+    $last_seen = (int) get_option(KOTOIQ_SHIM_OPT_LAST_SEEN, 0);
+    $now = time();
+    if ($now - $last_seen > 60) {
+        update_option(KOTOIQ_SHIM_OPT_LAST_SEEN, $now, false);
+    }
+
     // Stash the decoded payload for the dispatcher.
     $req->set_param('_verified_payload', $decoded);
     return true;

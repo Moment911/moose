@@ -70,6 +70,26 @@ add_action('admin_post_kotoiq_shim_toggle_pairing', function () {
     exit;
 });
 
+/**
+ * Format a unix timestamp as a short relative-time string ("3 minutes ago",
+ * "2 hours ago", "just now"). Used in the Connection card to show
+ * KOTOIQ_SHIM_OPT_LAST_SEEN without leaking exact timestamps in the page
+ * (full ISO ts is in the title attribute for those who want it).
+ *
+ * Returns "—" for zero / future values so the UI doesn't read as bogus.
+ */
+function kotoiq_shim_relative_time($ts) {
+    $ts = (int) $ts;
+    if ($ts <= 0) return '—';
+    $diff = time() - $ts;
+    if ($diff < 0) return 'just now';
+    if ($diff < 60)       return $diff <= 5 ? 'just now' : $diff . ' seconds ago';
+    if ($diff < 3600)     { $m = (int) floor($diff / 60); return $m . ' minute' . ($m === 1 ? '' : 's') . ' ago'; }
+    if ($diff < 86400)    { $h = (int) floor($diff / 3600); return $h . ' hour' . ($h === 1 ? '' : 's') . ' ago'; }
+    if ($diff < 86400*30) { $d = (int) floor($diff / 86400); return $d . ' day' . ($d === 1 ? '' : 's') . ' ago'; }
+    return date('M j, Y', $ts);
+}
+
 function kotoiq_shim_admin_render() {
     if (!current_user_can('manage_options')) {
         wp_die('Insufficient permissions', 'KotoIQ', ['response' => 403]);
@@ -88,6 +108,8 @@ function kotoiq_shim_admin_render() {
     $window_remain  = function_exists('kotoiq_shim_pairing_window_remaining')
         ? (int) kotoiq_shim_pairing_window_remaining()
         : 0;
+    $last_seen      = (int) get_option(KOTOIQ_SHIM_OPT_LAST_SEEN, 0);
+    $paired_at      = (int) get_option(KOTOIQ_SHIM_OPT_PAIRED_AT, 0);
 
     $status_flag = isset($_GET['shim_status']) ? sanitize_key($_GET['shim_status']) : '';
     ?>
@@ -292,6 +314,57 @@ function kotoiq_shim_admin_render() {
       .kotoiq-pill.amber { background: #fff8e6; color: #b45309; border: 1px solid #fde68a; }
       .kotoiq-pill.gray  { background: var(--off); color: var(--muted); border: 1px solid var(--line); }
       .kotoiq-pill-dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
+      .kotoiq-pill-dot.pulse {
+        position: relative;
+        animation: kotoiq-status-pulse 2s ease-in-out infinite;
+      }
+      .kotoiq-pill-dot.pulse::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: .55;
+        animation: kotoiq-status-halo 2s ease-out infinite;
+      }
+      @keyframes kotoiq-status-pulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.15); }
+      }
+      @keyframes kotoiq-status-halo {
+        0%   { transform: scale(1);   opacity: .55; }
+        80%  { transform: scale(2.4); opacity: 0; }
+        100% { transform: scale(2.4); opacity: 0; }
+      }
+
+      /* ===== FEATURE LIST (what the plugin does) ===== */
+      .kotoiq-features {
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 8px 22px;
+        text-align: left;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .kotoiq-features li {
+        position: relative;
+        padding-left: 18px;
+      }
+      .kotoiq-features li::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 8px;
+        width: 6px; height: 6px;
+        border-radius: 999px;
+        background: var(--accent, #1e3a8a);
+      }
+      .kotoiq-features strong { color: var(--ink, #1a2332); font-weight: 700; }
+      .kotoiq-features code { background: var(--off, #f8fafc); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
 
       /* ===== PRIMARY CTA (pulses pink like the site) ===== */
       .kotoiq-cta {
@@ -375,11 +448,24 @@ function kotoiq_shim_admin_render() {
           <div class="kotoiq-eyebrow">Marketing Intelligence Engine</div>
           <h1 class="kotoiq-title">Koto<span class="accent">IQ</span></h1>
           <p class="kotoiq-tagline">
-            This site is connected to the KotoIQ dashboard. Every control —
-            SEO, content, snippets, redirects, capabilities, templates,
-            sitemap — lives in the dashboard. This page only handles
-            the pair handshake.
+            <?php if ($is_paired) : ?>
+              This site is connected to the KotoIQ dashboard. Every control
+              lives in the dashboard &mdash; this page only handles the pair
+              handshake.
+            <?php else : ?>
+              KotoIQ is the marketing intelligence engine that runs your
+              site&rsquo;s SEO, content, and growth from a single dashboard.
+              Open a pairing window below to connect this site.
+            <?php endif; ?>
           </p>
+          <ul class="kotoiq-features">
+            <li><strong>SEO&nbsp;&amp;&nbsp;Schema</strong> &mdash; Yoast/RankMath bridge, JSON-LD &amp; Speakable in <code>wp_head</code>, sitemap server.</li>
+            <li><strong>AI Pages</strong> &mdash; bulk-deploy city-specific landing pages with rotation variants, location tokens, Census-cited data.</li>
+            <li><strong>Templates&nbsp;&amp;&nbsp;Snippets</strong> &mdash; Elementor v4 builder, head/body code snippets, theme wrapper capture.</li>
+            <li><strong>Content&nbsp;Ops</strong> &mdash; redirects, search-replace, taxonomies, post-meta bulk, capability bridge.</li>
+            <li><strong>llms.txt&nbsp;&amp;&nbsp;AI&nbsp;crawler</strong> &mdash; serves <code>/llms.txt</code> at site root, refreshed on every deploy.</li>
+            <li><strong>Self-update</strong> &mdash; dashboard-signed envelopes verify sha256, install via <code>WP_Upgrader</code>, no manual zip uploads.</li>
+          </ul>
 
           <!-- LIVE TICKER -->
           <div class="kotoiq-ticker">
@@ -418,7 +504,7 @@ function kotoiq_shim_admin_render() {
             <div class="kotoiq-row-label">Status</div>
             <div class="kotoiq-row-value">
               <?php if ($is_paired) : ?>
-                <span class="kotoiq-pill green"><span class="kotoiq-pill-dot"></span>Paired</span>
+                <span class="kotoiq-pill green pulse" title="Connection verified on each dashboard request"><span class="kotoiq-pill-dot pulse"></span>Connected</span>
               <?php elseif ($window_remain > 0) : ?>
                 <span class="kotoiq-pill amber"><span class="kotoiq-pill-dot"></span>Ready to pair</span>
               <?php else : ?>
@@ -427,6 +513,26 @@ function kotoiq_shim_admin_render() {
             </div>
           </div>
           <?php if ($is_paired) : ?>
+            <div class="kotoiq-row">
+              <div class="kotoiq-row-label">Last seen</div>
+              <div class="kotoiq-row-value">
+                <?php if ($last_seen > 0) : ?>
+                  <span title="<?php echo esc_attr(date('Y-m-d H:i:s T', $last_seen)); ?>"><?php echo esc_html(kotoiq_shim_relative_time($last_seen)); ?></span>
+                <?php else : ?>
+                  <em>(awaiting first dashboard call)</em>
+                <?php endif; ?>
+              </div>
+            </div>
+            <div class="kotoiq-row">
+              <div class="kotoiq-row-label">Paired since</div>
+              <div class="kotoiq-row-value">
+                <?php if ($paired_at > 0) : ?>
+                  <span title="<?php echo esc_attr(date('Y-m-d H:i:s T', $paired_at)); ?>"><?php echo esc_html(date('M j, Y', $paired_at)); ?></span>
+                <?php else : ?>
+                  <em>(prior to v4.2.2 — not recorded)</em>
+                <?php endif; ?>
+              </div>
+            </div>
             <div class="kotoiq-row">
               <div class="kotoiq-row-label">Dashboard</div>
               <div class="kotoiq-row-value">
@@ -448,7 +554,7 @@ function kotoiq_shim_admin_render() {
           </div>
         </section>
 
-        <!-- ACTION CARD -->
+        <!-- ACTION CARD — only the pairing handshake; disconnect lives in the dashboard -->
         <?php if (!$is_paired) : ?>
           <section class="kotoiq-card">
             <h2 class="kotoiq-card-title">Pair this site</h2>
@@ -470,17 +576,6 @@ function kotoiq_shim_admin_render() {
                 <span class="kotoiq-cta-meta">10-minute window · one-time handshake</span>
               <?php endif; ?>
             </form>
-          </section>
-        <?php else : ?>
-          <section class="kotoiq-card">
-            <h2 class="kotoiq-card-title">Disconnect</h2>
-            <p class="kotoiq-card-desc">
-              This site is paired and operational. To unpair (switching
-              agencies, decommissioning), fire <code>/destruct</code>
-              from the KotoIQ dashboard. The stored key + pubkey on this
-              site will be cleared. Re-pair anytime by opening a new
-              window here.
-            </p>
           </section>
         <?php endif; ?>
 

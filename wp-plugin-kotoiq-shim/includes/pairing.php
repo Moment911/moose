@@ -204,6 +204,7 @@ function kotoiq_shim_pair($req) {
     if ($dashboard_url !== '' && stripos($dashboard_url, 'https://') === 0) {
         update_option(KOTOIQ_SHIM_OPT_DASHBOARD_URL, $dashboard_url);
     }
+    update_option(KOTOIQ_SHIM_OPT_PAIRED_AT, time(), false);
     delete_option(KOTOIQ_SHIM_OPT_PAIRING_READY);
 
     return rest_ensure_response([

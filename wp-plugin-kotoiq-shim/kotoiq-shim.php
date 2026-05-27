@@ -3,7 +3,7 @@
  * Plugin Name:       KotoIQ
  * Plugin URI:        https://www.unifiedmktg.com
  * Description:       Connect this WordPress site to your KotoIQ dashboard. Managed by Unified Marketing.
- * Version:           4.2.1
+ * Version:           4.2.2
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -22,7 +22,7 @@
 if (!defined('ABSPATH')) exit;
 
 // ─── Plugin constants ──────────────────────────────────────────────────────
-define('KOTOIQ_SHIM_VERSION',      '4.2.1');
+define('KOTOIQ_SHIM_VERSION',      '4.2.2');
 define('KOTOIQ_SHIM_PLUGIN_FILE',  __FILE__);
 define('KOTOIQ_SHIM_DIR',          plugin_dir_path(__FILE__));
 define('KOTOIQ_SHIM_URL',          plugin_dir_url(__FILE__));
@@ -37,6 +37,8 @@ define('KOTOIQ_SHIM_OPT_PAIRING_READY',    'kotoiq_shim_pairing_ready');    // u
 define('KOTOIQ_SHIM_OPT_DASHBOARD_URL',    'kotoiq_shim_dashboard_url');    // https://... where pair callback came from
 define('KOTOIQ_SHIM_OPT_FEATURES_ENABLED', 'kotoiq_shim_features_enabled'); // per-verb feature flags
 define('KOTOIQ_SHIM_OPT_LEGACY_BEARER',    'kotoiq_shim_legacy_bearer');    // optional cutover fallback secret
+define('KOTOIQ_SHIM_OPT_LAST_SEEN',        'kotoiq_shim_last_seen');        // unix ts of last successful auth check (admin "last seen" indicator)
+define('KOTOIQ_SHIM_OPT_PAIRED_AT',        'kotoiq_shim_paired_at');        // unix ts of when the site was paired (admin display)
 
 // ─── Module includes ───────────────────────────────────────────────────────
 require_once KOTOIQ_SHIM_DIR . 'includes/auth.php';
