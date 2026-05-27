@@ -144,9 +144,31 @@ function resolveScalarTokens(input: string, ctx: ResolveContext): string {
     // Both phone tokens render as tel: links — phone numbers should always
     // be tappable on mobile. Operators who want plain text can edit the
     // master to remove the link.
+    const phoneDigits = phone ? digits(phone) : ''
+    const phoneTelUrl = phoneDigits ? `tel:${phoneDigits}` : ''
     const phoneLink = phone
-        ? `<a href="tel:${digits(phone)}">${escapeHtml(phone)}</a>`
+        ? `<a href="tel:${phoneDigits}">${escapeHtml(phone)}</a>`
         : ''
+    const phoneEscaped = phone ? escapeHtml(phone) : ''
+
+    // Pre-passes that fix the most common Claude-master mistakes around
+    // phone tokens BEFORE the standard token replacement turns each
+    // [koto_phone] into a full <a> tag.
+    //
+    //  1. `href="[koto_phone]"` → href="tel:DIGITS"  (don't nest <a> inside <a>)
+    //  2. `<a ...>[koto_phone]</a>` → use the formatted phone as the text
+    //
+    // Without these, a master with `<a href="[koto_phone]">[koto_phone]</a>`
+    // produces a corrupt double-wrap that browsers render with the literal
+    // string `a href=` inside the href value. Seen live on production.
+    if (phone) {
+        input = input.replace(/href=(['"])\[koto_phone(?:_link)?\]\1/g, `href=$1${phoneTelUrl}$1`)
+        input = input.replace(
+            /(<a\b[^>]*>)([^<]*?)\[koto_phone(?:_link)?\]([^<]*?)(<\/a>)/g,
+            `$1$2${phoneEscaped}$3$4`,
+        )
+    }
+
     const map: Record<string, string> = {
         '[koto_city]': loc.city,
         '[koto_state]': loc.state,
@@ -287,6 +309,10 @@ export interface ResolvedPage {
     metaTitle: string
     metaDescription: string
     bodyHtml: string
+    /** Base CSS for the page — to be written to the _kotoiq_base_css post
+     *  meta (plugin v4.2.1+ echoes it in wp_head). Empty string when the
+     *  operator opts out via {{NO_STYLES}} in their custom wrapper. */
+    baseCss: string
     jsonLd: string | null
 }
 
@@ -356,11 +382,16 @@ export function resolveMaster(
         }).join('\n')}\n    </tbody>\n  </table>\n</section>`
         : ''
 
-    // Local data ("By the Numbers") block — Census ACS stats per city,
-    // rendered as a citation-attached <dl>. Verbatim values, sourceUrl footer.
-    // Mirrored into schema.org/Dataset in the @graph. Optional.
+    // Local data block — Census ACS stats per city. Compact + non-obtrusive:
+    // an inline footnote-style line at the very bottom of the page. Verbatim
+    // values, sourceUrl citation. Mirrored into schema.org/Dataset in the
+    // @graph. Optional.
     const localDataHtml = ctx.localData && ctx.localData.items.length
-        ? `<section class="koto-local-data">\n  <h2>${escapeHtml(ctx.location.city)}${ctx.location.stateAbbr ? `, ${escapeHtml(ctx.location.stateAbbr)}` : ''} by the Numbers</h2>\n  <dl>\n${ctx.localData.items.map(it => `    <dt>${escapeHtml(it.label)}</dt>\n    <dd>${escapeHtml(it.value)}</dd>`).join('\n')}\n  </dl>\n  <p class="koto-cite">Source: <a href="${escapeHtml(ctx.localData.sourceUrl)}" rel="noopener" target="_blank">${escapeHtml(ctx.localData.sourceLabel)}</a></p>\n</section>`
+        ? (() => {
+            const summary = ctx.localData.items.map(it => `<strong>${escapeHtml(it.value)}</strong> ${escapeHtml(it.label.toLowerCase())}`).join(' &middot; ')
+            const cityLabel = `${escapeHtml(ctx.location.city)}${ctx.location.stateAbbr ? `, ${escapeHtml(ctx.location.stateAbbr)}` : ''}`
+            return `<aside class="koto-local-data"><p>About ${cityLabel}: ${summary}. <span class="koto-cite">Source: <a href="${escapeHtml(ctx.localData.sourceUrl)}" rel="noopener" target="_blank">${escapeHtml(ctx.localData.sourceLabel)}</a></span></p></aside>`
+        })()
         : ''
 
     // Hero media block — video takes precedence over image. Stays empty if
@@ -390,12 +421,22 @@ export function resolveMaster(
         ? `<section class="koto-related-services">\n  <h2>Related Services in ${escapeHtml(ctx.location.city)}</h2>\n  <ul>\n${related.map(r => `    <li><a href="${escapeHtml(r.url)}">${escapeHtml(r.topic)} in ${escapeHtml(r.city)}${r.state_abbr ? `, ${escapeHtml(r.state_abbr)}` : ''}</a></li>`).join('\n')}\n  </ul>\n</section>`
         : ''
 
-    // Base style block — keeps pages legible on any theme that doesn't
-    // apply its own content typography (Avada, Divi, some custom themes).
-    // Scoped to .koto-* classes so it doesn't fight theme-applied styles
-    // on existing elements. Operators can override via Custom HTML wrapper.
-    const baseStyles = `<style>
-.koto-hero,.koto-service-areas,.koto-related-services,.koto-cta,.koto-faq,.koto-direct-answer,.koto-howto,.koto-comparison,.koto-local-data{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
+    // Base CSS — keeps pages legible on any theme that doesn't apply its
+    // own content typography (Avada, Divi, some custom themes). Scoped to
+    // .koto-* classes so it doesn't fight theme-applied styles on existing
+    // elements.
+    //
+    // CRITICAL: this is returned as a SEPARATE `baseCss` field on the
+    // resolved page, NOT inlined into body HTML. WordPress KSES strips
+    // <style> tags from post_content for users without unfiltered_html
+    // (kotoiq_service intentionally lacks it). The dashboard writes this
+    // string to the _kotoiq_base_css post meta; plugin v4.2.1+ echoes it
+    // in wp_head wrapped in a real <style> block, sidestepping KSES.
+    //
+    // Operators can opt out via {{NO_STYLES}} in their custom wrapper —
+    // see wantsStyles logic below.
+    const baseCssBody = `
+.koto-hero,.koto-service-areas,.koto-related-services,.koto-cta,.koto-faq,.koto-direct-answer,.koto-howto,.koto-comparison{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
 .koto-direct-answer{background:#f8fafc;border-left:4px solid #1e3a8a;font-size:1.1rem;line-height:1.6;color:#1a2332}
 .koto-direct-answer p{margin:0;font-weight:500}
 .koto-howto ol{margin:1rem 0;padding-left:1.5rem;line-height:1.7;color:#334155}
@@ -405,10 +446,10 @@ export function resolveMaster(
 .koto-comparison th,.koto-comparison td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid #e2e8f0;vertical-align:top}
 .koto-comparison thead th{background:#f1f5f9;color:#1a2332;font-weight:700}
 .koto-comparison tbody th{font-weight:600;color:#475569;background:#fafafa}
-.koto-local-data dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem 1.5rem;margin:1rem 0}
-.koto-local-data dt{font-size:.8rem;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:.15rem}
-.koto-local-data dd{margin:0 0 .5rem;font-size:1.15rem;font-weight:700;color:#1a2332;font-variant-numeric:tabular-nums}
-.koto-local-data .koto-cite{font-size:.8rem;color:#6b7280;margin-top:1rem;border-top:1px solid #e5e7eb;padding-top:.75rem}
+.koto-local-data{margin:1.5rem 0 .5rem;padding:.5rem 0;border-top:1px solid #e5e7eb;font-size:.78rem;line-height:1.5;color:#6b7280}
+.koto-local-data p{margin:0}
+.koto-local-data strong{color:#1a2332;font-weight:700;font-variant-numeric:tabular-nums}
+.koto-local-data .koto-cite{display:inline}
 .koto-local-data .koto-cite a{color:#1e3a8a;text-decoration:underline}
 .koto-hero h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;color:#1a2332}
 .koto-hero-sub{font-size:1.1rem;color:#475569;line-height:1.6}
@@ -434,13 +475,15 @@ section{margin:1.5rem 0}
 .koto-related-services{border-left:3px solid #1e3a8a}
 a[href^="tel:"]{color:#1e3a8a;font-weight:700;text-decoration:none;white-space:nowrap}
 a[href^="tel:"]:hover{text-decoration:underline}
-</style>`
+`.trim()
 
-    // Compose body — prepend baseStyles unless the operator's custom
-    // wrapper opts out by including the {{NO_STYLES}} marker.
+    // Compose body. The CSS is no longer prepended — it now travels in the
+    // baseCss field of the resolved page and gets written to the
+    // _kotoiq_base_css post meta separately (KSES-safe). {{NO_STYLES}} in a
+    // custom wrapper still opts the page out of base CSS via the baseCss
+    // field returned below.
     const wantsStyles = !customWrapper || !customWrapper.includes('{{NO_STYLES}}')
-    const stylesPrefix = wantsStyles ? baseStyles + '\n' : ''
-    const bodyHtml = stylesPrefix + (customWrapper
+    const bodyHtml = (customWrapper
         ? customWrapper
             .replace(/\{\{NO_STYLES\}\}/g, '')
             .replace(/\{\{DIRECT_ANSWER\}\}/g, directAnswerHtml)
@@ -488,6 +531,7 @@ a[href^="tel:"]:hover{text-decoration:underline}
         metaTitle,
         metaDescription: stripHtml(metaDescription).trim(),
         bodyHtml,
+        baseCss: wantsStyles ? baseCssBody : '',
         jsonLd,
     }
 }

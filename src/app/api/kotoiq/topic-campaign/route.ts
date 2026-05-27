@@ -469,12 +469,15 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             status: 'publish',
         }
         if (featuredMediaId) wpBody.featured_media = featuredMediaId
-        if (resolved.jsonLd) {
-            // Plugin v4.1.0+ registers _kotoiq_schema_jsonld with
-            // show_in_rest:true. Writes here are echoed via wp_head.
-            // Older plugins ignore the unknown meta key.
-            wpBody.meta = { _kotoiq_schema_jsonld: resolved.jsonLd }
-        }
+        // Meta writes — schema (v4.1.0+) and base CSS (v4.2.1+) both ride
+        // through post meta because WP KSES strips <script> and <style>
+        // from post_content for users without unfiltered_html (the
+        // kotoiq_service role lacks it). The plugin echoes both in wp_head.
+        // Older plugins ignore unknown meta keys.
+        const metaForWp: Record<string, string> = {}
+        if (resolved.jsonLd) metaForWp._kotoiq_schema_jsonld = resolved.jsonLd
+        if (resolved.baseCss) metaForWp._kotoiq_base_css = resolved.baseCss
+        if (Object.keys(metaForWp).length > 0) wpBody.meta = metaForWp
 
         const wpResp = await wpFetchJson<{ id?: number; link?: string; slug?: string; error?: string }>(
             site.site_url,
@@ -683,7 +686,10 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             excerpt: resolved.metaDescription,
         }
         if (featuredMediaId) updBody.featured_media = featuredMediaId
-        if (resolved.jsonLd) updBody.meta = { _kotoiq_schema_jsonld: resolved.jsonLd }
+        const updMeta: Record<string, string> = {}
+        if (resolved.jsonLd) updMeta._kotoiq_schema_jsonld = resolved.jsonLd
+        if (resolved.baseCss) updMeta._kotoiq_base_css = resolved.baseCss
+        if (Object.keys(updMeta).length > 0) updBody.meta = updMeta
 
         const wpResp = await wpFetchJson<{ id?: number; link?: string }>(
             site.site_url,
@@ -1118,7 +1124,10 @@ async function retryFailedDeploys(supabase: any, agencyId: string, body: any) {
             excerpt: resolved.metaDescription, status: 'publish',
         }
         if (featuredMediaId) wpBody.featured_media = featuredMediaId
-        if (resolved.jsonLd) wpBody.meta = { _kotoiq_schema_jsonld: resolved.jsonLd }
+        const retryMeta: Record<string, string> = {}
+        if (resolved.jsonLd) retryMeta._kotoiq_schema_jsonld = resolved.jsonLd
+        if (resolved.baseCss) retryMeta._kotoiq_base_css = resolved.baseCss
+        if (Object.keys(retryMeta).length > 0) wpBody.meta = retryMeta
 
         const wpResp = await wpFetchJson<{ id?: number; link?: string; slug?: string }>(
             site.site_url, `/wp/v2/${restBase}`, creds,

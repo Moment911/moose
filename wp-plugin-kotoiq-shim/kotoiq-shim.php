@@ -3,7 +3,7 @@
  * Plugin Name:       KotoIQ
  * Plugin URI:        https://www.unifiedmktg.com
  * Description:       Connect this WordPress site to your KotoIQ dashboard. Managed by Unified Marketing.
- * Version:           4.2.0
+ * Version:           4.2.1
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -22,7 +22,7 @@
 if (!defined('ABSPATH')) exit;
 
 // ─── Plugin constants ──────────────────────────────────────────────────────
-define('KOTOIQ_SHIM_VERSION',      '4.2.0');
+define('KOTOIQ_SHIM_VERSION',      '4.2.1');
 define('KOTOIQ_SHIM_PLUGIN_FILE',  __FILE__);
 define('KOTOIQ_SHIM_DIR',          plugin_dir_path(__FILE__));
 define('KOTOIQ_SHIM_URL',          plugin_dir_url(__FILE__));
@@ -77,6 +77,7 @@ require_once KOTOIQ_SHIM_DIR . 'includes/rpc/verbs-webhook.php';
 // dashboard write to it via /wp/v2/{pages,posts} meta:{...} since the key
 // is registered with show_in_rest:true.
 require_once KOTOIQ_SHIM_DIR . 'includes/schema-injection.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/base-css-injection.php';
 
 // Runtime hooks (installed on every request — not behind RPC).
 require_once KOTOIQ_SHIM_DIR . 'runtime/access-filter.php';
