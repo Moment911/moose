@@ -95,6 +95,7 @@ const V4_ROUTABLE_ACTIONS = new Set<string>([
     // SEOPanel
     'kotoiq_seo_agency_test',
     'kotoiq_seo_pages',
+    'kotoiq_seo_pages_performance',
     'kotoiq_seo_content_get',
     'kotoiq_seo_sitemaps',
     'kotoiq_seo_sitemap_rebuild',
@@ -887,6 +888,76 @@ export async function dispatchV4ActionIfPaired(
                     200,
                 )
             }
+            case 'kotoiq_seo_pages_performance': {
+                // Per-URL GSC + GA4 data for the SEO panel. Requires the site
+                // row to have an associated client_id whose seo_connections
+                // include google_search_console and/or google_analytics.
+                const days = Math.max(7, Math.min(365, Number(body.days) || 28))
+                if (!site.client_id) {
+                    return envelopeOk({ ok: true, gsc_connected: false, ga4_connected: false, per_url: {}, hint: 'Site has no client_id — connect a client to see GSC/GA4 data.' }, 200)
+                }
+                // Dynamic import to avoid pulling Supabase client deps unless this action is used
+                const { loadClientConnections, getAccessToken, fetchSearchConsoleData, fetchGA4Data } =
+                    // @ts-ignore — seoService.js has no types
+                    await import('@/lib/seoService')
+                const conns = await loadClientConnections(site.client_id).catch(() => []) as any[]
+                const scConn = conns.find((c: any) => c.provider === 'google_search_console') || null
+                const ga4Conn = conns.find((c: any) => c.provider === 'google_analytics' || c.provider === 'ga4') || null
+
+                const today = new Date()
+                const start = new Date(today.getTime() - days * 86400 * 1000)
+                const ymd = (d: Date) => d.toISOString().slice(0, 10)
+
+                let scData: any = null, ga4Data: any = null
+                if (scConn) {
+                    try {
+                        const tok = await getAccessToken(scConn)
+                        const url = scConn.account_id || scConn.site_url
+                        if (tok && url) scData = await fetchSearchConsoleData(tok, url, ymd(start), ymd(today))
+                    } catch {}
+                }
+                if (ga4Conn) {
+                    try {
+                        const tok = await getAccessToken(ga4Conn)
+                        const pid = ga4Conn.property_id || ga4Conn.account_id
+                        if (tok && pid) ga4Data = await fetchGA4Data(tok, pid, ymd(start), ymd(today))
+                    } catch {}
+                }
+
+                const norm = (u: string) => String(u || '').replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+                const gsc: Record<string, { clicks: number; impressions: number; ctr: number; position: number }> = {}
+                let posWeight: Record<string, number> = {}
+                for (const row of (scData?.rows || [])) {
+                    const [, page] = row.keys || []
+                    const k = norm(page)
+                    if (!gsc[k]) { gsc[k] = { clicks: 0, impressions: 0, ctr: 0, position: 0 }; posWeight[k] = 0 }
+                    gsc[k].clicks += row.clicks || 0
+                    gsc[k].impressions += row.impressions || 0
+                    gsc[k].position += (row.position || 0) * (row.impressions || 0)
+                    posWeight[k] += row.impressions || 0
+                }
+                for (const k of Object.keys(gsc)) {
+                    gsc[k].position = posWeight[k] > 0 ? gsc[k].position / posWeight[k] : 0
+                    gsc[k].ctr = gsc[k].impressions > 0 ? gsc[k].clicks / gsc[k].impressions : 0
+                }
+
+                const ga4: Record<string, { sessions: number; users: number; conversions: number }> = {}
+                for (const row of (ga4Data?.rows || [])) {
+                    const path = String(row.dimensionValues?.[0]?.value || '').replace(/\/$/, '').toLowerCase()
+                    if (!ga4[path]) ga4[path] = { sessions: 0, users: 0, conversions: 0 }
+                    ga4[path].sessions += Number(row.metricValues?.[0]?.value || 0)
+                    ga4[path].users += Number(row.metricValues?.[1]?.value || 0)
+                    ga4[path].conversions += Number(row.metricValues?.[3]?.value || 0)
+                }
+
+                return envelopeOk({
+                    gsc_connected: !!scConn && !!scData,
+                    ga4_connected: !!ga4Conn && !!ga4Data,
+                    window_days: days,
+                    gsc, // keyed by normalized full URL (host+path, lowercase, no trailing slash)
+                    ga4, // keyed by path (lowercase, no trailing slash, leading /)
+                }, 200)
+            }
             case 'kotoiq_seo_pages': {
                 // Panel reads d2.data?.pages with: id, title, url, status,
                 // type, has_seo_meta. Use listSeoCandidates per post-type +
@@ -909,25 +980,30 @@ export async function dispatchV4ActionIfPaired(
                     focus_kw: string
                     seo_title: string
                     meta_description: string
+                    meta_desc: string
+                    rank_math_score: number | null
+                    word_count: number
                 }> = []
                 if (postsRes.ok) {
                     for (const p of postsRes.data.posts) {
-                        out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'post', has_seo_meta: false, focus_kw: '', seo_title: '', meta_description: '' })
+                        out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'post', has_seo_meta: false, focus_kw: '', seo_title: '', meta_description: '', meta_desc: '', rank_math_score: null, word_count: 0 })
                     }
                 }
                 if (pagesRes.ok) {
                     for (const p of pagesRes.data.posts) {
-                        out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'page', has_seo_meta: false, focus_kw: '', seo_title: '', meta_description: '' })
+                        out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'page', has_seo_meta: false, focus_kw: '', seo_title: '', meta_description: '', meta_desc: '', rank_math_score: null, word_count: 0 })
                     }
                 }
                 // Bulk meta probe — one round-trip across every listed post/page.
-                // Read title + description + focus keyword across all 3 SEO engines
-                // so the panel can show focus_kw + has_seo_meta + actual title/desc.
+                // Reads title + description + focus keyword + RankMath SEO score
+                // across all 3 SEO engines so the panel can render everything
+                // inline without per-page edit clicks.
                 if (out.length) {
                     const metaKeys = [
                         '_kotoiq_title', '_yoast_wpseo_title', 'rank_math_title',
                         '_kotoiq_description', '_yoast_wpseo_metadesc', 'rank_math_description',
                         '_kotoiq_focus_keyword', '_yoast_wpseo_focuskw', 'rank_math_focus_keyword',
+                        'rank_math_seo_score',
                     ]
                     const metaRes = await postGetMetaBulk(site.site_url, {
                         posts: out.map((p) => ({ post_id: p.id, keys: metaKeys })),
@@ -940,10 +1016,14 @@ export async function dispatchV4ActionIfPaired(
                             const title = s('_kotoiq_title') || s('_yoast_wpseo_title') || s('rank_math_title')
                             const desc = s('_kotoiq_description') || s('_yoast_wpseo_metadesc') || s('rank_math_description')
                             const kw = s('_kotoiq_focus_keyword') || s('_yoast_wpseo_focuskw') || s('rank_math_focus_keyword')
+                            const rmRaw = rec.rank_math_seo_score
+                            const rmScore = rmRaw != null && !isNaN(Number(rmRaw)) ? Number(rmRaw) : null
                             p.has_seo_meta = !!(title || desc)
                             p.focus_kw = kw
                             p.seo_title = title
                             p.meta_description = desc
+                            p.meta_desc = desc // panel reads .meta_desc (legacy field name)
+                            p.rank_math_score = rmScore
                         }
                     }
                     // If the bulk read fails, leave has_seo_meta=false (degrades

@@ -346,20 +346,57 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile 
   }
 
   if (!editing) {
+    // Use RankMath's score when present; fall back to client-side score
+    const rmScore = typeof page.rank_math_score === 'number' ? page.rank_math_score : null
+    const displayScore = rmScore != null ? rmScore : (analysis ? analysis.score : (quickScore ?? 0))
+    const scoreSource = rmScore != null ? 'RankMath' : analysis ? 'Local' : 'Quick'
+
+    // Uniform action pill style — every pill same width/height
+    const PILL_W = 96
+    const PILL_H = 36
+    const pillBase = {
+      width: PILL_W, height: PILL_H,
+      padding: '0 12px', borderRadius: PILL_H / 2, border: 'none',
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+      fontSize: 13, fontWeight: 600, fontFamily: FB, cursor: 'pointer',
+      whiteSpace: 'nowrap',
+    }
+
     return (
       <>
         <tr style={{ borderTop: `1px solid ${DESIGN.colors.borderLight}` }}
           onMouseEnter={e => e.currentTarget.style.background = DESIGN.colors.warmGray}
           onMouseLeave={e => e.currentTarget.style.background = analysis ? DESIGN.colors.warmGray : 'transparent'}>
           <td style={td()}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <MiniScoreRing score={analysis ? analysis.score : (quickScore ?? 0)} size={38} />
-              <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div title={`${scoreSource} score: ${displayScore}/100`}>
+                <MiniScoreRing score={displayScore} size={42} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: FB, fontWeight: 600, color: DESIGN.colors.navy, fontSize: 15 }}>{page.title || '(untitled)'}</div>
-                {page.meta_desc && <div style={{ fontSize: 13, color: DESIGN.colors.textSecondary, marginTop: 4, lineHeight: 1.5, maxWidth: 420, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page.meta_desc}</div>}
-                <a href={page.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: DESIGN.colors.pink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontWeight: 500 }}>
-                  View page <ExternalLink size={10} />
-                </a>
+                {page.meta_desc && (
+                  <div style={{ fontSize: 13, color: DESIGN.colors.textSecondary, marginTop: 4, lineHeight: 1.5, maxWidth: 480, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={page.meta_desc}>
+                    {page.meta_desc}
+                  </div>
+                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 5, flexWrap: 'wrap' }}>
+                  <a href={page.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: DESIGN.colors.pink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 500 }}>
+                    View <ExternalLink size={10} />
+                  </a>
+                  {rmScore != null && (
+                    <span style={{ fontSize: 11, padding: '2px 7px', borderRadius: 4, background: rmScore >= 80 ? `${GRN}15` : rmScore >= 60 ? '#fef3c7' : '#fee2e2', color: rmScore >= 80 ? GRN : rmScore >= 60 ? '#a16207' : '#b91c1c', fontWeight: 700, fontFamily: DESIGN.fonts.mono }}>
+                      RM {rmScore}/100
+                    </span>
+                  )}
+                  {(page.clicks > 0 || page.sessions > 0) && (
+                    <span style={{ fontSize: 11, color: DESIGN.colors.textMuted, fontFamily: FB }}>
+                      {page.clicks > 0 && <>📊 {page.clicks} clicks · </>}
+                      {page.impressions > 0 && <>{page.impressions} impr · </>}
+                      {page.position > 0 && <>pos {page.position.toFixed(1)}</>}
+                      {page.sessions > 0 && <> · 👥 {page.sessions} sess</>}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </td>
@@ -370,39 +407,32 @@ function PageEditor({ page, siteId, onSaved, siteDiag, allPages, companyProfile 
           </td>
           <td style={{ ...td(), textAlign: 'right', color: DESIGN.colors.textMuted }}>{page.word_count}</td>
           <td style={{ ...td(), textAlign: 'center' }}>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
               <button onClick={aiOptimize} disabled={aiGenerating || !!contentFixing} title="AI writes optimized SEO title, description, and focus keyword" style={{
-                padding: '8px 14px', borderRadius: 50, border: 'none',
-                background: DESIGN.colors.pink, color: '#fff', cursor: aiGenerating ? 'wait' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 5,
-                fontSize: 13, fontWeight: 600, fontFamily: FB, opacity: aiGenerating ? 0.6 : 1,
+                ...pillBase, background: DESIGN.colors.pink, color: '#fff',
+                cursor: aiGenerating ? 'wait' : 'pointer', opacity: aiGenerating ? 0.6 : 1,
               }}>
                 {aiGenerating ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
                 AI Meta
               </button>
               <button onClick={() => runContentFix('auto')} disabled={!!contentFixing || aiGenerating} title="AI rewrites page content to maximize SEO score, then pushes to WordPress" style={{
-                padding: '8px 14px', borderRadius: 50, border: 'none',
-                background: DESIGN.colors.navy, color: '#fff', cursor: contentFixing ? 'wait' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 5,
-                fontSize: 13, fontWeight: 600, fontFamily: FB, opacity: contentFixing === 'auto' ? 0.6 : 1,
+                ...pillBase, background: DESIGN.colors.navy, color: '#fff',
+                cursor: contentFixing ? 'wait' : 'pointer', opacity: contentFixing === 'auto' ? 0.6 : 1,
               }}>
                 {contentFixing === 'auto' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
                 AI Fix
               </button>
               <button onClick={() => runContentFix('checklist')} disabled={!!contentFixing || aiGenerating} title="AI generates a manual checklist of what to fix on this page" style={{
-                padding: '8px 14px', borderRadius: 50, border: `1.5px solid ${DESIGN.colors.border}`,
-                background: '#fff', cursor: contentFixing ? 'wait' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 5,
-                fontSize: 13, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
-                opacity: contentFixing === 'checklist' ? 0.6 : 1,
+                ...pillBase, border: `1.5px solid ${DESIGN.colors.border}`,
+                background: '#fff', color: DESIGN.colors.navy,
+                cursor: contentFixing ? 'wait' : 'pointer', opacity: contentFixing === 'checklist' ? 0.6 : 1,
               }}>
                 {contentFixing === 'checklist' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <BarChart2 size={13} />}
                 Audit
               </button>
               <button onClick={() => setEditing(true)} title="Manually edit SEO title, description, keyword" style={{
-                padding: '8px 14px', borderRadius: 50, border: `1.5px solid ${DESIGN.colors.border}`,
-                background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
-                fontSize: 13, fontWeight: 600, color: DESIGN.colors.navy, fontFamily: FB,
+                ...pillBase, border: `1.5px solid ${DESIGN.colors.border}`,
+                background: '#fff', color: DESIGN.colors.navy,
               }}>
                 <Edit2 size={13} /> Edit
               </button>
@@ -783,16 +813,40 @@ export default function SEOPanel({ site }) {
   async function load() {
     setLoading(true)
     try {
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'kotoiq_seo_agency_test', site_id: site.id }) }),
         fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'kotoiq_seo_pages', site_id: site.id }) }),
+        fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'kotoiq_seo_pages_performance', site_id: site.id, days: 28 }) }),
       ])
       const d1 = await r1.json()
       const d2 = await r2.json()
+      const d3 = await r3.json().catch(() => ({ ok: false }))
       if (d1.ok) setDiag(d1.data); else toast.error(d1.error || d1.data?.error || 'Diagnostics failed')
-      if (d2.ok) setPages(d2.data?.pages || [])
+      if (d2.ok) {
+        const pageList = d2.data?.pages || []
+        // Merge GSC + GA4 traffic into each page by matching URL
+        if (d3.ok && d3.data) {
+          const norm = u => String(u || '').replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+          const gscByUrl = d3.data.gsc || {}
+          const ga4ByPath = d3.data.ga4 || {}
+          for (const p of pageList) {
+            const fullKey = norm(p.url)
+            const pathKey = '/' + fullKey.split('/').slice(1).join('/').replace(/\/$/, '').toLowerCase()
+            const gsc = gscByUrl[fullKey] || null
+            const ga4 = ga4ByPath[pathKey] || null
+            p.clicks = gsc?.clicks || 0
+            p.impressions = gsc?.impressions || 0
+            p.position = gsc?.position || 0
+            p.sessions = ga4?.sessions || 0
+            p.users = ga4?.users || 0
+            p.conversions = ga4?.conversions || 0
+          }
+        }
+        setPages(pageList)
+      }
       // Fetch sitemaps
       try {
         const sr = await fetch('/api/wp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'kotoiq_seo_sitemaps', site_id: site.id }) })
