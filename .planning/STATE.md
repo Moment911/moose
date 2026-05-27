@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-06-PLAN.md — shim contract complete (27/27 verbs)
-last_updated: "2026-05-27T00:12:31.828Z"
+stopped_at: Completed 10-07-PLAN.md — 5 dashboard ports shipped (seo/redirects/snippets/access/search-replace)
+last_updated: "2026-05-27T01:47:13.998Z"
 last_activity: 2026-05-26 -- Phase 10 planning complete
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 28
-  completed_plans: 21
-  percent: 75
+  completed_plans: 22
+  percent: 79
 ---
 
 # Project State
@@ -79,6 +79,7 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 | Phase 10 P04 | 18min | 2 tasks | 14 files |
 | Phase 10 P05 | 10min | 2 tasks | 8 files |
 | Phase 10 P06 | 18m 18s | 2 tasks | 3 files |
+| Phase 10 P07 | 88m | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,9 @@ Recent decisions affecting current work:
 - [Phase 10]: Plan 10-05 — LOC budget raised 500 → 650 per Plan 10-04 SUMMARY recommendation; final 623/650 OK with 27 LOC headroom for Plan 10-06
 - [Phase 10]: Plan 10-06: LOC budget raised 650 → 750 to fit the substantive host-bound elementor.save + elementor.clone verbs (idempotency keys for both verbs, edit-lock, Document::save, koto_service user, force_css_regen, prefix-allowlist validation, post-status updates, revision-cap filter, audit-event emission). Same Rule-3 documented pattern Plan 10-05 used (500 → 650). Final 736/750 OK with 14 LOC headroom for Plan 10-11 cutover refinements.
 - [Phase 10]: Plan 10-06: meta_prefix_allowlist dashboard-supplied pattern locks in the v3→v4 IP-protection win. v3 hardcoded 'rank_math_' + '_koto_' prefixes; v4 receives the list from the dashboard and validates each prefix matches /^[a-zA-Z_][a-zA-Z0-9_]*_$/. Plugin source no longer reveals which SEO plugins KotoIQ writes meta for.
+- [Phase 10]: Plan 10-07: Used php-serialize@5.1.3 (modern MIT) instead of php-unserialize @ ~3.x (unsatisfiable npm version range)
+- [Phase 10]: Plan 10-07: Redirect enforcement runtime intentionally NOT carried in v4 — operational decision per 60-day side-by-side cutover
+- [Phase 10]: Plan 10-07: Cross-engine SEO writes UNCONDITIONAL (always write Yoast + RankMath companion keys) — plugin source remains IP-clean
 
 ### Pending Todos
 
@@ -186,8 +190,8 @@ UAT test data still seeded (reuse for the gauntlet):
 
 ## Session Continuity
 
-Last session: 2026-05-27T00:12:31.825Z
-Stopped at: Completed 10-06-PLAN.md — shim contract complete (27/27 verbs)
+Last session: 2026-05-27T01:47:05.058Z
+Stopped at: Completed 10-07-PLAN.md — 5 dashboard ports shipped (seo/redirects/snippets/access/search-replace)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
