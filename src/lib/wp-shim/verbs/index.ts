@@ -674,7 +674,13 @@ export async function elementorClone(
 // Snippet CRUD goes through option.get/option.update against the
 // 'kotoiq_shim_snippets' option — there's no dedicated verb because the
 // shim already supports generic option r/w. These wrappers add types.
-export interface Snippet {
+//
+// NOTE: The canonical Snippet shape (with created_at/updated_at/scope) ships
+// in ports/snippetsPort.ts as of Plan 10-07. This file's
+// `SnippetEnvelopeShape` is the minimal envelope kept for back-compat with
+// the snippetsList/snippetsSave low-level wrappers (used by Plan 10-05 tests).
+// New consumers should use the port instead.
+export interface SnippetEnvelopeShape {
     id: string
     kind: 'php' | 'html_head' | 'html_footer' | 'js_head' | 'js_footer' | 'css'
     scope: 'frontend' | 'admin' | 'both'
@@ -689,7 +695,7 @@ export async function snippetsList(
 }
 export async function snippetsSave(
     siteUrl: string,
-    snippets: Snippet[],
+    snippets: SnippetEnvelopeShape[],
 ): Promise<ShimRpcResponse<OptionUpdateResponse>> {
     // Option name is NOT on the deny-list — skip the assertOptionWriteAllowed
     // path to allow the kotoiq_shim_snippets write to flow without a guard.

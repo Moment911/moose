@@ -51,3 +51,16 @@ export type {
 // functions and their request/response interface types so downstream plans
 // can pin call sites with full type safety.
 export * from './verbs'
+
+// ── Dashboard ports (Plan 10-07 — five v3 modules ported to TypeScript) ───
+// Each port is a thin TypeScript layer on top of the typed verb wrappers
+// that replaces a v3 PHP module. The dashboard owns the algorithm; the
+// shim plugin sees only generic primitives. IP-protection win — a hostile
+// reader of the WP plugin source can reconstruct none of the SEO scoring,
+// redirect rules, snippet runtime, capability mapping, or search-replace
+// walker logic that ships here.
+export * from './ports/seoPort'
+export * from './ports/redirectsPort'
+export * from './ports/snippetsPort'
+export * from './ports/accessPort'
+export * from './ports/searchReplacePort'

@@ -174,7 +174,7 @@ export async function listSnippets(
  */
 export async function saveSnippet(
     siteUrl: string,
-    snippet: Omit<Snippet, 'created_at' | 'updated_at'> & {
+    snippet: Omit<Snippet, 'id' | 'created_at' | 'updated_at'> & {
         id?: string
         created_at?: string
         updated_at?: string
