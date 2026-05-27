@@ -5,6 +5,7 @@ import { generateTopicCampaignMaster } from '@/lib/wp-shim/topicCampaignGenerato
 import { resolveMaster, type LocationContext, type ResolveContext, type TopicCampaignMaster } from '@/lib/wp-shim/tokenResolver'
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
+import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 
 // ─── POST /api/kotoiq/topic-campaign ───────────────────────────────────────
 //
@@ -43,6 +44,8 @@ export async function POST(req: NextRequest) {
             case 'list_campaigns':    return listCampaigns(supabase, agencyId, body)
             case 'get_campaign':      return getCampaign(supabase, agencyId, body)
             case 'list_deploys':      return listDeploys(supabase, agencyId, body)
+            case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
+            case 'list_cities':       return listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
         }
     } catch (err) {
@@ -294,6 +297,19 @@ async function getCampaign(supabase: any, agencyId: string, body: any) {
         .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, campaign: data })
+}
+
+async function listCities(body: any) {
+    const stateAbbr = String(body.state_abbr || '').toUpperCase()
+    if (!stateAbbr || !STATE_FIPS[stateAbbr]) {
+        return NextResponse.json({ error: 'state_abbr required (2-letter)' }, { status: 400 })
+    }
+    const res = await getPlacesForState(stateAbbr, { incorporatedOnly: true })
+    const cities = (res.data || [])
+        .filter(p => p.kind === 'city' || p.kind === 'town')
+        .map(p => ({ name: p.name, kind: p.kind, fips: p.fips }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    return NextResponse.json({ ok: true, state: stateAbbr, cities, source_url: res.source_url, fetched_at: res.fetched_at })
 }
 
 async function listDeploys(supabase: any, agencyId: string, body: any) {

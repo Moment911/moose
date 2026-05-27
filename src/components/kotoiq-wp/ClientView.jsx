@@ -1,12 +1,13 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, Trash2, ChevronLeft, ChevronRight, Download, RefreshCw, LayoutDashboard } from 'lucide-react'
+import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, Trash2, ChevronLeft, ChevronRight, Download, RefreshCw, LayoutDashboard, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 
 import WPSCConnectionGate     from '../kotoiq/WPSCConnectionGate'
 import OverviewPanel           from '../kotoiq/OverviewPanel'
+import TopicCampaignPanel      from '../kotoiq/TopicCampaignPanel'
 import SearchReplacePanel     from '../kotoiq/SearchReplacePanel'
 import SnippetsPanel          from '../kotoiq/SnippetsPanel'
 import AccessManagementPanel  from '../kotoiq/AccessManagementPanel'
@@ -34,6 +35,7 @@ const LINE  = '#e9e6dd'
 
 const TABS = [
   { key: 'overview',          label: 'Overview',         icon: LayoutDashboard, slug: null },
+  { key: 'topic_campaign',    label: 'AI Pages',         icon: Sparkles,    slug: null },
   { key: 'search_replace',    label: 'Search & Replace', icon: SearchIcon,  slug: 'search-replace' },
   { key: 'snippets',          label: 'Snippets',         icon: Code2,       slug: 'snippets' },
   { key: 'access',            label: 'Access',           icon: ShieldCheck, slug: 'access' },
@@ -307,6 +309,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
               {activeSite ? (
                 <WPSCConnectionGate site={activeSite} onPaired={load}>
                   {tab === 'overview'          && <OverviewPanel         site={activeSite}/>}
+                  {tab === 'topic_campaign'    && <TopicCampaignPanel    site={activeSite}/>}
                   {tab === 'search_replace'    && <SearchReplacePanel    site={activeSite}/>}
                   {tab === 'snippets'          && <SnippetsPanel         site={activeSite}/>}
                   {tab === 'access'            && <AccessManagementPanel site={activeSite}/>}
