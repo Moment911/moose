@@ -83,6 +83,44 @@ export default function TopicCampaignPanel({ site }) {
   const [perfWindow, setPerfWindow] = useState(28)
   const [expandedRows, setExpandedRows] = useState(new Set())
 
+  // llms.txt site-level controls
+  const [llmsBusy, setLlmsBusy] = useState(null) // 'preview' | 'publish' | null
+  const [llmsPreview, setLlmsPreview] = useState(null) // { content, byte_count } | null
+  const [llmsResult, setLlmsResult] = useState(null) // last publish outcome
+
+  async function previewLlmsTxt() {
+    if (!site?.id || llmsBusy) return
+    setLlmsBusy('preview'); setLlmsResult(null)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'preview_llms_txt', agency_id: agencyId, site_id: site.id }),
+      })
+      const d = await r.json()
+      if (d.ok) setLlmsPreview({ content: d.content, byte_count: d.byte_count })
+      else setLlmsResult({ ok: false, error: d.error || 'preview failed' })
+    } catch (e) {
+      setLlmsResult({ ok: false, error: String(e?.message || e) })
+    }
+    setLlmsBusy(null)
+  }
+
+  async function publishLlmsTxt() {
+    if (!site?.id || llmsBusy) return
+    setLlmsBusy('publish'); setLlmsResult(null)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'publish_llms_txt', agency_id: agencyId, site_id: site.id }),
+      })
+      const d = await r.json()
+      setLlmsResult(d)
+    } catch (e) {
+      setLlmsResult({ ok: false, error: String(e?.message || e) })
+    }
+    setLlmsBusy(null)
+  }
+
   const isV4 = site?.shim_version === 'v4'
 
   // Load states once
@@ -436,6 +474,54 @@ export default function TopicCampaignPanel({ site }) {
           </div>
         </div>
       </div>
+
+      {/* Site-wide tools: llms.txt — visible on step 1, only when site is paired */}
+      {step === 1 && !campaign && isV4 && site?.site_url && (
+        <div style={card({ background:'#fff' })}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+            <Sparkles size={16} color={T}/>
+            <div style={{ flex:1 }}>
+              <div style={{ fontFamily:FH, fontWeight:800, fontSize:14, color:BLK }}>
+                llms.txt — AI crawler citation map
+              </div>
+              <div style={{ fontFamily:FB, fontSize:12, color:'#6b7280', marginTop:2 }}>
+                Serves a plaintext index at <code style={{ background:'#f1f5f9', padding:'1px 5px', borderRadius:3, fontSize:11 }}>{String(site.site_url).replace(/\/$/, '')}/llms.txt</code> listing every deployed page so AI crawlers (claudebot, GPTBot, Perplexity, Google-Extended) cite the right city pages. Requires plugin v4.2.0+.
+              </div>
+            </div>
+            <button onClick={previewLlmsTxt} disabled={!!llmsBusy} style={miniBtn()}>
+              {llmsBusy === 'preview' ? <Loader2 size={11} className="spin"/> : null} Preview
+            </button>
+            <button onClick={publishLlmsTxt} disabled={!!llmsBusy} style={miniBtn({ background:T, color:'#fff', borderColor:T })}>
+              {llmsBusy === 'publish' ? <Loader2 size={11} className="spin"/> : null} Publish
+            </button>
+          </div>
+
+          {llmsResult && (
+            <div style={{ marginTop:6, padding:'8px 10px', borderRadius:6, fontSize:12, fontFamily:FB,
+              background: llmsResult.ok ? '#ecfdf5' : '#fef2f2',
+              color: llmsResult.ok ? '#065f46' : '#991b1b',
+              border: `1px solid ${llmsResult.ok ? '#a7f3d0' : '#fecaca'}` }}>
+              {llmsResult.ok
+                ? <>✓ Published {llmsResult.bytes_written} bytes. View live: <a href={llmsResult.llms_txt_url} target="_blank" rel="noopener" style={{ color:'#065f46', textDecoration:'underline' }}>{llmsResult.llms_txt_url}</a></>
+                : <>✗ {llmsResult.error || 'publish failed'}{(llmsResult.error || '').toLowerCase().includes('plugin') || (llmsResult.error || '').toLowerCase().includes('404') ? <span style={{ display:'block', marginTop:4, fontSize:11 }}>Likely cause: shim plugin is below v4.2.0 on this site — update the plugin via cutover playbook, then retry.</span> : null}</>}
+            </div>
+          )}
+
+          {llmsPreview && (
+            <div style={{ marginTop:10, border:'1px solid #e5e7eb', borderRadius:8, overflow:'hidden' }}>
+              <div style={{ display:'flex', alignItems:'center', padding:'8px 12px', background:'#f9fafb', borderBottom:'1px solid #e5e7eb' }}>
+                <div style={{ flex:1, fontSize:11, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em' }}>
+                  Preview — {llmsPreview.byte_count} bytes
+                </div>
+                <button onClick={() => setLlmsPreview(null)} style={miniBtn()}>Close</button>
+              </div>
+              <pre style={{ margin:0, padding:'12px 14px', fontSize:11, fontFamily:'ui-monospace,Menlo,monospace', color:'#1a2332', background:'#fff', overflow:'auto', maxHeight:340, lineHeight:1.55, whiteSpace:'pre-wrap' }}>
+                {llmsPreview.content}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Saved campaigns (only on step 1 with no active campaign) */}
       {step === 1 && !campaign && savedCampaigns.length > 0 && (
@@ -1429,7 +1515,7 @@ const inp = (x={}) => ({ width:'100%', padding:'9px 12px', borderRadius:8, borde
 const overlay = () => ({ position:'fixed', inset:0, background:'rgba(0,0,0,.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:24 })
 const modal = () => ({ background:'#fff', borderRadius:14, width:'100%' })
 const modalHeader = () => ({ padding:'14px 20px', borderBottom:'1px solid #e5e7eb', display:'flex', alignItems:'center', gap:10 })
-const miniBtn = (x={}) => ({ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 13px', borderRadius:8, border:`1px solid ${x.borderColor||'#e5e7eb'}`, background:'#fff', color:x.color||'#6b7280', fontFamily:FH, fontSize:13, fontWeight:700, cursor:'pointer' })
+const miniBtn = (x={}) => ({ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 13px', borderRadius:8, border:`1px solid ${x.borderColor||'#e5e7eb'}`, background:x.background||'#fff', color:x.color||'#6b7280', fontFamily:FH, fontSize:13, fontWeight:700, cursor:'pointer' })
 const primaryBtn = () => ({ display:'inline-flex', alignItems:'center', gap:7, padding:'10px 18px', borderRadius:9, border:'none', background:R, color:'#fff', fontFamily:FH, fontSize:14, fontWeight:700, cursor:'pointer' })
 const pill = (color, bg) => ({ display:'inline-flex', alignItems:'center', padding:'4px 10px', borderRadius:6, fontSize:11, fontFamily:FH, fontWeight:700, color, background:bg, textTransform:'uppercase', letterSpacing:'.04em' })
 const Pill = ({ children, color, bg }) => <span style={pill(color, bg)}>{children}</span>
