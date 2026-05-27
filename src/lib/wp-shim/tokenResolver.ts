@@ -123,6 +123,12 @@ function pickIndex(seed: string, blockIndex: number, n: number): number {
  */
 function resolveScalarTokens(input: string, ctx: ResolveContext): string {
     const { location: loc, phone, companyName } = ctx
+    // Both phone tokens render as tel: links — phone numbers should always
+    // be tappable on mobile. Operators who want plain text can edit the
+    // master to remove the link.
+    const phoneLink = phone
+        ? `<a href="tel:${digits(phone)}">${escapeHtml(phone)}</a>`
+        : ''
     const map: Record<string, string> = {
         '[koto_city]': loc.city,
         '[koto_state]': loc.state,
@@ -130,8 +136,8 @@ function resolveScalarTokens(input: string, ctx: ResolveContext): string {
         '[koto_zip]': loc.zip || '',
         '[koto_county]': loc.county || '',
         '[koto_population]': loc.population != null ? String(loc.population) : '',
-        '[koto_phone]': phone || '',
-        '[koto_phone_link]': phone ? `<a href="tel:${digits(phone)}">${escapeHtml(phone)}</a>` : '',
+        '[koto_phone]': phoneLink,
+        '[koto_phone_link]': phoneLink,
         '[koto_company_name]': companyName || '',
         '[koto_city_state]': loc.city && loc.state ? `${loc.city}, ${loc.state}` : loc.city,
         '[koto_city_state_abbr]': loc.city && loc.stateAbbr ? `${loc.city}, ${loc.stateAbbr}` : loc.city,
@@ -142,7 +148,42 @@ function resolveScalarTokens(input: string, ctx: ResolveContext): string {
         if (out.indexOf(token) === -1) continue
         out = out.split(token).join(value)
     }
+    // Safety net: wrap any unlinked phone-pattern in tel: link. Catches
+    // cases where Claude wrote a literal phone number instead of a token,
+    // OR put the phone outside an <a> tag. Skips numbers already inside
+    // <a href="tel:..."> blocks.
+    if (phone) {
+        const phoneDigits = digits(phone)
+        if (phoneDigits) {
+            const pattern = phoneRegex(phone)
+            if (pattern) {
+                out = out.replace(pattern, (m, _g, offset, str) => {
+                    // Skip if already inside an <a> tag (avoid double-wrap)
+                    const before = String(str).slice(Math.max(0, offset - 80), offset)
+                    if (/<a[^>]*tel:[^>]*>[^<]*$/i.test(before)) return m
+                    return `<a href="tel:${phoneDigits}">${m}</a>`
+                })
+            }
+        }
+    }
     return out
+}
+
+/** Escape a phone number into a forgiving regex that matches reasonable
+ *  formatting variants — (512) 555-1234, 512-555-1234, 512.555.1234, etc. */
+function phoneRegex(phone: string): RegExp | null {
+    const d = digits(phone)
+    if (d.length < 7) return null
+    // Allow optional country code, then groups separated by space/dash/dot/paren
+    const last10 = d.slice(-10)
+    if (last10.length < 10) return null
+    const area = last10.slice(0, 3)
+    const exch = last10.slice(3, 6)
+    const num = last10.slice(6)
+    const sep = '[\\s.\\-]?'
+    const open = '\\(?'
+    const close = '\\)?'
+    return new RegExp(`(${open}${area}${close}${sep}${exch}${sep}${num})`, 'g')
 }
 
 function digits(s: string): string {
@@ -260,9 +301,44 @@ export function resolveMaster(
         ? `<section class="koto-service-areas">\n  <h2>Service Areas</h2>\n  <p>We also serve nearby cities:</p>\n  <ul>\n${siblings.map(s => `    <li><a href="${escapeHtml(s.url)}">${escapeHtml(s.city)}${s.state_abbr ? `, ${escapeHtml(s.state_abbr)}` : ''}</a></li>`).join('\n')}\n  </ul>\n</section>`
         : ''
 
-    // Compose body
-    const bodyHtml = customWrapper
+    // Base style block — keeps pages legible on any theme that doesn't
+    // apply its own content typography (Avada, Divi, some custom themes).
+    // Scoped to .koto-* classes so it doesn't fight theme-applied styles
+    // on existing elements. Operators can override via Custom HTML wrapper.
+    const baseStyles = `<style>
+.koto-hero,.koto-service-areas,.koto-cta,.koto-faq{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
+.koto-hero h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;color:#1a2332}
+.koto-hero-sub{font-size:1.1rem;color:#475569;line-height:1.6}
+.koto-hero-media img,.koto-hero-media video{max-width:100%;height:auto;border-radius:10px;margin:0 0 1rem}
+.koto-hero,.koto-cta,.koto-service-areas,.koto-faq,section{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
+section h2{font-size:1.5rem;line-height:1.3;margin:0 0 .75rem;color:#1a2332}
+section p,.koto-hero-sub p{margin:0 0 .75rem;line-height:1.65;color:#334155}
+section{margin:1.5rem 0}
+.koto-faq details{margin:.5rem 0;padding:1rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
+.koto-faq summary{cursor:pointer;font-weight:700;color:#1a2332;font-size:1.05rem;list-style:none}
+.koto-faq summary::-webkit-details-marker{display:none}
+.koto-faq summary::after{content:" \\25BC";font-size:.7em;color:#94a3b8;float:right}
+.koto-faq details[open] summary::after{content:" \\25B2"}
+.koto-faq details>div{margin-top:.75rem;color:#334155;line-height:1.65}
+.koto-cta{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;text-align:center}
+.koto-cta h2{color:#fff}
+.koto-cta p{color:rgba(255,255,255,.95)}
+.koto-cta a{color:#fff;font-weight:700;text-decoration:underline}
+.koto-service-areas ul{list-style:none;padding:0;margin:1rem 0;display:flex;flex-wrap:wrap;gap:.5rem}
+.koto-service-areas li{margin:0}
+.koto-service-areas a{display:inline-block;padding:.5rem 1rem;background:#f1f5f9;border-radius:6px;color:#1e3a8a;text-decoration:none;font-weight:600;font-size:.95rem}
+.koto-service-areas a:hover{background:#dbeafe}
+a[href^="tel:"]{color:#1e3a8a;font-weight:700;text-decoration:none;white-space:nowrap}
+a[href^="tel:"]:hover{text-decoration:underline}
+</style>`
+
+    // Compose body — prepend baseStyles unless the operator's custom
+    // wrapper opts out by including the {{NO_STYLES}} marker.
+    const wantsStyles = !customWrapper || !customWrapper.includes('{{NO_STYLES}}')
+    const stylesPrefix = wantsStyles ? baseStyles + '\n' : ''
+    const bodyHtml = stylesPrefix + (customWrapper
         ? customWrapper
+            .replace(/\{\{NO_STYLES\}\}/g, '')
             .replace(/\{\{HERO_HEADLINE\}\}/g, escapeHtml(stripHtml(heroHeadline)))
             .replace(/\{\{HERO_SUB\}\}/g, ensureParagraphs(heroSub))
             .replace(/\{\{HERO_MEDIA\}\}/g, heroMediaHtml)
@@ -276,7 +352,7 @@ export function resolveMaster(
             faqsHtml,
             ctaHtml,
             serviceAreasHtml,
-        ].filter(Boolean).join('\n')
+        ].filter(Boolean).join('\n'))
 
     const metaTitle = resolveTitle(master.meta.title_template, ctx)
     const metaDescription = resolveTokens(master.meta.description_template, ctx)

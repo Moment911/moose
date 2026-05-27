@@ -59,6 +59,7 @@ export default function TopicCampaignPanel({ site }) {
   const [editedHeroImage, setEditedHeroImage] = useState('')
   const [editedHeroVideo, setEditedHeroVideo] = useState('')
   const [editedHeroAlt, setEditedHeroAlt] = useState('')
+  const [editedPostType, setEditedPostType] = useState('page')
   const [deployHistory, setDeployHistory] = useState([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [inspectDeploy, setInspectDeploy] = useState(null)
@@ -285,6 +286,7 @@ export default function TopicCampaignPanel({ site }) {
           hero_image_url: editedHeroImage,
           hero_video_url: editedHeroVideo,
           hero_image_alt: editedHeroAlt,
+          post_type: editedPostType,
         }),
       })
       const d = await r.json()
@@ -532,6 +534,7 @@ export default function TopicCampaignPanel({ site }) {
                 setEditedHeroImage(campaign.hero_image_url || '')
                 setEditedHeroVideo(campaign.hero_video_url || '')
                 setEditedHeroAlt(campaign.hero_image_alt || '')
+                setEditedPostType(campaign.post_type || 'page')
                 setEditorOpen(true)
               }} style={miniBtn()}>
                 <Edit3 size={11}/> Edit master
@@ -889,6 +892,7 @@ export default function TopicCampaignPanel({ site }) {
           heroImage={editedHeroImage} setHeroImage={setEditedHeroImage}
           heroVideo={editedHeroVideo} setHeroVideo={setEditedHeroVideo}
           heroAlt={editedHeroAlt} setHeroAlt={setEditedHeroAlt}
+          postType={editedPostType} setPostType={setEditedPostType}
           onSave={saveMasterEdits}
           onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
         />
@@ -941,7 +945,7 @@ export default function TopicCampaignPanel({ site }) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, onSave, onClose }) {
+function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, onSave, onClose }) {
   function patch(path, value) {
     setMaster(prev => {
       const next = structuredClone(prev)
@@ -970,13 +974,19 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
         <div style={{ flex:1, overflow:'auto', padding:22, display:'flex', flexDirection:'column', gap:18 }}>
 
           {/* Campaign-level tokens (resolved everywhere) */}
-          <EditorBlock label="Campaign-wide token values">
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-              <Field label="Company name" hint="Resolves to [koto_company_name] on every page">
+          <EditorBlock label="Campaign settings">
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+              <Field label="Company name" hint="[koto_company_name]">
                 <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Unified Marketing" style={inp()}/>
               </Field>
-              <Field label="Phone number" hint="Resolves to [koto_phone] / [koto_phone_link]">
+              <Field label="Phone number" hint="[koto_phone] (tel link)">
                 <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(512) 555-1234" style={inp()}/>
+              </Field>
+              <Field label="Publish as" hint="Page or Post in WordPress">
+                <select value={postType} onChange={e => setPostType(e.target.value)} style={inp()}>
+                  <option value="page">Page</option>
+                  <option value="post">Post</option>
+                </select>
               </Field>
             </div>
           </EditorBlock>
