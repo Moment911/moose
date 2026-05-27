@@ -506,6 +506,83 @@ Rules:
       return NextResponse.json({ site: row, version })
     }
 
+    if (action === 'shim_pair_new_site') {
+      // Phase 10 v4 pair flow — replaces the v3 "paste API key" UX.
+      // Steps:
+      //   1. INSERT or UPDATE the koto_wp_sites row (no API key — dashboard issues it)
+      //   2. Probe /wp-json/kotoiq-shim/v1/meta to confirm shim is installed
+      //   3. Call pairSite() — generates Ed25519 envelope + posts to /pair + verifies health
+      //   4. Return the paired site row
+      const { site_url, site_name, client_id } = body
+      const finalAgency = agency_id
+      if (!site_url) return NextResponse.json({ error: 'site_url required' }, { status: 400 })
+      if (!finalAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+
+      const cleanUrl = String(site_url).replace(/\/$/, '').toLowerCase()
+
+      // Probe the shim's meta endpoint — confirms the plugin is installed + active
+      let shimVersion: string | null = null
+      try {
+        const r = await fetch(`${cleanUrl}/wp-json/kotoiq-shim/v1/meta`, { signal: AbortSignal.timeout(8000) })
+        if (r.ok) {
+          const m = await r.json().catch(() => ({}))
+          shimVersion = m?.version || null
+        }
+      } catch {}
+      if (!shimVersion) {
+        return NextResponse.json({
+          error: `KotoIQ Shim plugin not detected at ${cleanUrl}. Install kotoiq-shim-4.0.0.zip on the site first.`,
+          hint: 'install_plugin',
+        }, { status: 400 })
+      }
+
+      // Upsert the site row (no API key — pairSite() handles credentials)
+      const { data: existing } = await sb.from('koto_wp_sites').select('id, shim_version').eq('site_url', cleanUrl).maybeSingle()
+      let row: any
+      if (existing) {
+        if (existing.shim_version === 'v4') {
+          return NextResponse.json({ error: 'Site is already paired on v4. Unpair first via /destruct before re-pairing.' }, { status: 409 })
+        }
+        const { data, error } = await sb.from('koto_wp_sites').update({
+          site_name: site_name || cleanUrl,
+          agency_id: finalAgency,
+          client_id: client_id || null,
+        }).eq('id', existing.id).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        row = data
+      } else {
+        const { data, error } = await sb.from('koto_wp_sites').insert({
+          site_url: cleanUrl,
+          site_name: site_name || cleanUrl,
+          agency_id: finalAgency,
+          client_id: client_id || null,
+          api_key: '',
+          connected: false,
+        }).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        row = data
+      }
+
+      // Run the v4 pair handshake (Ed25519 envelope → /pair → fingerprint check → health.ping → vault store)
+      const { pairSite } = await import('@/lib/wp-shim/pairSite')
+      const pairResult = await pairSite(sb, finalAgency, row.id, cleanUrl)
+      if (!pairResult.ok) {
+        const err = pairResult.error || { code: 'pair_failed', message: 'Unknown error' }
+        const hint = err.code === 'not_ready' || err.code === 'pairing_expired'
+          ? 'Open the pairing window in WP admin → KotoIQ Shim → Settings → "Open pairing window", then retry within 10 minutes.'
+          : err.code === 'already_paired'
+          ? 'Site is already paired. Use /destruct to unpair first.'
+          : err.code === 'network_error'
+          ? 'Could not reach the WP site. Check the URL and that the site is online.'
+          : null
+        return NextResponse.json({ error: err.message, code: err.code, hint, site_id: row.id }, { status: 400 })
+      }
+
+      // Refresh the row so the response reflects the pairing state
+      const { data: paired } = await sb.from('koto_wp_sites').select('*').eq('id', row.id).single()
+      return NextResponse.json({ site: paired || row, version: shimVersion, fingerprint: pairResult.data?.fingerprint })
+    }
+
     // ─── Actions below require an existing site ───
     const { data: site } = await sb.from('koto_wp_sites').select('*').eq('id', site_id).single()
     if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 })

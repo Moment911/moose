@@ -388,15 +388,58 @@ function OrphanSiteCard({ site, selected, onClick }) {
 }
 
 function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
+  // Mode: 'v4' (new, default — dashboard issues key) or 'v3' (legacy — paste API key)
+  const [mode, setMode] = useState('v4')
+  // V4 step: 1 = collect URL+name, 2 = install plugin + open window + pair
+  const [step, setStep] = useState(1)
+
   const [siteUrl, setSiteUrl] = useState(prefillClient?.website ? (prefillClient.website.startsWith('http') ? prefillClient.website : `https://${prefillClient.website}`) : 'https://')
   const [siteName, setSiteName] = useState(prefillClient?.name || '')
   const [wpscKey, setWpscKey] = useState('')
   const [kotoKey, setKotoKey] = useState('')
   const [busy, setBusy] = useState(false)
+  const [errorMsg, setErrorMsg] = useState(null)
+  const [errorHint, setErrorHint] = useState(null)
 
-  async function submit() {
+  function urlIsValid(u) {
+    try {
+      const url = new URL(u)
+      return url.protocol === 'https:' && !!url.hostname && url.hostname.includes('.')
+    } catch { return false }
+  }
+
+  async function pairV4() {
+    if (!urlIsValid(siteUrl)) { toast.error('Enter a valid https:// site URL'); return }
+    setBusy(true); setErrorMsg(null); setErrorHint(null)
+    try {
+      const res = await fetch('/api/wp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'shim_pair_new_site',
+          agency_id: agencyId,
+          site_url: siteUrl.trim(),
+          site_name: siteName.trim() || null,
+          client_id: prefillClient?.id || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        setErrorMsg(data.error || 'Pair failed')
+        setErrorHint(data.hint || null)
+        setBusy(false)
+        return
+      }
+      toast.success(`Paired on v4 · fingerprint ${(data.fingerprint || '').slice(0, 8)}…`)
+      onAdded?.(data.site)
+    } catch (e) {
+      setErrorMsg(e.message)
+    }
+    setBusy(false)
+  }
+
+  async function submitLegacy() {
     if (!siteUrl || !wpscKey) { toast.error('Site URL and KotoIQ API key are required'); return }
-    setBusy(true)
+    setBusy(true); setErrorMsg(null)
     try {
       const res = await fetch('/api/wp', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -411,17 +454,19 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
         }),
       })
       const data = await res.json()
-      if (data.error) { toast.error(data.error); setBusy(false); return }
+      if (data.error) { setErrorMsg(data.error); setBusy(false); return }
       toast.success(`Added · KotoIQ v${data.version || '?'}`)
       onAdded?.(data.site)
-    } catch (e) { toast.error(e.message) }
+    } catch (e) { setErrorMsg(e.message) }
     setBusy(false)
   }
 
+  const host = (() => { try { return new URL(siteUrl).host } catch { return '' } })()
+
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 80, zIndex: 1000 }}>
-      <div style={{ background: '#fff', borderRadius: 14, maxWidth: 540, width: '100%', padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,.18)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 60, zIndex: 1000, overflowY: 'auto' }}>
+      <div style={{ background: '#fff', borderRadius: 14, maxWidth: 600, width: '100%', padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,.18)', margin: '0 16px 60px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <Plus size={18} color={PINK}/>
           <div style={{ fontFamily: FB, fontSize: 17, fontWeight: 800, color: NAVY }}>
             {prefillClient ? `Connect a site for ${prefillClient.name}` : 'Add a WordPress site'}
@@ -429,33 +474,158 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
           <div style={{ flex: 1 }}/>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer' }}><X size={16}/></button>
         </div>
-        <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginBottom: 16, lineHeight: 1.5 }}>
-          Install <strong>KotoIQ</strong> on the site, then copy its API key from <em>WP admin → KotoIQ → Settings</em>. The legacy Koto plugin key is optional.
-        </div>
 
-        <div style={{ marginBottom: 11 }}><Lbl>Site URL *</Lbl>
-          <input value={siteUrl} onChange={e => setSiteUrl(e.target.value)} placeholder="https://example.com" autoFocus style={inp()}/>
-        </div>
-        <div style={{ marginBottom: 11 }}><Lbl>Friendly name (optional)</Lbl>
-          <input value={siteName} onChange={e => setSiteName(e.target.value)} placeholder="Acme Co." style={inp()}/>
-        </div>
-        <div style={{ marginBottom: 11 }}><Lbl>KotoIQ API key *</Lbl>
-          <input value={wpscKey} onChange={e => setWpscKey(e.target.value)} placeholder="paste from WP admin → KotoIQ → Settings" style={{ ...inp(), fontFamily: 'ui-monospace,Menlo,monospace' }}/>
-        </div>
-        <div style={{ marginBottom: 18 }}><Lbl>Legacy Koto API key <span style={{ fontWeight: 400, color: '#9ca3af' }}>(optional)</span></Lbl>
-          <input value={kotoKey} onChange={e => setKotoKey(e.target.value)} placeholder="only if the legacy koto plugin is still installed" style={{ ...inp(), fontFamily: 'ui-monospace,Menlo,monospace' }}/>
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} disabled={busy} style={{ padding: '10px 16px', borderRadius: 9, border: `1.5px solid ${LINE}`, background: '#fff', color: NAVY, fontFamily: FB, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-          <button onClick={submit} disabled={busy || !siteUrl || !wpscKey} style={primaryBtn({ disabled: busy || !siteUrl || !wpscKey })}>
-            {busy ? <Loader2 size={13} className="spin"/> : <Plug size={13}/>} Verify &amp; connect
+        {/* Mode toggle */}
+        <div style={{ display: 'flex', gap: 4, padding: 3, background: '#f3f4f6', borderRadius: 9, marginBottom: 14, marginTop: 8 }}>
+          <button
+            onClick={() => { setMode('v4'); setStep(1); setErrorMsg(null) }}
+            style={modeTab(mode === 'v4')}>
+            <ShieldCheck size={12}/> v4 Shim (recommended)
+          </button>
+          <button
+            onClick={() => { setMode('v3'); setErrorMsg(null) }}
+            style={modeTab(mode === 'v3')}>
+            <Plug size={12}/> Legacy v3 paste-key
           </button>
         </div>
+
+        {/* ─── V4 FLOW ─── */}
+        {mode === 'v4' && step === 1 && (
+          <>
+            <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginBottom: 14, lineHeight: 1.5 }}>
+              The dashboard will generate the API key, sign an Ed25519 envelope, and pair the site. You won't paste any key.
+            </div>
+            <div style={{ marginBottom: 11 }}><Lbl>Site URL *</Lbl>
+              <input value={siteUrl} onChange={e => setSiteUrl(e.target.value)} placeholder="https://example.com" autoFocus style={inp()}/>
+            </div>
+            <div style={{ marginBottom: 16 }}><Lbl>Friendly name (optional)</Lbl>
+              <input value={siteName} onChange={e => setSiteName(e.target.value)} placeholder="Acme Co." style={inp()}/>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={onClose} disabled={busy} style={secondaryBtn()}>Cancel</button>
+              <button
+                onClick={() => { if (!urlIsValid(siteUrl)) { toast.error('Enter a valid https:// site URL'); return } setStep(2) }}
+                disabled={!urlIsValid(siteUrl)}
+                style={primaryBtn({ disabled: !urlIsValid(siteUrl) })}>
+                <ChevronRight size={13}/> Continue
+              </button>
+            </div>
+          </>
+        )}
+
+        {mode === 'v4' && step === 2 && (
+          <>
+            <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginBottom: 14, lineHeight: 1.5 }}>
+              Two steps on the WP site, then click <strong>Pair now</strong>.
+            </div>
+
+            {/* Step 1: install plugin */}
+            <div style={stepCard()}>
+              <div style={stepHeader()}>
+                <span style={stepNum()}>1</span>
+                <div style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: NAVY }}>Install the shim plugin on {host}</div>
+              </div>
+              <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginLeft: 30, marginBottom: 8 }}>
+                Download the zip and upload via <em>WP admin → Plugins → Add New → Upload Plugin</em>. Activate it.
+              </div>
+              <div style={{ marginLeft: 30 }}>
+                <a href="https://hellokoto.com/downloads/kotoiq-shim-4.0.0.zip" target="_blank" rel="noopener noreferrer" style={pillLink()}>
+                  <Download size={11}/> kotoiq-shim-4.0.0.zip
+                </a>
+              </div>
+            </div>
+
+            {/* Step 2: open pairing window */}
+            <div style={stepCard()}>
+              <div style={stepHeader()}>
+                <span style={stepNum()}>2</span>
+                <div style={{ fontFamily: FB, fontSize: 13, fontWeight: 700, color: NAVY }}>Open a 10-minute pairing window</div>
+              </div>
+              <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginLeft: 30, marginBottom: 8 }}>
+                In WP admin: <strong>KotoIQ Shim → Settings → Open pairing window</strong>. Or via wp-cli:
+              </div>
+              <code style={codeBlock()}>
+                {`ssh user@${host || 'example.com'} 'wp option update kotoiq_shim_pairing_ready $(( $(date +%s) + 600 ))'`}
+              </code>
+            </div>
+
+            {errorMsg && (
+              <div style={errBox()}>
+                <div style={{ fontFamily: FB, fontWeight: 700, color: '#b91c1c', marginBottom: 4 }}>Pair failed</div>
+                <div style={{ fontSize: 12, color: '#7f1d1d', fontFamily: FB, lineHeight: 1.5 }}>{errorMsg}</div>
+                {errorHint && <div style={{ fontSize: 11, color: '#991b1b', fontFamily: FB, marginTop: 6, fontStyle: 'italic' }}>{errorHint}</div>}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', marginTop: 14 }}>
+              <button onClick={() => { setStep(1); setErrorMsg(null) }} disabled={busy} style={secondaryBtn()}>
+                <ChevronLeft size={13}/> Back
+              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={onClose} disabled={busy} style={secondaryBtn()}>Cancel</button>
+                <button onClick={pairV4} disabled={busy} style={primaryBtn({ disabled: busy })}>
+                  {busy ? <Loader2 size={13} className="spin"/> : <ShieldCheck size={13}/>} Pair now
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ─── LEGACY V3 FLOW ─── */}
+        {mode === 'v3' && (
+          <>
+            <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginBottom: 14, lineHeight: 1.5 }}>
+              For sites already running KotoIQ v3.x. Install <strong>KotoIQ</strong> on the site, then copy its API key from <em>WP admin → KotoIQ → Settings</em>.
+            </div>
+
+            <div style={{ marginBottom: 11 }}><Lbl>Site URL *</Lbl>
+              <input value={siteUrl} onChange={e => setSiteUrl(e.target.value)} placeholder="https://example.com" autoFocus style={inp()}/>
+            </div>
+            <div style={{ marginBottom: 11 }}><Lbl>Friendly name (optional)</Lbl>
+              <input value={siteName} onChange={e => setSiteName(e.target.value)} placeholder="Acme Co." style={inp()}/>
+            </div>
+            <div style={{ marginBottom: 11 }}><Lbl>KotoIQ API key *</Lbl>
+              <input value={wpscKey} onChange={e => setWpscKey(e.target.value)} placeholder="paste from WP admin → KotoIQ → Settings" style={{ ...inp(), fontFamily: 'ui-monospace,Menlo,monospace' }}/>
+            </div>
+            <div style={{ marginBottom: 14 }}><Lbl>Legacy Koto API key <span style={{ fontWeight: 400, color: '#9ca3af' }}>(optional)</span></Lbl>
+              <input value={kotoKey} onChange={e => setKotoKey(e.target.value)} placeholder="only if the legacy koto plugin is still installed" style={{ ...inp(), fontFamily: 'ui-monospace,Menlo,monospace' }}/>
+            </div>
+
+            {errorMsg && (
+              <div style={errBox()}>
+                <div style={{ fontSize: 12, color: '#7f1d1d', fontFamily: FB, lineHeight: 1.5 }}>{errorMsg}</div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={onClose} disabled={busy} style={secondaryBtn()}>Cancel</button>
+              <button onClick={submitLegacy} disabled={busy || !siteUrl || !wpscKey} style={primaryBtn({ disabled: busy || !siteUrl || !wpscKey })}>
+                {busy ? <Loader2 size={13} className="spin"/> : <Plug size={13}/>} Verify &amp; connect
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
 }
+
+const modeTab = (active) => ({
+  flex: 1, padding: '8px 12px', borderRadius: 7, border: 'none',
+  background: active ? '#fff' : 'transparent',
+  color: active ? NAVY : '#6b7280',
+  fontFamily: FB, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+  boxShadow: active ? '0 1px 2px rgba(0,0,0,.05)' : 'none',
+})
+const stepCard = () => ({ background: '#f9fafb', borderRadius: 9, padding: 12, marginBottom: 10, border: `1px solid ${LINE}` })
+const stepHeader = () => ({ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 })
+const stepNum = () => ({ background: PINK, color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: FB, fontSize: 11, fontWeight: 800, flexShrink: 0 })
+const pillLink = () => ({ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 6, background: '#fff', color: NAVY, fontFamily: FB, fontSize: 11, fontWeight: 700, textDecoration: 'none', border: `1px solid ${LINE}` })
+const codeBlock = () => ({ display: 'block', marginLeft: 30, padding: '8px 10px', background: '#0f172a', color: '#e2e8f0', borderRadius: 6, fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace', overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' })
+const errBox = () => ({ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 9, padding: 10, marginTop: 6 })
+const secondaryBtn = () => ({ padding: '10px 16px', borderRadius: 9, border: `1.5px solid ${LINE}`, background: '#fff', color: NAVY, fontFamily: FB, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 })
 
 const Lbl = ({ children }) => <div style={{ fontFamily: FB, fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.04em' }}>{children}</div>
 const inp = (x = {}) => ({ width: '100%', padding: '10px 12px', borderRadius: 9, border: `1.5px solid ${LINE}`, fontSize: 13, fontFamily: FB, outline: 'none', background: '#fff', boxSizing: 'border-box', ...x })
