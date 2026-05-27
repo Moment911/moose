@@ -47,6 +47,10 @@
     {
       "path": "/api/cron/page-diff-scan",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/kotoiq-shim-cron/sitemap-refresh",
+      "schedule": "0 4 * * *"
     }
   ],
   "functions": {
@@ -123,6 +127,9 @@
       "maxDuration": 300
     },
     "src/app/api/cron/page-diff-scan/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/kotoiq-shim-cron/sitemap-refresh/route.ts": {
       "maxDuration": 300
     }
   }
