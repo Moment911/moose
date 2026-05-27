@@ -109,7 +109,7 @@ export default function WPSCConnectionGate({ site, onPaired, children }) {
       </div>
 
       <ol style={{paddingLeft:20,fontSize:13,color:BLK,fontFamily:FB,lineHeight:1.7,margin:'0 0 14px'}}>
-        <li>Download <a href="/downloads/kotoiq-shim-4.0.2.zip" download style={{color:R,fontWeight:700}}>kotoiq-shim-4.0.2.zip</a> and upload via <em>WP Admin → Plugins → Add New → Upload Plugin</em>. Activate.</li>
+        <li>Download <a href="/downloads/kotoiq-shim-4.0.3.zip" download style={{color:R,fontWeight:700}}>kotoiq-shim-4.0.3.zip</a> and upload via <em>WP Admin → Plugins → Add New → Upload Plugin</em>. Activate.</li>
         <li>WP Admin → <strong>KotoIQ → Settings → Open pairing window</strong> (10 minutes).</li>
         <li>Back here, click <strong>Pair now</strong> below. The dashboard generates the API key and signs the Ed25519 envelope.</li>
       </ol>

@@ -294,7 +294,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   <div style={{ textAlign: 'left', background: '#FAF9F6', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: `1px solid ${LINE}` }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Setup Steps</div>
                     {[
-                      { step: '1', text: 'Download the KotoIQ plugin (v4.0.2) below' },
+                      { step: '1', text: 'Download the KotoIQ plugin (v4.0.3) below' },
                       { step: '2', text: 'In WordPress admin: Plugins → Add New → Upload Plugin → upload the .zip, Activate' },
                       { step: '3', text: 'In WP admin → KotoIQ → Settings, click "Open pairing window" (10 min)' },
                       { step: '4', text: 'Click Connect a site below — enter URL, click Pair now' },
@@ -307,9 +307,9 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   </div>
 
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <a href="/downloads/kotoiq-shim-4.0.2.zip" download
+                    <a href="/downloads/kotoiq-shim-4.0.3.zip" download
                       style={{ ...primaryBtn(), textDecoration: 'none', display: 'inline-flex' }}>
-                      <Download size={14}/> Download KotoIQ Plugin v4.0.2
+                      <Download size={14}/> Download KotoIQ Plugin v4.0.3
                     </a>
                     <button onClick={() => setShowAdd(true)} style={mini({ borderColor: PINK, color: PINK })}>
                       <Plus size={13}/> Connect a site
@@ -529,8 +529,8 @@ function AddSiteModal({ agencyId, prefillClient, onClose, onAdded }) {
                 Download the zip and upload via <em>WP admin → Plugins → Add New → Upload Plugin</em>. Activate it.
               </div>
               <div style={{ marginLeft: 30 }}>
-                <a href="https://hellokoto.com/downloads/kotoiq-shim-4.0.2.zip" target="_blank" rel="noopener noreferrer" style={pillLink()}>
-                  <Download size={11}/> kotoiq-shim-4.0.2.zip
+                <a href="https://hellokoto.com/downloads/kotoiq-shim-4.0.3.zip" target="_blank" rel="noopener noreferrer" style={pillLink()}>
+                  <Download size={11}/> kotoiq-shim-4.0.3.zip
                 </a>
               </div>
             </div>
