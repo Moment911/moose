@@ -33,6 +33,11 @@ const KOTOIQ_SHIM_SERVICE_ROLE         = 'kotoiq_service';
 const KOTOIQ_SHIM_APP_PASSWORD_NAME    = 'kotoiq-shim-rpc';
 
 add_action('rest_api_init', function () {
+    register_rest_route(KOTOIQ_SHIM_REST_NS, '/meta', [
+        'methods'             => 'GET',
+        'callback'            => 'kotoiq_shim_meta',
+        'permission_callback' => '__return_true', // public — discovery endpoint
+    ]);
     register_rest_route(KOTOIQ_SHIM_REST_NS, '/pair', [
         'methods'             => 'POST',
         'callback'            => 'kotoiq_shim_pair',
@@ -44,6 +49,28 @@ add_action('rest_api_init', function () {
         'permission_callback' => 'kotoiq_shim_auth_check',
     ]);
 });
+
+/**
+ * Public discovery endpoint. Returns version + WP/PHP info + pairing state.
+ * No auth required — operators + dashboards use this to confirm the plugin
+ * is installed and to read the pairing window status.
+ *
+ * Reveals nothing proprietary: just the same data the WP admin page shows.
+ */
+function kotoiq_shim_meta() {
+    $is_paired = (string) get_option(KOTOIQ_SHIM_OPT_PUBKEY, '') !== '';
+    $ready_until = (int) get_option(KOTOIQ_SHIM_OPT_PAIRING_READY, 0);
+    $window_open = $ready_until > time();
+    return rest_ensure_response([
+        'plugin'              => 'kotoiq-shim',
+        'version'             => defined('KOTOIQ_SHIM_VERSION') ? KOTOIQ_SHIM_VERSION : null,
+        'wp_version'          => get_bloginfo('version'),
+        'php_version'         => PHP_VERSION,
+        'paired'              => $is_paired,
+        'pairing_window_open' => $window_open,
+        'pairing_window_remaining_seconds' => $window_open ? ($ready_until - time()) : 0,
+    ]);
+}
 
 /**
  * Pair endpoint — unauthenticated by REST framework, gated internally by

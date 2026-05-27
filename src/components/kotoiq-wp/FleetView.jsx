@@ -249,7 +249,7 @@ export default function FleetView({ onSelectSite }) {
               Push updates to {outdatedCount} site{outdatedCount === 1 ? '' : 's'}
             </button>
           )}
-          <a href="/downloads/kotoiq-shim-4.0.0.zip" download
+          <a href="/downloads/kotoiq-shim-4.0.1.zip" download
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '8px 13px', borderRadius: 8,
@@ -258,7 +258,7 @@ export default function FleetView({ onSelectSite }) {
               textDecoration: 'none',
             }}
           >
-            <Download size={11}/> Shim v4.0.0
+            <Download size={11}/> Shim v4.0.1
           </a>
           <button
             onClick={refreshAll}

@@ -3,7 +3,7 @@
  * Plugin Name:       KotoIQ Shim
  * Plugin URI:        https://hellokoto.com
  * Description:       Generic WordPress RPC shim. Authenticated verb dispatcher for the KotoIQ dashboard. No business logic.
- * Version:           4.0.0
+ * Version:           4.0.1
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -22,7 +22,7 @@
 if (!defined('ABSPATH')) exit;
 
 // ─── Plugin constants ──────────────────────────────────────────────────────
-define('KOTOIQ_SHIM_VERSION',      '4.0.0');
+define('KOTOIQ_SHIM_VERSION',      '4.0.1');
 define('KOTOIQ_SHIM_PLUGIN_FILE',  __FILE__);
 define('KOTOIQ_SHIM_DIR',          plugin_dir_path(__FILE__));
 define('KOTOIQ_SHIM_URL',          plugin_dir_url(__FILE__));
