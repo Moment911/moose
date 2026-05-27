@@ -86,11 +86,6 @@ export default function WPSCConnectionGate({ site, onPaired, children }) {
           {pairedV3 && <button onClick={detectNow} style={miniBtn()}>Re-check</button>}
           {pairedV3 && <button onClick={unpair} style={miniBtn({color:R,borderColor:R})}><Trash2 size={10}/> Unpair</button>}
         </div>
-        {pairedV4 && (
-          <div style={{padding:'10px 12px',background:`${AMB}10`,border:`1px solid ${AMB}30`,borderRadius:9,fontSize:12,fontFamily:FB,color:BLK,lineHeight:1.5}}>
-            <strong>Note:</strong> The panels below still call the legacy v3 endpoints. They'll be migrated to v4 shim verbs in a follow-up. If you see "deprecated action" or "wpsc_*" errors, that's why — the gate is letting you through, the per-panel routing hasn't caught up yet.
-          </div>
-        )}
         {children}
       </div>
     )
