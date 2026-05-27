@@ -162,7 +162,20 @@ function resolveScalarTokens(input: string, ctx: ResolveContext): string {
     // produces a corrupt double-wrap that browsers render with the literal
     // string `a href=` inside the href value. Seen live on production.
     if (phone) {
+        // 1) `href="[koto_phone]"` exactly → `href="tel:DIGITS"`.
         input = input.replace(/href=(['"])\[koto_phone(?:_link)?\]\1/g, `href=$1${phoneTelUrl}$1`)
+        // 2) `[koto_phone]` anywhere inside ANY HTML attribute value
+        //    (e.g. `href="tel:[koto_phone]"`, `data-phone="[koto_phone]"`,
+        //    `data-x="prefix[koto_phone]suffix"`) → bare digits. The standard
+        //    replacement below would otherwise drop a full <a> anchor inside
+        //    the attribute value and break HTML parsing. Match attribute-like
+        //    contexts only (`=` + quoted string containing the token).
+        input = input.replace(
+            /=(['"])([^'"]*?)\[koto_phone(?:_link)?\]([^'"]*?)\1/g,
+            `=$1$2${phoneDigits}$3$1`,
+        )
+        // 3) `<a ...>[koto_phone]</a>` → use the formatted phone as the
+        //    anchor text (no nested <a> tag).
         input = input.replace(
             /(<a\b[^>]*>)([^<]*?)\[koto_phone(?:_link)?\]([^<]*?)(<\/a>)/g,
             `$1$2${phoneEscaped}$3$4`,
@@ -521,7 +534,18 @@ a[href^="tel:"]:hover{text-decoration:underline}
     // AI-search-friendly entity we can derive deterministically.
     let jsonLd: string | null = null
     if (master.schema_jsonld_template) {
-        const resolvedTpl = resolveTokens(master.schema_jsonld_template, ctx)
+        // Phone tokens inside the schema template MUST resolve to plain
+        // digits/text — NOT the full <a> anchor that the body uses. An
+        // unescaped <a href="..."> inside a JSON string breaks parsing
+        // (unescaped `"` from the anchor's attribute terminates the JSON
+        // string early) and the plugin's sanitizer drops the meta entirely.
+        // Substitute here before the standard token resolver runs.
+        let schemaTpl = master.schema_jsonld_template
+        if (ctx.phone) {
+            const phoneJsonValue = ctx.phone.replace(/\D/g, '') || ctx.phone
+            schemaTpl = schemaTpl.replace(/\[koto_phone(?:_link)?\]/g, phoneJsonValue)
+        }
+        const resolvedTpl = resolveTokens(schemaTpl, ctx)
         jsonLd = enrichSchemaGraph(resolvedTpl, master, ctx, { title, metaDescription: stripHtml(metaDescription).trim() })
     }
 
