@@ -58,6 +58,7 @@ import {
     healthDiagnostics,
     pluginList,
     querySelect,
+    postGetMetaBulk,
 } from '../../../lib/wp-shim/verbs'
 import { wpFetchJson } from '../../../lib/wp-shim/wpFetch'
 import { loadSiteCredentials } from '../../../lib/wp-shim/credentialsVault'
@@ -795,9 +796,30 @@ export async function dispatchV4ActionIfPaired(
                         out.push({ id: p.id, title: p.title, url: p.url, status: p.status, type: 'page', has_seo_meta: false })
                     }
                 }
-                // Best-effort has_seo_meta probe — read meta for first 50.
-                // Skipping bulk read here for latency; UI shows "missing meta"
-                // and operator clicks AI Optimize per page.
+                // Bulk has_seo_meta probe — one round-trip across every listed
+                // post/page. Title is the cheapest "is meta configured" check:
+                // every SEO engine (KotoIQ-native, Yoast, RankMath) writes a
+                // title key when a user fills in meta. If none of the three is
+                // set, no meta exists.
+                if (out.length) {
+                    const titleKeys = ['_kotoiq_title', '_yoast_wpseo_title', 'rank_math_title']
+                    const metaRes = await postGetMetaBulk(site.site_url, {
+                        posts: out.map((p) => ({ post_id: p.id, keys: titleKeys })),
+                    })
+                    if (metaRes.ok) {
+                        const results = metaRes.data.results || {}
+                        for (const p of out) {
+                            const rec = results[String(p.id)] || {}
+                            const hasMeta =
+                                (typeof rec._kotoiq_title === 'string' && rec._kotoiq_title.length > 0) ||
+                                (typeof rec._yoast_wpseo_title === 'string' && rec._yoast_wpseo_title.length > 0) ||
+                                (typeof rec.rank_math_title === 'string' && rec.rank_math_title.length > 0)
+                            p.has_seo_meta = hasMeta
+                        }
+                    }
+                    // If the bulk read fails, leave has_seo_meta=false (degrades
+                    // gracefully — UI shows "missing meta" as before).
+                }
                 return envelopeOk({ pages: out }, 200)
             }
             case 'kotoiq_seo_content_get': {

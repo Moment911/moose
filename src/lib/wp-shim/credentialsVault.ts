@@ -102,13 +102,29 @@ export async function loadSiteCredentials(
     return { username, appPassword, fingerprint }
 }
 
+// Synthetic module list seeded on every v4 pair so panel gating
+// (ContentRotation, ElementorBuilder, SEO, SearchReplace, Access, Snippets)
+// treats the site as fully enabled. v4 has no module on/off concept — every
+// verb is always available — but the panels still read site.wpsc_modules to
+// decide whether to render. Seeding here keeps that UI path unchanged.
+//
+// Keep slugs in sync with the panel files that check moduleEntry.slug.
+export const V4_SYNTHETIC_MODULES = Object.freeze([
+    { slug: 'content-rotation', name: 'Content Rotation', enabled: true },
+    { slug: 'elementor-builder', name: 'Elementor Builder', enabled: true },
+    { slug: 'seo', name: 'SEO', enabled: true },
+    { slug: 'search-replace', name: 'Search & Replace', enabled: true },
+    { slug: 'access', name: 'Access Management', enabled: true },
+    { slug: 'snippets', name: 'Snippets', enabled: true },
+])
+
 /**
  * Persist pairing credentials. Called by `pairSite` after health.ping confirms
  * the freshly issued App Password actually works.
  *
  * Atomically updates: app_password_username, app_password_encrypted,
  * app_password_payload_version, dashboard_pubkey_fingerprint, paired_at_v4,
- * shim_version='v4'.
+ * shim_version='v4', wpsc_modules (synthetic v4 module list).
  */
 export async function storeSiteCredentials(
     supabase: SupabaseClient,
@@ -133,6 +149,7 @@ export async function storeSiteCredentials(
             dashboard_pubkey_fingerprint: creds.fingerprint,
             paired_at_v4: new Date().toISOString(),
             shim_version: 'v4',
+            wpsc_modules: V4_SYNTHETIC_MODULES,
         })
         .eq('id', siteId)
         .eq('agency_id', agencyId)
