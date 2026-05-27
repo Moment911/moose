@@ -26,6 +26,7 @@
 import { NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+import { wpFetch } from '../../../lib/wp-shim/wpFetch'
 import {
     listSnippets,
     saveSnippet,
@@ -726,7 +727,8 @@ export async function dispatchV4ActionIfPaired(
             }
             case 'kotoiq_overview_pages_recent': {
                 // Top N most-recently-modified pages + posts for the Overview
-                // panel. Light weight — just id, title, type, modified, link.
+                // panel. Uses raw wpFetch so we can also read X-WP-Total
+                // headers for the live count badges on the site card.
                 const creds = await loadSiteCredentials(sb, site.agency_id, site.id).catch(() => null)
                 if (!creds) return envelopeErr('Site has no paired credentials', 401)
                 type WpPost = {
@@ -738,10 +740,24 @@ export async function dispatchV4ActionIfPaired(
                 }
                 const fields = '_fields=id,title,link,status,modified'
                 const params = `per_page=10&orderby=modified&order=desc&status=publish&${fields}`
+
+                async function fetchType(restBase: string): Promise<{ list: WpPost[]; total: number }> {
+                    try {
+                        const res = await wpFetch(site!.site_url, `/wp/v2/${restBase}?${params}`, creds!)
+                        const total = parseInt(res.headers.get('x-wp-total') || '0', 10)
+                        if (!res.ok) return { list: [], total }
+                        const data = (await res.json().catch(() => [])) as WpPost[]
+                        return { list: Array.isArray(data) ? data : [], total: isNaN(total) ? 0 : total }
+                    } catch {
+                        return { list: [], total: 0 }
+                    }
+                }
+
                 const [pagesRes, postsRes] = await Promise.all([
-                    wpFetchJson<WpPost[]>(site.site_url, `/wp/v2/pages?${params}`, creds),
-                    wpFetchJson<WpPost[]>(site.site_url, `/wp/v2/posts?${params}`, creds),
+                    fetchType('pages'),
+                    fetchType('posts'),
                 ])
+
                 const pickTitle = (t: WpPost['title']) =>
                     typeof t === 'string' ? t : t?.rendered || '(untitled)'
                 const out: Array<{
@@ -751,18 +767,21 @@ export async function dispatchV4ActionIfPaired(
                     type: 'post' | 'page'
                     modified: string
                 }> = []
-                if (pagesRes.ok && Array.isArray(pagesRes.data)) {
-                    for (const p of pagesRes.data) {
-                        out.push({ id: p.id, title: pickTitle(p.title), url: p.link || '', type: 'page', modified: p.modified || '' })
-                    }
+                for (const p of pagesRes.list) {
+                    out.push({ id: p.id, title: pickTitle(p.title), url: p.link || '', type: 'page', modified: p.modified || '' })
                 }
-                if (postsRes.ok && Array.isArray(postsRes.data)) {
-                    for (const p of postsRes.data) {
-                        out.push({ id: p.id, title: pickTitle(p.title), url: p.link || '', type: 'post', modified: p.modified || '' })
-                    }
+                for (const p of postsRes.list) {
+                    out.push({ id: p.id, title: pickTitle(p.title), url: p.link || '', type: 'post', modified: p.modified || '' })
                 }
                 out.sort((a, b) => (b.modified || '').localeCompare(a.modified || ''))
-                return envelopeOk({ pages: out.slice(0, 10) }, 200)
+
+                return envelopeOk(
+                    {
+                        pages: out.slice(0, 10),
+                        totals: { pages: pagesRes.total, posts: postsRes.total },
+                    },
+                    200,
+                )
             }
             case 'kotoiq_rotation_posts_list': {
                 // Auto-discover posts using [koto_rotate] by searching post

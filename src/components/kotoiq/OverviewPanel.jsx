@@ -16,7 +16,7 @@ import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
  */
 export default function OverviewPanel({ site }) {
   const [activity, setActivity] = useState({ loading: true, events: [], error: null })
-  const [pages, setPages] = useState({ loading: false, list: [], error: null })
+  const [pages, setPages] = useState({ loading: false, list: [], totals: null, error: null })
 
   const isV4 = site?.shim_version === 'v4'
   const isPaired = isV4 || !!site?.wpsc_api_key
@@ -39,17 +39,17 @@ export default function OverviewPanel({ site }) {
 
   async function loadPages() {
     if (!site?.id || !isV4) return
-    setPages({ loading: true, list: [], error: null })
+    setPages({ loading: true, list: [], totals: null, error: null })
     try {
       const r = await fetch('/api/wp', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ action:'kotoiq_overview_pages_recent', site_id: site.id }),
       })
       const d = await r.json()
-      if (!d.ok) setPages({ loading: false, list: [], error: d.error || d.data?.error || 'Failed' })
-      else setPages({ loading: false, list: d.data?.pages || [], error: null })
+      if (!d.ok) setPages({ loading: false, list: [], totals: null, error: d.error || d.data?.error || 'Failed' })
+      else setPages({ loading: false, list: d.data?.pages || [], totals: d.data?.totals || null, error: null })
     } catch (e) {
-      setPages({ loading: false, list: [], error: e.message })
+      setPages({ loading: false, list: [], totals: null, error: e.message })
     }
   }
 
@@ -76,62 +76,62 @@ export default function OverviewPanel({ site }) {
 
       {/* ── Site card ─────────────────────────────────────────────────────── */}
       <div style={card()}>
-        <div style={{ display:'flex', alignItems:'flex-start', gap:14 }}>
-          <div style={{ width:42, height:42, borderRadius:10, background:`${R}15`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <Globe size={20} color={R}/>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:16 }}>
+          <div style={{ width:52, height:52, borderRadius:12, background:`${R}15`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Globe size={26} color={R}/>
           </div>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontFamily:FH, fontWeight:800, fontSize:18, color:BLK, marginBottom:4 }}>
+            <div style={{ fontFamily:FH, fontWeight:800, fontSize:22, color:BLK, marginBottom:6 }}>
               {site.site_name || stripProto(site.site_url)}
             </div>
             <a href={site.site_url} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize:12, fontFamily:FB, color:T, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:4 }}>
-              {stripProto(site.site_url)} <ExternalLink size={10}/>
+              style={{ fontSize:14, fontFamily:FB, color:T, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:5 }}>
+              {stripProto(site.site_url)} <ExternalLink size={13}/>
             </a>
           </div>
           <StatusBadge isPaired={isPaired} isV4={isV4}/>
         </div>
 
-        <div style={{ marginTop:18, display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:14 }}>
+        <div style={{ marginTop:22, display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:18 }}>
           <KV label="Plugin" value={site.shim_version === 'v4' ? `KotoIQ v${site.plugin_version || '4.0.3'}` : (site.wpsc_version ? `WPSimpleCode v${site.wpsc_version}` : '—')}/>
           <KV label="Paired since" value={pagedAt ? formatDate(pagedAt) : '—'}/>
-          <KV label="Pages" value={String(site.pages_count ?? 0)} icon={File}/>
-          <KV label="Posts" value={String(site.posts_count ?? 0)} icon={FileText}/>
+          <KV label="Pages" value={String(pages.totals?.pages ?? site.pages_count ?? 0)} icon={File} loading={isV4 && pages.loading}/>
+          <KV label="Posts" value={String(pages.totals?.posts ?? site.posts_count ?? 0)} icon={FileText} loading={isV4 && pages.loading}/>
         </div>
 
         {site.dashboard_pubkey_fingerprint && (
-          <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid #f1f5f9', display:'flex', alignItems:'center', gap:8, fontSize:11, color:'#6b7280', fontFamily:FB }}>
-            <Shield size={11} color="#9ca3af"/>
-            <span style={{ fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em' }}>Fingerprint</span>
-            <code style={{ fontSize:10, fontFamily:'ui-monospace,Menlo,monospace', color:BLK }}>{site.dashboard_pubkey_fingerprint.slice(0,16)}…{site.dashboard_pubkey_fingerprint.slice(-8)}</code>
+          <div style={{ marginTop:18, paddingTop:16, borderTop:'1px solid #f1f5f9', display:'flex', alignItems:'center', gap:10, fontSize:13, color:'#6b7280', fontFamily:FB }}>
+            <Shield size={14} color="#9ca3af"/>
+            <span style={{ fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', fontSize:12 }}>Fingerprint</span>
+            <code style={{ fontSize:12, fontFamily:'ui-monospace,Menlo,monospace', color:BLK }}>{site.dashboard_pubkey_fingerprint.slice(0,16)}…{site.dashboard_pubkey_fingerprint.slice(-8)}</code>
           </div>
         )}
       </div>
 
       {/* ── Recent activity ───────────────────────────────────────────────── */}
       <div style={card()}>
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-          <Activity size={14} color={T}/>
-          <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:14, color:BLK }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
+          <Activity size={18} color={T}/>
+          <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:17, color:BLK }}>
             Recent activity
           </div>
           <button onClick={loadActivity} disabled={activity.loading} style={miniBtn()}>
-            {activity.loading ? <Loader2 size={10} className="spin"/> : <RefreshCw size={10}/>} Refresh
+            {activity.loading ? <Loader2 size={12} className="spin"/> : <RefreshCw size={12}/>} Refresh
           </button>
         </div>
 
         {activity.loading && (
-          <div style={{ display:'flex', alignItems:'center', gap:8, color:'#6b7280', fontFamily:FB, fontSize:12 }}>
-            <Loader2 size={12} className="spin"/> Loading…
+          <div style={{ display:'flex', alignItems:'center', gap:10, color:'#6b7280', fontFamily:FB, fontSize:14 }}>
+            <Loader2 size={14} className="spin"/> Loading…
           </div>
         )}
         {!activity.loading && activity.error && (
-          <div style={{ display:'flex', alignItems:'center', gap:8, color:R, fontFamily:FB, fontSize:12 }}>
-            <AlertTriangle size={12}/> {activity.error}
+          <div style={{ display:'flex', alignItems:'center', gap:10, color:R, fontFamily:FB, fontSize:14 }}>
+            <AlertTriangle size={14}/> {activity.error}
           </div>
         )}
         {!activity.loading && !activity.error && activity.events.length === 0 && (
-          <div style={{ fontFamily:FB, color:'#9ca3af', fontStyle:'italic', fontSize:12 }}>
+          <div style={{ fontFamily:FB, color:'#9ca3af', fontStyle:'italic', fontSize:14 }}>
             No activity yet. Once you push, pair, or run any tool on this site, it'll show up here.
           </div>
         )}
@@ -147,39 +147,39 @@ export default function OverviewPanel({ site }) {
       {/* ── Recent pages (v4 only) ────────────────────────────────────────── */}
       {isV4 && (
         <div style={card()}>
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-            <File size={14} color={T}/>
-            <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:14, color:BLK }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
+            <File size={18} color={T}/>
+            <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:17, color:BLK }}>
               Recently modified pages & posts
             </div>
             <button onClick={loadPages} disabled={pages.loading} style={miniBtn()}>
-              {pages.loading ? <Loader2 size={10} className="spin"/> : <RefreshCw size={10}/>} Refresh
+              {pages.loading ? <Loader2 size={12} className="spin"/> : <RefreshCw size={12}/>} Refresh
             </button>
           </div>
 
           {pages.loading && (
-            <div style={{ display:'flex', alignItems:'center', gap:8, color:'#6b7280', fontFamily:FB, fontSize:12 }}>
-              <Loader2 size={12} className="spin"/> Loading…
+            <div style={{ display:'flex', alignItems:'center', gap:10, color:'#6b7280', fontFamily:FB, fontSize:14 }}>
+              <Loader2 size={14} className="spin"/> Loading…
             </div>
           )}
           {!pages.loading && pages.error && (
-            <div style={{ display:'flex', alignItems:'center', gap:8, color:R, fontFamily:FB, fontSize:12 }}>
-              <AlertTriangle size={12}/> {pages.error}
+            <div style={{ display:'flex', alignItems:'center', gap:10, color:R, fontFamily:FB, fontSize:14 }}>
+              <AlertTriangle size={14}/> {pages.error}
             </div>
           )}
           {!pages.loading && !pages.error && pages.list.length === 0 && (
-            <div style={{ fontFamily:FB, color:'#9ca3af', fontStyle:'italic', fontSize:12 }}>
+            <div style={{ fontFamily:FB, color:'#9ca3af', fontStyle:'italic', fontSize:14 }}>
               No published pages or posts.
             </div>
           )}
           {!pages.loading && !pages.error && pages.list.length > 0 && (
-            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, fontFamily:FB }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:14, fontFamily:FB }}>
               <thead>
                 <tr>
                   <th style={th()}>Title</th>
-                  <th style={th({ width:50 })}>Type</th>
-                  <th style={th({ width:130 })}>Modified</th>
-                  <th style={th({ width:30 })}></th>
+                  <th style={th({ width:60 })}>Type</th>
+                  <th style={th({ width:150 })}>Modified</th>
+                  <th style={th({ width:40 })}></th>
                 </tr>
               </thead>
               <tbody>
@@ -193,7 +193,7 @@ export default function OverviewPanel({ site }) {
                     <td style={td()}>
                       {p.url && (
                         <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ color:'#6b7280', display:'inline-flex' }}>
-                          <ExternalLink size={11}/>
+                          <ExternalLink size={14}/>
                         </a>
                       )}
                     </td>
@@ -237,14 +237,16 @@ function StatusBadge({ isPaired, isV4 }) {
   )
 }
 
-function KV({ label, value, icon: Icon }) {
+function KV({ label, value, icon: Icon, loading }) {
   return (
     <div>
-      <div style={{ fontSize:10, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4, display:'flex', alignItems:'center', gap:5 }}>
-        {Icon && <Icon size={10}/>}
+      <div style={{ fontSize:12, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+        {Icon && <Icon size={12}/>}
         {label}
       </div>
-      <div style={{ fontSize:14, fontFamily:FH, fontWeight:700, color:BLK }}>{value}</div>
+      <div style={{ fontSize:18, fontFamily:FH, fontWeight:700, color:BLK, display:'flex', alignItems:'center', gap:8 }}>
+        {loading ? <Loader2 size={14} className="spin" style={{ color:'#9ca3af' }}/> : value}
+      </div>
     </div>
   )
 }
@@ -253,24 +255,24 @@ function ActivityRow({ event, last }) {
   const Icon = ICONS[event.event] || ICONS[event.kind] || Activity
   const color = event.error ? R : (event.event === 'destruct' ? AMB : T)
   return (
-    <div style={{ display:'flex', gap:12, padding:'10px 0', borderBottom: last ? 'none' : '1px solid #f1f5f9' }}>
-      <div style={{ width:28, height:28, borderRadius:7, background:`${color}15`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <Icon size={13} color={color}/>
+    <div style={{ display:'flex', gap:14, padding:'13px 0', borderBottom: last ? 'none' : '1px solid #f1f5f9' }}>
+      <div style={{ width:36, height:36, borderRadius:9, background:`${color}15`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <Icon size={17} color={color}/>
       </div>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:12, fontFamily:FH, fontWeight:700, color:BLK }}>{labelFor(event.event)}</div>
+        <div style={{ fontSize:14, fontFamily:FH, fontWeight:700, color:BLK }}>{labelFor(event.event)}</div>
         {event.detail && (
-          <div style={{ fontSize:11, fontFamily:FB, color:'#6b7280', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+          <div style={{ fontSize:13, fontFamily:FB, color:'#6b7280', marginTop:3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
             {event.detail}
           </div>
         )}
         {event.error && (
-          <div style={{ fontSize:11, fontFamily:FB, color:R, marginTop:2 }}>
+          <div style={{ fontSize:13, fontFamily:FB, color:R, marginTop:3 }}>
             {event.error}
           </div>
         )}
       </div>
-      <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', whiteSpace:'nowrap' }}>
+      <div style={{ fontSize:13, fontFamily:FB, color:'#9ca3af', whiteSpace:'nowrap' }}>
         {formatRelative(event.time)}
       </div>
     </div>
@@ -337,12 +339,12 @@ function formatRelative(s) {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const card = (x={}) => ({ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:18, ...x })
-const miniBtn = (x={}) => ({ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 10px', borderRadius:7, border:`1px solid ${x.borderColor||'#e5e7eb'}`, background:'#fff', color:x.color||'#6b7280', fontFamily:FH, fontSize:11, fontWeight:700, cursor:'pointer' })
-const pill = (color, bg) => ({ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:6, fontSize:11, fontFamily:FH, fontWeight:700, color, background:bg, textTransform:'uppercase', letterSpacing:'.04em' })
-const dot = (color) => ({ width:6, height:6, borderRadius:'50%', background:color })
+const card = (x={}) => ({ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:22, ...x })
+const miniBtn = (x={}) => ({ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 13px', borderRadius:8, border:`1px solid ${x.borderColor||'#e5e7eb'}`, background:'#fff', color:x.color||'#6b7280', fontFamily:FH, fontSize:13, fontWeight:700, cursor:'pointer' })
+const pill = (color, bg) => ({ display:'inline-flex', alignItems:'center', gap:7, padding:'6px 12px', borderRadius:7, fontSize:13, fontFamily:FH, fontWeight:700, color, background:bg, textTransform:'uppercase', letterSpacing:'.04em' })
+const dot = (color) => ({ width:7, height:7, borderRadius:'50%', background:color })
 const Pill = ({ children, color, bg }) => (
-  <span style={{ display:'inline-flex', alignItems:'center', padding:'2px 7px', borderRadius:5, fontSize:10, fontFamily:FH, fontWeight:700, color, background:bg, textTransform:'uppercase', letterSpacing:'.04em' }}>{children}</span>
+  <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 9px', borderRadius:6, fontSize:12, fontFamily:FH, fontWeight:700, color, background:bg, textTransform:'uppercase', letterSpacing:'.04em' }}>{children}</span>
 )
-const th = (x={}) => ({ textAlign:'left', padding:'8px 10px', fontFamily:FH, fontSize:10, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', ...x })
-const td = (x={}) => ({ padding:'8px 10px', ...x })
+const th = (x={}) => ({ textAlign:'left', padding:'10px 12px', fontFamily:FH, fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', ...x })
+const td = (x={}) => ({ padding:'10px 12px', ...x })
