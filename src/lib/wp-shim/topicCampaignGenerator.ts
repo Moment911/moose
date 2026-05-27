@@ -62,19 +62,30 @@ export async function generateTopicCampaignMaster(
     const variants = clamp(input.variantsPerSection ?? 4, 2, 6)
     const faqCount = clamp(input.faqCount ?? 6, 3, 10)
 
-    const systemPrompt = `You are a senior SEO + AEO (AI Engine Optimization) strategist. Your job is to produce hyperlocal landing-page content optimized for two outcomes simultaneously:
+    const systemPrompt = `You are a senior SEO + AEO (AI Engine Optimization) strategist. Your job is to produce hyperlocal landing-page content optimized for THREE outcomes simultaneously:
 
-  1. Traditional SEO ranking (Google, Bing) for "[topic] in [city]" queries
-  2. AI search citation (ChatGPT, Perplexity, Claude, Google AI Overviews) — declarative, factual sentences that LLMs can extract verbatim as answers
+  1. Traditional SEO ranking (Google, Bing) for "<topic> <city>" queries
+  2. AI search citation (ChatGPT, Perplexity, Claude, Google AI Overviews) — declarative, factual sentences that LLMs can extract verbatim
+  3. RankMath / Yoast on-page audit score — the page must pass keyword-placement checks out of the box
 
-Hard rules:
+The page will be deployed to many cities. The "focus keyword" for each deployed page is "<topic> [koto_city]" — for example "Website Design Austin". Every content choice below must serve that exact focus keyword landing in the right places.
+
+RankMath on-page checklist — your output MUST satisfy ALL of these:
+- Focus keyword in H1: every hero.headline_variant MUST contain BOTH the topic noun-phrase AND [koto_city]. Not just one. Both.
+- Focus keyword in first paragraph: the FIRST sentence of EVERY hero.subheadline_variant AND the FIRST sentence of the FIRST section's body_variants MUST contain the topic word AND [koto_city].
+- Focus keyword in H2: every section.heading_template MUST contain BOTH the topic noun-phrase AND [koto_city] or [koto_city_state]. Examples: "<Topic> Services in [koto_city]", "Why Choose [koto_city] <Topic>", "<Topic> Process in [koto_city], [koto_state]".
+- Focus keyword density: across each section's body, mention the topic noun-phrase 2-4 times AND [koto_city] 2-3 times. Natural language — never keyword-stuff.
+- Focus keyword in meta description: title 50-60 chars, MUST include topic + [koto_city]. Description 140-160 chars, MUST include topic + [koto_city] in the first 100 chars.
+- Content length: every body_variant must be 100-180 words (longer side of the original 60-160 range so total page hits 800+ words).
+- FAQs must include the focus keyword: every FAQ question_template MUST contain the topic word OR [koto_city]. Aim for 50/50 split (half mention topic, half mention city).
+
+Hard rules — applies to ALL content:
 - Return ONLY valid JSON matching the schema described. No markdown fences, no commentary.
-- Every paragraph variant must be 60-160 words. Vary sentence structure and word choice across variants.
+- Vary sentence structure and word choice across variants. Never produce two variants that share more than 30% of the same sentences.
 - Insert location tokens naturally: [koto_city], [koto_state], [koto_state_abbr], [koto_county], [koto_zip], [koto_company_name], [koto_phone]. Never invent token names. Use SUPPORTED_TOKENS only: ${SUPPORTED_TOKENS.join(' ')}
 - FAQ answers must be declarative, self-contained sentences (AEO-optimized): start with a clear statement, then 1-3 supporting sentences. Avoid "we", "you", "our" in the FIRST sentence — make it factually quotable by an LLM. Example: GOOD — "Website design in [koto_city] typically costs $3,000-$15,000 depending on scope." BAD — "We charge based on scope."
 - FAQ questions should follow AnswerThePublic patterns: How, What, Why, When, Where, Can, Should, How much, Is, Best, Top.
-- Meta title template: 50-60 chars, must include [koto_city]. Meta description: 140-160 chars, must include [koto_city] and a value proposition.
-- JSON-LD schema_jsonld_template: a single JSON object @graph with three @type entries: LocalBusiness, WebPage, FAQPage. Use tokens inside string values where needed. Output as a STRING containing valid JSON (we will JSON.parse it after token resolution).`
+- JSON-LD schema_jsonld_template: a single JSON object with @context and @graph containing three @type entries: LocalBusiness, WebPage, FAQPage. Use tokens inside string values where needed. Output as a STRING containing valid JSON (we will JSON.parse it after token resolution).`
 
     const userPrompt = `Generate a TopicCampaignMaster JSON object for the following:
 
