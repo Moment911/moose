@@ -167,6 +167,7 @@ Phases 7 and 8 were appended after Phases 1-6 code-completed — they are prereq
 | 6. Feedback Loop + Unified Shell + Pilot | 7/7 | Code complete (pilot pending) | - |
 | 7. Client Profile Seeder v1 — Internal Ingest + Gap Finder | 0/6 | Not started | - |
 | 8. Client Profile Seeder v2 — External Source Parsers | 0/5 | Not started | - |
+| 10. KotoIQ WP plugin thin-shim pivot | 12/12 | Complete | 2026-05-27 |
 
 ### Phase 9: Consolidate WordPress site management — unified /kotoiq-wp view replacing wpsimplecode + kotoiq-sites + control-center
 
@@ -178,13 +179,17 @@ Phases 7 and 8 were appended after Phases 1-6 code-completed — they are prereq
 Plans:
 - [ ] TBD (run /gsd-plan-phase 9 to break down)
 
-### Phase 10: KotoIQ WP plugin thin-shim pivot
+### Phase 10: KotoIQ WP plugin thin-shim pivot ✅ COMPLETE
 
 **Goal:** Move all business logic out of the WordPress plugin into the Koto dashboard. The plugin becomes a generic authenticated RPC shim (~870 LOC, ~430 of business logic) exposing 27 noun.verb primitives (post/meta/option/query/file/cron/plugin/elementor). All SEO scoring, sitemap composition, redirect rules, content generation, page-factory orchestration, snippets runtime, access policy mapping live dashboard-side. A hostile client with WP filesystem access reads the entire `wp-plugin-kotoiq-shim/` source and cannot reconstruct KotoIQ's value. Side-by-side install with 60-day v3 cutover window per CONTEXT.md USER-LOCKED decisions.
 
+**Status:** Code-complete 2026-05-27. Calendar-gated sunset (Plan 12 Task 3) fires on day 60 post-pilot-promotion per `SUNSET-PLAYBOOK.md`.
+
 **Requirements**: SHIM-FOUNDATION, SHIM-PLUGIN-SKELETON, SHIM-DASHBOARD-CLIENT, SHIM-CORE-VERBS, SHIM-HARDENED-VERBS, SHIM-ELEMENTOR-AND-ROTATION, SHIM-DASHBOARD-PORTS-A, SHIM-SITEMAP-COMPOSER, SHIM-TEMPLATE-CAPTURE-AND-PUSH, SHIM-DUAL-RUN-SHADOW, SHIM-CUTOVER, SHIM-V3-SUNSET
 **Depends on:** Phase 9
-**Plans:** 11/12 plans executed
+**Plans:** 12/12 plans complete
+
+- [x] **Phase 10: KotoIQ WP plugin thin-shim pivot** — 12/12 plans complete (2026-05-27). Dashboard now owns all WP business logic. v4 thin-shim exposes 27 generic RPC verbs; SUNSET-PLAYBOOK.md captures the day-60 v3 deactivation runbook.
 
 Plans:
 - [x] 10-01-PLAN.md — Foundation: Vercel envs + Supabase migration (templates, push_history, dual_run_log, shim_pairings) + Wave-0 test scaffolds + verb whitelist
@@ -198,4 +203,17 @@ Plans:
 - [x] 10-09-PLAN.md — Template capture + push (CONTEXT.md Option B locked): variableExtractor + captureTemplate + pushTemplate + content-rotation wrapping + Templates UI tab in KotoIQ WP view
 - [x] 10-10-PLAN.md — Dual-run shadow mode (CONTEXT.md D-TypeScript-port-equivalence locked): dualRunRouter (mode inactive/active/promoted/rolled_back) + diffEngine + operator UI panel
 - [x] 10-11-PLAN.md — Cutover ops: build-shim-zip + pair-site + promote-site + kill-switch + parity-gauntlet CLI scripts + WP admin pairing page + CUTOVER-PLAYBOOK.md + pilot pair (human checkpoint)
-- [ ] 10-12-PLAN.md — v3 sunset (60-day gate per CONTEXT.md D-Cutover): sunset-v3.cjs + cleanup-legacy-options.cjs + /api/wp pruning + legacy manifest deprecation + ROADMAP closure (human checkpoint)
+- [x] 10-12-PLAN.md — v3 sunset: sunset-v3.cjs (calendar-gated, 3 guardrails) + cleanup-legacy-options.cjs + /api/wp pruned to 6-name allowlist (410 Gone for others) + /api/kotoiq-manifest + /api/wpsc-manifest deprecated with successor pointer + SUNSET-PLAYBOOK.md runbook
+
+#### Deferred to M2 (Phase 10 carry-forward)
+
+The following items were intentionally NOT delivered in Phase 10. Final reference list for the next milestone planner:
+
+- **Per-site Ed25519 keypair rotation** — per CONTEXT.md D-Keypair-scope (USER-LOCKED): single global keypair for v1, per-site keys introduced when fleet > ~100 sites or a key-rotation incident demands it
+- **searchReplace TypeScript-port performance benchmarking** — Plan 10-07 confirmed PHP↔TS equivalence; no fleet-wide performance baseline established yet
+- **WP-multisite support** — per CONTEXT.md §deferred: single-site WP installs only in v1; multisite has different REST routing
+- **Visual page builder UI in Koto** (Option A from 10-CONTEXT.md) — canvas + drag-drop + widget library; deferred to a later phase
+- **Section library in Koto** (Option C from 10-CONTEXT.md) — assemble pages by picking pre-captured sections
+- **WP-core full headless replacement** — Phase 10 keeps Elementor as the renderer on the WP side; a future phase could evaluate pure HTML/Tailwind via Gutenberg block + bypass Elementor entirely
+- **Real-time collaborative template editing** — single-user edits only in v1
+- **WP.org plugin distribution** — per CONTEXT.md D-Plugin-distribution (USER-LOCKED): NEVER. Do NOT undo this in M2 — keeping the shim off the public directory is a competitive-protection win
