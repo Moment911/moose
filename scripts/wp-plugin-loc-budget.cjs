@@ -113,6 +113,12 @@ const SCAFFOLDING_PATTERNS = [
   /(?:^|\/)includes\/pairing\.php$/,
   /(?:^|\/)includes\/self-update\.php$/,
   /(?:^|\/)includes\/rpc\/dispatcher\.php$/,
+  // Phase 10 Plan 10-11 — admin-page.php is operator UX for pair handshake
+  // ONLY (open/close pairing window + display fingerprint + paired status).
+  // Contains no business logic by contract — see file header. Classified as
+  // scaffolding so adding it doesn't crowd the business-logic budget that
+  // tracks IP-leakage surface (verb handlers + shortcodes).
+  /(?:^|\/)includes\/admin-page\.php$/,
 ]
 
 function bucketFor(relPath) {

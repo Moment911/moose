@@ -44,6 +44,13 @@ require_once KOTOIQ_SHIM_DIR . 'includes/pairing.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/self-update.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/rpc/dispatcher.php';
 
+// Admin UI — operations-only page (pairing-window toggle + pair status).
+// Loaded on every request because admin_menu + admin_post hooks must register
+// during normal WP boot, not just when the page renders.
+if (is_admin()) {
+    require_once KOTOIQ_SHIM_DIR . 'includes/admin-page.php';
+}
+
 // Verb handler groups (registered in the order they appear in verb-table.php).
 // events.php is required FIRST so the emit helper is defined before any
 // other handler tries to call it for audit logging.
