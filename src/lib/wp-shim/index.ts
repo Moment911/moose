@@ -76,3 +76,10 @@ export * from './ports/sitemapServe'
 // wrap with [koto_rotate] shortcode (Plan 10-06 generic variant-picker).
 // Push history persists every attempt for diff + replay.
 export * from './templates'
+
+// ── Dual-run shadow mode (Plan 10-10 — 7-day TypeScript port equivalence) ──
+// diffEngine + dualRunRouter implement the side-by-side dual-run window per
+// CONTEXT.md D-TypeScript-port-equivalence. createDualRunRouter wraps verb
+// calls so a site in mode='active' fires v3 + v4 in parallel and logs the
+// diff to koto_wp_dual_run_log; mode='promoted' samples 1% for monitoring.
+export * from './dualRun'

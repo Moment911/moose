@@ -118,7 +118,14 @@ export interface DualRunLogRow {
     args_hash: string
     v3_response_hash: string | null
     v4_response_hash: string | null
-    diff_status: 'match' | 'minor_diff' | 'major_diff' | 'v3_error' | 'v4_error' | 'both_error'
+    diff_status:
+        | 'match'
+        | 'minor_diff'
+        | 'major_diff'
+        | 'v3_error'
+        | 'v4_error'
+        | 'both_error'
+        | 'v4_only'
     diff_summary: Record<string, unknown> | null
     latency_v3_ms: number | null
     latency_v4_ms: number | null
