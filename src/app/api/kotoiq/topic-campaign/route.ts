@@ -11,6 +11,7 @@ import { getAccessToken, fetchSearchConsoleData, fetchGA4Data, loadClientConnect
 import { fetchCruxData } from '@/lib/builder/cruxClient'
 import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
+import { buildLlmsTxt, publishLlmsTxt } from '@/lib/wp-shim/llmsTxtBuilder'
 
 // Thin name wrapper — local handle for the per-location ACS lookup used in
 // deploy + redeploy. Returns null on any failure (missing key, city not found,
@@ -68,6 +69,8 @@ export async function POST(req: NextRequest) {
             case 'resync_seo_meta':   return await resyncSeoMeta(supabase, agencyId, body)
             case 'capture_styling':   return await captureStyling(body)
             case 'export_performance_csv': return await exportPerformanceCsv(supabase, agencyId, body)
+            case 'publish_llms_txt':  return await publishLlmsTxtForSite(supabase, agencyId, body)
+            case 'preview_llms_txt':  return await previewLlmsTxtForSite(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -171,6 +174,122 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
+}
+
+/**
+ * publish_llms_txt action — manually refresh /llms.txt for a site without
+ * needing a full re-deploy. Useful for first-time setup, plugin upgrades,
+ * or after editing a campaign topic.
+ */
+async function publishLlmsTxtForSite(supabase: any, agencyId: string, body: any) {
+    const siteId = String(body.site_id || '')
+    if (!siteId) return NextResponse.json({ error: 'site_id required' }, { status: 400 })
+    const { data: site } = await supabase
+        .from('koto_wp_sites')
+        .select('*')
+        .eq('id', siteId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (!site) return NextResponse.json({ error: 'site not found' }, { status: 404 })
+    const result = await refreshLlmsTxtForSite(supabase, agencyId, siteId, site)
+    return NextResponse.json({ ...result, llms_txt_url: `${String(site.site_url || '').replace(/\/$/, '')}/llms.txt` })
+}
+
+/**
+ * preview_llms_txt action — render the llms.txt content WITHOUT pushing it
+ * to the site. Lets the operator review before publishing.
+ */
+async function previewLlmsTxtForSite(supabase: any, agencyId: string, body: any) {
+    const siteId = String(body.site_id || '')
+    if (!siteId) return NextResponse.json({ error: 'site_id required' }, { status: 400 })
+    const { data: site } = await supabase
+        .from('koto_wp_sites')
+        .select('*')
+        .eq('id', siteId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (!site) return NextResponse.json({ error: 'site not found' }, { status: 404 })
+
+    const { data: campaigns } = await supabase
+        .from('koto_topic_campaigns')
+        .select('id, topic, last_deploy_at')
+        .eq('agency_id', agencyId)
+        .eq('site_id', siteId)
+        .order('last_deploy_at', { ascending: false, nullsFirst: false })
+    const allCampaigns = campaigns || []
+
+    const { data: deploys } = allCampaigns.length
+        ? await supabase
+            .from('koto_topic_campaign_deploys')
+            .select('campaign_id, city, state_abbr, wp_post_url')
+            .in('campaign_id', allCampaigns.map((c: any) => c.id))
+            .eq('status', 'published')
+            .not('wp_post_url', 'is', null)
+        : { data: [] }
+
+    const origin = String(site.site_url || '').replace(/\/$/, '')
+    const content = buildLlmsTxt({
+        siteName: site.site_name || origin.replace(/^https?:\/\//, ''),
+        siteUrl: origin,
+        siteDescription: site.description || undefined,
+        campaigns: allCampaigns,
+        deploys: deploys || [],
+    })
+    return NextResponse.json({ ok: true, content, byte_count: Buffer.byteLength(content, 'utf8') })
+}
+
+/**
+ * Compose + push the site-wide llms.txt to a paired WP site. Enumerates
+ * every published deploy across ALL campaigns on this site, groups by
+ * campaign topic, renders the llmstxt.org-format markdown, and pushes via
+ * the shim's file.write verb. Best-effort: returns {ok:false, error} on
+ * any failure instead of throwing — callers don't fail the deploy if
+ * llms.txt push errors out.
+ *
+ * Requires kotoiq-shim plugin v4.2.0+ to actually serve the file at
+ * /llms.txt. On older plugin versions the file is still written but no
+ * route serves it.
+ */
+async function refreshLlmsTxtForSite(
+    supabase: any,
+    agencyId: string,
+    siteId: string,
+    site: any,
+): Promise<{ ok: true; bytes_written: number } | { ok: false; error: string }> {
+    if (!siteId || !site?.site_url) return { ok: false, error: 'site missing' }
+
+    const { data: campaigns } = await supabase
+        .from('koto_topic_campaigns')
+        .select('id, topic, last_deploy_at')
+        .eq('agency_id', agencyId)
+        .eq('site_id', siteId)
+        .order('last_deploy_at', { ascending: false, nullsFirst: false })
+    const allCampaigns = campaigns || []
+    if (allCampaigns.length === 0) return { ok: false, error: 'no campaigns on site' }
+
+    const { data: deploys } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('campaign_id, city, state_abbr, wp_post_url')
+        .in('campaign_id', allCampaigns.map((c: any) => c.id))
+        .eq('status', 'published')
+        .not('wp_post_url', 'is', null)
+    const liveDeploys = deploys || []
+
+    const origin = String(site.site_url || '').replace(/\/$/, '')
+    const hostname = origin.replace(/^https?:\/\//, '') || origin
+    const content = buildLlmsTxt({
+        siteName: site.site_name || hostname,
+        siteUrl: origin,
+        siteDescription: site.description || undefined,
+        campaigns: allCampaigns,
+        deploys: liveDeploys,
+    })
+
+    try {
+        return await publishLlmsTxt(origin, content)
+    } catch (err: any) {
+        return { ok: false, error: String(err?.message || err) }
+    }
 }
 
 /**
@@ -437,11 +556,20 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         })
         .eq('id', campaignId)
 
+    // Refresh llms.txt at site root with the updated campaign map.
+    // Best-effort: a failure here doesn't fail the deploy — site visitors
+    // get their pages, just no llms.txt update this round. Requires the
+    // shim plugin to be v4.2.0+ to serve the file.
+    const llmsResult = await refreshLlmsTxtForSite(supabase, agencyId, siteId, site).catch((err: any) => {
+        return { ok: false as const, error: String(err?.message || err) }
+    })
+
     return NextResponse.json({
         ok: true,
         deployed: successCount,
         failed: results.length - successCount,
         results,
+        llms_txt: llmsResult,
     })
 }
 
@@ -588,7 +716,12 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
         last_deploy_count: updated,
     }).eq('id', campaignId)
 
-    return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length })
+    // Refresh llms.txt — same best-effort pattern as deploy.
+    const llmsResult = await refreshLlmsTxtForSite(supabase, agencyId, site.id, site).catch((err: any) => {
+        return { ok: false as const, error: String(err?.message || err) }
+    })
+
+    return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length, llms_txt: llmsResult })
 }
 
 /**
