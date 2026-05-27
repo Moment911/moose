@@ -576,6 +576,21 @@ Rules:
     const { data: site } = await sb.from('koto_wp_sites').select('*').eq('id', site_id).single()
     if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 })
 
+    // ─── v4-paired sites: route through wp-shim verbs ────────────────────
+    // For sites where shim_version === 'v4', intercept the action BEFORE the
+    // existing v3 handler runs. dispatchV4ActionIfPaired returns null when
+    // the site is not v4-paired or the action isn't v4-routable — fall
+    // through to the v3 handler in that case.
+    //
+    // Panels (SearchReplacePanel, SnippetsPanel, etc.) need ZERO changes —
+    // the dispatcher emits the v3 envelope shape they already destructure.
+    //
+    // See src/app/api/wp/v4Dispatcher.ts for the full per-action routing
+    // table + shape translations.
+    const { dispatchV4ActionIfPaired } = await import('./v4Dispatcher')
+    const v4Response = await dispatchV4ActionIfPaired(sb, action, body, site)
+    if (v4Response) return v4Response
+
     if (action === 'ping') {
       const result = await proxyToPlugin(site, 'agency/test', 'POST', { koto_url: APP_URL })
       if (result.ok && result.data) {
