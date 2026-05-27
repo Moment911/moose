@@ -1,6 +1,6 @@
 "use client"
-import { useState } from 'react'
-import { Repeat, Copy, Loader2, Trash2, AlertTriangle, ChevronDown, ChevronRight, Wrench } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Repeat, Copy, Loader2, Trash2, AlertTriangle, ChevronDown, ChevronRight, Wrench, ExternalLink, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB, DESIGN, } from '../../lib/theme'
 
@@ -20,9 +20,35 @@ export default function ContentRotationPanel({ site }) {
   const [busy, setBusy] = useState(false)
   const [cache, setCache] = useState(null) // { post_id, cached_selections: { section: index } }
   const [debugOpen, setDebugOpen] = useState(false) // Cache lookup is dev-only; hidden by default
+  const [usedOn, setUsedOn] = useState(null) // { loading, posts: [...], error: string | null }
 
   const moduleEntry = (site?.wpsc_modules || []).find(m => m?.slug === 'content-rotation')
   const moduleEnabled = moduleEntry ? moduleEntry.enabled !== false : false
+  const isV4 = site?.shim_version === 'v4'
+
+  async function loadUsedOn() {
+    if (!site?.id) return
+    setUsedOn({ loading: true, posts: [], error: null })
+    try {
+      const r = await fetch('/api/wp', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'kotoiq_rotation_posts_list', site_id: site.id }),
+      })
+      const d = await r.json()
+      if (!d.ok) {
+        setUsedOn({ loading: false, posts: [], error: d.error || d.data?.error || 'Failed to load' })
+      } else {
+        setUsedOn({ loading: false, posts: d.data?.posts || [], error: null })
+      }
+    } catch (e) {
+      setUsedOn({ loading: false, posts: [], error: e.message })
+    }
+  }
+
+  useEffect(() => {
+    if (moduleEnabled && isV4 && site?.id) loadUsedOn()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [site?.id, moduleEnabled, isV4])
 
   async function lookup() {
     if (!postId) { toast.error('Enter a post ID'); return }
@@ -174,16 +200,105 @@ export default function ContentRotationPanel({ site }) {
         )}
       </div>
 
-      {/* Used-on auto-discovery — placeholder until the WP-side endpoint ships */}
-      <div style={{ ...card(), background:'#fafafa', border:'1px dashed #e5e7eb' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <Repeat size={13} color="#9ca3af"/>
-          <div style={{ fontFamily:FH, fontWeight:700, color:'#6b7280', fontSize:12 }}>Where it's running</div>
+      {/* Used-on auto-discovery */}
+      {isV4 ? (
+        <div style={card()}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+            <Repeat size={14} color={T}/>
+            <div style={{ flex:1, fontFamily:FH, fontWeight:800, color:BLK, fontSize:13 }}>
+              Where it's running
+            </div>
+            <button
+              onClick={loadUsedOn}
+              disabled={usedOn?.loading}
+              style={miniBtn()}
+              title="Refresh"
+            >
+              {usedOn?.loading ? <Loader2 size={10} className="spin"/> : <RefreshCw size={10}/>}
+              Refresh
+            </button>
+          </div>
+          <div style={{ fontSize:11, color:'#6b7280', fontFamily:FB, lineHeight:1.5, marginBottom:12 }}>
+            Posts and pages whose content contains <code>koto_rotate</code>. False positives are possible if the word appears outside the shortcode.
+          </div>
+
+          {usedOn?.loading && (
+            <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:'#6b7280', fontFamily:FB }}>
+              <Loader2 size={12} className="spin"/> Scanning…
+            </div>
+          )}
+
+          {!usedOn?.loading && usedOn?.error && (
+            <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:R, fontFamily:FB }}>
+              <AlertTriangle size={12}/> {usedOn.error}
+            </div>
+          )}
+
+          {!usedOn?.loading && !usedOn?.error && (usedOn?.posts?.length ?? 0) === 0 && (
+            <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, fontStyle:'italic' }}>
+              No posts or pages found using <code>[koto_rotate]</code> on this site.
+            </div>
+          )}
+
+          {!usedOn?.loading && !usedOn?.error && (usedOn?.posts?.length ?? 0) > 0 && (
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, fontFamily:FB }}>
+              <thead>
+                <tr>
+                  <th style={th()}>Title</th>
+                  <th style={th({ width:60 })}>Type</th>
+                  <th style={th({ width:80 })}>Status</th>
+                  <th style={th({ width:90 })}>Post ID</th>
+                  <th style={th({ width:50 })}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {usedOn.posts.map(p => (
+                  <tr key={`${p.type}-${p.id}`} style={{ borderTop:'1px solid #f1f5f9' }}>
+                    <td style={td()}>
+                      <span dangerouslySetInnerHTML={{ __html: p.title }}/>
+                    </td>
+                    <td style={td()}><Pill color={T} bg={`${T}15`}>{p.type}</Pill></td>
+                    <td style={td()}>
+                      <Pill
+                        color={p.status === 'publish' ? GRN : '#6b7280'}
+                        bg={p.status === 'publish' ? `${GRN}15` : '#f3f4f6'}
+                      >
+                        {p.status}
+                      </Pill>
+                    </td>
+                    <td style={td()}>
+                      <button
+                        onClick={() => { setPostId(String(p.id)); setDebugOpen(true) }}
+                        style={{ background:'transparent', border:'none', color:T, cursor:'pointer', fontFamily:'ui-monospace,Menlo,monospace', fontSize:11, padding:0 }}
+                        title="Use this post ID in Cache debugging"
+                      >
+                        {p.id}
+                      </button>
+                    </td>
+                    <td style={td()}>
+                      {p.url && (
+                        <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ color:'#6b7280', display:'inline-flex' }} title="Open in new tab">
+                          <ExternalLink size={11}/>
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
-        <p style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, lineHeight:1.5, marginTop:8 }}>
-          Auto-discovery of posts using <code>[koto_rotate]</code> ships in the next KotoIQ release. For now, search your WP admin for the shortcode or use the Cache debugging tool above with a known post ID.
-        </p>
-      </div>
+      ) : (
+        <div style={{ ...card(), background:'#fafafa', border:'1px dashed #e5e7eb' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <Repeat size={13} color="#9ca3af"/>
+            <div style={{ fontFamily:FH, fontWeight:700, color:'#6b7280', fontSize:12 }}>Where it's running</div>
+          </div>
+          <p style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, lineHeight:1.5, marginTop:8 }}>
+            Auto-discovery is available on v4-paired sites only. This site is on the legacy v3 shim — search your WP admin for the shortcode or use the Cache debugging tool above with a known post ID.
+          </p>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

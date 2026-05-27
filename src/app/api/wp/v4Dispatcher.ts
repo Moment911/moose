@@ -88,6 +88,7 @@ const V4_ROUTABLE_ACTIONS = new Set<string>([
     // ContentRotationPanel
     'kotoiq_rotation_cache_get',
     'kotoiq_rotation_cache_del',
+    'kotoiq_rotation_posts_list',
     // SEOPanel
     'kotoiq_seo_agency_test',
     'kotoiq_seo_pages',
@@ -720,6 +721,65 @@ export async function dispatchV4ActionIfPaired(
                 const r = await optionDelete(site.site_url, { name: `kotoiq_rotation_cache_${post_id}` })
                 if (!r.ok) return envelopeErr(r.error.message, r.status, { code: r.error.code })
                 return envelopeOk({ deleted: true }, r.status)
+            }
+            case 'kotoiq_rotation_posts_list': {
+                // Auto-discover posts using [koto_rotate] by searching post
+                // content via WP REST. The shortcode token is distinctive
+                // enough that false positives are rare; the operator can
+                // verify by clicking through to the post.
+                //
+                // Panel reads:
+                //   { posts: [{ id, title, url, type, status, modified }] }
+                const creds = await loadSiteCredentials(sb, site.agency_id, site.id).catch(() => null)
+                if (!creds) return envelopeErr('Site has no paired credentials', 401)
+                type WpPost = {
+                    id: number
+                    title?: { rendered?: string } | string
+                    link?: string
+                    status?: string
+                    modified?: string
+                }
+                const fields = '_fields=id,title,link,status,modified'
+                const search = 'search=koto_rotate&per_page=100'
+                const [posts, pages] = await Promise.all([
+                    wpFetchJson<WpPost[]>(site.site_url, `/wp/v2/posts?${search}&${fields}`, creds),
+                    wpFetchJson<WpPost[]>(site.site_url, `/wp/v2/pages?${search}&${fields}`, creds),
+                ])
+                const out: Array<{
+                    id: number
+                    title: string
+                    url: string
+                    status: string
+                    type: 'post' | 'page'
+                    modified: string
+                }> = []
+                const pickTitle = (t: WpPost['title']) =>
+                    typeof t === 'string' ? t : t?.rendered || '(untitled)'
+                if (posts.ok && Array.isArray(posts.data)) {
+                    for (const p of posts.data) {
+                        out.push({
+                            id: p.id,
+                            title: pickTitle(p.title),
+                            url: p.link || '',
+                            status: p.status || 'publish',
+                            type: 'post',
+                            modified: p.modified || '',
+                        })
+                    }
+                }
+                if (pages.ok && Array.isArray(pages.data)) {
+                    for (const p of pages.data) {
+                        out.push({
+                            id: p.id,
+                            title: pickTitle(p.title),
+                            url: p.link || '',
+                            status: p.status || 'publish',
+                            type: 'page',
+                            modified: p.modified || '',
+                        })
+                    }
+                }
+                return envelopeOk({ posts: out }, 200)
             }
 
             // ── SEO ──────────────────────────────────────────────────────────
