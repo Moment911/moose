@@ -37,6 +37,43 @@ export const FIPS_TO_STATE: Record<string, string> = Object.fromEntries(
   Object.entries(STATE_FIPS).map(([abbr, fips]) => [fips, abbr])
 )
 
+/**
+ * Append the Census API key from env. As of 2026, Census redirects keyless
+ * requests to a missing_key.html page (HTTP 302 → HTML body), which our
+ * code interpreted as "Unexpected token '<'" JSON-parse errors. Keys are
+ * free at https://api.census.gov/data/key_signup.html.
+ */
+function withCensusKey(url: string): string {
+  const key = process.env.CENSUS_API_KEY || ''
+  if (!key) return url
+  return url + (url.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(key)
+}
+
+/**
+ * Census-aware JSON fetch: validates the content-type before parsing so we
+ * fail loudly when Census returns its HTML missing_key page instead of JSON.
+ */
+async function fetchCensusJson(url: string, stateAbbr: string, timeoutMs = 15000): Promise<any> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) })
+  if (!res.ok) {
+    if (res.status === 302 || res.status === 401 || res.status === 403) {
+      throw new Error(
+        `[geoLookup] Census API rejected the request for ${stateAbbr} (HTTP ${res.status}). Set CENSUS_API_KEY in Vercel env — get one free at https://api.census.gov/data/key_signup.html`,
+      )
+    }
+    throw new Error(`[geoLookup] Census API ${res.status} for ${stateAbbr}`)
+  }
+  const ct = res.headers.get('content-type') || ''
+  if (!ct.includes('json')) {
+    // Census redirects keyless requests to an HTML page with 200 status
+    // after the 302 chain completes. Detect by content-type.
+    throw new Error(
+      `[geoLookup] Census returned non-JSON for ${stateAbbr} (likely missing CENSUS_API_KEY env var). Get one free at https://api.census.gov/data/key_signup.html and add it to Vercel.`,
+    )
+  }
+  return res.json()
+}
+
 export function fipsForState(stateAbbr: string): string {
   const fips = STATE_FIPS[stateAbbr.toUpperCase()]
   if (!fips) {
@@ -87,11 +124,9 @@ export interface CountiesResult extends VerifiedDataSource {
 }
 export async function getCountiesForState(stateAbbr: string): Promise<CountiesResult> {
   const fips = fipsForState(stateAbbr)
-  const url = buildSourceUrl('us_counties', { STATE_FIPS: fips })
-  const res = await fetch(url, { signal: AbortSignal.timeout(15000) })
-  if (!res.ok) throw new Error(`[geoLookup] Census counties API ${res.status} for ${stateAbbr}`)
-
-  const raw: string[][] = await res.json()
+  const url = withCensusKey(buildSourceUrl('us_counties', { STATE_FIPS: fips }))
+  const res = await fetchCensusJson(url, stateAbbr)
+  const raw: string[][] = res
   if (!Array.isArray(raw) || raw.length < 2) {
     throw new Error(`[geoLookup] Unexpected Census payload shape for counties: ${JSON.stringify(raw).slice(0, 200)}`)
   }
@@ -138,11 +173,9 @@ export async function getPlacesForState(
   opts: PlacesOptions = {}
 ): Promise<PlacesResult> {
   const fips = fipsForState(stateAbbr)
-  const url = buildSourceUrl('us_places', { STATE_FIPS: fips })
-  const res = await fetch(url, { signal: AbortSignal.timeout(30000) })
-  if (!res.ok) throw new Error(`[geoLookup] Census places API ${res.status} for ${stateAbbr}`)
-
-  const raw: string[][] = await res.json()
+  const url = withCensusKey(buildSourceUrl('us_places', { STATE_FIPS: fips }))
+  const res = await fetchCensusJson(url, stateAbbr, 30000)
+  const raw: string[][] = res
   if (!Array.isArray(raw) || raw.length < 2) {
     throw new Error(`[geoLookup] Unexpected Census payload shape for places: ${JSON.stringify(raw).slice(0, 200)}`)
   }
@@ -189,11 +222,9 @@ export interface ZipsResult extends VerifiedDataSource {
 }
 export async function getZipCodesForState(stateAbbr: string): Promise<ZipsResult> {
   const fips = fipsForState(stateAbbr)
-  const url = buildSourceUrl('us_zip_codes', { STATE_FIPS: fips })
-  const res = await fetch(url, { signal: AbortSignal.timeout(30000) })
-  if (!res.ok) throw new Error(`[geoLookup] Census ZCTA API ${res.status} for ${stateAbbr}`)
-
-  const raw: string[][] = await res.json()
+  const url = withCensusKey(buildSourceUrl('us_zip_codes', { STATE_FIPS: fips }))
+  const res = await fetchCensusJson(url, stateAbbr, 30000)
+  const raw: string[][] = res
   if (!Array.isArray(raw) || raw.length < 2) {
     throw new Error(`[geoLookup] Unexpected Census payload shape for ZCTAs: ${JSON.stringify(raw).slice(0, 200)}`)
   }
