@@ -287,18 +287,17 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                     No WP site connected for {activeClient?.name}
                   </div>
                   <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.6, marginBottom: 24 }}>
-                    Download the KotoIQ plugin, install it on your client's WordPress site, then come back and click Connect to pair it.
+                    Download the KotoIQ Shim plugin, install on the WP site, open a pairing window, then click Connect. The dashboard issues the API key — you never paste anything.
                   </div>
 
                   {/* Step-by-step instructions */}
                   <div style={{ textAlign: 'left', background: '#FAF9F6', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: `1px solid ${LINE}` }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Setup Steps</div>
                     {[
-                      { step: '1', text: 'Download the KotoIQ WordPress plugin below' },
-                      { step: '2', text: 'In WordPress admin, go to Plugins → Add New → Upload Plugin' },
-                      { step: '3', text: 'Upload the .zip file and click Install Now, then Activate' },
-                      { step: '4', text: 'Go to KotoIQ → Settings in WP admin and copy the API key' },
-                      { step: '5', text: 'Come back here and click Connect to paste the key' },
+                      { step: '1', text: 'Download the KotoIQ Shim plugin (v4.0.0) below' },
+                      { step: '2', text: 'In WordPress admin: Plugins → Add New → Upload Plugin → upload the .zip, Activate' },
+                      { step: '3', text: 'In WP admin → KotoIQ Shim → Settings, click "Open pairing window" (10 min)' },
+                      { step: '4', text: 'Click Connect a site below — enter URL, click Pair now' },
                     ].map(({ step, text }) => (
                       <div key={step} style={{ display: 'flex', gap: 12, marginBottom: 10, alignItems: 'flex-start' }}>
                         <div style={{ width: 24, height: 24, borderRadius: 12, background: PINK, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{step}</div>
@@ -308,9 +307,9 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                   </div>
 
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <a href="/downloads/kotoiq-3.0.0.zip" download
+                    <a href="/downloads/kotoiq-shim-4.0.0.zip" download
                       style={{ ...primaryBtn(), textDecoration: 'none', display: 'inline-flex' }}>
-                      <Download size={14}/> Download KotoIQ Plugin
+                      <Download size={14}/> Download Shim Plugin v4.0.0
                     </a>
                     <button onClick={() => setShowAdd(true)} style={mini({ borderColor: PINK, color: PINK })}>
                       <Plus size={13}/> Connect a site
