@@ -732,7 +732,8 @@ export default function TopicCampaignPanel({ site }) {
       {/* Show master summary after step 1 */}
       {campaign && step >= 2 && (
         <div style={card({ background:'#fafafa' })}>
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+          {/* Row 1: title + pills */}
+          <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:10, marginBottom:12 }}>
             <CheckCircle2 size={18} color={GRN}/>
             <div style={{ fontFamily:FH, fontWeight:800, fontSize:15, color:BLK }}>Master ready</div>
             <span style={pill(GRN, `${GRN}15`)}>{campaign.master?.sections?.length || 0} sections · {campaign.master?.faqs?.length || 0} FAQs</span>
@@ -741,51 +742,52 @@ export default function TopicCampaignPanel({ site }) {
                 <Coins size={11}/> {campaign.tokens_used.toLocaleString()} tokens
               </span>
             )}
-            <div style={{ marginLeft:'auto', display:'flex', gap:8 }}>
-              <button onClick={() => {
-                setEditedMaster(structuredClone(campaign.master))
-                setEditedPhone(campaign.phone || '')
-                setEditedCompanyName(campaign.company_name || '')
-                setEditedHeroImage(campaign.hero_image_url || '')
-                setEditedHeroVideo(campaign.hero_video_url || '')
-                setEditedHeroAlt(campaign.hero_image_alt || '')
-                setEditedPostType(campaign.post_type || 'page')
-                setEditedFocusKw(campaign.focus_keyword_template || '[topic] in [koto_city] [koto_state_abbr]')
-                setEditorOpen(true)
-              }} style={miniBtn()}>
-                <Edit3 size={11}/> Edit master
+          </div>
+          {/* Row 2: action buttons, wrapping freely */}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:12 }}>
+            <button onClick={() => {
+              setEditedMaster(structuredClone(campaign.master))
+              setEditedPhone(campaign.phone || '')
+              setEditedCompanyName(campaign.company_name || '')
+              setEditedHeroImage(campaign.hero_image_url || '')
+              setEditedHeroVideo(campaign.hero_video_url || '')
+              setEditedHeroAlt(campaign.hero_image_alt || '')
+              setEditedPostType(campaign.post_type || 'page')
+              setEditedFocusKw(campaign.focus_keyword_template || '[topic] in [koto_city] [koto_state_abbr]')
+              setEditorOpen(true)
+            }} style={miniBtn()}>
+              <Edit3 size={11}/> Edit master
+            </button>
+            {deployHistory.length > 0 && (
+              <button onClick={() => setHistoryOpen(o => !o)} style={miniBtn()}>
+                <History size={11}/> History ({deployHistory.length})
               </button>
-              {deployHistory.length > 0 && (
-                <button onClick={() => setHistoryOpen(o => !o)} style={miniBtn()}>
-                  <History size={11}/> History ({deployHistory.length})
-                </button>
-              )}
-              {deployHistory.length > 0 && (
-                <button onClick={() => { setPerfOpen(o => !o); if (!perf) loadPerf() }} style={miniBtn({ color:T, borderColor:T })}>
-                  <TrendingUp size={11}/> Performance
-                </button>
-              )}
-              {deployHistory.some(d => d.status === 'failed') && (
-                <button onClick={retryFailed} disabled={retrying} style={miniBtn({ color:AMB, borderColor:AMB })}>
-                  {retrying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Retry failed ({deployHistory.filter(d => d.status === 'failed').length})
-                </button>
-              )}
-              {deployHistory.length > 0 && (
-                <button onClick={verifyLive} disabled={verifying} style={miniBtn({ color:T, borderColor:T })}>
-                  {verifying ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Verify live
-                </button>
-              )}
-              {deployHistory.some(d => d.status === 'published') && (
-                <button onClick={resyncSeo} disabled={resyncing} style={miniBtn({ color:T, borderColor:T })}>
-                  {resyncing ? <Loader2 size={11} className="spin"/> : <Wand2 size={11}/>} Re-sync SEO meta
-                </button>
-              )}
-              {deployHistory.length > 0 && (
-                <button onClick={redeployAll} disabled={redeploying} style={miniBtn({ color:R, borderColor:R })}>
-                  {redeploying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Re-deploy all
-                </button>
-              )}
-            </div>
+            )}
+            {deployHistory.length > 0 && (
+              <button onClick={() => { setPerfOpen(o => !o); if (!perf) loadPerf() }} style={miniBtn({ color:T, borderColor:T })}>
+                <TrendingUp size={11}/> Performance
+              </button>
+            )}
+            {deployHistory.some(d => d.status === 'failed') && (
+              <button onClick={retryFailed} disabled={retrying} style={miniBtn({ color:AMB, borderColor:AMB })}>
+                {retrying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Retry failed ({deployHistory.filter(d => d.status === 'failed').length})
+              </button>
+            )}
+            {deployHistory.length > 0 && (
+              <button onClick={verifyLive} disabled={verifying} style={miniBtn({ color:T, borderColor:T })}>
+                {verifying ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Verify live
+              </button>
+            )}
+            {deployHistory.some(d => d.status === 'published') && (
+              <button onClick={resyncSeo} disabled={resyncing} style={miniBtn({ color:T, borderColor:T })}>
+                {resyncing ? <Loader2 size={11} className="spin"/> : <Wand2 size={11}/>} Re-sync SEO meta
+              </button>
+            )}
+            {deployHistory.length > 0 && (
+              <button onClick={redeployAll} disabled={redeploying} style={miniBtn({ color:R, borderColor:R, background:`${R}10` })}>
+                {redeploying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Re-deploy all
+              </button>
+            )}
           </div>
           <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280' }}>
             <strong>Topic:</strong> {campaign.topic}
