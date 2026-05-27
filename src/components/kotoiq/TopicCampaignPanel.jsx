@@ -49,6 +49,8 @@ export default function TopicCampaignPanel({ site }) {
   // Master editor + deploy history
   const [editorOpen, setEditorOpen] = useState(false)
   const [editedMaster, setEditedMaster] = useState(null)
+  const [editedPhone, setEditedPhone] = useState('')
+  const [editedCompanyName, setEditedCompanyName] = useState('')
   const [deployHistory, setDeployHistory] = useState([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [inspectDeploy, setInspectDeploy] = useState(null)
@@ -224,6 +226,8 @@ export default function TopicCampaignPanel({ site }) {
           agency_id: agencyId,
           campaign_id: campaign.id,
           master: editedMaster,
+          phone: editedPhone,
+          company_name: editedCompanyName,
         }),
       })
       const d = await r.json()
@@ -231,7 +235,7 @@ export default function TopicCampaignPanel({ site }) {
       setCampaign(d.campaign)
       setEditedMaster(null)
       setEditorOpen(false)
-      toast.success('Master saved')
+      toast.success('Master saved · Re-deploy to push changes')
     } catch (e) { toast.error(e.message) }
   }
 
@@ -355,7 +359,12 @@ export default function TopicCampaignPanel({ site }) {
               </span>
             )}
             <div style={{ marginLeft:'auto', display:'flex', gap:8 }}>
-              <button onClick={() => { setEditedMaster(structuredClone(campaign.master)); setEditorOpen(true) }} style={miniBtn()}>
+              <button onClick={() => {
+                setEditedMaster(structuredClone(campaign.master))
+                setEditedPhone(campaign.phone || '')
+                setEditedCompanyName(campaign.company_name || '')
+                setEditorOpen(true)
+              }} style={miniBtn()}>
                 <Edit3 size={11}/> Edit master
               </button>
               {deployHistory.length > 0 && (
@@ -570,7 +579,13 @@ export default function TopicCampaignPanel({ site }) {
 
       {/* Master Editor overlay */}
       {editorOpen && editedMaster && (
-        <MasterEditor master={editedMaster} setMaster={setEditedMaster} onSave={saveMasterEdits} onClose={() => { setEditorOpen(false); setEditedMaster(null) }}/>
+        <MasterEditor
+          master={editedMaster} setMaster={setEditedMaster}
+          phone={editedPhone} setPhone={setEditedPhone}
+          companyName={editedCompanyName} setCompanyName={setEditedCompanyName}
+          onSave={saveMasterEdits}
+          onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
+        />
       )}
 
       {/* Inspect deploy overlay */}
@@ -620,7 +635,7 @@ export default function TopicCampaignPanel({ site }) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function MasterEditor({ master, setMaster, onSave, onClose }) {
+function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, onSave, onClose }) {
   function patch(path, value) {
     setMaster(prev => {
       const next = structuredClone(prev)
@@ -647,6 +662,18 @@ function MasterEditor({ master, setMaster, onSave, onClose }) {
           <button onClick={onClose} style={miniBtn()}><X size={11}/></button>
         </div>
         <div style={{ flex:1, overflow:'auto', padding:22, display:'flex', flexDirection:'column', gap:18 }}>
+
+          {/* Campaign-level tokens (resolved everywhere) */}
+          <EditorBlock label="Campaign-wide token values">
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <Field label="Company name" hint="Resolves to [koto_company_name] on every page">
+                <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Unified Marketing" style={inp()}/>
+              </Field>
+              <Field label="Phone number" hint="Resolves to [koto_phone] / [koto_phone_link]">
+                <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(512) 555-1234" style={inp()}/>
+              </Field>
+            </div>
+          </EditorBlock>
 
           {/* Hero */}
           <EditorBlock label="Hero — H1 variants">
