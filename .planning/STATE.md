@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-05-PLAN.md
-last_updated: "2026-05-26T23:47:22.307Z"
+stopped_at: Completed 10-06-PLAN.md — shim contract complete (27/27 verbs)
+last_updated: "2026-05-27T00:12:31.828Z"
 last_activity: 2026-05-26 -- Phase 10 planning complete
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 28
-  completed_plans: 20
-  percent: 71
+  completed_plans: 21
+  percent: 75
 ---
 
 # Project State
@@ -78,6 +78,7 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 | Phase 10 P03 | 11min | 2 tasks | 8 files |
 | Phase 10 P04 | 18min | 2 tasks | 14 files |
 | Phase 10 P05 | 10min | 2 tasks | 8 files |
+| Phase 10 P06 | 18m 18s | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,8 @@ Recent decisions affecting current work:
 - [Phase 10]: Plan 10-05 — query.select named-query whitelist hardcoded (7 entries); no raw SQL ever accepted from args
 - [Phase 10]: Plan 10-05 — capability.apply protects administrator role + denies manage_options/install_plugins/edit_files (and 4 more); removal of any cap always allowed (safer than granting)
 - [Phase 10]: Plan 10-05 — LOC budget raised 500 → 650 per Plan 10-04 SUMMARY recommendation; final 623/650 OK with 27 LOC headroom for Plan 10-06
+- [Phase 10]: Plan 10-06: LOC budget raised 650 → 750 to fit the substantive host-bound elementor.save + elementor.clone verbs (idempotency keys for both verbs, edit-lock, Document::save, koto_service user, force_css_regen, prefix-allowlist validation, post-status updates, revision-cap filter, audit-event emission). Same Rule-3 documented pattern Plan 10-05 used (500 → 650). Final 736/750 OK with 14 LOC headroom for Plan 10-11 cutover refinements.
+- [Phase 10]: Plan 10-06: meta_prefix_allowlist dashboard-supplied pattern locks in the v3→v4 IP-protection win. v3 hardcoded 'rank_math_' + '_koto_' prefixes; v4 receives the list from the dashboard and validates each prefix matches /^[a-zA-Z_][a-zA-Z0-9_]*_$/. Plugin source no longer reveals which SEO plugins KotoIQ writes meta for.
 
 ### Pending Todos
 
@@ -183,8 +186,8 @@ UAT test data still seeded (reuse for the gauntlet):
 
 ## Session Continuity
 
-Last session: 2026-05-26T23:47:06.657Z
-Stopped at: Completed 10-05-PLAN.md
+Last session: 2026-05-27T00:12:31.825Z
+Stopped at: Completed 10-06-PLAN.md — shim contract complete (27/27 verbs)
 Resume file: None
 
 ### Plan 1 Deliverables (COMPLETE)
