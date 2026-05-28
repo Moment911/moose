@@ -39,6 +39,9 @@ export interface GenerateMasterInput {
      *  Each is a directive like "authoritativeness: no citations → add cited
      *  stats". Claude addresses them in the copy WITHOUT fabricating facts. */
     improvementDirectives?: string[]
+    /** Operator-supplied real info (author name, credentials, address, etc.)
+     *  to weave into the copy for concrete E-E-A-T signals. */
+    eeatInfo?: string
     /** Agency ID for token-usage attribution. */
     agencyId?: string
 }
@@ -107,6 +110,7 @@ NOTES: ${input.notes || '(none)'}
 ${input.competitorContext ? `\n${input.competitorContext}\n` : ''}
 ${input.topicalCluster?.length ? `\nTOPICAL CLUSTER — the FAQs and sections must COLLECTIVELY touch these related subtopics so the page builds topical authority around the theme. Weave them in naturally (a FAQ here, a section angle there) — do NOT just list them:\n- ${input.topicalCluster.slice(0, 12).join('\n- ')}\n` : ''}
 ${input.improvementDirectives?.length ? `\nREVISION DIRECTIVES — this is a regeneration to close specific E-E-A-T gaps found by an audit. Address each where it fits naturally in the copy (cite concrete specifics, add experience/authority signals). CRITICAL: do NOT fabricate facts, statistics, client names, results, or testimonials — those are filled from real operator/Google data elsewhere. Improve the WRITING toward these goals, not by inventing data:\n- ${input.improvementDirectives.slice(0, 12).join('\n- ')}\n` : ''}
+${input.eeatInfo ? `\nVERIFIED BUSINESS INFO (operator-supplied, use these real details for E-E-A-T signals — weave into author byline, about section, trust signals, credentials):\n${input.eeatInfo}\n` : ''}
 ${input.htmlWrapperHint ? `STYLE_HINT (operator pasted HTML wrapper — match the implied voice/structure):\n${input.htmlWrapperHint.slice(0, 2000)}` : ''}
 
 Produce a JSON object with this EXACT shape:

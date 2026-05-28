@@ -4,7 +4,7 @@ import {
   Sparkles, Loader2, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, MapPin, RefreshCw, Upload,
   AlertTriangle, CheckCircle2, Wand2, FileText, File, ExternalLink, Eye, X,
   Edit3, History, Save, Code, Coins, TrendingUp, MousePointerClick, Users, Target,
-  Download, Trash2, Star,
+  Download, Trash2, Star, ShieldCheck,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
@@ -109,6 +109,7 @@ export default function TopicCampaignPanel({ site }) {
   const [savedCampaigns, setSavedCampaigns] = useState([])
   const [deletingId, setDeletingId] = useState(null)
   const [fixingGaps, setFixingGaps] = useState(false)
+  const [eeatInfoFields, setEeatInfoFields] = useState({})
   const [eeatEditorOpen, setEeatEditorOpen] = useState(false)
   const [savingEeat, setSavingEeat] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -473,23 +474,94 @@ export default function TopicCampaignPanel({ site }) {
     setPlaceBusy(false)
   }
 
-  // Operator-triggered E-E-A-T fix loop: feed the audit gaps into a regenerate,
-  // then auto re-score to show the improvement.
+  // Auto-improvement loop: audit → fix → re-audit → repeat until score >= target.
+  const [eeatLog, setEeatLog] = useState([])
+  const EEAT_TARGET = 85
+  const EEAT_MAX_ROUNDS = 3
+
+  function logEeat(msg) { setEeatLog(prev => [...prev, { time: new Date(), msg }]) }
+
   async function regenerateFromAudit() {
-    if (!campaign?.id || !eeatResult?.gaps?.length || fixingGaps) return
+    if (!campaign?.id || fixingGaps) return
+    // Single-shot if already has audit result with gaps
+    if (eeatResult?.gaps?.length) {
+      await runAutoEeat(eeatResult)
+    }
+  }
+
+  async function runAutoEeat(initialAudit) {
+    if (!campaign?.id || fixingGaps) return
     setFixingGaps(true)
-    const tid = toast.loading('Regenerating to close the E-E-A-T gaps…')
-    try {
-      const r = await fetch('/api/kotoiq/topic-campaign', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'regenerate_master', agency_id: agencyId, campaign_id: campaign.id, eeat_gaps: eeatResult.gaps }),
-      })
-      const d = await r.json()
-      if (d.error) { toast.error(errText(d.error), { id: tid }); setFixingGaps(false); return }
-      setCampaign(d.campaign)
-      toast.success('Regenerated — re-scoring to verify…', { id: tid })
-      await runEeatAudit() // re-score the new master so you see the lift
-    } catch (e) { toast.error(e.message, { id: tid }) }
+    setEeatLog([])
+    let currentAudit = initialAudit
+    let round = 0
+
+    // If no initial audit, run one first
+    if (!currentAudit) {
+      logEeat('Round 1 — scoring the master against E-E-A-T signals…')
+      try {
+        const r = await fetch('/api/kotoiq/topic-campaign', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'eeat_score', agency_id: agencyId, campaign_id: campaign.id }),
+        })
+        const d = await r.json()
+        if (d.error) { logEeat(`Audit failed: ${errText(d.error)}`); setFixingGaps(false); return }
+        currentAudit = d.audit
+        setEeatResult(d.audit)
+        logEeat(`Score: ${d.audit.overall_score}/100 (E:${d.audit.experience} X:${d.audit.expertise} A:${d.audit.authoritativeness} T:${d.audit.trustworthiness})`)
+        if (d.audit.overall_score >= EEAT_TARGET) {
+          logEeat(`Already at ${d.audit.overall_score} — target is ${EEAT_TARGET}. Done.`)
+          setFixingGaps(false)
+          return
+        }
+      } catch (e) { logEeat(`Error: ${e.message}`); setFixingGaps(false); return }
+    } else {
+      logEeat(`Starting score: ${currentAudit.overall_score}/100 — target is ${EEAT_TARGET}`)
+    }
+
+    while (round < EEAT_MAX_ROUNDS) {
+      round++
+      const gaps = currentAudit?.gaps || []
+      if (!gaps.length) { logEeat('No gaps found — nothing to fix.'); break }
+      if (currentAudit.overall_score >= EEAT_TARGET) {
+        logEeat(`Score ${currentAudit.overall_score} >= ${EEAT_TARGET} target. Done.`)
+        break
+      }
+
+      // Fix
+      logEeat(`Round ${round} — fixing ${gaps.length} gaps: ${gaps.map(g => g.dimension).join(', ')}…`)
+      try {
+        const r = await fetch('/api/kotoiq/topic-campaign', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'regenerate_master', agency_id: agencyId, campaign_id: campaign.id, eeat_gaps: gaps, eeat_info: Object.fromEntries(Object.entries(eeatInfoFields || {}).filter(([,v]) => v)) }),
+        })
+        const d = await r.json()
+        if (d.error) { logEeat(`Regenerate failed: ${errText(d.error)}`); break }
+        setCampaign(d.campaign)
+        logEeat('Master rewritten — re-scoring…')
+      } catch (e) { logEeat(`Error: ${e.message}`); break }
+
+      // Re-audit
+      try {
+        const r = await fetch('/api/kotoiq/topic-campaign', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'eeat_score', agency_id: agencyId, campaign_id: campaign.id }),
+        })
+        const d = await r.json()
+        if (d.error) { logEeat(`Re-audit failed: ${errText(d.error)}`); break }
+        currentAudit = d.audit
+        setEeatResult(d.audit)
+        logEeat(`Score: ${d.audit.overall_score}/100 (E:${d.audit.experience} X:${d.audit.expertise} A:${d.audit.authoritativeness} T:${d.audit.trustworthiness})`)
+      } catch (e) { logEeat(`Error: ${e.message}`); break }
+    }
+
+    if (currentAudit?.overall_score >= EEAT_TARGET) {
+      logEeat(`Target reached: ${currentAudit.overall_score}/100. Re-deploy to push the improved content.`)
+      toast.success(`E-E-A-T score: ${currentAudit.overall_score} — target reached`)
+    } else if (round >= EEAT_MAX_ROUNDS) {
+      logEeat(`Reached ${EEAT_MAX_ROUNDS} rounds — score is ${currentAudit?.overall_score || '?'}. You can run again or edit manually.`)
+      toast.success(`E-E-A-T score after ${EEAT_MAX_ROUNDS} rounds: ${currentAudit?.overall_score || '?'}`)
+    }
     setFixingGaps(false)
   }
 
@@ -1932,19 +2004,56 @@ export default function TopicCampaignPanel({ site }) {
 
       {/* E-E-A-T audit modal */}
       {eeatOpen && (
-        <div style={overlay()} onClick={() => setEeatOpen(false)}>
-          <div style={{ ...modal(), maxWidth:700, maxHeight:'85vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
+        <div style={overlay()} onClick={() => { if (!fixingGaps) setEeatOpen(false) }}>
+          <div style={{ ...modal(), maxWidth:750, maxHeight:'90vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
             <div style={modalHeader()}>
               <Sparkles size={18} color="#7c3aed"/>
-              <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>E-E-A-T audit</div>
-              <button onClick={() => setEeatOpen(false)} style={miniBtn()}><X size={11}/></button>
+              <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>E-E-A-T Optimizer</div>
+              <button onClick={() => { if (!fixingGaps) setEeatOpen(false) }} style={miniBtn()}><X size={11}/></button>
             </div>
             <div style={{ padding:22, flex:1, minHeight:0, overflowY:'auto' }}>
-              {eeatBusy && !eeatResult && (
+              {/* Info fields — shown when audit finds gaps needing real data */}
+              {eeatResult && !fixingGaps && (() => {
+                const needsInfo = (eeatResult.gaps || []).some(g =>
+                  /address|location|credential|certif|license|author|byline|testimonial|review|phone|founded|year/i.test(g.issue + g.fix)
+                )
+                return needsInfo ? (
+                  <div style={{ marginBottom:18, padding:14, background:'#fffbeb', border:'1px solid #fde68a', borderRadius:10 }}>
+                    <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:'#92400e', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>
+                      Help the optimizer — add real info so it doesn't have to invent it
+                    </div>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                      <input placeholder="Author name (e.g. Dr. Jane Smith, DC)" value={eeatInfoFields?.author || ''} onChange={e => setEeatInfoFields(p => ({...p, author: e.target.value}))} style={inp()}/>
+                      <input placeholder="Credentials (e.g. DC, CCSP, 15 years exp)" value={eeatInfoFields?.credentials || ''} onChange={e => setEeatInfoFields(p => ({...p, credentials: e.target.value}))} style={inp()}/>
+                      <input placeholder="Business address" value={eeatInfoFields?.address || ''} onChange={e => setEeatInfoFields(p => ({...p, address: e.target.value}))} style={inp()}/>
+                      <input placeholder="Founded year / years in business" value={eeatInfoFields?.founded || ''} onChange={e => setEeatInfoFields(p => ({...p, founded: e.target.value}))} style={inp()}/>
+                      <input placeholder="Certifications / affiliations" value={eeatInfoFields?.certifications || ''} onChange={e => setEeatInfoFields(p => ({...p, certifications: e.target.value}))} style={{...inp(), gridColumn:'1 / -1'}}/>
+                    </div>
+                    <div style={{ fontSize:10, color:'#92400e', fontFamily:FB, marginTop:6 }}>
+                      Fill what you have — blank fields are skipped. This info feeds into the rewrite so the page has real E-E-A-T signals.
+                    </div>
+                  </div>
+                ) : null
+              })()}
+
+              {eeatBusy && !eeatResult && !fixingGaps && (
                 <div style={{ display:'flex', alignItems:'center', gap:10, color:'#6b7280' }}>
                   <Loader2 size={16} className="spin"/> Scoring against Google Search Quality Rater signals…
                 </div>
               )}
+
+              {/* Live log — shown during auto-loop */}
+              {eeatLog.length > 0 && (
+                <div style={{ marginBottom:16, padding:12, background:'#0f172a', borderRadius:10, maxHeight:200, overflowY:'auto', fontFamily:'ui-monospace,Menlo,monospace', fontSize:11, lineHeight:1.7 }}>
+                  {eeatLog.map((l, i) => (
+                    <div key={i} style={{ color: l.msg.startsWith('Score:') ? '#4ade80' : l.msg.includes('failed') || l.msg.includes('Error') ? '#f87171' : l.msg.includes('Done') || l.msg.includes('Target') ? '#fbbf24' : '#94a3b8' }}>
+                      {l.msg}
+                    </div>
+                  ))}
+                  {fixingGaps && <div style={{ color:'#60a5fa' }}><span className="spin" style={{ display:'inline-block' }}>⟳</span> Working…</div>}
+                </div>
+              )}
+
               {eeatResult && (
                 <div>
                   <div style={{ display:'flex', alignItems:'baseline', gap:14, marginBottom:14, paddingBottom:14, borderBottom:'1px solid #e5e7eb' }}>
@@ -1980,14 +2089,19 @@ export default function TopicCampaignPanel({ site }) {
                         ))}
                       </div>
                       <div style={{ marginTop:14, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-                        <button onClick={regenerateFromAudit} disabled={fixingGaps || eeatBusy} style={primaryBtn()}>
+                        <button onClick={() => runAutoEeat(eeatResult)} disabled={fixingGaps || eeatBusy} style={primaryBtn()}>
                           {fixingGaps ? <Loader2 size={14} className="spin"/> : <Sparkles size={14}/>}
-                          {fixingGaps ? 'Regenerating + re-scoring…' : 'Regenerate to fix these gaps'}
+                          {fixingGaps ? 'Optimizing…' : `Auto-fix until ${EEAT_TARGET}+ (up to ${EEAT_MAX_ROUNDS} rounds)`}
                         </button>
-                        <span style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', lineHeight:1.4 }}>
-                          Rewrites the master targeting these gaps, then re-scores. Won't invent facts/reviews — re-deploy to push.
-                        </span>
+                        <button onClick={regenerateFromAudit} disabled={fixingGaps || eeatBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
+                          Fix once
+                        </button>
                       </div>
+                    </div>
+                  )}
+                  {eeatResult.overall_score >= EEAT_TARGET && (
+                    <div style={{ marginTop:14, padding:12, background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10, fontSize:13, fontFamily:FB, color:'#166534', display:'flex', alignItems:'center', gap:8 }}>
+                      <ShieldCheck size={16}/> Score is {eeatResult.overall_score} — above the {EEAT_TARGET} target. Re-deploy to push.
                     </div>
                   )}
                 </div>

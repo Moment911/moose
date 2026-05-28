@@ -829,6 +829,11 @@ async function regenerateMaster(supabase: any, agencyId: string, body: any) {
             .map((g: any) => (typeof g === 'string' ? g : [g?.dimension, g?.issue, g?.fix].filter(Boolean).join(' — ')))
             .filter(Boolean)
         : undefined
+    // Operator-supplied real info (author, credentials, address, etc.) to weave
+    // into the rewrite so the page has concrete E-E-A-T signals, not placeholders.
+    const eeatInfo = body.eeat_info && typeof body.eeat_info === 'object'
+        ? Object.entries(body.eeat_info).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join('\n')
+        : undefined
 
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
     const { master, inputTokens, outputTokens, model } = await generateTopicCampaignMaster(ai, {
@@ -840,6 +845,7 @@ async function regenerateMaster(supabase: any, agencyId: string, body: any) {
         competitorContext,
         topicalCluster,
         improvementDirectives,
+        eeatInfo,
         agencyId,
     })
 
