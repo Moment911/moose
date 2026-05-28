@@ -47,14 +47,14 @@ function brandMatchNote(d) {
  *   Step 2: State + city picker (Census-backed) + "Preview First City"
  *   Step 3: Deploy → progress + per-city results table
  */
-export default function TopicCampaignPanel({ site }) {
+export default function TopicCampaignPanel({ site, client }) {
   const { agencyId } = useAuth()
   const [step, setStep] = useState(1)
 
   // Step 1 state
   const [topic, setTopic] = useState('')
-  const [phone, setPhone] = useState('')
-  const [companyName, setCompanyName] = useState('')
+  const [phone, setPhone] = useState(client?.phone || client?.onboarding_phone_display || '')
+  const [companyName, setCompanyName] = useState(client?.name || site?.site_name || '')
   const [postType, setPostType] = useState('page')
   const [notes, setNotes] = useState('')
   const [customHtml, setCustomHtml] = useState('')

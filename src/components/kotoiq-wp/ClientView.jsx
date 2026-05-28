@@ -332,7 +332,7 @@ export default function ClientView({ preselectedSiteId, preselectedClientId, pre
               {activeSite ? (
                 <WPSCConnectionGate site={activeSite} onPaired={load}>
                   {tab === 'overview'          && <OverviewPanel         site={activeSite} onSiteUpdated={load}/>}
-                  {tab === 'topic_campaign'    && <TopicCampaignPanel    site={activeSite}/>}
+                  {tab === 'topic_campaign'    && <TopicCampaignPanel    site={activeSite} client={activeClient}/>}
                   {tab === 'search_replace'    && <SearchReplacePanel    site={activeSite}/>}
                   {tab === 'snippets'          && <SnippetsPanel         site={activeSite}/>}
                   {tab === 'access'            && <AccessManagementPanel site={activeSite}/>}
