@@ -198,6 +198,19 @@ async function wrapperAssist(body: any, agencyId: string) {
 
     const systemPrompt = `You convert raw WordPress page HTML into a KotoIQ topic-campaign wrapper template by inserting placeholder tokens at the appropriate insertion points.
 
+SCOPE — the output is dropped into a WP post's CONTENT field. WordPress wraps it with the theme's <html>, <head>, <header>, navigation, footer automatically. Therefore the output MUST contain ONLY the main content area:
+- STRIP <!doctype html>, <html>, <head>, <body> tags if present
+- STRIP site-wide chrome: <nav>, page header, breadcrumbs, sidebar, page footer, cookie banners, popups
+- STRIP analytics + third-party scripts (Google Tag Manager, FB Pixel, Hotjar, etc.) — they're already loaded sitewide
+- STRIP external stylesheet <link> tags — the site's own CSS is already loaded; our content inherits it via class names
+
+CSS HANDLING (read carefully):
+- The site's main stylesheets (Avada, Divi, Fusion, theme.css, etc.) are ALREADY loaded by WordPress on every page. As long as our wrapper uses the SAME class names (e.g. fusion-row, fusion-text, elementor-section), it inherits styling automatically. We don't need to copy them in.
+- KEEP any inline <style> blocks the source page has — they ride through safely (the dashboard stores them in the _kotoiq_base_css post meta which the plugin echoes in wp_head; KSES never touches meta)
+- KEEP all inline style="..." attributes verbatim — they're attribute-level and KSES-safe
+- KEEP every theme class on every element — this is the entire point. fusion-builder-row, fusion-column-wrapper, et al do the heavy lifting.
+- If the input is just a content fragment (no <html>/<head>), use it as-is
+
 Available placeholders — insert each one at most once:
 - {{HERO_HEADLINE}}   → replaces the page's main H1 text content (keep the H1 tag, swap only its inner text)
 - {{HERO_SUB}}        → replaces the hero subhead/intro paragraph(s)
