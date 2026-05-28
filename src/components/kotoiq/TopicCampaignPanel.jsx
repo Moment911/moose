@@ -55,6 +55,9 @@ export default function TopicCampaignPanel({ site, client }) {
   const [topic, setTopic] = useState('')
   const [companyName, setCompanyName] = useState(client?.name || site?.site_name || '')
 
+  // Auto-populate E-E-A-T info from client record on mount
+  const [eeatAutoPopulated, setEeatAutoPopulated] = useState(false)
+
   function fmtPhone(raw) {
     if (!raw) return ''
     const d = raw.replace(/\D/g, '')
@@ -489,6 +492,25 @@ export default function TopicCampaignPanel({ site, client }) {
     if (step === 1 && !campaign && site?.id) loadSavedCampaigns()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, campaign, site?.id])
+
+  // Auto-populate E-E-A-T fields from client record (once)
+  useEffect(() => {
+    if (eeatAutoPopulated || !client) return
+    setEeatAutoPopulated(true)
+    const socialUrls = [client.facebook_url, client.linkedin_url, client.yelp_url, client.bbb_url].filter(Boolean).join(', ')
+    setEeatInfoFields(prev => ({
+      author: prev.author || client.author_name || '',
+      credentials: prev.credentials || client.author_credentials || '',
+      address: prev.address || client.address || '',
+      founded: prev.founded || client.year_founded || '',
+      hours: prev.hours || client.business_hours || '',
+      priceRange: prev.priceRange || client.price_range || '',
+      certifications: prev.certifications || client.certifications || '',
+      keyResult: prev.keyResult || client.key_result || '',
+      socialUrls: prev.socialUrls || socialUrls,
+      logoUrl: prev.logoUrl || client.logo_url || '',
+    }))
+  }, [client?.id])
 
   async function openCampaign(campaignId) {
     try {
