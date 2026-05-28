@@ -16,6 +16,7 @@ import { generateTopicCampaignMaster } from '@/lib/wp-shim/topicCampaignGenerato
 import { resolveMaster, type LocationContext, type ResolveContext, type TopicCampaignMaster } from '@/lib/wp-shim/tokenResolver'
 import { buildEeatContext } from '@/lib/wp-shim/eeatContext'
 import { validateJsonLd } from '@/lib/wp-shim/schemaValidator'
+import { resolveWikidataEntity } from '@/lib/wp-shim/entityGraph'
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
@@ -513,11 +514,13 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
     // sameAs). Live Google reviews are skipped here to avoid a Places call on
     // every preview keystroke — they populate at deploy time.
     const eeat = await buildEeatContext(supabase, campaign, { withReviews: false })
+    const topicEntity = await resolveWikidataEntity(campaign.topic).catch(() => null)
     const ctx: ResolveContext = {
         location,
         phone: campaign.phone || undefined,
         companyName: campaign.company_name || undefined,
         ...(eeat ? { eeat } : {}),
+        ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
@@ -1184,6 +1187,8 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
     // E-E-A-T signals are client-level (constant across cities) — build once,
     // with live Google reviews, then reuse for every city's ctx.
     const eeat = await buildEeatContext(supabase, campaign, { withReviews: true })
+    // Topic→Wikidata entity is constant per campaign — resolve once.
+    const topicEntity = await resolveWikidataEntity(campaign.topic).catch(() => null)
 
     for (const loc of locations) {
         const cityKey = `${loc.city.toLowerCase().trim()}|${(loc.stateAbbr || '').toUpperCase()}`
@@ -1211,6 +1216,7 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             pageUrl,
             ...(localData ? { localData } : {}),
             ...(eeat ? { eeat } : {}),
+            ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
         }
         const resolved = resolveMaster(
             campaign.master as TopicCampaignMaster,
@@ -1419,6 +1425,7 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
 
     // E-E-A-T signals — client-level, built once with live Google reviews.
     const eeat = await buildEeatContext(supabase, campaign, { withReviews: true })
+    const topicEntity = await resolveWikidataEntity(campaign.topic).catch(() => null)
 
     for (const d of existingDeploys) {
         const cityKey = `${String(d.city || '').toLowerCase().trim()}|${String(d.state_abbr || '').toUpperCase()}`
@@ -1441,6 +1448,7 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             pageUrl: d.wp_post_url || undefined,
             ...(localData ? { localData } : {}),
             ...(eeat ? { eeat } : {}),
+            ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
         }
         const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
 

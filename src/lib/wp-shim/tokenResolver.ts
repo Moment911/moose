@@ -58,6 +58,12 @@ export interface ResolveContext {
     }
     /** Optional seed for variant determinism. Defaults to `city|state`. */
     seed?: string
+    /** Optional resolved knowledge-graph entities — links the page's topic to
+     *  its canonical Wikidata entity via schema.org `about` for AI-engine +
+     *  Knowledge Graph disambiguation. Resolved by entityGraph.ts. */
+    entities?: {
+        topic?: { id: string; url: string; label: string; description?: string }
+    }
     /** Optional E-E-A-T trust signals — operator-provided OR pulled from an
      *  authoritative source (Google reviews via GBP/Places). ALL blocks are
      *  omit-when-empty and NEVER AI-fabricated, per the platform data-integrity
@@ -845,6 +851,18 @@ function enrichSchemaGraph(
                 name: `${ctx.location.city}${ctx.location.stateAbbr ? `, ${ctx.location.stateAbbr}` : ''}`,
             },
         })
+    }
+
+    // ── Knowledge-graph entity (Wikidata) — what the page is ABOUT ─────────
+    if (webPage && ctx.entities?.topic?.url) {
+        const t = ctx.entities.topic
+        webPage.about = [{
+            '@type': 'Thing',
+            '@id': t.url,
+            name: t.label,
+            sameAs: t.url,
+            ...(t.description ? { description: t.description } : {}),
+        }]
     }
 
     // ── E-E-A-T entities (operator/Google-sourced; omit-when-empty) ────────
