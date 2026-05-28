@@ -58,6 +58,27 @@ export interface ResolveContext {
     }
     /** Optional seed for variant determinism. Defaults to `city|state`. */
     seed?: string
+    /** Optional E-E-A-T trust signals — operator-provided OR pulled from an
+     *  authoritative source (Google reviews via GBP/Places). ALL blocks are
+     *  omit-when-empty and NEVER AI-fabricated, per the platform data-integrity
+     *  standard (and FTC rules on testimonials). When absent, none of the
+     *  blocks/schema below render — existing campaigns are unaffected. */
+    eeat?: {
+        /** Named strategist/author for the page — anchors Experience. */
+        strategist?: { name: string; title?: string; yearsExperience?: number; photoUrl?: string }
+        /** Real customer reviews (e.g. pulled from Google). Rendered as a
+         *  testimonials block + Review schema. sourceLabel carries provenance. */
+        testimonials?: Array<{ text: string; author: string; rating?: number; sourceLabel?: string; date?: string }>
+        /** Aggregate rating from the review source (e.g. 4.8 over 127 reviews). */
+        aggregateRating?: { ratingValue: number; reviewCount: number }
+        /** Entity-disambiguation URLs (GBP, LinkedIn, directories) → schema sameAs. */
+        sameAs?: string[]
+        /** Real result snapshots (operator-provided metrics). Never invented. */
+        results?: Array<{ metric: string; context?: string }>
+        /** Cited statistics with real sources — rendered as a Sources list +
+         *  schema citation. Operator/authoritative-source provided. */
+        citations?: Array<{ claim?: string; sourceName: string; sourceUrl: string }>
+    }
 }
 
 // ─── Public API ─────────────────────────────────────────────────────────────
@@ -424,6 +445,31 @@ export function resolveMaster(
         })()
         : ''
 
+    // ── E-E-A-T trust blocks ───────────────────────────────────────────────
+    // Operator-provided OR Google-sourced (reviews). All omit-when-empty and
+    // NEVER AI-fabricated, per the data-integrity standard + FTC review rules.
+    const eeat = ctx.eeat || {}
+
+    const strat = eeat.strategist
+    const authorBylineHtml = strat && strat.name
+        ? `<section class="koto-author">\n  <div class="koto-author-card">${strat.photoUrl ? `\n    <img class="koto-author-photo" src="${escapeHtml(strat.photoUrl)}" alt="${escapeHtml(strat.name)}" loading="lazy"/>` : ''}\n    <div class="koto-author-meta">\n      <div class="koto-author-label">Meet Your ${escapeHtml(ctx.location.city)} Strategist</div>\n      <div class="koto-author-name">${escapeHtml(strat.name)}</div>${strat.title ? `\n      <div class="koto-author-title">${escapeHtml(strat.title)}</div>` : ''}${strat.yearsExperience ? `\n      <div class="koto-author-exp">${Number(strat.yearsExperience)}+ years experience</div>` : ''}\n    </div>\n  </div>\n</section>`
+        : ''
+
+    const testimonials = Array.isArray(eeat.testimonials) ? eeat.testimonials.filter(t => t && t.text && t.author).slice(0, 5) : []
+    const testimonialsHtml = testimonials.length
+        ? `<section class="koto-testimonials">\n  <h2>What ${escapeHtml(ctx.location.city)} Clients Say</h2>\n  <div class="koto-testimonial-list">\n${testimonials.map(t => `    <figure class="koto-testimonial">\n      <blockquote>${escapeHtml(stripHtml(t.text))}</blockquote>\n      <figcaption>${escapeHtml(t.author)}${t.rating ? ` <span class="koto-stars" aria-label="${Number(t.rating)} out of 5 stars">${'★'.repeat(Math.max(0, Math.min(5, Math.round(Number(t.rating)))))}</span>` : ''}${t.sourceLabel ? ` <span class="koto-cite">via ${escapeHtml(t.sourceLabel)}</span>` : ''}</figcaption>\n    </figure>`).join('\n')}\n  </div>\n</section>`
+        : ''
+
+    const results = Array.isArray(eeat.results) ? eeat.results.filter(r => r && r.metric).slice(0, 4) : []
+    const resultsHtml = results.length
+        ? `<section class="koto-results">\n  <h2>Results in ${escapeHtml(ctx.location.city)}</h2>\n  <div class="koto-results-grid">\n${results.map(r => `    <div class="koto-result">\n      <div class="koto-result-metric">${escapeHtml(r.metric)}</div>${r.context ? `\n      <div class="koto-result-context">${escapeHtml(r.context)}</div>` : ''}\n    </div>`).join('\n')}\n  </div>\n</section>`
+        : ''
+
+    const citations = Array.isArray(eeat.citations) ? eeat.citations.filter(c => c && c.sourceUrl && c.sourceName).slice(0, 8) : []
+    const citationsHtml = citations.length
+        ? `<aside class="koto-citations">\n  <h2>Sources</h2>\n  <ul>\n${citations.map(c => `    <li>${c.claim ? `${escapeHtml(c.claim)} &mdash; ` : ''}<a href="${escapeHtml(c.sourceUrl)}" rel="noopener nofollow" target="_blank">${escapeHtml(c.sourceName)}</a></li>`).join('\n')}\n  </ul>\n</aside>`
+        : ''
+
     // Hero media block — video takes precedence over image. Stays empty if
     // neither is provided.
     const heroMediaHtml = ctx.heroVideoUrl
@@ -505,6 +551,24 @@ section{margin:1.5rem 0}
 .koto-related-services{border-left:3px solid #1e3a8a}
 a[href^="tel:"]{color:#1e3a8a;font-weight:700;text-decoration:none;white-space:nowrap}
 a[href^="tel:"]:hover{text-decoration:underline}
+.koto-author,.koto-testimonials,.koto-results{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
+.koto-author .koto-author-card{display:flex;align-items:center;gap:1rem}
+.koto-author-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none}
+.koto-author-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#64748b;font-weight:700}
+.koto-author-name{font-size:1.1rem;font-weight:800;color:#1a2332}
+.koto-author-title,.koto-author-exp{font-size:.9rem;color:#475569}
+.koto-testimonial-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:1rem}
+.koto-testimonial{margin:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1rem}
+.koto-testimonial blockquote{margin:0 0 .5rem;font-style:italic;color:#334155;line-height:1.6}
+.koto-testimonial figcaption{font-size:.85rem;color:#475569;font-weight:600}
+.koto-stars{color:#f59e0b;letter-spacing:1px}
+.koto-results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-top:1rem}
+.koto-result{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:1rem;text-align:center}
+.koto-result-metric{font-size:1.4rem;font-weight:900;color:#1e3a8a}
+.koto-result-context{font-size:.85rem;color:#475569;margin-top:.25rem}
+.koto-citations{margin:2rem 0;font-size:.85rem;color:#64748b}
+.koto-citations ul{margin:.5rem 0 0;padding-left:1.25rem;line-height:1.6}
+.koto-citations a{color:#1e3a8a}
 `.trim()
 
     // Compose body. The CSS is no longer prepended — it now travels in the
@@ -553,14 +617,22 @@ a[href^="tel:"]:hover{text-decoration:underline}
             .replace(/\{\{CTA\}\}/g, ctaHtml)
             .replace(/\{\{SERVICE_AREAS\}\}/g, serviceAreasHtml)
             .replace(/\{\{RELATED_SERVICES\}\}/g, relatedServicesHtml)
+            .replace(/\{\{AUTHOR_BYLINE\}\}/g, authorBylineHtml)
+            .replace(/\{\{TESTIMONIALS\}\}/g, testimonialsHtml)
+            .replace(/\{\{RESULTS\}\}/g, resultsHtml)
+            .replace(/\{\{CITATIONS\}\}/g, citationsHtml)
         : [
             directAnswerHtml,
             `<header class="koto-hero">${heroMediaHtml ? '\n  ' + heroMediaHtml : ''}\n  <h1>${escapeHtml(stripHtml(heroHeadline))}</h1>\n  <div class="koto-hero-sub">${ensureParagraphs(heroSub)}</div>\n</header>`,
+            authorBylineHtml,
             sectionHtml,
             howtoHtml,
             comparisonHtml,
+            resultsHtml,
+            testimonialsHtml,
             faqsHtml,
             localDataHtml,
+            citationsHtml,
             ctaHtml,
             relatedServicesHtml,
             serviceAreasHtml,
@@ -773,6 +845,50 @@ function enrichSchemaGraph(
                 name: `${ctx.location.city}${ctx.location.stateAbbr ? `, ${ctx.location.stateAbbr}` : ''}`,
             },
         })
+    }
+
+    // ── E-E-A-T entities (operator/Google-sourced; omit-when-empty) ────────
+    // Mirrors the rendered trust blocks. Review/AggregateRating only emitted
+    // because the same reviews are displayed on-page (Google policy compliant),
+    // and only from REAL data — never AI-fabricated.
+    const eeat = ctx.eeat || {}
+    if (eeat.strategist && eeat.strategist.name && webPage) {
+        const author: any = { '@type': 'Person', name: eeat.strategist.name }
+        if (eeat.strategist.title) author.jobTitle = eeat.strategist.title
+        if (eeat.strategist.photoUrl) author.image = eeat.strategist.photoUrl
+        webPage.author = author
+    }
+    if (localBusiness) {
+        if (Array.isArray(eeat.sameAs) && eeat.sameAs.length) {
+            const existing = Array.isArray(localBusiness.sameAs) ? localBusiness.sameAs : []
+            localBusiness.sameAs = Array.from(new Set([...existing, ...eeat.sameAs.filter(Boolean)]))
+        }
+        if (eeat.aggregateRating && eeat.aggregateRating.reviewCount > 0) {
+            localBusiness.aggregateRating = {
+                '@type': 'AggregateRating',
+                ratingValue: eeat.aggregateRating.ratingValue,
+                reviewCount: eeat.aggregateRating.reviewCount,
+                bestRating: 5,
+            }
+        }
+        const reviews = Array.isArray(eeat.testimonials) ? eeat.testimonials.filter(t => t && t.text && t.author).slice(0, 5) : []
+        if (reviews.length) {
+            localBusiness.review = reviews.map(t => ({
+                '@type': 'Review',
+                reviewBody: stripHtml(t.text).trim(),
+                author: { '@type': 'Person', name: t.author },
+                ...(t.rating ? { reviewRating: { '@type': 'Rating', ratingValue: t.rating, bestRating: 5 } } : {}),
+                ...(t.date ? { datePublished: t.date } : {}),
+            }))
+        }
+    }
+    if (webPage && Array.isArray(eeat.citations) && eeat.citations.length) {
+        webPage.citation = eeat.citations.filter(c => c && c.sourceUrl && c.sourceName).map(c => ({
+            '@type': 'CreativeWork',
+            ...(c.claim ? { name: c.claim } : {}),
+            url: c.sourceUrl,
+            publisher: { '@type': 'Organization', name: c.sourceName },
+        }))
     }
 
     return JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })

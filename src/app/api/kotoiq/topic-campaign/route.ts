@@ -606,7 +606,7 @@ WRAPPER SHAPE — build something like:
 </div>
 
 Available placeholders — insert each one at most once at the natural spot:
-{{HERO_HEADLINE}} {{HERO_SUB}} {{HERO_MEDIA}} {{SECTIONS}} {{HOWTO}} {{COMPARISON}} {{FAQS}} {{LOCAL_DATA}} {{CTA}} {{SERVICE_AREAS}} {{RELATED_SERVICES}} {{DIRECT_ANSWER}}
+{{HERO_HEADLINE}} {{HERO_SUB}} {{HERO_MEDIA}} {{SECTIONS}} {{HOWTO}} {{COMPARISON}} {{FAQS}} {{LOCAL_DATA}} {{CTA}} {{SERVICE_AREAS}} {{RELATED_SERVICES}} {{DIRECT_ANSWER}} {{AUTHOR_BYLINE}} {{TESTIMONIALS}} {{RESULTS}} {{CITATIONS}}
 
 CRITICAL RULES:
 - DO NOT paste the source's HTML structure into the output. Build fresh, clean markup INSPIRED BY it.
