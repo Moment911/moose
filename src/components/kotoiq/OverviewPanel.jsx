@@ -14,9 +14,10 @@ import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
  *   2. Recent activity (push history + pair events, combined)
  *   3. Recent pages (v4 only — top 10 modified pages/posts from WP REST)
  */
-export default function OverviewPanel({ site }) {
+export default function OverviewPanel({ site, onSiteUpdated }) {
   const [activity, setActivity] = useState({ loading: true, events: [], error: null })
   const [pages, setPages] = useState({ loading: false, list: [], totals: null, error: null })
+  const [liveVersion, setLiveVersion] = useState(null)
 
   const isV4 = site?.shim_version === 'v4'
   const isPaired = isV4 || !!site?.wpsc_api_key
@@ -53,10 +54,25 @@ export default function OverviewPanel({ site }) {
     }
   }
 
+  async function syncStatus() {
+    if (!site?.id || !isV4) return
+    try {
+      const r = await fetch('/api/wp', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'sync_status', site_id: site.id }),
+      })
+      const d = await r.json()
+      if (d.ok && d.data?.plugin_version) {
+        setLiveVersion(d.data.plugin_version)
+        onSiteUpdated?.()
+      }
+    } catch {}
+  }
+
   useEffect(() => {
     if (site?.id) {
       loadActivity()
-      if (isV4) loadPages()
+      if (isV4) { loadPages(); syncStatus() }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [site?.id, isV4])
@@ -93,7 +109,7 @@ export default function OverviewPanel({ site }) {
         </div>
 
         <div style={{ marginTop:22, display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:18 }}>
-          <KV label="Plugin" value={site.shim_version === 'v4' ? `KotoIQ v${site.plugin_version || '4.0.3'}` : (site.wpsc_version ? `WPSimpleCode v${site.wpsc_version}` : '—')}/>
+          <KV label="Plugin" value={site.shim_version === 'v4' ? `KotoIQ v${liveVersion || site.plugin_version || '—'}` : (site.wpsc_version ? `WPSimpleCode v${site.wpsc_version}` : '—')}/>
           <KV label="Paired since" value={pagedAt ? formatDate(pagedAt) : '—'}/>
           <KV label="Pages" value={String(pages.totals?.pages ?? site.pages_count ?? 0)} icon={File} loading={isV4 && pages.loading}/>
           <KV label="Posts" value={String(pages.totals?.posts ?? site.posts_count ?? 0)} icon={FileText} loading={isV4 && pages.loading}/>

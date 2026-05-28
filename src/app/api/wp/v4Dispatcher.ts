@@ -1182,8 +1182,16 @@ export async function dispatchV4ActionIfPaired(
                     .order('pushed_at', { ascending: false })
                     .limit(1)
                     .maybeSingle()
+                if (diag.ok && diag.data.shim_version) {
+                    await sb.from('koto_wp_sites').update({
+                        plugin_version: diag.data.shim_version,
+                        connected: true,
+                        last_ping: new Date().toISOString(),
+                    }).eq('id', site.id)
+                }
                 return NextResponse.json({
                     ok: true,
+                    data: { plugin_version: diag.ok ? diag.data.shim_version : null },
                     status: connected ? 'connected' : 'disconnected',
                     last_sync: diag.ok ? new Date().toISOString() : null,
                     last_push: lastPush?.pushed_at || null,

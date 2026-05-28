@@ -308,7 +308,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px', background: CREAM }}>
               {activeSite ? (
                 <WPSCConnectionGate site={activeSite} onPaired={load}>
-                  {tab === 'overview'          && <OverviewPanel         site={activeSite}/>}
+                  {tab === 'overview'          && <OverviewPanel         site={activeSite} onSiteUpdated={load}/>}
                   {tab === 'topic_campaign'    && <TopicCampaignPanel    site={activeSite}/>}
                   {tab === 'search_replace'    && <SearchReplacePanel    site={activeSite}/>}
                   {tab === 'snippets'          && <SnippetsPanel         site={activeSite}/>}
