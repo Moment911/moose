@@ -343,6 +343,17 @@ export default function TopicCampaignPanel({ site, client }) {
   const [styleCaptureUrl, setStyleCaptureUrl] = useState('')
   const [capturing, setCapturing] = useState(false)
   const [captureInfo, setCaptureInfo] = useState(null) // { used_selector, notes, brand }
+
+  // Prefill the Style-capture URL from the client's own website so the operator
+  // doesn't paste it every time (and can auto-capture brand styling). Fills only
+  // empty fields — never clobbers a URL already typed. Adds https:// if missing.
+  useEffect(() => {
+    const site = (client?.website || '').trim()
+    if (!site) return
+    const normalized = /^https?:\/\//i.test(site) ? site : `https://${site}`
+    setStyleCaptureUrl(prev => prev || normalized)
+    setEditedCaptureUrl(prev => prev || normalized)
+  }, [client?.website])
   // Style tokens captured during the CREATE wizard (no campaign row exists yet,
   // so they can't persist server-side). Held here and sent with generate_master
   // so a new campaign is brand-matched from its first deploy.
