@@ -557,8 +557,8 @@ export default function TopicCampaignPanel({ site, client }) {
 
   // Auto-improvement loop: audit → fix → re-audit → repeat until score >= target.
   const [eeatLog, setEeatLog] = useState([])
-  const EEAT_TARGET = 85
-  const EEAT_MAX_ROUNDS = 3
+  const EEAT_TARGET = 90
+  const EEAT_MAX_ROUNDS = 5
 
   function logEeat(msg) { setEeatLog(prev => [...prev, { time: new Date(), msg }]) }
 
@@ -1014,6 +1014,7 @@ export default function TopicCampaignPanel({ site, client }) {
           logGen(`  Fix round ${round}/${EEAT_MAX_ROUNDS} — targeting ${eeat.gaps.length} gaps…`)
           const fix = await api('regenerate_master', {
             eeat_gaps: eeat.gaps,
+            eeat_info: Object.fromEntries(Object.entries(eeatInfoFields || {}).filter(([,v]) => v)),
             ...(clusterTopics.length ? { topical_cluster: clusterTopics } : {}),
           })
           if (fix.error) { logGen(`  Fix failed: ${errText(fix.error)}`); break }
@@ -1027,6 +1028,7 @@ export default function TopicCampaignPanel({ site, client }) {
             const delta = eeat.overall_score - prev
             eeatHistory.push({ round, score: eeat.overall_score, delta, e: eeat.experience, x: eeat.expertise, a: eeat.authoritativeness, t: eeat.trustworthiness, gapsFixed: eeat.gaps?.length || 0 })
             logGen(`  E-E-A-T: ${eeat.overall_score}/100 (${delta >= 0 ? '+' : ''}${delta}) — E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness}`)
+            if (delta <= 0 && round >= 2) { logGen('  Score stagnated — remaining gains need real data (trust signals, reviews)'); break }
           } else break
         }
         if (eeat.overall_score >= EEAT_TARGET) logGen(`  Target ${EEAT_TARGET}+ reached`)
