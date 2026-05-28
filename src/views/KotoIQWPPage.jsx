@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Command, RefreshCw, Globe } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
@@ -32,46 +32,63 @@ const CREAM = '#faf9f6'
 const LINE  = '#e9e6dd'
 const VIEW_LS_KEY = 'kotoiq_wp_view'
 
-function readInitial() {
-  if (typeof window === 'undefined') return { view: 'fleet', siteId: null }
+function readFromURL() {
+  if (typeof window === 'undefined') return { view: 'fleet', siteId: null, tab: null, clientId: null }
   const params = new URLSearchParams(window.location.search)
   const urlView = params.get('view')
   const urlSite = params.get('site')
-  if (urlView === 'fleet' || urlView === 'client' || urlView === 'templates' || urlView === 'dualrun') {
-    return { view: urlView, siteId: urlSite || null }
+  const urlTab = params.get('tab')
+  const urlClient = params.get('client')
+  const validViews = ['fleet', 'client', 'templates', 'dualrun']
+  if (validViews.includes(urlView)) {
+    return { view: urlView, siteId: urlSite || null, tab: urlTab || null, clientId: urlClient || null }
   }
   const stored = window.localStorage?.getItem(VIEW_LS_KEY)
-  const validStored = stored === 'client' || stored === 'templates' || stored === 'dualrun' ? stored : 'fleet'
-  return { view: validStored, siteId: urlSite || null }
+  const validStored = validViews.includes(stored) ? stored : 'fleet'
+  return { view: validStored, siteId: urlSite || null, tab: urlTab || null, clientId: urlClient || null }
 }
 
 export default function KotoIQWPPage() {
   const { agencyName, fullName } = useAuth()
-  const [{ view, siteId }, setState] = useState({ view: 'fleet', siteId: null })
+  const [{ view, siteId, tab, clientId }, setState] = useState({ view: 'fleet', siteId: null, tab: null, clientId: null })
   const [hydrated, setHydrated] = useState(false)
   const [refreshNonce, setRefreshNonce] = useState(0)
+  const skipPushRef = useRef(false)
 
   useEffect(() => {
-    setState(readInitial())
+    setState(readFromURL())
     setHydrated(true)
+    const onPop = () => { skipPushRef.current = true; setState(readFromURL()) }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  // Sync URL + localStorage whenever view/siteId changes.
+  // Sync URL + localStorage whenever state changes.
   useEffect(() => {
     if (!hydrated || typeof window === 'undefined') return
-    const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams()
     params.set('view', view)
-    if (siteId) params.set('site', siteId); else params.delete('site')
+    if (siteId) params.set('site', siteId)
+    if (clientId) params.set('client', clientId)
+    if (tab) params.set('tab', tab)
     const next = `${window.location.pathname}?${params.toString()}`
     if (next !== `${window.location.pathname}${window.location.search}`) {
-      window.history.replaceState({}, '', next)
+      if (skipPushRef.current) {
+        skipPushRef.current = false
+        window.history.replaceState({}, '', next)
+      } else {
+        window.history.pushState({}, '', next)
+      }
     }
     try { window.localStorage?.setItem(VIEW_LS_KEY, view) } catch {}
-  }, [view, siteId, hydrated])
+  }, [view, siteId, tab, clientId, hydrated])
 
-  const setView = useCallback(v => setState(s => ({ view: v, siteId: v === 'client' ? s.siteId : null })), [])
-  const handleSelectSite = useCallback(site => {
-    setState({ view: 'client', siteId: site?.id || null })
+  const setView = useCallback(v => setState(s => ({ view: v, siteId: v === 'client' ? s.siteId : null, tab: null, clientId: v === 'client' ? s.clientId : null })), [])
+  const handleSelectSite = useCallback((site, cId) => {
+    setState(s => ({ view: 'client', siteId: site?.id || null, tab: s.tab || null, clientId: cId || null }))
+  }, [])
+  const handleTabChange = useCallback(t => {
+    setState(s => ({ ...s, tab: t }))
   }, [])
 
   return (
@@ -135,9 +152,13 @@ export default function KotoIQWPPage() {
         )}
         {hydrated && view === 'client' && (
           <ClientView
-            key={`client-${siteId || 'none'}-${refreshNonce}`}
+            key={`client-${refreshNonce}`}
             preselectedSiteId={siteId}
-            onClearSelection={() => setState(s => ({ ...s, siteId: null }))}
+            preselectedClientId={clientId}
+            preselectedTab={tab}
+            onSiteSelected={handleSelectSite}
+            onTabChange={handleTabChange}
+            onClearSelection={() => setState(s => ({ ...s, siteId: null, clientId: null }))}
           />
         )}
         {hydrated && view === 'templates' && (

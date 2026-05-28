@@ -45,21 +45,36 @@ const TABS = [
   { key: 'sync',              label: 'Sync',             icon: RefreshCw,   slug: 'sync' },
 ]
 
-export default function ClientView({ preselectedSiteId, onClearSelection }) {
+export default function ClientView({ preselectedSiteId, preselectedClientId, preselectedTab, onSiteSelected, onTabChange, onClearSelection }) {
   const { agencyId, agencyName } = useAuth()
   const [rows, setRows] = useState([])
   const [orphans, setOrphans] = useState([])
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('overview')
+  const [tab, setTabLocal] = useState(preselectedTab || 'overview')
   const [showAdd, setShowAdd] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [railOpen, setRailOpen] = useState(!preselectedSiteId)
+  const [railOpen, setRailOpen] = useState(!preselectedSiteId && !preselectedClientId)
+
+  function setTab(t) {
+    setTabLocal(t)
+    onTabChange?.(t)
+  }
 
   const effectiveAgency = agencyId || FALLBACK_AGENCY
 
   useEffect(() => { if (agencyId) load() }, [agencyId])
   useEffect(() => { if (selected) setRailOpen(false) }, [selected?.entry?.client?.id, selected?.site?.id])
+
+  // Sync from URL on popstate (parent passes new props without remount)
+  useEffect(() => { if (preselectedTab) setTabLocal(preselectedTab) }, [preselectedTab])
+  useEffect(() => {
+    if (!preselectedClientId || !rows.length) return
+    const found = rows.find(r => r.client?.id === preselectedClientId)
+    if (found && found.client?.id !== selected?.entry?.client?.id) {
+      setSelected({ type: 'client', entry: found })
+    }
+  }, [preselectedClientId, rows.length])
 
   async function load() {
     setLoading(true)
@@ -73,11 +88,15 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
       setRows(data.rows || [])
       setOrphans(data.orphans || [])
 
-      // Apply preselectedSiteId on first load
-      if (preselectedSiteId && !selected) {
-        const found = (data.rows || []).find(r => r.site?.id === preselectedSiteId)
+      // Apply preselected site or client on first load
+      if ((preselectedSiteId || preselectedClientId) && !selected) {
+        const found = preselectedSiteId
+          ? (data.rows || []).find(r => r.site?.id === preselectedSiteId)
+          : preselectedClientId
+            ? (data.rows || []).find(r => r.client?.id === preselectedClientId)
+            : null
         if (found) setSelected({ type: 'client', entry: found })
-        else {
+        else if (preselectedSiteId) {
           const orphan = (data.orphans || []).find(s => s.id === preselectedSiteId)
           if (orphan) setSelected({ type: 'orphan', site: orphan })
         }
@@ -204,7 +223,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                       key={r.client.id}
                       entry={r}
                       selected={selected?.type === 'client' && selected.entry.client.id === r.client.id}
-                      onClick={() => setSelected({ type: 'client', entry: r })}
+                      onClick={() => { setSelected({ type: 'client', entry: r }); setTab('overview'); onSiteSelected?.(r.site, r.client?.id) }}
                     />
                   ))}
                   {orphans.length > 0 && (
@@ -217,7 +236,7 @@ export default function ClientView({ preselectedSiteId, onClearSelection }) {
                           key={s.id}
                           site={s}
                           selected={selected?.type === 'orphan' && selected.site.id === s.id}
-                          onClick={() => setSelected({ type: 'orphan', site: s })}
+                          onClick={() => { setSelected({ type: 'orphan', site: s }); setTab('overview'); onSiteSelected?.(s) }}
                         />
                       ))}
                     </>
