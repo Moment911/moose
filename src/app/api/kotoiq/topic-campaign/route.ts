@@ -1148,8 +1148,9 @@ Score generously where the format limits the signal (it's a city-rotatable templ
             messages: [{ role: 'user', content: userPrompt }],
         })
         const text = msg.content?.[0]?.type === 'text' ? msg.content[0].text : ''
-        const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
-        parsed = JSON.parse(stripped)
+        const { parseMasterJson } = await import('@/lib/wp-shim/topicCampaignGenerator')
+        parsed = parseMasterJson(text)
+        if (!parsed) throw new Error('model returned unparseable JSON')
         void logTokenUsage({
             feature: 'kotoiq_topic_campaign_eeat',
             model: eeatModel,
@@ -1217,8 +1218,9 @@ Siblings should be deployable as their own city-rotatable topic-campaigns. Suppo
             messages: [{ role: 'user', content: userPrompt }],
         })
         const text = msg.content?.[0]?.type === 'text' ? msg.content[0].text : ''
-        const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
-        parsed = JSON.parse(stripped)
+        const { parseMasterJson } = await import('@/lib/wp-shim/topicCampaignGenerator')
+        parsed = parseMasterJson(text)
+        if (!parsed) throw new Error('model returned unparseable JSON')
         void logTokenUsage({
             feature: 'kotoiq_topic_campaign_topical_expand',
             model: topicalModel,
