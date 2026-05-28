@@ -4,7 +4,7 @@ import {
   Sparkles, Loader2, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, MapPin, RefreshCw, Upload,
   AlertTriangle, CheckCircle2, Wand2, FileText, File, ExternalLink, Eye, X,
   Edit3, History, Save, Code, Coins, TrendingUp, MousePointerClick, Users, Target,
-  Download, Trash2, Star, ShieldCheck,
+  Download, Trash2, Star, ShieldCheck, Activity,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
@@ -73,6 +73,8 @@ export default function TopicCampaignPanel({ site, client }) {
   const [faqCount, setFaqCount] = useState(6)
   const [generating, setGenerating] = useState(false)
   const [genLog, setGenLog] = useState([])
+  const [optimizeReport, setOptimizeReport] = useState(null) // structured pipeline report
+  const [reportExpanded, setReportExpanded] = useState({})   // which steps are expanded
   function logGen(msg) { setGenLog(prev => [...prev, { time: new Date(), msg }]) }
   const [competitorSampleCity, setCompetitorSampleCity] = useState('')
   const [competitorSampleState, setCompetitorSampleState] = useState('')
@@ -779,6 +781,13 @@ export default function TopicCampaignPanel({ site, client }) {
   async function autoOptimize(camp) {
     if (!camp?.id) return
     const cid = camp.id
+    const report = { steps: [], startedAt: new Date().toISOString() }
+    const addStep = (name, status, data = {}) => {
+      const existing = report.steps.find(s => s.name === name)
+      if (existing) Object.assign(existing, { status, ...data })
+      else report.steps.push({ name, status, ...data })
+      setOptimizeReport({ ...report })
+    }
     const api = (action, extra = {}) => fetch('/api/kotoiq/topic-campaign', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, agency_id: agencyId, campaign_id: cid, ...extra }),
@@ -795,20 +804,23 @@ export default function TopicCampaignPanel({ site, client }) {
 
     // 1. Quality check (baseline)
     logGen('─── Step 1: Quality check ───')
+    addStep('Quality check', 'running')
     try {
       const qc = await api('quality_check')
       if (qc.report) {
-        logGen(`Quality: ${qc.report.score}/100 · ~${qc.report.wordCount} words/page`)
         const fails = (qc.report.findings || []).filter(f => f.level === 'fail')
         const warns = (qc.report.findings || []).filter(f => f.level === 'warn')
+        logGen(`Quality: ${qc.report.score}/100 · ~${qc.report.wordCount} words/page`)
         if (fails.length) fails.forEach(f => logGen(`  ✗ ${f.msg}`))
         if (warns.length) warns.forEach(f => logGen(`  ⚠ ${f.msg}`))
         if (!fails.length && !warns.length) logGen('  All checks passed')
+        addStep('Quality check', fails.length ? 'issues' : 'pass', { score: qc.report.score, wordCount: qc.report.wordCount, findings: qc.report.findings })
       }
-    } catch (e) { logGen(`Quality check error: ${e.message}`) }
+    } catch (e) { logGen(`Quality check error: ${e.message}`); addStep('Quality check', 'error', { error: e.message }) }
 
     // 2. Schema validation (baseline)
     logGen('─── Step 2: Schema validation ───')
+    addStep('Schema validation', 'running')
     try {
       const sv = await api('validate_schema')
       if (sv.report) {
@@ -816,11 +828,13 @@ export default function TopicCampaignPanel({ site, client }) {
         if (sv.report.errors?.length) sv.report.errors.forEach(e => logGen(`  ✗ ${e}`))
         else if (sv.report.warnings?.length) sv.report.warnings.forEach(w => logGen(`  ⚠ ${w}`))
         else logGen('  Schema valid')
+        addStep('Schema validation', sv.report.errors?.length ? 'issues' : 'pass', { types: sv.report.types, errors: sv.report.errors, warnings: sv.report.warnings })
       }
-    } catch (e) { logGen(`Schema error: ${e.message}`) }
+    } catch (e) { logGen(`Schema error: ${e.message}`); addStep('Schema validation', 'error', { error: e.message }) }
 
     // 3. Topical cluster → weave
     logGen('─── Step 3: Topical cluster ───')
+    addStep('Topical cluster', 'running')
     try {
       const tc = await api('topical_expand')
       if (tc.expansion) {
@@ -835,19 +849,22 @@ export default function TopicCampaignPanel({ site, client }) {
         clusterTopics = [...siblings.map(s => s.topic), ...supporting.map(s => s.topic)]
         logGen(`Weaving ${clusterTopics.length} subtopics into the master…`)
         const weave = await api('regenerate_master', { topical_cluster: clusterTopics })
-        if (weave.error) logGen(`  Weave failed: ${errText(weave.error)}`)
-        else { setCampaign(weave.campaign); camp = weave.campaign; logGen('  Master updated with topical coverage') }
+        if (weave.error) { logGen(`  Weave failed: ${errText(weave.error)}`); addStep('Topical cluster', 'issues', { siblings, supporting, error: weave.error }) }
+        else { setCampaign(weave.campaign); camp = weave.campaign; logGen('  Master updated with topical coverage'); addStep('Topical cluster', 'pass', { siblings, supporting, woven: clusterTopics.length }) }
       }
-    } catch (e) { logGen(`Topical cluster error: ${e.message}`) }
+    } catch (e) { logGen(`Topical cluster error: ${e.message}`); addStep('Topical cluster', 'error', { error: e.message }) }
 
     // 4. E-E-A-T audit + auto-fix (on the woven master)
     logGen('─── Step 4: E-E-A-T audit + auto-fix ───')
+    addStep('E-E-A-T optimizer', 'running')
     let eeat = null
+    const eeatHistory = [] // track score per round
     try {
       const ea = await api('eeat_score')
       eeat = ea.audit
       if (eeat) {
         setEeatResult(eeat)
+        eeatHistory.push({ round: 0, score: eeat.overall_score, e: eeat.experience, x: eeat.expertise, a: eeat.authoritativeness, t: eeat.trustworthiness })
         logGen(`E-E-A-T: ${eeat.overall_score}/100 (E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness})`)
         if (eeat.gaps?.length) eeat.gaps.forEach(g => logGen(`  Gap [${g.dimension}]: ${g.issue}`))
 
@@ -855,7 +872,6 @@ export default function TopicCampaignPanel({ site, client }) {
         while (eeat.overall_score < EEAT_TARGET && round < EEAT_MAX_ROUNDS && eeat.gaps?.length) {
           round++
           logGen(`  Fix round ${round}/${EEAT_MAX_ROUNDS} — targeting ${eeat.gaps.length} gaps…`)
-          // Pass BOTH gaps AND cluster so regenerate preserves topical coverage
           const fix = await api('regenerate_master', {
             eeat_gaps: eeat.gaps,
             ...(clusterTopics.length ? { topical_cluster: clusterTopics } : {}),
@@ -869,26 +885,33 @@ export default function TopicCampaignPanel({ site, client }) {
             eeat = rescore.audit
             setEeatResult(eeat)
             const delta = eeat.overall_score - prev
+            eeatHistory.push({ round, score: eeat.overall_score, delta, e: eeat.experience, x: eeat.expertise, a: eeat.authoritativeness, t: eeat.trustworthiness, gapsFixed: eeat.gaps?.length || 0 })
             logGen(`  E-E-A-T: ${eeat.overall_score}/100 (${delta >= 0 ? '+' : ''}${delta}) — E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness}`)
           } else break
         }
         if (eeat.overall_score >= EEAT_TARGET) logGen(`  Target ${EEAT_TARGET}+ reached`)
         else if (round >= EEAT_MAX_ROUNDS) logGen(`  ${EEAT_MAX_ROUNDS} rounds done — score: ${eeat.overall_score}`)
+        addStep('E-E-A-T optimizer', eeat.overall_score >= EEAT_TARGET ? 'pass' : 'issues', { score: eeat.overall_score, rounds: eeatHistory, gaps: eeat.gaps, strengths: eeat.strengths })
       }
-    } catch (e) { logGen(`E-E-A-T error: ${e.message}`) }
+    } catch (e) { logGen(`E-E-A-T error: ${e.message}`); addStep('E-E-A-T optimizer', 'error', { error: e.message }) }
 
     // 5. Final quality + schema re-check
     logGen('─── Step 5: Final verification ───')
+    addStep('Final verification', 'running')
     try {
       const [fqc, fsv] = await Promise.all([api('quality_check'), api('validate_schema')])
+      const finalData = {}
       if (fqc.report) {
         const fails = (fqc.report.findings || []).filter(f => f.level === 'fail')
         logGen(`Quality: ${fqc.report.score}/100 · ~${fqc.report.wordCount} words` + (fails.length ? ` · ${fails.length} issues` : ' · clean'))
+        finalData.quality = fqc.report
       }
       if (fsv.report) {
         logGen(`Schema: ${(fsv.report.types || []).join(', ')}` + (fsv.report.errors?.length ? ` · ${fsv.report.errors.length} errors` : ' · valid'))
+        finalData.schema = fsv.report
       }
-    } catch (e) { logGen(`Final check error: ${e.message}`) }
+      addStep('Final verification', 'pass', finalData)
+    } catch (e) { logGen(`Final check error: ${e.message}`); addStep('Final verification', 'error', { error: e.message }) }
 
     // Summary — what still needs manual input
     logGen('─── Complete ───')
@@ -903,6 +926,9 @@ export default function TopicCampaignPanel({ site, client }) {
       logGen('All signals connected')
     }
     logGen('Pick cities next → then deploy.')
+    report.completedAt = new Date().toISOString()
+    report.needsInput = needsInput
+    setOptimizeReport({ ...report })
   }
 
   async function loadCities() {
@@ -1582,6 +1608,116 @@ export default function TopicCampaignPanel({ site, client }) {
                 </div>
               ))}
               {generating && <div style={{ color:'#60a5fa' }}><span className="spin" style={{ display:'inline-block' }}>⟳</span> Working…</div>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Optimization report — persistent after pipeline runs */}
+      {optimizeReport?.steps?.length > 0 && (
+        <div style={card({ background:'#fafafa', border:'1px solid #e2e8f0' })}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+            <Activity size={16} color={T}/>
+            <div style={{ fontFamily:FH, fontWeight:800, fontSize:14, color:BLK }}>Optimization report</div>
+            {optimizeReport.completedAt && <span style={{ fontSize:10, fontFamily:FB, color:'#9ca3af' }}>completed {new Date(optimizeReport.completedAt).toLocaleTimeString()}</span>}
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+            {optimizeReport.steps.map((s, i) => {
+              const expanded = !!reportExpanded[s.name]
+              const icon = s.status === 'pass' ? '✓' : s.status === 'issues' ? '⚠' : s.status === 'error' ? '✗' : s.status === 'running' ? '⟳' : '·'
+              const iconColor = s.status === 'pass' ? GRN : s.status === 'issues' ? AMB : s.status === 'error' ? R : '#60a5fa'
+              return (
+                <div key={i} style={{ border:'1px solid #e5e7eb', borderRadius:8, overflow:'hidden' }}>
+                  <div
+                    onClick={() => setReportExpanded(prev => ({ ...prev, [s.name]: !prev[s.name] }))}
+                    style={{ padding:'10px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', background: expanded ? '#f8fafc' : '#fff' }}>
+                    <span style={{ fontSize:14, color:iconColor, fontWeight:900, width:18, textAlign:'center' }}>{icon}</span>
+                    <span style={{ fontFamily:FH, fontWeight:700, fontSize:13, color:BLK, flex:1 }}>{s.name}</span>
+                    {s.score != null && <span style={{ fontFamily:FH, fontWeight:800, fontSize:13, color: s.score >= 80 ? GRN : s.score >= 60 ? AMB : R }}>{s.score}/100</span>}
+                    {s.woven && <span style={{ fontSize:11, fontFamily:FB, color:'#7c3aed' }}>{s.woven} topics woven</span>}
+                    {s.rounds?.length > 1 && <span style={{ fontSize:11, fontFamily:FB, color:'#6b7280' }}>{s.rounds.length - 1} fix round{s.rounds.length > 2 ? 's' : ''}</span>}
+                    <ChevronDown size={12} color="#9ca3af" style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition:'transform .15s' }}/>
+                  </div>
+                  {expanded && (
+                    <div style={{ padding:'10px 14px', borderTop:'1px solid #e5e7eb', fontSize:12, fontFamily:FB, color:'#475569', lineHeight:1.6 }}>
+                      {/* Quality check details */}
+                      {s.findings && (
+                        <div>
+                          <div style={{ marginBottom:4 }}><strong>~{s.wordCount} words/page</strong></div>
+                          {s.findings.map((f, j) => (
+                            <div key={j} style={{ color: f.level === 'fail' ? R : f.level === 'warn' ? AMB : '#6b7280' }}>
+                              {f.level === 'fail' ? '✗' : f.level === 'warn' ? '⚠' : 'ℹ'} {f.msg}
+                            </div>
+                          ))}
+                          {!s.findings.length && <div style={{ color:GRN }}>All checks passed</div>}
+                        </div>
+                      )}
+                      {/* Schema details */}
+                      {s.types && (
+                        <div>
+                          <div><strong>Types:</strong> {s.types.join(', ') || 'none'}</div>
+                          {s.errors?.map((e, j) => <div key={j} style={{ color:R }}>✗ {e}</div>)}
+                          {s.warnings?.map((w, j) => <div key={j} style={{ color:AMB }}>⚠ {w}</div>)}
+                          {!s.errors?.length && !s.warnings?.length && <div style={{ color:GRN }}>Schema valid</div>}
+                        </div>
+                      )}
+                      {/* Topical cluster details */}
+                      {s.siblings && (
+                        <div>
+                          <div style={{ marginBottom:4 }}><strong>{s.siblings.length} siblings + {s.supporting?.length || 0} supporting</strong>{s.woven ? ` · ${s.woven} woven into master` : ''}</div>
+                          {s.siblings.slice(0, 8).map((t, j) => <div key={j}>· {t.topic} <span style={{ color:'#9ca3af' }}>({t.intent})</span></div>)}
+                          {s.siblings.length > 8 && <div style={{ color:'#9ca3af' }}>… +{s.siblings.length - 8} more</div>}
+                        </div>
+                      )}
+                      {/* E-E-A-T details */}
+                      {s.rounds && (
+                        <div>
+                          <div style={{ marginBottom:6 }}>
+                            {s.rounds.map((r, j) => (
+                              <div key={j} style={{ display:'flex', gap:12, alignItems:'center' }}>
+                                <span style={{ fontFamily:FH, fontWeight:800, fontSize:14, color: r.score >= 80 ? GRN : r.score >= 60 ? AMB : R, width:40 }}>{r.score}</span>
+                                <span style={{ fontSize:11, color:'#6b7280' }}>{r.round === 0 ? 'Initial' : `Round ${r.round}`}{r.delta != null ? ` (${r.delta >= 0 ? '+' : ''}${r.delta})` : ''}</span>
+                                <span style={{ fontSize:10, color:'#9ca3af' }}>E:{r.e} X:{r.x} A:{r.a} T:{r.t}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {s.gaps?.length > 0 && (
+                            <div style={{ marginTop:6 }}>
+                              <strong>Remaining gaps:</strong>
+                              {s.gaps.map((g, j) => <div key={j} style={{ color:AMB }}>⚠ [{g.dimension}] {g.issue}</div>)}
+                            </div>
+                          )}
+                          {s.strengths?.length > 0 && (
+                            <div style={{ marginTop:6 }}>
+                              <strong>Strengths:</strong>
+                              {s.strengths.map((st, j) => <div key={j} style={{ color:GRN }}>✓ {st}</div>)}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {/* Final verification details */}
+                      {s.quality && (
+                        <div>
+                          <div><strong>Final quality:</strong> {s.quality.score}/100 · ~{s.quality.wordCount} words</div>
+                          {(s.quality.findings || []).filter(f => f.level === 'fail').map((f, j) => <div key={j} style={{ color:R }}>✗ {f.msg}</div>)}
+                        </div>
+                      )}
+                      {s.schema && (
+                        <div style={{ marginTop:4 }}>
+                          <div><strong>Final schema:</strong> {(s.schema.types || []).join(', ')}{s.schema.errors?.length ? ` · ${s.schema.errors.length} errors` : ' · valid'}</div>
+                        </div>
+                      )}
+                      {s.error && <div style={{ color:R }}>Error: {s.error}</div>}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          {optimizeReport.needsInput?.length > 0 && (
+            <div style={{ marginTop:12, padding:10, background:'#fffbeb', border:'1px solid #fde68a', borderRadius:8 }}>
+              <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:'#92400e', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:4 }}>Manual input needed</div>
+              {optimizeReport.needsInput.map((n, i) => <div key={i} style={{ fontSize:12, fontFamily:FB, color:'#92400e' }}>→ {n}</div>)}
             </div>
           )}
         </div>
