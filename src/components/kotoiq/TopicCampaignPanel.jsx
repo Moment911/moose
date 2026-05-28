@@ -79,6 +79,7 @@ export default function TopicCampaignPanel({ site }) {
   const [campaign, setCampaign] = useState(null) // { id, topic, master, ... }
   const [savedCampaigns, setSavedCampaigns] = useState([])
   const [deletingId, setDeletingId] = useState(null)
+  const [fixingGaps, setFixingGaps] = useState(false)
   // Connect-Google-reviews picker (campaign editor)
   const [placeOpen, setPlaceOpen] = useState(false)
   const [placeQuery, setPlaceQuery] = useState('')
@@ -426,6 +427,46 @@ export default function TopicCampaignPanel({ site }) {
       toast.success(place ? `Reviews connected: ${place.name} (${place.review_count} reviews) — they'll appear on re-deploy` : 'Reviews disconnected')
     } catch (e) { toast.error(e.message) }
     setPlaceBusy(false)
+  }
+
+  // Operator-triggered E-E-A-T fix loop: feed the audit gaps into a regenerate,
+  // then auto re-score to show the improvement.
+  async function regenerateFromAudit() {
+    if (!campaign?.id || !eeatResult?.gaps?.length || fixingGaps) return
+    setFixingGaps(true)
+    const tid = toast.loading('Regenerating to close the E-E-A-T gaps…')
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'regenerate_master', agency_id: agencyId, campaign_id: campaign.id, eeat_gaps: eeatResult.gaps }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error), { id: tid }); setFixingGaps(false); return }
+      setCampaign(d.campaign)
+      toast.success('Regenerated — re-scoring to verify…', { id: tid })
+      await runEeatAudit() // re-score the new master so you see the lift
+    } catch (e) { toast.error(e.message, { id: tid }) }
+    setFixingGaps(false)
+  }
+
+  // Feed the topical cluster (sibling subtopics) into a regenerate so the FAQs
+  // + sections cover the theme.
+  async function regenerateWithCluster(topics) {
+    if (!campaign?.id || !topics?.length || topicalBusy) return
+    setTopicalBusy(true)
+    const tid = toast.loading('Regenerating with the topical cluster…')
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'regenerate_master', agency_id: agencyId, campaign_id: campaign.id, topical_cluster: topics }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error), { id: tid }); setTopicalBusy(false); return }
+      setCampaign(d.campaign)
+      setTopicalOpen(false)
+      toast.success('Master regenerated covering the cluster — re-deploy to push it', { id: tid })
+    } catch (e) { toast.error(e.message, { id: tid }) }
+    setTopicalBusy(false)
   }
 
   async function generateMaster() {
@@ -1620,6 +1661,15 @@ export default function TopicCampaignPanel({ site }) {
                           </div>
                         ))}
                       </div>
+                      <div style={{ marginTop:14, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
+                        <button onClick={regenerateFromAudit} disabled={fixingGaps || eeatBusy} style={primaryBtn()}>
+                          {fixingGaps ? <Loader2 size={14} className="spin"/> : <Sparkles size={14}/>}
+                          {fixingGaps ? 'Regenerating + re-scoring…' : 'Regenerate to fix these gaps'}
+                        </button>
+                        <span style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', lineHeight:1.4 }}>
+                          Rewrites the master targeting these gaps, then re-scores. Won't invent facts/reviews — re-deploy to push.
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1647,8 +1697,25 @@ export default function TopicCampaignPanel({ site }) {
               {topicalResult && (
                 <>
                   <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:14, lineHeight:1.55 }}>
-                    Primary topic: <strong style={{ color:BLK }}>{topicalResult.primary}</strong>. Deploying campaigns for the siblings below compounds topical authority. Click <strong>Use this</strong> to pre-fill a new campaign with that topic.
+                    Primary topic: <strong style={{ color:BLK }}>{topicalResult.primary}</strong>. Two ways to use this: <strong>weave the subtopics into THIS page</strong> (below) so its FAQs + sections cover the cluster, or <strong>Use this</strong> on a sibling to spin up a separate campaign.
                   </div>
+                  {Array.isArray(topicalResult.siblings) && topicalResult.siblings.length > 0 && (
+                    <div style={{ marginBottom:16, padding:12, background:'#f5f3ff', border:'1px solid #ddd6fe', borderRadius:10, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
+                      <button
+                        onClick={() => regenerateWithCluster([
+                          ...topicalResult.siblings.map(s => s.topic),
+                          ...(Array.isArray(topicalResult.supporting) ? topicalResult.supporting.map(s => s.topic) : []),
+                        ].filter(Boolean))}
+                        disabled={topicalBusy}
+                        style={primaryBtn()}>
+                        {topicalBusy ? <Loader2 size={14} className="spin"/> : <Sparkles size={14}/>}
+                        {topicalBusy ? 'Regenerating…' : 'Regenerate this page covering the cluster'}
+                      </button>
+                      <span style={{ fontSize:11, fontFamily:FB, color:'#7c3aed', lineHeight:1.4 }}>
+                        Rewrites the master so its FAQs + sections touch these subtopics. Re-deploy to push.
+                      </span>
+                    </div>
+                  )}
                   {Array.isArray(topicalResult.siblings) && topicalResult.siblings.length > 0 && (
                     <div style={{ marginBottom:18 }}>
                       <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:T, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Sibling campaigns ({topicalResult.siblings.length})</div>

@@ -32,6 +32,13 @@ export interface GenerateMasterInput {
      *  + H1/H2/word-count signal — that Claude uses to take deliberately
      *  differentiated angles. Built by competitorContext.ts. */
     competitorContext?: string
+    /** Related subtopics (from topical_expand) to weave into the FAQs +
+     *  sections so the page builds topical authority around the cluster. */
+    topicalCluster?: string[]
+    /** E-E-A-T audit gaps to specifically address on a regeneration pass.
+     *  Each is a directive like "authoritativeness: no citations → add cited
+     *  stats". Claude addresses them in the copy WITHOUT fabricating facts. */
+    improvementDirectives?: string[]
     /** Agency ID for token-usage attribution. */
     agencyId?: string
 }
@@ -98,6 +105,8 @@ COMPANY_NAME: ${input.companyName || '(operator will provide; use [koto_company_
 PHONE: ${input.phone ? `(operator provided — refer to it via [koto_phone] token)` : '(not provided — still include [koto_phone] in CTAs)'}
 NOTES: ${input.notes || '(none)'}
 ${input.competitorContext ? `\n${input.competitorContext}\n` : ''}
+${input.topicalCluster?.length ? `\nTOPICAL CLUSTER — the FAQs and sections must COLLECTIVELY touch these related subtopics so the page builds topical authority around the theme. Weave them in naturally (a FAQ here, a section angle there) — do NOT just list them:\n- ${input.topicalCluster.slice(0, 12).join('\n- ')}\n` : ''}
+${input.improvementDirectives?.length ? `\nREVISION DIRECTIVES — this is a regeneration to close specific E-E-A-T gaps found by an audit. Address each where it fits naturally in the copy (cite concrete specifics, add experience/authority signals). CRITICAL: do NOT fabricate facts, statistics, client names, results, or testimonials — those are filled from real operator/Google data elsewhere. Improve the WRITING toward these goals, not by inventing data:\n- ${input.improvementDirectives.slice(0, 12).join('\n- ')}\n` : ''}
 ${input.htmlWrapperHint ? `STYLE_HINT (operator pasted HTML wrapper — match the implied voice/structure):\n${input.htmlWrapperHint.slice(0, 2000)}` : ''}
 
 Produce a JSON object with this EXACT shape:

@@ -281,6 +281,7 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
         htmlWrapperHint: body.custom_html_wrapper || undefined,
         notes: body.notes || undefined,
         competitorContext,
+        topicalCluster: Array.isArray(body.topical_cluster) ? body.topical_cluster : undefined,
         variantsPerSection: body.variants_per_section || undefined,
         faqCount: body.faq_count || undefined,
         agencyId,
@@ -345,6 +346,15 @@ async function regenerateMaster(supabase: any, agencyId: string, body: any) {
     // sampled + aggregated, same as generate).
     const { competitorContext, competitorMeta } = await resolveCompetitorIntel(topic, body)
 
+    // Optional improvement loop inputs: topical cluster (sibling subtopics to
+    // weave in) + E-E-A-T audit gaps to close on this revision pass.
+    const topicalCluster = Array.isArray(body.topical_cluster) ? body.topical_cluster : undefined
+    const improvementDirectives = Array.isArray(body.eeat_gaps)
+        ? body.eeat_gaps
+            .map((g: any) => (typeof g === 'string' ? g : [g?.dimension, g?.issue, g?.fix].filter(Boolean).join(' — ')))
+            .filter(Boolean)
+        : undefined
+
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
     const { master, inputTokens, outputTokens, model } = await generateTopicCampaignMaster(ai, {
         topic,
@@ -353,6 +363,8 @@ async function regenerateMaster(supabase: any, agencyId: string, body: any) {
         htmlWrapperHint: campaign.custom_html_wrapper || undefined,
         notes: campaign.notes || undefined,
         competitorContext,
+        topicalCluster,
+        improvementDirectives,
         agencyId,
     })
 
