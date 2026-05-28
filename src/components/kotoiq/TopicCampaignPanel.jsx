@@ -72,6 +72,8 @@ export default function TopicCampaignPanel({ site, client }) {
   const [variantsPerSection, setVariantsPerSection] = useState(4)
   const [faqCount, setFaqCount] = useState(6)
   const [generating, setGenerating] = useState(false)
+  const [genLog, setGenLog] = useState([])
+  function logGen(msg) { setGenLog(prev => [...prev, { time: new Date(), msg }]) }
   const [competitorSampleCity, setCompetitorSampleCity] = useState('')
   const [competitorSampleState, setCompetitorSampleState] = useState('')
 
@@ -690,6 +692,34 @@ export default function TopicCampaignPanel({ site, client }) {
   async function generateMaster() {
     if (!topic.trim()) { toast.error('Topic required'); return }
     setGenerating(true)
+    setGenLog([])
+    const hasCompetitor = competitorSampleCity.trim()
+    const cities = competitorSampleCity.trim()
+    const startTime = Date.now()
+
+    logGen(`Topic: "${topic.trim()}"`)
+    if (companyName.trim()) logGen(`Company: ${companyName.trim()}`)
+    if (hasCompetitor) {
+      logGen(`Scraping competitor pages for "${topic.trim()}" in ${cities}…`)
+      logGen('Fetching top 3 Google results per city — analyzing H1, H2, word count…')
+    } else {
+      logGen('No sample cities — skipping competitor intel')
+    }
+    if (capturedStyleTokens) logGen('Brand tokens captured — pages will match site styling')
+    logGen('Sending to Claude for master generation…')
+
+    // Start a timer to show elapsed time
+    const timer = setInterval(() => {
+      const elapsed = Math.round((Date.now() - startTime) / 1000)
+      if (elapsed > 10 && elapsed % 15 === 0) {
+        setGenLog(prev => {
+          const last = prev[prev.length - 1]?.msg || ''
+          if (last.startsWith('Still working')) return [...prev.slice(0, -1), { time: new Date(), msg: `Still working… ${elapsed}s elapsed` }]
+          return [...prev, { time: new Date(), msg: `Still working… ${elapsed}s elapsed` }]
+        })
+      }
+    }, 5000)
+
     try {
       const r = await fetch('/api/kotoiq/topic-campaign', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -715,16 +745,156 @@ export default function TopicCampaignPanel({ site, client }) {
           competitor_sample_state_abbr: competitorSampleState.trim() || null,
         }),
       })
+      clearInterval(timer)
       const d = await r.json()
-      if (d.error) { toast.error(errText(d.error)); return }
+      if (d.error) {
+        logGen(`Error: ${errText(d.error)}`)
+        toast.error(errText(d.error))
+        return
+      }
+      const elapsed = Math.round((Date.now() - startTime) / 1000)
+      const sections = d.campaign?.master?.sections?.length || '?'
+      const faqs = d.campaign?.master?.faqs?.length || '?'
+      logGen(`Master generated in ${elapsed}s — ${sections} sections, ${faqs} FAQs, ${d.tokens_used} tokens`)
+      if (d.campaign?.competitor_meta?.domains_seen?.length) {
+        logGen(`Competitor intel: analyzed ${d.campaign.competitor_meta.domains_seen.length} competing domains`)
+      }
+      logGen('Done. Pick cities next →')
       setCampaign(d.campaign)
       toast.success(`Master generated · ${d.tokens_used} tokens`)
+
+      // Run auto-optimize pipeline
+      await autoOptimize(d.campaign)
+
       setStep(2)
     } catch (e) {
+      clearInterval(timer)
+      logGen(`Error: ${e.message}`)
       toast.error(e.message)
     } finally {
       setGenerating(false)
     }
+  }
+
+  async function autoOptimize(camp) {
+    if (!camp?.id) return
+    const cid = camp.id
+    const api = (action, extra = {}) => fetch('/api/kotoiq/topic-campaign', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, agency_id: agencyId, campaign_id: cid, ...extra }),
+    }).then(r => r.json())
+
+    // 1. Quality check
+    logGen('─── Quality check ───')
+    try {
+      const qc = await api('quality_check')
+      if (qc.report) {
+        const { score, findings, wordCount } = qc.report
+        logGen(`Quality: ${score}/100 · ~${wordCount} words/page`)
+        const fails = (findings || []).filter(f => f.level === 'fail')
+        const warns = (findings || []).filter(f => f.level === 'warn')
+        if (fails.length) fails.forEach(f => logGen(`  ✗ ${f.msg}`))
+        if (warns.length) warns.forEach(f => logGen(`  ⚠ ${f.msg}`))
+        if (!fails.length && !warns.length) logGen('  All checks passed')
+      }
+    } catch (e) { logGen(`Quality check error: ${e.message}`) }
+
+    // 2. Schema validation
+    logGen('─── Schema validation ───')
+    try {
+      const sv = await api('validate_schema')
+      if (sv.report) {
+        const { types, errors, warnings } = sv.report
+        logGen(`Schema types: ${(types || []).join(', ') || 'none'}`)
+        if (errors?.length) errors.forEach(e => logGen(`  ✗ ${e}`))
+        else if (warnings?.length) warnings.forEach(w => logGen(`  ⚠ ${w}`))
+        else logGen('  Schema valid')
+      }
+    } catch (e) { logGen(`Schema validation error: ${e.message}`) }
+
+    // 3. E-E-A-T audit + auto-fix
+    logGen('─── E-E-A-T audit ───')
+    let eeat = null
+    try {
+      const ea = await api('eeat_score')
+      eeat = ea.audit
+      if (eeat) {
+        setEeatResult(eeat)
+        logGen(`E-E-A-T score: ${eeat.overall_score}/100 (E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness})`)
+        if (eeat.gaps?.length) {
+          eeat.gaps.forEach(g => logGen(`  Gap [${g.dimension}]: ${g.issue}`))
+        }
+        // Auto-fix loop if score below target
+        let round = 0
+        while (eeat.overall_score < EEAT_TARGET && round < EEAT_MAX_ROUNDS && eeat.gaps?.length) {
+          round++
+          logGen(`  Auto-fix round ${round} — targeting ${eeat.gaps.length} gaps…`)
+          const fix = await api('regenerate_master', { eeat_gaps: eeat.gaps })
+          if (fix.error) { logGen(`  Fix failed: ${errText(fix.error)}`); break }
+          setCampaign(fix.campaign)
+          camp = fix.campaign
+          logGen('  Re-scoring…')
+          const rescore = await api('eeat_score')
+          if (rescore.audit) {
+            eeat = rescore.audit
+            setEeatResult(eeat)
+            logGen(`  E-E-A-T: ${eeat.overall_score}/100 (E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness})`)
+          } else break
+        }
+        if (eeat.overall_score >= EEAT_TARGET) logGen(`  Target ${EEAT_TARGET}+ reached`)
+        else if (round >= EEAT_MAX_ROUNDS) logGen(`  ${EEAT_MAX_ROUNDS} rounds done — score: ${eeat.overall_score}`)
+      }
+    } catch (e) { logGen(`E-E-A-T error: ${e.message}`) }
+
+    // 4. Topical cluster + auto-weave
+    logGen('─── Topical cluster ───')
+    try {
+      const tc = await api('topical_expand')
+      if (tc.expansion) {
+        const siblings = tc.expansion.siblings || []
+        const supporting = tc.expansion.supporting || []
+        setTopicalResult(tc.expansion)
+        initClusterSelection(tc.expansion)
+        logGen(`Found ${siblings.length} sibling + ${supporting.length} supporting topics`)
+        siblings.slice(0, 5).forEach(s => logGen(`  · ${s.topic} (${s.intent})`))
+        if (siblings.length > 5) logGen(`  … and ${siblings.length - 5} more`)
+
+        // Auto-weave into the master
+        const allTopics = [...siblings.map(s => s.topic), ...supporting.map(s => s.topic)]
+        logGen(`Weaving ${allTopics.length} subtopics into the master…`)
+        const weave = await api('regenerate_master', { topical_cluster: allTopics })
+        if (weave.error) logGen(`  Weave failed: ${errText(weave.error)}`)
+        else {
+          setCampaign(weave.campaign)
+          camp = weave.campaign
+          logGen('  Master updated with topical coverage')
+        }
+      }
+    } catch (e) { logGen(`Topical cluster error: ${e.message}`) }
+
+    // 5. Final quality re-check
+    logGen('─── Final quality re-check ───')
+    try {
+      const fqc = await api('quality_check')
+      if (fqc.report) {
+        logGen(`Final quality: ${fqc.report.score}/100 · ~${fqc.report.wordCount} words/page`)
+        const fails = (fqc.report.findings || []).filter(f => f.level === 'fail')
+        if (fails.length) fails.forEach(f => logGen(`  ✗ ${f.msg}`))
+        else logGen('  All checks passed')
+      }
+    } catch (e) { logGen(`Final check error: ${e.message}`) }
+
+    // Summary
+    logGen('─── Complete ───')
+    const needsInput = []
+    if (!camp?.eeat_inputs?.strategist?.name) needsInput.push('Author name + credentials (Trust signals)')
+    if (!camp?.eeat_inputs?.address?.street) needsInput.push('Business address (Trust signals)')
+    if (!camp?.google_place_id) needsInput.push('Google reviews (Connect Google reviews)')
+    if (needsInput.length) {
+      logGen('Manual input needed for full E-E-A-T:')
+      needsInput.forEach(n => logGen(`  → ${n}`))
+    }
+    logGen('Pick cities next → then deploy.')
   }
 
   async function loadCities() {
@@ -1394,6 +1564,18 @@ export default function TopicCampaignPanel({ site, client }) {
               {generating ? 'Claude is writing…' : 'Generate Master'}
             </button>
           </div>
+
+          {/* Live generation log */}
+          {genLog.length > 0 && (
+            <div style={{ marginTop:14, padding:12, background:'#0f172a', borderRadius:10, maxHeight:180, overflowY:'auto', fontFamily:'ui-monospace,Menlo,monospace', fontSize:11, lineHeight:1.7 }}>
+              {genLog.map((l, i) => (
+                <div key={i} style={{ color: l.msg.startsWith('Error') ? '#f87171' : l.msg.startsWith('Done') ? '#fbbf24' : l.msg.includes('generated') ? '#4ade80' : l.msg.startsWith('Still') ? '#60a5fa' : '#94a3b8' }}>
+                  {l.msg}
+                </div>
+              ))}
+              {generating && <div style={{ color:'#60a5fa' }}><span className="spin" style={{ display:'inline-block' }}>⟳</span> Working…</div>}
+            </div>
+          )}
         </div>
       )}
 
