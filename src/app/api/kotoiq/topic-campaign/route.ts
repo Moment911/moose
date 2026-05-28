@@ -13,6 +13,7 @@ import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
 import { buildLlmsTxt, publishLlmsTxt } from '@/lib/wp-shim/llmsTxtBuilder'
 import { shimSelfUpdate } from '@/lib/wp-shim/shimSelfUpdate'
+import { logTokenUsage } from '@/lib/tokenTracker'
 
 // Thin name wrapper — local handle for the per-location ACS lookup used in
 // deploy + redeploy. Returns null on any failure (missing key, city not found,
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
             case 'publish_llms_txt':  return await publishLlmsTxtForSite(supabase, agencyId, body)
             case 'preview_llms_txt':  return await previewLlmsTxtForSite(supabase, agencyId, body)
             case 'shim_update':       return await shimUpdateForSite(supabase, agencyId, body)
+            case 'wrapper_assist':    return await wrapperAssist(body, agencyId)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -176,6 +178,86 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
+}
+
+/**
+ * wrapper_assist action — operator pastes raw page HTML (copied from their
+ * styled WP page source), Claude reads the structure and inserts our token
+ * placeholders ({{HERO_HEADLINE}}, {{SECTIONS}}, etc.) at the right spots.
+ * Returns the modified HTML for the operator to drop into the Custom HTML
+ * wrapper field.
+ *
+ * Cheap Sonnet call. Logged to koto_token_usage as kotoiq_wrapper_assist.
+ */
+async function wrapperAssist(body: any, agencyId: string) {
+    const rawHtml = String(body.html || '').trim()
+    if (!rawHtml) return NextResponse.json({ error: 'html required' }, { status: 400 })
+    if (rawHtml.length > 50_000) return NextResponse.json({ error: 'html too large (max 50KB)' }, { status: 400 })
+
+    const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
+
+    const systemPrompt = `You convert raw WordPress page HTML into a KotoIQ topic-campaign wrapper template by inserting placeholder tokens at the appropriate insertion points.
+
+Available placeholders — insert each one at most once:
+- {{HERO_HEADLINE}}   → replaces the page's main H1 text content (keep the H1 tag, swap only its inner text)
+- {{HERO_SUB}}        → replaces the hero subhead/intro paragraph(s)
+- {{HERO_MEDIA}}      → replaces the hero image/video block (or paste at top if none exists)
+- {{SECTIONS}}        → replaces the main body content area (multiple sections combined)
+- {{HOWTO}}           → optional, insert before {{SECTIONS}} or after it for how-to schema
+- {{COMPARISON}}      → optional, insert near {{SECTIONS}}
+- {{FAQS}}            → insert at the FAQ section if one exists, else near the bottom
+- {{LOCAL_DATA}}      → bottom-of-page, small Census data footnote
+- {{CTA}}             → insert at the call-to-action block
+- {{SERVICE_AREAS}}   → insert near the bottom, for the sibling-cities link list
+- {{RELATED_SERVICES}} → insert near {{SERVICE_AREAS}}
+- {{DIRECT_ANSWER}}   → insert ABOVE the hero (very top of content body)
+
+Rules:
+- PRESERVE all theme HTML structure (Fusion/Avada/Divi wrappers, classes, IDs, inline styles, scripts) verbatim
+- PRESERVE all <style> blocks the operator pasted (they go to wp_head via post meta — KSES-safe)
+- DO NOT add new classes or restructure layout
+- Only modify TEXT CONTENT of elements where a placeholder belongs
+- If a placeholder has no obvious slot in the source HTML, omit it rather than forcing it
+- Strip any literal phone numbers, city names, or business-specific copy from the source — replace with the relevant placeholder if possible, otherwise leave as a clear PLACEHOLDER_TEXT comment
+- Output ONLY the modified HTML. No commentary, no markdown fences, no explanation.`
+
+    const userPrompt = `Insert KotoIQ placeholders into this WP page HTML:\n\n${rawHtml}`
+
+    let msg
+    try {
+        msg = await ai.messages.create({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 8000,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }],
+        })
+    } catch (e: any) {
+        return NextResponse.json({ error: `claude error: ${String(e?.message || e)}` }, { status: 500 })
+    }
+
+    const text = msg.content?.[0]?.type === 'text' ? msg.content[0].text : ''
+    if (!text) return NextResponse.json({ error: 'empty claude response' }, { status: 500 })
+
+    // Strip any accidental markdown fences if Claude wrapped the output
+    const cleaned = text.replace(/^```(?:html)?\s*/i, '').replace(/```\s*$/i, '').trim()
+
+    void logTokenUsage({
+        feature: 'kotoiq_wrapper_assist',
+        model: 'claude-sonnet-4-6',
+        inputTokens: msg.usage?.input_tokens || 0,
+        outputTokens: msg.usage?.output_tokens || 0,
+        agencyId,
+    })
+
+    return NextResponse.json({
+        ok: true,
+        wrapper: cleaned,
+        placeholders_used: [
+            '{{HERO_HEADLINE}}','{{HERO_SUB}}','{{HERO_MEDIA}}','{{SECTIONS}}',
+            '{{HOWTO}}','{{COMPARISON}}','{{FAQS}}','{{LOCAL_DATA}}',
+            '{{CTA}}','{{SERVICE_AREAS}}','{{RELATED_SERVICES}}','{{DIRECT_ANSWER}}',
+        ].filter(p => cleaned.includes(p)),
+    })
 }
 
 /**

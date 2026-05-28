@@ -67,6 +67,44 @@ export default function TopicCampaignPanel({ site }) {
   const [editedCaptureBusy, setEditedCaptureBusy] = useState(false)
   const [editedCaptureInfo, setEditedCaptureInfo] = useState(null)
 
+  // AI-assist on whatever's currently in the wrapper textarea — takes the
+  // operator's pasted/uploaded HTML and inserts our placeholder tokens at
+  // the right structural points via Claude.
+  async function aiAssistWrapper(rawHtml) {
+    const html = (rawHtml ?? editedWrapper).trim()
+    if (!html) { toast.error('Paste HTML into the wrapper field or upload a file first'); return }
+    setEditedCaptureBusy(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'wrapper_assist', agency_id: agencyId, html }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      setEditedWrapper(d.wrapper || '')
+      setEditedCaptureInfo({
+        used_selector: 'AI-assisted',
+        notes: `Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none — review output'}`,
+      })
+      toast.success('Placeholders inserted — save changes + Re-deploy all to apply')
+    } catch (e) {
+      toast.error(e.message)
+    }
+    setEditedCaptureBusy(false)
+  }
+
+  // Read an uploaded HTML file → run through aiAssistWrapper.
+  async function uploadWrapperFile(file) {
+    if (!file) return
+    if (file.size > 500_000) { toast.error('File too large (max 500KB)'); return }
+    const text = await file.text().catch(() => '')
+    if (!text) { toast.error('Could not read file'); return }
+    // Drop raw contents into the textarea first so the operator sees what
+    // was loaded, then run AI assist on the same payload.
+    setEditedWrapper(text)
+    await aiAssistWrapper(text)
+  }
+
   // Capture from URL inside the editor modal — same /capture_styling action
   // as the campaign-creation wizard, but writes into editedWrapper so the
   // operator can re-style an existing campaign without recreating it.
@@ -1180,6 +1218,8 @@ export default function TopicCampaignPanel({ site }) {
           captureBusy={editedCaptureBusy}
           captureInfo={editedCaptureInfo}
           onCapture={captureStylingInEditor}
+          onAiAssist={aiAssistWrapper}
+          onUploadFile={uploadWrapperFile}
           campaignTopic={campaign?.topic || ''}
           onSave={saveMasterEdits}
           onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
@@ -1233,7 +1273,7 @@ export default function TopicCampaignPanel({ site }) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, focusKw, setFocusKw, wrapper, setWrapper, captureUrl, setCaptureUrl, captureBusy, captureInfo, onCapture, campaignTopic, onSave, onClose }) {
+function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, focusKw, setFocusKw, wrapper, setWrapper, captureUrl, setCaptureUrl, captureBusy, captureInfo, onCapture, onAiAssist, onUploadFile, campaignTopic, onSave, onClose }) {
   // Preview the focus keyword resolved for a sample city
   const sampleResolved = (focusKw || '')
     .replace(/\[topic\]/gi, campaignTopic)
@@ -1383,22 +1423,34 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
             <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', marginBottom:8, lineHeight:1.5 }}>
               Paste your theme&rsquo;s page HTML or capture from an existing styled URL. Use <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_HEADLINE}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_SUB}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_MEDIA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{SECTIONS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{FAQS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{CTA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{SERVICE_AREAS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{RELATED_SERVICES}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HOWTO}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{COMPARISON}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{LOCAL_DATA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{DIRECT_ANSWER}}'}</code> placeholders. Add <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{NO_STYLES}}'}</code> to skip the default base CSS. After saving, click <strong>Re-deploy all</strong> to apply.
             </div>
-            <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center' }}>
+            <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center', flexWrap:'wrap' }}>
               <input
                 value={captureUrl}
                 onChange={e => setCaptureUrl(e.target.value)}
                 placeholder="https://unifiedmktg.com/about/ — paste an existing styled page URL"
-                style={{ ...inp(), flex:1 }}
+                style={{ ...inp(), flex:'1 1 240px', minWidth:0 }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onCapture() } }}
               />
               <button onClick={onCapture} disabled={captureBusy || !captureUrl.trim()} style={miniBtn({ color:T, borderColor:T })}>
                 {captureBusy ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture from URL
+              </button>
+              <label style={{ ...miniBtn({ color:T, borderColor:T }), cursor:'pointer', opacity:captureBusy?0.5:1 }}>
+                <Upload size={12}/> Upload HTML file
+                <input type="file" accept=".html,.htm,text/html" disabled={captureBusy}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) { onUploadFile(f); e.target.value = '' } }}
+                  style={{ display:'none' }}/>
+              </label>
+              <button onClick={() => onAiAssist()} disabled={captureBusy || !wrapper.trim()} style={miniBtn({ color:R, borderColor:R })}>
+                {captureBusy ? <Loader2 size={12} className="spin"/> : <Sparkles size={12}/>} AI-insert placeholders
               </button>
               {wrapper && (
                 <button onClick={() => setWrapper('')} style={miniBtn()}>
                   <X size={11}/> Clear
                 </button>
               )}
+            </div>
+            <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8, lineHeight:1.5 }}>
+              <strong>How it works:</strong> Paste a URL → we fetch + extract. Upload a file → we read it in your browser (never stored on our servers, contents sent once to Claude for placeholder insertion, then discarded). Or paste HTML directly into the textarea and click <strong>AI-insert placeholders</strong>.
             </div>
             {captureInfo && (
               <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
