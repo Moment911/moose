@@ -29,6 +29,10 @@ export interface ResolveContext {
     location: LocationContext
     phone?: string // already formatted, e.g. "(512) 555-1234"
     companyName?: string
+    /** The business's real FIXED address (operator-provided, one location — NOT
+     *  per-city). Resolves [koto_street_address], feeds the LocalBusiness
+     *  PostalAddress schema verbatim + a visible contact line. */
+    businessAddress?: { street?: string; city?: string; state?: string; zip?: string }
     /** Optional hero image URL — injected at top of hero HTML. */
     heroImageUrl?: string
     /** Optional hero video URL — injected at top of hero HTML (mp4/webm). Takes precedence over image. */
@@ -220,6 +224,7 @@ function resolveScalarTokens(input: string, ctx: ResolveContext): string {
         '[koto_phone]': phoneLink,
         '[koto_phone_link]': phoneLink,
         '[koto_company_name]': companyName || '',
+        '[koto_street_address]': ctx.businessAddress?.street || '',
         '[koto_city_state]': loc.city && loc.state ? `${loc.city}, ${loc.state}` : loc.city,
         '[koto_city_state_abbr]': loc.city && loc.stateAbbr ? `${loc.city}, ${loc.stateAbbr}` : loc.city,
         '[koto_city_state_zip]': [loc.city, loc.state, loc.zip].filter(Boolean).join(', '),
@@ -372,6 +377,10 @@ export interface ResolvedPage {
      *  operator opts out via {{NO_STYLES}} in their custom wrapper. */
     baseCss: string
     jsonLd: string | null
+    /** True when a custom wrapper was provided but had no content placeholders,
+     *  so it was ignored in favor of the default layout (operator should re-run
+     *  "Style my pages with this" to get a wrapper with placeholders). */
+    wrapperIgnored?: boolean
 }
 
 export function resolveMaster(
@@ -598,7 +607,18 @@ a[href^="tel:"]:hover{text-decoration:underline}
     // _kotoiq_base_css post meta separately (KSES-safe). {{NO_STYLES}} in a
     // custom wrapper still opts the page out of base CSS via the baseCss
     // field returned below.
-    const wantsStyles = !customWrapper || !customWrapper.includes('{{NO_STYLES}}')
+    // A custom wrapper is only USABLE if it actually has slots for our content.
+    // If it has none — e.g. the operator pasted/uploaded a full page but never
+    // ran "Style my pages with this" to insert placeholders — using it verbatim
+    // would publish the SOURCE page and silently drop all the koto SEO content
+    // (this is exactly what broke the Boca Raton page). Detect that and fall
+    // back to the clean default layout so the generated content always renders.
+    const cw = customWrapper || ''
+    const CONTENT_PLACEHOLDERS = ['{{SECTIONS}}', '{{FAQS}}', '{{HERO_HEADLINE}}', '{{HERO_SUB}}', '{{CTA}}', '{{DIRECT_ANSWER}}']
+    const wrapperUsable = !!customWrapper && CONTENT_PLACEHOLDERS.some(p => cw.includes(p))
+    const wrapperIgnored = !!customWrapper && !wrapperUsable
+
+    const wantsStyles = !wrapperUsable || !cw.includes('{{NO_STYLES}}')
 
     // Extract any <style> blocks from the wrapper and strip page-shell tags
     // (DOCTYPE, html, head, body, link rel=stylesheet, script). The styles
@@ -609,8 +629,8 @@ a[href^="tel:"]:hover{text-decoration:underline}
     // pages — operator-uploaded HTML had embedded <style> blocks that
     // bled into the rendered page.
     let wrapperExtraCss = ''
-    let cleanedWrapper = customWrapper || ''
-    if (customWrapper) {
+    let cleanedWrapper = wrapperUsable ? cw : ''
+    if (wrapperUsable) {
         cleanedWrapper = cleanedWrapper.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (_m, css) => {
             wrapperExtraCss += (wrapperExtraCss ? '\n\n' : '') + String(css).trim()
             return ''
@@ -624,7 +644,7 @@ a[href^="tel:"]:hover{text-decoration:underline}
             .replace(/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi, '')
             .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
     }
-    const bodyHtml = (customWrapper
+    const bodyHtml = (wrapperUsable
         ? cleanedWrapper
             .replace(/\{\{NO_STYLES\}\}/g, '')
             .replace(/\{\{DIRECT_ANSWER\}\}/g, directAnswerHtml)
@@ -704,6 +724,7 @@ a[href^="tel:"]:hover{text-decoration:underline}
         bodyHtml,
         baseCss,
         jsonLd,
+        wrapperIgnored,
     }
 }
 
