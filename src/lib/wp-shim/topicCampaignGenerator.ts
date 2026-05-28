@@ -69,14 +69,12 @@ const SUPPORTED_TOKENS = [
     '[koto_city_state_zip]',
 ] as const
 
-export async function generateTopicCampaignMaster(
-    ai: Anthropic,
-    input: GenerateMasterInput,
-): Promise<GenerateMasterResult> {
+/** Exported so generate_master_compare can reuse the same prompt across providers. */
+export function buildMasterPrompt(input: GenerateMasterInput): { system: string; user: string } {
     const variants = clamp(input.variantsPerSection ?? 4, 2, 6)
     const faqCount = clamp(input.faqCount ?? 6, 3, 10)
 
-    const systemPrompt = `You are a senior SEO + AEO (AI Engine Optimization) strategist. Your job is to produce hyperlocal landing-page content optimized for THREE outcomes simultaneously:
+    const system = `You are a senior SEO + AEO (AI Engine Optimization) strategist. Your job is to produce hyperlocal landing-page content optimized for THREE outcomes simultaneously:
 
   1. Traditional SEO ranking (Google, Bing) for "<topic> <city>" queries
   2. AI search citation (ChatGPT, Perplexity, Claude, Google AI Overviews) — declarative, factual sentences that LLMs can extract verbatim
@@ -101,7 +99,7 @@ Hard rules — applies to ALL content:
 - FAQ questions should follow AnswerThePublic patterns: How, What, Why, When, Where, Can, Should, How much, Is, Best, Top.
 - JSON-LD schema_jsonld_template: a single JSON object with @context and @graph containing three @type entries: LocalBusiness, WebPage, FAQPage. Use tokens inside string values where needed. Output as a STRING containing valid JSON (we will JSON.parse it after token resolution).`
 
-    const userPrompt = `Generate a TopicCampaignMaster JSON object for the following:
+    const user = `Generate a TopicCampaignMaster JSON object for the following:
 
 TOPIC: ${input.topic}
 COMPANY_NAME: ${input.companyName || '(operator will provide; use [koto_company_name] token)'}
@@ -169,6 +167,15 @@ Produce a JSON object with this EXACT shape:
 }
 
 Return ONLY the JSON object. No explanation, no markdown.`
+
+    return { system, user }
+}
+
+export async function generateTopicCampaignMaster(
+    ai: Anthropic,
+    input: GenerateMasterInput,
+): Promise<GenerateMasterResult> {
+    const { system: systemPrompt, user: userPrompt } = buildMasterPrompt(input)
 
     const msg = await ai.messages.create({
         model: 'claude-sonnet-4-6',

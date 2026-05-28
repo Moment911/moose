@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
         // "Unexpected end of JSON input").
         switch (action) {
             case 'generate_master':   return await generateMaster(supabase, agencyId, body)
+            case 'generate_master_compare': return await generateMasterCompare(supabase, agencyId, body)
             case 'update_master':     return await updateMaster(supabase, agencyId, body)
             case 'preview_resolved':  return await previewResolved(supabase, agencyId, body)
             case 'deploy':            return await deployCampaign(supabase, agencyId, body)
@@ -751,21 +752,30 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
     // players. Skipped silently on failure — generation still proceeds.
     const { competitorContext, competitorMeta } = await resolveCompetitorIntel(topic, body)
 
-    const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
-    const { master, inputTokens, outputTokens, model } = await generateTopicCampaignMaster(ai, {
-        topic,
-        companyName: body.company_name || undefined,
-        phone: body.phone || undefined,
-        htmlWrapperHint: body.custom_html_wrapper || undefined,
-        notes: body.notes || undefined,
-        competitorContext,
-        topicalCluster: Array.isArray(body.topical_cluster) ? body.topical_cluster : undefined,
-        variantsPerSection: body.variants_per_section || undefined,
-        faqCount: body.faq_count || undefined,
-        agencyId,
-    })
-
-    const totalTokens = inputTokens + outputTokens
+    // If a prebuilt master was passed (from model comparison pick), skip Claude
+    let master: any, totalTokens: number, model: string
+    if (body._prebuilt_master && typeof body._prebuilt_master === 'object') {
+        master = body._prebuilt_master
+        totalTokens = 0
+        model = 'prebuilt'
+    } else {
+        const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
+        const result = await generateTopicCampaignMaster(ai, {
+            topic,
+            companyName: body.company_name || undefined,
+            phone: body.phone || undefined,
+            htmlWrapperHint: body.custom_html_wrapper || undefined,
+            notes: body.notes || undefined,
+            competitorContext,
+            topicalCluster: Array.isArray(body.topical_cluster) ? body.topical_cluster : undefined,
+            variantsPerSection: body.variants_per_section || undefined,
+            faqCount: body.faq_count || undefined,
+            agencyId,
+        })
+        master = result.master
+        totalTokens = result.inputTokens + result.outputTokens
+        model = result.model
+    }
     const insert: any = {
         agency_id: agencyId,
         client_id: body.client_id || null,
@@ -800,6 +810,91 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
     }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, campaign: data, tokens_used: totalTokens, competitor_meta: competitorMeta })
+}
+
+/**
+ * generate_master_compare — runs the same prompt through Claude, GPT-4o,
+ * and Gemini in parallel via multiAiBlender, returning all 3 results +
+ * a synthesized best-of so the operator can pick the winner.
+ */
+async function generateMasterCompare(supabase: any, agencyId: string, body: any) {
+    const topic = String(body.topic || '').trim()
+    if (!topic) return NextResponse.json({ error: 'topic required' }, { status: 400 })
+
+    const { competitorContext } = await resolveCompetitorIntel(topic, body)
+
+    // Build the same prompt the single-model path uses
+    const { buildMasterPrompt } = await import('@/lib/wp-shim/topicCampaignGenerator')
+    const promptParts = buildMasterPrompt({
+        topic,
+        companyName: body.company_name || undefined,
+        phone: body.phone || undefined,
+        htmlWrapperHint: body.custom_html_wrapper || undefined,
+        notes: body.notes || undefined,
+        competitorContext,
+        agencyId,
+    })
+
+    const { blendThreeAIs } = await import('@/lib/multiAiBlender')
+    const start = Date.now()
+    const result = await blendThreeAIs({
+        systemPrompt: promptParts.system,
+        userPrompt: promptParts.user,
+        synthesisInstruction: 'You are comparing 3 AI-generated SEO landing page masters. Pick the best sections, FAQs, and structure from each. Return a single unified JSON master in the exact same shape. Prefer whichever has the strongest E-E-A-T signals, most natural language, and best keyword coverage.',
+        maxTokens: 8192,
+        feature: 'kotoiq_topic_campaign_compare',
+        agencyId,
+    })
+
+    // Parse each provider's JSON output
+    function tryParseMaster(text: string) {
+        try {
+            const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+            return JSON.parse(stripped)
+        } catch { return null }
+    }
+
+    const models: any[] = []
+    const providers = ['claude', 'openai', 'gemini'] as const
+    for (const p of providers) {
+        const src = result.sources[p]
+        if (!src?.text) { models.push({ provider: p, ok: false, error: 'no response' }); continue }
+        const master = tryParseMaster(src.text)
+        if (!master) { models.push({ provider: p, ok: false, error: 'invalid JSON' }); continue }
+        models.push({
+            provider: p,
+            ok: true,
+            master,
+            sections: master.sections?.length || 0,
+            faqs: master.faqs?.length || 0,
+            ms: src.ms,
+            tokens: src.tokens,
+        })
+    }
+
+    // Synthesized version
+    const synthMaster = tryParseMaster(result.synthesized)
+
+    return NextResponse.json({
+        ok: true,
+        models,
+        synthesized: synthMaster ? {
+            ok: true, master: synthMaster,
+            sections: synthMaster.sections?.length || 0,
+            faqs: synthMaster.faqs?.length || 0,
+            ms: result.synthesisMs,
+        } : { ok: false },
+        totalMs: result.totalMs,
+        totalTokens: result.totalTokens,
+        failedProviders: result.failedProviders,
+        // Pass through body params so the frontend can create the campaign with the chosen master
+        topic, body_passthrough: {
+            site_id: body.site_id, client_id: body.client_id, company_name: body.company_name,
+            phone: body.phone, notes: body.notes, post_type: body.post_type,
+            custom_html_wrapper: body.custom_html_wrapper, style_tokens: body.style_tokens,
+            hero_image_url: body.hero_image_url, hero_video_url: body.hero_video_url,
+        },
+    })
 }
 
 /**
@@ -1041,8 +1136,9 @@ Score generously where the format limits the signal (it's a city-rotatable templ
 
     let parsed: any = null
     try {
+        const eeatModel = 'claude-haiku-4-5-20251001'
         const msg = await ai.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: eeatModel,
             max_tokens: 4000,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }],
@@ -1052,7 +1148,7 @@ Score generously where the format limits the signal (it's a city-rotatable templ
         parsed = JSON.parse(stripped)
         void logTokenUsage({
             feature: 'kotoiq_topic_campaign_eeat',
-            model: 'claude-sonnet-4-6',
+            model: eeatModel,
             inputTokens: msg.usage?.input_tokens || 0,
             outputTokens: msg.usage?.output_tokens || 0,
             agencyId,
@@ -1109,8 +1205,9 @@ Siblings should be deployable as their own city-rotatable topic-campaigns. Suppo
 
     let parsed: any = null
     try {
+        const topicalModel = 'claude-haiku-4-5-20251001'
         const msg = await ai.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: topicalModel,
             max_tokens: 3000,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }],
@@ -1120,7 +1217,7 @@ Siblings should be deployable as their own city-rotatable topic-campaigns. Suppo
         parsed = JSON.parse(stripped)
         void logTokenUsage({
             feature: 'kotoiq_topic_campaign_topical_expand',
-            model: 'claude-sonnet-4-6',
+            model: topicalModel,
             inputTokens: msg.usage?.input_tokens || 0,
             outputTokens: msg.usage?.output_tokens || 0,
             agencyId,

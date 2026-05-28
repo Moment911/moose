@@ -76,20 +76,74 @@ export default function TopicCampaignPanel({ site, client }) {
   const [optimizeReport, setOptimizeReport] = useState(null) // structured pipeline report
   const [reportExpanded, setReportExpanded] = useState({})   // which steps are expanded
   const [paused, setPaused] = useState(false)
+  const [pauseStep, setPauseStep] = useState('')
+  const [pauseCountdown, setPauseCountdown] = useState(0)
   const pauseRef = React.useRef(false)
+  const countdownRef = React.useRef(null)
+  const [compareMode, setCompareMode] = useState(false)
+  const [compareResults, setCompareResults] = useState(null)
   function logGen(msg) { setGenLog(prev => [...prev, { time: new Date(), msg }]) }
-  function requestPause() { pauseRef.current = true; setPaused(true); logGen('⏸ Paused — make your changes, then click Resume') }
-  function requestResume() { pauseRef.current = false; setPaused(false) }
-  /** Wait if paused. Returns true if resumed, so pipeline continues. */
+
+  function requestPause() {
+    pauseRef.current = true
+    setPaused(true)
+    setPauseCountdown(60)
+    logGen('⏸ Paused — make your changes. Auto-resuming in 60s…')
+    // Start countdown
+    if (countdownRef.current) clearInterval(countdownRef.current)
+    countdownRef.current = setInterval(() => {
+      setPauseCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownRef.current)
+          countdownRef.current = null
+          requestResume()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
+
+  function requestResume() {
+    pauseRef.current = false
+    setPaused(false)
+    setPauseCountdown(0)
+    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null }
+  }
+
+  function stayPaused() {
+    setPauseCountdown(60)
+    if (countdownRef.current) clearInterval(countdownRef.current)
+    countdownRef.current = setInterval(() => {
+      setPauseCountdown(prev => {
+        if (prev <= 1) { clearInterval(countdownRef.current); countdownRef.current = null; requestResume(); return 0 }
+        return prev - 1
+      })
+    }, 1000)
+  }
+
   async function checkPause(stepName) {
     if (!pauseRef.current) return
-    logGen(`⏸ Paused before ${stepName} — waiting for resume…`)
+    setPauseStep(stepName)
+    logGen(`⏸ Paused before ${stepName}`)
     await new Promise(resolve => {
       const check = setInterval(() => {
         if (!pauseRef.current) { clearInterval(check); resolve() }
       }, 500)
     })
-    logGen(`▶ Resumed — re-checking before ${stepName}…`)
+    setPauseStep('')
+    logGen(`▶ Resumed — re-fetching campaign…`)
+    // Re-fetch campaign to pick up any changes made while paused
+    if (campaign?.id) {
+      try {
+        const r = await fetch('/api/kotoiq/topic-campaign', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_campaign', agency_id: agencyId, campaign_id: campaign.id }),
+        })
+        const d = await r.json()
+        if (d.campaign) { setCampaign(d.campaign); logGen('  Campaign refreshed — continuing with your updates') }
+      } catch {}
+    }
   }
   const [competitorSampleCity, setCompetitorSampleCity] = useState('')
   const [competitorSampleState, setCompetitorSampleState] = useState('')
@@ -793,6 +847,80 @@ export default function TopicCampaignPanel({ site, client }) {
     }
   }
 
+  async function generateMasterCompare() {
+    if (!topic.trim()) { toast.error('Topic required'); return }
+    setGenerating(true)
+    setGenLog([])
+    setCompareResults(null)
+    logGen('Comparing 3 models: Claude Sonnet · GPT-4o · Gemini Flash')
+    logGen('Running all 3 in parallel…')
+    const startTime = Date.now()
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_master_compare',
+          agency_id: agencyId,
+          site_id: site?.id || null,
+          client_id: site?.client_id || null,
+          topic: topic.trim(),
+          phone: phone.trim() || null,
+          company_name: companyName.trim() || null,
+          notes: notes.trim() || null,
+          post_type: postType,
+          custom_html_wrapper: customHtml.trim() || null,
+          style_tokens: capturedStyleTokens || null,
+          competitor_sample_city: competitorSampleCity.trim() || null,
+          competitor_sample_state_abbr: competitorSampleState.trim() || null,
+        }),
+      })
+      const d = await r.json()
+      if (d.error) { logGen(`Error: ${errText(d.error)}`); toast.error(errText(d.error)); setGenerating(false); return }
+      const elapsed = Math.round((Date.now() - startTime) / 1000)
+      logGen(`All models finished in ${elapsed}s · ${d.totalTokens} total tokens`)
+      if (d.failedProviders?.length) logGen(`Failed: ${d.failedProviders.join(', ')}`)
+      d.models.forEach(m => {
+        if (m.ok) logGen(`  ${m.provider}: ${m.sections} sections, ${m.faqs} FAQs (${Math.round(m.ms/1000)}s)`)
+        else logGen(`  ${m.provider}: ${m.error}`)
+      })
+      if (d.synthesized?.ok) logGen(`  synthesized: ${d.synthesized.sections} sections, ${d.synthesized.faqs} FAQs`)
+      logGen('Pick a winner below ↓')
+      setCompareResults(d)
+    } catch (e) {
+      logGen(`Error: ${e.message}`)
+      toast.error(e.message)
+    }
+    setGenerating(false)
+  }
+
+  async function pickCompareWinner(master, label) {
+    if (!compareResults) return
+    setGenerating(true)
+    logGen(`Picked: ${label} — creating campaign…`)
+    try {
+      const bp = compareResults.body_passthrough || {}
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_master',
+          agency_id: agencyId,
+          ...bp,
+          topic: compareResults.topic || topic.trim(),
+          // Override: pass the pre-generated master so the API saves it without calling Claude again
+          _prebuilt_master: master,
+        }),
+      })
+      const d = await r.json()
+      if (d.error) { logGen(`Error: ${errText(d.error)}`); toast.error(errText(d.error)); setGenerating(false); return }
+      setCampaign(d.campaign)
+      setCompareResults(null)
+      toast.success(`Campaign created with ${label} master`)
+      await autoOptimize(d.campaign)
+      setStep(2)
+    } catch (e) { logGen(`Error: ${e.message}`); toast.error(e.message) }
+    setGenerating(false)
+  }
+
   async function autoOptimize(camp) {
     if (!camp?.id) return
     const cid = camp.id
@@ -817,29 +945,22 @@ export default function TopicCampaignPanel({ site, client }) {
 
     let clusterTopics = []  // saved so E-E-A-T fix rounds preserve cluster coverage
 
-    // 1. Quality check (baseline)
-    await checkPause('Quality check')
-    logGen('─── Step 1: Quality check ───')
+    // 1+2. Quality check + Schema validation (parallel — both are fast, no AI)
+    await checkPause('Quality + Schema check')
+    logGen('─── Steps 1-2: Quality + Schema (parallel) ───')
     addStep('Quality check', 'running')
+    addStep('Schema validation', 'running')
     try {
-      const qc = await api('quality_check')
+      const [qc, sv] = await Promise.all([api('quality_check'), api('validate_schema')])
       if (qc.report) {
         const fails = (qc.report.findings || []).filter(f => f.level === 'fail')
         const warns = (qc.report.findings || []).filter(f => f.level === 'warn')
         logGen(`Quality: ${qc.report.score}/100 · ~${qc.report.wordCount} words/page`)
         if (fails.length) fails.forEach(f => logGen(`  ✗ ${f.msg}`))
         if (warns.length) warns.forEach(f => logGen(`  ⚠ ${f.msg}`))
-        if (!fails.length && !warns.length) logGen('  All checks passed')
+        if (!fails.length && !warns.length) logGen('  Quality: all checks passed')
         addStep('Quality check', fails.length ? 'issues' : 'pass', { score: qc.report.score, wordCount: qc.report.wordCount, findings: qc.report.findings })
       }
-    } catch (e) { logGen(`Quality check error: ${e.message}`); addStep('Quality check', 'error', { error: e.message }) }
-
-    // 2. Schema validation (baseline)
-    await checkPause('Schema validation')
-    logGen('─── Step 2: Schema validation ───')
-    addStep('Schema validation', 'running')
-    try {
-      const sv = await api('validate_schema')
       if (sv.report) {
         logGen(`Schema types: ${(sv.report.types || []).join(', ') || 'none'}`)
         if (sv.report.errors?.length) sv.report.errors.forEach(e => logGen(`  ✗ ${e}`))
@@ -847,7 +968,7 @@ export default function TopicCampaignPanel({ site, client }) {
         else logGen('  Schema valid')
         addStep('Schema validation', sv.report.errors?.length ? 'issues' : 'pass', { types: sv.report.types, errors: sv.report.errors, warnings: sv.report.warnings })
       }
-    } catch (e) { logGen(`Schema error: ${e.message}`); addStep('Schema validation', 'error', { error: e.message }) }
+    } catch (e) { logGen(`Check error: ${e.message}`); addStep('Quality check', 'error', { error: e.message }); addStep('Schema validation', 'error', { error: e.message }) }
 
     // 3. Topical cluster → weave
     await checkPause('Topical cluster')
@@ -1440,8 +1561,8 @@ export default function TopicCampaignPanel({ site, client }) {
               <div style={{ fontFamily:FH, fontWeight:800, fontSize:20, color:BLK }}>
                 {savedCampaigns.length > 0 ? 'Start a new campaign' : 'Tell Claude what to write'}
               </div>
-              <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280', marginTop:2 }}>
-                AI writes one master with rotation variants + location tokens. You deploy it across N cities, each gets a unique page.
+              <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280', marginTop:2, lineHeight:1.5 }}>
+                AI writes one master page with rotation variants and location tokens. You pick the cities, and each gets a unique, locally-optimized page deployed to WordPress — with structured data, E-E-A-T signals, and brand-matched styling. The full pipeline runs automatically: quality check, schema validation, topical authority expansion, and E-E-A-T scoring with auto-fix.
               </div>
             </div>
           </div>
@@ -1610,17 +1731,19 @@ export default function TopicCampaignPanel({ site, client }) {
           )}
 
           <div style={{ marginTop:18, display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
-            <span style={{ fontSize:12, fontFamily:FB, color:'#9ca3af' }}>
-              {topic.trim() ? 'Press Enter or click Generate. Pick cities next.' : 'Just enter a topic to start.'}
-            </span>
-            <button onClick={generateMaster} disabled={generating || !topic.trim()} style={primaryBtn()}>
+            <label style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, fontFamily:FB, color:'#6b7280', cursor:'pointer' }}>
+              <input type="checkbox" checked={compareMode} onChange={e => setCompareMode(e.target.checked)} style={{ accentColor:'#7c3aed' }}/>
+              <span title="Runs the same prompt through Claude Sonnet, GPT-4o, and Gemini Flash in parallel. You compare all 3 results side-by-side and pick the best one — or use a synthesized best-of version. Takes ~2 min instead of ~1 min.">Compare models</span> <span style={{ fontSize:10, color:'#9ca3af' }}>(Claude + GPT-4o + Gemini)</span>
+            </label>
+            <span style={{ flex:1 }}/>
+            <button onClick={compareMode ? generateMasterCompare : generateMaster} disabled={generating || !topic.trim()} style={primaryBtn()}>
               {generating ? <Loader2 size={14} className="spin"/> : <Wand2 size={14}/>}
-              {generating ? 'Claude is writing…' : 'Generate Master'}
+              {generating ? 'Claude is writing…' : compareMode ? 'Compare 3 Models' : 'Generate Master'}
             </button>
-            {generating && (
-              <button onClick={paused ? requestResume : requestPause}
-                style={miniBtn({ color: paused ? GRN : AMB, borderColor: paused ? GRN : AMB })}>
-                {paused ? '▶ Resume' : '⏸ Pause'}
+            {generating && !paused && (
+              <button onClick={requestPause}
+                style={miniBtn({ color: AMB, borderColor: AMB })}>
+                ⏸ Pause
               </button>
             )}
           </div>
@@ -1629,11 +1752,91 @@ export default function TopicCampaignPanel({ site, client }) {
           {genLog.length > 0 && (
             <div style={{ marginTop:14, padding:12, background:'#0f172a', borderRadius:10, maxHeight:180, overflowY:'auto', fontFamily:'ui-monospace,Menlo,monospace', fontSize:11, lineHeight:1.7 }}>
               {genLog.map((l, i) => (
-                <div key={i} style={{ color: l.msg.startsWith('Error') ? '#f87171' : l.msg.startsWith('Done') ? '#fbbf24' : l.msg.includes('generated') ? '#4ade80' : l.msg.startsWith('Still') ? '#60a5fa' : '#94a3b8' }}>
+                <div key={i} style={{ color: l.msg.startsWith('Error') || l.msg.includes('failed') ? '#f87171' : l.msg.startsWith('Done') || l.msg.includes('Complete') || l.msg.includes('Target') ? '#fbbf24' : l.msg.includes('generated') || l.msg.includes('passed') || l.msg.includes('valid') ? '#4ade80' : l.msg.startsWith('Still') || l.msg.startsWith('▶') ? '#60a5fa' : l.msg.startsWith('⏸') ? '#fbbf24' : l.msg.startsWith('───') ? '#6366f1' : '#94a3b8' }}>
                   {l.msg}
                 </div>
               ))}
-              {generating && <div style={{ color:'#60a5fa' }}><span className="spin" style={{ display:'inline-block' }}>⟳</span> Working…</div>}
+              {generating && !paused && <div style={{ color:'#60a5fa' }}><span className="spin" style={{ display:'inline-block' }}>⟳</span> Working…</div>}
+            </div>
+          )}
+
+          {/* Friendly pause overlay */}
+          {paused && (
+            <div style={{ marginTop:12, padding:18, background:'#fffbeb', border:'2px solid #fbbf24', borderRadius:12 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+                <span style={{ fontSize:20 }}>⏸</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontFamily:FH, fontWeight:800, fontSize:14, color:'#92400e' }}>
+                    Pipeline paused{pauseStep ? ` before ${pauseStep}` : ''}
+                  </div>
+                  <div style={{ fontSize:12, fontFamily:FB, color:'#a16207', marginTop:2 }}>
+                    Make your changes below. Auto-resuming in <strong>{pauseCountdown}s</strong>…
+                  </div>
+                </div>
+                <div style={{ width: 40, height: 40, borderRadius: 999, border:'3px solid #fbbf24', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:FH, fontWeight:900, fontSize:14, color:'#92400e' }}>
+                  {pauseCountdown}
+                </div>
+              </div>
+              <div style={{ fontSize:12, fontFamily:FB, color:'#78350f', marginBottom:12 }}>While paused, you can:</div>
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14 }}>
+                <button onClick={() => setEeatEditorOpen(true)} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
+                  <Edit3 size={11}/> Edit Trust signals
+                </button>
+                <button onClick={() => setEeatOpen(true)} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
+                  <Sparkles size={11}/> View E-E-A-T audit
+                </button>
+                <button onClick={() => setTopicalOpen(true)} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
+                  <Target size={11}/> View Topical cluster
+                </button>
+              </div>
+              <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+                <button onClick={requestResume} style={primaryBtn()}>
+                  ▶ Resume now
+                </button>
+                <button onClick={stayPaused} style={miniBtn()}>
+                  Reset timer (+60s)
+                </button>
+              </div>
+            </div>
+          )}
+          {/* Model comparison cards */}
+          {compareResults && !generating && (
+            <div style={{ marginTop:14 }}>
+              <div style={{ fontFamily:FH, fontWeight:800, fontSize:14, color:BLK, marginBottom:10 }}>Pick a winner</div>
+              <div style={{ display:'grid', gridTemplateColumns: `repeat(${(compareResults.models || []).filter(m => m.ok).length + (compareResults.synthesized?.ok ? 1 : 0)}, 1fr)`, gap:10 }}>
+                {(compareResults.models || []).filter(m => m.ok).map((m, i) => {
+                  const providerLabels = { claude: 'Claude Sonnet', openai: 'GPT-4o', gemini: 'Gemini Flash' }
+                  const providerColors = { claude: '#D97706', openai: '#10b981', gemini: '#3b82f6' }
+                  return (
+                    <div key={i} style={{ border:`2px solid ${providerColors[m.provider] || '#e5e7eb'}`, borderRadius:10, padding:14, background:'#fff' }}>
+                      <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color: providerColors[m.provider] || BLK, marginBottom:8 }}>
+                        {providerLabels[m.provider] || m.provider}
+                      </div>
+                      <div style={{ fontSize:12, fontFamily:FB, color:'#475569', lineHeight:1.6, marginBottom:10 }}>
+                        <div>{m.sections} sections · {m.faqs} FAQs</div>
+                        <div>{Math.round(m.ms / 1000)}s · {m.tokens} tokens</div>
+                      </div>
+                      <button onClick={() => pickCompareWinner(m.master, providerLabels[m.provider] || m.provider)} style={primaryBtn()}>
+                        Use this
+                      </button>
+                    </div>
+                  )
+                })}
+                {compareResults.synthesized?.ok && (
+                  <div style={{ border:'2px solid #7c3aed', borderRadius:10, padding:14, background:'#faf5ff' }}>
+                    <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:'#7c3aed', marginBottom:8 }}>
+                      Best-of Synthesis
+                    </div>
+                    <div style={{ fontSize:12, fontFamily:FB, color:'#475569', lineHeight:1.6, marginBottom:10 }}>
+                      <div>{compareResults.synthesized.sections} sections · {compareResults.synthesized.faqs} FAQs</div>
+                      <div>Combined best from all models</div>
+                    </div>
+                    <button onClick={() => pickCompareWinner(compareResults.synthesized.master, 'Synthesized')} style={primaryBtn()}>
+                      Use this
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
