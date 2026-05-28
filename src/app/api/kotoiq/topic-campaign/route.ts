@@ -196,43 +196,59 @@ async function wrapperAssist(body: any, agencyId: string) {
 
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
-    const systemPrompt = `You convert raw WordPress page HTML into a KotoIQ topic-campaign wrapper template by inserting placeholder tokens at the appropriate insertion points.
+    const systemPrompt = `You build a KotoIQ topic-campaign wrapper INSPIRED BY the operator's pasted source. You are NOT copying the source verbatim — you are extracting its design language (colors, type scale, spacing, layout patterns, button styles) and applying it to a clean, semantic layout with our placeholder tokens.
 
-SCOPE — the output is dropped into a WP post's CONTENT field. WordPress wraps it with the theme's <html>, <head>, <header>, navigation, footer automatically. Therefore the output MUST contain ONLY the main content area:
-- STRIP <!doctype html>, <html>, <head>, <body> tags if present
-- STRIP site-wide chrome: <nav>, page header, breadcrumbs, sidebar, page footer, cookie banners, popups
-- STRIP analytics + third-party scripts (Google Tag Manager, FB Pixel, Hotjar, etc.) — they're already loaded sitewide
-- STRIP external stylesheet <link> tags — the site's own CSS is already loaded; our content inherits it via class names
+OUTPUT SHAPE:
+- A single self-contained HTML fragment (NOT a full page)
+- Starts with one <style> block defining the visual language extracted from the source
+- Then clean semantic divs / sections with our placeholders inside
+- No <!doctype>, no <html>, no <head>, no <body>, no <nav>, no site header/footer
+- No external <link rel="stylesheet">, no analytics scripts
 
-CSS HANDLING (read carefully):
-- The site's main stylesheets (Avada, Divi, Fusion, theme.css, etc.) are ALREADY loaded by WordPress on every page. As long as our wrapper uses the SAME class names (e.g. fusion-row, fusion-text, elementor-section), it inherits styling automatically. We don't need to copy them in.
-- KEEP any inline <style> blocks the source page has — they ride through safely (the dashboard stores them in the _kotoiq_base_css post meta which the plugin echoes in wp_head; KSES never touches meta)
-- KEEP all inline style="..." attributes verbatim — they're attribute-level and KSES-safe
-- KEEP every theme class on every element — this is the entire point. fusion-builder-row, fusion-column-wrapper, et al do the heavy lifting.
-- If the input is just a content fragment (no <html>/<head>), use it as-is
+DESIGN EXTRACTION — read the source carefully and pull out:
+- Color palette (primary, accent, surface, text, muted, borders)
+- Typography (font families if specified, headline/body weight + size scale)
+- Spacing rhythm (section padding, gap, border-radius)
+- Button + link styling (primary CTA, secondary, hover)
+- Card / section treatments (background, border, shadow)
+- If the source has CSS variables / design tokens / a color palette comment block, use those values directly
 
-Available placeholders — insert each one at most once:
-- {{HERO_HEADLINE}}   → replaces the page's main H1 text content (keep the H1 tag, swap only its inner text)
-- {{HERO_SUB}}        → replaces the hero subhead/intro paragraph(s)
-- {{HERO_MEDIA}}      → replaces the hero image/video block (or paste at top if none exists)
-- {{SECTIONS}}        → replaces the main body content area (multiple sections combined)
-- {{HOWTO}}           → optional, insert before {{SECTIONS}} or after it for how-to schema
-- {{COMPARISON}}      → optional, insert near {{SECTIONS}}
-- {{FAQS}}            → insert at the FAQ section if one exists, else near the bottom
-- {{LOCAL_DATA}}      → bottom-of-page, small Census data footnote
-- {{CTA}}             → insert at the call-to-action block
-- {{SERVICE_AREAS}}   → insert near the bottom, for the sibling-cities link list
-- {{RELATED_SERVICES}} → insert near {{SERVICE_AREAS}}
-- {{DIRECT_ANSWER}}   → insert ABOVE the hero (very top of content body)
+WRAPPER SHAPE — build something like:
+<style>
+  .koto-wrap { /* design tokens */ }
+  .koto-wrap .hero { ...extracted hero styling... }
+  .koto-wrap .section { ...extracted section styling... }
+  .koto-wrap .cta { ...extracted CTA styling... }
+  /* etc */
+</style>
+<div class="koto-wrap">
+  {{DIRECT_ANSWER}}
+  <header class="hero">
+    {{HERO_MEDIA}}
+    <h1>{{HERO_HEADLINE}}</h1>
+    <div class="hero-sub">{{HERO_SUB}}</div>
+  </header>
+  <main>{{SECTIONS}}</main>
+  {{HOWTO}}
+  {{COMPARISON}}
+  {{FAQS}}
+  {{LOCAL_DATA}}
+  <section class="cta">{{CTA}}</section>
+  {{RELATED_SERVICES}}
+  {{SERVICE_AREAS}}
+</div>
 
-Rules:
-- PRESERVE all theme HTML structure (Fusion/Avada/Divi wrappers, classes, IDs, inline styles, scripts) verbatim
-- PRESERVE all <style> blocks the operator pasted (they go to wp_head via post meta — KSES-safe)
-- DO NOT add new classes or restructure layout
-- Only modify TEXT CONTENT of elements where a placeholder belongs
-- If a placeholder has no obvious slot in the source HTML, omit it rather than forcing it
-- Strip any literal phone numbers, city names, or business-specific copy from the source — replace with the relevant placeholder if possible, otherwise leave as a clear PLACEHOLDER_TEXT comment
-- Output ONLY the modified HTML. No commentary, no markdown fences, no explanation.`
+Available placeholders — insert each one at most once at the natural spot:
+{{HERO_HEADLINE}} {{HERO_SUB}} {{HERO_MEDIA}} {{SECTIONS}} {{HOWTO}} {{COMPARISON}} {{FAQS}} {{LOCAL_DATA}} {{CTA}} {{SERVICE_AREAS}} {{RELATED_SERVICES}} {{DIRECT_ANSWER}}
+
+CRITICAL RULES:
+- DO NOT paste the source's HTML structure into the output. Build fresh, clean markup INSPIRED BY it.
+- DO NOT copy literal text content from the source (company names, phone numbers, city names, business copy) — every text slot must be a placeholder or a generic content tag.
+- DO NOT include any third-party scripts, analytics, social-share widgets.
+- DO write a self-contained <style> block. Keep selectors scoped under a wrapper class (.koto-wrap) so we don't leak rules into other parts of the page.
+- DO use the source's colors / fonts / sizes / spacing values verbatim where extractable.
+- IF the source is a design system reference (CSS variables, tokens, no real page) — read the tokens and build a fresh wrapper that uses those token values.
+- Output ONLY the wrapper HTML+CSS. No commentary, no markdown fences, no explanation.`
 
     const userPrompt = `Insert KotoIQ placeholders into this WP page HTML:\n\n${rawHtml}`
 

@@ -513,8 +513,33 @@ a[href^="tel:"]:hover{text-decoration:underline}
     // custom wrapper still opts the page out of base CSS via the baseCss
     // field returned below.
     const wantsStyles = !customWrapper || !customWrapper.includes('{{NO_STYLES}}')
+
+    // Extract any <style> blocks from the wrapper and strip page-shell tags
+    // (DOCTYPE, html, head, body, link rel=stylesheet, script). The styles
+    // get APPENDED to baseCss so they travel via the _kotoiq_base_css post
+    // meta (KSES-safe via plugin v4.2.1+). Without this, KSES strips the
+    // <style> tags from post content but leaves the CSS rules as visible
+    // text, which is what broke unifiedmktg.com/.../bonifay/ + earlier
+    // pages — operator-uploaded HTML had embedded <style> blocks that
+    // bled into the rendered page.
+    let wrapperExtraCss = ''
+    let cleanedWrapper = customWrapper || ''
+    if (customWrapper) {
+        cleanedWrapper = cleanedWrapper.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (_m, css) => {
+            wrapperExtraCss += (wrapperExtraCss ? '\n\n' : '') + String(css).trim()
+            return ''
+        })
+        // Strip page-shell tags that shouldn't live inside a WP post body.
+        // Server-side defense — the wrapper_assist Claude prompt also strips
+        // these, but operators paste raw HTML directly too.
+        cleanedWrapper = cleanedWrapper
+            .replace(/<!doctype[^>]*>/gi, '')
+            .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, '')
+            .replace(/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi, '')
+            .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    }
     const bodyHtml = (customWrapper
-        ? customWrapper
+        ? cleanedWrapper
             .replace(/\{\{NO_STYLES\}\}/g, '')
             .replace(/\{\{DIRECT_ANSWER\}\}/g, directAnswerHtml)
             .replace(/\{\{HERO_HEADLINE\}\}/g, escapeHtml(stripHtml(heroHeadline)))

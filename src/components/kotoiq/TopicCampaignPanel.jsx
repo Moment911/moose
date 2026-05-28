@@ -1346,7 +1346,7 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
                   style={{ display:'none' }}/>
               </label>
               <button onClick={() => onAiAssist()} disabled={captureBusy || !wrapper.trim()} style={miniBtn({ color:R, borderColor:R })}>
-                {captureBusy ? <Loader2 size={12} className="spin"/> : <Sparkles size={12}/>} AI-insert placeholders
+                {captureBusy ? <Loader2 size={12} className="spin"/> : <Sparkles size={12}/>} Style my pages with this
               </button>
               {wrapper && (
                 <button onClick={() => setWrapper('')} style={miniBtn()}>
@@ -1355,7 +1355,7 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
               )}
             </div>
             <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8, lineHeight:1.5 }}>
-              <strong>How it works:</strong> Paste a URL → we fetch + extract. Upload a file → we read it in your browser (never stored on our servers, contents sent once to Claude for placeholder insertion, then discarded). Or paste HTML directly into the textarea and click <strong>AI-insert placeholders</strong>.
+              <strong>How it works:</strong> Paste / upload / capture any HTML+CSS reference (a styled page, a design system, a brand guide). Claude reads the colors, fonts, spacing, button styles, layout patterns &mdash; then builds a clean, minimal wrapper INSPIRED by those design tokens, with our placeholders inserted. It does NOT copy the source HTML verbatim. The reference file is processed once and discarded &mdash; never stored on our servers.
             </div>
             {captureInfo && (
               <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
