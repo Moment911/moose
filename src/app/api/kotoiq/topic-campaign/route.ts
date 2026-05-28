@@ -297,6 +297,13 @@ async function setEeatInputs(supabase: any, agencyId: string, body: any) {
         ? inRaw.citations.map((c: any) => ({ claim: String(c?.claim || '').trim(), sourceName: String(c?.sourceName || '').trim(), sourceUrl: String(c?.sourceUrl || '').trim() })).filter((c: any) => c.sourceName && c.sourceUrl)
         : []
     if (citations.length) clean.citations = citations.map((c: any) => (c.claim ? c : { sourceName: c.sourceName, sourceUrl: c.sourceUrl }))
+    const rt = inRaw.rating
+    if (rt && Number(rt.ratingValue) > 0 && Number(rt.reviewCount) > 0) {
+        clean.rating = {
+            ratingValue: Math.max(0, Math.min(5, Number(rt.ratingValue))),
+            reviewCount: Math.max(0, Math.round(Number(rt.reviewCount))),
+        }
+    }
 
     const eeat_inputs = Object.keys(clean).length ? clean : null
     let { data, error } = await supabase

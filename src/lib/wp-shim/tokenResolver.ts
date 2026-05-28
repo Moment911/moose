@@ -75,7 +75,8 @@ export interface ResolveContext {
         /** Real customer reviews (e.g. pulled from Google). Rendered as a
          *  testimonials block + Review schema. sourceLabel carries provenance. */
         testimonials?: Array<{ text: string; author: string; rating?: number; sourceLabel?: string; date?: string }>
-        /** Aggregate rating from the review source (e.g. 4.8 over 127 reviews). */
+        /** Aggregate rating — from real Google reviews, or an operator-set
+         *  rating (manual override for testing). */
         aggregateRating?: { ratingValue: number; reviewCount: number }
         /** Entity-disambiguation URLs (GBP, LinkedIn, directories) → schema sameAs. */
         sameAs?: string[]
@@ -476,6 +477,17 @@ export function resolveMaster(
         ? `<aside class="koto-citations">\n  <h2>Sources</h2>\n  <ul>\n${citations.map(c => `    <li>${c.claim ? `${escapeHtml(c.claim)} &mdash; ` : ''}<a href="${escapeHtml(c.sourceUrl)}" rel="noopener nofollow" target="_blank">${escapeHtml(c.sourceName)}</a></li>`).join('\n')}\n  </ul>\n</aside>`
         : ''
 
+    // Visible rating badge — from real Google data OR an operator-set rating.
+    const agg = eeat.aggregateRating
+    const ratingBadgeHtml = agg && Number(agg.reviewCount) > 0
+        ? (() => {
+            const v = Math.max(0, Math.min(5, Number(agg.ratingValue) || 0))
+            const full = Math.round(v)
+            const stars = '★'.repeat(full) + '☆'.repeat(Math.max(0, 5 - full))
+            return `<div class="koto-rating"><span class="koto-rating-stars" aria-hidden="true">${stars}</span> <span class="koto-rating-value">${v.toFixed(1)}</span> <span class="koto-rating-count">based on ${Number(agg.reviewCount).toLocaleString()} reviews</span></div>`
+        })()
+        : ''
+
     // Hero media block — video takes precedence over image. Stays empty if
     // neither is provided.
     const heroMediaHtml = ctx.heroVideoUrl
@@ -575,6 +587,10 @@ a[href^="tel:"]:hover{text-decoration:underline}
 .koto-citations{margin:2rem 0;font-size:.85rem;color:#64748b}
 .koto-citations ul{margin:.5rem 0 0;padding-left:1.25rem;line-height:1.6}
 .koto-citations a{color:#1e3a8a}
+.koto-rating{display:inline-flex;align-items:center;gap:.5rem;margin:1rem 0;padding:.5rem .9rem;background:#fffbeb;border:1px solid #fde68a;border-radius:999px;font-size:.95rem;color:#1a2332}
+.koto-rating-stars{color:#f59e0b;letter-spacing:1px;font-size:1.05rem}
+.koto-rating-value{font-weight:800}
+.koto-rating-count{color:#64748b;font-size:.85rem}
 `.trim()
 
     // Compose body. The CSS is no longer prepended — it now travels in the
@@ -627,9 +643,11 @@ a[href^="tel:"]:hover{text-decoration:underline}
             .replace(/\{\{TESTIMONIALS\}\}/g, testimonialsHtml)
             .replace(/\{\{RESULTS\}\}/g, resultsHtml)
             .replace(/\{\{CITATIONS\}\}/g, citationsHtml)
+            .replace(/\{\{RATING\}\}/g, ratingBadgeHtml)
         : [
             directAnswerHtml,
             `<header class="koto-hero">${heroMediaHtml ? '\n  ' + heroMediaHtml : ''}\n  <h1>${escapeHtml(stripHtml(heroHeadline))}</h1>\n  <div class="koto-hero-sub">${ensureParagraphs(heroSub)}</div>\n</header>`,
+            ratingBadgeHtml,
             authorBylineHtml,
             sectionHtml,
             howtoHtml,

@@ -116,6 +116,16 @@ export async function buildEeatContext(
         }
     }
 
+    // Manual/operator-set rating — applied only when there's no live Google
+    // rating, so real reviews always take precedence.
+    const mr = inputs.rating
+    if (!eeat.aggregateRating && mr && Number(mr.ratingValue) > 0 && Number(mr.reviewCount) > 0) {
+        eeat.aggregateRating = {
+            ratingValue: Math.max(0, Math.min(5, Number(mr.ratingValue))),
+            reviewCount: Math.max(0, Math.round(Number(mr.reviewCount))),
+        }
+    }
+
     const hasAny =
         eeat.strategist || eeat.sameAs || eeat.results || eeat.citations || eeat.testimonials || eeat.aggregateRating
     return hasAny ? eeat : undefined

@@ -1906,6 +1906,9 @@ function EeatEditor({ initial, busy, onClose, onSave }) {
   const [results, setResults] = useState(Array.isArray(initial.results) && initial.results.length ? initial.results.map(r => ({ metric:r.metric||'', context:r.context||'' })) : [{ metric:'', context:'' }])
   const [citations, setCitations] = useState(Array.isArray(initial.citations) && initial.citations.length ? initial.citations.map(c => ({ claim:c.claim||'', sourceName:c.sourceName||'', sourceUrl:c.sourceUrl||'' })) : [{ claim:'', sourceName:'', sourceUrl:'' }])
   const [sameAs, setSameAs] = useState(Array.isArray(initial.sameAs) && initial.sameAs.length ? [...initial.sameAs] : [''])
+  const r0 = initial.rating || {}
+  const [ratingValue, setRatingValue] = useState(r0.ratingValue ?? '')
+  const [reviewCount, setReviewCount] = useState(r0.reviewCount ?? '')
 
   const upd = (setter) => (i, key, val) => setter(arr => arr.map((row, j) => j === i ? { ...row, [key]: val } : row))
   const rm  = (setter) => (i) => setter(arr => arr.filter((_, j) => j !== i))
@@ -1916,6 +1919,9 @@ function EeatEditor({ initial, busy, onClose, onSave }) {
       results: results.filter(r => r.metric.trim()).map(r => ({ metric: r.metric.trim(), context: (r.context||'').trim() || undefined })),
       citations: citations.filter(c => c.sourceName.trim() && c.sourceUrl.trim()).map(c => ({ claim: (c.claim||'').trim() || undefined, sourceName: c.sourceName.trim(), sourceUrl: c.sourceUrl.trim() })),
       sameAs: sameAs.map(u => (u||'').trim()).filter(Boolean),
+      rating: (Number(ratingValue) > 0 && Number(reviewCount) > 0)
+        ? { ratingValue: Number(ratingValue), reviewCount: Number(reviewCount) }
+        : undefined,
     })
   }
 
@@ -1942,6 +1948,19 @@ function EeatEditor({ initial, busy, onClose, onSave }) {
             <Field label="Title"><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Lead Strategist" style={inp()}/></Field>
             <Field label="Years experience"><input value={years} onChange={e => setYears(e.target.value.replace(/\D/g,''))} placeholder="8" style={inp()}/></Field>
             <Field label="Photo URL"><input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} placeholder="https://…/headshot.jpg" style={inp()}/></Field>
+          </div>
+
+          {sectionLabel('Rating (stars + review count)')}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <Field label="Star rating (0–5)" hint="e.g. 4.9">
+              <input value={ratingValue} onChange={e => setRatingValue(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="4.9" style={inp()}/>
+            </Field>
+            <Field label="Number of reviews" hint="e.g. 87">
+              <input value={reviewCount} onChange={e => setReviewCount(e.target.value.replace(/\D/g, ''))} placeholder="87" style={inp()}/>
+            </Field>
+          </div>
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af' }}>
+            Renders a star badge on the page + AggregateRating schema. Connected Google reviews override this when present.
           </div>
 
           {sectionLabel('Results (real metrics only)')}
