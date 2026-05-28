@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import {
-  Sparkles, Loader2, ChevronRight, ChevronLeft, MapPin, RefreshCw, Upload,
+  Sparkles, Loader2, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, MapPin, RefreshCw, Upload,
   AlertTriangle, CheckCircle2, Wand2, FileText, File, ExternalLink, Eye, X,
   Edit3, History, Save, Code, Coins, TrendingUp, MousePointerClick, Users, Target,
   Download, Trash2, Star,
@@ -82,6 +82,7 @@ export default function TopicCampaignPanel({ site }) {
   const [fixingGaps, setFixingGaps] = useState(false)
   const [eeatEditorOpen, setEeatEditorOpen] = useState(false)
   const [savingEeat, setSavingEeat] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
   // Connect-Google-reviews picker (campaign editor)
   const [placeOpen, setPlaceOpen] = useState(false)
   const [placeQuery, setPlaceQuery] = useState('')
@@ -978,19 +979,32 @@ export default function TopicCampaignPanel({ site }) {
             </div>
           </div>
 
+          {/* The simple path: just a topic. Everything else is optional + tucked
+              into Advanced so the default flow is type-topic → Generate. */}
+          <Field label="What should this page be about?" required hint="A service or topic. Claude writes one master, deployed across the cities you pick next.">
+            <input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g. Website Design, Roofing Services, Personal Injury Law"
+              style={{ ...inp(), fontSize:16, padding:'12px 14px' }}
+              onKeyDown={e => { if (e.key === 'Enter' && topic.trim() && !generating) { e.preventDefault(); generateMaster() } }}/>
+          </Field>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-            <Field label="Topic" required>
-              <input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g. Website Design, Roofing Services, Personal Injury Law"
-                style={inp()}/>
-            </Field>
             <Field label="Company name (optional)">
-              <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Unified Marketing"
-                style={inp()}/>
+              <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Unified Marketing" style={inp()}/>
             </Field>
-            <Field label="Phone number" hint="Used for [koto_phone] in CTAs and schema">
-              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(512) 555-1234"
-                style={inp()}/>
+            <Field label="Phone number (optional)" hint="Used for [koto_phone] in CTAs + schema">
+              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(512) 555-1234" style={inp()}/>
             </Field>
+          </div>
+
+          <button onClick={() => setShowAdvanced(v => !v)}
+            style={{ ...miniBtn(), marginTop:14, display:'inline-flex', alignItems:'center', gap:6 }}>
+            {showAdvanced ? <ChevronUp size={12}/> : <ChevronDown size={12}/>}
+            {showAdvanced ? 'Hide' : 'Show'} advanced options
+            <span style={{ color:'#9ca3af', fontWeight:600 }}>competitor intel · styling · hero media · variants</span>
+          </button>
+
+          {showAdvanced && (
+          <div style={{ marginTop:14 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:14 }}>
             <Field label="Post type">
               <select value={postType} onChange={e => setPostType(e.target.value)} style={inp()}>
                 <option value="page">Page</option>
@@ -1122,8 +1136,13 @@ export default function TopicCampaignPanel({ site }) {
               placeholder={'<div class="my-template">\n  {{HERO_MEDIA}}\n  <h1>{{HERO_HEADLINE}}</h1>\n  {{SECTIONS}}\n  {{FAQS}}\n  {{SERVICE_AREAS}}\n</div>'}
               style={{ ...inp(), resize:'vertical', minHeight:120, fontFamily:'ui-monospace,Menlo,monospace', fontSize:12 }}/>
           </Field>
+          </div>
+          )}
 
-          <div style={{ marginTop:18, display:'flex', justifyContent:'flex-end', gap:10 }}>
+          <div style={{ marginTop:18, display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
+            <span style={{ fontSize:12, fontFamily:FB, color:'#9ca3af' }}>
+              {topic.trim() ? 'Press Enter or click Generate. Pick cities next.' : 'Just enter a topic to start.'}
+            </span>
             <button onClick={generateMaster} disabled={generating || !topic.trim()} style={primaryBtn()}>
               {generating ? <Loader2 size={14} className="spin"/> : <Wand2 size={14}/>}
               {generating ? 'Claude is writing…' : 'Generate Master'}
