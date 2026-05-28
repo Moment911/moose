@@ -236,14 +236,19 @@ Rules:
 
     const userPrompt = `Insert KotoIQ placeholders into this WP page HTML:\n\n${rawHtml}`
 
+    // Streaming required by the Anthropic SDK for max_tokens > ~16k (the
+    // 10-minute soft cap on non-streaming calls). We don't actually need
+    // chunks; finalMessage() awaits the full response and returns the same
+    // shape messages.create would have produced.
     let msg
     try {
-        msg = await ai.messages.create({
+        const stream = ai.messages.stream({
             model: 'claude-sonnet-4-6',
             max_tokens: 32000,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }],
         })
+        msg = await stream.finalMessage()
     } catch (e: any) {
         return NextResponse.json({ error: `claude error: ${String(e?.message || e)}` }, { status: 500 })
     }
