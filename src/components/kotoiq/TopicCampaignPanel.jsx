@@ -887,17 +887,67 @@ export default function TopicCampaignPanel({ site }) {
           </div>
 
           <Field label="Custom HTML wrapper (optional)" hint="Use {{HERO_HEADLINE}}, {{HERO_SUB}}, {{HERO_MEDIA}}, {{SECTIONS}}, {{FAQS}}, {{CTA}}, {{SERVICE_AREAS}} placeholders. Add {{NO_STYLES}} to skip the default base CSS.">
-            <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center' }}>
+            <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center', flexWrap:'wrap' }}>
               <input
                 value={styleCaptureUrl}
                 onChange={e => setStyleCaptureUrl(e.target.value)}
                 placeholder="https://unifiedmktg.com/about/ — paste an existing styled page URL"
-                style={{ ...inp(), flex:1 }}
+                style={{ ...inp(), flex:'1 1 240px', minWidth:0 }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); captureStyling() } }}
               />
               <button onClick={captureStyling} disabled={capturing || !styleCaptureUrl.trim()} style={miniBtn({ color:T, borderColor:T })}>
                 {capturing ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture from URL
               </button>
+              <label style={{ ...miniBtn({ color:T, borderColor:T }), cursor:'pointer', opacity:capturing?0.5:1 }}>
+                <Upload size={12}/> Upload HTML file
+                <input type="file" accept=".html,.htm,text/html" disabled={capturing}
+                  onChange={async e => {
+                    const f = e.target.files?.[0]
+                    if (!f) return
+                    if (f.size > 1_000_000) { toast.error('File too large (max 1MB)'); e.target.value = ''; return }
+                    const text = await f.text().catch(() => '')
+                    e.target.value = ''
+                    if (!text) { toast.error('Could not read file'); return }
+                    setCustomHtml(text)
+                    setCapturing(true)
+                    try {
+                      const r = await fetch('/api/kotoiq/topic-campaign', {
+                        method:'POST', headers:{'Content-Type':'application/json'},
+                        body: JSON.stringify({ action:'wrapper_assist', agency_id: agencyId, html: text }),
+                      })
+                      const d = await r.json()
+                      if (d.error) toast.error(d.error)
+                      else { setCustomHtml(d.wrapper || ''); setCaptureInfo({ used_selector:'AI-assisted', notes:`Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none'}` }); toast.success('Style extracted from file') }
+                    } catch (e) { toast.error(e.message) }
+                    setCapturing(false)
+                  }}
+                  style={{ display:'none' }}/>
+              </label>
+              <button onClick={async () => {
+                const html = customHtml.trim()
+                if (!html) { toast.error('Paste HTML into the textarea below first'); return }
+                setCapturing(true)
+                try {
+                  const r = await fetch('/api/kotoiq/topic-campaign', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ action:'wrapper_assist', agency_id: agencyId, html }),
+                  })
+                  const d = await r.json()
+                  if (d.error) toast.error(d.error)
+                  else { setCustomHtml(d.wrapper || ''); setCaptureInfo({ used_selector:'AI-assisted', notes:`Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none'}` }); toast.success('Style extracted') }
+                } catch (e) { toast.error(e.message) }
+                setCapturing(false)
+              }} disabled={capturing || !customHtml.trim()} style={miniBtn({ color:R, borderColor:R })}>
+                {capturing ? <Loader2 size={12} className="spin"/> : <Sparkles size={12}/>} Style my pages with this
+              </button>
+              {customHtml && (
+                <button onClick={() => { setCustomHtml(''); setCaptureInfo(null) }} style={miniBtn()}>
+                  <X size={11}/> Clear
+                </button>
+              )}
+            </div>
+            <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8, lineHeight:1.5 }}>
+              <strong>How it works:</strong> Paste a URL to capture, upload an HTML file, or paste HTML directly into the textarea and click <strong>Style my pages with this</strong>. We read the design language (colors, fonts, spacing) and build a clean wrapper inspired by it. Files are processed in your browser and never stored on our servers.
             </div>
             {captureInfo && (
               <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
