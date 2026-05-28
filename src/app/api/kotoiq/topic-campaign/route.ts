@@ -17,6 +17,7 @@ import { resolveMaster, type LocationContext, type ResolveContext, type TopicCam
 import { buildEeatContext } from '@/lib/wp-shim/eeatContext'
 import { validateJsonLd } from '@/lib/wp-shim/schemaValidator'
 import { resolveWikidataEntity } from '@/lib/wp-shim/entityGraph'
+import { checkCitations } from '@/lib/wp-shim/citationTracker'
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
@@ -101,6 +102,7 @@ export async function POST(req: NextRequest) {
             case 'set_campaign_place':return await setCampaignPlace(supabase, agencyId, body)
             case 'set_eeat_inputs':   return await setEeatInputs(supabase, agencyId, body)
             case 'validate_schema':   return await validateSchema(supabase, agencyId, body)
+            case 'check_citations':   return await checkCitationsAction(supabase, agencyId, body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
         }
     } catch (err) {
@@ -366,6 +368,57 @@ async function validateSchema(supabase: any, agencyId: string, body: any) {
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     const report = validateJsonLd(resolved.jsonLd)
     return NextResponse.json({ ok: true, report, sample_location: `${location.city}, ${location.stateAbbr || location.state}` })
+}
+
+/**
+ * check_citations — for the campaign's deployed cities, query "{topic} in
+ * {city}" and report whether the site is cited in Google AI Overviews +
+ * ranking in organic. Saves the latest report on the campaign (best-effort).
+ */
+async function checkCitationsAction(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns').select('id, topic').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    const { data: deploys } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('city, state, state_abbr, wp_post_url')
+        .eq('campaign_id', campaignId)
+    const rows = (deploys || []).filter((d: any) => d.wp_post_url && d.city)
+    if (!rows.length) {
+        return NextResponse.json({ error: 'No deployed pages yet — deploy the campaign first, then check citations.' }, { status: 400 })
+    }
+
+    let domain = ''
+    try { domain = new URL(rows[0].wp_post_url).hostname } catch {}
+    if (!domain) return NextResponse.json({ error: 'could not determine site domain from deploy URLs' }, { status: 400 })
+
+    // Dedupe cities (one query per city).
+    const seen = new Set<string>()
+    const locations: { city: string; state?: string }[] = []
+    for (const d of rows) {
+        const key = String(d.city).toLowerCase().trim()
+        if (seen.has(key)) continue
+        seen.add(key)
+        locations.push({ city: d.city, state: d.state || d.state_abbr || undefined })
+    }
+
+    const report = await checkCitations({
+        topic: campaign.topic,
+        domain,
+        locations,
+        sampleSize: Number(body.sample_size) > 0 ? Number(body.sample_size) : 8,
+    })
+
+    try {
+        await supabase.from('koto_topic_campaigns')
+            .update({ citation_report: report, citation_checked_at: report.checkedAt })
+            .eq('id', campaignId)
+    } catch {}
+
+    return NextResponse.json({ ok: true, report })
 }
 
 async function generateMaster(supabase: any, agencyId: string, body: any) {

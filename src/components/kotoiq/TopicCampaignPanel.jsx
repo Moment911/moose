@@ -84,6 +84,9 @@ export default function TopicCampaignPanel({ site }) {
   const [savingEeat, setSavingEeat] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [validating, setValidating] = useState(false)
+  const [citationOpen, setCitationOpen] = useState(false)
+  const [citationBusy, setCitationBusy] = useState(false)
+  const [citationReport, setCitationReport] = useState(null)
   // Connect-Google-reviews picker (campaign editor)
   const [placeOpen, setPlaceOpen] = useState(false)
   const [placeQuery, setPlaceQuery] = useState('')
@@ -471,6 +474,21 @@ export default function TopicCampaignPanel({ site }) {
       toast.success('Master regenerated covering the cluster — re-deploy to push it', { id: tid })
     } catch (e) { toast.error(e.message, { id: tid }) }
     setTopicalBusy(false)
+  }
+
+  async function runCitationCheck() {
+    if (!campaign?.id || citationBusy) return
+    setCitationBusy(true); setCitationOpen(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check_citations', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); setCitationReport(null) }
+      else setCitationReport(d.report)
+    } catch (e) { toast.error(e.message); setCitationReport(null) }
+    setCitationBusy(false)
   }
 
   async function validateSchema() {
@@ -1252,6 +1270,9 @@ export default function TopicCampaignPanel({ site }) {
             <button onClick={validateSchema} disabled={validating} style={miniBtn({ color:'#0369a1', borderColor:'#0369a1' })}>
               {validating ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Validate schema
             </button>
+            <button onClick={runCitationCheck} disabled={citationBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
+              {citationBusy ? <Loader2 size={11} className="spin"/> : <TrendingUp size={11}/>} AI citations
+            </button>
           </div>
 
           {/* Data-readiness panel — what the engine has for this campaign */}
@@ -1655,6 +1676,51 @@ export default function TopicCampaignPanel({ site }) {
           onSave={saveMasterEdits}
           onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
         />
+      )}
+
+      {/* AI-citation report modal */}
+      {citationOpen && (
+        <div style={overlay()} onClick={() => setCitationOpen(false)}>
+          <div style={{ ...modal(), maxWidth:720, maxHeight:'85vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
+            <div style={modalHeader()}>
+              <TrendingUp size={18} color="#7c3aed"/>
+              <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>AI citation tracking</div>
+              <button onClick={() => setCitationOpen(false)} style={miniBtn()}><X size={11}/></button>
+            </div>
+            <div style={{ padding:22, flex:1, minHeight:0, overflowY:'auto' }}>
+              {citationBusy && !citationReport && (
+                <div style={{ display:'flex', alignItems:'center', gap:10, color:'#6b7280', fontFamily:FB, fontSize:13 }}>
+                  <Loader2 size={16} className="spin"/> Querying Google across your deployed cities (a few seconds each)…
+                </div>
+              )}
+              {citationReport && (
+                <div>
+                  <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:16 }}>
+                    {[['Cities checked', citationReport.citiesChecked, null], ['AI Overview shown', `${citationReport.aiOverviewCount}/${citationReport.citiesChecked}`, null], ['Cited in AI', `${citationReport.citedCount}/${citationReport.citiesChecked}`, GRN], ['Organic top 10', `${citationReport.organicTop10}/${citationReport.citiesChecked}`, null]].map(([label, value, accent]) => (
+                      <div key={label} style={{ flex:'1 1 120px', background:'#faf9f6', border:'1px solid #e9e6dd', borderRadius:10, padding:12 }}>
+                        <div style={{ fontSize:22, fontFamily:FH, fontWeight:900, color: accent || BLK }}>{value}</div>
+                        <div style={{ fontSize:10, fontFamily:FH, color:'#64748b', textTransform:'uppercase', letterSpacing:'.04em', marginTop:2 }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {citationReport.checks.map((c, i) => (
+                      <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'8px 10px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:12, fontFamily:FB }}>
+                        <span style={{ flex:1, fontWeight:700, color:BLK }}>{c.city}{c.state ? `, ${c.state}` : ''}</span>
+                        <span style={{ color: c.aiOverviewPresent ? '#7c3aed' : '#cbd5e1' }} title="AI Overview shown for this query">AI {c.aiOverviewPresent ? '✓' : '—'}</span>
+                        <span style={{ color: c.citedInAi ? GRN : '#cbd5e1', fontWeight:800 }} title="Your domain cited in the AI Overview">{c.citedInAi ? 'CITED' : 'not cited'}</span>
+                        <span style={{ color:'#64748b', minWidth:64, textAlign:'right' }} title="Classic organic rank">{c.organicRank != null ? `organic #${c.organicRank}` : 'unranked'}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop:12, fontSize:11, fontFamily:FB, color:'#9ca3af', lineHeight:1.5 }}>
+                    "Cited" = your domain appears in Google's AI Overview sources for "{campaign?.topic} in &lt;city&gt;". Re-run after pages index (AI Overviews can take days/weeks to pick up new pages).
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Trust signals (E-E-A-T inputs) editor */}
