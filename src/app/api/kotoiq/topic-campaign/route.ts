@@ -1949,6 +1949,12 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         return { ok: false as const, error: String(err?.message || err) }
     })
 
+    // Re-submit the site's sitemap to Search Console so Google re-reads the
+    // freshly published pages. Best-effort — never fails the deploy.
+    const sitemapResult = successCount > 0
+        ? await submitSitemapsToGsc(campaign.client_id || null, site.site_url).catch((err: any) => ({ ok: false, submitted: [], reason: String(err?.message || err) }))
+        : { ok: false, submitted: [], reason: 'nothing published' }
+
     return NextResponse.json({
         ok: true,
         deployed: successCount,
@@ -1956,6 +1962,7 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         results,
         llms_txt: llmsResult,
         llms_full: llmsFullResult,
+        sitemap: sitemapResult,
     })
 }
 
@@ -2007,7 +2014,7 @@ export async function redeployCampaignCore(
     agencyId: string,
     campaignId: string,
 ): Promise<
-    | { ok: true; updated: number; failed: number; total: number; llms_txt: any }
+    | { ok: true; updated: number; failed: number; total: number; llms_txt: any; sitemap?: any }
     | { ok: false; error: string; status: number }
 > {
     const { data: campaign, error: ce } = await supabase
@@ -2147,7 +2154,12 @@ export async function redeployCampaignCore(
     })
     await refreshLlmsFullForSite(supabase, agencyId, site.id, site).catch(() => null)
 
-    return { ok: true, updated, failed, total: existingDeploys.length, llms_txt: llmsResult }
+    // Re-submit the sitemap to Search Console after the re-deploy batch.
+    const sitemapResult = updated > 0
+        ? await submitSitemapsToGsc(campaign.client_id || null, site.site_url).catch((err: any) => ({ ok: false, submitted: [], reason: String(err?.message || err) }))
+        : { ok: false, submitted: [], reason: 'nothing updated' }
+
+    return { ok: true, updated, failed, total: existingDeploys.length, llms_txt: llmsResult, sitemap: sitemapResult }
 }
 
 /**
@@ -2735,6 +2747,60 @@ async function fetchGscDailyByPageQuery(accessToken: string, siteUrl: string, st
         if (!res.ok) return null
         return res.json()
     } catch { return null }
+}
+
+/**
+ * Re-submit the site's XML sitemap(s) to Google Search Console after a batch
+ * deploy, so Google re-reads the freshly published city pages instead of
+ * waiting for its own crawl cadence. Best-effort and never throws:
+ *   - no-ops (with a reason) when the campaign's client has no connected
+ *     google_search_console integration,
+ *   - probes the common sitemap locations (Yoast/RankMath index, WP-core,
+ *     plain /sitemap.xml) and submits only the ones that actually exist,
+ *   - uses the same OAuth token + property the performance panel uses.
+ * Returns a small summary surfaced in the deploy response.
+ */
+async function submitSitemapsToGsc(clientId: string | null, siteUrl: string): Promise<{ ok: boolean; submitted: string[]; reason?: string }> {
+    if (!clientId) return { ok: false, submitted: [], reason: 'campaign has no client_id' }
+    let origin = ''
+    try { origin = new URL(siteUrl).origin } catch { return { ok: false, submitted: [], reason: 'invalid site_url' } }
+
+    let connections: any[] = []
+    try { connections = await loadClientConnections(clientId) } catch { return { ok: false, submitted: [], reason: 'could not load connections' } }
+    const scConn = connections.find((c: any) => c.provider === 'google_search_console')
+    if (!scConn) return { ok: false, submitted: [], reason: 'Google Search Console not connected for this client' }
+
+    let token = ''
+    try { token = await getAccessToken(scConn) } catch { /* handled below */ }
+    if (!token) return { ok: false, submitted: [], reason: 'no GSC access token' }
+    const property = scConn.account_id || scConn.site_url || ''
+    if (!property) return { ok: false, submitted: [], reason: 'no GSC property on connection' }
+
+    // Probe which sitemaps actually exist (parallel, short timeout) — submitting
+    // a non-existent feedpath just registers a GSC error, so we only send real ones.
+    const candidates = ['/sitemap_index.xml', '/wp-sitemap.xml', '/sitemap.xml']
+    const existing = (await Promise.all(candidates.map(async (path) => {
+        const url = `${origin}${path}`
+        try {
+            const res = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(5_000), headers: { 'User-Agent': 'KotoIQ/4.1' } })
+            if (!res.ok) return ''
+            return /xml/i.test(res.headers.get('content-type') || '') ? url : ''
+        } catch { return '' }
+    }))).filter(Boolean)
+    if (!existing.length) return { ok: false, submitted: [], reason: 'no sitemap found at common paths' }
+
+    const submitted: string[] = []
+    await Promise.all(existing.map(async (sitemapUrl) => {
+        try {
+            const res = await fetch(
+                `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/sitemaps/${encodeURIComponent(sitemapUrl)}`,
+                { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, signal: AbortSignal.timeout(10_000) },
+            )
+            if (res.ok) submitted.push(sitemapUrl)
+        } catch { /* best-effort per sitemap */ }
+    }))
+
+    return { ok: submitted.length > 0, submitted, reason: submitted.length ? undefined : 'GSC rejected the sitemap submit' }
 }
 
 /**
