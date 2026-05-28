@@ -201,6 +201,23 @@ function resolveScalarTokens(input: string, ctx: ResolveContext): string {
         if (out.indexOf(token) === -1) continue
         out = out.split(token).join(value)
     }
+    // Defensive post-pass: nuke any tel: anchor whose href is corrupted
+    // (contains whitespace, %20, <, >, or "href=" — none of which are
+    // legal in a tel: URL). Such anchors are the residue of a nested
+    // <a> tag that an earlier resolver pass produced. Browsers parse
+    // nested anchors weirdly: the inner <a> bleeds into the outer's
+    // href value, leaving an orphan closing </a> tag after. We rebuild
+    // a canonical anchor and consume the orphan closing tag if present.
+    // Without this, OLD masters that Claude wrote with phone tokens
+    // inside <a> tags keep producing broken pages even after the
+    // pre-passes above strip the nesting from current resolutions.
+    if (phone && phoneTelUrl) {
+        out = out.replace(
+            /<a\b[^>]*?href=(['"])tel:[^'"]*?(?:%20|%3[Cc]|<|href=|\s)[^'"]*?\1[^>]*>[^<]*<\/a>(?:[^<]{0,40}<\/a>)?/g,
+            `<a href="${phoneTelUrl}">${phoneEscaped}</a>`,
+        )
+    }
+
     // Safety net: wrap any unlinked phone-pattern in tel: link. Catches
     // cases where Claude wrote a literal phone number instead of a token,
     // OR put the phone outside an <a> tag. Skips numbers already inside
