@@ -24,8 +24,8 @@ const OPENAI_ARM_MODEL = 'gpt-4o'
 const GEMINI_ARM_MODEL = 'gemini-2.0-flash'
 const SYNTHESIS_MODEL  = 'claude-sonnet-4-6'
 
-const PROVIDER_TIMEOUT_MS  = 45_000
-const SYNTHESIS_TIMEOUT_MS = 15_000
+const PROVIDER_TIMEOUT_MS  = 180_000  // master generation can take 60-180s
+const SYNTHESIS_TIMEOUT_MS = 60_000   // synthesis of 3 large outputs needs more room
 const DEFAULT_MAX_TOKENS   = 4_096
 
 export interface BlendInput {

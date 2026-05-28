@@ -880,11 +880,20 @@ export default function TopicCampaignPanel({ site, client }) {
       const elapsed = Math.round((Date.now() - startTime) / 1000)
       logGen(`All models finished in ${elapsed}s · ${d.totalTokens} total tokens`)
       if (d.failedProviders?.length) logGen(`Failed: ${d.failedProviders.join(', ')}`)
+      const okModels = (d.models || []).filter(m => m.ok)
       d.models.forEach(m => {
         if (m.ok) logGen(`  ${m.provider}: ${m.sections} sections, ${m.faqs} FAQs (${Math.round(m.ms/1000)}s)`)
-        else logGen(`  ${m.provider}: ${m.error}`)
+        else logGen(`  ${m.provider}: failed — ${m.error}`)
       })
       if (d.synthesized?.ok) logGen(`  synthesized: ${d.synthesized.sections} sections, ${d.synthesized.faqs} FAQs`)
+
+      if (okModels.length === 0) {
+        logGen('All models failed. Falling back to single-model generation…')
+        setGenerating(false)
+        await generateMaster()
+        return
+      }
+      if (okModels.length < 3) logGen(`${3 - okModels.length} model(s) failed — showing the ${okModels.length} that succeeded`)
       logGen('Pick a winner below ↓')
       setCompareResults(d)
     } catch (e) {
@@ -1622,8 +1631,20 @@ export default function TopicCampaignPanel({ site, client }) {
               <input placeholder="Certifications (e.g. BBB A+, ACA member)" value={eeatInfoFields?.certifications || ''} onChange={e => setEeatInfoFields(p => ({...p, certifications: e.target.value}))} style={inp({ fontSize:12 })} title="Professional affiliations, certifications, awards. Woven into trust sections and schema."/>
               <input placeholder="Key result (e.g. 500+ clients served, 4.9★ rating)" value={eeatInfoFields?.keyResult || ''} onChange={e => setEeatInfoFields(p => ({...p, keyResult: e.target.value}))} style={inp({ fontSize:12 })} title="A real, verifiable metric. Woven into hero copy and trust sections. Never fabricated — must be real."/>
             </div>
-            <input placeholder="Social profiles — comma-separated URLs (Google Business, LinkedIn, Yelp, BBB, etc.)" value={eeatInfoFields?.socialUrls || ''} onChange={e => setEeatInfoFields(p => ({...p, socialUrls: e.target.value}))} style={{...inp({ fontSize:12 }), marginTop:8}} title="Social and directory profile URLs. Added to schema.org sameAs — Google uses these to verify your business identity and connect your Knowledge Panel."/>
-            <input placeholder="Logo URL (e.g. https://yoursite.com/logo.png)" value={eeatInfoFields?.logoUrl || ''} onChange={e => setEeatInfoFields(p => ({...p, logoUrl: e.target.value}))} style={{...inp({ fontSize:12 }), marginTop:8}} title="Business logo URL. Added to LocalBusiness schema as the image — appears in Google Knowledge Panel."/>
+            <div style={{ marginTop:8 }}>
+              <input placeholder="Social profiles — paste URLs separated by commas" value={eeatInfoFields?.socialUrls || ''} onChange={e => setEeatInfoFields(p => ({...p, socialUrls: e.target.value}))} style={inp({ fontSize:12 })}/>
+              <div style={{ marginTop:4, fontSize:11, fontFamily:FB, color:'#6b7280', lineHeight:1.5 }}>
+                Paste the URL to each profile where your business is listed. Google uses these to verify you're a real entity. Examples:
+                <span style={{ display:'block', marginTop:2, color:'#9ca3af', fontFamily:'ui-monospace,Menlo,monospace', fontSize:10, lineHeight:1.7 }}>
+                  https://www.google.com/maps/place/...  (your Google Business listing)<br/>
+                  https://www.linkedin.com/company/...  (company LinkedIn page)<br/>
+                  https://www.yelp.com/biz/...  (Yelp business page)<br/>
+                  https://www.bbb.org/...  (BBB profile)<br/>
+                  https://www.facebook.com/...  (Facebook business page)
+                </span>
+              </div>
+            </div>
+            <input placeholder="Logo URL (e.g. https://yoursite.com/logo.png)" value={eeatInfoFields?.logoUrl || ''} onChange={e => setEeatInfoFields(p => ({...p, logoUrl: e.target.value}))} style={{...inp({ fontSize:12 }), marginTop:8}} title="Business logo URL. Added to LocalBusiness schema — appears in Google Knowledge Panel."/>
           </div>
 
           {/* Competitor-aware generation — visible by default (biggest ranking lift) */}
