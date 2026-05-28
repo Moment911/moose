@@ -18,6 +18,7 @@ import { buildEeatContext } from '@/lib/wp-shim/eeatContext'
 import { validateJsonLd } from '@/lib/wp-shim/schemaValidator'
 import { resolveWikidataEntity } from '@/lib/wp-shim/entityGraph'
 import { checkCitations } from '@/lib/wp-shim/citationTracker'
+import { checkQuality } from '@/lib/wp-shim/qualityGate'
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
@@ -103,6 +104,7 @@ export async function POST(req: NextRequest) {
             case 'set_eeat_inputs':   return await setEeatInputs(supabase, agencyId, body)
             case 'validate_schema':   return await validateSchema(supabase, agencyId, body)
             case 'check_citations':   return await checkCitationsAction(supabase, agencyId, body)
+            case 'quality_check':     return await qualityCheckAction(supabase, agencyId, body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
         }
     } catch (err) {
@@ -418,6 +420,20 @@ async function checkCitationsAction(supabase: any, agencyId: string, body: any) 
             .eq('id', campaignId)
     } catch {}
 
+    return NextResponse.json({ ok: true, report })
+}
+
+/**
+ * quality_check — run the local pre-publish quality gate on the campaign's
+ * master (thin/duplicate/keyword-stuffing/structure checks). No external API.
+ */
+async function qualityCheckAction(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns').select('master, topic').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (!campaign?.master) return NextResponse.json({ error: 'campaign or master not found' }, { status: 404 })
+    const report = checkQuality(campaign.master as TopicCampaignMaster, campaign.topic || '')
     return NextResponse.json({ ok: true, report })
 }
 

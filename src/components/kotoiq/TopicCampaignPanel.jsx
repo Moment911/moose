@@ -84,6 +84,7 @@ export default function TopicCampaignPanel({ site }) {
   const [savingEeat, setSavingEeat] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [validating, setValidating] = useState(false)
+  const [qualityBusy, setQualityBusy] = useState(false)
   const [citationOpen, setCitationOpen] = useState(false)
   const [citationBusy, setCitationBusy] = useState(false)
   const [citationReport, setCitationReport] = useState(null)
@@ -474,6 +475,26 @@ export default function TopicCampaignPanel({ site }) {
       toast.success('Master regenerated covering the cluster — re-deploy to push it', { id: tid })
     } catch (e) { toast.error(e.message, { id: tid }) }
     setTopicalBusy(false)
+  }
+
+  async function runQualityCheck() {
+    if (!campaign?.id || qualityBusy) return
+    setQualityBusy(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'quality_check', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); setQualityBusy(false); return }
+      const rep = d.report || { score: 0, findings: [], wordCount: 0 }
+      const head = `Quality score ${rep.score}/100 · ~${rep.wordCount} words/page`
+      const lines = rep.findings.map(f => `${f.level === 'fail' ? '✗' : f.level === 'warn' ? '⚠' : 'ℹ'} ${f.msg}`).slice(0, 8).join('\n')
+      if (rep.findings.some(f => f.level === 'fail')) toast.error(`${head}\n${lines}`, { duration: 10000 })
+      else if (rep.findings.length) toast(`${head}\n${lines}`, { icon: '⚠️', duration: 9000 })
+      else toast.success(`${head} — clean`)
+    } catch (e) { toast.error(e.message) }
+    setQualityBusy(false)
   }
 
   async function runCitationCheck() {
@@ -1272,6 +1293,9 @@ export default function TopicCampaignPanel({ site }) {
             </button>
             <button onClick={runCitationCheck} disabled={citationBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
               {citationBusy ? <Loader2 size={11} className="spin"/> : <TrendingUp size={11}/>} AI citations
+            </button>
+            <button onClick={runQualityCheck} disabled={qualityBusy} style={miniBtn({ color:'#0369a1', borderColor:'#0369a1' })}>
+              {qualityBusy ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Quality check
             </button>
           </div>
 
