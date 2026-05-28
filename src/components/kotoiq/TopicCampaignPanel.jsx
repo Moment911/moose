@@ -2197,28 +2197,49 @@ export default function TopicCampaignPanel({ site, client }) {
           {/* Data-readiness panel — what the engine has for this campaign */}
           {(() => {
             const ei = campaign.eeat_inputs || {}
+            const openTrust = () => setEeatEditorOpen(true)
             const signals = [
               { label:'Competitor intel', ok: !!campaign.competitor_meta, hint:'set sample cities + regenerate' },
-              { label:'Google reviews', ok: !!campaign.google_place_id, hint:'Connect Google reviews' },
-              { label:'Strategist byline', ok: !!ei.strategist?.name, hint:'add in Trust signals' },
-              { label:'Results', ok: Array.isArray(ei.results) && ei.results.length > 0, hint:'add in Trust signals' },
-              { label:'Cited sources', ok: Array.isArray(ei.citations) && ei.citations.length > 0, hint:'add in Trust signals' },
-              { label:'sameAs links', ok: Array.isArray(ei.sameAs) && ei.sameAs.length > 0, hint:'add in Trust signals' },
-              { label:'Business address', ok: !!(ei.address?.street || ei.address?.city), hint:'add in Trust signals' },
-              { label:'Testimonials', ok: !!(campaign.google_place_id || (Array.isArray(ei.testimonials) && ei.testimonials.length) || ei.rating), hint:'Connect Google or add in Trust signals' },
+              { label:'Google reviews', ok: !!campaign.google_place_id, hint:'use Connect Google reviews below' },
+              { label:'Strategist byline', ok: !!ei.strategist?.name, hint:'add in Trust signals', onClick: openTrust },
+              { label:'Results', ok: Array.isArray(ei.results) && ei.results.length > 0, hint:'add in Trust signals', onClick: openTrust },
+              { label:'Cited sources', ok: Array.isArray(ei.citations) && ei.citations.length > 0, hint:'add in Trust signals', onClick: openTrust },
+              { label:'sameAs links', ok: Array.isArray(ei.sameAs) && ei.sameAs.length > 0, hint:'add in Trust signals', onClick: openTrust },
+              { label:'Business address', ok: !!(ei.address?.street || ei.address?.city), hint:'add in Trust signals', onClick: openTrust },
+              { label:'Testimonials', ok: !!(campaign.google_place_id || (Array.isArray(ei.testimonials) && ei.testimonials.length) || ei.rating), hint:'Connect Google or add in Trust signals', onClick: openTrust },
             ]
+            const connected = signals.filter(s => s.ok).length
+            const pct = Math.round((connected / signals.length) * 100)
+            // red < half, amber partial, green all-connected — a live readiness gauge.
+            const gauge = connected === signals.length ? '#15803d' : connected >= signals.length / 2 ? '#d97706' : '#dc2626'
             return (
               <div style={{ marginTop:12, padding:'10px 12px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:10 }}>
-                <div style={{ fontSize:10, fontFamily:FH, fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>
-                  Content signals the engine has
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+                  <div style={{ fontSize:10, fontFamily:FH, fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'.05em' }}>
+                    Content signals the engine has
+                  </div>
+                  <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:gauge }}>{connected}/{signals.length} connected</div>
+                </div>
+                <div style={{ height:4, background:'#e5e7eb', borderRadius:2, overflow:'hidden', marginBottom:10 }}>
+                  <div style={{ width:`${pct}%`, height:'100%', background:gauge, transition:'width .3s ease' }}/>
                 </div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:'6px 14px' }}>
-                  {signals.map(s => (
-                    <span key={s.label} title={s.ok ? 'Ready' : `Missing — ${s.hint}`}
-                      style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontFamily:FB, color: s.ok ? '#15803d' : '#9ca3af' }}>
-                      {s.ok ? <CheckCircle2 size={13}/> : <AlertTriangle size={13}/>}{s.label}
-                    </span>
-                  ))}
+                  {signals.map(s => {
+                    const clickable = !s.ok && typeof s.onClick === 'function'
+                    const color = s.ok ? '#15803d' : '#b45309' // green ready · amber actionable (never dead-grey)
+                    const common = { display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontFamily:FB, color }
+                    const label = <>{s.ok ? <CheckCircle2 size={13}/> : <AlertTriangle size={13}/>}{s.label}</>
+                    return clickable ? (
+                      <button key={s.label} type="button" onClick={s.onClick} title={`Missing — ${s.hint}. Click to add.`}
+                        style={{ ...common, background:'transparent', border:'none', padding:0, cursor:'pointer', textDecoration:'underline', textDecorationStyle:'dotted' }}>
+                        {label}
+                      </button>
+                    ) : (
+                      <span key={s.label} title={s.ok ? 'Ready' : `Missing — ${s.hint}`} style={common}>
+                        {label}
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             )
