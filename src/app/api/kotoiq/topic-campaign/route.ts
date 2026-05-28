@@ -14,6 +14,7 @@ export const maxDuration = 300
 import Anthropic from '@anthropic-ai/sdk'
 import { generateTopicCampaignMaster } from '@/lib/wp-shim/topicCampaignGenerator'
 import { resolveMaster, type LocationContext, type ResolveContext, type TopicCampaignMaster } from '@/lib/wp-shim/tokenResolver'
+import { buildEeatContext } from '@/lib/wp-shim/eeatContext'
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
@@ -329,10 +330,15 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
         .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+    // Preview shows operator-provided E-E-A-T blocks (byline/results/citations/
+    // sameAs). Live Google reviews are skipped here to avoid a Places call on
+    // every preview keystroke — they populate at deploy time.
+    const eeat = await buildEeatContext(supabase, campaign, { withReviews: false })
     const ctx: ResolveContext = {
         location,
         phone: campaign.phone || undefined,
         companyName: campaign.company_name || undefined,
+        ...(eeat ? { eeat } : {}),
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
@@ -996,6 +1002,10 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
     // the same domain — that's where the SEO + UX benefit lives.
     const crossByCity = await buildCrossCampaignMap(supabase, siteId, campaignId)
 
+    // E-E-A-T signals are client-level (constant across cities) — build once,
+    // with live Google reviews, then reuse for every city's ctx.
+    const eeat = await buildEeatContext(supabase, campaign, { withReviews: true })
+
     for (const loc of locations) {
         const cityKey = `${loc.city.toLowerCase().trim()}|${(loc.stateAbbr || '').toUpperCase()}`
         // Pre-compute the canonical URL so the schema graph can use it as the
@@ -1021,6 +1031,7 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             })),
             pageUrl,
             ...(localData ? { localData } : {}),
+            ...(eeat ? { eeat } : {}),
         }
         const resolved = resolveMaster(
             campaign.master as TopicCampaignMaster,
@@ -1227,6 +1238,9 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
     // "Related Services in {City}" links on previously-deployed pages.
     const crossByCity = await buildCrossCampaignMap(supabase, site.id, campaignId)
 
+    // E-E-A-T signals — client-level, built once with live Google reviews.
+    const eeat = await buildEeatContext(supabase, campaign, { withReviews: true })
+
     for (const d of existingDeploys) {
         const cityKey = `${String(d.city || '').toLowerCase().trim()}|${String(d.state_abbr || '').toUpperCase()}`
         const locForFetch = { city: d.city, state: d.state, stateAbbr: d.state_abbr } as LocationContext
@@ -1247,6 +1261,7 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             })),
             pageUrl: d.wp_post_url || undefined,
             ...(localData ? { localData } : {}),
+            ...(eeat ? { eeat } : {}),
         }
         const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
 

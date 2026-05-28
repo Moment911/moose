@@ -457,7 +457,7 @@ export function resolveMaster(
 
     const testimonials = Array.isArray(eeat.testimonials) ? eeat.testimonials.filter(t => t && t.text && t.author).slice(0, 5) : []
     const testimonialsHtml = testimonials.length
-        ? `<section class="koto-testimonials">\n  <h2>What ${escapeHtml(ctx.location.city)} Clients Say</h2>\n  <div class="koto-testimonial-list">\n${testimonials.map(t => `    <figure class="koto-testimonial">\n      <blockquote>${escapeHtml(stripHtml(t.text))}</blockquote>\n      <figcaption>${escapeHtml(t.author)}${t.rating ? ` <span class="koto-stars" aria-label="${Number(t.rating)} out of 5 stars">${'★'.repeat(Math.max(0, Math.min(5, Math.round(Number(t.rating)))))}</span>` : ''}${t.sourceLabel ? ` <span class="koto-cite">via ${escapeHtml(t.sourceLabel)}</span>` : ''}</figcaption>\n    </figure>`).join('\n')}\n  </div>\n</section>`
+        ? `<section class="koto-testimonials">\n  <h2>What Our Clients Say</h2>\n  <div class="koto-testimonial-list">\n${testimonials.map(t => `    <figure class="koto-testimonial">\n      <blockquote>${escapeHtml(stripHtml(t.text))}</blockquote>\n      <figcaption>${escapeHtml(t.author)}${t.rating ? ` <span class="koto-stars" aria-label="${Number(t.rating)} out of 5 stars">${'★'.repeat(Math.max(0, Math.min(5, Math.round(Number(t.rating)))))}</span>` : ''}${t.sourceLabel ? ` <span class="koto-cite">via ${escapeHtml(t.sourceLabel)}</span>` : ''}</figcaption>\n    </figure>`).join('\n')}\n  </div>\n</section>`
         : ''
 
     const results = Array.isArray(eeat.results) ? eeat.results.filter(r => r && r.metric).slice(0, 4) : []
