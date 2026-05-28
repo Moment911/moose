@@ -814,6 +814,7 @@ export default function TopicCampaignPanel({ site, client }) {
           faq_count: Number(faqCount) || 6,
           competitor_sample_city: competitorSampleCity.trim() || null,
           competitor_sample_state_abbr: competitorSampleState.trim() || null,
+          eeat_info: Object.fromEntries(Object.entries(eeatInfoFields || {}).filter(([,v]) => v)) || null,
         }),
       })
       clearInterval(timer)
@@ -1583,6 +1584,26 @@ export default function TopicCampaignPanel({ site, client }) {
             <Field label="Phone number (optional)" hint="Used for [koto_phone] in CTAs + schema">
               <input value={phone} onChange={e => setPhone(e.target.value)} onBlur={() => setPhone(fmtPhone(phone))} placeholder="(512) 555-1234" style={inp()}/>
             </Field>
+          </div>
+
+          {/* E-E-A-T signals — asked upfront so the AI has real data from the start */}
+          <div style={{ marginTop:14, padding:14, background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+              <ShieldCheck size={14} color={GRN}/>
+              <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:'#166534' }}>
+                Trust signals <span style={{ fontWeight:500, fontSize:11, color:'#6b7280' }}>(optional but highly recommended)</span>
+              </div>
+            </div>
+            <div style={{ fontFamily:FB, fontSize:12, color:'#15803d', marginBottom:10, lineHeight:1.5 }} title="Google's E-E-A-T framework (Experience, Expertise, Authoritativeness, Trustworthiness) scores pages higher when they include real author credentials, business address, certifications, and reviews. Pages with these signals rank significantly better.">
+              Real business info lets the AI write with concrete E-E-A-T signals instead of generic copy. Pages with this data score 20-30 points higher.
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              <input placeholder="Author name (e.g. Dr. Jane Smith, DC)" value={eeatInfoFields?.author || ''} onChange={e => setEeatInfoFields(p => ({...p, author: e.target.value}))} style={inp({ fontSize:12 })} title="The person whose name appears as the page author. Adds an author byline + schema Person markup."/>
+              <input placeholder="Credentials (e.g. DC, CCSP, 15 years exp)" value={eeatInfoFields?.credentials || ''} onChange={e => setEeatInfoFields(p => ({...p, credentials: e.target.value}))} style={inp({ fontSize:12 })} title="Degrees, certifications, years of experience. Appears in the author byline and schema."/>
+              <input placeholder="Business address (e.g. 123 Main St, Austin TX)" value={eeatInfoFields?.address || ''} onChange={e => setEeatInfoFields(p => ({...p, address: e.target.value}))} style={inp({ fontSize:12 })} title="Physical business address. Added to LocalBusiness schema and the page footer. Critical for local SEO."/>
+              <input placeholder="Founded year (e.g. 2015)" value={eeatInfoFields?.founded || ''} onChange={e => setEeatInfoFields(p => ({...p, founded: e.target.value}))} style={inp({ fontSize:12 })} title="Year the business was founded. Used in 'serving [city] since [year]' copy and schema."/>
+              <input placeholder="Certifications / affiliations (e.g. BBB A+, ACA member)" value={eeatInfoFields?.certifications || ''} onChange={e => setEeatInfoFields(p => ({...p, certifications: e.target.value}))} style={{...inp({ fontSize:12 }), gridColumn:'1 / -1'}} title="Professional affiliations, certifications, awards. Woven into trust sections and schema."/>
+            </div>
           </div>
 
           {/* Competitor-aware generation — visible by default (biggest ranking lift) */}

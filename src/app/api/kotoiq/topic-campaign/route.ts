@@ -751,6 +751,9 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
     // deliberately differentiated angles against the entrenched regional
     // players. Skipped silently on failure — generation still proceeds.
     const { competitorContext, competitorMeta } = await resolveCompetitorIntel(topic, body)
+    const eeatInfo = body.eeat_info && typeof body.eeat_info === 'object'
+        ? Object.entries(body.eeat_info).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join('\n')
+        : undefined
 
     // If a prebuilt master was passed (from model comparison pick), skip Claude
     let master: any, totalTokens: number, model: string
@@ -770,6 +773,7 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
             topicalCluster: Array.isArray(body.topical_cluster) ? body.topical_cluster : undefined,
             variantsPerSection: body.variants_per_section || undefined,
             faqCount: body.faq_count || undefined,
+            eeatInfo,
             agencyId,
         })
         master = result.master
