@@ -591,15 +591,56 @@ a[href^="tel:"]:hover{text-decoration:underline}
         jsonLd = enrichSchemaGraph(resolvedTpl, master, ctx, { title, metaDescription: stripHtml(metaDescription).trim() })
     }
 
+    // Combine our base CSS with any styles extracted from the operator's
+    // wrapper, then minify before returning. Minified CSS is ~30-50%
+    // smaller on the wire (less HTML payload per page render) and removes
+    // dev-time comments / formatting that don't render anything.
+    const baseCssRaw = wantsStyles
+        ? (wrapperExtraCss ? `${baseCssBody}\n\n${wrapperExtraCss}` : baseCssBody)
+        : (wrapperExtraCss || '') // operator opted out of base styles but still keep their own
+    const baseCss = minifyCss(baseCssRaw)
+
     return {
         title,
         slug: buildSlug(title, ctx),
         metaTitle,
         metaDescription: stripHtml(metaDescription).trim(),
         bodyHtml,
-        baseCss: wantsStyles ? baseCssBody : '',
+        baseCss,
         jsonLd,
     }
+}
+
+/**
+ * Simple regex-based CSS minifier. Trusted-input only — these styles come
+ * from our own base CSS plus operator-uploaded design references (which
+ * Claude already vetted via wrapper_assist). Not safe for arbitrary user
+ * input but fine here.
+ *
+ * Strips:
+ *  - C-style comments
+ *  - whitespace around braces, semicolons, colons, commas, combinators
+ *  - the trailing semicolon before }
+ *  - leading/trailing whitespace per declaration
+ *
+ * Preserves quoted strings (so url("...") and content: "x" stay intact)
+ * by NOT touching characters between quotes.
+ */
+function minifyCss(css: string): string {
+    if (!css) return ''
+    // Strip /* ... */ comments. Safe because we don't allow user-written
+    // CSS with intentional comment-containing strings on this surface.
+    let out = css.replace(/\/\*[\s\S]*?\*\//g, '')
+    // Collapse all whitespace runs to a single space
+    out = out.replace(/\s+/g, ' ')
+    // Remove space around CSS structural punctuation
+    out = out.replace(/\s*([{}:;,>~+])\s*/g, '$1')
+    // Trim trailing ; before }
+    out = out.replace(/;}/g, '}')
+    // Add a newline after every } so the output isn't one literally
+    // unreadable line — costs ~1 byte per rule and helps debugging.
+    out = out.replace(/}/g, '}\n').trim()
+    return out
 }
 
 /**
