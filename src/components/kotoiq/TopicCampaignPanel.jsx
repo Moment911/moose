@@ -501,12 +501,23 @@ export default function TopicCampaignPanel({ site, client }) {
     setEeatInfoFields(prev => ({
       author: prev.author || client.author_name || '',
       credentials: prev.credentials || client.author_credentials || '',
+      authorPhoto: prev.authorPhoto || client.author_photo_url || '',
+      specialties: prev.specialties || client.specialties || '',
+      licenseNumber: prev.licenseNumber || client.license_number || '',
       address: prev.address || client.address || '',
       founded: prev.founded || client.year_founded || '',
       hours: prev.hours || client.business_hours || '',
       priceRange: prev.priceRange || client.price_range || '',
+      paymentMethods: prev.paymentMethods || client.payment_methods || '',
+      insuranceAccepted: prev.insuranceAccepted || client.insurance_accepted || '',
+      languages: prev.languages || client.languages_spoken || '',
+      bookingUrl: prev.bookingUrl || client.booking_url || '',
       certifications: prev.certifications || client.certifications || '',
       keyResult: prev.keyResult || client.key_result || '',
+      awards: prev.awards || client.awards || '',
+      guarantees: prev.guarantees || client.guarantees || '',
+      teamSize: prev.teamSize || client.team_size || '',
+      responseTime: prev.responseTime || client.response_time || '',
       socialUrls: prev.socialUrls || socialUrls,
       logoUrl: prev.logoUrl || client.logo_url || '',
     }))
@@ -1633,36 +1644,47 @@ export default function TopicCampaignPanel({ site, client }) {
             <div style={{ fontSize:10, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4, marginTop:8 }}>Author / Expert</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               <input placeholder="Author name (e.g. Dr. Jane Smith, DC)" value={eeatInfoFields?.author || ''} onChange={e => setEeatInfoFields(p => ({...p, author: e.target.value}))} style={inp({ fontSize:12 })} title="The person whose name appears as the page author. Adds an author byline + Person schema."/>
-              <input placeholder="Credentials (e.g. DC, CCSP, 15 years exp)" value={eeatInfoFields?.credentials || ''} onChange={e => setEeatInfoFields(p => ({...p, credentials: e.target.value}))} style={inp({ fontSize:12 })} title="Degrees, certifications, years of experience. Appears in the author byline and schema."/>
+              <input placeholder="Credentials (e.g. DC, CCSP, 15 years exp)" value={eeatInfoFields?.credentials || ''} onChange={e => setEeatInfoFields(p => ({...p, credentials: e.target.value}))} style={inp({ fontSize:12 })} title="Degrees, certifications, years of experience."/>
+              <input placeholder="Specialties (e.g. Sports rehab, Pediatric care)" value={eeatInfoFields?.specialties || ''} onChange={e => setEeatInfoFields(p => ({...p, specialties: e.target.value}))} style={inp({ fontSize:12 })} title="Areas of specialization. Helps AEO match narrow queries like 'pediatric chiropractor'."/>
+              <input placeholder="License # / NPI / Bar # (verifiable)" value={eeatInfoFields?.licenseNumber || ''} onChange={e => setEeatInfoFields(p => ({...p, licenseNumber: e.target.value}))} style={inp({ fontSize:12 })} title="Professional license number. Added to schema as hasCredential with identifier — Google can verify this."/>
+              <input placeholder="Author photo URL" value={eeatInfoFields?.authorPhoto || ''} onChange={e => setEeatInfoFields(p => ({...p, authorPhoto: e.target.value}))} style={{...inp({ fontSize:12 }), gridColumn:'1 / -1'}} title="Photo of the author. Added to Person schema as image — adds visual trust to the byline."/>
             </div>
 
             {/* Row 2: Business */}
             <div style={{ fontSize:10, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4, marginTop:10 }}>Business</div>
             <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:8 }}>
-              <input placeholder="Full address (e.g. 123 Main St, Austin, TX 78701)" value={eeatInfoFields?.address || ''} onChange={e => setEeatInfoFields(p => ({...p, address: e.target.value}))} style={inp({ fontSize:12 })} title="Physical business address. Added to LocalBusiness schema and the page footer. Critical for local SEO + Google Maps."/>
-              <input placeholder="Founded (e.g. 2015)" value={eeatInfoFields?.founded || ''} onChange={e => setEeatInfoFields(p => ({...p, founded: e.target.value}))} style={inp({ fontSize:12 })} title="Year founded. Used in 'serving [city] since [year]' and establishes Experience in E-E-A-T."/>
+              <input placeholder="Full address (e.g. 123 Main St, Austin, TX 78701)" value={eeatInfoFields?.address || ''} onChange={e => setEeatInfoFields(p => ({...p, address: e.target.value}))} style={inp({ fontSize:12 })} title="Physical business address. Added to LocalBusiness schema and the page footer."/>
+              <input placeholder="Founded (e.g. 2015)" value={eeatInfoFields?.founded || ''} onChange={e => setEeatInfoFields(p => ({...p, founded: e.target.value}))} style={inp({ fontSize:12 })} title="Year founded. Used in 'serving [city] since [year]' and establishes Experience."/>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:8 }}>
-              <input placeholder="Business hours (e.g. Mon-Fri 8am-6pm)" value={eeatInfoFields?.hours || ''} onChange={e => setEeatInfoFields(p => ({...p, hours: e.target.value}))} style={inp({ fontSize:12 })} title="Operating hours. Added to LocalBusiness schema as OpeningHoursSpecification — helps Google rich results."/>
-              <input placeholder="Price range (e.g. $$, $50-200/visit)" value={eeatInfoFields?.priceRange || ''} onChange={e => setEeatInfoFields(p => ({...p, priceRange: e.target.value}))} style={inp({ fontSize:12 })} title="Price range indicator. Added to LocalBusiness schema — shows in Google search results."/>
+              <input placeholder="Business hours (e.g. Mon-Fri 8am-6pm)" value={eeatInfoFields?.hours || ''} onChange={e => setEeatInfoFields(p => ({...p, hours: e.target.value}))} style={inp({ fontSize:12 })} title="Operating hours. Added to schema as OpeningHoursSpecification — shows in Google rich results."/>
+              <input placeholder="Price range (e.g. $$, $50-200/visit)" value={eeatInfoFields?.priceRange || ''} onChange={e => setEeatInfoFields(p => ({...p, priceRange: e.target.value}))} style={inp({ fontSize:12 })} title="Price range. Added to LocalBusiness schema — shows in Google search results."/>
+              <input placeholder="Payment methods (e.g. Credit Card, Cash, Check)" value={eeatInfoFields?.paymentMethods || ''} onChange={e => setEeatInfoFields(p => ({...p, paymentMethods: e.target.value}))} style={inp({ fontSize:12 })} title="Accepted payment methods. Added to schema paymentAccepted. AEO: 'do they take credit cards?'"/>
+              <input placeholder="Insurance accepted (e.g. Blue Cross, Medicare)" value={eeatInfoFields?.insuranceAccepted || ''} onChange={e => setEeatInfoFields(p => ({...p, insuranceAccepted: e.target.value}))} style={inp({ fontSize:12 })} title="Insurance plans accepted. Critical for medical/dental/therapy — answers 'does my insurance work here?'"/>
+              <input placeholder="Languages spoken (e.g. English, Spanish)" value={eeatInfoFields?.languages || ''} onChange={e => setEeatInfoFields(p => ({...p, languages: e.target.value}))} style={inp({ fontSize:12 })} title="Languages spoken. Added to schema availableLanguage. AEO: 'Spanish-speaking chiropractor near me'."/>
+              <input placeholder="Booking URL (e.g. https://calendly.com/...)" value={eeatInfoFields?.bookingUrl || ''} onChange={e => setEeatInfoFields(p => ({...p, bookingUrl: e.target.value}))} style={inp({ fontSize:12 })} title="Appointment/booking link. Enables Google's 'Book' action button in search results."/>
             </div>
 
             {/* Row 3: Authority */}
             <div style={{ fontSize:10, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4, marginTop:10 }}>Authority + Social Proof</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-              <input placeholder="Certifications (e.g. BBB A+, ACA member)" value={eeatInfoFields?.certifications || ''} onChange={e => setEeatInfoFields(p => ({...p, certifications: e.target.value}))} style={inp({ fontSize:12 })} title="Professional affiliations, certifications, awards. Woven into trust sections and schema."/>
-              <input placeholder="Key result (e.g. 500+ clients served, 4.9★ rating)" value={eeatInfoFields?.keyResult || ''} onChange={e => setEeatInfoFields(p => ({...p, keyResult: e.target.value}))} style={inp({ fontSize:12 })} title="A real, verifiable metric. Woven into hero copy and trust sections. Never fabricated — must be real."/>
+              <input placeholder="Certifications (e.g. BBB A+, ACA member)" value={eeatInfoFields?.certifications || ''} onChange={e => setEeatInfoFields(p => ({...p, certifications: e.target.value}))} style={inp({ fontSize:12 })} title="Professional affiliations, certifications. Woven into trust sections and schema."/>
+              <input placeholder="Key result (e.g. 500+ clients served, 4.9★ rating)" value={eeatInfoFields?.keyResult || ''} onChange={e => setEeatInfoFields(p => ({...p, keyResult: e.target.value}))} style={inp({ fontSize:12 })} title="A real, verifiable metric. Woven into hero copy. Must be real — never fabricated."/>
+              <input placeholder="Awards (e.g. Best of Austin 2024, Top 10 Chiropractor)" value={eeatInfoFields?.awards || ''} onChange={e => setEeatInfoFields(p => ({...p, awards: e.target.value}))} style={inp({ fontSize:12 })} title="Awards and recognitions. Added to schema award property — authority marker."/>
+              <input placeholder="Guarantees (e.g. 30-day satisfaction guarantee)" value={eeatInfoFields?.guarantees || ''} onChange={e => setEeatInfoFields(p => ({...p, guarantees: e.target.value}))} style={inp({ fontSize:12 })} title="Service guarantees or warranties. Trust signal that improves conversion."/>
+              <input placeholder="Response time (e.g. Same-day appointments, 24/7 emergency)" value={eeatInfoFields?.responseTime || ''} onChange={e => setEeatInfoFields(p => ({...p, responseTime: e.target.value}))} style={inp({ fontSize:12 })} title="How quickly you respond or are available. AEO: 'emergency plumber available now'."/>
+              <input placeholder="Team size (e.g. 12 staff, 3 doctors)" value={eeatInfoFields?.teamSize || ''} onChange={e => setEeatInfoFields(p => ({...p, teamSize: e.target.value}))} style={inp({ fontSize:12 })} title="Number of employees. Added to schema numberOfEmployees — signals business scale."/>
             </div>
             <div style={{ marginTop:8 }}>
               <input placeholder="Social profiles — paste URLs separated by commas" value={eeatInfoFields?.socialUrls || ''} onChange={e => setEeatInfoFields(p => ({...p, socialUrls: e.target.value}))} style={inp({ fontSize:12 })}/>
               <div style={{ marginTop:4, fontSize:11, fontFamily:FB, color:'#6b7280', lineHeight:1.5 }}>
-                Paste the URL to each profile where your business is listed. Google uses these to verify you're a real entity. Examples:
+                Paste the URL to each profile where your business is listed. Google uses these to verify you're a real entity.
                 <span style={{ display:'block', marginTop:2, color:'#9ca3af', fontFamily:'ui-monospace,Menlo,monospace', fontSize:10, lineHeight:1.7 }}>
-                  https://www.google.com/maps/place/...  (your Google Business listing)<br/>
-                  https://www.linkedin.com/company/...  (company LinkedIn page)<br/>
-                  https://www.yelp.com/biz/...  (Yelp business page)<br/>
-                  https://www.bbb.org/...  (BBB profile)<br/>
-                  https://www.facebook.com/...  (Facebook business page)
+                  https://www.google.com/maps/place/...  (Google Business)<br/>
+                  https://www.linkedin.com/company/...  (LinkedIn)<br/>
+                  https://www.yelp.com/biz/...  (Yelp)<br/>
+                  https://www.bbb.org/...  (BBB)<br/>
+                  https://www.facebook.com/...  (Facebook)
                 </span>
               </div>
             </div>

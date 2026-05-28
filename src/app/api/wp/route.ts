@@ -394,7 +394,7 @@ Rules:
       if (!finalAgency) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
       const [{ data: clients }, { data: allSites }] = await Promise.all([
         sb.from('clients')
-          .select('id, name, website, status, logo_url, phone, onboarding_phone_display, address, year_founded, business_hours, facebook_url, linkedin_url, yelp_url, bbb_url, google_place_id, price_range, certifications, key_result, author_name, author_credentials')
+          .select('id, name, website, status, logo_url, phone, onboarding_phone_display, address, year_founded, business_hours, facebook_url, linkedin_url, yelp_url, bbb_url, google_place_id, price_range, certifications, key_result, author_name, author_credentials, author_photo_url, specialties, license_number, payment_methods, insurance_accepted, languages_spoken, booking_url, team_size, response_time, guarantees, awards, video_testimonial_url')
           .eq('agency_id', finalAgency)
           .is('deleted_at', null)
           .order('name', { ascending: true }),

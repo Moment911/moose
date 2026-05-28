@@ -1237,20 +1237,37 @@ export default function ClientDetailPage() {
           </div>
 
           <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:6, marginTop:4 }}>Author / Expert</div>
-          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8 }}>The person behind the content. Adds an author byline, Person schema, and Experience signals to every page.</div>
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8 }}>The person behind the content. Adds an author byline, Person schema, and Experience signals to every page. AI search engines cite pages with named, credentialed authors significantly more often.</div>
           <div style={twoCol}>
             {renderEditableField('author_name', 'Author Name', client.author_name)}
             {renderEditableField('author_credentials', 'Credentials', client.author_credentials)}
+            {renderEditableField('author_photo_url', 'Author Photo URL', client.author_photo_url, 'url')}
+            {renderEditableField('specialties', 'Specialties', client.specialties)}
+            {renderEditableField('license_number', 'License / NPI / Bar #', client.license_number)}
           </div>
 
           <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:6, marginTop:14 }}>Business Details</div>
-          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8 }}>Used in LocalBusiness schema, Google Knowledge Panel, and rich search results. Hours and price range show directly in Google.</div>
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8 }}>Used in LocalBusiness schema, Google Knowledge Panel, and rich search results. Hours and price range show directly in Google search. Payment and insurance info answers common AEO queries like "do they accept Medicare?" or "do they take credit cards?"</div>
           <div style={twoCol}>
             {renderEditableField('year_founded', 'Founded Year', client.year_founded)}
             {renderEditableField('business_hours', 'Business Hours', client.business_hours)}
             {renderEditableField('price_range', 'Price Range', client.price_range)}
+            {renderEditableField('payment_methods', 'Payment Methods', client.payment_methods)}
+            {renderEditableField('insurance_accepted', 'Insurance Accepted', client.insurance_accepted)}
+            {renderEditableField('languages_spoken', 'Languages Spoken', client.languages_spoken)}
+            {renderEditableField('team_size', 'Team Size', client.team_size)}
+            {renderEditableField('response_time', 'Response Time / Availability', client.response_time)}
+            {renderEditableField('booking_url', 'Booking / Appointment URL', client.booking_url, 'url')}
+          </div>
+
+          <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:6, marginTop:14 }}>Authority + Social Proof</div>
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8 }}>Real metrics, certifications, and awards that AI and Google can verify. Pages with concrete proof points rank higher and get cited more by ChatGPT, Perplexity, and Google AI Overviews.</div>
+          <div style={twoCol}>
             {renderEditableField('certifications', 'Certifications / Affiliations', client.certifications)}
             {renderEditableField('key_result', 'Key Result / Metric', client.key_result)}
+            {renderEditableField('awards', 'Awards / Recognitions', client.awards)}
+            {renderEditableField('guarantees', 'Guarantees / Warranties', client.guarantees)}
+            {renderEditableField('video_testimonial_url', 'Video Testimonial URL', client.video_testimonial_url, 'url')}
           </div>
 
           <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:6, marginTop:14 }}>Online Profiles</div>
