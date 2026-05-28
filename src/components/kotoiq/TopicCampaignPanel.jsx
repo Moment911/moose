@@ -96,7 +96,7 @@ export default function TopicCampaignPanel({ site }) {
   // Read an uploaded HTML file → run through aiAssistWrapper.
   async function uploadWrapperFile(file) {
     if (!file) return
-    if (file.size > 500_000) { toast.error('File too large (max 500KB)'); return }
+    if (file.size > 1_000_000) { toast.error('File too large (max 1MB)'); return }
     const text = await file.text().catch(() => '')
     if (!text) { toast.error('Could not read file'); return }
     // Drop raw contents into the textarea first so the operator sees what

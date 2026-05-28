@@ -192,7 +192,7 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
 async function wrapperAssist(body: any, agencyId: string) {
     const rawHtml = String(body.html || '').trim()
     if (!rawHtml) return NextResponse.json({ error: 'html required' }, { status: 400 })
-    if (rawHtml.length > 50_000) return NextResponse.json({ error: 'html too large (max 50KB)' }, { status: 400 })
+    if (rawHtml.length > 1_000_000) return NextResponse.json({ error: 'html too large (max 1MB)' }, { status: 400 })
 
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -240,7 +240,7 @@ Rules:
     try {
         msg = await ai.messages.create({
             model: 'claude-sonnet-4-6',
-            max_tokens: 8000,
+            max_tokens: 32000,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }],
         })
