@@ -168,9 +168,9 @@ export default function TopicCampaignPanel({ site, client }) {
         body: JSON.stringify({ action: 'eeat_score', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(errText(d.error)); setEeatResult(null) }
-      else setEeatResult(d.audit)
-    } catch (e) { toast.error(e.message); setEeatResult(null) }
+      if (d.error) { toast.error(errText(d.error)); setEeatResult(null); markAct('eeat','red','audit failed') }
+      else { setEeatResult(d.audit); const sc = d.audit?.overall_score; markAct('eeat', sc >= 80 ? 'green' : sc >= 60 ? 'amber' : 'red', `E-E-A-T score ${sc ?? '?'}/100`) }
+    } catch (e) { toast.error(e.message); setEeatResult(null); markAct('eeat','red', e.message) }
     setEeatBusy(false)
   }
 
@@ -183,9 +183,9 @@ export default function TopicCampaignPanel({ site, client }) {
         body: JSON.stringify({ action: 'topical_expand', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(errText(d.error)); setTopicalResult(null) }
-      else { setTopicalResult(d.expansion); initClusterSelection(d.expansion) }
-    } catch (e) { toast.error(e.message); setTopicalResult(null) }
+      if (d.error) { toast.error(errText(d.error)); setTopicalResult(null); markAct('topical','red','expand failed') }
+      else { setTopicalResult(d.expansion); initClusterSelection(d.expansion); const n = (d.expansion?.siblings?.length || 0) + (d.expansion?.supporting?.length || 0); markAct('topical', n ? 'green' : 'amber', `${n} cluster topics found`) }
+    } catch (e) { toast.error(e.message); setTopicalResult(null); markAct('topical','red', e.message) }
     setTopicalBusy(false)
   }
 
@@ -196,6 +196,26 @@ export default function TopicCampaignPanel({ site, client }) {
   const [eeatInfoFields, setEeatInfoFields] = useState({})
   const [eeatEditorOpen, setEeatEditorOpen] = useState(false)
   const [savingEeat, setSavingEeat] = useState(false)
+
+  // Per-action run status → recolors the toolbar button green/amber/red and
+  // sets a tooltip note, so after a button runs the operator can see at a
+  // glance that it ran and how it went (the toast gives the full detail).
+  const [actionStatus, setActionStatus] = useState({})
+  const markAct = (key, tone, note) => setActionStatus(s => ({ ...s, [key]: { tone, note } }))
+  const ACT_TONE = { green:'#15803d', amber:'#b45309', red:'#dc2626' }
+  // miniBtn is a module-level const (in scope at render time).
+  function actBtn(key, fallback) {
+    const st = actionStatus[key]
+    if (!st) return miniBtn(fallback)
+    const c = ACT_TONE[st.tone] || ACT_TONE.amber
+    return miniBtn({ color:c, borderColor:c })
+  }
+  function actGlyph(key, busy, fallbackIcon) {
+    if (busy) return <Loader2 size={11} className="spin"/>
+    const st = actionStatus[key]
+    if (!st) return fallbackIcon
+    return st.tone === 'green' ? <CheckCircle2 size={11}/> : <AlertTriangle size={11}/>
+  }
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [validating, setValidating] = useState(false)
   const [qualityBusy, setQualityBusy] = useState(false)
@@ -742,14 +762,14 @@ export default function TopicCampaignPanel({ site, client }) {
         body: JSON.stringify({ action: 'quality_check', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(errText(d.error)); setQualityBusy(false); return }
+      if (d.error) { toast.error(errText(d.error)); markAct('quality','red','check failed'); setQualityBusy(false); return }
       const rep = d.report || { score: 0, findings: [], wordCount: 0 }
       const head = `Quality score ${rep.score}/100 · ~${rep.wordCount} words/page`
       const lines = rep.findings.map(f => `${f.level === 'fail' ? '✗' : f.level === 'warn' ? '⚠' : 'ℹ'} ${f.msg}`).slice(0, 8).join('\n')
-      if (rep.findings.some(f => f.level === 'fail')) toast.error(`${head}\n${lines}`, { duration: 10000 })
-      else if (rep.findings.length) toast(`${head}\n${lines}`, { icon: '⚠️', duration: 9000 })
-      else toast.success(`${head} — clean`)
-    } catch (e) { toast.error(e.message) }
+      if (rep.findings.some(f => f.level === 'fail')) { toast.error(`${head}\n${lines}`, { duration: 10000 }); markAct('quality','red', `${rep.score}/100 · issues to fix`) }
+      else if (rep.findings.length) { toast(`${head}\n${lines}`, { icon: '⚠️', duration: 9000 }); markAct('quality','amber', `${rep.score}/100 · warnings`) }
+      else { toast.success(`${head} — clean`); markAct('quality','green', `${rep.score}/100 · clean`) }
+    } catch (e) { toast.error(e.message); markAct('quality','red', e.message) }
     setQualityBusy(false)
   }
 
@@ -762,9 +782,9 @@ export default function TopicCampaignPanel({ site, client }) {
         body: JSON.stringify({ action: 'check_citations', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(errText(d.error)); setCitationReport(null) }
-      else setCitationReport(d.report)
-    } catch (e) { toast.error(e.message); setCitationReport(null) }
+      if (d.error) { toast.error(errText(d.error)); setCitationReport(null); markAct('citations','red','check failed') }
+      else { setCitationReport(d.report); const cited = d.report?.cities?.filter(c => c.cited)?.length ?? (d.report?.cited_count); markAct('citations', cited ? 'green' : 'amber', cited ? `cited in ${cited} market(s)` : 'no AI citations yet') }
+    } catch (e) { toast.error(e.message); setCitationReport(null); markAct('citations','red', e.message) }
     setCitationBusy(false)
   }
 
@@ -780,10 +800,10 @@ export default function TopicCampaignPanel({ site, client }) {
       if (d.error) { toast.error(errText(d.error)); setValidating(false); return }
       const rep = d.report || { types: [], errors: [], warnings: [] }
       const head = `Schema (${d.sample_location}): ${rep.types.length} types${rep.errors.length ? ` · ${rep.errors.length} error(s)` : ''}${rep.warnings.length ? ` · ${rep.warnings.length} warning(s)` : ''}`
-      if (rep.errors.length) toast.error(`${head}\n${rep.errors.join('\n')}`, { duration: 9000 })
-      else if (rep.warnings.length) toast(`${head}\n${rep.warnings.slice(0, 5).join('\n')}`, { icon: '⚠️', duration: 8000 })
-      else toast.success(`${head} — all valid`)
-    } catch (e) { toast.error(e.message) }
+      if (rep.errors.length) { toast.error(`${head}\n${rep.errors.join('\n')}`, { duration: 9000 }); markAct('schema','red', `${rep.errors.length} error(s)`) }
+      else if (rep.warnings.length) { toast(`${head}\n${rep.warnings.slice(0, 5).join('\n')}`, { icon: '⚠️', duration: 8000 }); markAct('schema','amber', `${rep.warnings.length} warning(s)`) }
+      else { toast.success(`${head} — all valid`); markAct('schema','green', `${rep.types.length} types · all valid`) }
+    } catch (e) { toast.error(e.message); markAct('schema','red', e.message) }
     setValidating(false)
   }
 
@@ -2170,11 +2190,11 @@ export default function TopicCampaignPanel({ site, client }) {
                 <ExternalLink size={11}/> Hub
               </a>
             )}
-            <button onClick={runEeatAudit} disabled={eeatBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
-              {eeatBusy ? <Loader2 size={11} className="spin"/> : <Sparkles size={11}/>} E-E-A-T audit
+            <button onClick={runEeatAudit} disabled={eeatBusy} title={actionStatus.eeat?.note || 'Score the master against E-E-A-T signals'} style={actBtn('eeat', { color:'#7c3aed', borderColor:'#7c3aed' })}>
+              {actGlyph('eeat', eeatBusy, <Sparkles size={11}/>)} E-E-A-T audit
             </button>
-            <button onClick={runTopicalExpand} disabled={topicalBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
-              {topicalBusy ? <Loader2 size={11} className="spin"/> : <Sparkles size={11}/>} Topical cluster
+            <button onClick={runTopicalExpand} disabled={topicalBusy} title={actionStatus.topical?.note || 'Find sibling + supporting topics to expand the cluster'} style={actBtn('topical', { color:'#7c3aed', borderColor:'#7c3aed' })}>
+              {actGlyph('topical', topicalBusy, <Sparkles size={11}/>)} Topical cluster
             </button>
             <button onClick={() => { setPlaceOpen(true); setPlaceResults([]); setPlaceQuery(campaign.company_name || campaign.topic || '') }}
               style={miniBtn({ color: campaign.google_place_id ? GRN : '#0369a1', borderColor: campaign.google_place_id ? GRN : '#0369a1' })}>
@@ -2183,14 +2203,14 @@ export default function TopicCampaignPanel({ site, client }) {
             <button onClick={() => setEeatEditorOpen(true)} style={miniBtn({ color:'#0369a1', borderColor:'#0369a1' })}>
               <Edit3 size={11}/> Trust signals
             </button>
-            <button onClick={validateSchema} disabled={validating} style={miniBtn({ color:'#0369a1', borderColor:'#0369a1' })}>
-              {validating ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Validate schema
+            <button onClick={validateSchema} disabled={validating} title={actionStatus.schema?.note || 'Validate the page JSON-LD against schema.org'} style={actBtn('schema', { color:'#0369a1', borderColor:'#0369a1' })}>
+              {actGlyph('schema', validating, <CheckCircle2 size={11}/>)} Validate schema
             </button>
-            <button onClick={runCitationCheck} disabled={citationBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
-              {citationBusy ? <Loader2 size={11} className="spin"/> : <TrendingUp size={11}/>} AI citations
+            <button onClick={runCitationCheck} disabled={citationBusy} title={actionStatus.citations?.note || 'Check whether AI engines cite these pages'} style={actBtn('citations', { color:'#7c3aed', borderColor:'#7c3aed' })}>
+              {actGlyph('citations', citationBusy, <TrendingUp size={11}/>)} AI citations
             </button>
-            <button onClick={runQualityCheck} disabled={qualityBusy} style={miniBtn({ color:'#0369a1', borderColor:'#0369a1' })}>
-              {qualityBusy ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Quality check
+            <button onClick={runQualityCheck} disabled={qualityBusy} title={actionStatus.quality?.note || 'Score content quality + word count'} style={actBtn('quality', { color:'#0369a1', borderColor:'#0369a1' })}>
+              {actGlyph('quality', qualityBusy, <CheckCircle2 size={11}/>)} Quality check
             </button>
           </div>
 
