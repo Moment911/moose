@@ -25,7 +25,11 @@ const GEMINI_ARM_MODEL = 'gemini-2.0-flash'
 const SYNTHESIS_MODEL  = 'claude-sonnet-4-6'
 
 const PROVIDER_TIMEOUT_MS  = 180_000  // master generation can take 60-180s
-const SYNTHESIS_TIMEOUT_MS = 60_000   // synthesis of 3 large outputs needs more room
+const SYNTHESIS_TIMEOUT_MS = 120_000  // merging 2-3 ~8k-token masters into 8k JSON
+                                      // needs 60-90s on Sonnet; 60s was too tight
+                                      // and timed out, falling back to an unparsed
+                                      // arm. (Keep arms+synth under the function's
+                                      // maxDuration — see route maxDuration export.)
 const DEFAULT_MAX_TOKENS   = 4_096
 
 export interface BlendInput {

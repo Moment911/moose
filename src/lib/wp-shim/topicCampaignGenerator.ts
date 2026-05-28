@@ -221,12 +221,44 @@ function clamp(n: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, n))
 }
 
+// Pull the most-likely-parseable JSON string out of a model's raw output.
+// Models (Claude especially) wrap JSON in ```json fences AND add prose before
+// or after the block. The old anchored ^``` / ```$ stripping only worked when
+// the output was EXACTLY a fenced block — any preamble defeated it and the
+// parse threw "invalid JSON". This handles fences anywhere + an outermost-brace
+// fallback. Returns a best-effort string; the caller still parses + validates.
 function cleanJson(raw: string): string {
-    let s = raw.trim()
-    if (s.startsWith('```')) {
-        s = s.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '')
+    let s = (raw || '').trim()
+    const fenced = s.match(/```(?:json)?\s*([\s\S]*?)```/i)
+    if (fenced) s = fenced[1].trim()
+    if (!s.startsWith('{')) {
+        const first = s.indexOf('{')
+        const last = s.lastIndexOf('}')
+        if (first !== -1 && last > first) s = s.slice(first, last + 1)
     }
     return s.trim()
+}
+
+/**
+ * Non-throwing master JSON parser for the multi-model compare path. Tries the
+ * raw string, then the fenced block, then the outermost {...} — so prose
+ * before/after the JSON (or a trailing brace after stray text) still recovers.
+ * Returns null when nothing parses, so the caller can mark that arm failed
+ * without tanking the whole compare request.
+ */
+export function parseMasterJson(raw: string): any | null {
+    if (!raw) return null
+    const s = raw.trim()
+    const candidates: string[] = [s]
+    const fenced = s.match(/```(?:json)?\s*([\s\S]*?)```/i)
+    if (fenced) candidates.push(fenced[1].trim())
+    const first = s.indexOf('{')
+    const last = s.lastIndexOf('}')
+    if (first !== -1 && last > first) candidates.push(s.slice(first, last + 1))
+    for (const c of candidates) {
+        try { return JSON.parse(c) } catch { /* try next candidate */ }
+    }
+    return null
 }
 
 function validate(m: TopicCampaignMaster): void {

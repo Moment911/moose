@@ -828,7 +828,7 @@ async function generateMasterCompare(supabase: any, agencyId: string, body: any)
     const { competitorContext } = await resolveCompetitorIntel(topic, body)
 
     // Build the same prompt the single-model path uses
-    const { buildMasterPrompt } = await import('@/lib/wp-shim/topicCampaignGenerator')
+    const { buildMasterPrompt, parseMasterJson } = await import('@/lib/wp-shim/topicCampaignGenerator')
     const promptParts = buildMasterPrompt({
         topic,
         companyName: body.company_name || undefined,
@@ -850,19 +850,19 @@ async function generateMasterCompare(supabase: any, agencyId: string, body: any)
         agencyId,
     })
 
-    // Parse each provider's JSON output
-    function tryParseMaster(text: string) {
-        try {
-            const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
-            return JSON.parse(stripped)
-        } catch { return null }
-    }
+    // Parse each provider's JSON output with the robust shared extractor
+    // (handles fences + prose before/after the JSON; the old anchored strip
+    // reported "invalid JSON" whenever a model added any preamble).
+    const tryParseMaster = parseMasterJson
 
     const models: any[] = []
     const providers = ['claude', 'openai', 'gemini'] as const
     for (const p of providers) {
         const src = result.sources[p]
-        if (!src?.text) { models.push({ provider: p, ok: false, error: 'no response' }); continue }
+        if (!src?.text) {
+            const reason = result.failedProviders.includes(p) ? 'no response (provider error or key missing)' : 'empty response'
+            models.push({ provider: p, ok: false, error: reason }); continue
+        }
         const master = tryParseMaster(src.text)
         if (!master) { models.push({ provider: p, ok: false, error: 'invalid JSON' }); continue }
         models.push({
