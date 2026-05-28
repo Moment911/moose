@@ -3,7 +3,7 @@
  * Plugin Name:       KotoIQ
  * Plugin URI:        https://www.unifiedmktg.com
  * Description:       Connect this WordPress site to your KotoIQ dashboard. Managed by Unified Marketing.
- * Version:           4.2.2
+ * Version:           4.2.3
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -22,7 +22,7 @@
 if (!defined('ABSPATH')) exit;
 
 // ─── Plugin constants ──────────────────────────────────────────────────────
-define('KOTOIQ_SHIM_VERSION',      '4.2.2');
+define('KOTOIQ_SHIM_VERSION',      '4.2.3');
 define('KOTOIQ_SHIM_PLUGIN_FILE',  __FILE__);
 define('KOTOIQ_SHIM_DIR',          plugin_dir_path(__FILE__));
 define('KOTOIQ_SHIM_URL',          plugin_dir_url(__FILE__));
@@ -111,6 +111,24 @@ register_deactivation_hook(__FILE__, function () {
 add_action('init', function () {
     load_plugin_textdomain('kotoiq-shim', false, dirname(plugin_basename(__FILE__)) . '/languages');
 });
+
+// ─── Version-change rewrite flush ───────────────────────────────────────────
+// Self-update (Plugin_Upgrader::install) updates the plugin files but does NOT
+// fire register_activation_hook, so the activation-time flush_rewrite_rules()
+// never runs after an in-place update. New rewrite rules (e.g. /llms.txt added
+// in v4.2.0) therefore 404 until the operator manually re-saves permalinks.
+//
+// Fix: on every load, compare the stored version to the running constant. When
+// they differ (fresh install OR any upgrade), flush rewrite rules once and
+// record the new version. The check is one option read + string compare —
+// negligible per-request cost.
+add_action('init', function () {
+    $stored = get_option('kotoiq_shim_installed_version', '');
+    if ($stored !== KOTOIQ_SHIM_VERSION) {
+        flush_rewrite_rules();
+        update_option('kotoiq_shim_installed_version', KOTOIQ_SHIM_VERSION, false);
+    }
+}, 99);
 
 // NOTE: this plugin INTENTIONALLY does NOT expose a public unauthenticated
 // /meta endpoint. Its presence is invisible to anyone without a valid signed
