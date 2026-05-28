@@ -784,70 +784,43 @@ export default function TopicCampaignPanel({ site, client }) {
       body: JSON.stringify({ action, agency_id: agencyId, campaign_id: cid, ...extra }),
     }).then(r => r.json())
 
-    // 1. Quality check
-    logGen('─── Quality check ───')
+    // Pipeline order matters — each step builds on the previous:
+    //   1. Quality check (baseline)
+    //   2. Schema validation (baseline)
+    //   3. Topical cluster → weave subtopics (expands content first)
+    //   4. E-E-A-T audit + fix loop (on the woven master, passes cluster to preserve it)
+    //   5. Final quality + schema re-check (verify nothing regressed)
+
+    let clusterTopics = []  // saved so E-E-A-T fix rounds preserve cluster coverage
+
+    // 1. Quality check (baseline)
+    logGen('─── Step 1: Quality check ───')
     try {
       const qc = await api('quality_check')
       if (qc.report) {
-        const { score, findings, wordCount } = qc.report
-        logGen(`Quality: ${score}/100 · ~${wordCount} words/page`)
-        const fails = (findings || []).filter(f => f.level === 'fail')
-        const warns = (findings || []).filter(f => f.level === 'warn')
+        logGen(`Quality: ${qc.report.score}/100 · ~${qc.report.wordCount} words/page`)
+        const fails = (qc.report.findings || []).filter(f => f.level === 'fail')
+        const warns = (qc.report.findings || []).filter(f => f.level === 'warn')
         if (fails.length) fails.forEach(f => logGen(`  ✗ ${f.msg}`))
         if (warns.length) warns.forEach(f => logGen(`  ⚠ ${f.msg}`))
         if (!fails.length && !warns.length) logGen('  All checks passed')
       }
     } catch (e) { logGen(`Quality check error: ${e.message}`) }
 
-    // 2. Schema validation
-    logGen('─── Schema validation ───')
+    // 2. Schema validation (baseline)
+    logGen('─── Step 2: Schema validation ───')
     try {
       const sv = await api('validate_schema')
       if (sv.report) {
-        const { types, errors, warnings } = sv.report
-        logGen(`Schema types: ${(types || []).join(', ') || 'none'}`)
-        if (errors?.length) errors.forEach(e => logGen(`  ✗ ${e}`))
-        else if (warnings?.length) warnings.forEach(w => logGen(`  ⚠ ${w}`))
+        logGen(`Schema types: ${(sv.report.types || []).join(', ') || 'none'}`)
+        if (sv.report.errors?.length) sv.report.errors.forEach(e => logGen(`  ✗ ${e}`))
+        else if (sv.report.warnings?.length) sv.report.warnings.forEach(w => logGen(`  ⚠ ${w}`))
         else logGen('  Schema valid')
       }
-    } catch (e) { logGen(`Schema validation error: ${e.message}`) }
+    } catch (e) { logGen(`Schema error: ${e.message}`) }
 
-    // 3. E-E-A-T audit + auto-fix
-    logGen('─── E-E-A-T audit ───')
-    let eeat = null
-    try {
-      const ea = await api('eeat_score')
-      eeat = ea.audit
-      if (eeat) {
-        setEeatResult(eeat)
-        logGen(`E-E-A-T score: ${eeat.overall_score}/100 (E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness})`)
-        if (eeat.gaps?.length) {
-          eeat.gaps.forEach(g => logGen(`  Gap [${g.dimension}]: ${g.issue}`))
-        }
-        // Auto-fix loop if score below target
-        let round = 0
-        while (eeat.overall_score < EEAT_TARGET && round < EEAT_MAX_ROUNDS && eeat.gaps?.length) {
-          round++
-          logGen(`  Auto-fix round ${round} — targeting ${eeat.gaps.length} gaps…`)
-          const fix = await api('regenerate_master', { eeat_gaps: eeat.gaps })
-          if (fix.error) { logGen(`  Fix failed: ${errText(fix.error)}`); break }
-          setCampaign(fix.campaign)
-          camp = fix.campaign
-          logGen('  Re-scoring…')
-          const rescore = await api('eeat_score')
-          if (rescore.audit) {
-            eeat = rescore.audit
-            setEeatResult(eeat)
-            logGen(`  E-E-A-T: ${eeat.overall_score}/100 (E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness})`)
-          } else break
-        }
-        if (eeat.overall_score >= EEAT_TARGET) logGen(`  Target ${EEAT_TARGET}+ reached`)
-        else if (round >= EEAT_MAX_ROUNDS) logGen(`  ${EEAT_MAX_ROUNDS} rounds done — score: ${eeat.overall_score}`)
-      }
-    } catch (e) { logGen(`E-E-A-T error: ${e.message}`) }
-
-    // 4. Topical cluster + auto-weave
-    logGen('─── Topical cluster ───')
+    // 3. Topical cluster → weave
+    logGen('─── Step 3: Topical cluster ───')
     try {
       const tc = await api('topical_expand')
       if (tc.expansion) {
@@ -856,43 +829,78 @@ export default function TopicCampaignPanel({ site, client }) {
         setTopicalResult(tc.expansion)
         initClusterSelection(tc.expansion)
         logGen(`Found ${siblings.length} sibling + ${supporting.length} supporting topics`)
-        siblings.slice(0, 5).forEach(s => logGen(`  · ${s.topic} (${s.intent})`))
-        if (siblings.length > 5) logGen(`  … and ${siblings.length - 5} more`)
+        siblings.slice(0, 5).forEach(s => logGen(`  · ${s.topic}`))
+        if (siblings.length > 5) logGen(`  … +${siblings.length - 5} more`)
 
-        // Auto-weave into the master
-        const allTopics = [...siblings.map(s => s.topic), ...supporting.map(s => s.topic)]
-        logGen(`Weaving ${allTopics.length} subtopics into the master…`)
-        const weave = await api('regenerate_master', { topical_cluster: allTopics })
+        clusterTopics = [...siblings.map(s => s.topic), ...supporting.map(s => s.topic)]
+        logGen(`Weaving ${clusterTopics.length} subtopics into the master…`)
+        const weave = await api('regenerate_master', { topical_cluster: clusterTopics })
         if (weave.error) logGen(`  Weave failed: ${errText(weave.error)}`)
-        else {
-          setCampaign(weave.campaign)
-          camp = weave.campaign
-          logGen('  Master updated with topical coverage')
-        }
+        else { setCampaign(weave.campaign); camp = weave.campaign; logGen('  Master updated with topical coverage') }
       }
     } catch (e) { logGen(`Topical cluster error: ${e.message}`) }
 
-    // 5. Final quality re-check
-    logGen('─── Final quality re-check ───')
+    // 4. E-E-A-T audit + auto-fix (on the woven master)
+    logGen('─── Step 4: E-E-A-T audit + auto-fix ───')
+    let eeat = null
     try {
-      const fqc = await api('quality_check')
+      const ea = await api('eeat_score')
+      eeat = ea.audit
+      if (eeat) {
+        setEeatResult(eeat)
+        logGen(`E-E-A-T: ${eeat.overall_score}/100 (E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness})`)
+        if (eeat.gaps?.length) eeat.gaps.forEach(g => logGen(`  Gap [${g.dimension}]: ${g.issue}`))
+
+        let round = 0
+        while (eeat.overall_score < EEAT_TARGET && round < EEAT_MAX_ROUNDS && eeat.gaps?.length) {
+          round++
+          logGen(`  Fix round ${round}/${EEAT_MAX_ROUNDS} — targeting ${eeat.gaps.length} gaps…`)
+          // Pass BOTH gaps AND cluster so regenerate preserves topical coverage
+          const fix = await api('regenerate_master', {
+            eeat_gaps: eeat.gaps,
+            ...(clusterTopics.length ? { topical_cluster: clusterTopics } : {}),
+          })
+          if (fix.error) { logGen(`  Fix failed: ${errText(fix.error)}`); break }
+          setCampaign(fix.campaign); camp = fix.campaign
+          logGen('  Re-scoring…')
+          const rescore = await api('eeat_score')
+          if (rescore.audit) {
+            const prev = eeat.overall_score
+            eeat = rescore.audit
+            setEeatResult(eeat)
+            const delta = eeat.overall_score - prev
+            logGen(`  E-E-A-T: ${eeat.overall_score}/100 (${delta >= 0 ? '+' : ''}${delta}) — E:${eeat.experience} X:${eeat.expertise} A:${eeat.authoritativeness} T:${eeat.trustworthiness}`)
+          } else break
+        }
+        if (eeat.overall_score >= EEAT_TARGET) logGen(`  Target ${EEAT_TARGET}+ reached`)
+        else if (round >= EEAT_MAX_ROUNDS) logGen(`  ${EEAT_MAX_ROUNDS} rounds done — score: ${eeat.overall_score}`)
+      }
+    } catch (e) { logGen(`E-E-A-T error: ${e.message}`) }
+
+    // 5. Final quality + schema re-check
+    logGen('─── Step 5: Final verification ───')
+    try {
+      const [fqc, fsv] = await Promise.all([api('quality_check'), api('validate_schema')])
       if (fqc.report) {
-        logGen(`Final quality: ${fqc.report.score}/100 · ~${fqc.report.wordCount} words/page`)
         const fails = (fqc.report.findings || []).filter(f => f.level === 'fail')
-        if (fails.length) fails.forEach(f => logGen(`  ✗ ${f.msg}`))
-        else logGen('  All checks passed')
+        logGen(`Quality: ${fqc.report.score}/100 · ~${fqc.report.wordCount} words` + (fails.length ? ` · ${fails.length} issues` : ' · clean'))
+      }
+      if (fsv.report) {
+        logGen(`Schema: ${(fsv.report.types || []).join(', ')}` + (fsv.report.errors?.length ? ` · ${fsv.report.errors.length} errors` : ' · valid'))
       }
     } catch (e) { logGen(`Final check error: ${e.message}`) }
 
-    // Summary
+    // Summary — what still needs manual input
     logGen('─── Complete ───')
     const needsInput = []
-    if (!camp?.eeat_inputs?.strategist?.name) needsInput.push('Author name + credentials (Trust signals)')
-    if (!camp?.eeat_inputs?.address?.street) needsInput.push('Business address (Trust signals)')
-    if (!camp?.google_place_id) needsInput.push('Google reviews (Connect Google reviews)')
+    if (!camp?.eeat_inputs?.strategist?.name) needsInput.push('Author name + credentials → Trust signals')
+    if (!camp?.eeat_inputs?.address?.street) needsInput.push('Business address → Trust signals')
+    if (!camp?.google_place_id) needsInput.push('Google reviews → Connect Google reviews button')
     if (needsInput.length) {
-      logGen('Manual input needed for full E-E-A-T:')
+      logGen('Add these for full E-E-A-T (scores will improve):')
       needsInput.forEach(n => logGen(`  → ${n}`))
+    } else {
+      logGen('All signals connected')
     }
     logGen('Pick cities next → then deploy.')
   }
