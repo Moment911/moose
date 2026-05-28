@@ -109,6 +109,163 @@ export async function buildCompetitorContext(
     }
 }
 
+export interface AggregatedCompetitorContext {
+    /** Human labels of the cities that actually returned data, e.g. ["Austin, TX", "Dallas, TX"]. */
+    citiesSampled: string[]
+    cityCount: number
+    aiOverviewSeen: boolean
+    peopleAlsoAsk: string[]
+    /** Competitor domains ranked across the sampled cities, strongest signal first. */
+    domains: {
+        domain: string
+        /** How many of the sampled cities this domain ranked top-3 in. Higher = more entrenched. */
+        appearances: number
+        bestRank: number
+        h1: string
+        avgWordCount: number
+    }[]
+    /** Pre-rendered text suitable for inclusion in a Claude user prompt. */
+    promptText: string
+    // Backward-compatible single-sample fields (kept so existing competitor_meta
+    // consumers — toast strings, edit-modal prefill — keep working).
+    sampleQuery: string
+    sampleLocation: string
+}
+
+/**
+ * Build an AGGREGATED competitor context across multiple sample cities. Runs
+ * buildCompetitorContext per city in parallel, then merges: domains that rank
+ * in multiple cities float to the top (entrenched players worth differentiating
+ * against hardest), People-also-ask is unioned, AI-overview is ORed.
+ *
+ * One sample city is a snapshot; 3-5 cities reveal which competitors actually
+ * dominate the topic regionally vs. which only rank in one local market.
+ *
+ * Returns null if no city yields usable data (caller proceeds without intel).
+ */
+export async function buildMultiCityCompetitorContext(
+    topic: string,
+    locations: Array<{ city: string; stateAbbr?: string }>,
+    maxCities = 5,
+): Promise<AggregatedCompetitorContext | null> {
+    if (!topic.trim()) return null
+
+    // Dedupe by city+state (case-insensitive), drop empties, cap the count so
+    // a fat-fingered list can't fan out into dozens of SERP calls.
+    const seen = new Set<string>()
+    const picked: Array<{ city: string; stateAbbr?: string }> = []
+    for (const loc of locations) {
+        const city = String(loc.city || '').trim()
+        if (!city) continue
+        const key = `${city.toLowerCase()}|${(loc.stateAbbr || '').toLowerCase()}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        picked.push({ city, stateAbbr: loc.stateAbbr })
+        if (picked.length >= maxCities) break
+    }
+    if (picked.length === 0) return null
+
+    const settled = await Promise.allSettled(
+        picked.map(loc => buildCompetitorContext(topic, loc.city, loc.stateAbbr || undefined)),
+    )
+    const contexts = settled
+        .map(s => (s.status === 'fulfilled' ? s.value : null))
+        .filter((c): c is CompetitorContext => !!c)
+    if (contexts.length === 0) return null
+
+    // Aggregate domains across cities.
+    const domainMap = new Map<string, { appearances: number; bestRank: number; h1: string; wordCounts: number[] }>()
+    for (const ctx of contexts) {
+        // One domain can appear multiple times within a single city's top-3
+        // (rare, but possible) — count it once per city.
+        const seenThisCity = new Set<string>()
+        for (const b of ctx.briefs) {
+            const existing = domainMap.get(b.domain) || { appearances: 0, bestRank: b.rank, h1: b.h1, wordCounts: [] }
+            if (!seenThisCity.has(b.domain)) {
+                existing.appearances += 1
+                seenThisCity.add(b.domain)
+            }
+            if (b.rank < existing.bestRank) { existing.bestRank = b.rank; if (b.h1) existing.h1 = b.h1 }
+            if (!existing.h1 && b.h1) existing.h1 = b.h1
+            if (b.wordCount) existing.wordCounts.push(b.wordCount)
+            domainMap.set(b.domain, existing)
+        }
+    }
+    const domains = [...domainMap.entries()]
+        .map(([domain, v]) => ({
+            domain,
+            appearances: v.appearances,
+            bestRank: v.bestRank,
+            h1: v.h1,
+            avgWordCount: v.wordCounts.length ? Math.round(v.wordCounts.reduce((a, b) => a + b, 0) / v.wordCounts.length) : 0,
+        }))
+        .sort((a, b) => b.appearances - a.appearances || a.bestRank - b.bestRank)
+
+    // Merge People-also-ask (dedupe case-insensitive).
+    const paaSeen = new Set<string>()
+    const peopleAlsoAsk: string[] = []
+    for (const ctx of contexts) {
+        for (const q of ctx.peopleAlsoAsk) {
+            const k = q.trim().toLowerCase()
+            if (!k || paaSeen.has(k)) continue
+            paaSeen.add(k)
+            peopleAlsoAsk.push(q.trim())
+            if (peopleAlsoAsk.length >= 8) break
+        }
+        if (peopleAlsoAsk.length >= 8) break
+    }
+
+    const citiesSampled = contexts.map(c => c.sampleLocation.replace(/, United States$/i, ''))
+    const aiOverviewCount = contexts.filter(c => c.aiOverviewSeen).length
+    const cityCount = contexts.length
+
+    // Render the aggregated prompt block.
+    const lines: string[] = []
+    lines.push(`COMPETITOR CONTEXT — aggregated from ${cityCount} sample ${cityCount === 1 ? 'city' : 'cities'} for "${topic.trim()}": ${citiesSampled.join(', ')}`)
+    if (aiOverviewCount > 0) {
+        lines.push(`(Google AI Overview shown in ${aiOverviewCount}/${cityCount} sampled ${aiOverviewCount === 1 ? 'city' : 'cities'} — design for AI-engine citation, not just SERP rank.)`)
+    }
+    if (peopleAlsoAsk.length) {
+        lines.push(`People also ask (merged): ${peopleAlsoAsk.slice(0, 6).join(' / ')}`)
+    }
+    lines.push('')
+
+    const dominant = domains.filter(d => d.appearances >= 2)
+    const others = domains.filter(d => d.appearances < 2)
+    if (dominant.length) {
+        lines.push(`DOMINANT COMPETITORS (rank across multiple sampled cities — the real targets):`)
+        for (const d of dominant.slice(0, 6)) {
+            lines.push(`  ${d.domain} — ranks in ${d.appearances}/${cityCount} cities, best #${d.bestRank}, ~${d.avgWordCount} words`)
+            if (d.h1) lines.push(`     H1: ${d.h1.slice(0, 140)}`)
+        }
+        lines.push('')
+    }
+    if (others.length) {
+        lines.push(`OTHER RANKING PAGES (single-city):`)
+        for (const d of others.slice(0, 8)) {
+            lines.push(`  ${d.domain} — #${d.bestRank}, ~${d.avgWordCount} words${d.h1 ? ` — H1: ${d.h1.slice(0, 100)}` : ''}`)
+        }
+        lines.push('')
+    }
+
+    lines.push('STRATEGIC GUIDANCE FOR CLAUDE:')
+    lines.push('- Domains that recur across cities are the entrenched regional players — differentiate HARDEST against their angles.')
+    lines.push('- Find topics + sections the dominant competitors ALL MISS (a "gap"). Build a section around it.')
+    lines.push('- If competitors all skew short, write longer + more thorough. If all skew long + dense, write tighter + more declarative for AEO extraction.')
+    lines.push('- Quote concrete numbers / specifics competitors lack (pricing ranges, timelines, deliverable counts).')
+
+    return {
+        citiesSampled,
+        cityCount,
+        aiOverviewSeen: aiOverviewCount > 0,
+        peopleAlsoAsk,
+        domains,
+        promptText: lines.join('\n'),
+        sampleQuery: contexts[0].sampleQuery,
+        sampleLocation: cityCount === 1 ? citiesSampled[0] : `${cityCount} cities: ${citiesSampled.join(', ')}`,
+    }
+}
+
 /**
  * Fetch a single competitor page and extract its on-page signal. Best-effort,
  * returns null on any error. 10s timeout per fetch.

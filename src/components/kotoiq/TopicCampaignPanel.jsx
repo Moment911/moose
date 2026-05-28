@@ -918,11 +918,11 @@ export default function TopicCampaignPanel({ site }) {
               </div>
             </div>
             <div style={{ fontFamily:FB, fontSize:12, color:'#075985', marginBottom:10, lineHeight:1.5 }}>
-              Pick a sample city &mdash; we&rsquo;ll fetch the top 3 Google results for &quot;{topic.trim() || '<topic>'} in &lt;city&gt;&quot;, scrape their H1/H2/word-count signal, and feed it to Claude so the master takes deliberately differentiated angles competitors miss. Skip if you want a vanilla generation.
+              Pick 1&ndash;5 sample cities &mdash; we&rsquo;ll fetch the top 3 Google results for &quot;{topic.trim() || '<topic>'} in &lt;city&gt;&quot; in each, scrape their H1/H2/word-count signal, and aggregate so domains that dominate across markets surface as the real targets. Skip if you want a vanilla generation.
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:10 }}>
-              <Field label="Sample city" hint="One city representative of your deploy markets (e.g. 'Austin')">
-                <input value={competitorSampleCity} onChange={e => setCompetitorSampleCity(e.target.value)} placeholder="Austin" style={inp()}/>
+              <Field label="Sample cities" hint="Up to 5, comma-separated (e.g. 'Austin, Dallas, Houston'). More cities = stronger signal, ~3-8s each.">
+                <input value={competitorSampleCity} onChange={e => setCompetitorSampleCity(e.target.value)} placeholder="Austin, Dallas, Houston" style={inp()}/>
               </Field>
               <Field label="State abbr" hint="2-letter, optional">
                 <input value={competitorSampleState} onChange={e => setCompetitorSampleState(e.target.value.toUpperCase().slice(0,2))} placeholder="TX" style={inp()} maxLength={2}/>
@@ -1658,8 +1658,8 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
               <input value={topic} onChange={e => setTopic(e.target.value)} placeholder="Website Design" style={inp()}/>
             </Field>
             <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:12, marginTop:10 }}>
-              <Field label="Competitor sample city (optional)" hint="We fetch the top 3 Google results for this city and feed Claude differentiated angles on regenerate.">
-                <input value={compCity} onChange={e => setCompCity(e.target.value)} placeholder="Austin" style={inp()}/>
+              <Field label="Competitor sample cities (optional)" hint="Up to 5, comma-separated. We sample each city's top-3 Google results and aggregate before regenerating.">
+                <input value={compCity} onChange={e => setCompCity(e.target.value)} placeholder="Austin, Dallas, Houston" style={inp()}/>
               </Field>
               <Field label="State" hint="2-letter">
                 <input value={compState} onChange={e => setCompState(e.target.value.toUpperCase().slice(0,2))} placeholder="TX" maxLength={2} style={inp()}/>

@@ -25,7 +25,7 @@ import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
 import { buildLlmsTxt, publishLlmsTxt } from '@/lib/wp-shim/llmsTxtBuilder'
 import { shimSelfUpdate } from '@/lib/wp-shim/shimSelfUpdate'
 import { logTokenUsage } from '@/lib/tokenTracker'
-import { buildCompetitorContext } from '@/lib/wp-shim/competitorContext'
+import { buildMultiCityCompetitorContext } from '@/lib/wp-shim/competitorContext'
 
 // Thin name wrapper — local handle for the per-location ACS lookup used in
 // deploy + redeploy. Returns null on any failure (missing key, city not found,
@@ -103,35 +103,67 @@ export async function POST(req: NextRequest) {
 
 // ─── Actions ────────────────────────────────────────────────────────────────
 
+/**
+ * Parse the operator's competitor-sample input and build aggregated intel.
+ * The city field may be a comma-separated list of up to 5 cities (paired with
+ * one state abbr) — we sample each city's SERP and aggregate, so domains that
+ * dominate across markets float to the top. Returns an empty meta when no city
+ * is supplied or every SERP lookup fails; generation then proceeds without
+ * intel rather than erroring.
+ */
+async function resolveCompetitorIntel(
+    topic: string,
+    body: any,
+): Promise<{ competitorContext?: string; competitorMeta: any }> {
+    const stateAbbr = String(body.competitor_sample_state_abbr || '').trim()
+    const cities = String(body.competitor_sample_city || '')
+        .split(',')
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+        // Drop an accidental state abbr typed into the city list (e.g. "Austin, TX").
+        .filter((c: string) => !stateAbbr || c.toUpperCase() !== stateAbbr.toUpperCase())
+        .slice(0, 5)
+    if (cities.length === 0) return { competitorMeta: null }
+
+    try {
+        const locations = cities.map((city: string) => ({ city, stateAbbr: stateAbbr || undefined }))
+        const ctx = await buildMultiCityCompetitorContext(topic, locations)
+        if (!ctx) return { competitorMeta: null }
+        return {
+            competitorContext: ctx.promptText,
+            competitorMeta: {
+                multi_city: ctx.cityCount > 1,
+                cities_sampled: ctx.citiesSampled,
+                city_count: ctx.cityCount,
+                sample_query: ctx.sampleQuery,
+                sample_location: ctx.sampleLocation,
+                competitor_count: ctx.domains.length,
+                ai_overview_seen: ctx.aiOverviewSeen,
+                people_also_ask: ctx.peopleAlsoAsk.slice(0, 6),
+                competitors: ctx.domains.slice(0, 10).map(d => ({
+                    domain: d.domain,
+                    appearances: d.appearances,
+                    best_rank: d.bestRank,
+                    h1: d.h1,
+                    word_count: d.avgWordCount,
+                })),
+            },
+        }
+    } catch {
+        return { competitorMeta: null }
+    }
+}
+
 async function generateMaster(supabase: any, agencyId: string, body: any) {
     const topic = String(body.topic || '').trim()
     if (!topic) return NextResponse.json({ error: 'topic required' }, { status: 400 })
 
-    // Optional competitor-aware generation: if operator supplied a sample
-    // city, fetch the top 3 SERP results + extract on-page signal, feed
-    // Claude as context so the master takes deliberately differentiated
-    // angles. Skipped silently on failure — generation still proceeds with
-    // the raw topic/notes.
-    let competitorContext: string | undefined
-    let competitorMeta: any = null
-    const sampleCity = String(body.competitor_sample_city || '').trim()
-    const sampleStateAbbr = String(body.competitor_sample_state_abbr || '').trim()
-    if (sampleCity) {
-        try {
-            const ctx = await buildCompetitorContext(topic, sampleCity, sampleStateAbbr || undefined)
-            if (ctx) {
-                competitorContext = ctx.promptText
-                competitorMeta = {
-                    sample_query: ctx.sampleQuery,
-                    sample_location: ctx.sampleLocation,
-                    competitor_count: ctx.briefs.length,
-                    ai_overview_seen: ctx.aiOverviewSeen,
-                    people_also_ask: ctx.peopleAlsoAsk.slice(0, 6),
-                    competitors: ctx.briefs.map(b => ({ rank: b.rank, domain: b.domain, h1: b.h1, word_count: b.wordCount })),
-                }
-            }
-        } catch {}
-    }
+    // Optional competitor-aware generation: if operator supplied one or more
+    // sample cities (comma-separated), sample each city's top-3 SERP, aggregate
+    // the on-page signal, and feed Claude as context so the master takes
+    // deliberately differentiated angles against the entrenched regional
+    // players. Skipped silently on failure — generation still proceeds.
+    const { competitorContext, competitorMeta } = await resolveCompetitorIntel(topic, body)
 
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
     const { master, inputTokens, outputTokens, model } = await generateTopicCampaignMaster(ai, {
@@ -201,27 +233,9 @@ async function regenerateMaster(supabase: any, agencyId: string, body: any) {
     const topic = String(body.topic || campaign.topic || '').trim()
     if (!topic) return NextResponse.json({ error: 'topic required' }, { status: 400 })
 
-    // Competitor intel — optional sample city/state.
-    let competitorContext: string | undefined
-    let competitorMeta: any = null
-    const sampleCity = String(body.competitor_sample_city || '').trim()
-    const sampleStateAbbr = String(body.competitor_sample_state_abbr || '').trim()
-    if (sampleCity) {
-        try {
-            const ctx = await buildCompetitorContext(topic, sampleCity, sampleStateAbbr || undefined)
-            if (ctx) {
-                competitorContext = ctx.promptText
-                competitorMeta = {
-                    sample_query: ctx.sampleQuery,
-                    sample_location: ctx.sampleLocation,
-                    competitor_count: ctx.briefs.length,
-                    ai_overview_seen: ctx.aiOverviewSeen,
-                    people_also_ask: ctx.peopleAlsoAsk.slice(0, 6),
-                    competitors: ctx.briefs.map(b => ({ rank: b.rank, domain: b.domain, h1: b.h1, word_count: b.wordCount })),
-                }
-            }
-        } catch {}
-    }
+    // Competitor intel — optional sample city/state (comma-separated cities
+    // sampled + aggregated, same as generate).
+    const { competitorContext, competitorMeta } = await resolveCompetitorIntel(topic, body)
 
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
     const { master, inputTokens, outputTokens, model } = await generateTopicCampaignMaster(ai, {
