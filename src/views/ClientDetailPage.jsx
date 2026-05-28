@@ -12,7 +12,7 @@ import {
   Star, BarChart2, Activity, Brain, Copy, Check, Loader2, RefreshCw,
   ChevronRight, Shield, Zap, TrendingUp, Clock, Users, MessageSquare,
   Search, Edit2, X, Key, Eye, EyeOff, Palette, PhoneIncoming, Save, Settings,
-  Download, Printer
+  Download, Printer, ShieldCheck
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import FrontDeskCards from '../components/FrontDeskCards'
@@ -1226,6 +1226,42 @@ export default function ClientDetailPage() {
             {renderEditableField('city',    'City',    client.city)}
             {renderEditableField('state',   'State',   client.state)}
             {renderEditableField('zip',     'Zip',     client.zip)}
+          </div>
+        </div>
+
+        {/* TRUST SIGNALS / SEO */}
+        <div style={card}>
+          <div style={sectionTitle}><ShieldCheck size={16} color={R} /> Trust Signals (E-E-A-T)</div>
+          <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', marginBottom:14, lineHeight:1.5 }}>
+            These fields feed directly into AI Pages, proposals, and SEO content. Google ranks pages higher when they include real author credentials, business details, and social proof. Fill these once — every AI-generated page for this client will use them automatically.
+          </div>
+
+          <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:6, marginTop:4 }}>Author / Expert</div>
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8 }}>The person behind the content. Adds an author byline, Person schema, and Experience signals to every page.</div>
+          <div style={twoCol}>
+            {renderEditableField('author_name', 'Author Name', client.author_name)}
+            {renderEditableField('author_credentials', 'Credentials', client.author_credentials)}
+          </div>
+
+          <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:6, marginTop:14 }}>Business Details</div>
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8 }}>Used in LocalBusiness schema, Google Knowledge Panel, and rich search results. Hours and price range show directly in Google.</div>
+          <div style={twoCol}>
+            {renderEditableField('year_founded', 'Founded Year', client.year_founded)}
+            {renderEditableField('business_hours', 'Business Hours', client.business_hours)}
+            {renderEditableField('price_range', 'Price Range', client.price_range)}
+            {renderEditableField('certifications', 'Certifications / Affiliations', client.certifications)}
+            {renderEditableField('key_result', 'Key Result / Metric', client.key_result)}
+          </div>
+
+          <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:6, marginTop:14 }}>Online Profiles</div>
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8 }}>Google uses these URLs to verify your business identity and connect your Knowledge Panel. Each URL becomes a schema.org sameAs link — the more profiles linked, the stronger the entity signal.</div>
+          <div style={twoCol}>
+            {renderEditableField('google_place_id', 'Google Place ID', client.google_place_id)}
+            {renderEditableField('facebook_url', 'Facebook URL', client.facebook_url, 'url')}
+            {renderEditableField('linkedin_url', 'LinkedIn URL', client.linkedin_url, 'url')}
+            {renderEditableField('yelp_url', 'Yelp URL', client.yelp_url, 'url')}
+            {renderEditableField('bbb_url', 'BBB URL', client.bbb_url, 'url')}
+            {renderEditableField('logo_url', 'Logo URL', client.logo_url, 'url')}
           </div>
         </div>
 
