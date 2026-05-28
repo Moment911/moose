@@ -1309,6 +1309,64 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
         </div>
         <div style={{ flex:1, overflow:'auto', padding:22, display:'flex', flexDirection:'column', gap:18 }}>
 
+          {/* Custom HTML wrapper — moved to top so theme styling is the first
+              thing the operator sees on opening Edit master. */}
+          <EditorBlock label="Custom HTML wrapper (theme styling)">
+            <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', marginBottom:8, lineHeight:1.5 }}>
+              Paste your theme&rsquo;s page HTML or capture from an existing styled URL. Placeholders:
+              {' '}<code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_HEADLINE}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_SUB}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_MEDIA}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{SECTIONS}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{FAQS}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{CTA}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{SERVICE_AREAS}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{RELATED_SERVICES}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HOWTO}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{COMPARISON}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{LOCAL_DATA}}'}</code>{' '}
+              <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{DIRECT_ANSWER}}'}</code>.
+              After saving, click <strong>Re-deploy all</strong> to apply.
+            </div>
+            <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center', flexWrap:'wrap' }}>
+              <input
+                value={captureUrl}
+                onChange={e => setCaptureUrl(e.target.value)}
+                placeholder="https://unifiedmktg.com/about/ — paste an existing styled page URL"
+                style={{ ...inp(), flex:'1 1 240px', minWidth:0 }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onCapture() } }}
+              />
+              <button onClick={onCapture} disabled={captureBusy || !captureUrl.trim()} style={miniBtn({ color:T, borderColor:T })}>
+                {captureBusy ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture from URL
+              </button>
+              <label style={{ ...miniBtn({ color:T, borderColor:T }), cursor:'pointer', opacity:captureBusy?0.5:1 }}>
+                <Upload size={12}/> Upload HTML file
+                <input type="file" accept=".html,.htm,text/html" disabled={captureBusy}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) { onUploadFile(f); e.target.value = '' } }}
+                  style={{ display:'none' }}/>
+              </label>
+              <button onClick={() => onAiAssist()} disabled={captureBusy || !wrapper.trim()} style={miniBtn({ color:R, borderColor:R })}>
+                {captureBusy ? <Loader2 size={12} className="spin"/> : <Sparkles size={12}/>} AI-insert placeholders
+              </button>
+              {wrapper && (
+                <button onClick={() => setWrapper('')} style={miniBtn()}>
+                  <X size={11}/> Clear
+                </button>
+              )}
+            </div>
+            <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8, lineHeight:1.5 }}>
+              <strong>How it works:</strong> Paste a URL → we fetch + extract. Upload a file → we read it in your browser (never stored on our servers, contents sent once to Claude for placeholder insertion, then discarded). Or paste HTML directly into the textarea and click <strong>AI-insert placeholders</strong>.
+            </div>
+            {captureInfo && (
+              <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
+                <strong>Captured:</strong> {captureInfo.notes}
+              </div>
+            )}
+            <textarea value={wrapper} onChange={e => setWrapper(e.target.value)} rows={10}
+              placeholder={'<div class="my-template">\n  {{HERO_MEDIA}}\n  <h1>{{HERO_HEADLINE}}</h1>\n  {{SECTIONS}}\n  {{FAQS}}\n  {{SERVICE_AREAS}}\n</div>'}
+              style={{ ...inp(), resize:'vertical', minHeight:160, fontFamily:'ui-monospace,Menlo,monospace', fontSize:12 }}/>
+          </EditorBlock>
+
           {/* Focus keyword template (resolved per-city for SEO) */}
           <EditorBlock label="Focus keyword (per-city)">
             <Field label="Template" hint="Use [koto_city], [koto_state], [koto_state_abbr]. Write it like you'd type it into RankMath's focus keyword field. Resolved + written to Yoast + RankMath + KotoIQ on every deploy.">
@@ -1418,48 +1476,6 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
           <EditorBlock label="JSON-LD Schema template">
             <textarea value={master.schema_jsonld_template || ''} onChange={e => patch('schema_jsonld_template', e.target.value)} rows={8}
               style={inp({ resize:'vertical', fontFamily:'ui-monospace,Menlo,monospace', fontSize:11 })}/>
-          </EditorBlock>
-          <EditorBlock label="Custom HTML wrapper (theme styling)">
-            <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', marginBottom:8, lineHeight:1.5 }}>
-              Paste your theme&rsquo;s page HTML or capture from an existing styled URL. Use <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_HEADLINE}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_SUB}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_MEDIA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{SECTIONS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{FAQS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{CTA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{SERVICE_AREAS}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{RELATED_SERVICES}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HOWTO}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{COMPARISON}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{LOCAL_DATA}}'}</code>, <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{DIRECT_ANSWER}}'}</code> placeholders. Add <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{NO_STYLES}}'}</code> to skip the default base CSS. After saving, click <strong>Re-deploy all</strong> to apply.
-            </div>
-            <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center', flexWrap:'wrap' }}>
-              <input
-                value={captureUrl}
-                onChange={e => setCaptureUrl(e.target.value)}
-                placeholder="https://unifiedmktg.com/about/ — paste an existing styled page URL"
-                style={{ ...inp(), flex:'1 1 240px', minWidth:0 }}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onCapture() } }}
-              />
-              <button onClick={onCapture} disabled={captureBusy || !captureUrl.trim()} style={miniBtn({ color:T, borderColor:T })}>
-                {captureBusy ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture from URL
-              </button>
-              <label style={{ ...miniBtn({ color:T, borderColor:T }), cursor:'pointer', opacity:captureBusy?0.5:1 }}>
-                <Upload size={12}/> Upload HTML file
-                <input type="file" accept=".html,.htm,text/html" disabled={captureBusy}
-                  onChange={e => { const f = e.target.files?.[0]; if (f) { onUploadFile(f); e.target.value = '' } }}
-                  style={{ display:'none' }}/>
-              </label>
-              <button onClick={() => onAiAssist()} disabled={captureBusy || !wrapper.trim()} style={miniBtn({ color:R, borderColor:R })}>
-                {captureBusy ? <Loader2 size={12} className="spin"/> : <Sparkles size={12}/>} AI-insert placeholders
-              </button>
-              {wrapper && (
-                <button onClick={() => setWrapper('')} style={miniBtn()}>
-                  <X size={11}/> Clear
-                </button>
-              )}
-            </div>
-            <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8, lineHeight:1.5 }}>
-              <strong>How it works:</strong> Paste a URL → we fetch + extract. Upload a file → we read it in your browser (never stored on our servers, contents sent once to Claude for placeholder insertion, then discarded). Or paste HTML directly into the textarea and click <strong>AI-insert placeholders</strong>.
-            </div>
-            {captureInfo && (
-              <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
-                <strong>Captured:</strong> {captureInfo.notes}
-              </div>
-            )}
-            <textarea value={wrapper} onChange={e => setWrapper(e.target.value)} rows={10}
-              placeholder={'<div class="my-template">\n  {{HERO_MEDIA}}\n  <h1>{{HERO_HEADLINE}}</h1>\n  {{SECTIONS}}\n  {{FAQS}}\n  {{SERVICE_AREAS}}\n</div>'}
-              style={{ ...inp(), resize:'vertical', minHeight:160, fontFamily:'ui-monospace,Menlo,monospace', fontSize:12 }}/>
           </EditorBlock>
         </div>
       </div>
