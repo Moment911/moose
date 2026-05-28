@@ -507,6 +507,38 @@ export function resolveMaster(
         ? `<section class="koto-results">\n  <h2>Results in ${escapeHtml(ctx.location.city)}</h2>\n  <div class="koto-results-grid">\n${results.map(r => `    <div class="koto-result">\n      <div class="koto-result-metric">${escapeHtml(r.metric)}</div>${r.context ? `\n      <div class="koto-result-context">${escapeHtml(r.context)}</div>` : ''}\n    </div>`).join('\n')}\n  </div>\n</section>`
         : ''
 
+    // Operator-provided business trust facts (specialties, languages,
+    // accreditations, license, team size, price, payment, booking). Same real
+    // data that feeds the LocalBusiness schema in enrichSchemaGraph — rendered
+    // here as VISIBLE prose so the facts also survive into the .md / llms-full
+    // twin (AI crawlers strip <script>, so schema-only data never reaches the
+    // markdown). All omit-when-empty; never AI-fabricated.
+    const biz = eeat.business
+    const businessHtml = (() => {
+        if (!biz) return ''
+        const joinList = (arr?: string[]) => (Array.isArray(arr) ? arr.filter(Boolean).join(', ') : '')
+        const rows: string[] = []
+        const specialties = joinList(biz.knowsAbout)
+        if (specialties) rows.push(`    <li><strong>Specialties:</strong> ${escapeHtml(specialties)}</li>`)
+        const langs = joinList(biz.knowsLanguage)
+        if (langs) rows.push(`    <li><strong>Languages spoken:</strong> ${escapeHtml(langs)}</li>`)
+        const awards = joinList(biz.award)
+        if (awards) rows.push(`    <li><strong>Accreditations &amp; awards:</strong> ${escapeHtml(awards)}</li>`)
+        if (biz.licenseNumber) rows.push(`    <li><strong>License:</strong> ${escapeHtml(biz.licenseNumber)}</li>`)
+        if (typeof biz.numberOfEmployees === 'number' && biz.numberOfEmployees > 0) {
+            rows.push(`    <li><strong>Team size:</strong> ${biz.numberOfEmployees} ${biz.numberOfEmployees === 1 ? 'professional' : 'professionals'}</li>`)
+        }
+        if (biz.priceRange) rows.push(`    <li><strong>Price range:</strong> ${escapeHtml(biz.priceRange)}</li>`)
+        if (biz.paymentAccepted) rows.push(`    <li><strong>Payment accepted:</strong> ${escapeHtml(biz.paymentAccepted)}</li>`)
+        if (!rows.length && !biz.bookingUrl) return ''
+        const heading = ctx.companyName ? `About ${escapeHtml(ctx.companyName)}` : 'Business Details'
+        const listHtml = rows.length ? `\n  <ul class="koto-business-facts">\n${rows.join('\n')}\n  </ul>` : ''
+        const bookHtml = biz.bookingUrl
+            ? `\n  <a class="koto-business-book" href="${escapeHtml(biz.bookingUrl)}" rel="noopener">Book an appointment</a>`
+            : ''
+        return `<section class="koto-business">\n  <h2>${heading}</h2>${listHtml}${bookHtml}\n</section>`
+    })()
+
     // Business contact line — the real fixed address (operator-provided), shown
     // in a footer-style block + emitted into LocalBusiness PostalAddress schema.
     const ba = ctx.businessAddress
@@ -622,7 +654,11 @@ section{margin:1.5rem 0}
 .koto-related-services{border-left:3px solid var(--koto-color-primary,#1e3a8a)}
 a[href^="tel:"]{color:var(--koto-color-primary,#1e3a8a);font-weight:700;text-decoration:none;white-space:nowrap}
 a[href^="tel:"]:hover{text-decoration:underline}
-.koto-author,.koto-testimonials,.koto-results{margin:2rem 0;padding:1.5rem;background:var(--koto-color-surface,#fff);border-radius:var(--koto-radius,12px);border:1px solid var(--koto-color-border,#eee)}
+.koto-author,.koto-testimonials,.koto-results,.koto-business{margin:2rem 0;padding:1.5rem;background:var(--koto-color-surface,#fff);border-radius:var(--koto-radius,12px);border:1px solid var(--koto-color-border,#eee)}
+.koto-business-facts{list-style:none;margin:1rem 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.5rem 1.5rem}
+.koto-business-facts li{font-size:.95rem;color:var(--koto-color-text,#334155);line-height:1.5}
+.koto-business-facts strong{color:var(--koto-color-heading,#1a2332)}
+.koto-business-book{display:inline-block;margin-top:1rem;padding:.6rem 1.2rem;background:var(--koto-color-primary,#1e3a8a);color:#fff;border-radius:var(--koto-radius,8px);font-weight:700;text-decoration:none}
 .koto-author .koto-author-card{display:flex;align-items:center;gap:1rem}
 .koto-author-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none}
 .koto-author-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#64748b;font-weight:700}
@@ -708,6 +744,7 @@ a[href^="tel:"]:hover{text-decoration:underline}
             .replace(/\{\{AUTHOR_BYLINE\}\}/g, authorBylineHtml)
             .replace(/\{\{TESTIMONIALS\}\}/g, testimonialsHtml)
             .replace(/\{\{RESULTS\}\}/g, resultsHtml)
+            .replace(/\{\{BUSINESS\}\}/g, businessHtml)
             .replace(/\{\{CITATIONS\}\}/g, citationsHtml)
             .replace(/\{\{RATING\}\}/g, ratingBadgeHtml)
             .replace(/\{\{CONTACT\}\}/g, contactHtml)
@@ -720,6 +757,7 @@ a[href^="tel:"]:hover{text-decoration:underline}
             howtoHtml,
             comparisonHtml,
             resultsHtml,
+            businessHtml,
             testimonialsHtml,
             faqsHtml,
             localDataHtml,
