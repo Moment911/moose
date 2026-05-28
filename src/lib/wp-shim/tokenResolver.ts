@@ -287,9 +287,19 @@ function resolveScalarTokens(input: string, ctx: ResolveContext): string {
             const pattern = phoneRegex(phone)
             if (pattern) {
                 out = out.replace(pattern, (m, _g, offset, str) => {
-                    // Skip if already inside an <a> tag (avoid double-wrap)
-                    const before = String(str).slice(Math.max(0, offset - 80), offset)
-                    if (/<a[^>]*tel:[^>]*>[^<]*$/i.test(before)) return m
+                    const s = String(str)
+                    const before = s.slice(0, offset)
+                    // Skip matches that fall INSIDE an HTML tag — e.g. the bare
+                    // digits in href="tel:9547587200". An unclosed '<' before us
+                    // (last '<' after the last '>') means we're mid-tag. The
+                    // phone regex matches unseparated digits too, so without
+                    // this guard the safety net wraps the href digits, injecting
+                    // a nested <a> into the attribute. Browsers untangle that
+                    // into visible `9547587200">(954) 758-7200` text — the exact
+                    // corruption seen on live CTAs.
+                    if (before.lastIndexOf('<') > before.lastIndexOf('>')) return m
+                    // Skip if already the text inside an <a ...tel...> block.
+                    if (/<a[^>]*tel:[^>]*>[^<]*$/i.test(before.slice(-120))) return m
                     return `<a href="tel:${phoneDigits}">${m}</a>`
                 })
             }
