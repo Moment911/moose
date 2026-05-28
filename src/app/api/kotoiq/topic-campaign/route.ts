@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+
+// Several actions on this route are long-running:
+//   - generate_master with competitor_sample_city → DataForSEO SERP + 3 URL
+//     scrapes + Claude master generation (~30-60s)
+//   - wrapper_assist with large HTML → streaming Claude 16k+ tokens (~30-90s)
+//   - deploy across many cities → N WP REST calls (~60-180s for 50+ cities)
+//   - eeat_score + topical_expand → smaller Claude calls (~5-15s)
+// Default Vercel function timeout is 60s — too tight. Bump to 300s
+// (Vercel's max on Hobby/Pro Fluid Compute) so none of these silently
+// time out and return as opaque 504 errors to the dashboard.
+export const maxDuration = 300
 import Anthropic from '@anthropic-ai/sdk'
 import { generateTopicCampaignMaster } from '@/lib/wp-shim/topicCampaignGenerator'
 import { resolveMaster, type LocationContext, type ResolveContext, type TopicCampaignMaster } from '@/lib/wp-shim/tokenResolver'
@@ -79,6 +90,7 @@ export async function POST(req: NextRequest) {
             case 'eeat_score':        return await eeatScoreMaster(supabase, agencyId, body)
             case 'topical_expand':    return await topicalExpand(supabase, agencyId, body)
             case 'integration_status':return await integrationStatusForSite(supabase, agencyId, body)
+            case 'regenerate_master': return await regenerateMaster(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -162,6 +174,81 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
     }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, campaign: data, tokens_used: totalTokens, competitor_meta: competitorMeta })
+}
+
+/**
+ * regenerate_master action — re-runs Claude master generation for an
+ * EXISTING campaign, optionally with fresh competitor intel for a new
+ * sample city. Lets the operator change the topic / sample location and
+ * rebuild the master without creating a new campaign (keeps the same
+ * campaign_id, deploy history, site link).
+ *
+ * Destructive to the master content — replaces it. Deploy history +
+ * custom_html_wrapper are preserved.
+ */
+async function regenerateMaster(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns')
+        .select('*')
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    // Topic can be overridden in the same call (operator edited it).
+    const topic = String(body.topic || campaign.topic || '').trim()
+    if (!topic) return NextResponse.json({ error: 'topic required' }, { status: 400 })
+
+    // Competitor intel — optional sample city/state.
+    let competitorContext: string | undefined
+    let competitorMeta: any = null
+    const sampleCity = String(body.competitor_sample_city || '').trim()
+    const sampleStateAbbr = String(body.competitor_sample_state_abbr || '').trim()
+    if (sampleCity) {
+        try {
+            const ctx = await buildCompetitorContext(topic, sampleCity, sampleStateAbbr || undefined)
+            if (ctx) {
+                competitorContext = ctx.promptText
+                competitorMeta = {
+                    sample_query: ctx.sampleQuery,
+                    sample_location: ctx.sampleLocation,
+                    competitor_count: ctx.briefs.length,
+                    ai_overview_seen: ctx.aiOverviewSeen,
+                    people_also_ask: ctx.peopleAlsoAsk.slice(0, 6),
+                    competitors: ctx.briefs.map(b => ({ rank: b.rank, domain: b.domain, h1: b.h1, word_count: b.wordCount })),
+                }
+            }
+        } catch {}
+    }
+
+    const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
+    const { master, inputTokens, outputTokens, model } = await generateTopicCampaignMaster(ai, {
+        topic,
+        companyName: campaign.company_name || undefined,
+        phone: campaign.phone || undefined,
+        htmlWrapperHint: campaign.custom_html_wrapper || undefined,
+        notes: campaign.notes || undefined,
+        competitorContext,
+        agencyId,
+    })
+
+    const patch: any = {
+        topic,
+        master,
+        tokens_used: (campaign.tokens_used || 0) + inputTokens + outputTokens,
+        model_used: model,
+        competitor_meta: competitorMeta,
+        updated_at: new Date().toISOString(),
+    }
+    let { data, error } = await supabase.from('koto_topic_campaigns').update(patch).eq('id', campaignId).select().single()
+    if (error && /column .* does not exist/i.test(error.message || '')) {
+        delete patch.competitor_meta
+        ;({ data, error } = await supabase.from('koto_topic_campaigns').update(patch).eq('id', campaignId).select().single())
+    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, campaign: data, competitor_meta: competitorMeta })
 }
 
 async function updateMaster(supabase: any, agencyId: string, body: any) {
