@@ -707,19 +707,39 @@ a[href^="tel:"]:hover{text-decoration:underline}
     // AI-search-friendly entity we can derive deterministically.
     let jsonLd: string | null = null
     if (master.schema_jsonld_template) {
-        // Phone tokens inside the schema template MUST resolve to plain
-        // digits/text — NOT the full <a> anchor that the body uses. An
-        // unescaped <a href="..."> inside a JSON string breaks parsing
-        // (unescaped `"` from the anchor's attribute terminates the JSON
-        // string early) and the plugin's sanitizer drops the meta entirely.
-        // Substitute here before the standard token resolver runs.
-        let schemaTpl = master.schema_jsonld_template
-        if (ctx.phone) {
-            const phoneJsonValue = ctx.phone.replace(/\D/g, '') || ctx.phone
-            schemaTpl = schemaTpl.replace(/\[koto_phone(?:_link)?\]/g, phoneJsonValue)
+        // Resolve tokens into the JSON-LD with JSON-SAFE escaping. Previously
+        // this used the HTML token resolver, so a token value containing a
+        // double-quote, backslash, or newline (e.g. a company name like
+        // O'Brien "& Sons", or a street address) terminated the JSON string
+        // early — invalid JSON, and the whole schema got dropped. Here every
+        // token value is escaped via JSON.stringify before substitution.
+        // Phone resolves to plain digits (never the <a> anchor the body uses).
+        const seed = ctx.seed ?? `${ctx.location.city}|${ctx.location.state}`
+        const phoneDigits = ctx.phone ? (ctx.phone.replace(/\D/g, '') || ctx.phone) : ''
+        const jmap: Record<string, string> = {
+            '[koto_phone]': phoneDigits,
+            '[koto_phone_link]': phoneDigits,
+            '[koto_city]': ctx.location.city,
+            '[koto_state]': ctx.location.state,
+            '[koto_state_abbr]': ctx.location.stateAbbr,
+            '[koto_zip]': ctx.location.zip || '',
+            '[koto_county]': ctx.location.county || '',
+            '[koto_population]': ctx.location.population != null ? String(ctx.location.population) : '',
+            '[koto_company_name]': ctx.companyName || '',
+            '[koto_street_address]': ctx.businessAddress?.street || '',
+            '[koto_city_state]': ctx.location.city && ctx.location.state ? `${ctx.location.city}, ${ctx.location.state}` : ctx.location.city,
+            '[koto_city_state_abbr]': ctx.location.city && ctx.location.stateAbbr ? `${ctx.location.city}, ${ctx.location.stateAbbr}` : ctx.location.city,
+            '[koto_city_state_zip]': [ctx.location.city, ctx.location.state, ctx.location.zip].filter(Boolean).join(', '),
         }
-        const resolvedTpl = resolveTokens(schemaTpl, ctx)
-        jsonLd = enrichSchemaGraph(resolvedTpl, master, ctx, { title, metaDescription: stripHtml(metaDescription).trim() })
+        let tpl = resolveRotateBlocks(master.schema_jsonld_template, seed)
+        for (const [tok, val] of Object.entries(jmap)) {
+            if (tpl.indexOf(tok) === -1) continue
+            // JSON.stringify wraps + escapes the value; strip the surrounding
+            // quotes since the token already sits inside a quoted JSON string.
+            const esc = JSON.stringify(String(val)).slice(1, -1)
+            tpl = tpl.split(tok).join(esc)
+        }
+        jsonLd = enrichSchemaGraph(tpl, master, ctx, { title, metaDescription: stripHtml(metaDescription).trim() })
     }
 
     // Combine our base CSS with any styles extracted from the operator's
