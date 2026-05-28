@@ -512,6 +512,24 @@ Siblings should be deployable as their own city-rotatable topic-campaigns. Suppo
 }
 
 /**
+ * Condense a (potentially huge) page's HTML down to the parts that carry its
+ * design language, so wrapper_assist stays fast on big uploads. Keeps ALL
+ * <style> blocks (design tokens + CSS vars live here) plus the top of the
+ * document (head + hero + first sections). Trailing body content is dropped —
+ * it doesn't inform color/type/spacing extraction. Total capped at ~120k chars
+ * (~30k tokens), which is plenty for design extraction.
+ */
+function condenseHtmlForWrapper(html: string): string {
+    const MAX = 120_000
+    if (html.length <= MAX) return html
+    const styles = (html.match(/<style[\s\S]*?<\/style>/gi) || []).join('\n')
+    const styleBudget = styles.slice(0, 40_000)
+    const topBudget = MAX - styleBudget.length - 200
+    const top = html.slice(0, Math.max(0, topBudget))
+    return `${top}\n\n<!-- [document truncated — additional <style> blocks below] -->\n${styleBudget}\n<!-- [end design-language sample] -->`
+}
+
+/**
  * wrapper_assist action — operator pastes raw page HTML (copied from their
  * styled WP page source), Claude reads the structure and inserts our token
  * placeholders ({{HERO_HEADLINE}}, {{SECTIONS}}, etc.) at the right spots.
@@ -581,17 +599,23 @@ CRITICAL RULES:
 - IF the source is a design system reference (CSS variables, tokens, no real page) — read the tokens and build a fresh wrapper that uses those token values.
 - Output ONLY the wrapper HTML+CSS. No commentary, no markdown fences, no explanation.`
 
-    const userPrompt = `Insert KotoIQ placeholders into this WP page HTML:\n\n${rawHtml}`
+    // We only need the page's DESIGN LANGUAGE (colors, fonts, spacing, button
+    // styles) — which lives in <style>/<head> and the top of the page — not the
+    // whole 1MB body. Sending the entire file made big uploads slow enough to
+    // blow past maxDuration=300. Condense to a design-bearing sample so the call
+    // stays fast and reliable.
+    const condensed = condenseHtmlForWrapper(rawHtml)
+    const userPrompt = `Insert KotoIQ placeholders into this WP page HTML (sampled for design language):\n\n${condensed}`
 
-    // Streaming required by the Anthropic SDK for max_tokens > ~16k (the
-    // 10-minute soft cap on non-streaming calls). We don't actually need
-    // chunks; finalMessage() awaits the full response and returns the same
-    // shape messages.create would have produced.
+    // Streaming so the SDK doesn't impose the non-streaming soft cap. We don't
+    // need chunks; finalMessage() awaits the full response. max_tokens is sized
+    // for a wrapper FRAGMENT (a few k tokens) — 12k is generous headroom and
+    // keeps worst-case generation comfortably under the 300s function limit.
     let msg
     try {
         const stream = ai.messages.stream({
             model: 'claude-sonnet-4-6',
-            max_tokens: 32000,
+            max_tokens: 12000,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }],
         })
