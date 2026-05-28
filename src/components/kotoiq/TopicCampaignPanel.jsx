@@ -75,7 +75,22 @@ export default function TopicCampaignPanel({ site, client }) {
   const [genLog, setGenLog] = useState([])
   const [optimizeReport, setOptimizeReport] = useState(null) // structured pipeline report
   const [reportExpanded, setReportExpanded] = useState({})   // which steps are expanded
+  const [paused, setPaused] = useState(false)
+  const pauseRef = React.useRef(false)
   function logGen(msg) { setGenLog(prev => [...prev, { time: new Date(), msg }]) }
+  function requestPause() { pauseRef.current = true; setPaused(true); logGen('⏸ Paused — make your changes, then click Resume') }
+  function requestResume() { pauseRef.current = false; setPaused(false) }
+  /** Wait if paused. Returns true if resumed, so pipeline continues. */
+  async function checkPause(stepName) {
+    if (!pauseRef.current) return
+    logGen(`⏸ Paused before ${stepName} — waiting for resume…`)
+    await new Promise(resolve => {
+      const check = setInterval(() => {
+        if (!pauseRef.current) { clearInterval(check); resolve() }
+      }, 500)
+    })
+    logGen(`▶ Resumed — re-checking before ${stepName}…`)
+  }
   const [competitorSampleCity, setCompetitorSampleCity] = useState('')
   const [competitorSampleState, setCompetitorSampleState] = useState('')
 
@@ -803,6 +818,7 @@ export default function TopicCampaignPanel({ site, client }) {
     let clusterTopics = []  // saved so E-E-A-T fix rounds preserve cluster coverage
 
     // 1. Quality check (baseline)
+    await checkPause('Quality check')
     logGen('─── Step 1: Quality check ───')
     addStep('Quality check', 'running')
     try {
@@ -819,6 +835,7 @@ export default function TopicCampaignPanel({ site, client }) {
     } catch (e) { logGen(`Quality check error: ${e.message}`); addStep('Quality check', 'error', { error: e.message }) }
 
     // 2. Schema validation (baseline)
+    await checkPause('Schema validation')
     logGen('─── Step 2: Schema validation ───')
     addStep('Schema validation', 'running')
     try {
@@ -833,6 +850,7 @@ export default function TopicCampaignPanel({ site, client }) {
     } catch (e) { logGen(`Schema error: ${e.message}`); addStep('Schema validation', 'error', { error: e.message }) }
 
     // 3. Topical cluster → weave
+    await checkPause('Topical cluster')
     logGen('─── Step 3: Topical cluster ───')
     addStep('Topical cluster', 'running')
     try {
@@ -855,6 +873,7 @@ export default function TopicCampaignPanel({ site, client }) {
     } catch (e) { logGen(`Topical cluster error: ${e.message}`); addStep('Topical cluster', 'error', { error: e.message }) }
 
     // 4. E-E-A-T audit + auto-fix (on the woven master)
+    await checkPause('E-E-A-T optimizer')
     logGen('─── Step 4: E-E-A-T audit + auto-fix ───')
     addStep('E-E-A-T optimizer', 'running')
     let eeat = null
@@ -896,6 +915,7 @@ export default function TopicCampaignPanel({ site, client }) {
     } catch (e) { logGen(`E-E-A-T error: ${e.message}`); addStep('E-E-A-T optimizer', 'error', { error: e.message }) }
 
     // 5. Final quality + schema re-check
+    await checkPause('Final verification')
     logGen('─── Step 5: Final verification ───')
     addStep('Final verification', 'running')
     try {
@@ -1442,11 +1462,32 @@ export default function TopicCampaignPanel({ site, client }) {
             </Field>
           </div>
 
+          {/* Competitor-aware generation — visible by default (biggest ranking lift) */}
+          <div style={{ marginTop:14, padding:14, background:'#f0f9ff', border:'1px solid #bae6fd', borderRadius:10 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+              <Sparkles size={14} color="#0369a1"/>
+              <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:'#0c4a6e' }}>
+                Competitor-aware generation (recommended)
+              </div>
+            </div>
+            <div style={{ fontFamily:FB, fontSize:12, color:'#075985', marginBottom:10, lineHeight:1.5 }}>
+              Pick 1&ndash;5 sample cities &mdash; we&rsquo;ll fetch the top 3 Google results for &quot;{topic.trim() || '<topic>'} in &lt;city&gt;&quot; in each, scrape their H1/H2/word-count signal, and aggregate so domains that dominate across markets surface as the real targets. Skip if you want a vanilla generation.
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:10 }}>
+              <Field label="Sample cities" hint="Up to 5, comma-separated (e.g. 'Austin, Dallas, Houston'). More cities = stronger signal, ~3-8s each.">
+                <input value={competitorSampleCity} onChange={e => setCompetitorSampleCity(e.target.value)} placeholder="Austin, Dallas, Houston" style={inp()}/>
+              </Field>
+              <Field label="State abbr" hint="2-letter, optional">
+                <input value={competitorSampleState} onChange={e => setCompetitorSampleState(e.target.value.toUpperCase().slice(0,2))} placeholder="TX" style={inp()} maxLength={2}/>
+              </Field>
+            </div>
+          </div>
+
           <button onClick={() => setShowAdvanced(v => !v)}
             style={{ ...miniBtn(), marginTop:14, display:'inline-flex', alignItems:'center', gap:6 }}>
             {showAdvanced ? <ChevronUp size={12}/> : <ChevronDown size={12}/>}
             {showAdvanced ? 'Hide' : 'Show'} advanced options
-            <span style={{ color:'#9ca3af', fontWeight:600 }}>competitor intel · styling · hero media · variants</span>
+            <span style={{ color:'#9ca3af', fontWeight:600 }}>styling · hero media · variants</span>
           </button>
 
           {showAdvanced && (
@@ -1489,27 +1530,6 @@ export default function TopicCampaignPanel({ site, client }) {
               <input value={heroImageAlt} onChange={e => setHeroImageAlt(e.target.value)} placeholder="Website design team at work" style={inp()}/>
             </Field>
           )}
-
-          {/* Competitor-aware generation — optional, biggest ranking lift when set */}
-          <div style={{ marginTop:10, padding:14, background:'#f0f9ff', border:'1px solid #bae6fd', borderRadius:10 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-              <Sparkles size={14} color="#0369a1"/>
-              <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:'#0c4a6e' }}>
-                Competitor-aware generation (recommended)
-              </div>
-            </div>
-            <div style={{ fontFamily:FB, fontSize:12, color:'#075985', marginBottom:10, lineHeight:1.5 }}>
-              Pick 1&ndash;5 sample cities &mdash; we&rsquo;ll fetch the top 3 Google results for &quot;{topic.trim() || '<topic>'} in &lt;city&gt;&quot; in each, scrape their H1/H2/word-count signal, and aggregate so domains that dominate across markets surface as the real targets. Skip if you want a vanilla generation.
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:10 }}>
-              <Field label="Sample cities" hint="Up to 5, comma-separated (e.g. 'Austin, Dallas, Houston'). More cities = stronger signal, ~3-8s each.">
-                <input value={competitorSampleCity} onChange={e => setCompetitorSampleCity(e.target.value)} placeholder="Austin, Dallas, Houston" style={inp()}/>
-              </Field>
-              <Field label="State abbr" hint="2-letter, optional">
-                <input value={competitorSampleState} onChange={e => setCompetitorSampleState(e.target.value.toUpperCase().slice(0,2))} placeholder="TX" style={inp()} maxLength={2}/>
-              </Field>
-            </div>
-          </div>
 
           <Field label="Custom HTML wrapper (optional)" hint="Use {{HERO_HEADLINE}}, {{HERO_SUB}}, {{HERO_MEDIA}}, {{SECTIONS}}, {{FAQS}}, {{CTA}}, {{SERVICE_AREAS}} placeholders. Add {{NO_STYLES}} to skip the default base CSS.">
             <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center', flexWrap:'wrap' }}>
@@ -1597,6 +1617,12 @@ export default function TopicCampaignPanel({ site, client }) {
               {generating ? <Loader2 size={14} className="spin"/> : <Wand2 size={14}/>}
               {generating ? 'Claude is writing…' : 'Generate Master'}
             </button>
+            {generating && (
+              <button onClick={paused ? requestResume : requestPause}
+                style={miniBtn({ color: paused ? GRN : AMB, borderColor: paused ? GRN : AMB })}>
+                {paused ? '▶ Resume' : '⏸ Pause'}
+              </button>
+            )}
           </div>
 
           {/* Live generation log */}
