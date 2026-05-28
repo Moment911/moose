@@ -28,6 +28,10 @@ export interface GenerateMasterInput {
     faqCount?: number
     /** Free-form operator notes (e.g. "emphasize affordable pricing", "B2B tone"). */
     notes?: string
+    /** Optional pre-rendered competitor context block — top SERP results
+     *  + H1/H2/word-count signal — that Claude uses to take deliberately
+     *  differentiated angles. Built by competitorContext.ts. */
+    competitorContext?: string
     /** Agency ID for token-usage attribution. */
     agencyId?: string
 }
@@ -93,6 +97,7 @@ TOPIC: ${input.topic}
 COMPANY_NAME: ${input.companyName || '(operator will provide; use [koto_company_name] token)'}
 PHONE: ${input.phone ? `(operator provided — refer to it via [koto_phone] token)` : '(not provided — still include [koto_phone] in CTAs)'}
 NOTES: ${input.notes || '(none)'}
+${input.competitorContext ? `\n${input.competitorContext}\n` : ''}
 ${input.htmlWrapperHint ? `STYLE_HINT (operator pasted HTML wrapper — match the implied voice/structure):\n${input.htmlWrapperHint.slice(0, 2000)}` : ''}
 
 Produce a JSON object with this EXACT shape:

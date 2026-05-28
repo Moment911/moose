@@ -14,6 +14,7 @@ import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
 import { buildLlmsTxt, publishLlmsTxt } from '@/lib/wp-shim/llmsTxtBuilder'
 import { shimSelfUpdate } from '@/lib/wp-shim/shimSelfUpdate'
 import { logTokenUsage } from '@/lib/tokenTracker'
+import { buildCompetitorContext } from '@/lib/wp-shim/competitorContext'
 
 // Thin name wrapper — local handle for the per-location ACS lookup used in
 // deploy + redeploy. Returns null on any failure (missing key, city not found,
@@ -75,6 +76,8 @@ export async function POST(req: NextRequest) {
             case 'preview_llms_txt':  return await previewLlmsTxtForSite(supabase, agencyId, body)
             case 'shim_update':       return await shimUpdateForSite(supabase, agencyId, body)
             case 'wrapper_assist':    return await wrapperAssist(body, agencyId)
+            case 'eeat_score':        return await eeatScoreMaster(supabase, agencyId, body)
+            case 'topical_expand':    return await topicalExpand(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -91,6 +94,32 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
     const topic = String(body.topic || '').trim()
     if (!topic) return NextResponse.json({ error: 'topic required' }, { status: 400 })
 
+    // Optional competitor-aware generation: if operator supplied a sample
+    // city, fetch the top 3 SERP results + extract on-page signal, feed
+    // Claude as context so the master takes deliberately differentiated
+    // angles. Skipped silently on failure — generation still proceeds with
+    // the raw topic/notes.
+    let competitorContext: string | undefined
+    let competitorMeta: any = null
+    const sampleCity = String(body.competitor_sample_city || '').trim()
+    const sampleStateAbbr = String(body.competitor_sample_state_abbr || '').trim()
+    if (sampleCity) {
+        try {
+            const ctx = await buildCompetitorContext(topic, sampleCity, sampleStateAbbr || undefined)
+            if (ctx) {
+                competitorContext = ctx.promptText
+                competitorMeta = {
+                    sample_query: ctx.sampleQuery,
+                    sample_location: ctx.sampleLocation,
+                    competitor_count: ctx.briefs.length,
+                    ai_overview_seen: ctx.aiOverviewSeen,
+                    people_also_ask: ctx.peopleAlsoAsk.slice(0, 6),
+                    competitors: ctx.briefs.map(b => ({ rank: b.rank, domain: b.domain, h1: b.h1, word_count: b.wordCount })),
+                }
+            }
+        } catch {}
+    }
+
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
     const { master, inputTokens, outputTokens, model } = await generateTopicCampaignMaster(ai, {
         topic,
@@ -98,6 +127,7 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
         phone: body.phone || undefined,
         htmlWrapperHint: body.custom_html_wrapper || undefined,
         notes: body.notes || undefined,
+        competitorContext,
         variantsPerSection: body.variants_per_section || undefined,
         faqCount: body.faq_count || undefined,
         agencyId,
@@ -119,10 +149,18 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
         status: 'draft',
         tokens_used: totalTokens,
         model_used: model,
+        competitor_meta: competitorMeta,
     }
-    const { data, error } = await supabase.from('koto_topic_campaigns').insert(insert).select().single()
+    let { data, error } = await supabase.from('koto_topic_campaigns').insert(insert).select().single()
+    // competitor_meta may not exist as a column on older schemas — retry
+    // without it rather than failing master generation. Same defensive
+    // schema-drift handling used elsewhere in this module.
+    if (error && /column .* does not exist/i.test(error.message || '')) {
+        delete insert.competitor_meta
+        ;({ data, error } = await supabase.from('koto_topic_campaigns').insert(insert).select().single())
+    }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ ok: true, campaign: data, tokens_used: totalTokens })
+    return NextResponse.json({ ok: true, campaign: data, tokens_used: totalTokens, competitor_meta: competitorMeta })
 }
 
 async function updateMaster(supabase: any, agencyId: string, body: any) {
@@ -178,6 +216,139 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
+}
+
+/**
+ * eeat_score action — scores a campaign's master against E-E-A-T signals
+ * (Experience, Expertise, Authoritativeness, Trustworthiness). Returns
+ * 0-100 overall score + per-dimension scores + a punchlist of specific
+ * gaps for the operator to fix.
+ *
+ * Lightweight: one Claude call, no external API hits. Reads the campaign
+ * row, asks Claude to evaluate, returns JSON. Caller stores the result
+ * on the campaign if desired.
+ */
+async function eeatScoreMaster(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns')
+        .select('id, topic, master, company_name, phone')
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
+    const systemPrompt = `You are a Google Search Quality Rater grading a landing page master document on E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness).
+
+Return ONLY valid JSON matching this shape:
+{
+  "overall_score": <0-100>,
+  "experience": <0-25>,
+  "expertise": <0-25>,
+  "authoritativeness": <0-25>,
+  "trustworthiness": <0-25>,
+  "strengths": [<3-5 concrete things the master does well>],
+  "gaps": [
+    { "dimension": "experience|expertise|authoritativeness|trustworthiness", "issue": "<one-line problem>", "fix": "<one-line concrete improvement>" }
+  ]
+}
+
+Score generously where the format limits the signal (it's a city-rotatable template) but flag any genuinely missing E-E-A-T anchors: author byline, citations, dates, testimonials/social proof, real specifics (numbers, deliverables, named clients), credentials, contact verification, business address, certifications.`
+
+    const userPrompt = `Evaluate this topic-campaign master:\n\nTOPIC: ${campaign.topic}\nCOMPANY: ${campaign.company_name || '(unknown)'}\n\nMASTER:\n${JSON.stringify(campaign.master, null, 2)}\n\nReturn ONLY the JSON.`
+
+    let parsed: any = null
+    try {
+        const msg = await ai.messages.create({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 4000,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }],
+        })
+        const text = msg.content?.[0]?.type === 'text' ? msg.content[0].text : ''
+        const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+        parsed = JSON.parse(stripped)
+        void logTokenUsage({
+            feature: 'kotoiq_topic_campaign_eeat',
+            model: 'claude-sonnet-4-6',
+            inputTokens: msg.usage?.input_tokens || 0,
+            outputTokens: msg.usage?.output_tokens || 0,
+            agencyId,
+        })
+    } catch (e: any) {
+        return NextResponse.json({ error: `eeat scoring failed: ${String(e?.message || e)}` }, { status: 500 })
+    }
+
+    // Best-effort store on campaign — schema-drift tolerant.
+    try {
+        await supabase.from('koto_topic_campaigns')
+            .update({ eeat_score: parsed.overall_score, eeat_audit: parsed })
+            .eq('id', campaignId)
+    } catch {}
+    return NextResponse.json({ ok: true, audit: parsed })
+}
+
+/**
+ * topical_expand action — given a campaign's topic, asks Claude for 8-12
+ * related sub-topics + 5-8 supporting "supporting" sub-topics, forming
+ * a topical authority cluster. Operator clicks any to generate a new
+ * campaign for it.
+ *
+ * Cheap. One Claude call, no external API hits.
+ */
+async function topicalExpand(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns')
+        .select('id, topic, company_name')
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
+    const systemPrompt = `You are a topical-authority SEO strategist. Given a primary service topic, return 8-12 SIBLING topics (services/products customers buying the primary topic also need) and 5-8 SUPPORTING topics (educational / informational queries that funnel into the primary topic).
+
+Return ONLY valid JSON matching this shape:
+{
+  "primary": "<echo back the topic>",
+  "siblings": [
+    { "topic": "<short topic name>", "rationale": "<one-line why>", "intent": "commercial|local-commercial" }
+  ],
+  "supporting": [
+    { "topic": "<short topic name>", "rationale": "<one-line why>", "intent": "informational|navigational" }
+  ]
+}
+
+Siblings should be deployable as their own city-rotatable topic-campaigns. Supporting topics should be blog/glossary type content that builds authority around the primary cluster.`
+
+    const userPrompt = `PRIMARY TOPIC: ${campaign.topic}\nCOMPANY CONTEXT: ${campaign.company_name || '(generic service business)'}\n\nReturn ONLY the JSON.`
+
+    let parsed: any = null
+    try {
+        const msg = await ai.messages.create({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 3000,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }],
+        })
+        const text = msg.content?.[0]?.type === 'text' ? msg.content[0].text : ''
+        const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+        parsed = JSON.parse(stripped)
+        void logTokenUsage({
+            feature: 'kotoiq_topic_campaign_topical_expand',
+            model: 'claude-sonnet-4-6',
+            inputTokens: msg.usage?.input_tokens || 0,
+            outputTokens: msg.usage?.output_tokens || 0,
+            agencyId,
+        })
+    } catch (e: any) {
+        return NextResponse.json({ error: `topical expand failed: ${String(e?.message || e)}` }, { status: 500 })
+    }
+    return NextResponse.json({ ok: true, expansion: parsed })
 }
 
 /**
