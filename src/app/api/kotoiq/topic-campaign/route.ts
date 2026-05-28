@@ -97,6 +97,7 @@ export async function POST(req: NextRequest) {
             case 'delete_campaign':   return await deleteCampaign(supabase, agencyId, body)
             case 'find_places':       return await findPlaces(body)
             case 'set_campaign_place':return await setCampaignPlace(supabase, agencyId, body)
+            case 'set_eeat_inputs':   return await setEeatInputs(supabase, agencyId, body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
         }
     } catch (err) {
@@ -257,6 +258,53 @@ async function setCampaignPlace(supabase: any, agencyId: string, body: any) {
         .single()
     if (isMissingColumnError(error)) {
         return NextResponse.json({ error: 'google_place_id column missing — apply the koto_topic_campaigns google_place_id migration in Supabase first' }, { status: 409 })
+    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, campaign: data })
+}
+
+/**
+ * set_eeat_inputs — save operator-provided E-E-A-T data (strategist, results,
+ * citations, sameAs) to the campaign. Sanitized to the known shape; empty
+ * collections are dropped so blocks stay omit-when-empty. NEVER includes
+ * reviews/testimonials — those are pulled live from Google.
+ */
+async function setEeatInputs(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const inRaw = body.eeat_inputs && typeof body.eeat_inputs === 'object' ? body.eeat_inputs : {}
+
+    const clean: any = {}
+    const s = inRaw.strategist
+    if (s && String(s.name || '').trim()) {
+        clean.strategist = {
+            name: String(s.name).trim(),
+            ...(String(s.title || '').trim() ? { title: String(s.title).trim() } : {}),
+            ...(Number(s.yearsExperience) > 0 ? { yearsExperience: Number(s.yearsExperience) } : {}),
+            ...(String(s.photoUrl || '').trim() ? { photoUrl: String(s.photoUrl).trim() } : {}),
+        }
+    }
+    const sameAs = Array.isArray(inRaw.sameAs) ? inRaw.sameAs.map((u: any) => String(u || '').trim()).filter(Boolean) : []
+    if (sameAs.length) clean.sameAs = sameAs
+    const results = Array.isArray(inRaw.results)
+        ? inRaw.results.map((r: any) => ({ metric: String(r?.metric || '').trim(), context: String(r?.context || '').trim() })).filter((r: any) => r.metric)
+        : []
+    if (results.length) clean.results = results.map((r: any) => (r.context ? r : { metric: r.metric }))
+    const citations = Array.isArray(inRaw.citations)
+        ? inRaw.citations.map((c: any) => ({ claim: String(c?.claim || '').trim(), sourceName: String(c?.sourceName || '').trim(), sourceUrl: String(c?.sourceUrl || '').trim() })).filter((c: any) => c.sourceName && c.sourceUrl)
+        : []
+    if (citations.length) clean.citations = citations.map((c: any) => (c.claim ? c : { sourceName: c.sourceName, sourceUrl: c.sourceUrl }))
+
+    const eeat_inputs = Object.keys(clean).length ? clean : null
+    let { data, error } = await supabase
+        .from('koto_topic_campaigns')
+        .update({ eeat_inputs })
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+        .select('id, eeat_inputs')
+        .single()
+    if (isMissingColumnError(error)) {
+        return NextResponse.json({ error: 'eeat_inputs column missing — apply the koto_topic_campaigns eeat_inputs migration in Supabase first' }, { status: 409 })
     }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, campaign: data })

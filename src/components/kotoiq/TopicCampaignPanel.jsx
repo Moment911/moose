@@ -80,6 +80,8 @@ export default function TopicCampaignPanel({ site }) {
   const [savedCampaigns, setSavedCampaigns] = useState([])
   const [deletingId, setDeletingId] = useState(null)
   const [fixingGaps, setFixingGaps] = useState(false)
+  const [eeatEditorOpen, setEeatEditorOpen] = useState(false)
+  const [savingEeat, setSavingEeat] = useState(false)
   // Connect-Google-reviews picker (campaign editor)
   const [placeOpen, setPlaceOpen] = useState(false)
   const [placeQuery, setPlaceQuery] = useState('')
@@ -467,6 +469,23 @@ export default function TopicCampaignPanel({ site }) {
       toast.success('Master regenerated covering the cluster — re-deploy to push it', { id: tid })
     } catch (e) { toast.error(e.message, { id: tid }) }
     setTopicalBusy(false)
+  }
+
+  async function saveEeatInputs(inputs) {
+    if (!campaign?.id) return
+    setSavingEeat(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set_eeat_inputs', agency_id: agencyId, campaign_id: campaign.id, eeat_inputs: inputs }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); setSavingEeat(false); return }
+      setCampaign(c => ({ ...c, eeat_inputs: d.campaign?.eeat_inputs ?? null }))
+      setEeatEditorOpen(false)
+      toast.success('Trust signals saved — re-deploy to push them live')
+    } catch (e) { toast.error(e.message) }
+    setSavingEeat(false)
   }
 
   async function generateMaster() {
@@ -1188,7 +1207,38 @@ export default function TopicCampaignPanel({ site }) {
               style={miniBtn({ color: campaign.google_place_id ? GRN : '#0369a1', borderColor: campaign.google_place_id ? GRN : '#0369a1' })}>
               <Star size={11}/> {campaign.google_place_id ? 'Reviews connected' : 'Connect Google reviews'}
             </button>
+            <button onClick={() => setEeatEditorOpen(true)} style={miniBtn({ color:'#0369a1', borderColor:'#0369a1' })}>
+              <Edit3 size={11}/> Trust signals
+            </button>
           </div>
+
+          {/* Data-readiness panel — what the engine has for this campaign */}
+          {(() => {
+            const ei = campaign.eeat_inputs || {}
+            const signals = [
+              { label:'Competitor intel', ok: !!campaign.competitor_meta, hint:'set sample cities + regenerate' },
+              { label:'Google reviews', ok: !!campaign.google_place_id, hint:'Connect Google reviews' },
+              { label:'Strategist byline', ok: !!ei.strategist?.name, hint:'add in Trust signals' },
+              { label:'Results', ok: Array.isArray(ei.results) && ei.results.length > 0, hint:'add in Trust signals' },
+              { label:'Cited sources', ok: Array.isArray(ei.citations) && ei.citations.length > 0, hint:'add in Trust signals' },
+              { label:'sameAs links', ok: Array.isArray(ei.sameAs) && ei.sameAs.length > 0, hint:'add in Trust signals' },
+            ]
+            return (
+              <div style={{ marginTop:12, padding:'10px 12px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:10 }}>
+                <div style={{ fontSize:10, fontFamily:FH, fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>
+                  Content signals the engine has
+                </div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px 14px' }}>
+                  {signals.map(s => (
+                    <span key={s.label} title={s.ok ? 'Ready' : `Missing — ${s.hint}`}
+                      style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontFamily:FB, color: s.ok ? '#15803d' : '#9ca3af' }}>
+                      {s.ok ? <CheckCircle2 size={13}/> : <AlertTriangle size={13}/>}{s.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
           <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280' }}>
             <strong>Topic:</strong> {campaign.topic}
             {campaign.master?.hero?.headline_variants?.[0] && (
@@ -1563,6 +1613,16 @@ export default function TopicCampaignPanel({ site }) {
         />
       )}
 
+      {/* Trust signals (E-E-A-T inputs) editor */}
+      {eeatEditorOpen && campaign && (
+        <EeatEditor
+          initial={campaign.eeat_inputs || {}}
+          busy={savingEeat}
+          onClose={() => setEeatEditorOpen(false)}
+          onSave={saveEeatInputs}
+        />
+      )}
+
       {/* Connect Google reviews modal */}
       {placeOpen && (
         <div style={overlay()} onClick={() => setPlaceOpen(false)}>
@@ -1794,6 +1854,96 @@ export default function TopicCampaignPanel({ site }) {
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+function EeatEditor({ initial, busy, onClose, onSave }) {
+  const s0 = initial.strategist || {}
+  const [name, setName] = useState(s0.name || '')
+  const [title, setTitle] = useState(s0.title || '')
+  const [years, setYears] = useState(s0.yearsExperience || '')
+  const [photoUrl, setPhotoUrl] = useState(s0.photoUrl || '')
+  const [results, setResults] = useState(Array.isArray(initial.results) && initial.results.length ? initial.results.map(r => ({ metric:r.metric||'', context:r.context||'' })) : [{ metric:'', context:'' }])
+  const [citations, setCitations] = useState(Array.isArray(initial.citations) && initial.citations.length ? initial.citations.map(c => ({ claim:c.claim||'', sourceName:c.sourceName||'', sourceUrl:c.sourceUrl||'' })) : [{ claim:'', sourceName:'', sourceUrl:'' }])
+  const [sameAs, setSameAs] = useState(Array.isArray(initial.sameAs) && initial.sameAs.length ? [...initial.sameAs] : [''])
+
+  const upd = (setter) => (i, key, val) => setter(arr => arr.map((row, j) => j === i ? { ...row, [key]: val } : row))
+  const rm  = (setter) => (i) => setter(arr => arr.filter((_, j) => j !== i))
+
+  function save() {
+    onSave({
+      strategist: name.trim() ? { name: name.trim(), title: title.trim() || undefined, yearsExperience: Number(years) || undefined, photoUrl: photoUrl.trim() || undefined } : undefined,
+      results: results.filter(r => r.metric.trim()).map(r => ({ metric: r.metric.trim(), context: (r.context||'').trim() || undefined })),
+      citations: citations.filter(c => c.sourceName.trim() && c.sourceUrl.trim()).map(c => ({ claim: (c.claim||'').trim() || undefined, sourceName: c.sourceName.trim(), sourceUrl: c.sourceUrl.trim() })),
+      sameAs: sameAs.map(u => (u||'').trim()).filter(Boolean),
+    })
+  }
+
+  const sectionLabel = (t) => <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:BLK, textTransform:'uppercase', letterSpacing:'.05em', margin:'18px 0 8px' }}>{t}</div>
+  const addBtn = (fn, t) => <button onClick={fn} style={{ ...miniBtn({ color:T, borderColor:T }), marginTop:8 }}>+ {t}</button>
+  const rmBtn = (fn) => <button onClick={fn} title="Remove" style={miniBtn({ color:'#dc2626', borderColor:'#fecaca' })}><Trash2 size={11}/></button>
+
+  return (
+    <div style={overlay()} onClick={onClose}>
+      <div style={{ ...modal(), maxWidth:640, maxHeight:'88vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
+        <div style={modalHeader()}>
+          <Star size={18} color="#0369a1"/>
+          <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>Trust signals (E-E-A-T)</div>
+          <button onClick={onClose} style={miniBtn()}><X size={11}/></button>
+        </div>
+        <div style={{ padding:22, flex:1, minHeight:0, overflowY:'auto' }}>
+          <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', lineHeight:1.5 }}>
+            Real data only — these render as the byline / results / sources / sameAs blocks + schema, and feed the E-E-A-T audit. Reviews + star rating come from Google automatically (use <strong>Connect Google reviews</strong>). Leave anything blank to omit it.
+          </div>
+
+          {sectionLabel('Strategist byline (Experience)')}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <Field label="Name"><input value={name} onChange={e => setName(e.target.value)} placeholder="Jane Doe" style={inp()}/></Field>
+            <Field label="Title"><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Lead Strategist" style={inp()}/></Field>
+            <Field label="Years experience"><input value={years} onChange={e => setYears(e.target.value.replace(/\D/g,''))} placeholder="8" style={inp()}/></Field>
+            <Field label="Photo URL"><input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} placeholder="https://…/headshot.jpg" style={inp()}/></Field>
+          </div>
+
+          {sectionLabel('Results (real metrics only)')}
+          {results.map((r, i) => (
+            <div key={i} style={{ display:'flex', gap:8, alignItems:'flex-start', marginBottom:8 }}>
+              <input value={r.metric} onChange={e => upd(setResults)(i,'metric',e.target.value)} placeholder="+42% leads" style={{ ...inp(), flex:'0 0 140px' }}/>
+              <input value={r.context} onChange={e => upd(setResults)(i,'context',e.target.value)} placeholder="in 90 days for a [koto_city] client" style={{ ...inp(), flex:1 }}/>
+              {rmBtn(() => rm(setResults)(i))}
+            </div>
+          ))}
+          {addBtn(() => setResults(a => [...a, { metric:'', context:'' }]), 'result')}
+
+          {sectionLabel('Cited sources (Authoritativeness)')}
+          {citations.map((c, i) => (
+            <div key={i} style={{ display:'flex', flexDirection:'column', gap:6, border:'1px solid #e5e7eb', borderRadius:8, padding:10, marginBottom:8 }}>
+              <input value={c.claim} onChange={e => upd(setCitations)(i,'claim',e.target.value)} placeholder="Claim this supports (optional)" style={inp()}/>
+              <div style={{ display:'flex', gap:8 }}>
+                <input value={c.sourceName} onChange={e => upd(setCitations)(i,'sourceName',e.target.value)} placeholder="Search Engine Journal" style={{ ...inp(), flex:'0 0 200px' }}/>
+                <input value={c.sourceUrl} onChange={e => upd(setCitations)(i,'sourceUrl',e.target.value)} placeholder="https://…" style={{ ...inp(), flex:1 }}/>
+                {rmBtn(() => rm(setCitations)(i))}
+              </div>
+            </div>
+          ))}
+          {addBtn(() => setCitations(a => [...a, { claim:'', sourceName:'', sourceUrl:'' }]), 'source')}
+
+          {sectionLabel('sameAs — entity links (GBP / LinkedIn / directories)')}
+          {sameAs.map((u, i) => (
+            <div key={i} style={{ display:'flex', gap:8, marginBottom:8 }}>
+              <input value={u} onChange={e => setSameAs(a => a.map((x,j) => j===i ? e.target.value : x))} placeholder="https://www.google.com/maps/place/…" style={{ ...inp(), flex:1 }}/>
+              {rmBtn(() => setSameAs(a => a.filter((_,j) => j!==i)))}
+            </div>
+          ))}
+          {addBtn(() => setSameAs(a => [...a, '']), 'link')}
+        </div>
+        <div style={{ padding:'14px 20px', borderTop:'1px solid #e5e7eb', display:'flex', justifyContent:'flex-end', gap:10 }}>
+          <button onClick={onClose} style={miniBtn()}>Cancel</button>
+          <button onClick={save} disabled={busy} style={primaryBtn()}>
+            {busy ? <Loader2 size={14} className="spin"/> : <Save size={14}/>} Save trust signals
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, focusKw, setFocusKw, topic, setTopic, compCity, setCompCity, compState, setCompState, onRegenerate, regenBusy, wrapper, setWrapper, captureUrl, setCaptureUrl, captureBusy, captureInfo, onCapture, onAiAssist, onUploadFile, campaignTopic, onSave, onClose }) {
   // Preview the focus keyword resolved for a sample city
