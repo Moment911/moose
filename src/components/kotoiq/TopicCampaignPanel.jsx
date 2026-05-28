@@ -1595,15 +1595,35 @@ export default function TopicCampaignPanel({ site, client }) {
               </div>
             </div>
             <div style={{ fontFamily:FB, fontSize:12, color:'#15803d', marginBottom:10, lineHeight:1.5 }} title="Google's E-E-A-T framework (Experience, Expertise, Authoritativeness, Trustworthiness) scores pages higher when they include real author credentials, business address, certifications, and reviews. Pages with these signals rank significantly better.">
-              Real business info lets the AI write with concrete E-E-A-T signals instead of generic copy. Pages with this data score 20-30 points higher.
+              Real business info lets the AI write with concrete E-E-A-T signals instead of generic copy. Pages with this data score 20-30 points higher. The more you fill in, the stronger the page ranks.
             </div>
+
+            {/* Row 1: Author */}
+            <div style={{ fontSize:10, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4, marginTop:8 }}>Author / Expert</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-              <input placeholder="Author name (e.g. Dr. Jane Smith, DC)" value={eeatInfoFields?.author || ''} onChange={e => setEeatInfoFields(p => ({...p, author: e.target.value}))} style={inp({ fontSize:12 })} title="The person whose name appears as the page author. Adds an author byline + schema Person markup."/>
+              <input placeholder="Author name (e.g. Dr. Jane Smith, DC)" value={eeatInfoFields?.author || ''} onChange={e => setEeatInfoFields(p => ({...p, author: e.target.value}))} style={inp({ fontSize:12 })} title="The person whose name appears as the page author. Adds an author byline + Person schema."/>
               <input placeholder="Credentials (e.g. DC, CCSP, 15 years exp)" value={eeatInfoFields?.credentials || ''} onChange={e => setEeatInfoFields(p => ({...p, credentials: e.target.value}))} style={inp({ fontSize:12 })} title="Degrees, certifications, years of experience. Appears in the author byline and schema."/>
-              <input placeholder="Business address (e.g. 123 Main St, Austin TX)" value={eeatInfoFields?.address || ''} onChange={e => setEeatInfoFields(p => ({...p, address: e.target.value}))} style={inp({ fontSize:12 })} title="Physical business address. Added to LocalBusiness schema and the page footer. Critical for local SEO."/>
-              <input placeholder="Founded year (e.g. 2015)" value={eeatInfoFields?.founded || ''} onChange={e => setEeatInfoFields(p => ({...p, founded: e.target.value}))} style={inp({ fontSize:12 })} title="Year the business was founded. Used in 'serving [city] since [year]' copy and schema."/>
-              <input placeholder="Certifications / affiliations (e.g. BBB A+, ACA member)" value={eeatInfoFields?.certifications || ''} onChange={e => setEeatInfoFields(p => ({...p, certifications: e.target.value}))} style={{...inp({ fontSize:12 }), gridColumn:'1 / -1'}} title="Professional affiliations, certifications, awards. Woven into trust sections and schema."/>
             </div>
+
+            {/* Row 2: Business */}
+            <div style={{ fontSize:10, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4, marginTop:10 }}>Business</div>
+            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:8 }}>
+              <input placeholder="Full address (e.g. 123 Main St, Austin, TX 78701)" value={eeatInfoFields?.address || ''} onChange={e => setEeatInfoFields(p => ({...p, address: e.target.value}))} style={inp({ fontSize:12 })} title="Physical business address. Added to LocalBusiness schema and the page footer. Critical for local SEO + Google Maps."/>
+              <input placeholder="Founded (e.g. 2015)" value={eeatInfoFields?.founded || ''} onChange={e => setEeatInfoFields(p => ({...p, founded: e.target.value}))} style={inp({ fontSize:12 })} title="Year founded. Used in 'serving [city] since [year]' and establishes Experience in E-E-A-T."/>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:8 }}>
+              <input placeholder="Business hours (e.g. Mon-Fri 8am-6pm)" value={eeatInfoFields?.hours || ''} onChange={e => setEeatInfoFields(p => ({...p, hours: e.target.value}))} style={inp({ fontSize:12 })} title="Operating hours. Added to LocalBusiness schema as OpeningHoursSpecification — helps Google rich results."/>
+              <input placeholder="Price range (e.g. $$, $50-200/visit)" value={eeatInfoFields?.priceRange || ''} onChange={e => setEeatInfoFields(p => ({...p, priceRange: e.target.value}))} style={inp({ fontSize:12 })} title="Price range indicator. Added to LocalBusiness schema — shows in Google search results."/>
+            </div>
+
+            {/* Row 3: Authority */}
+            <div style={{ fontSize:10, fontFamily:FH, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4, marginTop:10 }}>Authority + Social Proof</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              <input placeholder="Certifications (e.g. BBB A+, ACA member)" value={eeatInfoFields?.certifications || ''} onChange={e => setEeatInfoFields(p => ({...p, certifications: e.target.value}))} style={inp({ fontSize:12 })} title="Professional affiliations, certifications, awards. Woven into trust sections and schema."/>
+              <input placeholder="Key result (e.g. 500+ clients served, 4.9★ rating)" value={eeatInfoFields?.keyResult || ''} onChange={e => setEeatInfoFields(p => ({...p, keyResult: e.target.value}))} style={inp({ fontSize:12 })} title="A real, verifiable metric. Woven into hero copy and trust sections. Never fabricated — must be real."/>
+            </div>
+            <input placeholder="Social profiles — comma-separated URLs (Google Business, LinkedIn, Yelp, BBB, etc.)" value={eeatInfoFields?.socialUrls || ''} onChange={e => setEeatInfoFields(p => ({...p, socialUrls: e.target.value}))} style={{...inp({ fontSize:12 }), marginTop:8}} title="Social and directory profile URLs. Added to schema.org sameAs — Google uses these to verify your business identity and connect your Knowledge Panel."/>
+            <input placeholder="Logo URL (e.g. https://yoursite.com/logo.png)" value={eeatInfoFields?.logoUrl || ''} onChange={e => setEeatInfoFields(p => ({...p, logoUrl: e.target.value}))} style={{...inp({ fontSize:12 }), marginTop:8}} title="Business logo URL. Added to LocalBusiness schema as the image — appears in Google Knowledge Panel."/>
           </div>
 
           {/* Competitor-aware generation — visible by default (biggest ranking lift) */}
