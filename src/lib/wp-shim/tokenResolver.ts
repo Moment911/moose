@@ -95,6 +95,20 @@ export interface ResolveContext {
         /** Cited statistics with real sources — rendered as a Sources list +
          *  schema citation. Operator/authoritative-source provided. */
         citations?: Array<{ claim?: string; sourceName: string; sourceUrl: string }>
+        /** Operator-provided LocalBusiness trust attributes, sourced verbatim
+         *  from the client record (NOT AI-generated). Each maps to a valid
+         *  schema.org LocalBusiness property and is emitted only when present.
+         *  See eeatContext.ts for the column → field mapping. */
+        business?: {
+            priceRange?: string          // → priceRange
+            paymentAccepted?: string     // → paymentAccepted
+            numberOfEmployees?: number   // → numberOfEmployees (QuantitativeValue)
+            knowsLanguage?: string[]     // → knowsLanguage (languages spoken)
+            knowsAbout?: string[]        // → knowsAbout (specialties)
+            award?: string[]             // → award (certifications + awards)
+            bookingUrl?: string          // → potentialAction (ReserveAction)
+            licenseNumber?: string       // → identifier (PropertyValue "License")
+        }
     }
     /** Optional design tokens captured from the client's own site (fonts, color
      *  palette, link/button treatment). When present, the base CSS emits a
@@ -1007,6 +1021,40 @@ function enrichSchemaGraph(
                 ...(t.rating ? { reviewRating: { '@type': 'Rating', ratingValue: t.rating, bestRating: 5 } } : {}),
                 ...(t.date ? { datePublished: t.date } : {}),
             }))
+        }
+
+        // ── Operator-provided LocalBusiness trust attributes ───────────────
+        // Real business facts from the client record (priceRange, payment,
+        // languages, specialties, awards, license, booking). Each is a valid
+        // schema.org LocalBusiness property; all omit-when-empty.
+        const biz = eeat.business
+        if (biz) {
+            if (biz.priceRange) localBusiness.priceRange = biz.priceRange
+            if (biz.paymentAccepted) localBusiness.paymentAccepted = biz.paymentAccepted
+            if (typeof biz.numberOfEmployees === 'number' && biz.numberOfEmployees > 0) {
+                localBusiness.numberOfEmployees = { '@type': 'QuantitativeValue', value: biz.numberOfEmployees }
+            }
+            if (Array.isArray(biz.knowsLanguage) && biz.knowsLanguage.length) {
+                localBusiness.knowsLanguage = biz.knowsLanguage
+            }
+            if (Array.isArray(biz.knowsAbout) && biz.knowsAbout.length) {
+                const existing = Array.isArray(localBusiness.knowsAbout) ? localBusiness.knowsAbout : []
+                localBusiness.knowsAbout = Array.from(new Set([...existing, ...biz.knowsAbout]))
+            }
+            if (Array.isArray(biz.award) && biz.award.length) {
+                const existing = Array.isArray(localBusiness.award) ? localBusiness.award : []
+                localBusiness.award = Array.from(new Set([...existing, ...biz.award]))
+            }
+            if (biz.licenseNumber) {
+                const existing = Array.isArray(localBusiness.identifier) ? localBusiness.identifier : []
+                localBusiness.identifier = [...existing, { '@type': 'PropertyValue', name: 'License', value: biz.licenseNumber }]
+            }
+            if (biz.bookingUrl) {
+                localBusiness.potentialAction = {
+                    '@type': 'ReserveAction',
+                    target: { '@type': 'EntryPoint', urlTemplate: biz.bookingUrl },
+                }
+            }
         }
     }
     if (webPage && Array.isArray(eeat.citations) && eeat.citations.length) {

@@ -2,14 +2,18 @@ import 'server-only'
 
 // ── E-E-A-T context builder ─────────────────────────────────────────────────
 //
-// Assembles the ctx.eeat object consumed by tokenResolver.resolveMaster. Two
-// sources, both REAL data only (never AI-fabricated), per the platform
+// Assembles the ctx.eeat object consumed by tokenResolver.resolveMaster. Three
+// sources, all REAL data only (never AI-fabricated), per the platform
 // data-integrity standard + FTC rules on testimonials:
 //
 //   1. Operator-provided inputs  → campaign.eeat_inputs jsonb
 //      (strategist byline, results snapshots, cited sources, sameAs URLs)
 //   2. Live Google reviews       → Places API (New) by the client's stored
 //      google_place_id (testimonials + true aggregate rating/count)
+//   3. Client trust-signal cols  → clients table (price_range, payment_methods,
+//      team_size, languages_spoken, specialties, certifications/awards,
+//      license_number, booking_url, author_*, yelp/bbb URLs, key_result).
+//      Operator-entered on the client detail page → LocalBusiness schema attrs.
 //
 // Reviews are pulled live at deploy time and NOT stored, so they always reflect
 // current, real data. Best-effort: any failure degrades to no reviews rather
@@ -18,6 +22,71 @@ import 'server-only'
 import type { ResolveContext } from './tokenResolver'
 
 type Eeat = NonNullable<ResolveContext['eeat']>
+
+/** Split an operator free-text field ("Spanish, French" / "ABC\nDEF") into a
+ *  clean, de-duped string list. Returns [] for empty/falsy input. */
+function splitList(v: any): string[] {
+    if (!v || typeof v !== 'string') return []
+    return Array.from(
+        new Set(
+            v
+                .split(/[,\n;]+/)
+                .map(s => s.trim())
+                .filter(Boolean),
+        ),
+    )
+}
+
+/** Parse the first integer out of a free-text team-size field ("10-20",
+ *  "~50 employees"). Returns undefined when there's no usable number. */
+function firstInt(v: any): number | undefined {
+    if (typeof v === 'number' && Number.isFinite(v)) return v > 0 ? Math.round(v) : undefined
+    if (typeof v !== 'string') return undefined
+    const m = v.match(/\d+/)
+    if (!m) return undefined
+    const n = parseInt(m[0], 10)
+    return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+/** Map a client record's operator-provided trust-signal columns into the
+ *  partial eeat fields they populate. All real business facts (NOT AI), so
+ *  they may be emitted verbatim into schema + on-page trust blocks. Every
+ *  field is omit-when-empty. */
+function trustSignalsFromClient(client: any): {
+    business: NonNullable<Eeat['business']>
+    sameAs: string[]
+    strategist?: Eeat['strategist']
+    keyResult?: { metric: string }
+} {
+    const business: NonNullable<Eeat['business']> = {}
+    if (client.price_range) business.priceRange = String(client.price_range).trim()
+    if (client.payment_methods) business.paymentAccepted = String(client.payment_methods).trim()
+    const employees = firstInt(client.team_size)
+    if (employees) business.numberOfEmployees = employees
+    const langs = splitList(client.languages_spoken)
+    if (langs.length) business.knowsLanguage = langs
+    const specialties = splitList(client.specialties)
+    if (specialties.length) business.knowsAbout = specialties
+    const awards = [...splitList(client.certifications), ...splitList(client.awards)]
+    if (awards.length) business.award = Array.from(new Set(awards))
+    if (client.booking_url) business.bookingUrl = String(client.booking_url).trim()
+    if (client.license_number) business.licenseNumber = String(client.license_number).trim()
+
+    // yelp/bbb are the same business entity on other directories → schema sameAs.
+    const sameAs = [client.yelp_url, client.bbb_url].map(u => (u ? String(u).trim() : '')).filter(Boolean)
+
+    // Author byline anchors page Experience/Expertise.
+    let strategist: Eeat['strategist'] | undefined
+    if (client.author_name) {
+        strategist = { name: String(client.author_name).trim() }
+        if (client.author_credentials) strategist.title = String(client.author_credentials).trim()
+        if (client.author_photo_url) strategist.photoUrl = String(client.author_photo_url).trim()
+    }
+
+    const keyResult = client.key_result ? { metric: String(client.key_result).trim() } : undefined
+
+    return { business, sameAs, strategist, keyResult }
+}
 
 /**
  * Fetch a place's reviews + true aggregate rating from the Google Places API
@@ -90,19 +159,44 @@ export async function buildEeatContext(
         if (c.length) eeat.citations = c
     }
 
+    // Load the campaign's client row once — source of both google_place_id and
+    // the operator-provided trust-signal columns. select('*') is intentional:
+    // prod schema drifts from the SQL files, so naming new columns explicitly
+    // would error the whole query on environments that haven't run the
+    // trust-signal migrations yet. Best-effort — any failure degrades cleanly.
+    let client: any = null
+    if (campaign?.client_id) {
+        try {
+            const { data } = await supabase.from('clients').select('*').eq('id', campaign.client_id).single()
+            client = data || null
+        } catch {
+            client = null
+        }
+    }
+
+    // Trust signals from the client record. Operator campaign inputs always
+    // win; client columns only fill gaps (strategist, sameAs, results). The
+    // LocalBusiness `business` attributes have no campaign-input equivalent.
+    if (client) {
+        const ts = trustSignalsFromClient(client)
+        if (Object.keys(ts.business).length) eeat.business = ts.business
+        if (!eeat.strategist && ts.strategist) eeat.strategist = ts.strategist
+        if (ts.sameAs.length) {
+            eeat.sameAs = Array.from(new Set([...(eeat.sameAs || []), ...ts.sameAs]))
+        }
+        if (ts.keyResult) {
+            const existing = Array.isArray(eeat.results) ? eeat.results : []
+            if (!existing.some(r => r.metric === ts.keyResult!.metric)) {
+                eeat.results = [...existing, ts.keyResult]
+            }
+        }
+    }
+
     if (opts.withReviews) {
         try {
             // Prefer the place connected directly to the campaign; fall back to
             // the campaign's client's place_id (set via intel/scout).
-            let placeId: string | undefined = campaign?.google_place_id || undefined
-            if (!placeId && campaign?.client_id) {
-                const { data: client } = await supabase
-                    .from('clients')
-                    .select('google_place_id')
-                    .eq('id', campaign.client_id)
-                    .single()
-                placeId = client?.google_place_id || undefined
-            }
+            const placeId: string | undefined = campaign?.google_place_id || client?.google_place_id || undefined
             if (placeId) {
                 const r = await fetchPlaceReviews(String(placeId))
                 if (r) {
@@ -111,8 +205,7 @@ export async function buildEeatContext(
                 }
             }
         } catch {
-            // google_place_id column may not exist on older schemas, or the
-            // client row is missing — degrade to operator inputs only.
+            // Degrade to operator inputs only.
         }
     }
 
@@ -134,6 +227,6 @@ export async function buildEeatContext(
     }
 
     const hasAny =
-        eeat.strategist || eeat.sameAs || eeat.results || eeat.citations || eeat.testimonials || eeat.aggregateRating
+        eeat.strategist || eeat.sameAs || eeat.results || eeat.citations || eeat.testimonials || eeat.aggregateRating || eeat.business
     return hasAny ? eeat : undefined
 }
