@@ -643,9 +643,9 @@ export function resolveMaster(
 .koto-hero h1{font-family:var(--koto-font-heading,var(--koto-font-body,${FB}));font-size:2rem;line-height:1.2;margin:0 0 .75rem;font-weight:var(--koto-heading-weight,700);color:var(--koto-color-heading,#1a2332)}
 .koto-hero-sub{font-size:1.1rem;color:var(--koto-color-muted,#475569);line-height:1.6}
 .koto-hero-media img,.koto-hero-media video{max-width:100%;height:auto;border-radius:10px;margin:0 0 1rem}
-.koto-hero,.koto-cta,.koto-service-areas,.koto-faq,section{font-family:var(--koto-font-body,${FB})}
+.koto-hero,.koto-cta,.koto-service-areas,.koto-faq,section{font-family:var(--koto-font-body,${FB});font-size:var(--koto-font-size,inherit)}
 section h2{font-family:var(--koto-font-heading,var(--koto-font-body,${FB}));font-size:1.5rem;line-height:1.3;margin:0 0 .75rem;font-weight:var(--koto-heading-weight,700);color:var(--koto-color-heading,#1a2332)}
-section p,.koto-hero-sub p{margin:0 0 .75rem;line-height:1.65;color:var(--koto-color-text,#334155)}
+section p,.koto-hero-sub p{margin:0 0 .75rem;line-height:var(--koto-line-height,1.65);color:var(--koto-color-text,#334155)}
 section{margin:1.5rem 0}
 .koto-faq details{margin:.5rem 0;padding:1rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
 .koto-faq summary{cursor:pointer;font-weight:700;color:var(--koto-color-heading,#1a2332);font-size:1.05rem;list-style:none}

@@ -81,6 +81,16 @@ describe('extractStyleTokens', () => {
         expect(t.buttonRadius).toBe('9999px')
     })
 
+    it('captures base font-size + line-height; rejects implausible values', () => {
+        const t = extractStyleTokens('', [`body{font-size:18px;line-height:1.7}`])
+        expect(t.fontSize).toBe('18px')
+        expect(t.lineHeight).toBe('1.7')
+        // unitless line-height outside 1-3 is rejected (likely a px value mis-read)
+        expect(extractStyleTokens('', [`body{line-height:42}`]).lineHeight).toBeUndefined()
+        // non-length font-size is dropped
+        expect(extractStyleTokens('', [`body{font-size:larger}`]).fontSize).toBeUndefined()
+    })
+
     it('captures an allowlisted Google Fonts <link> (with ; and @ in the URL)', () => {
         const html = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap">`
         const t = extractStyleTokens(html, [])
@@ -135,6 +145,12 @@ describe('buildBrandTokenCss', () => {
         const css = buildBrandTokenCss({ colorPrimary: '#111', fontCssUrl: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap' })
         expect(css.startsWith('@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");')).toBe(true)
         expect(css).toContain('\n:root{')
+    })
+
+    it('emits base font-size + line-height vars when captured', () => {
+        const css = buildBrandTokenCss({ colorPrimary: '#111', fontSize: '18px', lineHeight: '1.7' })
+        expect(css).toContain('--koto-font-size:18px')
+        expect(css).toContain('--koto-line-height:1.7')
     })
 
     it('emits only @import when a font URL is present but no other tokens', () => {

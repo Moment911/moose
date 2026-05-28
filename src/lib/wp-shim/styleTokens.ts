@@ -50,6 +50,11 @@ export interface StyleTokens {
      *  (Google Fonts / Bunny / Adobe). Emitted as a sanitized @import so the
      *  brand font actually loads — names alone don't render in preview. */
     fontCssUrl?: string
+    /** Base body font-size (e.g. "18px", "1.125rem") — matches overall text
+     *  scale in standalone preview / where the theme size isn't inherited. */
+    fontSize?: string
+    /** Base body line-height (unitless 1-3, or a sized value). */
+    lineHeight?: string
 }
 
 // Hosts we trust to @import a webfont stylesheet from. Anything else is dropped
@@ -82,6 +87,26 @@ function sanitizeRadius(raw?: string | null): string | undefined {
     if (!raw) return undefined
     const v = raw.trim().replace(/!important/gi, '').trim()
     return RADIUS_RE.test(v) ? v : undefined
+}
+
+const SIZE_RE = /^[0-9]+(?:\.[0-9]+)?(?:px|rem|em|%|pt)$/i
+
+/** A CSS length for font-size (px/rem/em/%/pt). */
+function sanitizeSize(raw?: string | null): string | undefined {
+    if (!raw) return undefined
+    const v = raw.trim().replace(/!important/gi, '').trim()
+    return SIZE_RE.test(v) ? v : undefined
+}
+
+/** Line-height: unitless 1-3 (typical body range) or a CSS length. */
+function sanitizeLineHeight(raw?: string | null): string | undefined {
+    if (!raw) return undefined
+    const v = raw.trim().replace(/!important/gi, '').trim()
+    if (/^[0-9]*\.?[0-9]+$/.test(v)) {
+        const n = parseFloat(v)
+        return n >= 1 && n <= 3 ? v : undefined
+    }
+    return SIZE_RE.test(v) ? v : undefined
 }
 
 /** Font-weight: a number 100-900 or a known keyword. */
@@ -235,6 +260,8 @@ export function extractStyleTokens(html: string, cssTexts: string[] = []): Style
     t.fontBody = t.fontBody || sanitizeFont(resolveVarRef(decl(bodyRule, 'font-family'), css))
     t.colorText = t.colorText || sanitizeColor(resolveVarRef(decl(bodyRule, 'color'), css))
     t.colorSurface = t.colorSurface || sanitizeColor(resolveVarRef(decl(bodyRule, 'background-color'), css))
+    t.fontSize = sanitizeSize(resolveVarRef(decl(bodyRule, 'font-size'), css))
+    t.lineHeight = sanitizeLineHeight(resolveVarRef(decl(bodyRule, 'line-height'), css))
 
     const h1Rule = findRuleBody(css, 'h1') || findRuleBody(css, 'h2')
     t.fontHeading = t.fontHeading || sanitizeFont(resolveVarRef(decl(h1Rule, 'font-family'), css))
@@ -293,6 +320,8 @@ export function buildBrandTokenCss(tokens?: StyleTokens | null): string {
     push('--koto-color-button-bg', tokens.colorButtonBg || tokens.colorPrimary)
     push('--koto-color-button-text', tokens.colorButtonText)
     push('--koto-button-radius', tokens.buttonRadius || tokens.radius)
+    push('--koto-font-size', tokens.fontSize)
+    push('--koto-line-height', tokens.lineHeight)
 
     const root = decls.length ? `:root{${decls.join(';')}}` : ''
     // @import must precede other rules. Emitted only for an allowlisted https
