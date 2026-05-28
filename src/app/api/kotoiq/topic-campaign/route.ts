@@ -104,6 +104,24 @@ export async function POST(req: NextRequest) {
 // ─── Actions ────────────────────────────────────────────────────────────────
 
 /**
+ * Detect a "column does not exist" failure across the different shapes Supabase
+ * / PostgREST emit it. Postgres raises "column X does not exist" (42703), but
+ * PostgREST's schema-cache path raises "Could not find the 'X' column of 'Y'
+ * in the schema cache" (code PGRST204) — which the old `/does not exist/` regex
+ * missed, so missing optional columns surfaced as hard errors to the user
+ * instead of triggering the retry-without-column fallback.
+ */
+function isMissingColumnError(error: any): boolean {
+    if (!error) return false
+    const msg = String(error.message || '')
+    return error.code === 'PGRST204'
+        || error.code === '42703'
+        || /column .* does not exist/i.test(msg)
+        || /could not find the .* column/i.test(msg)
+        || /schema cache/i.test(msg)
+}
+
+/**
  * Parse the operator's competitor-sample input and build aggregated intel.
  * The city field may be a comma-separated list of up to 5 cities (paired with
  * one state abbr) — we sample each city's SERP and aggregate, so domains that
@@ -200,7 +218,7 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
     // competitor_meta may not exist as a column on older schemas — retry
     // without it rather than failing master generation. Same defensive
     // schema-drift handling used elsewhere in this module.
-    if (error && /column .* does not exist/i.test(error.message || '')) {
+    if (isMissingColumnError(error)) {
         delete insert.competitor_meta
         ;({ data, error } = await supabase.from('koto_topic_campaigns').insert(insert).select().single())
     }
@@ -257,7 +275,7 @@ async function regenerateMaster(supabase: any, agencyId: string, body: any) {
         updated_at: new Date().toISOString(),
     }
     let { data, error } = await supabase.from('koto_topic_campaigns').update(patch).eq('id', campaignId).select().single()
-    if (error && /column .* does not exist/i.test(error.message || '')) {
+    if (isMissingColumnError(error)) {
         delete patch.competitor_meta
         ;({ data, error } = await supabase.from('koto_topic_campaigns').update(patch).eq('id', campaignId).select().single())
     }

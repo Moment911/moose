@@ -1461,13 +1461,13 @@ export default function TopicCampaignPanel({ site }) {
       {/* E-E-A-T audit modal */}
       {eeatOpen && (
         <div style={overlay()} onClick={() => setEeatOpen(false)}>
-          <div style={{ ...modal(), maxWidth:700 }} onClick={e => e.stopPropagation()}>
+          <div style={{ ...modal(), maxWidth:700, maxHeight:'85vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
             <div style={modalHeader()}>
               <Sparkles size={18} color="#7c3aed"/>
               <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>E-E-A-T audit</div>
               <button onClick={() => setEeatOpen(false)} style={miniBtn()}><X size={11}/></button>
             </div>
-            <div style={{ padding:22 }}>
+            <div style={{ padding:22, flex:1, minHeight:0, overflowY:'auto' }}>
               {eeatBusy && !eeatResult && (
                 <div style={{ display:'flex', alignItems:'center', gap:10, color:'#6b7280' }}>
                   <Loader2 size={16} className="spin"/> Scoring against Google Search Quality Rater signals…
