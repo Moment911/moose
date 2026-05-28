@@ -70,7 +70,11 @@ export default function ClientView({ preselectedSiteId, preselectedClientId, pre
   useEffect(() => { if (preselectedTab) setTabLocal(preselectedTab) }, [preselectedTab])
   useEffect(() => {
     if (!preselectedClientId || !rows.length) return
-    const found = rows.find(r => r.client?.id === preselectedClientId)
+    // Match by UUID or case-insensitive name
+    const found = rows.find(r =>
+      r.client?.id === preselectedClientId ||
+      r.client?.name?.toLowerCase() === preselectedClientId.toLowerCase()
+    )
     if (found && found.client?.id !== selected?.entry?.client?.id) {
       setSelected({ type: 'client', entry: found })
     }
@@ -93,7 +97,7 @@ export default function ClientView({ preselectedSiteId, preselectedClientId, pre
         const found = preselectedSiteId
           ? (data.rows || []).find(r => r.site?.id === preselectedSiteId)
           : preselectedClientId
-            ? (data.rows || []).find(r => r.client?.id === preselectedClientId)
+            ? (data.rows || []).find(r => r.client?.id === preselectedClientId || r.client?.name?.toLowerCase() === preselectedClientId.toLowerCase())
             : null
         if (found) setSelected({ type: 'client', entry: found })
         else if (preselectedSiteId) {
