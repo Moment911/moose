@@ -640,11 +640,11 @@ export function resolveMaster(
 .koto-local-data strong{color:var(--koto-color-heading,#1a2332);font-weight:700;font-variant-numeric:tabular-nums}
 .koto-local-data .koto-cite{display:inline}
 .koto-local-data .koto-cite a{color:var(--koto-color-primary,#1e3a8a);text-decoration:underline}
-.koto-hero h1{font-family:var(--koto-font-heading,var(--koto-font-body,${FB}));font-size:2rem;line-height:1.2;margin:0 0 .75rem;color:var(--koto-color-heading,#1a2332)}
+.koto-hero h1{font-family:var(--koto-font-heading,var(--koto-font-body,${FB}));font-size:2rem;line-height:1.2;margin:0 0 .75rem;font-weight:var(--koto-heading-weight,700);color:var(--koto-color-heading,#1a2332)}
 .koto-hero-sub{font-size:1.1rem;color:var(--koto-color-muted,#475569);line-height:1.6}
 .koto-hero-media img,.koto-hero-media video{max-width:100%;height:auto;border-radius:10px;margin:0 0 1rem}
 .koto-hero,.koto-cta,.koto-service-areas,.koto-faq,section{font-family:var(--koto-font-body,${FB})}
-section h2{font-family:var(--koto-font-heading,var(--koto-font-body,${FB}));font-size:1.5rem;line-height:1.3;margin:0 0 .75rem;color:var(--koto-color-heading,#1a2332)}
+section h2{font-family:var(--koto-font-heading,var(--koto-font-body,${FB}));font-size:1.5rem;line-height:1.3;margin:0 0 .75rem;font-weight:var(--koto-heading-weight,700);color:var(--koto-color-heading,#1a2332)}
 section p,.koto-hero-sub p{margin:0 0 .75rem;line-height:1.65;color:var(--koto-color-text,#334155)}
 section{margin:1.5rem 0}
 .koto-faq details{margin:.5rem 0;padding:1rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
@@ -668,7 +668,7 @@ a[href^="tel:"]:hover{text-decoration:underline}
 .koto-business-facts{list-style:none;margin:1rem 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.5rem 1.5rem}
 .koto-business-facts li{font-size:.95rem;color:var(--koto-color-text,#334155);line-height:1.5}
 .koto-business-facts strong{color:var(--koto-color-heading,#1a2332)}
-.koto-business-book{display:inline-block;margin-top:1rem;padding:.6rem 1.2rem;background:var(--koto-color-primary,#1e3a8a);color:#fff;border-radius:var(--koto-radius,8px);font-weight:700;text-decoration:none}
+.koto-business-book{display:inline-block;margin-top:1rem;padding:.6rem 1.2rem;background:var(--koto-color-button-bg,var(--koto-color-primary,#1e3a8a));color:var(--koto-color-button-text,#fff);border-radius:var(--koto-button-radius,var(--koto-radius,8px));font-weight:700;text-decoration:none}
 .koto-author .koto-author-card{display:flex;align-items:center;gap:1rem}
 .koto-author-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none}
 .koto-author-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#64748b;font-weight:700}

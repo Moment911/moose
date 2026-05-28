@@ -36,7 +36,25 @@ export interface StyleTokens {
     colorBorder?: string
     /** Corner radius for cards / buttons. */
     radius?: string
+    /** Heading font-weight (e.g. "700", "800") — a big "looks like the site"
+     *  signal; the base CSS otherwise hard-codes its own weights. */
+    headingWeight?: string
+    /** CTA / primary button background — captured from the site's button rule
+     *  so our CTA + booking buttons match. Falls back to colorPrimary. */
+    colorButtonBg?: string
+    /** CTA / primary button text color. Falls back to #fff. */
+    colorButtonText?: string
+    /** Button corner radius (themes often differ from card radius). */
+    buttonRadius?: string
+    /** A webfont stylesheet URL captured from the source page's <link>/@import
+     *  (Google Fonts / Bunny / Adobe). Emitted as a sanitized @import so the
+     *  brand font actually loads — names alone don't render in preview. */
+    fontCssUrl?: string
 }
+
+// Hosts we trust to @import a webfont stylesheet from. Anything else is dropped
+// — the URL lands in a <style> we ship to WordPress, so it must be locked down.
+const FONT_HOST_ALLOWLIST = /^https:\/\/(?:fonts\.googleapis\.com|fonts\.gstatic\.com|fonts\.bunny\.net|use\.typekit\.net|use\.fontawesome\.com)\//i
 
 const COLOR_RE = /^(#[0-9a-f]{3,8}|(?:rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)|[a-z]{3,20})$/i
 const RADIUS_RE = /^[0-9]+(?:\.[0-9]+)?(?:px|rem|em|%)$/i
@@ -64,6 +82,25 @@ function sanitizeRadius(raw?: string | null): string | undefined {
     if (!raw) return undefined
     const v = raw.trim().replace(/!important/gi, '').trim()
     return RADIUS_RE.test(v) ? v : undefined
+}
+
+/** Font-weight: a number 100-900 or a known keyword. */
+function sanitizeWeight(raw?: string | null): string | undefined {
+    if (!raw) return undefined
+    const v = raw.trim().replace(/!important/gi, '').trim().toLowerCase()
+    if (/^[1-9]00$/.test(v)) return v
+    if (v === 'bold' || v === 'bolder' || v === 'normal') return v
+    return undefined
+}
+
+/** A webfont stylesheet URL — must be https and on the allowlist. Block only
+ *  chars that could break OUT of `@import url("...")` (quotes, angle brackets,
+ *  whitespace, comments); `;@?&=:` are legal in Google-Fonts URLs and stay. */
+function sanitizeFontUrl(raw?: string | null): string | undefined {
+    if (!raw) return undefined
+    const v = raw.trim().replace(/^url\(/i, '').replace(/\)$/, '').replace(/['"]/g, '').trim()
+    if (!v || /["'<>\s)]|\/\*/.test(v)) return undefined
+    return FONT_HOST_ALLOWLIST.test(v) ? v : undefined
 }
 
 /** First value of a CSS custom property `--name` anywhere in the text. */
@@ -115,6 +152,26 @@ function decl(body: string | undefined, prop: string): string | undefined {
     return m ? m[1].trim() : undefined
 }
 
+/** Find the first allowlisted webfont stylesheet URL in the page's <link> tags
+ *  or the CSS's @import rules. Lives outside the CSS-empty guard because the
+ *  font <link> is in the HTML head, not the stylesheet. */
+function extractFontCssUrl(html: string, css: string): string | undefined {
+    const urls: string[] = []
+    const linkRe = /<link\b[^>]*\bhref\s*=\s*(["'])(.*?)\1[^>]*>/gi
+    let lm: RegExpExecArray | null
+    while ((lm = linkRe.exec(html))) {
+        const u = sanitizeFontUrl(lm[2])
+        if (u) urls.push(u)
+    }
+    const impRe = /@import\s+(?:url\(\s*)?(["']?)([^"')\s]+)\1/gi
+    let im: RegExpExecArray | null
+    while ((im = impRe.exec(css))) {
+        const u = sanitizeFontUrl(im[2])
+        if (u) urls.push(u)
+    }
+    return urls.find(u => /googleapis|bunny|typekit/i.test(u)) || urls[0]
+}
+
 /**
  * Extract design tokens from a page's HTML + any external stylesheet texts.
  * Returns only the keys it could confidently resolve; missing keys fall back
@@ -127,9 +184,14 @@ export function extractStyleTokens(html: string, cssTexts: string[] = []): Style
         .map(s => s.replace(/<\/?style\b[^>]*>/gi, ''))
         .join('\n')
     const css = [inlineStyles, ...cssTexts].join('\n').slice(0, 2_000_000)
-    if (!css.trim()) return {}
+
+    // Webfont URL can come from an HTML <link> even when there's no inline CSS,
+    // so resolve it before the css-empty short-circuit.
+    const fontCssUrl = extractFontCssUrl(html, css)
+    if (!css.trim()) return fontCssUrl ? { fontCssUrl } : {}
 
     const t: StyleTokens = {}
+    t.fontCssUrl = fontCssUrl
 
     // ── 1. Elementor global kit (highest fidelity) ────────────────────────────
     t.colorPrimary = sanitizeColor(findVar(css, 'e-global-color-primary'))
@@ -181,6 +243,19 @@ export function extractStyleTokens(html: string, cssTexts: string[] = []): Style
     const aRule = findRuleBody(css, 'a')
     t.colorPrimary = t.colorPrimary || sanitizeColor(resolveVarRef(decl(aRule, 'color'), css))
 
+    // ── 4. Heading weight + button treatment (high "looks like the site" signal) ──
+    t.headingWeight = sanitizeWeight(resolveVarRef(decl(h1Rule, 'font-weight'), css))
+
+    // Primary button — try common theme/builder button selectors in priority
+    // order. The class name (no leading dot) matches inside the selector list.
+    const btnRule = findRuleBody(css, 'elementor-button')
+        || findRuleBody(css, 'wp-block-button__link')
+        || findRuleBody(css, 'btn')
+        || findRuleBody(css, 'button')
+    t.colorButtonBg = sanitizeColor(resolveVarRef(decl(btnRule, 'background-color') || decl(btnRule, 'background'), css))
+    t.colorButtonText = sanitizeColor(resolveVarRef(decl(btnRule, 'color'), css))
+    t.buttonRadius = sanitizeRadius(resolveVarRef(decl(btnRule, 'border-radius'), css))
+
     // Drop empty keys so callers / JSON storage stay clean.
     for (const k of Object.keys(t) as (keyof StyleTokens)[]) {
         if (!t[k]) delete t[k]
@@ -213,7 +288,17 @@ export function buildBrandTokenCss(tokens?: StyleTokens | null): string {
     push('--koto-color-surface', tokens.colorSurface)
     push('--koto-color-border', tokens.colorBorder)
     push('--koto-radius', tokens.radius)
+    push('--koto-heading-weight', tokens.headingWeight)
+    // Button: prefer captured button color, else fall back to the brand primary.
+    push('--koto-color-button-bg', tokens.colorButtonBg || tokens.colorPrimary)
+    push('--koto-color-button-text', tokens.colorButtonText)
+    push('--koto-button-radius', tokens.buttonRadius || tokens.radius)
 
-    if (!decls.length) return ''
-    return `:root{${decls.join(';')}}`
+    const root = decls.length ? `:root{${decls.join(';')}}` : ''
+    // @import must precede other rules. Emitted only for an allowlisted https
+    // font URL (already sanitized in extractStyleTokens), so the brand font
+    // renders even where the host theme hasn't loaded it.
+    const fontImport = tokens.fontCssUrl ? `@import url("${tokens.fontCssUrl}");` : ''
+    if (!root && !fontImport) return ''
+    return [fontImport, root].filter(Boolean).join('\n')
 }

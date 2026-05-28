@@ -70,6 +70,33 @@ describe('extractStyleTokens', () => {
     it('returns {} when there is no CSS at all', () => {
         expect(extractStyleTokens('<div>hi</div>', [])).toEqual({})
     })
+
+    it('captures button treatment + heading weight', () => {
+        const css = `h1{font-weight:800}
+            .elementor-button{background-color:#ff6600;color:#ffffff;border-radius:9999px}`
+        const t = extractStyleTokens('', [css])
+        expect(t.headingWeight).toBe('800')
+        expect(t.colorButtonBg).toBe('#ff6600')
+        expect(t.colorButtonText).toBe('#ffffff')
+        expect(t.buttonRadius).toBe('9999px')
+    })
+
+    it('captures an allowlisted Google Fonts <link> (with ; and @ in the URL)', () => {
+        const html = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap">`
+        const t = extractStyleTokens(html, [])
+        expect(t.fontCssUrl).toBe('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap')
+    })
+
+    it('captures an @import font URL from the CSS', () => {
+        const t = extractStyleTokens('', [`@import url("https://fonts.bunny.net/css?family=inter:400,700");`])
+        expect(t.fontCssUrl).toBe('https://fonts.bunny.net/css?family=inter:400,700')
+    })
+
+    it('drops a non-allowlisted / non-https font URL', () => {
+        const html = `<link rel="stylesheet" href="https://evil.example.com/x.css">
+                      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=X">`
+        expect(extractStyleTokens(html, []).fontCssUrl).toBeUndefined()
+    })
 })
 
 describe('buildBrandTokenCss', () => {
@@ -94,5 +121,24 @@ describe('buildBrandTokenCss', () => {
             .toContain('--koto-color-primary-2:#0f0')
         expect(buildBrandTokenCss({ colorPrimary: '#111' }))
             .toContain('--koto-color-primary-2:#111')
+    })
+
+    it('emits button + heading-weight vars; button bg falls back to primary', () => {
+        const css = buildBrandTokenCss({ colorPrimary: '#111', headingWeight: '800', colorButtonText: '#fff', buttonRadius: '4px' })
+        expect(css).toContain('--koto-heading-weight:800')
+        expect(css).toContain('--koto-color-button-bg:#111')   // falls back to primary
+        expect(css).toContain('--koto-color-button-text:#fff')
+        expect(css).toContain('--koto-button-radius:4px')
+    })
+
+    it('prepends a sanitized @import for a captured font URL (before :root)', () => {
+        const css = buildBrandTokenCss({ colorPrimary: '#111', fontCssUrl: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap' })
+        expect(css.startsWith('@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");')).toBe(true)
+        expect(css).toContain('\n:root{')
+    })
+
+    it('emits only @import when a font URL is present but no other tokens', () => {
+        const css = buildBrandTokenCss({ fontCssUrl: 'https://fonts.bunny.net/css?family=inter:400' })
+        expect(css).toBe('@import url("https://fonts.bunny.net/css?family=inter:400");')
     })
 })
