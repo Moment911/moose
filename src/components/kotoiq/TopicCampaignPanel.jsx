@@ -35,6 +35,47 @@ export default function TopicCampaignPanel({ site }) {
   const [variantsPerSection, setVariantsPerSection] = useState(4)
   const [faqCount, setFaqCount] = useState(6)
   const [generating, setGenerating] = useState(false)
+  const [competitorSampleCity, setCompetitorSampleCity] = useState('')
+  const [competitorSampleState, setCompetitorSampleState] = useState('')
+
+  // Post-generation audits — opened from master-ready toolbar
+  const [eeatOpen, setEeatOpen] = useState(false)
+  const [eeatBusy, setEeatBusy] = useState(false)
+  const [eeatResult, setEeatResult] = useState(null)
+  const [topicalOpen, setTopicalOpen] = useState(false)
+  const [topicalBusy, setTopicalBusy] = useState(false)
+  const [topicalResult, setTopicalResult] = useState(null)
+
+  async function runEeatAudit() {
+    if (!campaign?.id || eeatBusy) return
+    setEeatBusy(true); setEeatOpen(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'eeat_score', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); setEeatResult(null) }
+      else setEeatResult(d.audit)
+    } catch (e) { toast.error(e.message); setEeatResult(null) }
+    setEeatBusy(false)
+  }
+
+  async function runTopicalExpand() {
+    if (!campaign?.id || topicalBusy) return
+    setTopicalBusy(true); setTopicalOpen(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'topical_expand', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); setTopicalResult(null) }
+      else setTopicalResult(d.expansion)
+    } catch (e) { toast.error(e.message); setTopicalResult(null) }
+    setTopicalBusy(false)
+  }
+
   const [campaign, setCampaign] = useState(null) // { id, topic, master, ... }
   const [savedCampaigns, setSavedCampaigns] = useState([])
   const [loadingSaved, setLoadingSaved] = useState(false)
@@ -290,6 +331,8 @@ export default function TopicCampaignPanel({ site }) {
           focus_keyword_template: focusKwTemplate.trim() || null,
           variants_per_section: Number(variantsPerSection) || 4,
           faq_count: Number(faqCount) || 6,
+          competitor_sample_city: competitorSampleCity.trim() || null,
+          competitor_sample_state_abbr: competitorSampleState.trim() || null,
         }),
       })
       const d = await r.json()
@@ -761,6 +804,27 @@ export default function TopicCampaignPanel({ site }) {
             </Field>
           )}
 
+          {/* Competitor-aware generation — optional, biggest ranking lift when set */}
+          <div style={{ marginTop:10, padding:14, background:'#f0f9ff', border:'1px solid #bae6fd', borderRadius:10 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+              <Sparkles size={14} color="#0369a1"/>
+              <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:'#0c4a6e' }}>
+                Competitor-aware generation (recommended)
+              </div>
+            </div>
+            <div style={{ fontFamily:FB, fontSize:12, color:'#075985', marginBottom:10, lineHeight:1.5 }}>
+              Pick a sample city &mdash; we&rsquo;ll fetch the top 3 Google results for &quot;{topic.trim() || '<topic>'} in &lt;city&gt;&quot;, scrape their H1/H2/word-count signal, and feed it to Claude so the master takes deliberately differentiated angles competitors miss. Skip if you want a vanilla generation.
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:10 }}>
+              <Field label="Sample city" hint="One city representative of your deploy markets (e.g. 'Austin')">
+                <input value={competitorSampleCity} onChange={e => setCompetitorSampleCity(e.target.value)} placeholder="Austin" style={inp()}/>
+              </Field>
+              <Field label="State abbr" hint="2-letter, optional">
+                <input value={competitorSampleState} onChange={e => setCompetitorSampleState(e.target.value.toUpperCase().slice(0,2))} placeholder="TX" style={inp()} maxLength={2}/>
+              </Field>
+            </div>
+          </div>
+
           <Field label="Custom HTML wrapper (optional)" hint="Use {{HERO_HEADLINE}}, {{HERO_SUB}}, {{HERO_MEDIA}}, {{SECTIONS}}, {{FAQS}}, {{CTA}}, {{SERVICE_AREAS}} placeholders. Add {{NO_STYLES}} to skip the default base CSS.">
             <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center' }}>
               <input
@@ -855,6 +919,12 @@ export default function TopicCampaignPanel({ site }) {
                 {redeploying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Re-deploy all
               </button>
             )}
+            <button onClick={runEeatAudit} disabled={eeatBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
+              {eeatBusy ? <Loader2 size={11} className="spin"/> : <Sparkles size={11}/>} E-E-A-T audit
+            </button>
+            <button onClick={runTopicalExpand} disabled={topicalBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
+              {topicalBusy ? <Loader2 size={11} className="spin"/> : <Sparkles size={11}/>} Topical cluster
+            </button>
           </div>
           <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280' }}>
             <strong>Topic:</strong> {campaign.topic}
@@ -1224,6 +1294,116 @@ export default function TopicCampaignPanel({ site }) {
           onSave={saveMasterEdits}
           onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
         />
+      )}
+
+      {/* E-E-A-T audit modal */}
+      {eeatOpen && (
+        <div style={overlay()} onClick={() => setEeatOpen(false)}>
+          <div style={{ ...modal(), maxWidth:700 }} onClick={e => e.stopPropagation()}>
+            <div style={modalHeader()}>
+              <Sparkles size={18} color="#7c3aed"/>
+              <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>E-E-A-T audit</div>
+              <button onClick={() => setEeatOpen(false)} style={miniBtn()}><X size={11}/></button>
+            </div>
+            <div style={{ padding:22 }}>
+              {eeatBusy && !eeatResult && (
+                <div style={{ display:'flex', alignItems:'center', gap:10, color:'#6b7280' }}>
+                  <Loader2 size={16} className="spin"/> Scoring against Google Search Quality Rater signals…
+                </div>
+              )}
+              {eeatResult && (
+                <div>
+                  <div style={{ display:'flex', alignItems:'baseline', gap:14, marginBottom:14, paddingBottom:14, borderBottom:'1px solid #e5e7eb' }}>
+                    <div style={{ fontSize:48, fontFamily:FH, fontWeight:900, color: eeatResult.overall_score >= 80 ? GRN : eeatResult.overall_score >= 60 ? AMB : R }}>{eeatResult.overall_score}</div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.04em' }}>Overall E-E-A-T</div>
+                      <div style={{ display:'flex', gap:14, marginTop:6, flexWrap:'wrap', fontSize:11, fontFamily:FB, color:'#475569' }}>
+                        <span>Experience <strong>{eeatResult.experience}/25</strong></span>
+                        <span>Expertise <strong>{eeatResult.expertise}/25</strong></span>
+                        <span>Authority <strong>{eeatResult.authoritativeness}/25</strong></span>
+                        <span>Trust <strong>{eeatResult.trustworthiness}/25</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                  {Array.isArray(eeatResult.strengths) && eeatResult.strengths.length > 0 && (
+                    <div style={{ marginBottom:14 }}>
+                      <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:GRN, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>Strengths</div>
+                      <ul style={{ margin:0, paddingLeft:18, fontSize:13, fontFamily:FB, color:'#1a2332', lineHeight:1.6 }}>
+                        {eeatResult.strengths.map((s, i) => <li key={i}>{s}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {Array.isArray(eeatResult.gaps) && eeatResult.gaps.length > 0 && (
+                    <div>
+                      <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:R, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>Gaps + fixes</div>
+                      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                        {eeatResult.gaps.map((g, i) => (
+                          <div key={i} style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:8, padding:10 }}>
+                            <div style={{ fontSize:10, color:'#991b1b', fontFamily:FH, fontWeight:700, textTransform:'uppercase', letterSpacing:'.04em', marginBottom:2 }}>{g.dimension}</div>
+                            <div style={{ fontSize:13, fontFamily:FB, color:'#1a2332', marginBottom:4 }}>{g.issue}</div>
+                            <div style={{ fontSize:12, fontFamily:FB, color:'#475569' }}><strong style={{ color:GRN }}>Fix:</strong> {g.fix}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Topical cluster modal */}
+      {topicalOpen && (
+        <div style={overlay()} onClick={() => setTopicalOpen(false)}>
+          <div style={{ ...modal(), maxWidth:760 }} onClick={e => e.stopPropagation()}>
+            <div style={modalHeader()}>
+              <Sparkles size={18} color="#7c3aed"/>
+              <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>Topical cluster — expand your authority</div>
+              <button onClick={() => setTopicalOpen(false)} style={miniBtn()}><X size={11}/></button>
+            </div>
+            <div style={{ padding:22, maxHeight:'70vh', overflow:'auto' }}>
+              {topicalBusy && !topicalResult && (
+                <div style={{ display:'flex', alignItems:'center', gap:10, color:'#6b7280' }}>
+                  <Loader2 size={16} className="spin"/> Mapping sibling + supporting topics…
+                </div>
+              )}
+              {topicalResult && (
+                <>
+                  <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:14, lineHeight:1.55 }}>
+                    Primary topic: <strong style={{ color:BLK }}>{topicalResult.primary}</strong>. Deploying campaigns for the siblings below compounds topical authority. Click <strong>Use this</strong> to pre-fill a new campaign with that topic.
+                  </div>
+                  {Array.isArray(topicalResult.siblings) && topicalResult.siblings.length > 0 && (
+                    <div style={{ marginBottom:18 }}>
+                      <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:T, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Sibling campaigns ({topicalResult.siblings.length})</div>
+                      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                        {topicalResult.siblings.map((s, i) => (
+                          <div key={i} style={{ background:'#f0fdfa', border:'1px solid #99f6e4', borderRadius:8, padding:10, display:'flex', alignItems:'center', gap:10 }}>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:'#0f766e' }}>{s.topic} <span style={{ ...pill('#0f766e', '#0f766e15'), marginLeft:6, fontSize:10 }}>{s.intent}</span></div>
+                              <div style={{ fontSize:12, fontFamily:FB, color:'#475569', marginTop:2 }}>{s.rationale}</div>
+                            </div>
+                            <button onClick={() => { setTopic(s.topic); setTopicalOpen(false); setCampaign(null); setStep(1); toast.success(`Topic pre-filled: ${s.topic}`) }} style={miniBtn({ color:T, borderColor:T })}>Use this</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {Array.isArray(topicalResult.supporting) && topicalResult.supporting.length > 0 && (
+                    <div>
+                      <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:'#7c3aed', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Supporting content ({topicalResult.supporting.length})</div>
+                      <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontFamily:FB }}>Blog / educational topics that funnel into the primary — not for AI Pages, but useful for content calendar.</div>
+                      <ul style={{ margin:0, paddingLeft:18, fontSize:13, fontFamily:FB, color:'#1a2332', lineHeight:1.7 }}>
+                        {topicalResult.supporting.map((s, i) => <li key={i}><strong>{s.topic}</strong> <span style={{ color:'#6b7280' }}>— {s.rationale}</span></li>)}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Inspect deploy overlay */}
