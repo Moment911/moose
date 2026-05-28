@@ -10,6 +10,35 @@ import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
 
+// Auto-freshness threshold options — keys must match STALE_THRESHOLDS_MS in
+// src/lib/dataIntegrity.ts. The nightly cron re-deploys an opted-in campaign
+// when its last deploy is older than the chosen window.
+const REFRESH_THRESHOLDS = [
+  { key:'reviews',          label:'Reviews — 7d' },
+  { key:'business-listing', label:'Listings — 30d' },
+  { key:'gbp-categories',   label:'GBP — 90d' },
+  { key:'geo-municipality', label:'Geo — 180d' },
+]
+
+/**
+ * Build a short human note from a capture response's style_tokens so the
+ * operator can SEE that we read their real brand (font + primary color) rather
+ * than guessing. Returns null when nothing usable was captured, or a migration
+ * hint when the style_tokens column isn't applied yet.
+ */
+function brandMatchNote(d) {
+  const t = d?.style_tokens || {}
+  const bits = []
+  if (t.fontBody) bits.push(t.fontBody.split(',')[0].replace(/["']/g, '').trim())
+  if (t.colorPrimary) bits.push(t.colorPrimary)
+  if (bits.length) {
+    const stored = d.style_tokens_stored ? '' : (d.style_tokens_migrated === false ? ' (not saved — apply style_tokens migration, then re-capture)' : '')
+    return `Brand match: ${bits.join(' · ')}${stored}`
+  }
+  if (d.style_tokens_migrated === false) return 'style_tokens column not migrated yet — base styling will be generic until applied'
+  return null
+}
+
 /**
  * TopicCampaignPanel — three-step wizard for bulk topic-based page deploys.
  *
@@ -169,7 +198,7 @@ export default function TopicCampaignPanel({ site }) {
     try {
       const r = await fetch('/api/kotoiq/topic-campaign', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'wrapper_assist', agency_id: agencyId, html }),
+        body: JSON.stringify({ action: 'wrapper_assist', agency_id: agencyId, html, campaign_id: campaign?.id }),
       })
       if (!r.ok) {
         const txt = await r.text().catch(() => '')
@@ -181,6 +210,7 @@ export default function TopicCampaignPanel({ site }) {
       setEditedCaptureInfo({
         used_selector: 'AI-assisted',
         notes: `Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none — review output'}`,
+        brand: brandMatchNote(d),
       })
       toast.success('Style extracted — Save changes + Re-deploy all to apply', { id: tid })
     } catch (e) {
@@ -214,12 +244,12 @@ export default function TopicCampaignPanel({ site }) {
     try {
       const r = await fetch('/api/kotoiq/topic-campaign', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'capture_styling', agency_id: agencyId, url }),
+        body: JSON.stringify({ action:'capture_styling', agency_id: agencyId, url, campaign_id: campaign?.id }),
       })
       const d = await r.json()
       if (d.error) { toast.error(errText(d.error)); return }
       setEditedWrapper(d.wrapper || '')
-      setEditedCaptureInfo({ used_selector: d.used_selector, notes: d.notes })
+      setEditedCaptureInfo({ used_selector: d.used_selector, notes: d.notes, brand: brandMatchNote(d) })
       toast.success(`Captured via "${d.used_selector}" — save changes + Re-deploy all to apply`)
     } catch (e) { toast.error(e.message) }
     setEditedCaptureBusy(false)
@@ -227,11 +257,17 @@ export default function TopicCampaignPanel({ site }) {
   const [focusKwTemplate, setFocusKwTemplate] = useState('[topic] in [koto_city] [koto_state_abbr]')
   const [styleCaptureUrl, setStyleCaptureUrl] = useState('')
   const [capturing, setCapturing] = useState(false)
-  const [captureInfo, setCaptureInfo] = useState(null) // { used_selector, notes }
+  const [captureInfo, setCaptureInfo] = useState(null) // { used_selector, notes, brand }
+  // Style tokens captured during the CREATE wizard (no campaign row exists yet,
+  // so they can't persist server-side). Held here and sent with generate_master
+  // so a new campaign is brand-matched from its first deploy.
+  const [capturedStyleTokens, setCapturedStyleTokens] = useState(null)
   const [deployHistory, setDeployHistory] = useState([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [inspectDeploy, setInspectDeploy] = useState(null)
   const [redeploying, setRedeploying] = useState(false)
+  const [autoRefreshBusy, setAutoRefreshBusy] = useState(false)
+  const [hubBusy, setHubBusy] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [verifying, setVerifying] = useState(false)
 
@@ -565,6 +601,7 @@ export default function TopicCampaignPanel({ site }) {
           notes: notes.trim() || null,
           post_type: postType,
           custom_html_wrapper: customHtml.trim() || null,
+          style_tokens: capturedStyleTokens || null,
           hero_image_url: heroImageUrl.trim() || null,
           hero_video_url: heroVideoUrl.trim() || null,
           hero_image_alt: heroImageAlt.trim() || null,
@@ -756,7 +793,8 @@ export default function TopicCampaignPanel({ site }) {
       const d = await r.json()
       if (d.error) { toast.error(errText(d.error)); return }
       setCustomHtml(d.wrapper || '')
-      setCaptureInfo({ used_selector: d.used_selector, notes: d.notes })
+      setCapturedStyleTokens(d.style_tokens || null)
+      setCaptureInfo({ used_selector: d.used_selector, notes: d.notes, brand: brandMatchNote(d) })
       toast.success(`Captured via "${d.used_selector}"`)
     } catch (e) { toast.error(e.message) }
     setCapturing(false)
@@ -831,6 +869,46 @@ export default function TopicCampaignPanel({ site }) {
       await loadDeployHistory()
     } catch (e) { toast.error(e.message) }
     setRedeploying(false)
+  }
+
+  // Opt this campaign in/out of the nightly auto-freshness cron. Redeploy-only
+  // (re-pulls Census + Google reviews, no AI tokens). Threshold = which
+  // dataIntegrity.ts staleness window gates a re-deploy.
+  async function saveAutoRefresh(enabled, key) {
+    if (!campaign?.id) return
+    setAutoRefreshBusy(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'set_auto_refresh', agency_id: agencyId, campaign_id: campaign.id, auto_refresh: enabled, refresh_threshold_key: key }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); setAutoRefreshBusy(false); return }
+      setCampaign(c => ({ ...c, auto_refresh: d.auto_refresh, refresh_threshold_key: d.refresh_threshold_key }))
+      const label = (REFRESH_THRESHOLDS.find(t => t.key === d.refresh_threshold_key) || {}).label || d.refresh_threshold_key
+      toast.success(enabled ? `Auto-refresh on — re-deploys when data is past ${label}` : 'Auto-refresh off')
+    } catch (e) { toast.error(e.message) }
+    setAutoRefreshBusy(false)
+  }
+
+  // Build (or rebuild) the pillar/hub page — links all city pages + sibling
+  // clusters with BreadcrumbList schema. Re-deploy after to wire the city-page
+  // breadcrumbs up to the hub.
+  async function buildHub() {
+    if (!campaign?.id) return
+    setHubBusy(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'deploy_hub', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); setHubBusy(false); return }
+      setCampaign(c => ({ ...c, hub_url: d.hub_url, hub_post_id: d.hub_post_id }))
+      toast.success(`Hub built — ${d.cities_linked} cities linked${d.related_clusters ? ` + ${d.related_clusters} related` : ''}. Re-deploy to wire city breadcrumbs.`)
+      if (d.note) toast(d.note, { duration: 9000 })
+    } catch (e) { toast.error(e.message) }
+    setHubBusy(false)
   }
 
   // Auto-load deploy history when a campaign is loaded
@@ -942,6 +1020,9 @@ export default function TopicCampaignPanel({ site }) {
               </div>
               <div style={{ fontFamily:FB, fontSize:12, color:'#6b7280', marginTop:2 }}>
                 Serves a plaintext index at <code style={{ background:'#f1f5f9', padding:'1px 5px', borderRadius:3, fontSize:11 }}>{String(site.site_url).replace(/\/$/, '')}/llms.txt</code> listing every deployed page so AI crawlers (claudebot, GPTBot, Perplexity, Google-Extended) cite the right city pages. Requires plugin v4.2.0+.
+              </div>
+              <div style={{ fontFamily:FB, fontSize:12, color:'#6b7280', marginTop:6 }}>
+                Markdown twins are auto-published on every deploy: each page also serves at <code style={{ background:'#f1f5f9', padding:'1px 5px', borderRadius:3, fontSize:11 }}>{'{slug}'}.md</code> and the full-content export lives at <a href={`${String(site.site_url).replace(/\/$/, '')}/llms-full.txt`} target="_blank" rel="noopener noreferrer" style={{ color:T, textDecoration:'underline' }}>/llms-full.txt</a> — AI crawlers prefer Markdown. Requires plugin v4.2.5+.
               </div>
             </div>
             <button onClick={previewLlmsTxt} disabled={!!llmsBusy} style={miniBtn()}>
@@ -1154,7 +1235,7 @@ export default function TopicCampaignPanel({ site }) {
                       })
                       const d = await r.json()
                       if (d.error) toast.error(errText(d.error))
-                      else { setCustomHtml(d.wrapper || ''); setCaptureInfo({ used_selector:'AI-assisted', notes:`Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none'}` }); toast.success('Style extracted from file') }
+                      else { setCustomHtml(d.wrapper || ''); setCapturedStyleTokens(d.style_tokens || null); setCaptureInfo({ used_selector:'AI-assisted', notes:`Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none'}`, brand: brandMatchNote(d) }); toast.success('Style extracted from file') }
                     } catch (e) { toast.error(e.message) }
                     setCapturing(false)
                   }}
@@ -1171,14 +1252,14 @@ export default function TopicCampaignPanel({ site }) {
                   })
                   const d = await r.json()
                   if (d.error) toast.error(errText(d.error))
-                  else { setCustomHtml(d.wrapper || ''); setCaptureInfo({ used_selector:'AI-assisted', notes:`Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none'}` }); toast.success('Style extracted') }
+                  else { setCustomHtml(d.wrapper || ''); setCapturedStyleTokens(d.style_tokens || null); setCaptureInfo({ used_selector:'AI-assisted', notes:`Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none'}`, brand: brandMatchNote(d) }); toast.success('Style extracted') }
                 } catch (e) { toast.error(e.message) }
                 setCapturing(false)
               }} disabled={capturing || !customHtml.trim()} style={miniBtn({ color:R, borderColor:R })}>
                 {capturing ? <Loader2 size={12} className="spin"/> : <Sparkles size={12}/>} Style my pages with this
               </button>
               {customHtml && (
-                <button onClick={() => { setCustomHtml(''); setCaptureInfo(null) }} style={miniBtn()}>
+                <button onClick={() => { setCustomHtml(''); setCaptureInfo(null); setCapturedStyleTokens(null) }} style={miniBtn()}>
                   <X size={11}/> Clear
                 </button>
               )}
@@ -1189,6 +1270,9 @@ export default function TopicCampaignPanel({ site }) {
             {captureInfo && (
               <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
                 <strong>Captured:</strong> {captureInfo.notes}
+                {captureInfo.brand && (
+                  <div style={{ marginTop:4, fontWeight:600 }}>{captureInfo.brand}</div>
+                )}
               </div>
             )}
             <textarea value={customHtml} onChange={e => setCustomHtml(e.target.value)} rows={6}
@@ -1274,6 +1358,40 @@ export default function TopicCampaignPanel({ site }) {
               <button onClick={redeployAll} disabled={redeploying} style={miniBtn({ color:R, borderColor:R, background:`${R}10` })}>
                 {redeploying ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Re-deploy all
               </button>
+            )}
+            {deployHistory.length > 0 && (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+                <button
+                  onClick={() => saveAutoRefresh(!campaign.auto_refresh, campaign.refresh_threshold_key || 'business-listing')}
+                  disabled={autoRefreshBusy}
+                  title="Nightly cron re-pulls live Census + Google reviews and re-deploys this campaign when its data is past the chosen freshness window. No AI tokens spent — competitor angles still need a manual Regenerate."
+                  style={miniBtn(campaign.auto_refresh ? { color:GRN, borderColor:GRN, background:`${GRN}10` } : {})}>
+                  {autoRefreshBusy ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Auto-refresh {campaign.auto_refresh ? 'on' : 'off'}
+                </button>
+                {campaign.auto_refresh && (
+                  <select
+                    value={campaign.refresh_threshold_key || 'business-listing'}
+                    onChange={e => saveAutoRefresh(true, e.target.value)}
+                    disabled={autoRefreshBusy}
+                    title="Re-deploy when data is older than this"
+                    style={{ ...inp(), width:'auto', padding:'4px 6px', fontSize:11 }}>
+                    {REFRESH_THRESHOLDS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+                  </select>
+                )}
+              </span>
+            )}
+            {deployHistory.length > 0 && (
+              <button onClick={buildHub} disabled={hubBusy}
+                title="Build a pillar/hub page that links every city page + sibling clusters, with BreadcrumbList schema. Re-deploy afterward so the city pages link up to the hub."
+                style={miniBtn(campaign.hub_url ? { color:GRN, borderColor:GRN } : { color:'#7c3aed', borderColor:'#7c3aed' })}>
+                {hubBusy ? <Loader2 size={11} className="spin"/> : <Sparkles size={11}/>} {campaign.hub_url ? 'Rebuild hub' : 'Build hub page'}
+              </button>
+            )}
+            {campaign.hub_url && (
+              <a href={campaign.hub_url} target="_blank" rel="noopener noreferrer"
+                title="View the hub page" style={{ ...miniBtn({ color:GRN, borderColor:GRN }), textDecoration:'none' }}>
+                <ExternalLink size={11}/> Hub
+              </a>
             )}
             <button onClick={runEeatAudit} disabled={eeatBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
               {eeatBusy ? <Loader2 size={11} className="spin"/> : <Sparkles size={11}/>} E-E-A-T audit
@@ -1519,6 +1637,12 @@ export default function TopicCampaignPanel({ site }) {
                         {d.wp_post_url && (
                           <a href={d.wp_post_url} target="_blank" rel="noopener noreferrer" style={{ color:'#6b7280', display:'inline-flex' }}>
                             <ExternalLink size={13}/>
+                          </a>
+                        )}
+                        {mdUrlForDeploy(d) && (
+                          <a href={mdUrlForDeploy(d)} target="_blank" rel="noopener noreferrer" title="View this page's Markdown twin (.md)"
+                            style={{ color:'#7c3aed', marginLeft:8, fontSize:11, fontFamily:'ui-monospace,Menlo,monospace', textDecoration:'none' }}>
+                            .md
                           </a>
                         )}
                       </td>
@@ -2247,6 +2371,9 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
             {captureInfo && (
               <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
                 <strong>Captured:</strong> {captureInfo.notes}
+                {captureInfo.brand && (
+                  <div style={{ marginTop:4, fontWeight:600 }}>{captureInfo.brand}</div>
+                )}
               </div>
             )}
             <textarea value={wrapper} onChange={e => setWrapper(e.target.value)} rows={10}
@@ -2468,6 +2595,17 @@ const stateNames = {
 }
 function stateName(abbr) { return stateNames[abbr] || abbr }
 
+// Build the Markdown-twin URL for a deploy row: {origin}/{slug}.md. Mirrors the
+// safeMdSlug sanitation the server uses for the pushed file path.
+function mdUrlForDeploy(d) {
+  if (!d?.wp_post_url || !d?.resolved_slug) return null
+  try {
+    const origin = new URL(d.wp_post_url).origin
+    const slug = String(d.resolved_slug).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '')
+    return slug ? `${origin}/${slug}.md` : null
+  } catch { return null }
+}
+
 function Sparkline({ data, width = 80, height = 22, strokeWidth = 1.5 }) {
   if (!data || data.length === 0) return <span style={{ color:'#d1d5db', fontSize:11 }}>—</span>
   const w = width, h = height
@@ -2487,6 +2625,42 @@ function Sparkline({ data, width = 80, height = 22, strokeWidth = 1.5 }) {
         <line x1="0" y1={h/2} x2={w} y2={h/2} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="2 2"/>
       )}
     </svg>
+  )
+}
+
+// Organic-rank trend from the check_citations history. Rank is "lower is
+// better", so the sparkline is inverted (rank #1 sits at the top) and an
+// improvement (rank number going DOWN) renders green.
+function RankTrend({ history, width = 120, height = 26 }) {
+  const ranked = (history || []).filter(h => h.organic_rank != null)
+  if (ranked.length === 0) {
+    return <span style={{ color:'#9ca3af', fontSize:12, fontFamily:FB, fontStyle:'italic' }}>No organic rank recorded yet — run a citation check to start trending.</span>
+  }
+  const ranks = ranked.map(h => h.organic_rank)
+  const first = ranks[0]
+  const last = ranks[ranks.length - 1]
+  const delta = first - last // positive = improved (moved up the page)
+  const worst = Math.max(...ranks, 10)
+  const stepX = ranked.length > 1 ? width / (ranked.length - 1) : 0
+  // Invert: rank 1 → top (y small), worst → bottom (y large)
+  const points = ranks.map((r, i) => `${i * stepX},${((r - 1) / Math.max(worst - 1, 1)) * (height - 3) + 1}`).join(' ')
+  const trendColor = delta > 0 ? GRN : delta < 0 ? R : '#9ca3af'
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+      <svg width={width} height={height} style={{ display:'block', flexShrink:0 }}>
+        <polyline points={points} fill="none" stroke={trendColor} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"/>
+        {ranks.map((r, i) => <circle key={i} cx={i * stepX} cy={((r - 1) / Math.max(worst - 1, 1)) * (height - 3) + 1} r={1.6} fill={trendColor}/>)}
+      </svg>
+      <div style={{ fontFamily:FB, fontSize:12, lineHeight:1.3 }}>
+        <span style={{ fontWeight:800, color:BLK }}>#{last}</span>
+        {ranked.length > 1 && (
+          <span style={{ color:trendColor, marginLeft:6, fontWeight:700 }}>
+            {delta > 0 ? `▲ +${delta}` : delta < 0 ? `▼ ${delta}` : '—'}
+          </span>
+        )}
+        <span style={{ color:'#9ca3af', marginLeft:6 }}>over {ranked.length} check{ranked.length === 1 ? '' : 's'}</span>
+      </div>
+    </div>
   )
 }
 
@@ -2513,7 +2687,9 @@ const cwvBadge = (c) => ({ display:'inline-flex', alignItems:'center', justifyCo
 
 function ExpandedRowDetail({ p }) {
   const hasQueries = (p.top_queries || []).length > 0
+  const hasRankHistory = (p.rank_history || []).length > 0
   return (
+    <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
     <div style={{ display:'grid', gridTemplateColumns:hasQueries ? '1fr 1fr' : '1fr', gap:14 }}>
       {hasQueries && (
         <div>
@@ -2564,6 +2740,15 @@ function ExpandedRowDetail({ p }) {
           </div>
         )}
       </div>
+    </div>
+    {hasRankHistory && (
+      <div>
+        <div style={{ fontSize:11, fontFamily:FH, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>
+          Organic rank trend — {p.city} (from citation checks)
+        </div>
+        <RankTrend history={p.rank_history}/>
+      </div>
+    )}
     </div>
   )
 }

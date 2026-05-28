@@ -28,9 +28,13 @@ import { fetchCruxData } from '@/lib/builder/cruxClient'
 import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
 import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
 import { buildLlmsTxt, publishLlmsTxt } from '@/lib/wp-shim/llmsTxtBuilder'
+import { buildPageMarkdown, buildLlmsFullTxt, publishPageMarkdown, publishLlmsFullTxt } from '@/lib/wp-shim/mdTwinBuilder'
+import { buildHubPage, hubTitle, hubSlug } from '@/lib/wp-shim/hubBuilder'
 import { shimSelfUpdate } from '@/lib/wp-shim/shimSelfUpdate'
 import { logTokenUsage } from '@/lib/tokenTracker'
 import { buildMultiCityCompetitorContext } from '@/lib/wp-shim/competitorContext'
+import { STALE_THRESHOLDS_MS } from '@/lib/dataIntegrity'
+import { extractStyleTokens, type StyleTokens } from '@/lib/wp-shim/styleTokens'
 
 // Thin name wrapper — local handle for the per-location ACS lookup used in
 // deploy + redeploy. Returns null on any failure (missing key, city not found,
@@ -86,12 +90,12 @@ export async function POST(req: NextRequest) {
             case 'retry_failed':      return await retryFailedDeploys(supabase, agencyId, body)
             case 'verify_live':       return await verifyLiveDeploys(supabase, agencyId, body)
             case 'resync_seo_meta':   return await resyncSeoMeta(supabase, agencyId, body)
-            case 'capture_styling':   return await captureStyling(body)
+            case 'capture_styling':   return await captureStyling(supabase, agencyId, body)
             case 'export_performance_csv': return await exportPerformanceCsv(supabase, agencyId, body)
             case 'publish_llms_txt':  return await publishLlmsTxtForSite(supabase, agencyId, body)
             case 'preview_llms_txt':  return await previewLlmsTxtForSite(supabase, agencyId, body)
             case 'shim_update':       return await shimUpdateForSite(supabase, agencyId, body)
-            case 'wrapper_assist':    return await wrapperAssist(body, agencyId)
+            case 'wrapper_assist':    return await wrapperAssist(supabase, agencyId, body)
             case 'eeat_score':        return await eeatScoreMaster(supabase, agencyId, body)
             case 'topical_expand':    return await topicalExpand(supabase, agencyId, body)
             case 'integration_status':return await integrationStatusForSite(supabase, agencyId, body)
@@ -104,6 +108,9 @@ export async function POST(req: NextRequest) {
             case 'set_eeat_inputs':   return await setEeatInputs(supabase, agencyId, body)
             case 'validate_schema':   return await validateSchema(supabase, agencyId, body)
             case 'check_citations':   return await checkCitationsAction(supabase, agencyId, body)
+            case 'get_rank_history':  return await getRankHistory(supabase, agencyId, body)
+            case 'set_auto_refresh':  return await setAutoRefresh(supabase, agencyId, body)
+            case 'deploy_hub':        return await deployHub(supabase, agencyId, body)
             case 'quality_check':     return await qualityCheckAction(supabase, agencyId, body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
         }
@@ -131,6 +138,72 @@ function isMissingColumnError(error: any): boolean {
         || /column .* does not exist/i.test(msg)
         || /could not find the .* column/i.test(msg)
         || /schema cache/i.test(msg)
+}
+
+/**
+ * Persist captured site style tokens onto a campaign. Best-effort + scoped to
+ * the agency. Returns { stored, migrated } so the caller can tell the operator
+ * whether the tokens were saved or only returned for preview. Swallows the
+ * missing-column case (style_tokens migration not applied yet) so capture still
+ * works — the tokens come back in the response and the operator can re-capture
+ * after the migration lands.
+ */
+async function persistStyleTokens(
+    supabase: any,
+    agencyId: string,
+    campaignId: string | undefined,
+    tokens: StyleTokens,
+): Promise<{ stored: boolean; migrated: boolean }> {
+    if (!campaignId || !Object.keys(tokens).length) return { stored: false, migrated: true }
+    const { error } = await supabase
+        .from('koto_topic_campaigns')
+        .update({ style_tokens: tokens })
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+    if (isMissingColumnError(error)) return { stored: false, migrated: false }
+    return { stored: !error, migrated: true }
+}
+
+/**
+ * Fetch a page's external stylesheets so we can read its real design tokens.
+ * Resolves <link rel=stylesheet> hrefs against the page URL, fetches up to
+ * `maxFiles` in parallel with a short per-file timeout, and caps total bytes.
+ * Cross-origin is allowed (themes/Elementor often serve CSS from a CDN), but
+ * non-CSS responses are dropped. Never throws — returns whatever it got.
+ */
+async function fetchLinkedStylesheets(
+    $: any,
+    pageUrl: string,
+    opts: { maxFiles?: number; perFileMs?: number; maxTotalBytes?: number } = {},
+): Promise<string[]> {
+    const maxFiles = opts.maxFiles ?? 8
+    const perFileMs = opts.perFileMs ?? 4000
+    const maxTotalBytes = opts.maxTotalBytes ?? 1_500_000
+    const hrefs: string[] = []
+    $('link[rel~="stylesheet"][href]').each((_i: number, el: any) => {
+        const href = $(el).attr('href')
+        if (!href) return
+        try { hrefs.push(new URL(href, pageUrl).toString()) } catch { /* skip bad href */ }
+    })
+    const unique = Array.from(new Set(hrefs)).slice(0, maxFiles)
+    let total = 0
+    const texts = await Promise.all(unique.map(async (u) => {
+        try {
+            const res = await fetch(u, {
+                signal: AbortSignal.timeout(perFileMs),
+                headers: { 'User-Agent': 'Mozilla/5.0 (KotoIQ/4.1; +https://hellokoto.com)' },
+                redirect: 'follow',
+            })
+            if (!res.ok) return ''
+            const ct = res.headers.get('content-type') || ''
+            if (!/css|text\/plain/i.test(ct)) return ''
+            const text = await res.text()
+            if (total + text.length > maxTotalBytes) return ''
+            total += text.length
+            return text
+        } catch { return '' }
+    }))
+    return texts.filter(Boolean)
 }
 
 /**
@@ -420,7 +493,227 @@ async function checkCitationsAction(supabase: any, agencyId: string, body: any) 
             .eq('id', campaignId)
     } catch {}
 
+    // Persist this run to the rank-history table — one row per city — so the
+    // performance view can trend organic rank + AI-citation state over time.
+    // Best-effort: if the table doesn't exist yet (migration not applied), the
+    // insert throws and we swallow it rather than failing the citation check.
+    try {
+        const historyRows = report.checks.map((c) => ({
+            campaign_id: campaignId,
+            agency_id: agencyId,
+            city: c.city,
+            state_abbr: c.state || null,
+            query: c.query,
+            organic_rank: c.organicRank,
+            cited_in_ai: c.citedInAi,
+            ai_overview_present: c.aiOverviewPresent,
+            checked_at: report.checkedAt,
+        }))
+        if (historyRows.length) {
+            await supabase.from('koto_topic_campaign_rank_history').insert(historyRows)
+        }
+    } catch {}
+
     return NextResponse.json({ ok: true, report })
+}
+
+/**
+ * get_rank_history — return the stored SERP rank history for a campaign,
+ * grouped by city, oldest-first. Powers the rank trend in the citation +
+ * performance views. Returns an empty map (not an error) when no checks have
+ * run yet so the UI can render a "run a check to start trending" empty state.
+ */
+async function getRankHistory(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns').select('id, topic').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    let rows: any[] = []
+    try {
+        const { data } = await supabase
+            .from('koto_topic_campaign_rank_history')
+            .select('city, state_abbr, query, organic_rank, cited_in_ai, ai_overview_present, checked_at')
+            .eq('campaign_id', campaignId)
+            .order('checked_at', { ascending: true })
+            .limit(5000)
+        rows = data || []
+    } catch {
+        // Table not migrated yet — return empty rather than 500.
+        return NextResponse.json({ ok: true, by_city: {}, runs: 0, topic: campaign.topic })
+    }
+
+    const byCity: Record<string, { city: string; state_abbr: string | null; series: Array<{ checked_at: string; organic_rank: number | null; cited_in_ai: boolean; ai_overview_present: boolean }> }> = {}
+    const runs = new Set<string>()
+    for (const r of rows) {
+        runs.add(r.checked_at)
+        const key = String(r.city || '').toLowerCase().trim()
+        if (!byCity[key]) byCity[key] = { city: r.city, state_abbr: r.state_abbr || null, series: [] }
+        byCity[key].series.push({
+            checked_at: r.checked_at,
+            organic_rank: r.organic_rank,
+            cited_in_ai: !!r.cited_in_ai,
+            ai_overview_present: !!r.ai_overview_present,
+        })
+    }
+    return NextResponse.json({ ok: true, topic: campaign.topic, runs: runs.size, by_city: byCity })
+}
+
+/**
+ * set_auto_refresh — opt a campaign in/out of the nightly freshness cron and
+ * choose which dataIntegrity.ts staleness threshold gates a re-deploy. The cron
+ * re-deploys (re-pulls Census + live Google reviews, no Claude) when
+ * last_deploy_at is older than the chosen threshold.
+ */
+async function setAutoRefresh(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const enabled = body.auto_refresh === true || body.auto_refresh === 'true'
+    // Validate the threshold key against the canonical dataIntegrity registry;
+    // fall back to business-listing (30d) on anything unknown.
+    let key = String(body.refresh_threshold_key || 'business-listing')
+    if (!(key in STALE_THRESHOLDS_MS)) key = 'business-listing'
+
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns').select('id').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    const update: any = { auto_refresh: enabled, refresh_threshold_key: key }
+    let { error } = await supabase.from('koto_topic_campaigns').update(update).eq('id', campaignId)
+    // Columns may not exist yet (migration not applied) — surface a clear hint
+    // rather than a raw PostgREST error.
+    if (isMissingColumnError(error)) {
+        return NextResponse.json({ error: 'auto-refresh columns not migrated yet — apply 20260528_koto_topic_campaigns_auto_refresh.sql' }, { status: 400 })
+    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, auto_refresh: enabled, refresh_threshold_key: key })
+}
+
+/**
+ * deploy_hub — build (or rebuild) the campaign's pillar/hub page: a single page
+ * that links every deployed city page (the spokes) + sibling clusters (other
+ * campaigns' hubs on the same site), with CollectionPage + BreadcrumbList +
+ * ItemList schema. Spoke pages link back up via the BreadcrumbList added to
+ * their schema (re-deploy the campaign after the hub exists so the cities pick
+ * up campaign.hub_url). Idempotent: PATCHes the existing hub page when one
+ * exists, else creates it and stores hub_post_id/url/slug on the campaign.
+ */
+async function deployHub(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns').select('*').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    const { data: deploys } = await supabase
+        .from('koto_topic_campaign_deploys')
+        .select('city, state, state_abbr, wp_post_url, site_id')
+        .eq('campaign_id', campaignId)
+        .eq('status', 'published')
+        .not('wp_post_url', 'is', null)
+    const cities = (deploys || [])
+        .filter((d: any) => d.wp_post_url && d.city)
+        .map((d: any) => ({ city: d.city, state: d.state, state_abbr: d.state_abbr, url: d.wp_post_url }))
+    if (cities.length === 0) {
+        return NextResponse.json({ error: 'No published city pages yet — deploy the campaign first, then build the hub.' }, { status: 400 })
+    }
+
+    const siteId = campaign.site_id || (deploys && deploys[0] && deploys[0].site_id)
+    const { data: site } = await supabase.from('koto_wp_sites').select('*').eq('id', siteId).single()
+    if (!site || site.shim_version !== 'v4') {
+        return NextResponse.json({ error: 'hub build requires the v4-paired site' }, { status: 400 })
+    }
+    const creds = await loadSiteCredentials(supabase, agencyId, site.id).catch(() => null)
+    if (!creds) return NextResponse.json({ error: 'site has no paired credentials' }, { status: 401 })
+
+    const origin = String(site.site_url || '').replace(/\/$/, '')
+
+    // Sibling clusters — other campaigns on this site that already have a hub.
+    let relatedHubs: Array<{ topic: string; url: string }> = []
+    try {
+        const { data: others } = await supabase
+            .from('koto_topic_campaigns')
+            .select('topic, hub_url')
+            .eq('site_id', siteId)
+            .neq('id', campaignId)
+            .not('hub_url', 'is', null)
+        relatedHubs = (others || []).filter((o: any) => o.hub_url).map((o: any) => ({ topic: o.topic, url: o.hub_url }))
+    } catch {}
+
+    const buildArgs = {
+        topic: campaign.topic,
+        companyName: campaign.company_name || undefined,
+        origin,
+        cities,
+        relatedHubs,
+    }
+    // First build uses the expected URL; corrected after WP returns the real one.
+    const expectedUrl = campaign.hub_url || `${origin}/${hubSlug(campaign.topic)}/`
+    let hub = buildHubPage({ ...buildArgs, hubUrl: expectedUrl })
+
+    const wpBody: Record<string, unknown> = {
+        title: hub.title,
+        slug: hub.slug,
+        content: hub.bodyHtml,
+        excerpt: hub.metaDescription,
+        status: 'publish',
+        meta: { _kotoiq_schema_jsonld: hub.jsonLd, _kotoiq_base_css: hub.baseCss },
+    }
+    const path = campaign.hub_post_id ? `/wp/v2/pages/${campaign.hub_post_id}` : '/wp/v2/pages'
+    const wpResp = await wpFetchJson<{ id?: number; link?: string; slug?: string }>(
+        site.site_url, path, creds,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(wpBody) },
+    )
+    if (!wpResp.ok) {
+        return NextResponse.json({ error: (wpResp as any).error || `HTTP ${(wpResp as any).status}` }, { status: 502 })
+    }
+
+    const hubPostId = wpResp.data?.id || campaign.hub_post_id || null
+    const realUrl = wpResp.data?.link || expectedUrl
+
+    // If WP assigned a different URL (first create / slug collision), rebuild the
+    // schema with the real URL so all @id + breadcrumb values are correct.
+    if (realUrl !== expectedUrl) {
+        hub = buildHubPage({ ...buildArgs, hubUrl: realUrl })
+        await wpFetchJson(site.site_url, `/wp/v2/pages/${hubPostId}`, creds, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meta: { _kotoiq_schema_jsonld: hub.jsonLd } }),
+        }).catch(() => null)
+    }
+
+    await writeSeoMeta(site.site_url, hubPostId as number, {
+        seo_title: hub.metaTitle,
+        meta_description: hub.metaDescription,
+        focus_keyword: `${campaign.topic} service areas`,
+    }).catch(() => null)
+
+    // Persist hub tracking. If columns aren't migrated, the update fails (not
+    // thrown) — surface a clear note so re-runs don't create duplicate hubs.
+    const { error: upErr } = await supabase
+        .from('koto_topic_campaigns')
+        .update({ hub_post_id: hubPostId, hub_url: realUrl, hub_slug: hub.slug })
+        .eq('id', campaignId)
+    const note = isMissingColumnError(upErr)
+        ? 'Hub published, but hub tracking columns are not migrated yet — apply 20260528_koto_topic_campaigns_hub.sql, then re-run so re-builds update in place (and city pages can link up to the hub).'
+        : undefined
+
+    // Markdown twin for the hub + refresh the AI-crawler maps. All best-effort.
+    const pageMd = buildPageMarkdown({ title: hub.title, metaDescription: hub.metaDescription, url: realUrl, bodyHtml: hub.bodyHtml })
+    await publishPageMarkdown(site.site_url, hub.slug, pageMd).catch(() => null)
+    await refreshLlmsTxtForSite(supabase, agencyId, siteId, site).catch(() => null)
+    await refreshLlmsFullForSite(supabase, agencyId, siteId, site).catch(() => null)
+
+    return NextResponse.json({
+        ok: true,
+        hub_url: realUrl,
+        hub_post_id: hubPostId,
+        cities_linked: cities.length,
+        related_clusters: relatedHubs.length,
+        rebuild_cities_hint: 'Re-deploy this campaign so the city pages pick up the hub breadcrumb (Home > Hub > City).',
+        ...(note ? { note } : {}),
+    })
 }
 
 /**
@@ -479,11 +772,18 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
         tokens_used: totalTokens,
         model_used: model,
         competitor_meta: competitorMeta,
+        // Brand tokens captured during the create wizard (only set when present,
+        // so a no-capture create never hits the missing-column path below).
+        ...(body.style_tokens ? { style_tokens: body.style_tokens } : {}),
     }
     let { data, error } = await supabase.from('koto_topic_campaigns').insert(insert).select().single()
-    // competitor_meta may not exist as a column on older schemas — retry
-    // without it rather than failing master generation. Same defensive
-    // schema-drift handling used elsewhere in this module.
+    // Optional enrichment columns (style_tokens, competitor_meta) may not exist
+    // on older schemas — strip the missing one and retry rather than failing
+    // master generation. Same defensive schema-drift handling used elsewhere.
+    if (isMissingColumnError(error) && 'style_tokens' in insert) {
+        delete insert.style_tokens
+        ;({ data, error } = await supabase.from('koto_topic_campaigns').insert(insert).select().single())
+    }
     if (isMissingColumnError(error)) {
         delete insert.competitor_meta
         ;({ data, error } = await supabase.from('koto_topic_campaigns').insert(insert).select().single())
@@ -618,6 +918,7 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
         ...(eeat ? { eeat } : {}),
         ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
         ...(campaign.eeat_inputs?.address ? { businessAddress: campaign.eeat_inputs.address } : {}),
+        styleTokens: campaign.style_tokens || undefined,
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
@@ -840,8 +1141,14 @@ function condenseHtmlForWrapper(html: string): string {
  * wrapper field.
  *
  * Cheap Sonnet call. Logged to koto_token_usage as kotoiq_wrapper_assist.
+ *
+ * Also reads any design tokens present in the pasted HTML's inline <style>
+ * blocks (Elementor inlines its global kit in the page head, so a full-page
+ * paste usually carries the real palette) and stores them on the campaign.
+ * The paste path can't reach external stylesheets — for full fidelity use the
+ * URL capture, which fetches them.
  */
-async function wrapperAssist(body: any, agencyId: string) {
+async function wrapperAssist(supabase: any, agencyId: string, body: any) {
     const rawHtml = String(body.html || '').trim()
     if (!rawHtml) return NextResponse.json({ error: 'html required' }, { status: 400 })
     if (rawHtml.length > 1_000_000) return NextResponse.json({ error: 'html too large (max 1MB)' }, { status: 400 })
@@ -941,9 +1248,18 @@ CRITICAL RULES:
         agencyId,
     })
 
+    // Read design tokens from the pasted HTML's inline styles + persist them so
+    // the page base CSS matches the brand. No external fetch on this path (we
+    // only have the paste) — inline kit CSS is the best we can do here.
+    const styleTokens = extractStyleTokens(rawHtml, [])
+    const persisted = await persistStyleTokens(supabase, agencyId, body.campaign_id ? String(body.campaign_id) : undefined, styleTokens)
+
     return NextResponse.json({
         ok: true,
         wrapper: cleaned,
+        style_tokens: styleTokens,
+        style_tokens_stored: persisted.stored,
+        style_tokens_migrated: persisted.migrated,
         placeholders_used: [
             '{{HERO_HEADLINE}}','{{HERO_SUB}}','{{HERO_MEDIA}}','{{SECTIONS}}',
             '{{HOWTO}}','{{COMPARISON}}','{{FAQS}}','{{LOCAL_DATA}}',
@@ -1148,6 +1464,65 @@ async function refreshLlmsTxtForSite(
 }
 
 /**
+ * Compose + push the site-wide /llms-full.txt — the "full content" companion to
+ * /llms.txt. Concatenates the stored Markdown twin of every published deploy
+ * (across ALL campaigns on this site). Best-effort: returns {ok:false,error} on
+ * any failure instead of throwing.
+ *
+ * Requires kotoiq-shim plugin v4.2.5+ to serve the file at /llms-full.txt.
+ */
+async function refreshLlmsFullForSite(
+    supabase: any,
+    agencyId: string,
+    siteId: string,
+    site: any,
+): Promise<{ ok: true; bytes_written: number } | { ok: false; error: string }> {
+    if (!siteId || !site?.site_url) return { ok: false, error: 'site missing' }
+
+    const { data: campaigns } = await supabase
+        .from('koto_topic_campaigns')
+        .select('id')
+        .eq('agency_id', agencyId)
+        .eq('site_id', siteId)
+    const campaignIds = (campaigns || []).map((c: any) => c.id)
+    if (campaignIds.length === 0) return { ok: false, error: 'no campaigns on site' }
+
+    // resolved_markdown may not exist on older schemas — select defensively.
+    let deploys: any[] = []
+    try {
+        const { data } = await supabase
+            .from('koto_topic_campaign_deploys')
+            .select('wp_post_url, resolved_markdown')
+            .in('campaign_id', campaignIds)
+            .eq('status', 'published')
+            .not('wp_post_url', 'is', null)
+        deploys = data || []
+    } catch {
+        return { ok: false, error: 'resolved_markdown column not migrated' }
+    }
+
+    const pages = deploys
+        .filter((d: any) => d.wp_post_url && d.resolved_markdown)
+        .map((d: any) => ({ url: d.wp_post_url, markdown: d.resolved_markdown as string }))
+    if (pages.length === 0) return { ok: false, error: 'no markdown twins yet' }
+
+    const origin = String(site.site_url || '').replace(/\/$/, '')
+    const hostname = origin.replace(/^https?:\/\//, '') || origin
+    const content = buildLlmsFullTxt({
+        siteName: site.site_name || hostname,
+        siteUrl: origin,
+        siteDescription: site.description || undefined,
+        pages,
+    })
+
+    try {
+        return await publishLlmsFullTxt(origin, content)
+    } catch (err: any) {
+        return { ok: false, error: String(err?.message || err) }
+    }
+}
+
+/**
  * Build a map of (city, state_abbr) → array of cross-campaign URLs for a
  * given site. Used by both deploy and redeploy to render a "Related Services
  * in {City}" block on each page when another campaign on the same site has a
@@ -1315,6 +1690,8 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             ...(eeat ? { eeat } : {}),
             ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
             ...(campaign.eeat_inputs?.address ? { businessAddress: campaign.eeat_inputs.address } : {}),
+            ...(campaign.hub_url ? { hub: { url: campaign.hub_url, title: hubTitle(campaign.topic) } } : {}),
+            styleTokens: campaign.style_tokens || undefined,
         }
         const resolved = resolveMaster(
             campaign.master as TopicCampaignMaster,
@@ -1411,6 +1788,23 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             .select()
             .single()
         results.push(deployData)
+
+        // Markdown twin for AI crawlers ({slug}.md) — built from the resolved
+        // HTML, pushed best-effort. Never fails the deploy. The resolved_markdown
+        // persist is a SEPARATE update so a missing column (pre-migration) can't
+        // break the page publish above.
+        if (wpResp.ok && deployData?.id) {
+            const finalSlug = wpResp.data?.slug || resolved.slug
+            const finalUrl = wpResp.data?.link || pageUrl
+            const pageMd = buildPageMarkdown({
+                title: resolved.title,
+                metaDescription: resolved.metaDescription,
+                url: finalUrl,
+                bodyHtml: resolved.bodyHtml,
+            })
+            await publishPageMarkdown(site.site_url, finalSlug, pageMd).catch(() => null)
+            await supabase.from('koto_topic_campaign_deploys').update({ resolved_markdown: pageMd }).eq('id', deployData.id)
+        }
     }
 
     const successCount = results.filter(r => r?.status === 'published').length
@@ -1430,6 +1824,11 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
     const llmsResult = await refreshLlmsTxtForSite(supabase, agencyId, siteId, site).catch((err: any) => {
         return { ok: false as const, error: String(err?.message || err) }
     })
+    // Site-wide /llms-full.txt (full-content companion to /llms.txt). Same
+    // best-effort pattern — never fails the deploy.
+    const llmsFullResult = await refreshLlmsFullForSite(supabase, agencyId, siteId, site).catch((err: any) => {
+        return { ok: false as const, error: String(err?.message || err) }
+    })
 
     return NextResponse.json({
         ok: true,
@@ -1437,6 +1836,7 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         failed: results.length - successCount,
         results,
         llms_txt: llmsResult,
+        llms_full: llmsFullResult,
     })
 }
 
@@ -1468,20 +1868,36 @@ async function getCampaign(supabase: any, agencyId: string, body: any) {
 }
 
 async function redeployCampaign(supabase: any, agencyId: string, body: any) {
-    // Re-resolve the master and PATCH each existing post by its stored
-    // wp_post_id. Updates content + meta + schema in place. Operator usually
-    // calls this after editing the master and wanting the change to flow
-    // to all previously-deployed cities without creating duplicate URLs.
     const campaignId = String(body.campaign_id || '')
     if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const r = await redeployCampaignCore(supabase, agencyId, campaignId)
+    if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status || 500 })
+    return NextResponse.json({ ok: true, updated: r.updated, failed: r.failed, total: r.total, llms_txt: r.llms_txt })
+}
 
+/**
+ * Re-resolve the master and PATCH each existing post by its stored wp_post_id.
+ * Updates content + meta + schema in place, re-pulling live Census data + live
+ * Google reviews (NO Claude — competitor angles are NOT refreshed here). Used by
+ * the `redeploy` action AND the nightly freshness cron, so it returns a plain
+ * result object (not a NextResponse) and is exported for the cron route to call
+ * in-process.
+ */
+export async function redeployCampaignCore(
+    supabase: any,
+    agencyId: string,
+    campaignId: string,
+): Promise<
+    | { ok: true; updated: number; failed: number; total: number; llms_txt: any }
+    | { ok: false; error: string; status: number }
+> {
     const { data: campaign, error: ce } = await supabase
         .from('koto_topic_campaigns')
         .select('*')
         .eq('id', campaignId)
         .eq('agency_id', agencyId)
         .single()
-    if (ce || !campaign) return NextResponse.json({ error: ce?.message || 'campaign not found' }, { status: 404 })
+    if (ce || !campaign) return { ok: false, error: ce?.message || 'campaign not found', status: 404 }
 
     const { data: existingDeploys } = await supabase
         .from('koto_topic_campaign_deploys')
@@ -1490,7 +1906,7 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
         .eq('status', 'published')
         .not('wp_post_id', 'is', null)
     if (!existingDeploys || existingDeploys.length === 0) {
-        return NextResponse.json({ error: 'no previously-published deploys to update' }, { status: 400 })
+        return { ok: false, error: 'no previously-published deploys to update', status: 400 }
     }
 
     const { data: site } = await supabase
@@ -1499,10 +1915,10 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
         .eq('id', existingDeploys[0].site_id)
         .single()
     if (!site || site.shim_version !== 'v4') {
-        return NextResponse.json({ error: 'redeploy requires the original v4-paired site' }, { status: 400 })
+        return { ok: false, error: 'redeploy requires the original v4-paired site', status: 400 }
     }
     const creds = await loadSiteCredentials(supabase, agencyId, site.id).catch(() => null)
-    if (!creds) return NextResponse.json({ error: 'site has no paired credentials' }, { status: 401 })
+    if (!creds) return { ok: false, error: 'site has no paired credentials', status: 401 }
 
     const restBase = campaign.post_type === 'post' ? 'posts' : 'pages'
     let updated = 0
@@ -1548,6 +1964,8 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             ...(eeat ? { eeat } : {}),
             ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
             ...(campaign.eeat_inputs?.address ? { businessAddress: campaign.eeat_inputs.address } : {}),
+            ...(campaign.hub_url ? { hub: { url: campaign.hub_url, title: hubTitle(campaign.topic) } } : {}),
+            styleTokens: campaign.style_tokens || undefined,
         }
         const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
 
@@ -1582,6 +2000,17 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
                 resolved_jsonld: resolved.jsonLd || null,
                 rendered_html_bytes: resolved.bodyHtml.length,
             }).eq('id', d.id)
+            // Refresh the Markdown twin too. Separate best-effort update so a
+            // missing resolved_markdown column (pre-migration) can't silently
+            // break the SEO-field update above.
+            const pageMd = buildPageMarkdown({
+                title: resolved.title,
+                metaDescription: resolved.metaDescription,
+                url: d.wp_post_url || '',
+                bodyHtml: resolved.bodyHtml,
+            })
+            await publishPageMarkdown(site.site_url, d.resolved_slug || resolved.slug, pageMd).catch(() => null)
+            await supabase.from('koto_topic_campaign_deploys').update({ resolved_markdown: pageMd }).eq('id', d.id)
             updated++
         } else {
             failed++
@@ -1593,12 +2022,13 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
         last_deploy_count: updated,
     }).eq('id', campaignId)
 
-    // Refresh llms.txt — same best-effort pattern as deploy.
+    // Refresh llms.txt + llms-full.txt — same best-effort pattern as deploy.
     const llmsResult = await refreshLlmsTxtForSite(supabase, agencyId, site.id, site).catch((err: any) => {
         return { ok: false as const, error: String(err?.message || err) }
     })
+    await refreshLlmsFullForSite(supabase, agencyId, site.id, site).catch(() => null)
 
-    return NextResponse.json({ ok: true, updated, failed, total: existingDeploys.length, llms_txt: llmsResult })
+    return { ok: true, updated, failed, total: existingDeploys.length, llms_txt: llmsResult }
 }
 
 /**
@@ -1756,8 +2186,13 @@ function csvCell(v: any): string {
  * The deployed page inherits the source page's class chain → theme CSS
  * applies automatically. Works for Avada, Divi, Elementor, Gutenberg —
  * anything that uses a sensible content wrapper element.
+ *
+ * It ALSO reads the page's real design tokens (fonts, color palette, link /
+ * button treatment) from its inline <style> + external stylesheets and stores
+ * them on the campaign. Those drive a :root{--koto-*} block at render time so
+ * the generated pages actually match the site's look — not a generic theme.
  */
-async function captureStyling(body: any) {
+async function captureStyling(supabase: any, agencyId: string, body: any) {
     const url = String(body.url || '').trim()
     if (!url) return NextResponse.json({ error: 'url required' }, { status: 400 })
     let target: URL
@@ -1836,6 +2271,15 @@ async function captureStyling(body: any) {
     // Sample of what the source's inner HTML looks like (capped, for preview)
     const sampleSourceHtml = $container.html()?.slice(0, 1200) || ''
 
+    // Read the page's REAL design tokens from inline <style> + external
+    // stylesheets (Elementor global kit, theme :root vars, body/h1/a rules).
+    // These drive the page's base CSS at render time so the output matches the
+    // site instead of the generic default palette. Best-effort; if nothing
+    // parses we just store/return {} and the literal fallbacks apply.
+    const cssTexts = await fetchLinkedStylesheets($, target.toString())
+    const styleTokens = extractStyleTokens(html, cssTexts)
+    const persisted = await persistStyleTokens(supabase, agencyId, body.campaign_id ? String(body.campaign_id) : undefined, styleTokens)
+
     return NextResponse.json({
         ok: true,
         wrapper,
@@ -1844,6 +2288,9 @@ async function captureStyling(body: any) {
         sample_source_html: sampleSourceHtml,
         outer_tag: outerTag,
         class_attr: classAttr,
+        style_tokens: styleTokens,
+        style_tokens_stored: persisted.stored,
+        style_tokens_migrated: persisted.migrated,
         notes: `Detected content container via "${usedSelector}". Wrapper preserves the outer ${outerTag}${classAttr ? `.${classAttr.split(/\s+/)[0]}` : ''} so theme CSS targets your deployed pages.`,
     })
 }
@@ -1988,6 +2435,7 @@ async function retryFailedDeploys(supabase: any, agencyId: string, body: any) {
             heroVideoUrl: campaign.hero_video_url || undefined,
             heroImageAlt: campaign.hero_image_alt || undefined,
             siblingLinks,
+            styleTokens: campaign.style_tokens || undefined,
         }
         const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
         const wpBody: Record<string, unknown> = {
@@ -2334,6 +2782,24 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
         })
     }
 
+    // Fetch stored SERP rank history once and group by city so each per-city
+    // row can render an organic-rank trend (from the check_citations runs).
+    // Best-effort: empty if the table isn't migrated yet.
+    const rankHistByCity: Record<string, Array<{ checked_at: string; organic_rank: number | null; cited_in_ai: boolean }>> = {}
+    try {
+        const { data: rankRows } = await supabase
+            .from('koto_topic_campaign_rank_history')
+            .select('city, organic_rank, cited_in_ai, checked_at')
+            .eq('campaign_id', campaignId)
+            .order('checked_at', { ascending: true })
+            .limit(5000)
+        for (const r of (rankRows || [])) {
+            const k = String(r.city || '').toLowerCase().trim()
+            if (!rankHistByCity[k]) rankHistByCity[k] = []
+            rankHistByCity[k].push({ checked_at: r.checked_at, organic_rank: r.organic_rank, cited_in_ai: !!r.cited_in_ai })
+        }
+    } catch {}
+
     // Build per-deploy result by matching its URL against GSC + GA4
     const per_url: Record<string, any> = {}
     let totalClicks = 0, totalImpressions = 0, totalSessions = 0, totalUsers = 0, totalConv = 0
@@ -2363,6 +2829,7 @@ async function getPerformance(supabase: any, agencyId: string, body: any) {
             conversions: ga4?.conversions || 0,
             top_queries: topQueries,
             daily, // [{date, clicks, impressions}] sorted ascending
+            rank_history: rankHistByCity[String(d.city || '').toLowerCase().trim()] || [], // [{checked_at, organic_rank, cited_in_ai}] from check_citations runs
             cwv: crux ? {
                 lcp_p75_ms: crux.lcp_p75_ms,
                 cls_p75: crux.cls_p75,

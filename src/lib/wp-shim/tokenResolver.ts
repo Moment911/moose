@@ -11,6 +11,7 @@
 // without random per-visit drift.
 
 import { createHash } from 'node:crypto'
+import { buildBrandTokenCss, type StyleTokens } from './styleTokens'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -51,6 +52,11 @@ export interface ResolveContext {
      *  inside the JSON-LD @graph so entities can cross-reference each other.
      *  Optional: if absent, @id values are omitted (less linkable but valid). */
     pageUrl?: string
+    /** Optional pillar/hub page this city page belongs to. When present, a
+     *  BreadcrumbList (Home > Hub > This page) is added to the schema @graph,
+     *  wiring the city page into the hub-and-spoke architecture. Schema-only —
+     *  no visible layout change. */
+    hub?: { url: string; title: string }
     /** Census/local statistical data for the city — when present, renders a
      *  "By the Numbers" block + adds a Dataset entry to the schema graph with
      *  citation back to the source. Optional. */
@@ -90,6 +96,12 @@ export interface ResolveContext {
          *  schema citation. Operator/authoritative-source provided. */
         citations?: Array<{ claim?: string; sourceName: string; sourceUrl: string }>
     }
+    /** Optional design tokens captured from the client's own site (fonts, color
+     *  palette, link/button treatment). When present, the base CSS emits a
+     *  `:root{--koto-*}` block from these so the page reads like the rest of the
+     *  site instead of the generic default theme. Absent → base CSS literals are
+     *  used unchanged (no regression). Captured via styleTokens.ts. */
+    styleTokens?: StyleTokens
 }
 
 // ─── Public API ─────────────────────────────────────────────────────────────
@@ -549,70 +561,77 @@ export function resolveMaster(
     //
     // Operators can opt out via {{NO_STYLES}} in their custom wrapper —
     // see wantsStyles logic below.
+    // Color / font literals below are wrapped in var(--koto-*, <literal>) so a
+    // captured site palette (ctx.styleTokens → buildBrandTokenCss) overrides
+    // them while the literal stays as the no-tokens fallback. The decorative
+    // accent shades (#f8fafc surfaces, star amber, result-card blue, etc.) are
+    // left literal on purpose — font + brand color + text color carry ~all of
+    // the "looks like the site" signal; theming every shade risks clashing.
+    const FB = '-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif'
     const baseCssBody = `
-.koto-hero,.koto-service-areas,.koto-related-services,.koto-cta,.koto-faq,.koto-direct-answer,.koto-howto,.koto-comparison{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
-.koto-direct-answer{background:#f8fafc;border-left:4px solid #1e3a8a;font-size:1.1rem;line-height:1.6;color:#1a2332}
+.koto-hero,.koto-service-areas,.koto-related-services,.koto-cta,.koto-faq,.koto-direct-answer,.koto-howto,.koto-comparison{margin:2rem 0;padding:1.5rem;background:var(--koto-color-surface,#fff);border-radius:var(--koto-radius,12px);border:1px solid var(--koto-color-border,#eee)}
+.koto-direct-answer{background:#f8fafc;border-left:4px solid var(--koto-color-primary,#1e3a8a);font-size:1.1rem;line-height:1.6;color:var(--koto-color-heading,#1a2332)}
 .koto-direct-answer p{margin:0;font-weight:500}
-.koto-howto ol{margin:1rem 0;padding-left:1.5rem;line-height:1.7;color:#334155}
+.koto-howto ol{margin:1rem 0;padding-left:1.5rem;line-height:1.7;color:var(--koto-color-text,#334155)}
 .koto-howto li{margin:.5rem 0}
-.koto-howto strong{color:#1a2332}
+.koto-howto strong{color:var(--koto-color-heading,#1a2332)}
 .koto-comparison table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}
 .koto-comparison th,.koto-comparison td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid #e2e8f0;vertical-align:top}
-.koto-comparison thead th{background:#f1f5f9;color:#1a2332;font-weight:700}
-.koto-comparison tbody th{font-weight:600;color:#475569;background:#fafafa}
+.koto-comparison thead th{background:#f1f5f9;color:var(--koto-color-heading,#1a2332);font-weight:700}
+.koto-comparison tbody th{font-weight:600;color:var(--koto-color-muted,#475569);background:#fafafa}
 .koto-local-data{margin:1.5rem 0 .5rem;padding:.5rem 0;border-top:1px solid #e5e7eb;font-size:.78rem;line-height:1.5;color:#6b7280}
 .koto-local-data p{margin:0}
-.koto-local-data strong{color:#1a2332;font-weight:700;font-variant-numeric:tabular-nums}
+.koto-local-data strong{color:var(--koto-color-heading,#1a2332);font-weight:700;font-variant-numeric:tabular-nums}
 .koto-local-data .koto-cite{display:inline}
-.koto-local-data .koto-cite a{color:#1e3a8a;text-decoration:underline}
-.koto-hero h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;color:#1a2332}
-.koto-hero-sub{font-size:1.1rem;color:#475569;line-height:1.6}
+.koto-local-data .koto-cite a{color:var(--koto-color-primary,#1e3a8a);text-decoration:underline}
+.koto-hero h1{font-family:var(--koto-font-heading,var(--koto-font-body,${FB}));font-size:2rem;line-height:1.2;margin:0 0 .75rem;color:var(--koto-color-heading,#1a2332)}
+.koto-hero-sub{font-size:1.1rem;color:var(--koto-color-muted,#475569);line-height:1.6}
 .koto-hero-media img,.koto-hero-media video{max-width:100%;height:auto;border-radius:10px;margin:0 0 1rem}
-.koto-hero,.koto-cta,.koto-service-areas,.koto-faq,section{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
-section h2{font-size:1.5rem;line-height:1.3;margin:0 0 .75rem;color:#1a2332}
-section p,.koto-hero-sub p{margin:0 0 .75rem;line-height:1.65;color:#334155}
+.koto-hero,.koto-cta,.koto-service-areas,.koto-faq,section{font-family:var(--koto-font-body,${FB})}
+section h2{font-family:var(--koto-font-heading,var(--koto-font-body,${FB}));font-size:1.5rem;line-height:1.3;margin:0 0 .75rem;color:var(--koto-color-heading,#1a2332)}
+section p,.koto-hero-sub p{margin:0 0 .75rem;line-height:1.65;color:var(--koto-color-text,#334155)}
 section{margin:1.5rem 0}
 .koto-faq details{margin:.5rem 0;padding:1rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
-.koto-faq summary{cursor:pointer;font-weight:700;color:#1a2332;font-size:1.05rem;list-style:none}
+.koto-faq summary{cursor:pointer;font-weight:700;color:var(--koto-color-heading,#1a2332);font-size:1.05rem;list-style:none}
 .koto-faq summary::-webkit-details-marker{display:none}
 .koto-faq summary::after{content:" \\25BC";font-size:.7em;color:#94a3b8;float:right}
 .koto-faq details[open] summary::after{content:" \\25B2"}
-.koto-faq details>div{margin-top:.75rem;color:#334155;line-height:1.65}
-.koto-cta{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;text-align:center}
+.koto-faq details>div{margin-top:.75rem;color:var(--koto-color-text,#334155);line-height:1.65}
+.koto-cta{background:linear-gradient(135deg,var(--koto-color-primary,#1e3a8a),var(--koto-color-primary-2,#3b82f6));color:#fff;text-align:center}
 .koto-cta h2{color:#fff}
 .koto-cta p{color:rgba(255,255,255,.95)}
 .koto-cta a{color:#fff;font-weight:700;text-decoration:underline}
 .koto-service-areas ul,.koto-related-services ul{list-style:none;padding:0;margin:1rem 0;display:flex;flex-wrap:wrap;gap:.5rem}
 .koto-service-areas li,.koto-related-services li{margin:0}
-.koto-service-areas a,.koto-related-services a{display:inline-block;padding:.5rem 1rem;background:#f1f5f9;border-radius:6px;color:#1e3a8a;text-decoration:none;font-weight:600;font-size:.95rem}
+.koto-service-areas a,.koto-related-services a{display:inline-block;padding:.5rem 1rem;background:#f1f5f9;border-radius:6px;color:var(--koto-color-primary,#1e3a8a);text-decoration:none;font-weight:600;font-size:.95rem}
 .koto-service-areas a:hover,.koto-related-services a:hover{background:#dbeafe}
-.koto-related-services{border-left:3px solid #1e3a8a}
-a[href^="tel:"]{color:#1e3a8a;font-weight:700;text-decoration:none;white-space:nowrap}
+.koto-related-services{border-left:3px solid var(--koto-color-primary,#1e3a8a)}
+a[href^="tel:"]{color:var(--koto-color-primary,#1e3a8a);font-weight:700;text-decoration:none;white-space:nowrap}
 a[href^="tel:"]:hover{text-decoration:underline}
-.koto-author,.koto-testimonials,.koto-results{margin:2rem 0;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #eee}
+.koto-author,.koto-testimonials,.koto-results{margin:2rem 0;padding:1.5rem;background:var(--koto-color-surface,#fff);border-radius:var(--koto-radius,12px);border:1px solid var(--koto-color-border,#eee)}
 .koto-author .koto-author-card{display:flex;align-items:center;gap:1rem}
 .koto-author-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none}
 .koto-author-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#64748b;font-weight:700}
-.koto-author-name{font-size:1.1rem;font-weight:800;color:#1a2332}
-.koto-author-title,.koto-author-exp{font-size:.9rem;color:#475569}
+.koto-author-name{font-size:1.1rem;font-weight:800;color:var(--koto-color-heading,#1a2332)}
+.koto-author-title,.koto-author-exp{font-size:.9rem;color:var(--koto-color-muted,#475569)}
 .koto-testimonial-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:1rem}
 .koto-testimonial{margin:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1rem}
-.koto-testimonial blockquote{margin:0 0 .5rem;font-style:italic;color:#334155;line-height:1.6}
-.koto-testimonial figcaption{font-size:.85rem;color:#475569;font-weight:600}
+.koto-testimonial blockquote{margin:0 0 .5rem;font-style:italic;color:var(--koto-color-text,#334155);line-height:1.6}
+.koto-testimonial figcaption{font-size:.85rem;color:var(--koto-color-muted,#475569);font-weight:600}
 .koto-stars{color:#f59e0b;letter-spacing:1px}
 .koto-results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-top:1rem}
 .koto-result{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:1rem;text-align:center}
-.koto-result-metric{font-size:1.4rem;font-weight:900;color:#1e3a8a}
-.koto-result-context{font-size:.85rem;color:#475569;margin-top:.25rem}
+.koto-result-metric{font-size:1.4rem;font-weight:900;color:var(--koto-color-primary,#1e3a8a)}
+.koto-result-context{font-size:.85rem;color:var(--koto-color-muted,#475569);margin-top:.25rem}
 .koto-citations{margin:2rem 0;font-size:.85rem;color:#64748b}
 .koto-citations ul{margin:.5rem 0 0;padding-left:1.25rem;line-height:1.6}
-.koto-citations a{color:#1e3a8a}
-.koto-rating{display:inline-flex;align-items:center;gap:.5rem;margin:1rem 0;padding:.5rem .9rem;background:#fffbeb;border:1px solid #fde68a;border-radius:999px;font-size:.95rem;color:#1a2332}
+.koto-citations a{color:var(--koto-color-primary,#1e3a8a)}
+.koto-rating{display:inline-flex;align-items:center;gap:.5rem;margin:1rem 0;padding:.5rem .9rem;background:#fffbeb;border:1px solid #fde68a;border-radius:999px;font-size:.95rem;color:var(--koto-color-heading,#1a2332)}
 .koto-rating-stars{color:#f59e0b;letter-spacing:1px;font-size:1.05rem}
 .koto-rating-value{font-weight:800}
 .koto-rating-count{color:#64748b;font-size:.85rem}
-.koto-contact{margin:2rem 0;padding:1rem 1.25rem;background:#fafafa;border-top:2px solid #e9e6dd;font-size:.9rem;color:#475569}
-.koto-contact a{color:#1e3a8a;font-weight:700}
+.koto-contact{margin:2rem 0;padding:1rem 1.25rem;background:#fafafa;border-top:2px solid #e9e6dd;font-size:.9rem;color:var(--koto-color-muted,#475569)}
+.koto-contact a{color:var(--koto-color-primary,#1e3a8a);font-weight:700}
 `.trim()
 
     // Compose body. The CSS is no longer prepended — it now travels in the
@@ -746,8 +765,13 @@ a[href^="tel:"]:hover{text-decoration:underline}
     // wrapper, then minify before returning. Minified CSS is ~30-50%
     // smaller on the wire (less HTML payload per page render) and removes
     // dev-time comments / formatting that don't render anything.
+    // Brand tokens captured from the client's site, emitted as a leading
+    // :root{--koto-*} block. Only meaningful alongside the base CSS (which is
+    // the only consumer of --koto-* vars), so it's prepended in the wantsStyles
+    // branch. Empty string when no tokens → output byte-identical to before.
+    const brandVars = ctx.styleTokens ? buildBrandTokenCss(ctx.styleTokens) : ''
     const baseCssRaw = wantsStyles
-        ? (wrapperExtraCss ? `${baseCssBody}\n\n${wrapperExtraCss}` : baseCssBody)
+        ? [brandVars, baseCssBody, wrapperExtraCss].filter(Boolean).join('\n\n')
         : (wrapperExtraCss || '') // operator opted out of base styles but still keep their own
     const baseCss = minifyCss(baseCssRaw)
 
@@ -992,6 +1016,20 @@ function enrichSchemaGraph(
             url: c.sourceUrl,
             publisher: { '@type': 'Organization', name: c.sourceName },
         }))
+    }
+
+    // ── BreadcrumbList — wires this spoke page up to its pillar/hub ─────────
+    // Home > Hub > This page. Emitted only when a hub exists for the campaign;
+    // existing campaigns without a hub are unaffected.
+    if (ctx.hub?.url && url) {
+        let origin = ''
+        try { origin = new URL(url).origin } catch {}
+        const items: any[] = []
+        let pos = 1
+        if (origin) items.push({ '@type': 'ListItem', position: pos++, name: 'Home', item: origin })
+        items.push({ '@type': 'ListItem', position: pos++, name: ctx.hub.title, item: ctx.hub.url })
+        items.push({ '@type': 'ListItem', position: pos++, name: page.title, item: url })
+        graph.push({ '@type': 'BreadcrumbList', '@id': `${baseId}#breadcrumb`, itemListElement: items })
     }
 
     return JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })

@@ -3,7 +3,7 @@
  * Plugin Name:       KotoIQ
  * Plugin URI:        https://www.unifiedmktg.com
  * Description:       Connect this WordPress site to your KotoIQ dashboard. Managed by Unified Marketing.
- * Version:           4.2.4
+ * Version:           4.2.5
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      6.6
@@ -22,7 +22,7 @@
 if (!defined('ABSPATH')) exit;
 
 // ─── Plugin constants ──────────────────────────────────────────────────────
-define('KOTOIQ_SHIM_VERSION',      '4.2.4');
+define('KOTOIQ_SHIM_VERSION',      '4.2.5');
 define('KOTOIQ_SHIM_PLUGIN_FILE',  __FILE__);
 define('KOTOIQ_SHIM_DIR',          plugin_dir_path(__FILE__));
 define('KOTOIQ_SHIM_URL',          plugin_dir_url(__FILE__));
@@ -88,6 +88,7 @@ require_once KOTOIQ_SHIM_DIR . 'shortcodes/koto-rotate.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/sitemap-server.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/llms-txt-server.php';
 require_once KOTOIQ_SHIM_DIR . 'includes/indexnow-server.php';
+require_once KOTOIQ_SHIM_DIR . 'includes/md-server.php';
 
 // ─── Activation ────────────────────────────────────────────────────────────
 register_activation_hook(__FILE__, function () {

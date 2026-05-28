@@ -51,6 +51,10 @@
     {
       "path": "/api/kotoiq-shim-cron/sitemap-refresh",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/kotoiq-shim-cron/freshness-refresh",
+      "schedule": "30 5 * * *"
     }
   ],
   "functions": {
