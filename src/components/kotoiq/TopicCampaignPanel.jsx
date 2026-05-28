@@ -197,6 +197,26 @@ export default function TopicCampaignPanel({ site }) {
   const [shimUpdateResult, setShimUpdateResult] = useState(null)
   const [latestShimVersion, setLatestShimVersion] = useState(null)
 
+  // Integration status
+  const [integrationStatus, setIntegrationStatus] = useState(null)
+
+  async function loadIntegrationStatus() {
+    if (!site?.id) return
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'integration_status', agency_id: agencyId, site_id: site.id }),
+      })
+      const d = await r.json()
+      if (d.ok) setIntegrationStatus(d.integrations)
+    } catch {}
+  }
+
+  useEffect(() => {
+    if (site?.id) loadIntegrationStatus()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [site?.id])
+
   async function checkLatestShimVersion() {
     try {
       const r = await fetch('/api/kotoiq-shim-manifest', { cache: 'no-store' })
@@ -616,6 +636,47 @@ export default function TopicCampaignPanel({ site }) {
           </div>
         </div>
       </div>
+
+      {/* Integration status bar — shown on step 1 above all other site-level cards */}
+      {step === 1 && !campaign && integrationStatus && (
+        <div style={card({ background:'#fff' })}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+            <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:13, color:BLK }}>Integrations</div>
+            <button onClick={loadIntegrationStatus} style={miniBtn()}><RefreshCw size={11}/></button>
+          </div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+            {[
+              { key:'gsc',        label:'Search Console', scope:'client' },
+              { key:'ga4',        label:'Analytics (GA4)', scope:'client' },
+              { key:'crux',       label:'Core Web Vitals', scope:'site'   },
+              { key:'census',     label:'Census ACS',      scope:'site'   },
+              { key:'dataforseo', label:'SERP intel',      scope:'site'   },
+              { key:'anthropic',  label:'Claude',          scope:'site'   },
+              { key:'shim',       label:'Shim plugin',     scope:'site'   },
+            ].map(({ key, label, scope }) => {
+              const s = integrationStatus[key]
+              if (!s) return null
+              const ok = s.connected
+              const bg = ok ? '#ecfdf5' : '#fef2f2'
+              const fg = ok ? '#047857' : '#991b1b'
+              const dot = ok ? GRN : R
+              const versionSuffix = key === 'shim' && s.version ? ` v${s.version}` : ''
+              return (
+                <span key={key} title={ok ? `Connected (${s.scope})` : s.requires}
+                  style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 10px', borderRadius:999, fontSize:11, fontFamily:FH, fontWeight:700, color:fg, background:bg, border:`1px solid ${ok ? '#a7f3d0' : '#fecaca'}` }}>
+                  <span style={{ width:7, height:7, borderRadius:999, background:dot, display:'inline-block' }}/>
+                  {label}{versionSuffix}
+                </span>
+              )
+            })}
+          </div>
+          {integrationStatus.gsc && !integrationStatus.gsc.connected && (
+            <div style={{ marginTop:8, fontSize:11, fontFamily:FB, color:'#9ca3af', lineHeight:1.5 }}>
+              {integrationStatus.gsc.requires}. Without GSC/GA4 the Performance view will be empty &mdash; AI Pages still ship, the data layer just stays dark.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Plugin update — only when paired AND latest version differs from installed */}
       {step === 1 && !campaign && isV4 && site?.site_url && latestShimVersion && site?.plugin_version && latestShimVersion !== site.plugin_version && (

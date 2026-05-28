@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
             case 'wrapper_assist':    return await wrapperAssist(body, agencyId)
             case 'eeat_score':        return await eeatScoreMaster(supabase, agencyId, body)
             case 'topical_expand':    return await topicalExpand(supabase, agencyId, body)
+            case 'integration_status':return await integrationStatusForSite(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
@@ -216,6 +217,64 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
+}
+
+/**
+ * integration_status action — given a site_id, return a snapshot of every
+ * data integration the AI Pages panel depends on:
+ *   - GSC + GA4: per-client OAuth (read from seo_connections)
+ *   - CrUX, Census, DataForSEO, Anthropic: env-keyed (sitewide)
+ *   - Shim plugin: per-site (read shim_version + plugin_version)
+ *
+ * Lets the panel render a one-line status bar so the operator knows
+ * immediately what's connected before generating campaigns.
+ */
+async function integrationStatusForSite(supabase: any, agencyId: string, body: any) {
+    const siteId = String(body.site_id || '')
+    if (!siteId) return NextResponse.json({ error: 'site_id required' }, { status: 400 })
+    const { data: site } = await supabase
+        .from('koto_wp_sites')
+        .select('id, site_url, client_id, shim_version, plugin_version')
+        .eq('id', siteId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (!site) return NextResponse.json({ error: 'site not found' }, { status: 404 })
+
+    let gsc = false, ga4 = false
+    if (site.client_id) {
+        try {
+            const { data: conns } = await supabase
+                .from('seo_connections')
+                .select('provider, connected')
+                .eq('client_id', site.client_id)
+            for (const c of (conns || [])) {
+                if (!c.connected) continue
+                if (c.provider === 'google_search_console') gsc = true
+                if (c.provider === 'google_analytics' || c.provider === 'ga4') ga4 = true
+            }
+        } catch {}
+    }
+
+    return NextResponse.json({
+        ok: true,
+        site: {
+            site_url: site.site_url,
+            shim_version: site.shim_version || null,
+            plugin_version: site.plugin_version || null,
+            has_client_id: !!site.client_id,
+        },
+        integrations: {
+            // Per-client OAuth
+            gsc: { connected: gsc, scope: 'per-client', requires: site.client_id ? 'OAuth in client → Connections' : 'No client_id set on site' },
+            ga4: { connected: ga4, scope: 'per-client', requires: site.client_id ? 'OAuth in client → Connections' : 'No client_id set on site' },
+            // Env-keyed sitewide
+            crux:       { connected: !!(process.env.GOOGLE_CRUX_API_KEY || process.env.CRUX_API_KEY), scope: 'sitewide', requires: 'GOOGLE_CRUX_API_KEY env' },
+            census:     { connected: !!process.env.CENSUS_API_KEY, scope: 'sitewide', requires: 'CENSUS_API_KEY env' },
+            dataforseo: { connected: !!process.env.DATAFORSEO_AUTH, scope: 'sitewide', requires: 'DATAFORSEO_AUTH env' },
+            anthropic:  { connected: !!process.env.ANTHROPIC_API_KEY, scope: 'sitewide', requires: 'ANTHROPIC_API_KEY env' },
+            shim:       { connected: site.shim_version === 'v4', scope: 'per-site', requires: 'v4 pairing handshake', version: site.plugin_version || null },
+        },
+    })
 }
 
 /**
