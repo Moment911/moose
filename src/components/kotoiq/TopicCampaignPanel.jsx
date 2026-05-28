@@ -1771,17 +1771,17 @@ export default function TopicCampaignPanel({ site, client }) {
             </Field>
           )}
 
-          <Field label="Custom HTML wrapper (optional)" hint="Use {{HERO_HEADLINE}}, {{HERO_SUB}}, {{HERO_MEDIA}}, {{SECTIONS}}, {{FAQS}}, {{CTA}}, {{SERVICE_AREAS}} placeholders. Add {{NO_STYLES}} to skip the default base CSS.">
+          <Field label="Match my website's style (optional)" hint="Pulls fonts, colors, and buttons from a page on your site so the generated pages match it. Advanced: paste a custom wrapper using {{HERO_HEADLINE}}, {{HERO_SUB}}, {{HERO_MEDIA}}, {{SECTIONS}}, {{FAQS}}, {{CTA}}, {{SERVICE_AREAS}}; add {{NO_STYLES}} to skip the base CSS.">
             <div style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center', flexWrap:'wrap' }}>
               <input
                 value={styleCaptureUrl}
                 onChange={e => setStyleCaptureUrl(e.target.value)}
-                placeholder="https://unifiedmktg.com/about/ — paste an existing styled page URL"
+                placeholder="https://yoursite.com/about/ — a page on your site to copy the look from"
                 style={{ ...inp(), flex:'1 1 240px', minWidth:0 }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); captureStyling() } }}
               />
               <button onClick={captureStyling} disabled={capturing || !styleCaptureUrl.trim()} style={miniBtn({ color:T, borderColor:T })}>
-                {capturing ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture from URL
+                {capturing ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture styling from URL
               </button>
               <label style={{ ...miniBtn({ color:T, borderColor:T }), cursor:'pointer', opacity:capturing?0.5:1 }}>
                 <Upload size={12}/> Upload HTML file
@@ -1832,7 +1832,7 @@ export default function TopicCampaignPanel({ site, client }) {
               )}
             </div>
             <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', marginBottom:8, lineHeight:1.5 }}>
-              <strong>How it works:</strong> Paste a URL to capture, upload an HTML file, or paste HTML directly into the textarea and click <strong>Style my pages with this</strong>. We read the design language (colors, fonts, spacing) and build a clean wrapper inspired by it. Files are processed in your browser and never stored on our servers.
+              <strong>Make these pages match your site:</strong> paste a page from your website (pre-filled from the client record) and click <strong>Capture styling from URL</strong> — we read its fonts, colors, and buttons so the generated pages match. You can also upload an HTML file or paste HTML directly. Files are processed in your browser and never stored on our servers.
             </div>
             {captureInfo && (
               <div style={{ marginBottom:8, padding:8, background:'#ecfeff', border:'1px solid #67e8f9', borderRadius:6, fontSize:11, fontFamily:FB, color:'#0e7490' }}>
@@ -3165,10 +3165,10 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
             </div>
           </EditorBlock>
 
-          {/* Custom HTML wrapper — theme styling. */}
-          <EditorBlock label="Custom HTML wrapper (theme styling)">
+          {/* Match my website's style — capture brand tokens + optional wrapper. */}
+          <EditorBlock label="Match my website's style">
             <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', marginBottom:8, lineHeight:1.5 }}>
-              Paste your theme&rsquo;s page HTML or capture from an existing styled URL. Placeholders:
+              Capture fonts, colors, and buttons from a page on your site so these pages match. Advanced &mdash; paste a custom wrapper with placeholders:
               {' '}<code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_HEADLINE}}'}</code>{' '}
               <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_SUB}}'}</code>{' '}
               <code style={{ background:'#f1f5f9', padding:'1px 4px', borderRadius:3 }}>{'{{HERO_MEDIA}}'}</code>{' '}
@@ -3187,12 +3187,12 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
               <input
                 value={captureUrl}
                 onChange={e => setCaptureUrl(e.target.value)}
-                placeholder="https://unifiedmktg.com/about/ — paste an existing styled page URL"
+                placeholder="https://yoursite.com/about/ — a page on your site to copy the look from"
                 style={{ ...inp(), flex:'1 1 240px', minWidth:0 }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onCapture() } }}
               />
               <button onClick={onCapture} disabled={captureBusy || !captureUrl.trim()} style={miniBtn({ color:T, borderColor:T })}>
-                {captureBusy ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture from URL
+                {captureBusy ? <Loader2 size={12} className="spin"/> : <Wand2 size={12}/>} Capture styling from URL
               </button>
               <label style={{ ...miniBtn({ color:T, borderColor:T }), cursor:'pointer', opacity:captureBusy?0.5:1 }}>
                 <Upload size={12}/> Upload HTML file
