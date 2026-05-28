@@ -15,6 +15,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { generateTopicCampaignMaster } from '@/lib/wp-shim/topicCampaignGenerator'
 import { resolveMaster, type LocationContext, type ResolveContext, type TopicCampaignMaster } from '@/lib/wp-shim/tokenResolver'
 import { buildEeatContext } from '@/lib/wp-shim/eeatContext'
+import { validateJsonLd } from '@/lib/wp-shim/schemaValidator'
 import { loadSiteCredentials } from '@/lib/wp-shim/credentialsVault'
 import { wpFetchJson } from '@/lib/wp-shim/wpFetch'
 import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
             case 'find_places':       return await findPlaces(body)
             case 'set_campaign_place':return await setCampaignPlace(supabase, agencyId, body)
             case 'set_eeat_inputs':   return await setEeatInputs(supabase, agencyId, body)
+            case 'validate_schema':   return await validateSchema(supabase, agencyId, body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
         }
     } catch (err) {
@@ -308,6 +310,34 @@ async function setEeatInputs(supabase: any, agencyId: string, body: any) {
     }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, campaign: data })
+}
+
+/**
+ * validate_schema — resolve the master for a sample city, then run the local
+ * JSON-LD validator so the operator sees schema health (errors + warnings +
+ * which @types are emitted) before publishing across cities.
+ */
+async function validateSchema(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const { data: campaign, error } = await supabase
+        .from('koto_topic_campaigns').select('*').eq('id', campaignId).eq('agency_id', agencyId).single()
+    if (error || !campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+
+    const location: LocationContext = (body.location?.city && body.location?.state)
+        ? body.location
+        : { city: 'Austin', state: 'Texas', stateAbbr: 'TX' }
+    const eeat = await buildEeatContext(supabase, campaign, { withReviews: true })
+    const ctx: ResolveContext = {
+        location,
+        phone: campaign.phone || undefined,
+        companyName: campaign.company_name || undefined,
+        pageUrl: `https://example.com/sample/`,
+        ...(eeat ? { eeat } : {}),
+    }
+    const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
+    const report = validateJsonLd(resolved.jsonLd)
+    return NextResponse.json({ ok: true, report, sample_location: `${location.city}, ${location.stateAbbr || location.state}` })
 }
 
 async function generateMaster(supabase: any, agencyId: string, body: any) {

@@ -83,6 +83,7 @@ export default function TopicCampaignPanel({ site }) {
   const [eeatEditorOpen, setEeatEditorOpen] = useState(false)
   const [savingEeat, setSavingEeat] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [validating, setValidating] = useState(false)
   // Connect-Google-reviews picker (campaign editor)
   const [placeOpen, setPlaceOpen] = useState(false)
   const [placeQuery, setPlaceQuery] = useState('')
@@ -470,6 +471,25 @@ export default function TopicCampaignPanel({ site }) {
       toast.success('Master regenerated covering the cluster — re-deploy to push it', { id: tid })
     } catch (e) { toast.error(e.message, { id: tid }) }
     setTopicalBusy(false)
+  }
+
+  async function validateSchema() {
+    if (!campaign?.id || validating) return
+    setValidating(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'validate_schema', agency_id: agencyId, campaign_id: campaign.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); setValidating(false); return }
+      const rep = d.report || { types: [], errors: [], warnings: [] }
+      const head = `Schema (${d.sample_location}): ${rep.types.length} types${rep.errors.length ? ` · ${rep.errors.length} error(s)` : ''}${rep.warnings.length ? ` · ${rep.warnings.length} warning(s)` : ''}`
+      if (rep.errors.length) toast.error(`${head}\n${rep.errors.join('\n')}`, { duration: 9000 })
+      else if (rep.warnings.length) toast(`${head}\n${rep.warnings.slice(0, 5).join('\n')}`, { icon: '⚠️', duration: 8000 })
+      else toast.success(`${head} — all valid`)
+    } catch (e) { toast.error(e.message) }
+    setValidating(false)
   }
 
   async function saveEeatInputs(inputs) {
@@ -1228,6 +1248,9 @@ export default function TopicCampaignPanel({ site }) {
             </button>
             <button onClick={() => setEeatEditorOpen(true)} style={miniBtn({ color:'#0369a1', borderColor:'#0369a1' })}>
               <Edit3 size={11}/> Trust signals
+            </button>
+            <button onClick={validateSchema} disabled={validating} style={miniBtn({ color:'#0369a1', borderColor:'#0369a1' })}>
+              {validating ? <Loader2 size={11} className="spin"/> : <CheckCircle2 size={11}/>} Validate schema
             </button>
           </div>
 
