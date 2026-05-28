@@ -100,7 +100,7 @@ export default function TopicCampaignPanel({ site }) {
       })
       const d = await r.json()
       if (d.error) { toast.error(errText(d.error)); setTopicalResult(null) }
-      else setTopicalResult(d.expansion)
+      else { setTopicalResult(d.expansion); initClusterSelection(d.expansion) }
     } catch (e) { toast.error(e.message); setTopicalResult(null) }
     setTopicalBusy(false)
   }
@@ -565,12 +565,35 @@ export default function TopicCampaignPanel({ site }) {
     setFixingGaps(false)
   }
 
+  // Topical cluster selection state
+  const [clusterSelected, setClusterSelected] = useState({}) // { topic: true/false }
+  const [customClusterTopics, setCustomClusterTopics] = useState('')
+
+  // Initialize all topics as selected when results arrive
+  function initClusterSelection(result) {
+    const sel = {}
+    ;(result?.siblings || []).forEach(s => { sel[s.topic] = true })
+    ;(result?.supporting || []).forEach(s => { sel[s.topic] = true })
+    setClusterSelected(sel)
+    setCustomClusterTopics('')
+  }
+
+  function toggleClusterTopic(topic) {
+    setClusterSelected(prev => ({ ...prev, [topic]: !prev[topic] }))
+  }
+
+  function getSelectedClusterTopics() {
+    const checked = Object.entries(clusterSelected).filter(([, v]) => v).map(([k]) => k)
+    const custom = customClusterTopics.split(',').map(s => s.trim()).filter(Boolean)
+    return [...checked, ...custom]
+  }
+
   // Feed the topical cluster (sibling subtopics) into a regenerate so the FAQs
   // + sections cover the theme.
   async function regenerateWithCluster(topics) {
     if (!campaign?.id || !topics?.length || topicalBusy) return
     setTopicalBusy(true)
-    const tid = toast.loading('Regenerating with the topical cluster…')
+    const tid = toast.loading(`Regenerating with ${topics.length} subtopics…`)
     try {
       const r = await fetch('/api/kotoiq/topic-campaign', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2129,31 +2152,49 @@ export default function TopicCampaignPanel({ site }) {
               {topicalResult && (
                 <>
                   <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:14, lineHeight:1.55 }}>
-                    Primary topic: <strong style={{ color:BLK }}>{topicalResult.primary}</strong>. Two ways to use this: <strong>weave the subtopics into THIS page</strong> (below) so its FAQs + sections cover the cluster, or <strong>Use this</strong> on a sibling to spin up a separate campaign.
+                    Primary topic: <strong style={{ color:BLK }}>{topicalResult.primary}</strong>. Check the subtopics to weave into THIS page, or click <strong>Use this</strong> to spin up a separate campaign.
                   </div>
-                  {Array.isArray(topicalResult.siblings) && topicalResult.siblings.length > 0 && (
-                    <div style={{ marginBottom:16, padding:12, background:'#f5f3ff', border:'1px solid #ddd6fe', borderRadius:10, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-                      <button
-                        onClick={() => regenerateWithCluster([
-                          ...topicalResult.siblings.map(s => s.topic),
-                          ...(Array.isArray(topicalResult.supporting) ? topicalResult.supporting.map(s => s.topic) : []),
-                        ].filter(Boolean))}
-                        disabled={topicalBusy}
-                        style={primaryBtn()}>
-                        {topicalBusy ? <Loader2 size={14} className="spin"/> : <Sparkles size={14}/>}
-                        {topicalBusy ? 'Regenerating…' : 'Regenerate this page covering the cluster'}
-                      </button>
-                      <span style={{ fontSize:11, fontFamily:FB, color:'#7c3aed', lineHeight:1.4 }}>
-                        Rewrites the master so its FAQs + sections touch these subtopics. Re-deploy to push.
-                      </span>
-                    </div>
-                  )}
+
+                  {/* Regenerate bar */}
+                  {(() => {
+                    const sel = getSelectedClusterTopics()
+                    return (
+                      <div style={{ marginBottom:16, padding:12, background:'#f5f3ff', border:'1px solid #ddd6fe', borderRadius:10 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', marginBottom:10 }}>
+                          <button
+                            onClick={() => regenerateWithCluster(sel)}
+                            disabled={topicalBusy || !sel.length}
+                            style={primaryBtn()}>
+                            {topicalBusy ? <Loader2 size={14} className="spin"/> : <Sparkles size={14}/>}
+                            {topicalBusy ? 'Regenerating…' : `Regenerate with ${sel.length} selected`}
+                          </button>
+                          <button onClick={() => {
+                            const all = {}
+                            ;(topicalResult.siblings || []).forEach(s => { all[s.topic] = true })
+                            ;(topicalResult.supporting || []).forEach(s => { all[s.topic] = true })
+                            setClusterSelected(all)
+                          }} style={miniBtn()}>Select all</button>
+                          <button onClick={() => setClusterSelected({})} style={miniBtn()}>Deselect all</button>
+                          <span style={{ fontSize:11, fontFamily:FB, color:'#7c3aed' }}>
+                            {sel.length} subtopic{sel.length !== 1 ? 's' : ''} selected
+                          </span>
+                        </div>
+                        <input
+                          placeholder="Add your own subtopics (comma-separated)"
+                          value={customClusterTopics}
+                          onChange={e => setCustomClusterTopics(e.target.value)}
+                          style={inp({ fontSize:12 })}/>
+                      </div>
+                    )
+                  })()}
+
                   {Array.isArray(topicalResult.siblings) && topicalResult.siblings.length > 0 && (
                     <div style={{ marginBottom:18 }}>
                       <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:T, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Sibling campaigns ({topicalResult.siblings.length})</div>
                       <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                         {topicalResult.siblings.map((s, i) => (
-                          <div key={i} style={{ background:'#f0fdfa', border:'1px solid #99f6e4', borderRadius:8, padding:10, display:'flex', alignItems:'center', gap:10 }}>
+                          <div key={i} style={{ background: clusterSelected[s.topic] ? '#f0fdfa' : '#f8fafc', border:`1px solid ${clusterSelected[s.topic] ? '#99f6e4' : '#e2e8f0'}`, borderRadius:8, padding:10, display:'flex', alignItems:'center', gap:10, opacity: clusterSelected[s.topic] ? 1 : 0.6, transition:'all .15s' }}>
+                            <input type="checkbox" checked={!!clusterSelected[s.topic]} onChange={() => toggleClusterTopic(s.topic)} style={{ width:16, height:16, accentColor:'#0f766e', cursor:'pointer' }}/>
                             <div style={{ flex:1 }}>
                               <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:'#0f766e' }}>{s.topic} <span style={{ ...pill('#0f766e', '#0f766e15'), marginLeft:6, fontSize:10 }}>{s.intent}</span></div>
                               <div style={{ fontSize:12, fontFamily:FB, color:'#475569', marginTop:2 }}>{s.rationale}</div>
@@ -2167,10 +2208,17 @@ export default function TopicCampaignPanel({ site }) {
                   {Array.isArray(topicalResult.supporting) && topicalResult.supporting.length > 0 && (
                     <div>
                       <div style={{ fontSize:11, fontFamily:FH, fontWeight:800, color:'#7c3aed', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Supporting content ({topicalResult.supporting.length})</div>
-                      <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontFamily:FB }}>Blog / educational topics that funnel into the primary — not for AI Pages, but useful for content calendar.</div>
-                      <ul style={{ margin:0, paddingLeft:18, fontSize:13, fontFamily:FB, color:'#1a2332', lineHeight:1.7 }}>
-                        {topicalResult.supporting.map((s, i) => <li key={i}><strong>{s.topic}</strong> <span style={{ color:'#6b7280' }}>— {s.rationale}</span></li>)}
-                      </ul>
+                      <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontFamily:FB }}>Blog / educational topics that funnel into the primary. Check to weave into this page's FAQs + sections.</div>
+                      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                        {topicalResult.supporting.map((s, i) => (
+                          <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'6px 0', opacity: clusterSelected[s.topic] ? 1 : 0.6 }}>
+                            <input type="checkbox" checked={!!clusterSelected[s.topic]} onChange={() => toggleClusterTopic(s.topic)} style={{ width:15, height:15, marginTop:2, accentColor:'#7c3aed', cursor:'pointer' }}/>
+                            <div style={{ fontSize:13, fontFamily:FB, color:'#1a2332', lineHeight:1.5 }}>
+                              <strong>{s.topic}</strong> <span style={{ color:'#6b7280' }}>— {s.rationale}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </>
