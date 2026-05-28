@@ -4,7 +4,7 @@ import {
   Sparkles, Loader2, ChevronRight, ChevronLeft, MapPin, RefreshCw, Upload,
   AlertTriangle, CheckCircle2, Wand2, FileText, File, ExternalLink, Eye, X,
   Edit3, History, Save, Code, Coins, TrendingUp, MousePointerClick, Users, Target,
-  Download,
+  Download, Trash2, Star,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
@@ -78,6 +78,12 @@ export default function TopicCampaignPanel({ site }) {
 
   const [campaign, setCampaign] = useState(null) // { id, topic, master, ... }
   const [savedCampaigns, setSavedCampaigns] = useState([])
+  const [deletingId, setDeletingId] = useState(null)
+  // Connect-Google-reviews picker (campaign editor)
+  const [placeOpen, setPlaceOpen] = useState(false)
+  const [placeQuery, setPlaceQuery] = useState('')
+  const [placeBusy, setPlaceBusy] = useState(false)
+  const [placeResults, setPlaceResults] = useState([])
   const [loadingSaved, setLoadingSaved] = useState(false)
 
   // Step 2 state
@@ -369,6 +375,57 @@ export default function TopicCampaignPanel({ site }) {
       setStep(2)
       toast.success(`Loaded "${d.campaign.topic}"`)
     } catch (e) { toast.error(e.message) }
+  }
+
+  async function deleteCampaign(c) {
+    if (deletingId) return
+    if (!confirm(`Delete campaign "${c.topic}"?\n\nThis removes the campaign + its deploy records from KotoIQ. It does NOT delete the published WordPress pages — remove those in WP if you want them gone.`)) return
+    setDeletingId(c.id)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_campaign', agency_id: agencyId, campaign_id: c.id }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); return }
+      setSavedCampaigns(prev => prev.filter(x => x.id !== c.id))
+      toast.success('Campaign deleted')
+    } catch (e) { toast.error(e.message) }
+    setDeletingId(null)
+  }
+
+  // Connect Google reviews — search Places, then save the chosen place_id to
+  // the campaign so reviews auto-pull on the next deploy.
+  async function findReviewPlaces() {
+    const q = placeQuery.trim()
+    if (!q) { toast.error('Type a business name + city to search'); return }
+    setPlaceBusy(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'find_places', agency_id: agencyId, query: q }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); setPlaceResults([]) }
+      else setPlaceResults(d.places || [])
+    } catch (e) { toast.error(e.message) }
+    setPlaceBusy(false)
+  }
+  async function connectReviewPlace(place) {
+    if (!campaign?.id) return
+    setPlaceBusy(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set_campaign_place', agency_id: agencyId, campaign_id: campaign.id, place_id: place ? place.place_id : null }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(errText(d.error)); return }
+      setCampaign(c => ({ ...c, google_place_id: place ? place.place_id : null }))
+      setPlaceOpen(false); setPlaceResults([]); setPlaceQuery('')
+      toast.success(place ? `Reviews connected: ${place.name} (${place.review_count} reviews) — they'll appear on re-deploy` : 'Reviews disconnected')
+    } catch (e) { toast.error(e.message) }
+    setPlaceBusy(false)
   }
 
   async function generateMaster() {
@@ -814,29 +871,32 @@ export default function TopicCampaignPanel({ site }) {
               {loadingSaved ? <Loader2 size={11} className="spin"/> : <RefreshCw size={11}/>} Refresh
             </button>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:10 }}>
-            {savedCampaigns.map(c => (
-              <div key={c.id} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:10, padding:14, cursor:'pointer' }}
-                onClick={() => openCampaign(c.id)}>
-                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-                  <Sparkles size={14} color={R}/>
-                  <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:14, color:BLK, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    {c.topic}
-                  </div>
-                  <Pill color={c.post_type === 'post' ? T : '#6b7280'} bg={`${c.post_type === 'post' ? T : '#6b7280'}15`}>{c.post_type}</Pill>
+          <div style={{ display:'flex', flexDirection:'column', border:'1px solid #e5e7eb', borderRadius:10, overflow:'hidden', background:'#fff' }}>
+            {savedCampaigns.map((c, i) => (
+              <div key={c.id}
+                onClick={() => openCampaign(c.id)}
+                style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', cursor:'pointer', borderTop: i ? '1px solid #f1f1f1' : 'none' }}>
+                <Sparkles size={13} color={R} style={{ flex:'none' }}/>
+                <div style={{ flex:1, minWidth:0, fontFamily:FH, fontWeight:700, fontSize:13, color:BLK, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  {c.topic}
                 </div>
-                <div style={{ fontSize:11, fontFamily:FB, color:'#6b7280', display:'flex', alignItems:'center', gap:10 }}>
-                  <StatusDot status={c.status}/>
-                  <span>{c.status}</span>
-                  {c.last_deploy_count > 0 && (
-                    <span style={{ marginLeft:'auto' }}>{c.last_deploy_count} deployed</span>
-                  )}
-                </div>
-                {c.last_deploy_at && (
-                  <div style={{ marginTop:4, fontSize:11, fontFamily:FB, color:'#9ca3af' }}>
-                    Last deploy {timeAgo(c.last_deploy_at)}
-                  </div>
+                <Pill color={c.post_type === 'post' ? T : '#6b7280'} bg={`${c.post_type === 'post' ? T : '#6b7280'}15`}>{c.post_type}</Pill>
+                <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontFamily:FB, color:'#6b7280', flex:'none' }}>
+                  <StatusDot status={c.status}/>{c.status}
+                </span>
+                {c.last_deploy_count > 0 && (
+                  <span style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', flex:'none' }}>{c.last_deploy_count} live</span>
                 )}
+                {c.last_deploy_at && (
+                  <span style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', flex:'none', whiteSpace:'nowrap' }}>{timeAgo(c.last_deploy_at)}</span>
+                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteCampaign(c) }}
+                  disabled={deletingId === c.id}
+                  title="Delete campaign"
+                  style={{ ...miniBtn({ color:'#dc2626', borderColor:'#fecaca' }), flex:'none', padding:'5px 7px' }}>
+                  {deletingId === c.id ? <Loader2 size={11} className="spin"/> : <Trash2 size={11}/>}
+                </button>
               </div>
             ))}
           </div>
@@ -1082,6 +1142,10 @@ export default function TopicCampaignPanel({ site }) {
             </button>
             <button onClick={runTopicalExpand} disabled={topicalBusy} style={miniBtn({ color:'#7c3aed', borderColor:'#7c3aed' })}>
               {topicalBusy ? <Loader2 size={11} className="spin"/> : <Sparkles size={11}/>} Topical cluster
+            </button>
+            <button onClick={() => { setPlaceOpen(true); setPlaceResults([]); setPlaceQuery(campaign.company_name || campaign.topic || '') }}
+              style={miniBtn({ color: campaign.google_place_id ? GRN : '#0369a1', borderColor: campaign.google_place_id ? GRN : '#0369a1' })}>
+              <Star size={11}/> {campaign.google_place_id ? 'Reviews connected' : 'Connect Google reviews'}
             </button>
           </div>
           <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280' }}>
@@ -1456,6 +1520,55 @@ export default function TopicCampaignPanel({ site }) {
           onSave={saveMasterEdits}
           onClose={() => { setEditorOpen(false); setEditedMaster(null) }}
         />
+      )}
+
+      {/* Connect Google reviews modal */}
+      {placeOpen && (
+        <div style={overlay()} onClick={() => setPlaceOpen(false)}>
+          <div style={{ ...modal(), maxWidth:560, maxHeight:'85vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
+            <div style={modalHeader()}>
+              <Star size={18} color="#0369a1"/>
+              <div style={{ flex:1, fontFamily:FH, fontWeight:800, fontSize:16 }}>Connect Google reviews</div>
+              <button onClick={() => setPlaceOpen(false)} style={miniBtn()}><X size={11}/></button>
+            </div>
+            <div style={{ padding:22, flex:1, minHeight:0, overflowY:'auto' }}>
+              <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', marginBottom:12, lineHeight:1.5 }}>
+                Search Google for the business whose reviews should appear on these pages. Real reviews + the live star rating are pulled from the Google Places API at deploy time — never stored, never faked.
+              </div>
+              <div style={{ display:'flex', gap:8, marginBottom:14 }}>
+                <input value={placeQuery} onChange={e => setPlaceQuery(e.target.value)} placeholder="Unified Marketing, West Palm Beach FL"
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); findReviewPlaces() } }}
+                  style={{ ...inp(), flex:1 }}/>
+                <button onClick={findReviewPlaces} disabled={placeBusy || !placeQuery.trim()} style={primaryBtn()}>
+                  {placeBusy ? <Loader2 size={13} className="spin"/> : <MapPin size={13}/>} Find
+                </button>
+              </div>
+              {campaign.google_place_id && (
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12, fontSize:12, fontFamily:FB, color:GRN }}>
+                  <CheckCircle2 size={13}/> A place is connected.
+                  <button onClick={() => connectReviewPlace(null)} disabled={placeBusy} style={miniBtn({ color:'#dc2626', borderColor:'#fecaca' })}>Disconnect</button>
+                </div>
+              )}
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {placeResults.map(p => (
+                  <div key={p.place_id} style={{ display:'flex', alignItems:'center', gap:10, border:'1px solid #e5e7eb', borderRadius:10, padding:12 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:FH, fontWeight:800, fontSize:13, color:BLK }}>{p.name}</div>
+                      <div style={{ fontSize:11, fontFamily:FB, color:'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.address}</div>
+                      <div style={{ fontSize:11, fontFamily:FB, color:'#475569', marginTop:2 }}>
+                        {p.rating != null ? <><span style={{ color:'#f59e0b' }}>★</span> {p.rating} · {p.review_count} reviews</> : 'No rating'}
+                      </div>
+                    </div>
+                    <button onClick={() => connectReviewPlace(p)} disabled={placeBusy} style={miniBtn({ color:GRN, borderColor:GRN })}>Connect</button>
+                  </div>
+                ))}
+                {!placeBusy && placeResults.length === 0 && placeQuery.trim() && (
+                  <div style={{ fontSize:12, fontFamily:FB, color:'#9ca3af' }}>No results yet — click Find.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* E-E-A-T audit modal */}

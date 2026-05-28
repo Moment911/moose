@@ -90,14 +90,19 @@ export async function buildEeatContext(
         if (c.length) eeat.citations = c
     }
 
-    if (opts.withReviews && campaign?.client_id) {
+    if (opts.withReviews) {
         try {
-            const { data: client } = await supabase
-                .from('clients')
-                .select('google_place_id')
-                .eq('id', campaign.client_id)
-                .single()
-            const placeId = client?.google_place_id
+            // Prefer the place connected directly to the campaign; fall back to
+            // the campaign's client's place_id (set via intel/scout).
+            let placeId: string | undefined = campaign?.google_place_id || undefined
+            if (!placeId && campaign?.client_id) {
+                const { data: client } = await supabase
+                    .from('clients')
+                    .select('google_place_id')
+                    .eq('id', campaign.client_id)
+                    .single()
+                placeId = client?.google_place_id || undefined
+            }
             if (placeId) {
                 const r = await fetchPlaceReviews(String(placeId))
                 if (r) {

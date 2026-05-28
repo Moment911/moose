@@ -94,6 +94,9 @@ export async function POST(req: NextRequest) {
             case 'regenerate_master': return await regenerateMaster(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
+            case 'delete_campaign':   return await deleteCampaign(supabase, agencyId, body)
+            case 'find_places':       return await findPlaces(body)
+            case 'set_campaign_place':return await setCampaignPlace(supabase, agencyId, body)
             default: return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 })
         }
     } catch (err) {
@@ -171,6 +174,92 @@ async function resolveCompetitorIntel(
     } catch {
         return { competitorMeta: null }
     }
+}
+
+/**
+ * delete_campaign — remove a campaign + its deploy records (agency-scoped).
+ * Does NOT delete the published WP pages — those stay live unless the operator
+ * removes them in WordPress (deleting live client pages is high blast-radius).
+ */
+async function deleteCampaign(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const { data: campaign } = await supabase
+        .from('koto_topic_campaigns')
+        .select('id')
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+        .single()
+    if (!campaign) return NextResponse.json({ error: 'campaign not found' }, { status: 404 })
+    await supabase.from('koto_topic_campaign_deploys').delete().eq('campaign_id', campaignId)
+    const { error } = await supabase
+        .from('koto_topic_campaigns')
+        .delete()
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+}
+
+/**
+ * find_places — Google Places (New) text search so the operator can connect a
+ * business listing to a campaign for live review pulls. Returns candidates with
+ * true rating + review count so they can confirm the right one.
+ */
+async function findPlaces(body: any) {
+    const query = String(body.query || '').trim()
+    if (!query) return NextResponse.json({ error: 'query required' }, { status: 400 })
+    const key = process.env.GOOGLE_PLACES_API_KEY || ''
+    if (!key) return NextResponse.json({ error: 'GOOGLE_PLACES_API_KEY not configured' }, { status: 500 })
+    try {
+        const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': key,
+                'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount',
+            },
+            body: JSON.stringify({ textQuery: query }),
+            signal: AbortSignal.timeout(8000),
+        })
+        if (!res.ok) {
+            const txt = await res.text().catch(() => '')
+            return NextResponse.json({ error: `Places error ${res.status}${txt ? `: ${txt.slice(0, 120)}` : ''}` }, { status: 502 })
+        }
+        const data: any = await res.json()
+        const places = (Array.isArray(data.places) ? data.places : []).slice(0, 8).map((p: any) => ({
+            place_id: p.id,
+            name: p.displayName?.text || '(unnamed)',
+            address: p.formattedAddress || '',
+            rating: typeof p.rating === 'number' ? p.rating : null,
+            review_count: typeof p.userRatingCount === 'number' ? p.userRatingCount : 0,
+        }))
+        return NextResponse.json({ ok: true, places })
+    } catch (e: any) {
+        return NextResponse.json({ error: `Places lookup failed: ${String(e?.message || e)}` }, { status: 500 })
+    }
+}
+
+/**
+ * set_campaign_place — connect (or clear, place_id=null) a Google place to a
+ * campaign. Reviews then auto-pull from this place on the next deploy.
+ */
+async function setCampaignPlace(supabase: any, agencyId: string, body: any) {
+    const campaignId = String(body.campaign_id || '')
+    if (!campaignId) return NextResponse.json({ error: 'campaign_id required' }, { status: 400 })
+    const placeId = body.place_id == null ? null : String(body.place_id).trim() || null
+    let { data, error } = await supabase
+        .from('koto_topic_campaigns')
+        .update({ google_place_id: placeId })
+        .eq('id', campaignId)
+        .eq('agency_id', agencyId)
+        .select('id, google_place_id')
+        .single()
+    if (isMissingColumnError(error)) {
+        return NextResponse.json({ error: 'google_place_id column missing — apply the koto_topic_campaigns google_place_id migration in Supabase first' }, { status: 409 })
+    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, campaign: data })
 }
 
 async function generateMaster(supabase: any, agencyId: string, body: any) {

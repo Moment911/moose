@@ -54,7 +54,18 @@ function withCensusKey(url: string): string {
  * fail loudly when Census returns its HTML missing_key page instead of JSON.
  */
 async function fetchCensusJson(url: string, stateAbbr: string, timeoutMs = 15000): Promise<any> {
-  const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) })
+  // Census can be transiently slow (esp. large states like FL/CA/TX). Retry
+  // once on a timeout/abort before surfacing the error to the operator.
+  let res: Response
+  try {
+    res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) })
+  } catch (e: any) {
+    if (e?.name === 'TimeoutError' || e?.name === 'AbortError') {
+      res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) })
+    } else {
+      throw e
+    }
+  }
   if (!res.ok) {
     if (res.status === 302 || res.status === 401 || res.status === 403) {
       throw new Error(
