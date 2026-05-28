@@ -53,8 +53,16 @@ export default function TopicCampaignPanel({ site, client }) {
 
   // Step 1 state
   const [topic, setTopic] = useState('')
-  const [phone, setPhone] = useState(client?.phone || client?.onboarding_phone_display || '')
   const [companyName, setCompanyName] = useState(client?.name || site?.site_name || '')
+
+  function fmtPhone(raw) {
+    if (!raw) return ''
+    const d = raw.replace(/\D/g, '')
+    const digits = d.length === 11 && d[0] === '1' ? d.slice(1) : d
+    if (digits.length !== 10) return raw
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  const [phone, setPhone] = useState(fmtPhone(client?.phone || client?.onboarding_phone_display || ''))
   const [postType, setPostType] = useState('page')
   const [notes, setNotes] = useState('')
   const [customHtml, setCustomHtml] = useState('')
@@ -1226,7 +1234,7 @@ export default function TopicCampaignPanel({ site, client }) {
               <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Unified Marketing" style={inp()}/>
             </Field>
             <Field label="Phone number (optional)" hint="Used for [koto_phone] in CTAs + schema">
-              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(512) 555-1234" style={inp()}/>
+              <input value={phone} onChange={e => setPhone(e.target.value)} onBlur={() => setPhone(fmtPhone(phone))} placeholder="(512) 555-1234" style={inp()}/>
             </Field>
           </div>
 

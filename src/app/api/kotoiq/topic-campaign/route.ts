@@ -36,6 +36,16 @@ import { buildMultiCityCompetitorContext } from '@/lib/wp-shim/competitorContext
 import { STALE_THRESHOLDS_MS } from '@/lib/dataIntegrity'
 import { extractStyleTokens, type StyleTokens } from '@/lib/wp-shim/styleTokens'
 
+/** Normalize any phone input to (xxx) xxx-xxxx. Returns null if not 10 digits. */
+function formatPhone(raw?: string | null): string | null {
+    if (!raw) return null
+    const d = raw.replace(/\D/g, '')
+    // Strip leading 1 for US numbers
+    const digits = d.length === 11 && d[0] === '1' ? d.slice(1) : d
+    if (digits.length !== 10) return raw?.trim() || null // can't format, return as-is
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+}
+
 // Thin name wrapper — local handle for the per-location ACS lookup used in
 // deploy + redeploy. Returns null on any failure (missing key, city not found,
 // API outage) so the "By the Numbers" block silently skips.
@@ -761,7 +771,7 @@ async function generateMaster(supabase: any, agencyId: string, body: any) {
         client_id: body.client_id || null,
         site_id: body.site_id || null,
         topic,
-        phone: body.phone || null,
+        phone: formatPhone(body.phone),
         company_name: body.company_name || null,
         notes: body.notes || null,
         post_type: body.post_type === 'post' ? 'post' : 'page',
@@ -873,7 +883,7 @@ async function updateMaster(supabase: any, agencyId: string, body: any) {
     const patch: any = {}
     if (body.master) patch.master = body.master
     if (body.topic) patch.topic = body.topic
-    if (body.phone !== undefined) patch.phone = body.phone || null
+    if (body.phone !== undefined) patch.phone = formatPhone(body.phone)
     if (body.company_name !== undefined) patch.company_name = body.company_name || null
     if (body.notes !== undefined) patch.notes = body.notes || null
     if (body.post_type) patch.post_type = body.post_type === 'post' ? 'post' : 'page'
