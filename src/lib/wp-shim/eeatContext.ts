@@ -116,6 +116,13 @@ export async function buildEeatContext(
         }
     }
 
+    // Manual/operator-entered testimonials — used only when there are no live
+    // Google reviews (real reviews always win).
+    if (!eeat.testimonials && Array.isArray(inputs.testimonials)) {
+        const t = inputs.testimonials.filter((x: any) => x && x.text && x.author).slice(0, 5)
+        if (t.length) eeat.testimonials = t
+    }
+
     // Manual/operator-set rating — applied only when there's no live Google
     // rating, so real reviews always take precedence.
     const mr = inputs.rating

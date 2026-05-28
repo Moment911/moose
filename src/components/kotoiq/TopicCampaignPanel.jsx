@@ -1264,6 +1264,8 @@ export default function TopicCampaignPanel({ site }) {
               { label:'Results', ok: Array.isArray(ei.results) && ei.results.length > 0, hint:'add in Trust signals' },
               { label:'Cited sources', ok: Array.isArray(ei.citations) && ei.citations.length > 0, hint:'add in Trust signals' },
               { label:'sameAs links', ok: Array.isArray(ei.sameAs) && ei.sameAs.length > 0, hint:'add in Trust signals' },
+              { label:'Business address', ok: !!(ei.address?.street || ei.address?.city), hint:'add in Trust signals' },
+              { label:'Testimonials', ok: !!(campaign.google_place_id || (Array.isArray(ei.testimonials) && ei.testimonials.length) || ei.rating), hint:'Connect Google or add in Trust signals' },
             ]
             return (
               <div style={{ marginTop:12, padding:'10px 12px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:10 }}>
@@ -1909,6 +1911,12 @@ function EeatEditor({ initial, busy, onClose, onSave }) {
   const r0 = initial.rating || {}
   const [ratingValue, setRatingValue] = useState(r0.ratingValue ?? '')
   const [reviewCount, setReviewCount] = useState(r0.reviewCount ?? '')
+  const a0 = initial.address || {}
+  const [addrStreet, setAddrStreet] = useState(a0.street || '')
+  const [addrCity, setAddrCity] = useState(a0.city || '')
+  const [addrState, setAddrState] = useState(a0.state || '')
+  const [addrZip, setAddrZip] = useState(a0.zip || '')
+  const [testimonials, setTestimonials] = useState(Array.isArray(initial.testimonials) && initial.testimonials.length ? initial.testimonials.map(t => ({ text: t.text || '', author: t.author || '', rating: t.rating || '', sourceLabel: t.sourceLabel || '' })) : [{ text: '', author: '', rating: '', sourceLabel: '' }])
 
   const upd = (setter) => (i, key, val) => setter(arr => arr.map((row, j) => j === i ? { ...row, [key]: val } : row))
   const rm  = (setter) => (i) => setter(arr => arr.filter((_, j) => j !== i))
@@ -1922,6 +1930,10 @@ function EeatEditor({ initial, busy, onClose, onSave }) {
       rating: (Number(ratingValue) > 0 && Number(reviewCount) > 0)
         ? { ratingValue: Number(ratingValue), reviewCount: Number(reviewCount) }
         : undefined,
+      address: (addrStreet.trim() || addrCity.trim())
+        ? { street: addrStreet.trim() || undefined, city: addrCity.trim() || undefined, state: addrState.trim() || undefined, zip: addrZip.trim() || undefined }
+        : undefined,
+      testimonials: testimonials.filter(t => t.text.trim() && t.author.trim()).map(t => ({ text: t.text.trim(), author: t.author.trim(), rating: Number(t.rating) > 0 ? Number(t.rating) : undefined, sourceLabel: (t.sourceLabel || '').trim() || undefined })),
     })
   }
 
@@ -1948,6 +1960,34 @@ function EeatEditor({ initial, busy, onClose, onSave }) {
             <Field label="Title"><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Lead Strategist" style={inp()}/></Field>
             <Field label="Years experience"><input value={years} onChange={e => setYears(e.target.value.replace(/\D/g,''))} placeholder="8" style={inp()}/></Field>
             <Field label="Photo URL"><input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} placeholder="https://…/headshot.jpg" style={inp()}/></Field>
+          </div>
+
+          {sectionLabel('Business address (one fixed location)')}
+          <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:10 }}>
+            <Field label="Street address"><input value={addrStreet} onChange={e => setAddrStreet(e.target.value)} placeholder="123 Clematis St, Suite 200" style={inp()}/></Field>
+            <Field label="City"><input value={addrCity} onChange={e => setAddrCity(e.target.value)} placeholder="West Palm Beach" style={inp()}/></Field>
+            <Field label="State"><input value={addrState} onChange={e => setAddrState(e.target.value.toUpperCase().slice(0,2))} placeholder="FL" maxLength={2} style={inp()}/></Field>
+            <Field label="ZIP"><input value={addrZip} onChange={e => setAddrZip(e.target.value)} placeholder="33401" style={inp()}/></Field>
+          </div>
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af' }}>
+            Your real, single business address — rendered in a contact line + LocalBusiness PostalAddress schema. NOT per-city (that's the service area).
+          </div>
+
+          {sectionLabel('Testimonials')}
+          {testimonials.map((t, i) => (
+            <div key={i} style={{ display:'flex', flexDirection:'column', gap:6, border:'1px solid #e5e7eb', borderRadius:8, padding:10, marginBottom:8 }}>
+              <textarea value={t.text} onChange={e => upd(setTestimonials)(i,'text',e.target.value)} rows={2} placeholder="Quoted review text" style={{ ...inp(), resize:'vertical' }}/>
+              <div style={{ display:'flex', gap:8 }}>
+                <input value={t.author} onChange={e => upd(setTestimonials)(i,'author',e.target.value)} placeholder="Reviewer name" style={{ ...inp(), flex:1 }}/>
+                <input value={t.rating} onChange={e => upd(setTestimonials)(i,'rating',e.target.value.replace(/[^0-9.]/g,''))} placeholder="5" style={{ ...inp(), flex:'0 0 60px' }}/>
+                <input value={t.sourceLabel} onChange={e => upd(setTestimonials)(i,'sourceLabel',e.target.value)} placeholder="Google" style={{ ...inp(), flex:'0 0 110px' }}/>
+                {rmBtn(() => rm(setTestimonials)(i))}
+              </div>
+            </div>
+          ))}
+          {addBtn(() => setTestimonials(a => [...a, { text:'', author:'', rating:'', sourceLabel:'' }]), 'testimonial')}
+          <div style={{ fontSize:11, fontFamily:FB, color:'#9ca3af' }}>
+            Connected Google reviews override these when present. → Review schema.
           </div>
 
           {sectionLabel('Rating (stars + review count)')}

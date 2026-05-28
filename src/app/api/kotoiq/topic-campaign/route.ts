@@ -304,6 +304,26 @@ async function setEeatInputs(supabase: any, agencyId: string, body: any) {
             reviewCount: Math.max(0, Math.round(Number(rt.reviewCount))),
         }
     }
+    const addr = inRaw.address
+    if (addr && (String(addr.street || '').trim() || String(addr.city || '').trim())) {
+        clean.address = {
+            ...(String(addr.street || '').trim() ? { street: String(addr.street).trim() } : {}),
+            ...(String(addr.city || '').trim() ? { city: String(addr.city).trim() } : {}),
+            ...(String(addr.state || '').trim() ? { state: String(addr.state).trim() } : {}),
+            ...(String(addr.zip || '').trim() ? { zip: String(addr.zip).trim() } : {}),
+        }
+    }
+    const testimonials = Array.isArray(inRaw.testimonials)
+        ? inRaw.testimonials
+            .map((t: any) => ({
+                text: String(t?.text || '').trim(),
+                author: String(t?.author || '').trim(),
+                rating: Number(t?.rating) > 0 ? Math.max(1, Math.min(5, Number(t.rating))) : undefined,
+                sourceLabel: String(t?.sourceLabel || '').trim() || undefined,
+            }))
+            .filter((t: any) => t.text && t.author)
+        : []
+    if (testimonials.length) clean.testimonials = testimonials
 
     const eeat_inputs = Object.keys(clean).length ? clean : null
     let { data, error } = await supabase
@@ -528,6 +548,7 @@ async function previewResolved(supabase: any, agencyId: string, body: any) {
         companyName: campaign.company_name || undefined,
         ...(eeat ? { eeat } : {}),
         ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
+        ...(campaign.eeat_inputs?.address ? { businessAddress: campaign.eeat_inputs.address } : {}),
     }
     const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
     return NextResponse.json({ ok: true, resolved })
@@ -1224,6 +1245,7 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
             ...(localData ? { localData } : {}),
             ...(eeat ? { eeat } : {}),
             ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
+            ...(campaign.eeat_inputs?.address ? { businessAddress: campaign.eeat_inputs.address } : {}),
         }
         const resolved = resolveMaster(
             campaign.master as TopicCampaignMaster,
@@ -1456,6 +1478,7 @@ async function redeployCampaign(supabase: any, agencyId: string, body: any) {
             ...(localData ? { localData } : {}),
             ...(eeat ? { eeat } : {}),
             ...(topicEntity ? { entities: { topic: topicEntity } } : {}),
+            ...(campaign.eeat_inputs?.address ? { businessAddress: campaign.eeat_inputs.address } : {}),
         }
         const resolved = resolveMaster(campaign.master as TopicCampaignMaster, ctx, campaign.custom_html_wrapper || undefined)
 

@@ -481,6 +481,17 @@ export function resolveMaster(
         ? `<section class="koto-results">\n  <h2>Results in ${escapeHtml(ctx.location.city)}</h2>\n  <div class="koto-results-grid">\n${results.map(r => `    <div class="koto-result">\n      <div class="koto-result-metric">${escapeHtml(r.metric)}</div>${r.context ? `\n      <div class="koto-result-context">${escapeHtml(r.context)}</div>` : ''}\n    </div>`).join('\n')}\n  </div>\n</section>`
         : ''
 
+    // Business contact line — the real fixed address (operator-provided), shown
+    // in a footer-style block + emitted into LocalBusiness PostalAddress schema.
+    const ba = ctx.businessAddress
+    const contactHtml = ba && (ba.street || ba.city)
+        ? (() => {
+            const line = [ba.street, [ba.city, ba.state].filter(Boolean).join(', '), ba.zip].filter(Boolean).join(', ')
+            const tel = ctx.phone ? ` &middot; <a href="tel:${ctx.phone.replace(/\D/g, '')}">${escapeHtml(ctx.phone)}</a>` : ''
+            return `<aside class="koto-contact">${ctx.companyName ? `<strong>${escapeHtml(ctx.companyName)}</strong> &middot; ` : ''}<span class="koto-contact-addr">${escapeHtml(line)}</span>${tel}</aside>`
+        })()
+        : ''
+
     const citations = Array.isArray(eeat.citations) ? eeat.citations.filter(c => c && c.sourceUrl && c.sourceName).slice(0, 8) : []
     const citationsHtml = citations.length
         ? `<aside class="koto-citations">\n  <h2>Sources</h2>\n  <ul>\n${citations.map(c => `    <li>${c.claim ? `${escapeHtml(c.claim)} &mdash; ` : ''}<a href="${escapeHtml(c.sourceUrl)}" rel="noopener nofollow" target="_blank">${escapeHtml(c.sourceName)}</a></li>`).join('\n')}\n  </ul>\n</aside>`
@@ -600,6 +611,8 @@ a[href^="tel:"]:hover{text-decoration:underline}
 .koto-rating-stars{color:#f59e0b;letter-spacing:1px;font-size:1.05rem}
 .koto-rating-value{font-weight:800}
 .koto-rating-count{color:#64748b;font-size:.85rem}
+.koto-contact{margin:2rem 0;padding:1rem 1.25rem;background:#fafafa;border-top:2px solid #e9e6dd;font-size:.9rem;color:#475569}
+.koto-contact a{color:#1e3a8a;font-weight:700}
 `.trim()
 
     // Compose body. The CSS is no longer prepended — it now travels in the
@@ -664,6 +677,7 @@ a[href^="tel:"]:hover{text-decoration:underline}
             .replace(/\{\{RESULTS\}\}/g, resultsHtml)
             .replace(/\{\{CITATIONS\}\}/g, citationsHtml)
             .replace(/\{\{RATING\}\}/g, ratingBadgeHtml)
+            .replace(/\{\{CONTACT\}\}/g, contactHtml)
         : [
             directAnswerHtml,
             `<header class="koto-hero">${heroMediaHtml ? '\n  ' + heroMediaHtml : ''}\n  <h1>${escapeHtml(stripHtml(heroHeadline))}</h1>\n  <div class="koto-hero-sub">${ensureParagraphs(heroSub)}</div>\n</header>`,
@@ -680,6 +694,7 @@ a[href^="tel:"]:hover{text-decoration:underline}
             ctaHtml,
             relatedServicesHtml,
             serviceAreasHtml,
+            contactHtml,
         ].filter(Boolean).join('\n'))
 
     const metaTitle = resolveTitle(master.meta.title_template, ctx)
@@ -916,6 +931,17 @@ function enrichSchemaGraph(
         webPage.author = author
     }
     if (localBusiness) {
+        const ba = ctx.businessAddress
+        if (ba && (ba.street || ba.city)) {
+            localBusiness.address = {
+                '@type': 'PostalAddress',
+                ...(ba.street ? { streetAddress: ba.street } : {}),
+                ...(ba.city ? { addressLocality: ba.city } : {}),
+                ...(ba.state ? { addressRegion: ba.state } : {}),
+                ...(ba.zip ? { postalCode: ba.zip } : {}),
+                addressCountry: 'US',
+            }
+        }
         if (Array.isArray(eeat.sameAs) && eeat.sameAs.length) {
             const existing = Array.isArray(localBusiness.sameAs) ? localBusiness.sameAs : []
             localBusiness.sameAs = Array.from(new Set([...existing, ...eeat.sameAs.filter(Boolean)]))
