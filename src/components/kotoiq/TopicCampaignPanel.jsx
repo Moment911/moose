@@ -55,7 +55,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action: 'eeat_score', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); setEeatResult(null) }
+      if (d.error) { toast.error(errText(d.error)); setEeatResult(null) }
       else setEeatResult(d.audit)
     } catch (e) { toast.error(e.message); setEeatResult(null) }
     setEeatBusy(false)
@@ -70,7 +70,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action: 'topical_expand', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); setTopicalResult(null) }
+      if (d.error) { toast.error(errText(d.error)); setTopicalResult(null) }
       else setTopicalResult(d.expansion)
     } catch (e) { toast.error(e.message); setTopicalResult(null) }
     setTopicalBusy(false)
@@ -131,7 +131,7 @@ export default function TopicCampaignPanel({ site }) {
         }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setCampaign(d.campaign)
       setEditedMaster(structuredClone(d.campaign.master))
       const c = d.competitor_meta
@@ -150,35 +150,43 @@ export default function TopicCampaignPanel({ site }) {
     const html = (rawHtml ?? editedWrapper).trim()
     if (!html) { toast.error('Paste HTML into the wrapper field or upload a file first'); return }
     setEditedCaptureBusy(true)
+    const tid = toast.loading('Analyzing design with Claude (15-60s for large files)…')
     try {
       const r = await fetch('/api/kotoiq/topic-campaign', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'wrapper_assist', agency_id: agencyId, html }),
       })
+      if (!r.ok) {
+        const txt = await r.text().catch(() => '')
+        throw new Error(`HTTP ${r.status}${txt ? ` — ${txt.slice(0, 120)}` : ''}`)
+      }
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error), { id: tid }); return }
       setEditedWrapper(d.wrapper || '')
       setEditedCaptureInfo({
         used_selector: 'AI-assisted',
         notes: `Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none — review output'}`,
       })
-      toast.success('Placeholders inserted — save changes + Re-deploy all to apply')
+      toast.success('Style extracted — Save changes + Re-deploy all to apply', { id: tid })
     } catch (e) {
-      toast.error(e.message)
+      toast.error(`Style failed: ${e.message}`, { id: tid })
     }
     setEditedCaptureBusy(false)
   }
 
-  // Read an uploaded HTML file → run through aiAssistWrapper.
+  // Read an uploaded HTML file into the textarea. Does NOT auto-run the slow
+  // AI step — the raw HTML lands instantly so the operator sees it worked,
+  // then they click "Style my pages with this" to process. Decoupling the
+  // fast file-load from the slow Claude call avoids the "nothing happened"
+  // confusion when a big file takes 30-60s to analyze.
   async function uploadWrapperFile(file) {
     if (!file) return
     if (file.size > 1_000_000) { toast.error('File too large (max 1MB)'); return }
     const text = await file.text().catch(() => '')
     if (!text) { toast.error('Could not read file'); return }
-    // Drop raw contents into the textarea first so the operator sees what
-    // was loaded, then run AI assist on the same payload.
     setEditedWrapper(text)
-    await aiAssistWrapper(text)
+    setEditedCaptureInfo({ used_selector: 'uploaded', notes: `Loaded ${(file.size/1024).toFixed(0)} KB from ${file.name}. Click "Style my pages with this" to extract the design.` })
+    toast.success(`Loaded ${file.name} — now click "Style my pages with this"`)
   }
 
   // Capture from URL inside the editor modal — same /capture_styling action
@@ -194,7 +202,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action:'capture_styling', agency_id: agencyId, url }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setEditedWrapper(d.wrapper || '')
       setEditedCaptureInfo({ used_selector: d.used_selector, notes: d.notes })
       toast.success(`Captured via "${d.used_selector}" — save changes + Re-deploy all to apply`)
@@ -356,7 +364,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action: 'get_campaign', agency_id: agencyId, campaign_id: campaignId }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setCampaign(d.campaign)
       setStep(2)
       toast.success(`Loaded "${d.campaign.topic}"`)
@@ -391,7 +399,7 @@ export default function TopicCampaignPanel({ site }) {
         }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setCampaign(d.campaign)
       toast.success(`Master generated · ${d.tokens_used} tokens`)
       setStep(2)
@@ -412,7 +420,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action: 'list_cities', agency_id: agencyId, state_abbr: selectedState }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setCities(d.cities || [])
     } catch (e) { toast.error(e.message) }
     setLoadingCities(false)
@@ -454,7 +462,7 @@ export default function TopicCampaignPanel({ site }) {
         }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setPreview({ open: true, ...d.resolved })
     } catch (e) { toast.error(e.message) }
   }
@@ -483,7 +491,7 @@ export default function TopicCampaignPanel({ site }) {
         }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); setDeploying(false); return }
+      if (d.error) { toast.error(errText(d.error)); setDeploying(false); return }
       setDeployResults(d)
       toast.success(`Deployed ${d.deployed} / ${d.deployed + d.failed}`)
     } catch (e) { toast.error(e.message) }
@@ -537,7 +545,7 @@ export default function TopicCampaignPanel({ site }) {
         }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setCampaign(d.campaign)
       setEditedMaster(null)
       setEditorOpen(false)
@@ -554,7 +562,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action:'get_performance', agency_id: agencyId, campaign_id: campaign.id, days }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setPerf(d)
     } catch (e) { toast.error(e.message) }
     setPerfLoading(false)
@@ -569,7 +577,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action:'capture_styling', agency_id: agencyId, url: styleCaptureUrl.trim() }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       setCustomHtml(d.wrapper || '')
       setCaptureInfo({ used_selector: d.used_selector, notes: d.notes })
       toast.success(`Captured via "${d.used_selector}"`)
@@ -587,7 +595,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action:'resync_seo_meta', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       toast.success(`SEO meta: ${d.written} written, ${d.failed} failed`)
       await loadDeployHistory()
     } catch (e) { toast.error(e.message) }
@@ -603,7 +611,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action:'retry_failed', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       toast.success(`Retried ${d.retried} · ${d.succeeded} succeeded · ${d.still_failed} still failed`)
       await loadDeployHistory()
     } catch (e) { toast.error(e.message) }
@@ -619,7 +627,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action:'verify_live', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       const msg = d.corrected > 0
         ? `Verified ${d.checked} · ${d.corrected} were live but marked failed — corrected`
         : d.gone > 0
@@ -641,7 +649,7 @@ export default function TopicCampaignPanel({ site }) {
         body: JSON.stringify({ action:'redeploy', agency_id: agencyId, campaign_id: campaign.id }),
       })
       const d = await r.json()
-      if (d.error) { toast.error(d.error); return }
+      if (d.error) { toast.error(errText(d.error)); return }
       toast.success(`Re-deployed ${d.updated} · ${d.failed} failed`)
       await loadDeployHistory()
     } catch (e) { toast.error(e.message) }
@@ -952,7 +960,7 @@ export default function TopicCampaignPanel({ site }) {
                         body: JSON.stringify({ action:'wrapper_assist', agency_id: agencyId, html: text }),
                       })
                       const d = await r.json()
-                      if (d.error) toast.error(d.error)
+                      if (d.error) toast.error(errText(d.error))
                       else { setCustomHtml(d.wrapper || ''); setCaptureInfo({ used_selector:'AI-assisted', notes:`Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none'}` }); toast.success('Style extracted from file') }
                     } catch (e) { toast.error(e.message) }
                     setCapturing(false)
@@ -969,7 +977,7 @@ export default function TopicCampaignPanel({ site }) {
                     body: JSON.stringify({ action:'wrapper_assist', agency_id: agencyId, html }),
                   })
                   const d = await r.json()
-                  if (d.error) toast.error(d.error)
+                  if (d.error) toast.error(errText(d.error))
                   else { setCustomHtml(d.wrapper || ''); setCaptureInfo({ used_selector:'AI-assisted', notes:`Placeholders inserted: ${(d.placeholders_used || []).join(', ') || 'none'}` }); toast.success('Style extracted') }
                 } catch (e) { toast.error(e.message) }
                 setCapturing(false)
@@ -2075,6 +2083,17 @@ const overlay = () => ({ position:'fixed', inset:0, background:'rgba(0,0,0,.5)',
 const modal = () => ({ background:'#fff', borderRadius:14, width:'100%' })
 const modalHeader = () => ({ padding:'14px 20px', borderBottom:'1px solid #e5e7eb', display:'flex', alignItems:'center', gap:10 })
 const miniBtn = (x={}) => ({ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 13px', borderRadius:8, border:`1px solid ${x.borderColor||'#e5e7eb'}`, background:x.background||'#fff', color:x.color||'#6b7280', fontFamily:FH, fontSize:13, fontWeight:700, cursor:'pointer' })
+
+// Coerce any error value (string, Error, or backend {code,message} object)
+// into a plain string. Passing an object to toast.error() makes sonner try
+// to render it as a React node → React error #31 ("objects are not valid as
+// a React child"). Always stringify first.
+function errText(e) {
+  if (e == null) return 'Request failed'
+  if (typeof e === 'string') return e
+  if (typeof e === 'object') return e.message || e.error || e.code || JSON.stringify(e)
+  return String(e)
+}
 const primaryBtn = () => ({ display:'inline-flex', alignItems:'center', gap:7, padding:'10px 18px', borderRadius:9, border:'none', background:R, color:'#fff', fontFamily:FH, fontSize:14, fontWeight:700, cursor:'pointer' })
 const pill = (color, bg) => ({ display:'inline-flex', alignItems:'center', padding:'4px 10px', borderRadius:6, fontSize:11, fontFamily:FH, fontWeight:700, color, background:bg, textTransform:'uppercase', letterSpacing:'.04em' })
 const Pill = ({ children, color, bg }) => <span style={pill(color, bg)}>{children}</span>
