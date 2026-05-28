@@ -56,6 +56,17 @@ describe('extractStyleTokens', () => {
         }
     })
 
+    it('resolves var() references in element rules (Avada/Fusion pattern)', () => {
+        const css = `:root{--body_typography-font-family:"Open Sans",sans-serif;--h1_typography-font-family:"Playfair Display",serif;--link_color:#d32f2f}
+            body{font-family:var(--body_typography-font-family,inherit);color:var(--link_color)}
+            h1{font-family:var(--h1_typography-font-family)}
+            a{color:var(--link_color)}`
+        const t = extractStyleTokens('', [css])
+        expect(t.fontBody).toBe('"Open Sans",sans-serif')
+        expect(t.fontHeading).toBe('"Playfair Display",serif')
+        expect(t.colorPrimary).toBe('#d32f2f')
+    })
+
     it('returns {} when there is no CSS at all', () => {
         expect(extractStyleTokens('<div>hi</div>', [])).toEqual({})
     })

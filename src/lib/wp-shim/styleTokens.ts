@@ -74,6 +74,30 @@ function findVar(css: string, name: string): string | undefined {
     return m ? m[1].trim() : undefined
 }
 
+/**
+ * If `val` is a `var(--xxx, fallback)` reference, resolve it by looking up
+ * `--xxx` in the CSS text. Recurses once (single-hop resolution) so
+ * `var(--body_typography-font-family, inherit)` becomes the real font name
+ * defined elsewhere in the stylesheet. Returns the original value if it's
+ * not a var() or the variable isn't found (the fallback inside the var()
+ * is used as a last resort).
+ */
+function resolveVarRef(val: string | undefined, css: string, depth = 0): string | undefined {
+    if (!val || depth > 2) return val
+    const m = val.match(/^var\(\s*--([a-zA-Z0-9_-]+)\s*(?:,\s*([^)]*))?\)$/)
+    if (!m) return val
+    const varName = m[1]
+    const fallback = m[2]?.trim()
+    const resolved = findVar(css, varName)
+    if (resolved) {
+        // The resolved value might itself be a var() — recurse once.
+        return resolveVarRef(resolved, css, depth + 1)
+    }
+    // No definition found; use the fallback if it's a real value (not 'inherit').
+    if (fallback && fallback !== 'inherit' && fallback !== 'initial') return fallback
+    return undefined
+}
+
 /** Body of the FIRST matching rule for a comma-free selector, e.g. `body`. */
 function findRuleBody(css: string, selector: string): string | undefined {
     // Match a rule whose selector list contains `selector` as a whole token,
@@ -143,17 +167,19 @@ export function extractStyleTokens(html: string, cssTexts: string[] = []): Style
         || sanitizeRadius(findVar(css, 'radius'))
 
     // ── 3. Plain element rules (body / headings / links) ──────────────────────
+    // resolveVarRef dereferences var(--xxx) references so we store the real
+    // value, not a pointer that only works inside the origin theme.
     const bodyRule = findRuleBody(css, 'body')
-    t.fontBody = t.fontBody || sanitizeFont(decl(bodyRule, 'font-family'))
-    t.colorText = t.colorText || sanitizeColor(decl(bodyRule, 'color'))
-    t.colorSurface = t.colorSurface || sanitizeColor(decl(bodyRule, 'background-color'))
+    t.fontBody = t.fontBody || sanitizeFont(resolveVarRef(decl(bodyRule, 'font-family'), css))
+    t.colorText = t.colorText || sanitizeColor(resolveVarRef(decl(bodyRule, 'color'), css))
+    t.colorSurface = t.colorSurface || sanitizeColor(resolveVarRef(decl(bodyRule, 'background-color'), css))
 
     const h1Rule = findRuleBody(css, 'h1') || findRuleBody(css, 'h2')
-    t.fontHeading = t.fontHeading || sanitizeFont(decl(h1Rule, 'font-family'))
-    t.colorHeading = t.colorHeading || sanitizeColor(decl(h1Rule, 'color'))
+    t.fontHeading = t.fontHeading || sanitizeFont(resolveVarRef(decl(h1Rule, 'font-family'), css))
+    t.colorHeading = t.colorHeading || sanitizeColor(resolveVarRef(decl(h1Rule, 'color'), css))
 
     const aRule = findRuleBody(css, 'a')
-    t.colorPrimary = t.colorPrimary || sanitizeColor(decl(aRule, 'color'))
+    t.colorPrimary = t.colorPrimary || sanitizeColor(resolveVarRef(decl(aRule, 'color'), css))
 
     // Drop empty keys so callers / JSON storage stay clean.
     for (const k of Object.keys(t) as (keyof StyleTokens)[]) {
