@@ -103,7 +103,42 @@ export default function TopicCampaignPanel({ site }) {
   const [editedHeroAlt, setEditedHeroAlt] = useState('')
   const [editedPostType, setEditedPostType] = useState('page')
   const [editedFocusKw, setEditedFocusKw] = useState('')
+  const [editedTopic, setEditedTopic] = useState('')
+  const [editedCompCity, setEditedCompCity] = useState('')
+  const [editedCompState, setEditedCompState] = useState('')
+  const [regenBusy, setRegenBusy] = useState(false)
   const [editedWrapper, setEditedWrapper] = useState('')
+
+  // Regenerate the master for an existing draft — re-runs Claude with the
+  // (possibly edited) topic + fresh competitor intel. Replaces master
+  // content, keeps deploy history.
+  async function regenerateMasterFromEditor() {
+    if (!campaign?.id || regenBusy) return
+    const t = editedTopic.trim()
+    if (!t) { toast.error('Topic required'); return }
+    if (!confirm('Regenerate the master from scratch? This replaces all current content (sections, FAQs, hero, etc.). Deploy history + custom wrapper are kept. Continue?')) return
+    setRegenBusy(true)
+    try {
+      const r = await fetch('/api/kotoiq/topic-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'regenerate_master',
+          agency_id: agencyId,
+          campaign_id: campaign.id,
+          topic: t,
+          competitor_sample_city: editedCompCity.trim() || null,
+          competitor_sample_state_abbr: editedCompState.trim() || null,
+        }),
+      })
+      const d = await r.json()
+      if (d.error) { toast.error(d.error); return }
+      setCampaign(d.campaign)
+      setEditedMaster(structuredClone(d.campaign.master))
+      const c = d.competitor_meta
+      toast.success(c ? `Regenerated using ${c.competitor_count} competitors from ${c.sample_location}` : 'Master regenerated')
+    } catch (e) { toast.error(e.message) }
+    setRegenBusy(false)
+  }
   const [editedCaptureUrl, setEditedCaptureUrl] = useState('')
   const [editedCaptureBusy, setEditedCaptureBusy] = useState(false)
   const [editedCaptureInfo, setEditedCaptureInfo] = useState(null)
@@ -490,6 +525,7 @@ export default function TopicCampaignPanel({ site }) {
           agency_id: agencyId,
           campaign_id: campaign.id,
           master: editedMaster,
+          topic: editedTopic.trim() || campaign.topic,
           phone: editedPhone,
           company_name: editedCompanyName,
           hero_image_url: editedHeroImage,
@@ -993,6 +1029,9 @@ export default function TopicCampaignPanel({ site }) {
               setEditedHeroAlt(campaign.hero_image_alt || '')
               setEditedPostType(campaign.post_type || 'page')
               setEditedFocusKw(campaign.focus_keyword_template || '[topic] in [koto_city] [koto_state_abbr]')
+              setEditedTopic(campaign.topic || '')
+              setEditedCompCity(campaign.competitor_meta?.sample_location?.split(',')[0]?.trim() || '')
+              setEditedCompState('')
               setEditedWrapper(campaign.custom_html_wrapper || '')
               setEditedCaptureUrl('')
               setEditedCaptureInfo(null)
@@ -1394,6 +1433,10 @@ export default function TopicCampaignPanel({ site }) {
           heroAlt={editedHeroAlt} setHeroAlt={setEditedHeroAlt}
           postType={editedPostType} setPostType={setEditedPostType}
           focusKw={editedFocusKw} setFocusKw={setEditedFocusKw}
+          topic={editedTopic} setTopic={setEditedTopic}
+          compCity={editedCompCity} setCompCity={setEditedCompCity}
+          compState={editedCompState} setCompState={setEditedCompState}
+          onRegenerate={regenerateMasterFromEditor} regenBusy={regenBusy}
           wrapper={editedWrapper} setWrapper={setEditedWrapper}
           captureUrl={editedCaptureUrl} setCaptureUrl={setEditedCaptureUrl}
           captureBusy={editedCaptureBusy}
@@ -1564,7 +1607,7 @@ export default function TopicCampaignPanel({ site }) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, focusKw, setFocusKw, wrapper, setWrapper, captureUrl, setCaptureUrl, captureBusy, captureInfo, onCapture, onAiAssist, onUploadFile, campaignTopic, onSave, onClose }) {
+function MasterEditor({ master, setMaster, phone, setPhone, companyName, setCompanyName, heroImage, setHeroImage, heroVideo, setHeroVideo, heroAlt, setHeroAlt, postType, setPostType, focusKw, setFocusKw, topic, setTopic, compCity, setCompCity, compState, setCompState, onRegenerate, regenBusy, wrapper, setWrapper, captureUrl, setCaptureUrl, captureBusy, captureInfo, onCapture, onAiAssist, onUploadFile, campaignTopic, onSave, onClose }) {
   // Preview the focus keyword resolved for a sample city
   const sampleResolved = (focusKw || '')
     .replace(/\[topic\]/gi, campaignTopic)
@@ -1600,8 +1643,32 @@ function MasterEditor({ master, setMaster, phone, setPhone, companyName, setComp
         </div>
         <div style={{ flex:1, overflow:'auto', padding:22, display:'flex', flexDirection:'column', gap:18 }}>
 
-          {/* Custom HTML wrapper — moved to top so theme styling is the first
-              thing the operator sees on opening Edit master. */}
+          {/* Topic + competitor intel — edit the topic, set a sample city,
+              regenerate the whole master from scratch. */}
+          <EditorBlock label="Topic & regeneration">
+            <Field label="Topic" hint="The service this campaign is about. Editing here + Regenerate rebuilds the master around the new topic.">
+              <input value={topic} onChange={e => setTopic(e.target.value)} placeholder="Website Design" style={inp()}/>
+            </Field>
+            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:12, marginTop:10 }}>
+              <Field label="Competitor sample city (optional)" hint="We fetch the top 3 Google results for this city and feed Claude differentiated angles on regenerate.">
+                <input value={compCity} onChange={e => setCompCity(e.target.value)} placeholder="Austin" style={inp()}/>
+              </Field>
+              <Field label="State" hint="2-letter">
+                <input value={compState} onChange={e => setCompState(e.target.value.toUpperCase().slice(0,2))} placeholder="TX" maxLength={2} style={inp()}/>
+              </Field>
+            </div>
+            <div style={{ marginTop:12, display:'flex', alignItems:'center', gap:10 }}>
+              <button onClick={onRegenerate} disabled={regenBusy || !topic.trim()} style={primaryBtn()}>
+                {regenBusy ? <Loader2 size={14} className="spin"/> : <Sparkles size={14}/>}
+                {regenBusy ? 'Regenerating…' : 'Regenerate master'}
+              </button>
+              <span style={{ fontSize:11, fontFamily:FB, color:'#9ca3af', lineHeight:1.4 }}>
+                Replaces all content (sections, FAQs, hero). Deploy history + wrapper kept. Re-deploy after to push live.
+              </span>
+            </div>
+          </EditorBlock>
+
+          {/* Custom HTML wrapper — theme styling. */}
           <EditorBlock label="Custom HTML wrapper (theme styling)">
             <div style={{ fontSize:12, fontFamily:FB, color:'#6b7280', marginBottom:8, lineHeight:1.5 }}>
               Paste your theme&rsquo;s page HTML or capture from an existing styled URL. Placeholders:
