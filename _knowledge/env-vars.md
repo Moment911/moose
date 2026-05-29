@@ -16,6 +16,13 @@
 - TELNYX_API_KEY
 - TELNYX_ONBOARDING_CONNECTION_ID = 2935231712440878244
 
+## Reddit (lead-gen v0)
+- REDDIT_CLIENT_ID — Reddit app client id (create a "script" app at reddit.com/prefs/apps)
+- REDDIT_CLIENT_SECRET — paired secret; app-only client_credentials OAuth
+- REDDIT_USER_AGENT — MANDATORY descriptive UA, format `koto:reddit-leads:v0 (by /u/<account>)`.
+  Reddit aggressively throttles default/missing User-Agents. Set the real account name.
+  Used only server-side in `src/lib/redditLeads/redditClient.ts`.
+
 ## Email
 - RESEND_API_KEY
 

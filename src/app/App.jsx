@@ -148,6 +148,7 @@ import ProposalsPage from '../views/ProposalsPage'
 import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
 import KotoProposalBuilderPage from '../views/KotoProposalBuilderPage'
+import RedditLeadsPage from '../views/RedditLeadsPage'
 import ProposalLibraryPage from '../views/ProposalLibraryPage'
 import ProposalPublicPage from '../views/ProposalPublicPage'
 import ProposalPublicViewPage from '../views/ProposalPublicViewPage'
@@ -419,6 +420,7 @@ function AppRoutes() {
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
           <Route path="/koto-proposal-builder/:clientId" element={<KotoProposalBuilderPage />} />
           <Route path="/koto-proposal-builder" element={<KotoProposalBuilderPage />} />
+          <Route path="/reddit-leads" element={<RedditLeadsPage />} />
           <Route path="/proposal-library" element={<ProposalLibraryPage />} />
           <Route path="/platform" element={<AgencySettingsPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
