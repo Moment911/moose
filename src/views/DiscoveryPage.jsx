@@ -11,6 +11,7 @@ import {
   ArrowRight, FlaskConical, ShieldAlert, Mic, MicOff, Radio, Square,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { getClients } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 import { useLiveTranscription } from '../hooks/useLiveTranscription'
@@ -506,6 +507,26 @@ function NewEngagementModal({ aid, onClose, onCreated }) {
   const [industry, setIndustry] = useState('')
   const [domains, setDomains] = useState([''])
   const [saving, setSaving] = useState(false)
+  const [clientList, setClientList] = useState([])
+  const [clientId, setClientId] = useState('')
+
+  // Load the agency's clients so the engagement can be linked to one —
+  // linking is what lets the server pre-fill the doc from onboarding answers.
+  useEffect(() => {
+    if (!aid) return
+    getClients(aid).then(({ data }) => setClientList(data || [])).catch(() => {})
+  }, [aid])
+
+  function onPickClient(id) {
+    setClientId(id)
+    const c = clientList.find(x => x.id === id)
+    if (c) {
+      if (c.name) setClientName(c.name)
+      if (c.industry) setIndustry(c.industry)
+      const site = c.website || c.domain
+      if (site) setDomains(ds => (ds.length === 1 && !ds[0].trim()) ? [String(site).replace(/^https?:\/\//, '').replace(/\/$/, '')] : ds)
+    }
+  }
 
   async function submit() {
     if (!clientName.trim()) return toast.error('Client name required')
@@ -517,6 +538,7 @@ function NewEngagementModal({ aid, onClose, onCreated }) {
       body: JSON.stringify({
         action: 'create',
         agency_id: aid,
+        client_id: clientId || null,
         client_name: clientName.trim(),
         client_industry: industry.trim() || null,
         domains: cleanDomains,
@@ -544,6 +566,23 @@ function NewEngagementModal({ aid, onClose, onCreated }) {
           <Brain size={18} color={C.teal} />
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: C.text }}>New Discovery Engagement</h3>
         </div>
+
+        <Label>Link to existing client</Label>
+        <select
+          value={clientId}
+          onChange={e => onPickClient(e.target.value)}
+          style={{ width: '100%', padding: '9px 11px', border: `1px solid ${C.border}`, borderRadius: 7, fontSize: 15, outline: 'none', boxSizing: 'border-box', background: C.white, color: C.text }}
+        >
+          <option value="">— None (manual entry) —</option>
+          {clientList.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+        {clientId && (
+          <div style={{ fontSize: 12, color: C.teal, fontWeight: 600, marginTop: 6 }}>
+            ✓ Doc will pre-fill from this client's onboarding answers
+          </div>
+        )}
 
         <Label>Client name</Label>
         <Input value={clientName} onChange={setClientName} placeholder="Acme HVAC" />

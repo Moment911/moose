@@ -1310,40 +1310,117 @@ export async function POST(req: NextRequest) {
       // every downstream AI step.
       let preloadedWelcome: string | null = null
       let preloadedClassification: any = null
+      const fieldPrefills: Record<string, string> = {}
+      const seedIntel: any[] = []
+
       if (client_id) {
         try {
           const { data: clientRecord } = await s
             .from('clients')
-            .select('welcome_statement, business_classification')
+            .select('*')
             .eq('id', client_id)
             .maybeSingle()
-          if (clientRecord?.welcome_statement && String(clientRecord.welcome_statement).trim()) {
-            preloadedWelcome = String(clientRecord.welcome_statement).trim()
-          }
-          if (clientRecord?.business_classification && typeof clientRecord.business_classification === 'object') {
-            preloadedClassification = clientRecord.business_classification
+
+          if (clientRecord) {
+            const c: any = clientRecord
+            const answers = c.onboarding_answers || {}
+            // Resolver — dedicated columns first, then the onboarding_answers
+            // jsonb (the web form and the voice agent populate different key
+            // names). Same pattern as the proposal builder's pick().
+            const pick = (...keys: string[]): string => {
+              for (const k of keys) {
+                const direct = c[k]
+                if (direct !== null && direct !== undefined && String(direct).trim() !== '') {
+                  return Array.isArray(direct) ? direct.filter(Boolean).join('\n') : String(direct)
+                }
+                const j = answers[k]
+                if (j !== null && j !== undefined && String(j).trim() !== '') {
+                  return Array.isArray(j) ? j.filter(Boolean).join('\n') : String(j)
+                }
+              }
+              return ''
+            }
+            const labeled = (pairs: Array<[string, string]>) =>
+              pairs.filter(([, v]) => v).map(([label, v]) => `${label}: ${v}`).join('\n')
+
+            const welcome = pick('welcome_statement', 'business_description')
+            if (welcome) preloadedWelcome = welcome.trim()
+            if (c.business_classification && typeof c.business_classification === 'object') {
+              preloadedClassification = c.business_classification
+            }
+
+            // ── Pre-fill the discovery fields the client already answered in
+            // onboarding, so the live call confirms/expands instead of
+            // re-asking. Each gets source:client_provided + from_onboarding.
+            const idealClient = labeled([
+              ['Ideal customer', pick('ideal_customer_desc', 'target_customer')],
+              ['Target industries', pick('target_industries')],
+              ['Target company size', pick('target_company_size')],
+            ])
+            if (idealClient) fieldPrefills['05a'] = idealClient
+
+            const leadSources = labeled([
+              ['B2B lead sources', pick('b2b_lead_sources')],
+              ['Outbound activity', pick('outbound_activity')],
+              ['Primary channel', pick('primary_channel')],
+            ])
+            if (leadSources) fieldPrefills['05b'] = leadSources
+
+            const crm = pick('crm_used', 'b2b_crm')
+            if (crm) fieldPrefills['06b'] = crm
+
+            const team = pick('sales_team_size')
+            if (team) fieldPrefills['04c'] = `Sales team size: ${team}`
+
+            const goals = labeled([
+              ['Expansion plans', pick('expansion_plans')],
+              ['Growth scope', pick('growth_scope')],
+            ])
+            if (goals) fieldPrefills['10a'] = goals
+
+            const dm = pick('decision_maker_titles')
+            if (dm) fieldPrefills['10h'] = dm
+
+            // ── High-signal pre-call context as intel cards (render instantly,
+            // no research needed) so the doc opens as a full pre-call brief.
+            const card = (title: string, body: string) => {
+              if (body && body.trim()) seedIntel.push({ title, body: body.trim(), category: 'context' })
+            }
+            card('Sales Process', pick('sales_process'))
+            card('Proposal Process', pick('proposal_process'))
+            card('Known Competitors', pick('competitors'))
+            card('Deal Size & Sales Cycle', labeled([
+              ['Avg deal size', pick('avg_deal_size')],
+              ['Sales cycle length', pick('sales_cycle_length')],
+            ]))
+            card('Markets & Footprint', labeled([
+              ['Top markets', pick('top_markets')],
+              ['Locations', pick('num_locations')],
+              ['Growth scope', pick('growth_scope')],
+              ['Business type', pick('business_type')],
+            ]))
+            card('Brand Tone', pick('brand_tone'))
+            card('Content Marketing', pick('content_marketing'))
           }
         } catch { /* best-effort */ }
       }
-      if (preloadedWelcome) {
-        sections = sections.map((sec: any) => {
-          if (sec.id !== 'section_01') return sec
-          return {
-            ...sec,
-            fields: sec.fields.map((f: any) => {
-              if (f.id !== '01_welcome') return f
-              return { ...f, answer: preloadedWelcome, source: 'client_provided' }
-            }),
-          }
-        })
+
+      // Apply the welcome statement + every onboarding prefill to its field.
+      if (preloadedWelcome) fieldPrefills['01_welcome'] = preloadedWelcome
+      if (Object.keys(fieldPrefills).length) {
+        sections = sections.map((sec: any) => ({
+          ...sec,
+          fields: sec.fields.map((f: any) =>
+            fieldPrefills[f.id]
+              ? { ...f, answer: fieldPrefills[f.id], source: 'client_provided', from_onboarding: true }
+              : f
+          ),
+        }))
       }
 
-      // Seed intel_cards with both the welcome statement and the classification
-      // summary so the discovery detail view shows the full picture instantly,
-      // before research has even run.
-      const seedIntel: any[] = []
+      // Intel cards: welcome first, then onboarding context, then classification.
       if (preloadedWelcome) {
-        seedIntel.push({ title: 'In Their Own Words', body: preloadedWelcome, category: 'context' })
+        seedIntel.unshift({ title: 'In Their Own Words', body: preloadedWelcome, category: 'context' })
       }
       if (preloadedClassification) {
         const bc = preloadedClassification
