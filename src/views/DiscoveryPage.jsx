@@ -2734,6 +2734,17 @@ function FieldEditor({ field, sectionId, sectionName, engagementId, clientName, 
   const aiDebounce = useRef(null)
   const benchmarkDebounce = useRef(null)
   const fieldIdRef = useRef(field.id)
+  const taRef = useRef(null)
+
+  // Auto-grow the answer box to fit its content so long answers show every
+  // line without scrolling. Sets element height directly (no React state) so
+  // it never re-renders the tree or disturbs the cursor / autosave.
+  useEffect(() => {
+    const el = taRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.max(120, el.scrollHeight + 2)}px`
+  }, [answer])
 
   // Only reset the local answer when a genuinely different field takes this slot.
   // (When the parent merges AI questions or the polling refreshes, field.id stays the same
@@ -2973,13 +2984,15 @@ function FieldEditor({ field, sectionId, sectionName, engagementId, clientName, 
 
       {/* Answer textarea */}
       <textarea
+        ref={taRef}
         value={answer}
         onChange={e => setAnswer(e.target.value)}
         onKeyDown={e => { e.stopPropagation() }}
         placeholder="Type your answer…"
         style={{
-          width: '100%', minHeight: 60, padding: '9px 11px', border: `1px solid ${C.border}`, borderRadius: 7,
+          width: '100%', minHeight: 120, padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 7,
           fontSize: 15, outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, boxSizing: 'border-box',
+          overflowY: 'hidden',
           background: field.source === 'client_provided' ? C.blueTint : C.white,
         }}
       />
