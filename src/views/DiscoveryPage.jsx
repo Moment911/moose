@@ -2525,6 +2525,10 @@ function ExecutiveSummaryPanel({ summary }) {
 // ─────────────────────────────────────────────────────────────
 function SectionPanel({ section, engagementId, clientName, clientIndustry, answersRef, docSummary, domains, agencyId, onUpdate, onAddDomain, onRescan, reloadDomains }) {
   const [collapsed, setCollapsed] = useState(false)
+  const [addingQ, setAddingQ] = useState(false)
+  const [qText, setQText] = useState('')
+  const [qHint, setQHint] = useState('')
+  const [savingQ, setSavingQ] = useState(false)
   const fields = section.fields || []
   const answered = fields.filter(f => (f.answer || '').trim().length > 0).length
   const pct = fields.length > 0 ? Math.round((answered / fields.length) * 100) : 0
@@ -2535,6 +2539,36 @@ function SectionPanel({ section, engagementId, clientName, clientIndustry, answe
       body: JSON.stringify({ action: 'toggle_visibility', id: engagementId, section_id: section.id, visible: !(section.visible !== false), agency_id: agencyId }),
     })
     onUpdate((sec) => ({ ...sec, visible: !(sec.visible !== false) }))
+  }
+
+  async function addQuestion() {
+    if (!qText.trim()) return
+    setSavingQ(true)
+    const res = await fetch('/api/discovery', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'add_field', id: engagementId, section_id: section.id, question: qText.trim(), hint: qHint.trim() || undefined, agency_id: agencyId }),
+    }).then(r => r.json()).catch(() => null)
+    setSavingQ(false)
+    if (res?.data?.field) {
+      onUpdate((sec) => ({ ...sec, fields: [...(sec.fields || []), res.data.field] }))
+      setQText(''); setQHint(''); setAddingQ(false)
+      toast.success('Question added')
+    } else {
+      toast.error(res?.error || 'Could not add question')
+    }
+  }
+
+  async function removeQuestion(fieldId) {
+    const res = await fetch('/api/discovery', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'remove_field', id: engagementId, section_id: section.id, field_id: fieldId, agency_id: agencyId }),
+    }).then(r => r.json()).catch(() => null)
+    if (res?.ok) {
+      onUpdate((sec) => ({ ...sec, fields: (sec.fields || []).filter(f => f.id !== fieldId) }))
+      toast.success('Question removed')
+    } else {
+      toast.error(res?.error || 'Could not remove')
+    }
   }
 
   return (
@@ -2601,25 +2635,71 @@ function SectionPanel({ section, engagementId, clientName, clientIndustry, answe
           {/* Fields */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {fields.map(field => (
-              <FieldEditor
-                key={field.id}
-                field={field}
-                sectionId={section.id}
-                sectionName={section.title}
-                engagementId={engagementId}
-                clientName={clientName}
-                clientIndustry={clientIndustry}
-                answersRef={answersRef}
-                docSummary={docSummary}
-                agencyId={agencyId}
-                onFieldUpdate={(mut) => onUpdate(sec => ({
-                  ...sec,
-                  fields: sec.fields.map(f => f.id === field.id ? mut({ ...f }) : f)
-                }))}
-                onFieldsReplace={(newFields) => onUpdate(sec => ({ ...sec, fields: newFields }))}
-              />
+              <div key={field.id} style={{ position: 'relative' }}>
+                <FieldEditor
+                  field={field}
+                  sectionId={section.id}
+                  sectionName={section.title}
+                  engagementId={engagementId}
+                  clientName={clientName}
+                  clientIndustry={clientIndustry}
+                  answersRef={answersRef}
+                  docSummary={docSummary}
+                  agencyId={agencyId}
+                  onFieldUpdate={(mut) => onUpdate(sec => ({
+                    ...sec,
+                    fields: sec.fields.map(f => f.id === field.id ? mut({ ...f }) : f)
+                  }))}
+                  onFieldsReplace={(newFields) => onUpdate(sec => ({ ...sec, fields: newFields }))}
+                />
+                {field.is_custom && (
+                  <button
+                    onClick={() => removeQuestion(field.id)}
+                    title="Remove this question"
+                    style={{
+                      position: 'absolute', top: 0, right: 0, display: 'flex', alignItems: 'center', gap: 4,
+                      background: 'none', border: 'none', cursor: 'pointer', color: C.muted,
+                      fontSize: 12, fontWeight: 600, fontFamily: 'inherit', padding: 2,
+                    }}
+                  >
+                    <X size={12} /> Remove
+                  </button>
+                )}
+              </div>
             ))}
           </div>
+
+          {/* Add custom question */}
+          {addingQ ? (
+            <div style={{ marginTop: 14, padding: 12, border: `1px dashed ${C.borderMd}`, borderRadius: 8, background: '#fbfbfc' }}>
+              <input
+                value={qText}
+                onChange={e => setQText(e.target.value)}
+                placeholder="Question to add to this section…"
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') addQuestion() }}
+                style={{ width: '100%', padding: '9px 11px', border: `1px solid ${C.border}`, borderRadius: 7, fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+              />
+              <input
+                value={qHint}
+                onChange={e => setQHint(e.target.value)}
+                placeholder="Optional hint / what to probe for"
+                onKeyDown={e => { if (e.key === 'Enter') addQuestion() }}
+                style={{ width: '100%', padding: '8px 11px', border: `1px solid ${C.border}`, borderRadius: 7, fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 10, color: C.muted }}
+              />
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button onClick={() => { setAddingQ(false); setQText(''); setQHint('') }} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 7, padding: '7px 13px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: C.text }}>Cancel</button>
+                <button onClick={addQuestion} disabled={savingQ || !qText.trim()} style={{ background: C.teal, color: '#fff', border: 'none', borderRadius: 7, padding: '7px 15px', fontSize: 13, fontWeight: 700, cursor: savingQ || !qText.trim() ? 'default' : 'pointer', opacity: savingQ || !qText.trim() ? 0.6 : 1 }}>{savingQ ? 'Adding…' : 'Add question'}</button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setAddingQ(true)}
+              style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: `1px dashed ${C.borderMd}`, borderRadius: 8, padding: '9px 13px', fontSize: 13, fontWeight: 700, color: C.teal, cursor: 'pointer', fontFamily: 'inherit', width: '100%', justifyContent: 'center' }}
+            >
+              <Plus size={14} /> Add question
+            </button>
+          )}
 
           {/* Tech stack panels (section 02 only) */}
           {section.has_tech_stack && (

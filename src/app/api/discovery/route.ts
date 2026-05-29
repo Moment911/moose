@@ -1558,6 +1558,59 @@ export async function POST(req: NextRequest) {
       return Response.json({ ok: true })
     }
 
+    // ─── add_field (append a custom question to any section) ──
+    if (action === 'add_field') {
+      const { id, section_id, question, hint } = body
+      if (!id || !section_id || !question || !String(question).trim()) {
+        return Response.json({ error: 'Missing id, section_id, or question' }, { status: 400 })
+      }
+      const { data: eng } = await s.from('koto_discovery_engagements').select('sections').eq('id', id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const sections = eng.sections || []
+      const sec = sections.find((x: any) => x.id === section_id)
+      if (!sec) return Response.json({ error: 'Section not found' }, { status: 404 })
+
+      const newField = {
+        id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        question: String(question).trim(),
+        hint: hint ? String(hint).trim() : '',
+        answer: '',
+        source: 'preset',
+        question_is_edited: true,
+        ai_questions: [],
+        is_custom: true,
+      }
+      sec.fields = [...(sec.fields || []), newField]
+
+      await s.from('koto_discovery_engagements').update({ sections }).eq('id', id)
+      return Response.json({ data: { field: newField } })
+    }
+
+    // ─── remove_field (delete a custom question) ─────────
+    if (action === 'remove_field') {
+      const { id, section_id, field_id } = body
+      if (!id || !section_id || !field_id) {
+        return Response.json({ error: 'Missing id, section_id, or field_id' }, { status: 400 })
+      }
+      const { data: eng } = await s.from('koto_discovery_engagements').select('sections').eq('id', id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const sections = eng.sections || []
+      const sec = sections.find((x: any) => x.id === section_id)
+      if (!sec) return Response.json({ error: 'Section not found' }, { status: 404 })
+
+      const target = (sec.fields || []).find((f: any) => f.id === field_id)
+      // Only custom fields can be removed — preset/template fields are protected.
+      if (!target || !target.is_custom) {
+        return Response.json({ error: 'Only custom questions can be removed' }, { status: 400 })
+      }
+      sec.fields = (sec.fields || []).filter((f: any) => f.id !== field_id)
+
+      await s.from('koto_discovery_engagements').update({ sections }).eq('id', id)
+      return Response.json({ ok: true })
+    }
+
     // ─── ai_questions (generate follow-ups) ──────────────
     if (action === 'ai_questions') {
       // Accept both the new spec field names and the legacy ones.
