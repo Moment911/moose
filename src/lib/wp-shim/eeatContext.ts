@@ -95,7 +95,7 @@ function trustSignalsFromClient(client: any): {
 async function fetchPlaceReviews(
     placeId: string,
 ): Promise<{ testimonials: NonNullable<Eeat['testimonials']>; aggregateRating?: Eeat['aggregateRating'] } | null> {
-    const key = process.env.GOOGLE_PLACES_API_KEY || ''
+    const key = (process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.GOOGLE_API_KEY || '').trim()
     if (!key || !placeId) return null
     try {
         const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`, {

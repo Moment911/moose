@@ -59,6 +59,9 @@ export interface BlendResult {
   totalMs: number
   totalTokens: number
   failedProviders: string[]
+  /** Per-provider failure reason (e.g. "Gemini HTTP 403: ...") so callers can
+   *  surface WHY an arm failed instead of a generic "no response". */
+  errors: Record<string, string>
 }
 
 // ── Env + kill switch ──────────────────────────────────────────
@@ -69,10 +72,12 @@ function blendEnabled(): boolean {
 }
 
 function getGeminiKey(): string {
-  return process.env.GEMINI_API_KEY
+  // .trim() guards the classic Vercel paste bug (a trailing newline makes the
+  // key non-empty but produces a malformed request URL → opaque failure).
+  return (process.env.GEMINI_API_KEY
     || process.env.GOOGLE_GEMINI_API_KEY
     || process.env.GOOGLE_GEMINI_KEY
-    || ''
+    || '').trim()
 }
 
 // Per-promise timeout — AbortSignal.timeout handles network; this
@@ -245,6 +250,7 @@ export async function blendThreeAIs(input: BlendInput): Promise<BlendResult> {
         totalMs: Date.now() - totalStart,
         totalTokens: claude.tokens,
         failedProviders: ['openai', 'gemini'],
+        errors: { openai: 'skipped (blend disabled)', gemini: 'skipped (blend disabled)' },
       }
     } catch (e: any) {
       throw new Error(`Claude-only fallback failed: ${e?.message || String(e)}`)
@@ -271,9 +277,16 @@ export async function blendThreeAIs(input: BlendInput): Promise<BlendResult> {
   const openai = openaiR.status === 'fulfilled' ? openaiR.value : empty
   const gemini = geminiR.status === 'fulfilled' ? geminiR.value : empty
 
-  if (claudeR.status === 'rejected') failedProviders.push('claude')
-  if (openaiR.status === 'rejected') failedProviders.push('openai')
-  if (geminiR.status === 'rejected') failedProviders.push('gemini')
+  // Capture per-provider failure reasons: rejected → the thrown message
+  // (e.g. "Gemini HTTP 403: ..."), fulfilled-but-empty → "empty response".
+  const errors: Record<string, string> = {}
+  const note = (r: PromiseSettledResult<ProviderOutput>, key: string) => {
+    if (r.status === 'rejected') { failedProviders.push(key); errors[key] = (r as PromiseRejectedResult).reason?.message || 'failed' }
+    else if (!r.value.text) errors[key] = 'empty response (model returned no text)'
+  }
+  note(claudeR, 'claude')
+  note(openaiR, 'openai')
+  note(geminiR, 'gemini')
 
   const survivors: { label: 'Claude' | 'OpenAI' | 'Gemini'; text: string }[] = []
   if (claudeR.status === 'fulfilled' && claude.text) survivors.push({ label: 'Claude', text: claude.text })
@@ -298,6 +311,7 @@ export async function blendThreeAIs(input: BlendInput): Promise<BlendResult> {
       totalMs: Date.now() - totalStart,
       totalTokens: claude.tokens + openai.tokens + gemini.tokens,
       failedProviders,
+      errors,
     }
   }
 
@@ -323,5 +337,6 @@ export async function blendThreeAIs(input: BlendInput): Promise<BlendResult> {
     totalMs: Date.now() - totalStart,
     totalTokens: claude.tokens + openai.tokens + gemini.tokens + synthTokens,
     failedProviders,
+    errors,
   }
 }

@@ -301,8 +301,11 @@ async function deleteCampaign(supabase: any, agencyId: string, body: any) {
 async function findPlaces(body: any) {
     const query = String(body.query || '').trim()
     if (!query) return NextResponse.json({ error: 'query required' }, { status: 400 })
-    const key = process.env.GOOGLE_PLACES_API_KEY || ''
-    if (!key) return NextResponse.json({ error: 'GOOGLE_PLACES_API_KEY not configured' }, { status: 500 })
+    // Accept any of the names the rest of the app uses (places/search reads the
+    // same list) + trim, so a key set under a sibling name or with a trailing
+    // newline still works instead of failing "not configured".
+    const key = (process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.GOOGLE_API_KEY || '').trim()
+    if (!key) return NextResponse.json({ error: 'Google Places API key not configured — set GOOGLE_PLACES_API_KEY in Vercel (Production) and redeploy' }, { status: 500 })
     try {
         const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
             method: 'POST',
@@ -860,7 +863,7 @@ async function generateMasterCompare(supabase: any, agencyId: string, body: any)
     for (const p of providers) {
         const src = result.sources[p]
         if (!src?.text) {
-            const reason = result.failedProviders.includes(p) ? 'no response (provider error or key missing)' : 'empty response'
+            const reason = result.errors?.[p] || (result.failedProviders.includes(p) ? 'no response (provider error or key missing)' : 'empty response')
             models.push({ provider: p, ok: false, error: reason }); continue
         }
         const master = tryParseMaster(src.text)
