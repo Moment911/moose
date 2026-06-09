@@ -6098,6 +6098,45 @@ Return ONLY valid JSON:
     }
   }
 
+  // list_build_order: the ranked build order for the guided spine's "Your plan"
+  // step (WS7 / 11-06). Returns the client's scored page suggestions (11-05
+  // score_grid output) ordered by score desc, with bucket + reason, so the step
+  // can show the plan as outcomes before the operator approves a build. The
+  // build itself stays the gated Page Factory flow (no auto-publish). Read-only,
+  // behind the route's existing auth gate.
+  if (action === 'list_build_order') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    try {
+      const { data: rows } = await s.from('kotoiq_page_suggestions')
+        .select('id, service, city, state, priority, score, bucket, reason, status, our_coverage, competition_strength')
+        .eq('client_id', client_id)
+        .order('score', { ascending: false, nullsFirst: false })
+        .limit(500)
+
+      const all = Array.isArray(rows) ? rows : []
+      const buildable = all.filter((r: any) => r.status !== 'dismissed')
+      const byBucket: Record<string, number> = {}
+      for (const r of buildable) {
+        const b = (r.bucket || 'unscored') as string
+        byBucket[b] = (byBucket[b] || 0) + 1
+      }
+      return NextResponse.json({
+        ok: true,
+        total: buildable.length,
+        by_bucket: byBucket,
+        // Top of the ranked order — the operator approves/builds in Page Factory.
+        order: buildable.slice(0, 30).map((r: any) => ({
+          id: r.id, service: r.service, city: r.city, state: r.state,
+          score: r.score, bucket: r.bucket, reason: r.reason, status: r.status,
+        })),
+      })
+    } catch (e: any) {
+      console.error('[list_build_order] error', e?.message || e)
+      return NextResponse.json({ error: 'list_build_order_failed' }, { status: 500 })
+    }
+  }
+
   // ─── PAGE FACTORY: campaigns directory — group suggestions by run ──
   // Returns rollups grouped by metadata.campaign_label OR
   // metadata.strategy_generated_at. Powers the Campaigns tab.
