@@ -223,7 +223,7 @@ The following items were intentionally NOT delivered in Phase 10. Final referenc
 **Goal:** Turn `/kotoiq-wp` into a guided, self-explanatory flow that, on first install, scans the site, lets the user confirm services + pick target cities, finds content gaps proven by competitor rank data, ranks the build order, and auto-links what gets built. Wiring + one scoring function + UX assembly over existing engines — not a rebuild.
 **Requirements**: ONBOARD-01, ONBOARD-02, ONBOARD-03, ONBOARD-04, ONBOARD-05, ONBOARD-06, ONBOARD-07, ONBOARD-08
 **Depends on:** Phase 10 (thin-shim cutover — orchestration lives dashboard-side on the v4 shim)
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 **Requirement map:**
 - ONBOARD-01 — Orchestration spine fires run_all_audits + baseline + webhook registration on pair success (fire-and-forget, non-blocking)
@@ -250,7 +250,7 @@ Reuse: `pageDiscovery`, `pageContentExtractor`, `run_all_audits`, `pageGapEngine
 
 Plans:
 - [x] 11-01-PLAN.md — Orchestration spine + authenticated webhook receiver (ONBOARD-01, ONBOARD-02)
-- [ ] 11-02-PLAN.md — Day-1 baseline snapshot table + engine (ONBOARD-03)
+- [x] 11-02-PLAN.md — Day-1 baseline snapshot table + engine (ONBOARD-03)
 - [ ] 11-03-PLAN.md — Service inference + editable AI-flagged chips + target phrases (ONBOARD-04)
 - [x] 11-04-PLAN.md — Shared CityPicker + analyzePageGaps cities[] scoping (ONBOARD-05)
 - [ ] 11-05-PLAN.md — scoreServiceCityGrid + bucketed report + computeInternalLinks auto-linking (ONBOARD-06, ONBOARD-07)
