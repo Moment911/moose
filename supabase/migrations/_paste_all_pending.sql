@@ -546,3 +546,45 @@ CREATE INDEX IF NOT EXISTS idx_autofix_queue_runnable
   WHERE status IN ('pending', 'approved');
 
 ALTER TABLE kotoiq_autofix_queue ENABLE ROW LEVEL SECURITY;
+
+
+-- ──────────────────────────────────────────────────────────────
+-- ▼▼▼ 20260608_kotoiq_site_baseline.sql (Phase 11 / WS2) ▼▼▼
+-- ──────────────────────────────────────────────────────────────
+-- Day-1 immutable, insert-only inventory of the client's OWN pages.
+-- Full DDL lives in supabase/migrations/20260608_kotoiq_site_baseline.sql.
+-- Paste that file's contents here (or run it standalone) — it is idempotent.
+
+CREATE TABLE IF NOT EXISTS kotoiq_site_baseline (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  agency_id     UUID NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+  client_id     UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  site_id       UUID,
+  url           TEXT NOT NULL,
+  page_type     TEXT,
+  title         TEXT,
+  h1            TEXT,
+  word_count    INT,
+  content_hash  TEXT NOT NULL,
+  source_url    TEXT NOT NULL,
+  fetched_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  captured_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (client_id, url, captured_at)
+);
+
+CREATE INDEX IF NOT EXISTS idx_site_baseline_client_captured
+  ON kotoiq_site_baseline(client_id, captured_at DESC);
+CREATE INDEX IF NOT EXISTS idx_site_baseline_client_url
+  ON kotoiq_site_baseline(client_id, url);
+
+ALTER TABLE kotoiq_site_baseline ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "agency_isolation_site_baseline" ON kotoiq_site_baseline;
+CREATE POLICY "agency_isolation_site_baseline"
+  ON kotoiq_site_baseline
+  FOR ALL
+  USING (
+    agency_id IN (
+      SELECT agency_id FROM agency_members WHERE user_id = auth.uid()
+    )
+  );
