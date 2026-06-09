@@ -101,7 +101,11 @@ async function kickAudits(opts: OrchestrateOnboardingOpts): Promise<LegResult> {
  */
 async function kickBaseline(opts: OrchestrateOnboardingOpts): Promise<LegResult> {
     try {
-        const mod = await import('@/lib/kotoiq/baselineSnapshot').catch(() => null)
+        // Variable specifier keeps this a RUNTIME-only soft dependency — Plan 11-02
+        // ships `baselineSnapshot`; until then the import rejects and we no-op.
+        // (A static '@/...' specifier would fail tsc with TS2307 before 11-02 lands.)
+        const spec = '@/lib/kotoiq/baselineSnapshot'
+        const mod = await import(/* @vite-ignore */ spec).catch(() => null)
         const fn = (mod as { captureBaseline?: (o: unknown) => Promise<unknown> } | null)?.captureBaseline
         if (typeof fn !== 'function') {
             return { ok: false, detail: 'baselineSnapshot not available yet (Plan 11-02)' }

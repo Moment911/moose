@@ -567,6 +567,23 @@ Rules:
         return NextResponse.json({ error: err.message, code: err.code, hint, site_id: row.id }, { status: 400 })
       }
 
+      // Phase 11 WS1 (RESEARCH A1): the orchestration spine fires HERE — at the
+      // real pair-completion point, NOT seo/wp-register (that legacy route never
+      // calls pairSite). Fire-and-forget so the pair response returns immediately;
+      // only kick when client_id is present (a client-less pair skips audits
+      // gracefully inside orchestrateOnboarding). Never awaited.
+      if (client_id) {
+        void import('@/lib/kotoiq/orchestrateOnboarding')
+          .then(m => m.orchestrateOnboarding({
+            agencyId: finalAgency,
+            clientId: client_id || null,
+            siteId: row.id,
+            siteUrl: cleanUrl,
+            baseUrl: new URL(req.url).origin,
+          }))
+          .catch(e => console.error('[onboarding-orchestration]', e))
+      }
+
       // Refresh the row so the response reflects the pairing state
       const { data: paired } = await sb.from('koto_wp_sites').select('*').eq('id', row.id).single()
       return NextResponse.json({ site: paired || row, version: shimVersion, fingerprint: pairResult.data?.fingerprint })
