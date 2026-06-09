@@ -38,13 +38,17 @@ all intelligence lives dashboard-side. No plugin changes in this phase.
   the default guided path is the spine.
 
 ### Orchestration spine (workstream 1)
-- Trigger is **dashboard-side** in the pair-callback handler (`src/app/api/seo/wp-register`).
-  Pairing is dashboard-initiated, so the dashboard already knows the moment a site connects —
-  no plugin webhook for "paired" is needed (and none exists in the shim allowlist).
+- Trigger is **dashboard-side** at the real pair-completion point: `src/app/api/wp/route.ts`
+  `action==='connect'`, right after `pairSite()` succeeds (≈line 568), where `agency_id` /
+  `site_id` / `client_id` / `domain` are all in scope. **(Corrected from `wp-register` per
+  11-RESEARCH A1 — `wp-register` is the legacy plugin settings-save callback and never calls
+  `pairSite`.)** Pairing is dashboard-initiated, so the dashboard already knows the moment a
+  site connects — no plugin "paired" webhook needed (none exists in the shim allowlist).
 - On successful pair: mark connected, then enqueue the scan + `/api/kotoiq?action=run_all_audits`
   chain (fire-and-forget, tracked via `kotoiq_sync_log`).
 - Register `save_post` + `publish_post` webhooks via the shim `webhook.set` verb so the
-  dashboard inventory stays live after the first scan (no polling).
+  dashboard inventory stays live after the first scan (no polling). A new inbound receiver
+  route for these events must be built (none exists today — confirmed in research).
 
 ### Baseline snapshot (workstream 2)
 - Store a day-1 inventory of the client's OWN pages (URL, title, H1, type, word count,
