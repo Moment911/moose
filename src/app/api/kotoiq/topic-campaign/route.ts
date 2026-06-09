@@ -30,6 +30,7 @@ import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
 import { buildLlmsTxt, publishLlmsTxt } from '@/lib/wp-shim/llmsTxtBuilder'
 import { buildPageMarkdown, buildLlmsFullTxt, publishPageMarkdown, publishLlmsFullTxt } from '@/lib/wp-shim/mdTwinBuilder'
 import { buildHubPage, hubTitle, hubSlug } from '@/lib/wp-shim/hubBuilder'
+import { computeInternalLinks } from '@/lib/wp-shim/computeInternalLinks'
 import { shimSelfUpdate } from '@/lib/wp-shim/shimSelfUpdate'
 import { logTokenUsage } from '@/lib/tokenTracker'
 import { buildMultiCityCompetitorContext } from '@/lib/wp-shim/competitorContext'
@@ -1644,56 +1645,11 @@ async function refreshLlmsFullForSite(
     }
 }
 
-/**
- * Build a map of (city, state_abbr) → array of cross-campaign URLs for a
- * given site. Used by both deploy and redeploy to render a "Related Services
- * in {City}" block on each page when another campaign on the same site has a
- * published page for that same city.
- *
- * Excludes the current campaign so it doesn't link to itself. Scoped by
- * site_id because cross-linking only makes sense on the same domain.
- */
-async function buildCrossCampaignMap(
-    supabase: any,
-    siteId: string,
-    excludeCampaignId: string,
-): Promise<Map<string, Array<{ topic: string; city: string; state_abbr: string; url: string }>>> {
-    const out = new Map<string, Array<{ topic: string; city: string; state_abbr: string; url: string }>>()
-    if (!siteId) return out
-
-    // Other campaigns on this site (excluding the current one)
-    const { data: otherCampaigns } = await supabase
-        .from('koto_topic_campaigns')
-        .select('id, topic')
-        .eq('site_id', siteId)
-        .neq('id', excludeCampaignId)
-    if (!otherCampaigns || otherCampaigns.length === 0) return out
-
-    const idToTopic = new Map<string, string>()
-    for (const c of otherCampaigns) idToTopic.set(c.id, c.topic || 'Service')
-
-    const { data: otherDeploys } = await supabase
-        .from('koto_topic_campaign_deploys')
-        .select('campaign_id, city, state_abbr, wp_post_url')
-        .in('campaign_id', otherCampaigns.map((c: any) => c.id))
-        .eq('status', 'published')
-        .not('wp_post_url', 'is', null)
-
-    for (const d of (otherDeploys || [])) {
-        if (!d.city || !d.wp_post_url) continue
-        const stateAbbr = String(d.state_abbr || '').toUpperCase()
-        const key = `${String(d.city).toLowerCase().trim()}|${stateAbbr}`
-        const topic = idToTopic.get(d.campaign_id) || 'Service'
-        const bucket = out.get(key) || []
-        // Dedupe within a city by topic — if the same topic somehow has two
-        // deploys in one city (shouldn't, but guard anyway), keep the first.
-        if (!bucket.some(x => x.topic === topic)) {
-            bucket.push({ topic, city: d.city, state_abbr: stateAbbr, url: d.wp_post_url })
-        }
-        out.set(key, bucket)
-    }
-    return out
-}
+// NOTE: the inline buildCrossCampaignMap + sibling-merge that used to live here
+// were extracted into src/lib/wp-shim/computeInternalLinks.ts (Phase 11 / WS6)
+// so the Page Factory build path can reuse the SAME link computation. deploy +
+// redeploy now call computeInternalLinks(); output is byte-identical (snapshot +
+// regression tested in tests/kotoiq/computeInternalLinks.test.ts).
 
 async function deployCampaign(supabase: any, agencyId: string, body: any) {
     const campaignId = String(body.campaign_id || '')
@@ -1747,12 +1703,9 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
     // campaign — so an incremental deploy weaves the new pages into the
     // existing cluster instead of creating an island.
     const siteOrigin = String(site.site_url || '').replace(/\/$/, '')
-    const { data: priorDeploys } = await supabase
-        .from('koto_topic_campaign_deploys')
-        .select('city, state_abbr, wp_post_url')
-        .eq('campaign_id', campaignId)
-        .eq('status', 'published')
-        .not('wp_post_url', 'is', null)
+    // newSiblings are campaign-specific (resolveMaster slug) — compute here, then
+    // hand to the shared computeInternalLinks helper (WS6) which performs the
+    // byte-identical prior+new dedupe-by-city merge and the cross-campaign map.
     const newSiblings = locations.map(loc => {
         const ctx: ResolveContext = {
             location: loc,
@@ -1762,21 +1715,16 @@ async function deployCampaign(supabase: any, agencyId: string, body: any) {
         const r = resolveMaster(campaign.master as TopicCampaignMaster, ctx)
         return { city: loc.city, state_abbr: loc.stateAbbr, url: `${siteOrigin}/${r.slug}/` }
     })
-    const priorSiblings = (priorDeploys || []).map((x: any) => ({ city: x.city, state_abbr: x.state_abbr, url: x.wp_post_url }))
-    // Dedupe by city — newSiblings win if a city appears in both (rare).
-    const siblingsByCity = new Map<string, { city: string; state_abbr?: string; url: string }>()
-    for (const s of priorSiblings) siblingsByCity.set(s.city, s)
-    for (const s of newSiblings) siblingsByCity.set(s.city, s)
-    const siblingLinks = Array.from(siblingsByCity.values())
-
-    // Cross-campaign clustering — find OTHER campaigns deployed to this same
-    // WP site that have published pages in the SAME cities as the current
-    // batch. On the resulting per-city page, render a "Related Services in
-    // {City}" block linking to those other campaigns' pages.
-    //
-    // Scoped by site_id (not client_id) because cross-linking must stay on
-    // the same domain — that's where the SEO + UX benefit lives.
-    const crossByCity = await buildCrossCampaignMap(supabase, siteId, campaignId)
+    // Shared sibling + cross-campaign computation (extracted from this inline
+    // block — same { siblingLinks, crossByCity } shape, byte-identical output).
+    // Cross-campaign clustering finds OTHER campaigns on this SAME site with
+    // published pages in the same cities → "Related Services in {City}". Scoped
+    // by site_id because cross-linking must stay on the same domain.
+    const { siblingLinks, crossByCity } = await computeInternalLinks(supabase, {
+        siteId,
+        campaignId,
+        newSiblings,
+    })
 
     // E-E-A-T signals are client-level (constant across cities) — build once,
     // with live Google reviews, then reuse for every city's ctx.
@@ -2057,14 +2005,20 @@ export async function redeployCampaignCore(
     const featuredMediaId = await ensureFeaturedMedia(supabase, campaign, site, creds)
 
     // Sibling links for internal linking — use stored URLs from prior deploys.
-    const siblingLinks = existingDeploys
+    // Routed through the shared computeInternalLinks helper (WS6): the stored
+    // deploy URLs are the "newSiblings", and the helper's prior-deploy read for
+    // the same campaign returns the same published set, so the dedupe-by-city
+    // merge yields the byte-identical sibling list. crossByCity is the same
+    // cross-campaign map as deploy, scoped to this site — re-deploys refresh the
+    // cluster so newly-added campaigns appear as "Related Services in {City}".
+    const redeploySiblings = existingDeploys
         .filter((x: any) => x.wp_post_url)
         .map((x: any) => ({ city: x.city, state_abbr: x.state_abbr, url: x.wp_post_url }))
-
-    // Cross-campaign clustering — same as deploy, scoped to this site.
-    // Re-deploys refresh the cluster so newly-added campaigns appear as
-    // "Related Services in {City}" links on previously-deployed pages.
-    const crossByCity = await buildCrossCampaignMap(supabase, site.id, campaignId)
+    const { siblingLinks, crossByCity } = await computeInternalLinks(supabase, {
+        siteId: site.id,
+        campaignId,
+        newSiblings: redeploySiblings,
+    })
 
     // E-E-A-T signals — client-level, built once with live Google reviews.
     const eeat = await buildEeatContext(supabase, campaign, { withReviews: true })

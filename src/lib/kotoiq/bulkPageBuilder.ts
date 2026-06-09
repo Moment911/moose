@@ -22,6 +22,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type Anthropic from '@anthropic-ai/sdk'
 import { generateBrief } from '@/lib/contentBriefEngine'
+import { computeInternalLinks, type ComputeInternalLinksResult } from '@/lib/wp-shim/computeInternalLinks'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 const VERCEL_BUDGET_MS = 240_000   // 4 minutes; leaves headroom under the 300s cap
@@ -186,6 +187,61 @@ export interface PublishToWpOutput {
   error?: string
 }
 
+/**
+ * Compute the sibling / cross-campaign / hub internal links for a Page Factory
+ * build (Phase 11 / WS6). Reuses the SAME computeInternalLinks helper that
+ * deployCampaign uses — Page Factory pages get the same auto-linking as topic
+ * campaigns, no new injector. Returns null when no topic campaign exists for the
+ * brief's service on this site (nothing to cross-link yet) so the caller simply
+ * publishes without links.
+ *
+ * The brief's service+city come from its linked page_suggestion (set in
+ * bulkGenerateBriefs metadata.suggestion_id). The topic campaign for that
+ * service supplies the campaignId/hub the helper reads against.
+ */
+async function computeFactoryInternalLinks(
+  s: SupabaseClient,
+  opts: { site_id: string; brief_id: string },
+): Promise<{ links: ComputeInternalLinksResult; city: string } | null> {
+  // Find the suggestion this brief was built from → service / city / state.
+  const { data: brief } = await s.from('kotoiq_content_briefs')
+    .select('id, semantic_data')
+    .eq('id', opts.brief_id)
+    .maybeSingle()
+  if (!brief) return null
+
+  const { data: suggestion } = await s.from('kotoiq_page_suggestions')
+    .select('service, city, state, campaign_id')
+    .contains('metadata', { brief_id: opts.brief_id })
+    .maybeSingle()
+  if (!suggestion || !suggestion.city) return null
+
+  // The topic campaign on this site for the suggestion's service supplies the
+  // campaignId + hub the link helper reads against. Match by topic ≈ service.
+  const { data: campaign } = await s.from('koto_topic_campaigns')
+    .select('id, hub_url, topic')
+    .eq('site_id', opts.site_id)
+    .ilike('topic', `%${String(suggestion.service || '').trim()}%`)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // No campaign yet → nothing to sibling/cross-link against; publish plain.
+  if (!campaign) return null
+
+  const links = await computeInternalLinks(s as any, {
+    siteId: opts.site_id,
+    campaignId: campaign.id,
+    // This factory page is the "new sibling" for its own city — prior published
+    // siblings + cross-campaign come from the DB reads inside the helper.
+    newSiblings: [],
+    ...(campaign.hub_url
+      ? { hub: { url: campaign.hub_url, title: String(campaign.topic || suggestion.service || '') } }
+      : {}),
+  })
+  return { links, city: String(suggestion.city) }
+}
+
 export async function publishBriefToWp(
   s: SupabaseClient,
   body: PublishToWpInput,
@@ -208,6 +264,31 @@ export async function publishBriefToWp(
     site_id = (site as { id: string }).id
   }
 
+  // WS6: compute sibling + cross-campaign + hub internal links for this build so
+  // the page is woven into the cluster — same machinery as deployCampaign. The
+  // APPROVAL GATE is retained: publishBriefToWp only runs on operator-approved
+  // briefs and the build publishes as a draft (no auto-publish — CONTEXT deferred).
+  // Failures here never block the publish (best-effort linking).
+  let internalLinks: { siblingLinks: unknown[]; relatedServices: unknown[]; hub?: unknown } | null = null
+  try {
+    const computed = await computeFactoryInternalLinks(s, { site_id: site_id!, brief_id })
+    if (computed) {
+      const cityKey = `${computed.city.toLowerCase().trim()}|`
+      // crossByCity is keyed `city|STATE`; collect any state's bucket for this city.
+      const related: unknown[] = []
+      for (const [key, bucket] of computed.links.crossByCity.entries()) {
+        if (key.startsWith(cityKey)) related.push(...bucket)
+      }
+      internalLinks = {
+        siblingLinks: computed.links.siblingLinks,
+        relatedServices: related,
+        ...(computed.links.hub ? { hub: computed.links.hub } : {}),
+      }
+    }
+  } catch {
+    // Best-effort: linking failure must not block the page build.
+  }
+
   // Delegate to the existing /api/wp endpoint
   try {
     const res = await fetch(`${APP_URL}/api/wp`, {
@@ -219,6 +300,7 @@ export async function publishBriefToWp(
         agency_id,
         site_id,
         brief_ids: [brief_id],
+        ...(internalLinks ? { internal_links: internalLinks } : {}),
       }),
     })
     const json = await res.json() as {
