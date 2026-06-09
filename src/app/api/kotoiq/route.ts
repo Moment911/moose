@@ -124,6 +124,7 @@ import { ingestClarity } from '@/lib/ads/ingestClarity'
 import { detectRelevantConnections } from '@/lib/ads/autoDetectRelevantConnections'
 import { autoTriggerSync } from '@/lib/ads/autoTriggerSync'
 import { analyzePageGaps, saveSuggestions } from '@/lib/builder/pageGapEngine'
+import { inferServices, saveConfirmedServices, type BaselinePageInput, type ConfirmedServiceInput } from '@/lib/kotoiq/serviceInference'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
 import { verifySession } from '@/lib/apiAuth'
@@ -6602,6 +6603,126 @@ Return ONLY valid JSON:
       review_count: reviews.length,
       avg_rating: reviews.length ? +(reviews.reduce((a, r) => a + (r.rating || 0), 0) / reviews.length).toFixed(2) : null,
     })
+  }
+
+  // ── WS3 (Plan 11-03) — SERVICE AUTO-EXTRACTION ───────────────────────────
+  // infer_services: infer the client's services FROM their own baseline pages
+  // (kotoiq_site_baseline / 11-02), flagged ai_inferred. Does NOT auto-confirm —
+  // the chips UI presents them for the user to verify before they drive builds.
+  if (action === 'infer_services') {
+    const { client_id, agency_id } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    try {
+      // Load this client's LATEST baseline snapshot (one dated capture). We read
+      // the most-recent captured_at and take that batch's pages — the immutable
+      // day-1 inventory of the client's OWN pages.
+      const { data: rows } = await s.from('kotoiq_site_baseline')
+        .select('url, h1, title, page_type, word_count, captured_at')
+        .eq('client_id', client_id)
+        .order('captured_at', { ascending: false })
+        .limit(500)
+
+      const all = Array.isArray(rows) ? rows : []
+      const latestCapturedAt = all[0]?.captured_at || null
+      const pages: BaselinePageInput[] = (latestCapturedAt
+        ? all.filter((r: any) => r.captured_at === latestCapturedAt)
+        : all
+      ).map((r: any) => ({
+        url: r.url,
+        h1: r.h1,
+        meta_title: r.title,
+        page_type: r.page_type,
+        word_count: r.word_count,
+      }))
+
+      const result = await inferServices({ agencyId: agency_id, clientId: client_id, pages })
+      return NextResponse.json({
+        services: result.services,
+        source: result.source,
+        baseline_pages: pages.length,
+        captured_at: latestCapturedAt,
+        detail: result.detail,
+      })
+    } catch (e: any) {
+      console.error('[infer_services] error', e?.message || e)
+      return NextResponse.json({ error: 'infer_services_failed' }, { status: 500 })
+    }
+  }
+
+  // save_services: persist the user-confirmed services with provenance
+  // (user-edited/added vs untouched ai_inferred) to kotoiq_client_profile.fields.
+  if (action === 'save_services') {
+    const { client_id, agency_id, services } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    if (!Array.isArray(services)) {
+      return NextResponse.json({ error: 'services[] required' }, { status: 400 })
+    }
+    try {
+      const clean: ConfirmedServiceInput[] = services
+        .filter((x: any) => x && typeof x.name === 'string')
+        .map((x: any) => ({
+          name: String(x.name),
+          user_edited: !!x.user_edited,
+          user_added: !!x.user_added,
+          source_url: typeof x.source_url === 'string' ? x.source_url : undefined,
+          confidence: typeof x.confidence === 'number' ? x.confidence : undefined,
+        }))
+      const result = await saveConfirmedServices({ agencyId: agency_id, clientId: client_id, services: clean })
+      if (!result.ok) {
+        return NextResponse.json({ error: 'save_services_failed', detail: result.detail }, { status: 500 })
+      }
+      return NextResponse.json({ ok: true, saved: result.saved })
+    } catch (e: any) {
+      console.error('[save_services] error', e?.message || e)
+      return NextResponse.json({ error: 'save_services_failed' }, { status: 500 })
+    }
+  }
+
+  // derive_phrases: optional per-service target phrases derived from the keyword
+  // engines (kotoiq_keywords — GSC + DataForSEO already populate it), filtered to
+  // the service. Each phrase carries source + fetched_at (data-integrity).
+  if (action === 'derive_phrases') {
+    const { client_id, agency_id, service } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    if (!service || typeof service !== 'string') {
+      return NextResponse.json({ error: 'service required' }, { status: 400 })
+    }
+    try {
+      const { data: kws } = await s.from('kotoiq_keywords')
+        .select('keyword, search_volume, kp_monthly_volume, opportunity_score, intent, updated_at')
+        .eq('client_id', client_id)
+        .order('opportunity_score', { ascending: false })
+        .limit(500)
+
+      const terms = service.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2)
+      const fetched_at = new Date().toISOString()
+      const phrases = (Array.isArray(kws) ? kws : [])
+        .filter((k: any) => {
+          const kw = (k.keyword || '').toLowerCase()
+          return terms.some((tm: string) => kw.includes(tm))
+        })
+        .slice(0, 25)
+        .map((k: any) => ({
+          phrase: k.keyword,
+          volume: k.search_volume || k.kp_monthly_volume || 0,
+          opportunity_score: k.opportunity_score ?? null,
+          intent: k.intent ?? null,
+          // data-integrity: every fetched fact carries source + fetched_at.
+          source: 'kotoiq_keywords',
+          fetched_at,
+        }))
+
+      return NextResponse.json({ service, phrases, source: 'kotoiq_keywords', fetched_at })
+    } catch (e: any) {
+      console.error('[derive_phrases] error', e?.message || e)
+      return NextResponse.json({ error: 'derive_phrases_failed' }, { status: 500 })
+    }
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
