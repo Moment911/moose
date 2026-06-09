@@ -124,6 +124,7 @@ import { ingestClarity } from '@/lib/ads/ingestClarity'
 import { detectRelevantConnections } from '@/lib/ads/autoDetectRelevantConnections'
 import { autoTriggerSync } from '@/lib/ads/autoTriggerSync'
 import { analyzePageGaps, saveSuggestions } from '@/lib/builder/pageGapEngine'
+import { scoreServiceCityGrid } from '@/lib/builder/scoreServiceCityGrid'
 import { inferServices, saveConfirmedServices, type BaselinePageInput, type ConfirmedServiceInput } from '@/lib/kotoiq/serviceInference'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
@@ -6206,6 +6207,69 @@ Return ONLY valid JSON:
       })
     } catch (e: any) {
       return NextResponse.json({ ok: false, error: e?.message || 'sync failed' }, { status: 500 })
+    }
+  }
+
+  // ─── SCORE GRID: competitor-rank-driven gap scoring (Phase 11 / WS5) ──
+  // Re-expresses analyzePageGaps' signals as the explicit formula
+  //   score = (demand + competition_strength) × (1 − our_coverage) ÷ difficulty
+  // and buckets each service×city cell quick_win / net_new / big_bet (or
+  // low_demand_deprioritize). Competitor-rank + difficulty facts carry
+  // provenance (data-integrity). Persists to the new kotoiq_page_suggestions
+  // columns; leaves the additive `priority` intact for back-compat.
+  if (action === 'score_grid') {
+    const { client_id, agency_id, cities, counties, city_limit } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients')
+      .select('agency_id, primary_service, products_services, state, onboarding_answers')
+      .eq('id', client_id).single()
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+
+    const resolvedAgencyId = agency_id || client.agency_id
+    if (!resolvedAgencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+
+    // Derive services (mirror sync_page_factory's resolution).
+    let services: string[] = []
+    if (Array.isArray(client.products_services) && client.products_services.length) {
+      services = client.products_services.filter((x: any) => typeof x === 'string' && x.trim())
+    } else if (client.primary_service) {
+      services = [client.primary_service]
+    } else if (client.onboarding_answers?.primary_service) {
+      services = [client.onboarding_answers.primary_service]
+    } else if (client.onboarding_answers?.products_services) {
+      const ps = client.onboarding_answers.products_services
+      services = Array.isArray(ps) ? ps : String(ps).split(/,|\n/).map((x: string) => x.trim()).filter(Boolean)
+    }
+    if (services.length === 0) {
+      return NextResponse.json({ ok: false, error: 'No services configured for client — set primary_service or products_services', report: null })
+    }
+
+    const state = client.state || client.onboarding_answers?.state || ''
+    if (!state) {
+      return NextResponse.json({ ok: false, error: 'Client state required for city lookup', report: null })
+    }
+
+    try {
+      const result = await scoreServiceCityGrid({
+        agencyId: resolvedAgencyId,
+        clientId: client_id,
+        services,
+        state,
+        cities: Array.isArray(cities) ? cities : undefined,
+        counties: Array.isArray(counties) ? counties : undefined,
+        cityLimit: typeof city_limit === 'number' ? city_limit : undefined,
+      })
+      return NextResponse.json({
+        ok: true,
+        report: result.report,
+        cells: result.cells,
+        sources: result.sources,
+        services,
+        state,
+      })
+    } catch (e: any) {
+      return NextResponse.json({ ok: false, error: e?.message || 'score_grid failed' }, { status: 500 })
     }
   }
 
