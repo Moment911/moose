@@ -68,6 +68,7 @@ import {
   reclassifyChange as reclassifyPageChange,
 } from '@/lib/kotoiq/pageDiffEngine'
 import { discoverPages } from '@/lib/kotoiq/pageDiscovery'
+import { captureBaseline } from '@/lib/kotoiq/baselineSnapshot'
 import { recommendLocalStrategy } from '@/lib/kotoiq/localStrategistEngine'
 import { bulkGenerateBriefs, publishBriefToWp } from '@/lib/kotoiq/bulkPageBuilder'
 import { buildPlan } from '@/lib/kotoiq/planBuilderEngine'
@@ -5638,8 +5639,20 @@ Return ONLY valid JSON:
     const { client_id, agency_id } = body
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
 
-    const { data: client } = await s.from('clients').select('website, primary_service').eq('id', client_id).single()
+    const { data: client } = await s.from('clients').select('website, primary_service, agency_id').eq('id', client_id).single()
     if (!client?.website) return NextResponse.json({ error: 'Client needs a website URL' }, { status: 400 })
+
+    // WS2 (Phase 11): also capture the day-1 site baseline so the guided shell's
+    // "Your site today" step has data for already-paired clients (the pair-time
+    // orchestrateOnboarding chain only fires on NEW pairings). Fire-and-forget —
+    // never block the audit kickoff; get_site_inventory polls for the result.
+    {
+      const baselineAgency = agency_id || client.agency_id
+      if (baselineAgency) {
+        captureBaseline({ agencyId: baselineAgency, clientId: client_id, siteId: null, siteUrl: client.website })
+          .catch(e => console.error('[run_all_audits] captureBaseline failed:', e?.message || e))
+      }
+    }
 
     // Create a sync log entry to track progress
     const { data: syncLog } = await s.from('kotoiq_sync_log').insert({
