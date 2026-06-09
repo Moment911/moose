@@ -221,20 +221,37 @@ The following items were intentionally NOT delivered in Phase 10. Final referenc
 ### Phase 11: KotoIQ WP guided onboarding and competitor-driven gap engine
 
 **Goal:** Turn `/kotoiq-wp` into a guided, self-explanatory flow that, on first install, scans the site, lets the user confirm services + pick target cities, finds content gaps proven by competitor rank data, ranks the build order, and auto-links what gets built. Wiring + one scoring function + UX assembly over existing engines — not a rebuild.
-**Requirements**: TBD (derive during plan)
+**Requirements**: ONBOARD-01, ONBOARD-02, ONBOARD-03, ONBOARD-04, ONBOARD-05, ONBOARD-06, ONBOARD-07, ONBOARD-08
 **Depends on:** Phase 10 (thin-shim cutover — orchestration lives dashboard-side on the v4 shim)
-**Plans:** 0 plans
+**Plans:** 6 plans
+
+**Requirement map:**
+- ONBOARD-01 — Orchestration spine fires run_all_audits + baseline + webhook registration on pair success (fire-and-forget, non-blocking)
+- ONBOARD-02 — Authenticated inbound receiver for save_post/publish_post keeps inventory live
+- ONBOARD-03 — Day-1 immutable baseline snapshot of the client's own pages
+- ONBOARD-04 — Service auto-extraction from scanned pages → editable AI-flagged chips + optional target phrases
+- ONBOARD-05 — Shared Census city multi-select scoping competitor discovery (analyzePageGaps cities[])
+- ONBOARD-06 — Competitor-driven gap scoring (scoreServiceCityGrid) with quick-win/net-new/big-bet buckets
+- ONBOARD-07 — Auto internal-linking of built pages via extracted computeInternalLinks helper (approval gate retained)
+- ONBOARD-08 — Guided 6-step UI shell on DESIGN.md primitives
 
 Scope (7 workstreams):
-1. **Orchestration spine** — pair-callback handler (`/api/seo/wp-register`) auto-kicks scan + `run_all_audits`; registers `save_post`/`publish_post` webhooks (`webhook.set`) so inventory stays live. No plugin change.
-2. **Baseline snapshot** — store day-1 inventory of the client's own pages for later diffing.
-3. **Service auto-extraction** — infer services list from scanned pages, present as editable add/remove chips seeded from the real site (today: manual comma-separated box in `PageSuggestionsTab`; `voiceOnboardingAutoSetup` only extracts keywords).
-4. **City multi-select picker** — scope competitor discovery to chosen cities (today: State+Counties only; engines `grid-scan`/`analyze_competitors`/`pageGapEngine` already support location).
-5. **Competitor-driven gap scoring** — `scoreServiceCityGrid()` joins the service×city matrix (`localStrategistEngine` kind:`service_x_city`, `pageGapEngine`) to competitor rank data. Cell score = (demand + competition_strength) × (1 − our_coverage) ÷ difficulty → ranked build order (quick wins / net-new / big bets). Optional per-service target-phrases (auto-derive + manual pins).
-6. **Auto internal-linking** — apply the link plan `localStrategistEngine` outputs into published posts; reuse `hubBuilder.ts` (pillar/hub + BreadcrumbList already built per session-log #6) for pillar→cluster + sibling cross-links.
-7. **Guided UI shell** — replace tab-bag with linear 6-step spine (Connected → Your site today → Who you're up against → Your gaps → Your plan → Live + cited); each panel: plain-English "what this does" subtitle, one primary action, visible status. Honor DESIGN.md.
+1. **Orchestration spine** — trigger is dashboard-side at the real pair-completion point: `/api/wp` `shim_pair_new_site` after `pairSite()` succeeds (NOT `wp-register`, per 11-RESEARCH A1). Auto-kicks scan + `run_all_audits`; registers `save_post`/`publish_post` webhooks (`webhook.set`) → new authenticated receiver. No plugin change.
+2. **Baseline snapshot** — new immutable `kotoiq_site_baseline` table; day-1 inventory of the client's own pages via reused `pageDiscovery` + `pageContentExtractor`.
+3. **Service auto-extraction** — infer services from scanned pages (Haiku/heuristic), editable AI-flagged chips, provenance in `kotoiq_client_profile.fields`.
+4. **City multi-select picker** — extract the existing `TopicCampaignPanel` Census picker into shared `CityPicker`; extend `analyzePageGaps` with explicit `cities[]`.
+5. **Competitor-driven gap scoring** — new `scoreServiceCityGrid()` wrapper over `analyzePageGaps` signals; formula + quick-win/net-new/big-bet buckets; ranks/difficulty wrapped with provenance.
+6. **Auto internal-linking** — extract `computeInternalLinks` from `deployCampaign`; apply on Page Factory builds; breadcrumbs schema-only; approval gate retained.
+7. **Guided UI shell** — `?shell=guided` 6-step spine (Connected → Your site today → Who you're up against → Your gaps → Your plan → Live + cited); each panel plain-English subtitle, one primary action, visible status. DESIGN.md primitives. FleetView/power tabs untouched.
 
-Reuse: `pageDiscovery`, `run_all_audits`, `content-gap`, `keyword-gap`, `localStrategistEngine`, `bulkPageBuilder`, `aeoVisibilityEngine`, `internalLinkEngine`, `topicalMapEngine`, `hubBuilder`. Data-integrity standard applies (cities via Census, ranks via live APIs, all timestamped).
+Reuse: `pageDiscovery`, `pageContentExtractor`, `run_all_audits`, `pageGapEngine`, `localStrategistEngine`, `bulkPageBuilder`, `aeoVisibilityEngine`, `hubBuilder`, `TopicCampaignPanel` city picker, `deployCampaign` link injection, `geoLookup`. Data-integrity standard applies (cities via Census, ranks via live APIs, all timestamped). Migrations shipped as files, applied MANUALLY via SQL editor.
+
+**Dependency order:** 11-01 → 11-02 → 11-03 ; 11-04 (parallel) ; (11-03 + 11-04) → 11-05 → 11-06.
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 11 to break down)
+- [ ] 11-01-PLAN.md — Orchestration spine + authenticated webhook receiver (ONBOARD-01, ONBOARD-02)
+- [ ] 11-02-PLAN.md — Day-1 baseline snapshot table + engine (ONBOARD-03)
+- [ ] 11-03-PLAN.md — Service inference + editable AI-flagged chips + target phrases (ONBOARD-04)
+- [ ] 11-04-PLAN.md — Shared CityPicker + analyzePageGaps cities[] scoping (ONBOARD-05)
+- [ ] 11-05-PLAN.md — scoreServiceCityGrid + bucketed report + computeInternalLinks auto-linking (ONBOARD-06, ONBOARD-07)
+- [ ] 11-06-PLAN.md — Guided 6-step UI shell (ONBOARD-08)
