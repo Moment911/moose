@@ -6670,6 +6670,49 @@ Return ONLY valid JSON:
   }
 
   // ── WS3 (Plan 11-03) — SERVICE AUTO-EXTRACTION ───────────────────────────
+  // get_site_inventory: the client's day-1 baseline page inventory (11-02), as a
+  // count + a page-type breakdown, for the guided spine's "Your site today" step
+  // (WS7 / 11-06). Read-only over the immutable latest kotoiq_site_baseline
+  // capture; rides the route's existing verifySession + client-ownership gate.
+  if (action === 'get_site_inventory') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    try {
+      const { data: rows } = await s.from('kotoiq_site_baseline')
+        .select('url, title, page_type, word_count, captured_at')
+        .eq('client_id', client_id)
+        .order('captured_at', { ascending: false })
+        .limit(500)
+
+      const all = Array.isArray(rows) ? rows : []
+      const latestCapturedAt = all[0]?.captured_at || null
+      const latest = latestCapturedAt
+        ? all.filter((r: any) => r.captured_at === latestCapturedAt)
+        : all
+
+      const byType: Record<string, number> = {}
+      for (const r of latest) {
+        const type = (r.page_type || 'other') as string
+        byType[type] = (byType[type] || 0) + 1
+      }
+      const types = Object.entries(byType)
+        .map(([type, count]) => ({ type, count }))
+        .sort((a, b) => b.count - a.count)
+
+      return NextResponse.json({
+        ok: true,
+        total_pages: latest.length,
+        types,
+        captured_at: latestCapturedAt,
+        // A small sample so the UI can show real titles (provenance: the client's own site).
+        sample: latest.slice(0, 8).map((r: any) => ({ url: r.url, title: r.title, page_type: r.page_type })),
+      })
+    } catch (e: any) {
+      console.error('[get_site_inventory] error', e?.message || e)
+      return NextResponse.json({ error: 'get_site_inventory_failed' }, { status: 500 })
+    }
+  }
+
   // infer_services: infer the client's services FROM their own baseline pages
   // (kotoiq_site_baseline / 11-02), flagged ai_inferred. Does NOT auto-confirm —
   // the chips UI presents them for the user to verify before they drive builds.

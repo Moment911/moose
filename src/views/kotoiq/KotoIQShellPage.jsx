@@ -5,9 +5,10 @@ import { useClient } from '../../context/ClientContext'
 import { profileFetch } from '../../lib/kotoiqProfileFetch'
 import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
-import { Brain, Search, Send, SlidersHorizontal, Settings, Shield } from 'lucide-react'
+import { Brain, Search, Send, SlidersHorizontal, Settings, Shield, Compass } from 'lucide-react'
 import { R, T, BLK, GRY, FH, FB, DESIGN, buttonPill } from '../../lib/theme'
 import KotoIQPage from '../KotoIQPage'
+import GuidedSpine from '../../components/kotoiq-wp/GuidedSpine'
 import BuilderTab from '../../components/kotoiq/BuilderTab'
 import PublishQueueTab from '../../components/kotoiq/PublishQueueTab'
 import CampaignComposerTab from '../../components/kotoiq/CampaignComposerTab'
@@ -19,7 +20,12 @@ import PageSuggestionsTab from '../../components/kotoiq/PageSuggestionsTab'
 import WordPressConnectionManager from '../../components/kotoiq/WordPressConnectionManager'
 
 // ── Shell tabs ──────────────────────────────────────────────────────────────
+// `guided` is the linear 6-step onboarding spine (WS7). It is ADDITIVE — the
+// existing power-user tabs (Intel/Publish/Tune/Pipeline/Settings) and FleetView
+// stay fully reachable. `guided` simply sits first as the self-explanatory path
+// for first-run / client view; nothing it does removes or breaks the others.
 const SHELL_TABS = [
+  { key: 'guided',   label: 'Guided',   icon: Compass },
   { key: 'intel',    label: 'Intel',    icon: Search },
   { key: 'publish',  label: 'Publish',  icon: Send },
   { key: 'tune',     label: 'Tune',     icon: SlidersHorizontal },
@@ -191,6 +197,13 @@ export default function KotoIQShellPage() {
 
         {/* ── Content area ────────────────────────────────────────── */}
         <div className="kiq-scroll" style={{ flex: 1, overflow: 'auto', background: DESIGN.colors.cream }}>
+
+          {/* ── Guided (WS7 — linear 6-step onboarding spine) ────── */}
+          {/* Additive: the tab bar above stays, so Intel/Publish/Tune/    */}
+          {/* Pipeline/Settings + FleetView remain reachable at all times. */}
+          {shell === 'guided' && (
+            <GuidedSpine key={clientId} clientId={clientId} agencyId={agencyId} />
+          )}
 
           {/* ── Publish ──────────────────────────────────────────── */}
           {shell === 'publish' && (
