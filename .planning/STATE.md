@@ -90,6 +90,7 @@ Code for 04-07 shipped via remote aggregate commit 75ac2ff, landed in main via m
 
 ### Roadmap Evolution
 
+- Phase 11 added (2026-06-08): KotoIQ WP guided onboarding + competitor-driven gap engine at /kotoiq-wp. 7 workstreams — pair-callback orchestration spine, day-1 baseline snapshot, service auto-extraction (editable chips), city multi-select picker, competitor-driven gap scoring (scoreServiceCityGrid), auto internal-linking, guided 6-step UI shell. Wiring + one scoring fn + UX assembly over existing engines (pageDiscovery, run_all_audits, content/keyword-gap, localStrategistEngine, pageGapEngine, bulkPageBuilder, aeoVisibilityEngine, hubBuilder). Depends on Phase 10 cutover.
 - Phase 10 added (2026-05-26): KotoIQ WP plugin thin-shim pivot — move all business logic out of the plugin into the dashboard. Plugin becomes a minimal authenticated RPC shim. Goal: hostile client with WP file access cannot reconstruct KotoIQ's value from plugin source.
 - Phase 9 added (2026-05-20): Consolidate /wpsimplecode + /kotoiq-sites + /control-center into a unified /kotoiq-wp view. Strategic UI consolidation — fleet ops + per-client deep dives in one place. Unified Marketing brand palette.
 

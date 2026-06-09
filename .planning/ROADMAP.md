@@ -217,3 +217,24 @@ The following items were intentionally NOT delivered in Phase 10. Final referenc
 - **WP-core full headless replacement** — Phase 10 keeps Elementor as the renderer on the WP side; a future phase could evaluate pure HTML/Tailwind via Gutenberg block + bypass Elementor entirely
 - **Real-time collaborative template editing** — single-user edits only in v1
 - **WP.org plugin distribution** — per CONTEXT.md D-Plugin-distribution (USER-LOCKED): NEVER. Do NOT undo this in M2 — keeping the shim off the public directory is a competitive-protection win
+
+### Phase 11: KotoIQ WP guided onboarding and competitor-driven gap engine
+
+**Goal:** Turn `/kotoiq-wp` into a guided, self-explanatory flow that, on first install, scans the site, lets the user confirm services + pick target cities, finds content gaps proven by competitor rank data, ranks the build order, and auto-links what gets built. Wiring + one scoring function + UX assembly over existing engines — not a rebuild.
+**Requirements**: TBD (derive during plan)
+**Depends on:** Phase 10 (thin-shim cutover — orchestration lives dashboard-side on the v4 shim)
+**Plans:** 0 plans
+
+Scope (7 workstreams):
+1. **Orchestration spine** — pair-callback handler (`/api/seo/wp-register`) auto-kicks scan + `run_all_audits`; registers `save_post`/`publish_post` webhooks (`webhook.set`) so inventory stays live. No plugin change.
+2. **Baseline snapshot** — store day-1 inventory of the client's own pages for later diffing.
+3. **Service auto-extraction** — infer services list from scanned pages, present as editable add/remove chips seeded from the real site (today: manual comma-separated box in `PageSuggestionsTab`; `voiceOnboardingAutoSetup` only extracts keywords).
+4. **City multi-select picker** — scope competitor discovery to chosen cities (today: State+Counties only; engines `grid-scan`/`analyze_competitors`/`pageGapEngine` already support location).
+5. **Competitor-driven gap scoring** — `scoreServiceCityGrid()` joins the service×city matrix (`localStrategistEngine` kind:`service_x_city`, `pageGapEngine`) to competitor rank data. Cell score = (demand + competition_strength) × (1 − our_coverage) ÷ difficulty → ranked build order (quick wins / net-new / big bets). Optional per-service target-phrases (auto-derive + manual pins).
+6. **Auto internal-linking** — apply the link plan `localStrategistEngine` outputs into published posts; reuse `hubBuilder.ts` (pillar/hub + BreadcrumbList already built per session-log #6) for pillar→cluster + sibling cross-links.
+7. **Guided UI shell** — replace tab-bag with linear 6-step spine (Connected → Your site today → Who you're up against → Your gaps → Your plan → Live + cited); each panel: plain-English "what this does" subtitle, one primary action, visible status. Honor DESIGN.md.
+
+Reuse: `pageDiscovery`, `run_all_audits`, `content-gap`, `keyword-gap`, `localStrategistEngine`, `bulkPageBuilder`, `aeoVisibilityEngine`, `internalLinkEngine`, `topicalMapEngine`, `hubBuilder`. Data-integrity standard applies (cities via Census, ranks via live APIs, all timestamped).
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 11 to break down)
