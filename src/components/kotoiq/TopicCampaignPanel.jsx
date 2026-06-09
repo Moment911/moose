@@ -9,6 +9,7 @@ import {
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
+import CityPicker from './CityPicker'
 
 // Auto-freshness threshold options — keys must match STALE_THRESHOLDS_MS in
 // src/lib/dataIntegrity.ts. The nightly cron re-deploys an opted-in campaign
@@ -229,13 +230,12 @@ export default function TopicCampaignPanel({ site, client }) {
   const [placeResults, setPlaceResults] = useState([])
   const [loadingSaved, setLoadingSaved] = useState(false)
 
-  // Step 2 state
+  // Step 2 state — city-list loading/filtering now lives inside <CityPicker/>
+  // (Phase 11 Plan 04 / WS4). The parent keeps only the selection + chosen
+  // state, which the deploy/preview flow reads.
   const [states, setStates] = useState([])
   const [selectedState, setSelectedState] = useState('')
-  const [cities, setCities] = useState([])
-  const [loadingCities, setLoadingCities] = useState(false)
   const [selectedCities, setSelectedCities] = useState(new Set())
-  const [citySearch, setCitySearch] = useState('')
   const [preview, setPreview] = useState(null) // { open, html, meta }
 
   // Step 3 state
@@ -1148,24 +1148,10 @@ export default function TopicCampaignPanel({ site, client }) {
     setOptimizeReport({ ...report })
   }
 
-  async function loadCities() {
-    if (!selectedState) return
-    setLoadingCities(true)
-    setSelectedCities(new Set())
-    try {
-      const r = await fetch('/api/kotoiq/topic-campaign', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'list_cities', agency_id: agencyId, state_abbr: selectedState }),
-      })
-      const d = await r.json()
-      if (d.error) { toast.error(errText(d.error)); return }
-      setCities(d.cities || [])
-    } catch (e) { toast.error(e.message) }
-    setLoadingCities(false)
-  }
-
-  useEffect(() => { if (selectedState) loadCities() }, [selectedState])  // eslint-disable-line
-
+  // Census city loading + filtering now live inside <CityPicker/>. The parent
+  // keeps only the selection-mutating handlers it passes down, since the deploy
+  // + preview flow reads `selectedCities`. Selection is reset on state change
+  // by CityPicker's onClear (wired below).
   function toggleCity(name) {
     setSelectedCities(prev => {
       const next = new Set(prev)
@@ -1174,17 +1160,12 @@ export default function TopicCampaignPanel({ site, client }) {
     })
   }
 
-  function selectAllFiltered() {
-    const filtered = filteredCities()
-    setSelectedCities(new Set(filtered.map(c => c.name)))
+  // CityPicker passes the currently-filtered city names up so "Select all
+  // filtered" keeps its original semantics.
+  function selectAllFiltered(names) {
+    setSelectedCities(new Set(names))
   }
   function clearAll() { setSelectedCities(new Set()) }
-
-  function filteredCities() {
-    if (!citySearch.trim()) return cities
-    const q = citySearch.toLowerCase()
-    return cities.filter(c => c.name.toLowerCase().includes(q))
-  }
 
   async function previewOne() {
     if (selectedCities.size === 0) { toast.error('Pick at least one city'); return }
@@ -1240,7 +1221,6 @@ export default function TopicCampaignPanel({ site, client }) {
     setStep(1)
     setCampaign(null)
     setSelectedState('')
-    setCities([])
     setSelectedCities(new Set())
     setDeployResults(null)
     setEditorOpen(false)
@@ -2476,64 +2456,21 @@ export default function TopicCampaignPanel({ site, client }) {
       {/* ───────────── STEP 2 ───────────── */}
       {step === 2 && campaign && (
         <div style={card()}>
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
-            <MapPin size={20} color={R}/>
-            <div>
-              <div style={{ fontFamily:FH, fontWeight:800, fontSize:20, color:BLK }}>Pick cities</div>
-              <div style={{ fontFamily:FB, fontSize:13, color:'#6b7280', marginTop:2 }}>
-                Each city you select gets its own published page with the city baked into the HTML.
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display:'flex', gap:14, marginBottom:14 }}>
-            <Field label="State">
-              <select value={selectedState} onChange={e => setSelectedState(e.target.value)} style={inp()}>
-                <option value="">— pick state —</option>
-                {states.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </Field>
-            <Field label="Filter cities">
-              <input value={citySearch} onChange={e => setCitySearch(e.target.value)} placeholder="Type to filter…"
-                style={inp()} disabled={!cities.length}/>
-            </Field>
-          </div>
-
-          {loadingCities && (
-            <div style={{ display:'flex', alignItems:'center', gap:8, fontFamily:FB, fontSize:13, color:'#6b7280' }}>
-              <Loader2 size={14} className="spin"/> Loading cities from Census…
-            </div>
-          )}
-
-          {!loadingCities && cities.length > 0 && (
-            <>
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10, fontSize:12, color:'#6b7280', fontFamily:FB }}>
-                <span><strong>{selectedCities.size}</strong> of {filteredCities().length} selected</span>
-                <button onClick={selectAllFiltered} style={miniBtn()}>Select all filtered</button>
-                <button onClick={clearAll} style={miniBtn()}>Clear</button>
-                <span style={{ marginLeft:'auto', fontFamily:FB, fontSize:11 }}>
-                  Cap: 100 per deploy
-                </span>
-              </div>
-              <div style={{ maxHeight:340, overflowY:'auto', border:'1px solid #e5e7eb', borderRadius:8, padding:8, background:'#fff' }}>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))', gap:6 }}>
-                  {filteredCities().slice(0, 500).map(c => (
-                    <label key={c.fips} style={cityChip(selectedCities.has(c.name))}>
-                      <input type="checkbox" checked={selectedCities.has(c.name)} onChange={() => toggleCity(c.name)}
-                        style={{ marginRight:6 }}/>
-                      <span style={{ flex:1, fontSize:13 }}>{c.name}</span>
-                      <span style={{ fontSize:10, color:'#9ca3af', textTransform:'uppercase' }}>{c.kind}</span>
-                    </label>
-                  ))}
-                </div>
-                {filteredCities().length > 500 && (
-                  <div style={{ marginTop:10, fontSize:11, color:'#9ca3af', fontFamily:FB, textAlign:'center' }}>
-                    Showing first 500 — narrow the filter to see more
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+          {/* Shared Census city multi-select (Phase 11 Plan 04 / WS4). Same
+              behaviour as the old inline picker: loads cities from Census on
+              state change, filter + select-all-filtered + clear, 500-render
+              cap, "Cap: 100 per deploy" hint. */}
+          <CityPicker
+            agencyId={agencyId}
+            states={states}
+            state={selectedState}
+            onStateChange={setSelectedState}
+            selectedCities={selectedCities}
+            onToggle={toggleCity}
+            onSelectAllFiltered={selectAllFiltered}
+            onClear={clearAll}
+            cap={100}
+          />
 
           <div style={{ marginTop:18, display:'flex', justifyContent:'space-between', alignItems:'center', gap:10 }}>
             <button onClick={() => setStep(1)} style={miniBtn()}><ChevronLeft size={12}/> Back</button>
@@ -3690,9 +3627,4 @@ const pill = (color, bg) => ({ display:'inline-flex', alignItems:'center', paddi
 const Pill = ({ children, color, bg }) => <span style={pill(color, bg)}>{children}</span>
 const th = (x={}) => ({ textAlign:'left', padding:'10px 12px', fontFamily:FH, fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', ...x })
 const td = (x={}) => ({ padding:'10px 12px', ...x })
-const cityChip = (selected) => ({
-  display:'flex', alignItems:'center', padding:'6px 10px', borderRadius:7,
-  border:`1px solid ${selected ? R : '#e5e7eb'}`,
-  background: selected ? `${R}10` : '#fff',
-  cursor:'pointer', fontFamily:FB,
-})
+// cityChip moved into the extracted CityPicker (Phase 11 Plan 04 / WS4).
