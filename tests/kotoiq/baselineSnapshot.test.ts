@@ -24,7 +24,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const insertMock = vi.fn().mockResolvedValue({ data: [], error: null })
 const updateMock = vi.fn()
 const deleteMock = vi.fn()
-const fromMock = vi.fn(() => ({
+const fromMock = vi.fn((_table: string) => ({
     insert: (...a: unknown[]) => insertMock(...a),
     update: (...a: unknown[]) => updateMock(...a),
     delete: (...a: unknown[]) => deleteMock(...a),
@@ -34,9 +34,10 @@ vi.mock('@/lib/kotoiqDb', () => ({
     getKotoIQDb: () => ({ from: (t: string) => fromMock(t) }),
 }))
 
-const discoverPagesMock = vi.fn()
+const discoverAllUrlsMock = vi.fn()
 vi.mock('@/lib/kotoiq/pageDiscovery', () => ({
-    discoverPages: (...a: unknown[]) => discoverPagesMock(...a),
+    discoverAllUrls: (...a: unknown[]) => discoverAllUrlsMock(...a),
+    discoverPages: vi.fn(),
     fetchSitemapUrls: vi.fn(),
 }))
 
@@ -86,7 +87,7 @@ beforeEach(() => {
     updateMock.mockClear()
     deleteMock.mockClear()
     fromMock.mockClear()
-    discoverPagesMock.mockReset()
+    discoverAllUrlsMock.mockReset()
     fetchAndExtractMock.mockReset()
     insertMock.mockResolvedValue({ data: [], error: null })
 })
@@ -146,10 +147,10 @@ describe('diffAgainstBaseline (pure compare)', () => {
 
 describe('captureBaseline (immutable insert-only)', () => {
     beforeEach(() => {
-        discoverPagesMock.mockResolvedValue({
-            pages: [
-                { url: 'https://acme.test/', page_type: 'home', reason: 'home', priority: 0 },
-                { url: 'https://acme.test/services/roofing', page_type: 'service', reason: 's', priority: 2 },
+        discoverAllUrlsMock.mockResolvedValue({
+            urls: [
+                'https://acme.test/',
+                'https://acme.test/services/roofing',
             ],
             sitemap_url: 'https://acme.test/sitemap.xml',
         })

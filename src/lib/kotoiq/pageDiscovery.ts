@@ -99,6 +99,68 @@ export async function discoverPages(domain: string): Promise<{ pages: Discovered
   return { pages: picked, sitemap_url }
 }
 
+/**
+ * Full same-domain URL inventory for a domain — NOT the top-5 competitor
+ * quick-look. `discoverPages` deliberately scores down to MAX_PAGES_RETURNED (5)
+ * for a fast first impression; a CLIENT baseline (WS2) needs the WHOLE site, so
+ * this returns the full deduped same-domain sitemap list (homepage always first,
+ * capped at the same 500-URL sitemap sanity cap discoverPages uses internally,
+ * never the 5-page cap). Reuses the identical robots→sitemap discovery path —
+ * no new crawler.
+ */
+export async function discoverAllUrls(domain: string): Promise<{ urls: string[]; sitemap_url?: string; error?: string }> {
+  const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
+  if (!cleanDomain) return { urls: [], error: 'invalid_domain' }
+
+  const homepage = `https://${cleanDomain}/`
+  const allUrls: string[] = [homepage]
+  let sitemap_url: string | undefined
+
+  // 1) robots.txt → sitemap declarations (identical to discoverPages)
+  try {
+    const robotsRes = await fetch(`https://${cleanDomain}/robots.txt`, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      headers: { 'User-Agent': 'KotoBot/1.0 (+https://hellokoto.com)' },
+    })
+    if (robotsRes.ok) {
+      const txt = await robotsRes.text()
+      const sitemaps = txt.match(/^Sitemap:\s*(\S+)/gim)?.map(s => s.split(/\s+/)[1]) || []
+      for (const sm of sitemaps.slice(0, 3)) {
+        try {
+          const sitemapUrls = await fetchSitemapUrls(sm)
+          allUrls.push(...sitemapUrls)
+          if (!sitemap_url) sitemap_url = sm
+        } catch { /* skip */ }
+      }
+    }
+  } catch { /* skip */ }
+
+  // 2) Fallback common sitemap locations
+  if (allUrls.length < 5) {
+    for (const path of ['/sitemap.xml', '/sitemap_index.xml']) {
+      try {
+        const more = await fetchSitemapUrls(`https://${cleanDomain}${path}`)
+        if (more.length) {
+          allUrls.push(...more)
+          if (!sitemap_url) sitemap_url = `https://${cleanDomain}${path}`
+          break
+        }
+      } catch { /* skip */ }
+    }
+  }
+
+  // Dedupe + same-domain only + drop non-page asset URLs. NOTE: 500 is the
+  // sitemap sanity cap, NOT the 5-page competitor cap — the full inventory.
+  const urls = Array.from(new Set(allUrls))
+    .filter(u => urlDomain(u) === cleanDomain)
+    .filter(u => !/\.(pdf|jpg|jpeg|png|gif|svg|webp|mp4|webm|xml|ico)$/i.test(u))
+    .slice(0, 500)
+
+  // Homepage always first.
+  const ordered = [homepage, ...urls.filter(u => u !== homepage)]
+  return { urls: Array.from(new Set(ordered)), sitemap_url }
+}
+
 function scoreUrl(url: string, _domain: string): DiscoveredPage | null {
   let type = inferPageType(url)
   let path = ''
