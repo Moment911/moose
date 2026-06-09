@@ -50,6 +50,16 @@ export interface GapAnalysisInput {
   /** Optional: limit number of cities (default 100) */
   cityLimit?: number
   /**
+   * Optional: explicit city names chosen by the user (Phase 11 / WS4 — the
+   * shared CityPicker). When present (non-empty), competitor discovery is
+   * scoped to ONLY these cities: citiesToCheck is filtered to the matching
+   * Census-loaded cities (case-insensitive) instead of slice(0, cityLimit).
+   * Data-integrity (T-11-11): an unknown name is dropped, never fabricated —
+   * the cities still come from the Census-loaded set. When absent/empty,
+   * behaviour is unchanged (back-compat slice).
+   */
+  cities?: string[]
+  /**
    * If true, enrich the top-N suggestions with real per-city Google Ads
    * search volume + CPC from DataForSEO. Replaces the national volume
    * from kotoiq_keywords with city-specific data so priority scoring
@@ -86,6 +96,7 @@ export interface GapAnalysisResult {
 export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnalysisResult> {
   const {
     agencyId, clientId, services, state, counties, cityLimit = 100,
+    cities: explicitCities,
     enrichWithLocalVolume = true, enrichTopN = 30,
     fingerprintCompetitors = true, fingerprintTopN = 8,
   } = input
@@ -165,7 +176,10 @@ export async function analyzePageGaps(input: GapAnalysisInput): Promise<GapAnaly
   // 5. Cross-reference: for each service x city combo, check if a page exists
   const suggestions: PageSuggestion[] = []
 
-  const citiesToCheck = cities.slice(0, cityLimit)
+  // When the user picked explicit cities (WS4 CityPicker), scope discovery to
+  // exactly those — filtered against the Census-loaded set so unknown names are
+  // dropped, never fabricated. Otherwise fall back to the original slice.
+  const citiesToCheck = selectCitiesToCheck(cities, { cities: explicitCities, cityLimit })
 
   for (const service of services) {
     for (const city of citiesToCheck) {
@@ -516,13 +530,39 @@ async function loadContentInventory(db: ReturnType<typeof getKotoIQDb>, clientId
   return data || []
 }
 
-interface GeoCity {
+export interface GeoCity {
   name: string
   county: string
   state: string
   zips: string[]
   lat?: number
   lng?: number
+}
+
+/**
+ * Decide which Census-loaded cities to actually check (Phase 11 / WS4).
+ *
+ * Pure + side-effect-free so it's unit-testable without DB/network.
+ *
+ *  - When `opts.cities` is provided AND non-empty: filter the loaded Census
+ *    list to only the named cities (case-insensitive). Unknown names are
+ *    DROPPED — never fabricated (data-integrity standard T-11-11). The chosen
+ *    cities therefore always come from the authoritative Census set.
+ *  - Otherwise (absent or empty): back-compat — return slice(0, cityLimit).
+ *
+ * Generic over `{ name: string }` so callers pass the full GeoCity objects and
+ * get the same objects back (county/zips/lat/lng preserved).
+ */
+export function selectCitiesToCheck<T extends { name: string }>(
+  loadedCities: T[],
+  opts: { cities?: string[]; cityLimit?: number } = {},
+): T[] {
+  const { cities: explicit, cityLimit = 100 } = opts
+  if (explicit && explicit.length > 0) {
+    const wanted = new Set(explicit.map(n => n.toLowerCase().trim()))
+    return loadedCities.filter(c => wanted.has(c.name.toLowerCase().trim()))
+  }
+  return loadedCities.slice(0, cityLimit)
 }
 
 async function loadCities(
