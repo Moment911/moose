@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, Trash2, ChevronLeft, ChevronRight, Download, RefreshCw, LayoutDashboard, Sparkles } from 'lucide-react'
+import { Search as SearchIcon, Code2, ShieldCheck, Edit3, Repeat, TrendingUp, Plug, Globe, Loader2, ExternalLink, Plus, X, User, PowerOff, Trash2, ChevronLeft, ChevronRight, Download, RefreshCw, LayoutDashboard, Sparkles, Compass } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { R, T, BLK, GRN, AMB, FH, FB } from '../../lib/theme'
@@ -15,6 +15,7 @@ import ElementorBuilderPanel  from '../kotoiq/ElementorBuilderPanel'
 import ContentRotationPanel   from '../kotoiq/ContentRotationPanel'
 import SEOPanel               from '../kotoiq/SEOPanel'
 import SyncPanel              from '../kotoiq/SyncPanel'
+import GuidedSpine            from './GuidedSpine'
 
 /**
  * ClientView — per-client deep-dive: collapsible clients-first left rail +
@@ -34,6 +35,7 @@ const CREAM = '#faf9f6'
 const LINE  = '#e9e6dd'
 
 const TABS = [
+  { key: 'guided',            label: 'Guided',           icon: Compass,     slug: 'guided' },
   { key: 'overview',          label: 'Overview',         icon: LayoutDashboard, slug: null },
   { key: 'topic_campaign',    label: 'AI Pages',         icon: Sparkles,    slug: null },
   { key: 'search_replace',    label: 'Search & Replace', icon: SearchIcon,  slug: 'search-replace' },
@@ -331,6 +333,7 @@ export default function ClientView({ preselectedSiteId, preselectedClientId, pre
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px', background: CREAM }}>
               {activeSite ? (
                 <WPSCConnectionGate site={activeSite} onPaired={load}>
+                  {tab === 'guided'            && <GuidedSpine key={activeClient?.id || activeSite?.id} clientId={activeClient?.id} agencyId={effectiveAgency}/>}
                   {tab === 'overview'          && <OverviewPanel         site={activeSite} onSiteUpdated={load}/>}
                   {tab === 'topic_campaign'    && <TopicCampaignPanel    site={activeSite} client={activeClient}/>}
                   {tab === 'search_replace'    && <SearchReplacePanel    site={activeSite}/>}
