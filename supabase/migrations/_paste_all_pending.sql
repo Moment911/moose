@@ -588,3 +588,25 @@ CREATE POLICY "agency_isolation_site_baseline"
       SELECT agency_id FROM agency_members WHERE user_id = auth.uid()
     )
   );
+
+
+-- ──────────────────────────────────────────────────────────────
+-- ▼▼▼ 20260608_kotoiq_page_suggestions_gap_score.sql (Phase 11 / WS5) ▼▼▼
+-- ──────────────────────────────────────────────────────────────
+-- Gap-score columns on kotoiq_page_suggestions for scoreServiceCityGrid().
+-- Full DDL + rationale live in
+-- supabase/migrations/20260608_kotoiq_page_suggestions_gap_score.sql.
+-- Adds score/bucket/our_coverage/competition_strength/score_sources; KEEPS the
+-- existing additive `priority` column. Re-runnable (ADD COLUMN IF NOT EXISTS).
+
+ALTER TABLE kotoiq_page_suggestions
+  ADD COLUMN IF NOT EXISTS score                NUMERIC,
+  ADD COLUMN IF NOT EXISTS bucket               TEXT,
+  ADD COLUMN IF NOT EXISTS our_coverage         NUMERIC,
+  ADD COLUMN IF NOT EXISTS competition_strength NUMERIC,
+  ADD COLUMN IF NOT EXISTS score_sources        JSONB DEFAULT '{}'::jsonb;
+
+CREATE INDEX IF NOT EXISTS idx_page_suggestions_score
+  ON kotoiq_page_suggestions(score DESC NULLS LAST);
+CREATE INDEX IF NOT EXISTS idx_page_suggestions_bucket
+  ON kotoiq_page_suggestions(bucket);
