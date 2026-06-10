@@ -343,27 +343,43 @@ export interface ConfirmedServiceInput {
     confidence?: number
 }
 
+/** The four confirmable categories (Phase 12 WS1 — keywords/phrases/services/offerings). */
+export type FieldCategory = 'keywords' | 'phrases' | 'services' | 'offerings'
+
+const FIELD_CATEGORIES: readonly FieldCategory[] = ['keywords', 'phrases', 'services', 'offerings'] as const
+
 /**
- * Persist the user-confirmed services to kotoiq_client_profile.fields.services[].
+ * Generalized confirmed-field persistence (Phase 12 WS1). Writes the user-curated
+ * items for ONE category to kotoiq_client_profile.fields[category] in the exact
+ * StoredServiceRecord shape ({value, source_type, confidence, source_url,
+ * captured_at}) — byte-identical to what saveConfirmedServices wrote for
+ * `services`, so score_grid's fields.services[] reader is unaffected.
+ *
  * Provenance: user-added/edited chips become 'user_added'/'user_confirmed';
- * untouched chips stay 'ai_inferred'. agency_id is auto-injected by the
- * Phase-7 clientProfile.upsert helper (cross-agency writes are structurally
- * impossible). Never throws.
+ * untouched chips stay 'ai_inferred'. The category is validated against the four
+ * allowed values (V5 input validation / T-12-01 tampering mitigation). agency_id
+ * is auto-injected by the Phase-7 clientProfile.upsert helper (cross-agency writes
+ * are structurally impossible — T-12-04). Never throws.
  */
-export async function saveConfirmedServices(args: {
+export async function saveConfirmedField(args: {
     agencyId: string
     clientId: string
-    services: ConfirmedServiceInput[]
+    category: FieldCategory
+    items: ConfirmedServiceInput[]
 }): Promise<{ ok: boolean; saved: number; detail?: string }> {
-    const { agencyId, clientId, services } = args
+    const { agencyId, clientId, category, items } = args
     try {
         if (!agencyId || !clientId) {
             return { ok: false, saved: 0, detail: 'missing agency_id or client_id' }
         }
+        // V5 / T-12-01: reject any category outside the allowed enum before writing.
+        if (!FIELD_CATEGORIES.includes(category)) {
+            return { ok: false, saved: 0, detail: 'invalid category' }
+        }
         const now = new Date().toISOString()
         const seen = new Set<string>()
         const records: StoredServiceRecord[] = []
-        for (const s of services || []) {
+        for (const s of items || []) {
             const name = normalizeServiceName(s.name)
             if (!name) continue
             const key = name.toLowerCase()
@@ -387,10 +403,10 @@ export async function saveConfirmedServices(args: {
         records.sort((a, b) => a.value.localeCompare(b.value))
 
         const db = getKotoIQDb(agencyId)
-        // Read current fields jsonb (untyped column), splice in services[], upsert.
+        // Read current fields jsonb (untyped column), splice in fields[category], upsert.
         const { data: profile } = await db.clientProfile.get(clientId)
         const fields = ((profile as { fields?: Record<string, unknown> } | null)?.fields || {}) as Record<string, unknown>
-        fields.services = records
+        fields[category] = records
 
         const { error } = await db.clientProfile.upsert({
             client_id: clientId,
@@ -399,6 +415,26 @@ export async function saveConfirmedServices(args: {
         if (error) return { ok: false, saved: 0, detail: (error as { message?: string }).message || 'upsert failed' }
         return { ok: true, saved: records.length }
     } catch (e) {
-        return { ok: false, saved: 0, detail: e instanceof Error ? e.message : 'saveConfirmedServices error' }
+        return { ok: false, saved: 0, detail: e instanceof Error ? e.message : 'saveConfirmedField error' }
     }
+}
+
+/**
+ * Persist the user-confirmed SERVICES to kotoiq_client_profile.fields.services[].
+ * Back-compat wrapper (Phase 11 WS3) — delegates to the generalized
+ * saveConfirmedField with category='services' so the existing save_services
+ * action and score_grid's fields.services[] reader keep working unchanged.
+ * Never throws.
+ */
+export async function saveConfirmedServices(args: {
+    agencyId: string
+    clientId: string
+    services: ConfirmedServiceInput[]
+}): Promise<{ ok: boolean; saved: number; detail?: string }> {
+    return saveConfirmedField({
+        agencyId: args.agencyId,
+        clientId: args.clientId,
+        category: 'services',
+        items: args.services,
+    })
 }
