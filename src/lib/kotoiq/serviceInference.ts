@@ -178,7 +178,7 @@ Rules:
 
 Return STRICT JSON only: {"services":["...","..."]}  No markdown, no prose.`
 
-function pageSignalsForClaude(pages: BaselinePageInput[]): string {
+export function pageSignalsForClaude(pages: BaselinePageInput[]): string {
     return pages
         .slice(0, 60)
         .map(p => {
