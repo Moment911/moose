@@ -6281,17 +6281,30 @@ Return ONLY valid JSON:
     const resolvedAgencyId = agency_id || client.agency_id
     if (!resolvedAgencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
 
-    // Derive services (mirror sync_page_factory's resolution).
+    // Derive services. PREFER the user-confirmed services from the guided flow
+    // (11-03 saveConfirmedServices writes kotoiq_client_profile.fields.services[]
+    // as {value, source_type, ...}). Those are what step 4's ServiceChips confirmed
+    // and must drive the scoring — the clients-table fields are only a fallback for
+    // clients that never went through the guided service-confirmation step.
     let services: string[] = []
-    if (Array.isArray(client.products_services) && client.products_services.length) {
-      services = client.products_services.filter((x: any) => typeof x === 'string' && x.trim())
-    } else if (client.primary_service) {
-      services = [client.primary_service]
-    } else if (client.onboarding_answers?.primary_service) {
-      services = [client.onboarding_answers.primary_service]
-    } else if (client.onboarding_answers?.products_services) {
-      const ps = client.onboarding_answers.products_services
-      services = Array.isArray(ps) ? ps : String(ps).split(/,|\n/).map((x: string) => x.trim()).filter(Boolean)
+    const { data: svcProfile } = await s.from('kotoiq_client_profile')
+      .select('fields').eq('client_id', client_id).maybeSingle()
+    const confirmedSvc = (svcProfile?.fields as { services?: Array<{ value?: string }> } | null)?.services
+    if (Array.isArray(confirmedSvc) && confirmedSvc.length) {
+      services = confirmedSvc.map(x => (x?.value || '').trim()).filter(Boolean)
+    }
+    // Fallback to the clients-table fields only when no confirmed services exist.
+    if (services.length === 0) {
+      if (Array.isArray(client.products_services) && client.products_services.length) {
+        services = client.products_services.filter((x: any) => typeof x === 'string' && x.trim())
+      } else if (client.primary_service) {
+        services = [client.primary_service]
+      } else if (client.onboarding_answers?.primary_service) {
+        services = [client.onboarding_answers.primary_service]
+      } else if (client.onboarding_answers?.products_services) {
+        const ps = client.onboarding_answers.products_services
+        services = Array.isArray(ps) ? ps : String(ps).split(/,|\n/).map((x: string) => x.trim()).filter(Boolean)
+      }
     }
     if (services.length === 0) {
       return NextResponse.json({ ok: false, error: 'No services configured for client — set primary_service or products_services', report: null })
