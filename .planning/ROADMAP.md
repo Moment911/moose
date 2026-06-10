@@ -255,3 +255,25 @@ Plans:
 - [x] 11-04-PLAN.md — Shared CityPicker + analyzePageGaps cities[] scoping (ONBOARD-05)
 - [x] 11-05-PLAN.md — scoreServiceCityGrid + bucketed report + computeInternalLinks auto-linking (ONBOARD-06, ONBOARD-07)
 - [ ] 11-06-PLAN.md — Guided 6-step UI shell (ONBOARD-08)
+
+### Phase 12: Comprehensive scan intelligence and competitor-driven AI SEO GEO AEO strategy
+
+**Goal:** Upgrade the front half of the Phase 11 guided flow from "capture inventory + infer services" into a full intelligence + strategy engine: the initial scan produces a comprehensive, editable list of keywords/phrases/services/offerings from every page; the user confirms + gets synergistic recommendations + can add their own; then a competitor pass (organic top 3-5 + AEO + GEO) feeds an extensive opportunity list and the semantic Koto tool produces a fast-rank AI-SEO/GEO/AEO strategy. Heavy assembly over existing engines + a few new pieces.
+**Requirements**: TBD (derive during plan)
+**Depends on:** Phase 11 (extends the guided spine, baseline, ServiceChips, scoreServiceCityGrid)
+
+**⚠ Runtime dependency:** The Claude-powered steps (comprehensive extractor, synergy engine, AEO probes, semantic strategy) require a FUNDED `ANTHROPIC_API_KEY`. As of 2026-06, both the Vercel prod key and a user-supplied key test as `$0 credit balance` — code builds fine, but these steps return empty until a funded key is in place.
+
+Scope (7 workstreams):
+1. **Comprehensive extraction** — on initial scan, run `discoverAllUrls` + `pageContentExtractor` over ALL pages, then ONE unified Claude/Haiku pass → four categories (keywords, phrases, services, offerings) from real page content; heuristic fallback; `logTokenUsage`; persist to `kotoiq_client_profile.fields`. Extends `serviceInference` + `voiceOnboardingAutoSetup` quick_scan.
+2. **Multi-category editable chips** — extend `ServiceChips` to all four categories; AI-inferred flagged (data-integrity); select some/all, delete some/all.
+3. **Synergistic recommendations** — new Claude engine: from confirmed services/offerings + industry, recommend complementary services/products as accept-able suggestion chips.
+4. **Manual entry** — add custom items to any category.
+5. **Competitor-intel aggregator** — for chosen service×city: top 3-5 ORGANIC (`analyze_competitors`/`dfs_compare`/`grid-scan`) + AEO (`aeoVisibilityEngine`: ChatGPT/Claude/Gemini/Perplexity/Google AIO) + GEO (`grid-scan` map-pack), aggregated with provenance.
+6. **Extensive opportunity list** — feed aggregated competitor keywords/pages into `content-gap` + `keyword-gap` + `pageGapEngine` → extensive ranked keyword + page build target.
+7. **Semantic fast-rank strategy** — run the semantic Koto tool (`semanticAgents` + `localStrategistEngine` + `planBuilderEngine` + `hubBuilder`) over confirmed inputs + competitor intel + opportunity list → concrete fast-rank strategy across AI-SEO/GEO/AEO: topic clusters, pillar/hub, internal-linking, AEO/GEO tactics (schema, llms.txt, FAQ/answer formatting, citation targets), prioritized build order. New strategy step in the guided spine.
+
+Reuse: `discoverAllUrls`, `pageContentExtractor`, `serviceInference`, `voiceOnboardingAutoSetup`, `ServiceChips`, `analyze_competitors`, `dfs_compare`, `grid-scan`, `aeoVisibilityEngine`, `content-gap`, `keyword-gap`, `pageGapEngine`, `scoreServiceCityGrid`, `localStrategistEngine`, `planBuilderEngine`, `semanticAgents`, `hubBuilder`. New: unified four-category extractor, synergy engine, multi-category chips UI, competitor-intel aggregator, and the assembled flow wiring. Data-integrity standard applies; migrations as manual-apply files (or Management API); ships to main.
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 12 to break down)
