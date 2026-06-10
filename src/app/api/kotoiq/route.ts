@@ -126,7 +126,8 @@ import { detectRelevantConnections } from '@/lib/ads/autoDetectRelevantConnectio
 import { autoTriggerSync } from '@/lib/ads/autoTriggerSync'
 import { analyzePageGaps, saveSuggestions } from '@/lib/builder/pageGapEngine'
 import { scoreServiceCityGrid } from '@/lib/builder/scoreServiceCityGrid'
-import { inferServices, saveConfirmedServices, type BaselinePageInput, type ConfirmedServiceInput } from '@/lib/kotoiq/serviceInference'
+import { inferServices, saveConfirmedServices, saveConfirmedField, type BaselinePageInput, type ConfirmedServiceInput, type FieldCategory } from '@/lib/kotoiq/serviceInference'
+import { extractComprehensive, type ExtractorPageInput } from '@/lib/kotoiq/comprehensiveExtractor'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
 import { verifySession } from '@/lib/apiAuth'
@@ -6851,6 +6852,105 @@ Return ONLY valid JSON:
     } catch (e: any) {
       console.error('[save_services] error', e?.message || e)
       return NextResponse.json({ error: 'save_services_failed' }, { status: 500 })
+    }
+  }
+
+  // extract_comprehensive: unified four-category extraction (Phase 12 / WS1) over
+  // the client's OWN latest baseline capture. Returns keywords / phrases /
+  // services / offerings — each flagged ai_inferred — plus an `ai_available`
+  // boolean (false when the Haiku key is absent/unfunded) so the UI shows the
+  // "AI unavailable" banner. Does NOT auto-confirm: the chips UI presents these
+  // for the user to verify before they drive builds. Mirrors infer_services.
+  if (action === 'extract_comprehensive') {
+    const { client_id, agency_id } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    try {
+      // Same loader infer_services uses — the latest captured_at baseline batch
+      // (the immutable day-1 inventory of the client's OWN pages). NOTE:
+      // kotoiq_site_baseline only stores url/title/h1/page_type/word_count (the
+      // richer h2_list/hero_copy/meta_description/cta_list columns live on
+      // kotoiq_page_diff, not here — per 12-RESEARCH WS1). The four-category
+      // extractor degrades to the h1/title signal; richer fields stay undefined.
+      const { data: rows } = await s.from('kotoiq_site_baseline')
+        .select('url, h1, title, page_type, word_count, captured_at')
+        .eq('client_id', client_id)
+        .order('captured_at', { ascending: false })
+        .limit(500)
+
+      const all = Array.isArray(rows) ? rows : []
+      const latestCapturedAt = all[0]?.captured_at || null
+      const pages: ExtractorPageInput[] = (latestCapturedAt
+        ? all.filter((r: any) => r.captured_at === latestCapturedAt)
+        : all
+      ).map((r: any) => ({
+        url: r.url,
+        h1: r.h1,
+        meta_title: r.title,
+        page_type: r.page_type,
+        word_count: r.word_count,
+      }))
+
+      const result = await extractComprehensive({ agencyId: agency_id, clientId: client_id, pages })
+      return NextResponse.json({
+        ok: result.ok,
+        // false when reason==='ai_unavailable' — drives the UI banner.
+        ai_available: result.ai_available,
+        keywords: result.keywords,
+        phrases: result.phrases,
+        services: result.services,
+        offerings: result.offerings,
+        source: result.source,
+        baseline_pages: pages.length,
+        captured_at: latestCapturedAt,
+        detail: result.detail,
+      })
+    } catch (e: any) {
+      console.error('[extract_comprehensive] error', e?.message || e)
+      return NextResponse.json({ error: 'extract_comprehensive_failed' }, { status: 500 })
+    }
+  }
+
+  // save_field: persist the user-confirmed items for ONE category (keywords /
+  // phrases / services / offerings) with provenance to
+  // kotoiq_client_profile.fields[category] (Phase 12 / WS1). Generalizes
+  // save_services; category is validated (V5 / T-12-01).
+  if (action === 'save_field') {
+    const { client_id, agency_id, category, items } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    const ALLOWED_CATEGORIES = ['keywords', 'phrases', 'services', 'offerings']
+    if (typeof category !== 'string' || !ALLOWED_CATEGORIES.includes(category)) {
+      return NextResponse.json({ error: 'invalid category' }, { status: 400 })
+    }
+    if (!Array.isArray(items)) {
+      return NextResponse.json({ error: 'items[] required' }, { status: 400 })
+    }
+    try {
+      const clean: ConfirmedServiceInput[] = items
+        .filter((x: any) => x && typeof x.name === 'string')
+        .map((x: any) => ({
+          name: String(x.name),
+          user_edited: !!x.user_edited,
+          user_added: !!x.user_added,
+          source_url: typeof x.source_url === 'string' ? x.source_url : undefined,
+          confidence: typeof x.confidence === 'number' ? x.confidence : undefined,
+        }))
+      const result = await saveConfirmedField({
+        agencyId: agency_id,
+        clientId: client_id,
+        category: category as FieldCategory,
+        items: clean,
+      })
+      if (!result.ok) {
+        return NextResponse.json({ error: 'save_field_failed', detail: result.detail }, { status: 500 })
+      }
+      return NextResponse.json({ ok: true, saved: result.saved })
+    } catch (e: any) {
+      console.error('[save_field] error', e?.message || e)
+      return NextResponse.json({ error: 'save_field_failed' }, { status: 500 })
     }
   }
 
