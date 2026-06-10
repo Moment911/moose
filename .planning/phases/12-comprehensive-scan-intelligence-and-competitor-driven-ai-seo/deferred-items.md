@@ -12,3 +12,10 @@ Out-of-scope discoveries logged during execution (NOT fixed — unrelated to the
   - `tests/kotoiq/phase8/profileGBPOAuth.test.ts` (1) + `profileGBPPlaces.test.ts` (1) — the same `9becf78` env-var dual-name drift noted under 12-01.
   - `tests/trainer/phase1/intakeCompleteness.test.ts` (1), `tests/trainer/phase2/prompts.test.ts` (6), `tests/trainer/phase2/generateRoute.test.ts` (3) — unrelated fitness-trainer module (coach-voice string drift + generate route mocks). Pre-dates Phase 12, not in this plan's scope.
   - The 12-02-relevant tests are green: `comprehensiveExtractor.test.ts` (10/10) + `serviceInference.test.ts` (6/6) pass; `npx tsc --noEmit` clean.
+
+## 12-04 deferred (out of scope)
+- [vercel-functions/ai-sdk] route.ts (lines 3, 136) pre-existing `@anthropic-ai/sdk` direct usage flagged for migration to Vercel AI SDK. Pre-existing across 50+ call sites in this 7000-line route; a provider migration is a separate architectural initiative, not part of WS5. Not introduced by 12-04.
+
+## Pre-existing test failures (observed during 12-04, NOT caused by WS5)
+- tests/kotoiq/phase8/profileGBPPlaces.test.ts — expects 'GOOGLE_PLACES_API_KEY missing'; code now says 'GOOGLE_PLACES_API_KEY / GOOGLE_PLACES_KEY missing' (Phase 8 env-name change per STATE.md commit 9becf78). Test assertion is stale.
+- tests/kotoiq/phase8/profileGBPOAuth.test.ts — similar stale assertion ('Missing GOOGLE_OAUTH_CLIENT_ID or ...'). Both predate Phase 12; unrelated to competitor-intel.

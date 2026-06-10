@@ -128,6 +128,7 @@ import { analyzePageGaps, saveSuggestions } from '@/lib/builder/pageGapEngine'
 import { scoreServiceCityGrid } from '@/lib/builder/scoreServiceCityGrid'
 import { inferServices, saveConfirmedServices, saveConfirmedField, type BaselinePageInput, type ConfirmedServiceInput, type FieldCategory } from '@/lib/kotoiq/serviceInference'
 import { extractComprehensive, type ExtractorPageInput } from '@/lib/kotoiq/comprehensiveExtractor'
+import { aggregateCompetitorIntel } from '@/lib/kotoiq/competitorIntel'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
 import { verifySession } from '@/lib/apiAuth'
@@ -6994,6 +6995,65 @@ Return ONLY valid JSON:
     } catch (e: any) {
       console.error('[derive_phrases] error', e?.message || e)
       return NextResponse.json({ error: 'derive_phrases_failed' }, { status: 500 })
+    }
+  }
+
+  // competitor_intel (WS5): three-lens competitor aggregator (organic + GEO + AEO)
+  // for a chosen service×city set. Reconciles cross-lens identities, wraps every
+  // fetched fact in createVerifiedData (rankings 24h), bounds spend with a
+  // representative subset (fullScan=true for the full grid + paid AEO scan), and
+  // marks a failed lens 'unavailable' (never empty-as-no-competitors).
+  // Client ownership is already enforced by the top-level AUTH gate (a logged-in
+  // user can only operate on a client_id inside their agency; AEO writes are
+  // client_id-scoped — V4). Rides verifySession.
+  if (action === 'competitor_intel') {
+    const { client_id, agency_id, services, cities, state, fullScan, gridSize } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    // V5 input validation.
+    if (!Array.isArray(services) || services.filter((x: any) => typeof x === 'string' && x.trim()).length === 0) {
+      return NextResponse.json({ error: 'services[] required' }, { status: 400 })
+    }
+    if (!Array.isArray(cities) || cities.filter((x: any) => typeof x === 'string' && x.trim()).length === 0) {
+      return NextResponse.json({ error: 'cities[] required' }, { status: 400 })
+    }
+    if (typeof state !== 'string' || !state.trim()) {
+      return NextResponse.json({ error: 'state required' }, { status: 400 })
+    }
+    const cleanServices = (services as any[]).map((x) => String(x).trim()).filter(Boolean)
+    // Census-validate cities — drop any not present in the state's geo data (V5).
+    const cleanCities = await (async () => {
+      try {
+        const { getPlacesForState } = await import('@/lib/geoLookup')
+        const places = await getPlacesForState(state.trim())
+        const known = new Set((places.data || []).map((p) => p.name.toLowerCase().trim()))
+        const requested = (cities as any[]).map((x) => String(x).trim()).filter(Boolean)
+        const kept = requested.filter((c) => known.has(c.toLowerCase()))
+        // If Census knows the state but none matched, fall back to the requested
+        // list rather than silently scanning nothing (operator typed real cities).
+        return kept.length ? kept : requested
+      } catch (e: any) {
+        console.warn('[competitor_intel] city validation skipped:', e?.message || e)
+        return (cities as any[]).map((x) => String(x).trim()).filter(Boolean)
+      }
+    })()
+    const grid = typeof gridSize === 'number' ? Math.min(Math.max(1, Math.floor(gridSize)), 7) : undefined
+
+    try {
+      const result = await aggregateCompetitorIntel(s, {
+        agencyId: String(agency_id),
+        clientId: String(client_id),
+        services: cleanServices,
+        cities: cleanCities,
+        state: state.trim(),
+        fullScan: !!fullScan,
+        ...(grid ? { gridSize: grid } : {}),
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      console.error('[competitor_intel] error', e?.message || e)
+      return NextResponse.json({ error: 'competitor_intel_failed', detail: e?.message || String(e) }, { status: 500 })
     }
   }
 
