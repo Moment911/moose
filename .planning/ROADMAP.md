@@ -259,7 +259,8 @@ Plans:
 ### Phase 12: Comprehensive scan intelligence and competitor-driven AI SEO GEO AEO strategy
 
 **Goal:** Upgrade the front half of the Phase 11 guided flow from "capture inventory + infer services" into a full intelligence + strategy engine: the initial scan produces a comprehensive, editable list of keywords/phrases/services/offerings from every page; the user confirms + gets synergistic recommendations + can add their own; then a competitor pass (organic top 3-5 + AEO + GEO) feeds an extensive opportunity list and the semantic Koto tool produces a fast-rank AI-SEO/GEO/AEO strategy. Heavy assembly over existing engines + a few new pieces.
-**Requirements**: TBD (derive during plan)
+**Requirements**: SCAN-01, SCAN-02, SCAN-03, SCAN-04, SCAN-05, SCAN-06, COMP-01, COMP-02, COMP-03, OPP-01, OPP-02, STRAT-01, STRAT-02, UI-01
+**Plans:** 6 plans
 **Depends on:** Phase 11 (extends the guided spine, baseline, ServiceChips, scoreServiceCityGrid)
 
 **⚠ Runtime dependency:** The Claude-powered steps (comprehensive extractor, synergy engine, AEO probes, semantic strategy) require a FUNDED `ANTHROPIC_API_KEY`. As of 2026-06, both the Vercel prod key and a user-supplied key test as `$0 credit balance` — code builds fine, but these steps return empty until a funded key is in place.
@@ -276,4 +277,9 @@ Scope (7 workstreams):
 Reuse: `discoverAllUrls`, `pageContentExtractor`, `serviceInference`, `voiceOnboardingAutoSetup`, `ServiceChips`, `analyze_competitors`, `dfs_compare`, `grid-scan`, `aeoVisibilityEngine`, `content-gap`, `keyword-gap`, `pageGapEngine`, `scoreServiceCityGrid`, `localStrategistEngine`, `planBuilderEngine`, `semanticAgents`, `hubBuilder`. New: unified four-category extractor, synergy engine, multi-category chips UI, competitor-intel aggregator, and the assembled flow wiring. Data-integrity standard applies; migrations as manual-apply files (or Management API); ships to main.
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 12 to break down)
+- [ ] 12-01-PLAN.md — Unified four-category extractor (Haiku + heuristic fallback) + saveConfirmedField generalization (WS1)
+- [ ] 12-02-PLAN.md — Multi-category editable chips (CategoryChips) + manual entry (WS2+WS4)
+- [ ] 12-03-PLAN.md — Synergy engine (Sonnet, graceful-degrade) + accept-able suggestion chips (WS3)
+- [ ] 12-04-PLAN.md — Competitor-intel aggregator: organic + AEO + GEO with identity reconciliation + provenance (WS5)
+- [ ] 12-05-PLAN.md — Extensive opportunity list: competitor keywords into the gap grid (WS6)
+- [ ] 12-06-PLAN.md — Semantic fast-rank strategy engine + new guided strategy step + steps 2/3/4 enrichment (WS7+UI)
