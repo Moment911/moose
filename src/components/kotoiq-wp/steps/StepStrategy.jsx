@@ -132,7 +132,7 @@ export default function StepStrategy({
 
   return (
     <StepShell
-      stepNumber={6}
+      stepNumber={5}
       title="Your strategy"
       accent="strategy"
       status={status}

@@ -57,7 +57,7 @@ export default function StepLiveCited({ clientId, agencyId }) {
 
   return (
     <StepShell
-      stepNumber={6}
+      stepNumber={7}
       title="Live + cited"
       accent="cited"
       status={status}
@@ -114,10 +114,12 @@ export default function StepLiveCited({ clientId, agencyId }) {
             in the AEO visibility view.
           </ActionCallout>
 
+          {/* Opens in a new tab so the guided flow stays put (no eject). */}
           <CtaButton
             label="Open AEO visibility"
             icon={ExternalLink}
             href="/kotoiq-wp?shell=intel&sub=aeo"
+            target="_blank"
             pulse
           />
         </>

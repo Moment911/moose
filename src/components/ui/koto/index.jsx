@@ -358,7 +358,7 @@ export function ErrorState({ title = 'Something went wrong', children, retry }) 
 }
 
 // ── Primary CTA Button (shared utility) ────────────────────────────────────
-export function CtaButton({ label, onClick, href, icon: Icon, pulse = false, disabled = false, style = {} }) {
+export function CtaButton({ label, onClick, href, target, icon: Icon, pulse = false, disabled = false, style = {} }) {
   const props = {
     onClick: disabled ? undefined : onClick,
     style: {
@@ -388,7 +388,12 @@ export function CtaButton({ label, onClick, href, icon: Icon, pulse = false, dis
     },
   }
   return href ? (
-    <a href={href} {...props}>{Icon && <Icon size={16} />}{label}</a>
+    <a
+      href={href}
+      target={target}
+      rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+      {...props}
+    >{Icon && <Icon size={16} />}{label}</a>
   ) : (
     <button {...props} type="button">{Icon && <Icon size={16} />}{label}</button>
   )
