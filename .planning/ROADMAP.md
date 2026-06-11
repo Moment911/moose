@@ -260,7 +260,7 @@ Plans:
 
 **Goal:** Upgrade the front half of the Phase 11 guided flow from "capture inventory + infer services" into a full intelligence + strategy engine: the initial scan produces a comprehensive, editable list of keywords/phrases/services/offerings from every page; the user confirms + gets synergistic recommendations + can add their own; then a competitor pass (organic top 3-5 + AEO + GEO) feeds an extensive opportunity list and the semantic Koto tool produces a fast-rank AI-SEO/GEO/AEO strategy. Heavy assembly over existing engines + a few new pieces.
 **Requirements**: SCAN-01, SCAN-02, SCAN-03, SCAN-04, SCAN-05, SCAN-06, COMP-01, COMP-02, COMP-03, OPP-01, OPP-02, STRAT-01, STRAT-02, UI-01
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 **Depends on:** Phase 11 (extends the guided spine, baseline, ServiceChips, scoreServiceCityGrid)
 
 **⚠ Runtime dependency:** The Claude-powered steps (comprehensive extractor, synergy engine, AEO probes, semantic strategy) require a FUNDED `ANTHROPIC_API_KEY`. As of 2026-06, both the Vercel prod key and a user-supplied key test as `$0 credit balance` — code builds fine, but these steps return empty until a funded key is in place.
@@ -281,5 +281,5 @@ Plans:
 - [x] 12-02-PLAN.md — Multi-category editable chips (CategoryChips) + manual entry (WS2+WS4)
 - [ ] 12-03-PLAN.md — Synergy engine (Sonnet, graceful-degrade) + accept-able suggestion chips (WS3)
 - [x] 12-04-PLAN.md — Competitor-intel aggregator: organic + AEO + GEO with identity reconciliation + provenance (WS5)
-- [ ] 12-05-PLAN.md — Extensive opportunity list: competitor keywords into the gap grid (WS6)
+- [x] 12-05-PLAN.md — Extensive opportunity list: competitor keywords into the gap grid (WS6)
 - [ ] 12-06-PLAN.md — Semantic fast-rank strategy engine + new guided strategy step + steps 2/3/4 enrichment (WS7+UI)
