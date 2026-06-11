@@ -196,7 +196,7 @@ export async function buildPlan(
   const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
   const msg = await ai.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8000,
+    max_tokens: 16000,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }],
   })
