@@ -131,6 +131,7 @@ import { extractComprehensive, type ExtractorPageInput } from '@/lib/kotoiq/comp
 import { recommendSynergies } from '@/lib/kotoiq/synergyEngine'
 import { aggregateCompetitorIntel } from '@/lib/kotoiq/competitorIntel'
 import { buildOpportunityList } from '@/lib/kotoiq/opportunityList'
+import { recommendFastRankStrategy } from '@/lib/kotoiq/fastRankStrategyEngine'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
 import { verifySession } from '@/lib/apiAuth'
@@ -7207,6 +7208,125 @@ Return ONLY valid JSON:
     } catch (e: any) {
       console.error('[opportunity_list] error', e?.message || e)
       return NextResponse.json({ ok: false, error: e?.message || 'opportunity_list failed' }, { status: 500 })
+    }
+  }
+
+  // recommend_strategy (WS7): the capstone. Composes recommendLocalStrategy +
+  // runQueryGapAnalyzer + buildPlan + hubBuilder over the guided flow's confirmed
+  // inputs (12-01 fields.services/offerings) + competitor intel (12-04
+  // fields.competitor_intel) + the extensive opportunity list (12-05) → ONE
+  // fast-rank AI-SEO/GEO/AEO plan. The engine KEY-GUARDS first: recommendLocalStrategy
+  // (localStrategistEngine:188) + buildPlan (planBuilderEngine:196) THROW on a missing
+  // key, so when ANTHROPIC_API_KEY is absent/unfunded the engine returns
+  // { ok:false, reason:'ai_unavailable' } WITHOUT invoking them → ai_available:false
+  // drives the visible "AI unavailable" banner (T-12-21/22). Client ownership is
+  // enforced by the top-level AUTH gate. Rides verifySession. Cities Census-filtered (V5).
+  if (action === 'recommend_strategy') {
+    const { client_id, agency_id, cities, state } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients')
+      .select('agency_id, name, industry, primary_service, state, onboarding_answers')
+      .eq('id', client_id).maybeSingle()
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+
+    const resolvedAgencyId = agency_id || client.agency_id
+    if (!resolvedAgencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+
+    // Read confirmed services + offerings + competitor_intel from the guided profile
+    // (12-01 save_field → fields[category] {value, source_type, ...} record shape).
+    const { data: profile } = await s.from('kotoiq_client_profile')
+      .select('fields').eq('client_id', client_id).maybeSingle()
+    const fields = (profile?.fields || {}) as {
+      services?: Array<{ value?: string }>
+      offerings?: Array<{ value?: string }>
+      competitor_intel?: unknown
+    }
+    const services = Array.isArray(fields.services)
+      ? fields.services.map(x => (x?.value || '').trim()).filter(Boolean)
+      : []
+    const offerings = Array.isArray(fields.offerings)
+      ? fields.offerings.map(x => (x?.value || '').trim()).filter(Boolean)
+      : []
+    if (services.length === 0 && offerings.length === 0) {
+      return NextResponse.json({
+        ok: false,
+        ai_available: true,
+        error: 'No confirmed services/offerings — confirm them in the guided flow first.',
+      }, { status: 400 })
+    }
+
+    // V5: state required; cities Census-filtered (same pattern as opportunity_list).
+    const oa = (client.onboarding_answers as Record<string, any> | null) || {}
+    const resolvedState = (typeof state === 'string' && state.trim())
+      ? state.trim()
+      : (client.state || oa.state || '')
+    if (!resolvedState) {
+      return NextResponse.json({ ok: false, ai_available: true, error: 'Client state required for city lookup' }, { status: 400 })
+    }
+    let cleanCities: string[] = []
+    if (Array.isArray(cities) && cities.length) {
+      cleanCities = await (async () => {
+        try {
+          const { getPlacesForState } = await import('@/lib/geoLookup')
+          const places = await getPlacesForState(resolvedState)
+          const known = new Set((places.data || []).map((p) => p.name.toLowerCase().trim()))
+          const requested = (cities as any[]).map((x) => String(x).trim()).filter(Boolean)
+          const kept = requested.filter((c) => known.has(c.toLowerCase()))
+          return kept.length ? kept : requested
+        } catch (e: any) {
+          console.warn('[recommend_strategy] city validation skipped:', e?.message || e)
+          return (cities as any[]).map((x) => String(x).trim()).filter(Boolean)
+        }
+      })()
+    }
+    if (cleanCities.length === 0) {
+      return NextResponse.json({ ok: false, ai_available: true, error: 'At least one target city required' }, { status: 400 })
+    }
+
+    // Run the extensive opportunity list (12-05) so the strategy is seeded with the
+    // competitor-driven gap keywords. Best-effort — a missing/own-only list still works.
+    const intel = (fields.competitor_intel || null) as unknown
+    let opportunityList: unknown = null
+    try {
+      opportunityList = await buildOpportunityList({
+        agencyId: String(resolvedAgencyId),
+        clientId: String(client_id),
+        services,
+        cities: cleanCities,
+        state: resolvedState,
+        intel: (intel && typeof intel === 'object') ? (intel as any) : null,
+      })
+    } catch (e: any) {
+      console.warn('[recommend_strategy] opportunity_list seed skipped:', e?.message || e)
+    }
+
+    const businessName = (client.name || oa.business_name || oa.company_name || '') || undefined
+
+    try {
+      const result = await recommendFastRankStrategy({
+        agencyId: String(resolvedAgencyId),
+        clientId: String(client_id),
+        businessName,
+        services,
+        offerings,
+        cities: cleanCities,
+        state: resolvedState,
+        competitorIntel: intel,
+        opportunityList,
+      }, s)
+      return NextResponse.json({
+        ok: result.ok,
+        // false when reason==='ai_unavailable' — drives the UI banner.
+        ai_available: result.ai_available,
+        reason: result.reason,
+        strategy: result.strategy,
+        competitor_intel_available: !!(intel && typeof intel === 'object'),
+        detail: result.detail,
+      })
+    } catch (e: any) {
+      console.error('[recommend_strategy] error', e?.message || e)
+      return NextResponse.json({ ok: false, ai_available: false, error: 'recommend_strategy_failed', detail: e?.message || String(e) }, { status: 500 })
     }
   }
 
