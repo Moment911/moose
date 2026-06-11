@@ -229,7 +229,8 @@ export function mergeServicePhrases(services: string[], competitorPhrases: strin
 // ─────────────────────────────────────────────────────────────
 
 import 'server-only'
-import type { ScoredCell, VerifiedDataSource } from '../builder/scoreServiceCityGrid'
+import type { ScoredCell } from '../builder/scoreServiceCityGrid'
+import type { VerifiedDataSource } from '../dataIntegrity'
 
 export interface BuildOpportunityListInput {
   agencyId: string

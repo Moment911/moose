@@ -129,6 +129,7 @@ import { scoreServiceCityGrid } from '@/lib/builder/scoreServiceCityGrid'
 import { inferServices, saveConfirmedServices, saveConfirmedField, type BaselinePageInput, type ConfirmedServiceInput, type FieldCategory } from '@/lib/kotoiq/serviceInference'
 import { extractComprehensive, type ExtractorPageInput } from '@/lib/kotoiq/comprehensiveExtractor'
 import { aggregateCompetitorIntel } from '@/lib/kotoiq/competitorIntel'
+import { buildOpportunityList } from '@/lib/kotoiq/opportunityList'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
 import { verifySession } from '@/lib/apiAuth'
@@ -7054,6 +7055,100 @@ Return ONLY valid JSON:
     } catch (e: any) {
       console.error('[competitor_intel] error', e?.message || e)
       return NextResponse.json({ error: 'competitor_intel_failed', detail: e?.message || String(e) }, { status: 500 })
+    }
+  }
+
+  // opportunity_list (WS6): the EXTENSIVE ranked opportunity list. Reads the
+  // client's confirmed services (fields.services[]) + WS5 competitor_intel
+  // (fields.competitor_intel), feeds competitor keywords/pages through the reused
+  // scoreServiceCityGrid as extra seed phrases → ONE ranked, bucketed,
+  // provenance-preserving list (no parallel list, no Sonnet content-gap/keyword-gap
+  // routes — research A5). Degrades gracefully to the own-only grid when WS5 intel
+  // is absent. Client ownership is enforced by the top-level AUTH gate. Rides
+  // verifySession. Cities are Census-filtered (V5).
+  if (action === 'opportunity_list') {
+    const { client_id, agency_id, cities, state } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients')
+      .select('agency_id, state, onboarding_answers')
+      .eq('id', client_id).maybeSingle()
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+
+    const resolvedAgencyId = agency_id || client.agency_id
+    if (!resolvedAgencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+
+    // Read confirmed services + competitor_intel from the guided-flow profile.
+    const { data: profile } = await s.from('kotoiq_client_profile')
+      .select('fields').eq('client_id', client_id).maybeSingle()
+    const fields = (profile?.fields || {}) as {
+      services?: Array<{ value?: string }>
+      competitor_intel?: unknown
+    }
+    const services = Array.isArray(fields.services)
+      ? fields.services.map(x => (x?.value || '').trim()).filter(Boolean)
+      : []
+    if (services.length === 0) {
+      return NextResponse.json({
+        ok: false,
+        error: 'No confirmed services for client — confirm services in the guided flow first.',
+      }, { status: 400 })
+    }
+
+    // V5: state required for city lookup; cities Census-filtered.
+    const resolvedState = (typeof state === 'string' && state.trim())
+      ? state.trim()
+      : (client.state || client.onboarding_answers?.state || '')
+    if (!resolvedState) {
+      return NextResponse.json({ ok: false, error: 'Client state required for city lookup' }, { status: 400 })
+    }
+    let cleanCities: string[] | undefined
+    if (Array.isArray(cities) && cities.length) {
+      cleanCities = await (async () => {
+        try {
+          const { getPlacesForState } = await import('@/lib/geoLookup')
+          const places = await getPlacesForState(resolvedState)
+          const known = new Set((places.data || []).map((p) => p.name.toLowerCase().trim()))
+          const requested = (cities as any[]).map((x) => String(x).trim()).filter(Boolean)
+          const kept = requested.filter((c) => known.has(c.toLowerCase()))
+          // If Census knows the state but none matched, fall back to the requested
+          // list rather than silently scoping to nothing (operator typed real cities).
+          return kept.length ? kept : requested
+        } catch (e: any) {
+          console.warn('[opportunity_list] city validation skipped:', e?.message || e)
+          return (cities as any[]).map((x) => String(x).trim()).filter(Boolean)
+        }
+      })()
+    }
+
+    // Graceful: competitor_intel may be absent (WS5 not run yet) — then the list
+    // is the own-only grid, flagged so the UI can prompt running competitor intel.
+    const intel = (fields.competitor_intel || null) as any
+    const hasIntel = !!intel && typeof intel === 'object'
+
+    try {
+      const result = await buildOpportunityList({
+        agencyId: String(resolvedAgencyId),
+        clientId: String(client_id),
+        services,
+        cities: cleanCities || [],
+        state: resolvedState,
+        intel: hasIntel ? intel : null,
+      })
+      return NextResponse.json({
+        ok: true,
+        items: result.items,
+        buckets: result.buckets,
+        source_counts: result.source_counts,
+        seeds: result.seeds,
+        sources: result.sources,
+        headline: result.headline,
+        competitor_intel_available: hasIntel,
+        ...(hasIntel ? {} : { note: 'Competitor intel not run yet — showing your own service grid. Run competitor_intel for the extensive competitor-driven list.' }),
+      })
+    } catch (e: any) {
+      console.error('[opportunity_list] error', e?.message || e)
+      return NextResponse.json({ ok: false, error: e?.message || 'opportunity_list failed' }, { status: 500 })
     }
   }
 
