@@ -195,7 +195,7 @@ export async function buildPlan(
 
   const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
   const msg = await ai.messages.create({
-    model: 'claude-sonnet-4-6-20250627',
+    model: 'claude-sonnet-4-6',
     max_tokens: 8000,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }],
@@ -227,7 +227,7 @@ export async function buildPlan(
   })
 
   const meta = {
-    model: 'claude-sonnet-4-6-20250627',
+    model: 'claude-sonnet-4-6',
     cost_usd: Math.round(cost_usd * 10000) / 10000,
     generated_at: new Date().toISOString(),
   }

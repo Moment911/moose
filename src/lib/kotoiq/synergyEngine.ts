@@ -12,7 +12,7 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 // expand what they target (feeding 12-05/12-06).
 //
 // Shape MIRRORS localStrategistEngine.recommendLocalStrategy (Sonnet
-// 'claude-sonnet-4-6-20250627', strict-JSON output, fence-strip + try/catch parse,
+// 'claude-sonnet-4-6', strict-JSON output, fence-strip + try/catch parse,
 // logTokenUsage feature/model + $3-in/$15-out cost math).
 //
 // Cost/availability contract (CRITICAL — COPIES serviceInference.ts:216, NOT the
@@ -33,7 +33,7 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 // changes; no new tables.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SONNET_MODEL = 'claude-sonnet-4-6-20250627'
+const SONNET_MODEL = 'claude-sonnet-4-6'
 const CLAUDE_TIMEOUT_MS = 30_000
 const CLAUDE_MAX_OUTPUT = 2000
 const PER_LIST_CAP = 24
