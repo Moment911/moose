@@ -70,6 +70,58 @@ export default function GuidedSpine({ clientId, agencyId }) {
   const goNext = useCallback(() => setCurrent(c => Math.min(c + 1, STEPS.length - 1)), [])
   const goTo = useCallback((i) => setCurrent(i), [])
 
+  // ── Durable session (WS7 seamless rework) ─────────────────────────────────
+  // Restore the step position + targeting (state/cities) on mount so back /
+  // forward / refresh never loses where you were. `hydrated` gates the autosave
+  // so we don't clobber the persisted session with the initial empty state
+  // before the restore lands.
+  const hydrated = useRef(false)
+  useEffect(() => {
+    hydrated.current = false
+    if (!clientId || !agencyId) return undefined
+    let cancelled = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/kotoiq', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_guided_session', client_id: clientId, agency_id: agencyId }),
+        })
+        const d = await r.json()
+        if (cancelled) return
+        const sess = d?.session
+        if (sess && typeof sess === 'object') {
+          if (typeof sess.current_step === 'number') {
+            setCurrent(Math.max(0, Math.min(sess.current_step, STEPS.length - 1)))
+          }
+          if (typeof sess.state === 'string') setSelectedState(sess.state)
+          if (Array.isArray(sess.cities)) setSelectedCities(new Set(sess.cities))
+        }
+      } catch {
+        // Non-blocking — a failed restore just starts at step 1.
+      } finally {
+        if (!cancelled) hydrated.current = true
+      }
+    })()
+    return () => { cancelled = true }
+  }, [clientId, agencyId])
+
+  // Autosave the session whenever the step or targeting changes (post-hydration).
+  // Debounced so dragging through cities doesn't hammer the endpoint.
+  useEffect(() => {
+    if (!hydrated.current || !clientId || !agencyId) return undefined
+    const id = setTimeout(() => {
+      fetch('/api/kotoiq', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_guided_session',
+          client_id: clientId, agency_id: agencyId,
+          session: { current_step: current, state: selectedState, cities: Array.from(selectedCities || []) },
+        }),
+      }).catch(() => {})
+    }, 600)
+    return () => clearTimeout(id)
+  }, [current, selectedState, selectedCities, clientId, agencyId])
+
   // ── Live scan status (run_all_status polling) ─────────────────────────────
   // Owned here so the stepper rail can mark step 2 "running" while the
   // background audit chain is mid-flight, no matter which step is in view.

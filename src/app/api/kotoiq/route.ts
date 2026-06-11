@@ -132,6 +132,11 @@ import { recommendSynergies } from '@/lib/kotoiq/synergyEngine'
 import { aggregateCompetitorIntel } from '@/lib/kotoiq/competitorIntel'
 import { buildOpportunityList } from '@/lib/kotoiq/opportunityList'
 import { recommendFastRankStrategy } from '@/lib/kotoiq/fastRankStrategyEngine'
+import {
+  saveGuidedSession, getGuidedSession,
+  saveStrategyBlob, getStrategyBlob,
+  saveOpportunityBlob, getOpportunityBlob,
+} from '@/lib/kotoiq/guidedSession'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
 import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
 import { verifySession } from '@/lib/apiAuth'
@@ -6958,6 +6963,82 @@ Return ONLY valid JSON:
     }
   }
 
+  // ── Guided-flow session (WS7 seamless rework) ──────────────────────────────
+  // Durable nav + targeting so the guided spine restores exactly where you were
+  // on back/forward/refresh — no data loss. Persists to the existing
+  // kotoiq_client_profile.fields jsonb under reserved keys (no migration).
+  if (action === 'save_guided_session') {
+    const { client_id, agency_id, session } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    try {
+      const result = await saveGuidedSession(agency_id, client_id, session || {})
+      if (!result.ok) return NextResponse.json({ error: 'save_guided_session_failed', detail: result.detail }, { status: 500 })
+      return NextResponse.json({ ok: true })
+    } catch (e: any) {
+      console.error('[save_guided_session] error', e?.message || e)
+      return NextResponse.json({ error: 'save_guided_session_failed' }, { status: 500 })
+    }
+  }
+
+  if (action === 'get_guided_session') {
+    const { client_id, agency_id } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    try {
+      const session = await getGuidedSession(agency_id, client_id)
+      return NextResponse.json({ ok: true, session })
+    } catch (e: any) {
+      console.error('[get_guided_session] error', e?.message || e)
+      return NextResponse.json({ error: 'get_guided_session_failed' }, { status: 500 })
+    }
+  }
+
+  // get_strategy: rehydrate the last generated fast-rank strategy so StepStrategy
+  // shows the full plan on re-entry instead of the "Build my strategy" button.
+  if (action === 'get_strategy') {
+    const { client_id, agency_id } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    try {
+      const blob = await getStrategyBlob(agency_id, client_id) as
+        { strategy?: unknown; competitor_intel_available?: boolean; saved_at?: string } | null
+      return NextResponse.json({
+        ok: true,
+        strategy: blob?.strategy ?? null,
+        competitor_intel_available: !!blob?.competitor_intel_available,
+        saved_at: blob?.saved_at ?? null,
+      })
+    } catch (e: any) {
+      console.error('[get_strategy] error', e?.message || e)
+      return NextResponse.json({ error: 'get_strategy_failed' }, { status: 500 })
+    }
+  }
+
+  // get_opportunity: rehydrate the last opportunity list so StepGaps shows it on
+  // re-entry instead of re-running the (paid) competitor-driven pass.
+  if (action === 'get_opportunity') {
+    const { client_id, agency_id } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    try {
+      const blob = await getOpportunityBlob(agency_id, client_id) as
+        { opportunity?: unknown; saved_at?: string } | null
+      return NextResponse.json({
+        ok: true,
+        opportunity: blob?.opportunity ?? null,
+        saved_at: blob?.saved_at ?? null,
+      })
+    } catch (e: any) {
+      console.error('[get_opportunity] error', e?.message || e)
+      return NextResponse.json({ error: 'get_opportunity_failed' }, { status: 500 })
+    }
+  }
+
   // recommend_synergies: Sonnet pass over the client's CONFIRMED services/offerings
   // + industry/business context → complementary/synergistic services + products as
   // ACCEPT-able suggestions (Phase 12 / WS3). Distinct from confirmed — the chips
@@ -7194,6 +7275,20 @@ Return ONLY valid JSON:
         state: resolvedState,
         intel: hasIntel ? intel : null,
       })
+      // Persist so StepGaps rehydrates the list on re-entry instead of re-running.
+      try {
+        await saveOpportunityBlob(String(resolvedAgencyId), String(client_id), {
+          items: result.items,
+          buckets: result.buckets,
+          source_counts: result.source_counts,
+          seeds: result.seeds,
+          sources: result.sources,
+          headline: result.headline,
+          competitor_intel_available: hasIntel,
+        })
+      } catch (e: any) {
+        console.warn('[opportunity_list] persist skipped:', e?.message || e)
+      }
       return NextResponse.json({
         ok: true,
         items: result.items,
@@ -7315,13 +7410,26 @@ Return ONLY valid JSON:
         competitorIntel: intel,
         opportunityList,
       }, s)
+      const competitorIntelAvailable = !!(intel && typeof intel === 'object')
+      // Persist the strategy blob so StepStrategy rehydrates the full plan on
+      // re-entry instead of re-showing the (paid) "Build my strategy" button.
+      if (result.ok && result.strategy) {
+        try {
+          await saveStrategyBlob(String(resolvedAgencyId), String(client_id), {
+            strategy: result.strategy,
+            competitor_intel_available: competitorIntelAvailable,
+          })
+        } catch (e: any) {
+          console.warn('[recommend_strategy] strategy persist skipped:', e?.message || e)
+        }
+      }
       return NextResponse.json({
         ok: result.ok,
         // false when reason==='ai_unavailable' — drives the UI banner.
         ai_available: result.ai_available,
         reason: result.reason,
         strategy: result.strategy,
-        competitor_intel_available: !!(intel && typeof intel === 'object'),
+        competitor_intel_available: competitorIntelAvailable,
         detail: result.detail,
       })
     } catch (e: any) {

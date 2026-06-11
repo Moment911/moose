@@ -15,7 +15,7 @@
 // Built on the DESIGN.md koto/* primitives + tokens (navy/cream — NOT the
 // deferred blazly reskin).
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Sparkles, ArrowRight, Network, Layers, Link2, Code2, MessageSquareQuote, ListOrdered,
 } from 'lucide-react'
@@ -63,6 +63,29 @@ export default function StepStrategy({
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState(null)  // { ok, ai_available, reason, strategy, competitor_intel_available }
   const [error, setError] = useState(null)
+  // Rehydrate the last generated strategy on mount so re-entering this step
+  // shows the full plan instead of the (paid) "Build my strategy" button.
+  const [hydrating, setHydrating] = useState(true)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/kotoiq', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_strategy', client_id: clientId, agency_id: agencyId }),
+        })
+        const d = await r.json()
+        if (!cancelled && d?.strategy) {
+          setResult({ ok: true, ai_available: true, strategy: d.strategy, competitor_intel_available: d.competitor_intel_available })
+        }
+      } catch {
+        // Non-blocking — fall back to the run button.
+      } finally {
+        if (!cancelled) setHydrating(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [clientId, agencyId])
 
   // ONE primary action: run the fast-rank strategy synthesis (button-triggered,
   // never on mount — controls Sonnet spend, T-12-24).
@@ -126,8 +149,14 @@ export default function StepStrategy({
         </>
       }
     >
+      {/* Brief rehydration shimmer so we don't flash the Build button before the
+          saved strategy (if any) loads back in. */}
+      {hydrating && !strategy && !running && (
+        <Skeleton height={56} width="100%" radius={t.rTile} />
+      )}
+
       {/* Run trigger (button-triggered — never auto-runs the Sonnet pass). */}
-      {!strategy && !aiUnavailable && (
+      {!hydrating && !strategy && !aiUnavailable && (
         <CtaButton
           label={running ? 'Building your strategy…' : 'Build my fast-rank strategy'}
           icon={Sparkles}

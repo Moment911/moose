@@ -11,7 +11,7 @@
 // into a strategy"). When competitor intel hasn't been run yet the list degrades
 // to the own-only grid with a visible prompt to run step 3 (never empty-as-nothing).
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Target, ArrowRight, MapPinOff, Tag, Quote, Wrench, Package } from 'lucide-react'
 import { t } from '../../../styles/koto-tokens'
 import {
@@ -57,6 +57,27 @@ export default function StepGaps({
     setConfirmedServices(services)
     setServicesReady(true)
   }, [setConfirmedServices])
+
+  // Rehydrate the last opportunity list on mount so re-entering this step shows
+  // it instead of re-running the (paid) competitor-driven pass.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/kotoiq', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_opportunity', client_id: clientId, agency_id: agencyId }),
+        })
+        const d = await r.json()
+        if (!cancelled && d?.opportunity && Array.isArray(d.opportunity.items)) {
+          setResult(d.opportunity)
+        }
+      } catch {
+        // Non-blocking — fall back to the build button.
+      }
+    })()
+    return () => { cancelled = true }
+  }, [clientId, agencyId])
 
   // ONE primary action: build the EXTENSIVE competitor-driven opportunity list
   // (12-05) over the confirmed services + cities + competitor intel (step 3).
