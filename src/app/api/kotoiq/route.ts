@@ -128,6 +128,7 @@ import { analyzePageGaps, saveSuggestions } from '@/lib/builder/pageGapEngine'
 import { scoreServiceCityGrid } from '@/lib/builder/scoreServiceCityGrid'
 import { inferServices, saveConfirmedServices, saveConfirmedField, type BaselinePageInput, type ConfirmedServiceInput, type FieldCategory } from '@/lib/kotoiq/serviceInference'
 import { extractComprehensive, type ExtractorPageInput } from '@/lib/kotoiq/comprehensiveExtractor'
+import { recommendSynergies } from '@/lib/kotoiq/synergyEngine'
 import { aggregateCompetitorIntel } from '@/lib/kotoiq/competitorIntel'
 import { buildOpportunityList } from '@/lib/kotoiq/opportunityList'
 import { getPageKPIs, type PageKPIs } from '@/lib/builder/kpiRollup'
@@ -6953,6 +6954,63 @@ Return ONLY valid JSON:
     } catch (e: any) {
       console.error('[save_field] error', e?.message || e)
       return NextResponse.json({ error: 'save_field_failed' }, { status: 500 })
+    }
+  }
+
+  // recommend_synergies: Sonnet pass over the client's CONFIRMED services/offerings
+  // + industry/business context → complementary/synergistic services + products as
+  // ACCEPT-able suggestions (Phase 12 / WS3). Distinct from confirmed — the chips
+  // UI presents them in a separate visual state; only Accept promotes one via
+  // save_field as user_added. Returns ai_available (false when the Sonnet key is
+  // absent/unfunded) so the UI shows the "AI unavailable" banner. Rides the route's
+  // existing verifySession gate. Suggestions are NOT auto-persisted.
+  if (action === 'recommend_synergies') {
+    const { client_id, agency_id } = body
+    if (!client_id || !agency_id) {
+      return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    }
+    try {
+      // Confirmed services/offerings come from kotoiq_client_profile.fields[category]
+      // (written by 12-01 save_field) — the {value, source_type, ...} record shape.
+      const { data: profile } = await s.from('kotoiq_client_profile')
+        .select('fields').eq('client_id', client_id).maybeSingle()
+      const fields = (profile?.fields as { services?: Array<{ value?: string }>; offerings?: Array<{ value?: string }> } | null) || null
+      const services = Array.isArray(fields?.services)
+        ? fields!.services.map(x => (x?.value || '').trim()).filter(Boolean)
+        : []
+      const offerings = Array.isArray(fields?.offerings)
+        ? fields!.offerings.map(x => (x?.value || '').trim()).filter(Boolean)
+        : []
+
+      // Resolve industry + business_name across the clients dedicated cols +
+      // onboarding_answers (same dual-store resolution the onboarding pick() uses).
+      const { data: client } = await s.from('clients')
+        .select('name, industry, primary_service, onboarding_answers')
+        .eq('id', client_id).maybeSingle()
+      const oa = (client?.onboarding_answers as Record<string, any> | null) || {}
+      const industry = (client?.industry || oa.industry || client?.primary_service || oa.primary_service || '') || undefined
+      const businessName = (client?.name || oa.business_name || oa.company_name || '') || undefined
+
+      const result = await recommendSynergies({
+        agencyId: agency_id,
+        clientId: client_id,
+        services,
+        offerings,
+        industry,
+        businessName,
+      })
+      return NextResponse.json({
+        ok: result.ok,
+        reason: result.reason,
+        // false when reason==='ai_unavailable' — drives the UI banner.
+        ai_available: result.ai_available,
+        synergistic_services: result.synergistic_services,
+        complementary_products: result.complementary_products,
+        detail: result.detail,
+      })
+    } catch (e: any) {
+      console.error('[recommend_synergies] error', e?.message || e)
+      return NextResponse.json({ error: 'recommend_synergies_failed' }, { status: 500 })
     }
   }
 
