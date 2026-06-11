@@ -26,3 +26,10 @@ Out-of-scope discoveries logged during execution (NOT fixed — unrelated to the
   - `tests/trainer/phase1/intakeCompleteness.test.ts` (1) + `tests/trainer/phase2/prompts.test.ts` (6) + `generateRoute.test.ts` (3) — unrelated fitness-trainer module (logged under 12-02).
   - 12-05-relevant tests green: `opportunityList.test.ts` (4/4); `npx tsc --noEmit` clean.
 - [vercel-functions/ai-sdk] route.ts (lines 3, 137) pre-existing `@anthropic-ai/sdk` direct usage re-flagged on edit. Same separate architectural initiative noted under 12-04; not introduced by 12-05's opportunity_list action (which makes no Claude call).
+
+## 12-03 (out of scope — same pre-existing failures)
+- Full `npx vitest run` at 12-03 time shows the SAME 12 failures across 5 files, none touched by 12-03 (this plan added `src/lib/kotoiq/synergyEngine.ts` + its test, the `recommend_synergies` route action, and `src/components/kotoiq/SynergySuggestions.jsx`):
+  - `tests/kotoiq/phase8/profileGBPOAuth.test.ts` (1) + `profileGBPPlaces.test.ts` (1) — the `9becf78` env-var dual-name drift (logged under 12-01/12-04).
+  - `tests/trainer/phase1/intakeCompleteness.test.ts` (1) + `tests/trainer/phase2/prompts.test.ts` (6) + `generateRoute.test.ts` (3) — unrelated fitness-trainer module (logged under 12-02).
+  - 12-03-relevant tests green: `synergyEngine.test.ts` (9/9), `comprehensiveExtractor.test.ts` (10/10), `serviceInference.test.ts` (6/6); `npx tsc --noEmit` clean.
+- [vercel-functions/ai-sdk] route.ts (lines 3, 138) pre-existing `@anthropic-ai/sdk` direct usage re-flagged on edit. The synergyEngine DELIBERATELY mirrors localStrategistEngine's direct-SDK + `logTokenUsage` cost-tracking pattern (mandated by CLAUDE.md/12-RESEARCH); migrating to the Vercel AI SDK would break the `logTokenUsage` contract and is a separate architectural initiative — not part of WS3.
