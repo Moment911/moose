@@ -9,10 +9,10 @@
 // the LiveTicker (Pattern 10) with the current wave — that's the live status.
 
 import { useState, useEffect, useCallback } from 'react'
-import { FileText, ArrowRight, Tag, Quote, Wrench, Package } from 'lucide-react'
+import { FileText, ArrowRight, Tag, Quote, Wrench, Package, Loader2, CheckCircle2, Search } from 'lucide-react'
 import { t } from '../../../styles/koto-tokens'
 import {
-  CtaButton, ActionCallout, EmptyState, Skeleton, LiveTicker, StatGrid, Stat, FlagChip,
+  CtaButton, ActionCallout, EmptyState, Skeleton, StatGrid, Stat, FlagChip,
 } from '../../ui/koto'
 import CategoryChips from '../../kotoiq/CategoryChips'
 import StepShell from './StepShell'
@@ -82,6 +82,26 @@ export default function StepSiteToday({ clientId, agencyId, goNext, runId, scanS
     if (scanStatus?.status && scanStatus.status !== 'running') { load(); loadExtract() }
   }, [scanStatus?.status, load, loadExtract])
 
+  // Quiet inventory refresh (no loading flicker) — polled while the scan runs so
+  // the page count + sample URLs fill in live as the crawl lands them.
+  const reloadInvQuiet = useCallback(async () => {
+    if (!clientId || !agencyId) return
+    try {
+      const r = await fetch('/api/kotoiq', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_site_inventory', client_id: clientId, agency_id: agencyId }),
+      })
+      const d = await r.json()
+      if (!d.error) setInv(d)
+    } catch { /* non-blocking */ }
+  }, [clientId, agencyId])
+
+  useEffect(() => {
+    if (!scanRunning) return undefined
+    const id = setInterval(reloadInvQuiet, 8000)
+    return () => clearInterval(id)
+  }, [scanRunning, reloadInvQuiet])
+
   const hasInventory = inv?.total_pages > 0
   const status = loading ? 'running' : scanRunning ? 'running' : hasInventory ? 'done' : 'waiting'
 
@@ -106,15 +126,9 @@ export default function StepSiteToday({ clientId, agencyId, goNext, runId, scanS
         </>
       }
     >
-      {/* Live scan status — the anti-"looks broken" signal. */}
+      {/* Live scan status — real-time counter + exactly what's being scanned. */}
       {scanRunning && (
-        <div style={{ marginBottom: 18 }}>
-          <LiveTicker label={waveLabel} value={`${(scanStatus?.completed_actions?.length || 0)} done`} />
-          <p style={{ margin: '10px 0 0', fontSize: 12.5, color: t.muted, lineHeight: 1.5 }}>
-            This runs in the background and can take a couple of minutes. You can keep going — the
-            inventory fills in as the scan completes.
-          </p>
-        </div>
+        <ScanProgress scanStatus={scanStatus} waveLabel={waveLabel} inv={inv} />
       )}
 
       {loading && (
@@ -208,5 +222,87 @@ export default function StepSiteToday({ clientId, agencyId, goNext, runId, scanS
         />
       )}
     </StepShell>
+  )
+}
+
+// ── Real-time scan panel ─────────────────────────────────────────────────────
+// Shows a live counter (N of M checks), a progress bar, exactly which checks are
+// running right now (plain-English labels from run_all_status.current_actions),
+// and the pages found so far — so it's obvious the scan is alive and working the
+// right site, not frozen.
+function ScanProgress({ scanStatus, waveLabel, inv }) {
+  const total = scanStatus?.total_actions || 0
+  const done = scanStatus?.completed_actions?.length || 0
+  const failedN = scanStatus?.failed_actions?.length || 0
+  const pctVal = total ? Math.min(100, Math.round(((done + failedN) / total) * 100)) : 0
+  const current = scanStatus?.current_actions || []
+  const pages = inv?.total_pages || 0
+  const sample = Array.isArray(inv?.sample) ? inv.sample.slice(0, 5) : []
+
+  return (
+    <div style={{
+      border: `1px solid ${t.line}`, borderRadius: t.rCard, padding: '18px 20px',
+      background: t.white, marginBottom: 18, boxShadow: t.sHair,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <Loader2 size={16} color={t.pink} style={{ animation: 'spin 1s linear infinite' }} />
+        <span style={{ fontFamily: t.fontBody, fontSize: 14, fontWeight: 700, color: t.text }}>{waveLabel}</span>
+        <span style={{ marginLeft: 'auto', fontFamily: t.fontMono, fontSize: 13, color: t.muted }}>
+          {total ? `${done + failedN} / ${total} checks` : `${done} checks done`}
+        </span>
+      </div>
+
+      {/* Progress bar. */}
+      <div style={{ height: 8, borderRadius: 99, background: t.line, overflow: 'hidden', marginBottom: 14 }}>
+        <div style={{
+          width: `${total ? pctVal : 8}%`, height: '100%', borderRadius: 99, background: t.pink,
+          transition: 'width .4s ease', animation: total ? undefined : 'kotoPulsePink 1.6s ease-in-out infinite',
+        }} />
+      </div>
+
+      {/* Exactly what's running right now. */}
+      {current.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: pages ? 14 : 0 }}>
+          {current.map((label, i) => (
+            <span key={`${label}-${i}`} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              fontSize: 12.5, color: t.text, fontWeight: 500,
+              background: t.off, border: `1px solid ${t.line}`, borderRadius: t.rPill, padding: '5px 12px',
+            }}>
+              <Search size={12} color={t.pink} /> {label}…
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Pages found so far — proof it's reading the right site. */}
+      {pages > 0 && (
+        <div style={{ borderTop: `1px solid ${t.line}`, paddingTop: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: sample.length ? 8 : 0 }}>
+            <CheckCircle2 size={14} color={t.success} />
+            <span style={{ fontSize: 13, color: t.text, fontWeight: 600 }}>{pages} pages found on your site</span>
+          </div>
+          {sample.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {sample.map((pg, i) => {
+                const url = typeof pg === 'string' ? pg : (pg?.url || pg?.loc || pg?.path || '')
+                if (!url) return null
+                return (
+                  <span key={`${url}-${i}`} style={{
+                    fontFamily: t.fontMono, fontSize: 11, color: t.muted,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%',
+                  }} title={url}>{url}</span>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      <p style={{ margin: '12px 0 0', fontSize: 12.5, color: t.muted, lineHeight: 1.5 }}>
+        This runs in the background and can take a couple of minutes. You can keep going — your
+        inventory and lists fill in as each check completes.
+      </p>
+    </div>
   )
 }

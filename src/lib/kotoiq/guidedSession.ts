@@ -36,6 +36,8 @@ export interface GuidedSession {
   state?: string
   /** Confirmed target city names (Census place names). */
   cities?: string[]
+  /** Active run_all_audits run id — lets a mid-scan refresh resume the live view. */
+  run_id?: string | null
   updated_at?: string
 }
 
@@ -80,6 +82,7 @@ export async function saveGuidedSession(
     cities: Array.isArray(session.cities)
       ? session.cities.map(c => String(c)).filter(Boolean)
       : undefined,
+    run_id: session.run_id ? String(session.run_id) : (session.run_id === null ? null : undefined),
     updated_at: new Date().toISOString(),
   }
   return mergeKey(agencyId, clientId, SESSION_KEY, clean)

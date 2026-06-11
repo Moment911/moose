@@ -66,6 +66,9 @@ export default function GuidedSpine({ clientId, agencyId }) {
   const [selectedCities, setSelectedCities] = useState(() => new Set())
   // Confirmed services (step 4 ServiceChips) — gate the gap scoring.
   const [confirmedServices, setConfirmedServices] = useState(null)
+  // Pair status (step 1) — drives the rail sub-label so it reads "Paired" not
+  // "Pairing" once the site is actually connected. null = unknown yet.
+  const [paired, setPaired] = useState(null)
 
   const goNext = useCallback(() => setCurrent(c => Math.min(c + 1, STEPS.length - 1)), [])
   const goTo = useCallback((i) => setCurrent(i), [])
@@ -95,6 +98,8 @@ export default function GuidedSpine({ clientId, agencyId }) {
           }
           if (typeof sess.state === 'string') setSelectedState(sess.state)
           if (Array.isArray(sess.cities)) setSelectedCities(new Set(sess.cities))
+          // Resume a live scan that was running when the user left/refreshed.
+          if (sess.run_id) setRunId(sess.run_id)
         }
       } catch {
         // Non-blocking — a failed restore just starts at step 1.
@@ -115,12 +120,12 @@ export default function GuidedSpine({ clientId, agencyId }) {
         body: JSON.stringify({
           action: 'save_guided_session',
           client_id: clientId, agency_id: agencyId,
-          session: { current_step: current, state: selectedState, cities: Array.from(selectedCities || []) },
+          session: { current_step: current, state: selectedState, cities: Array.from(selectedCities || []), run_id: runId },
         }),
       }).catch(() => {})
     }, 600)
     return () => clearTimeout(id)
-  }, [current, selectedState, selectedCities, clientId, agencyId])
+  }, [current, selectedState, selectedCities, runId, clientId, agencyId])
 
   // ── Live scan status (run_all_status polling) ─────────────────────────────
   // Owned here so the stepper rail can mark step 2 "running" while the
@@ -162,6 +167,7 @@ export default function GuidedSpine({ clientId, agencyId }) {
     selectedState, setSelectedState,
     selectedCities, setSelectedCities,
     confirmedServices, setConfirmedServices,
+    paired, setPaired,
     scanStatus, scanRunning,
   }
 
@@ -209,7 +215,7 @@ export default function GuidedSpine({ clientId, agencyId }) {
         background: t.white, border: `1px solid ${t.line}`, borderRadius: t.rCard,
         padding: '20px 24px', marginBottom: 28, boxShadow: t.sHair,
       }}>
-        <ClickableStepper steps={STEPS} current={current} onSelect={goTo} scanRunning={scanRunning} />
+        <ClickableStepper steps={STEPS} current={current} onSelect={goTo} scanRunning={scanRunning} paired={paired} />
       </div>
 
       {/* ── Active step ──────────────────────────────────────────────────── */}
@@ -231,11 +237,14 @@ export default function GuidedSpine({ clientId, agencyId }) {
 // jump between steps and overlays clickable hotspots. The underlying primitive
 // renders the dots/connectors/labels; we add navigation + a scan-running hint
 // on step 2 so the rail itself communicates live status.
-function ClickableStepper({ steps, current, onSelect, scanRunning }) {
-  // Annotate step 2's sub-label when a scan is live so the rail shows it.
-  const railSteps = steps.map((s, i) => (
-    i === 1 && scanRunning ? { ...s, sub: 'Scanning…' } : s
-  ))
+function ClickableStepper({ steps, current, onSelect, scanRunning, paired }) {
+  // Annotate the rail sub-labels with live status: step 1 reflects real pair
+  // status ("Paired"/"Not paired"), step 2 shows "Scanning…" during a live scan.
+  const railSteps = steps.map((s, i) => {
+    if (i === 0 && paired != null) return { ...s, sub: paired ? 'Paired' : 'Not paired' }
+    if (i === 1 && scanRunning) return { ...s, sub: 'Scanning…' }
+    return s
+  })
   return (
     <div style={{ position: 'relative' }}>
       <WorkflowStepper steps={railSteps} current={current} />

@@ -14,7 +14,7 @@ import { t } from '../../../styles/koto-tokens'
 import { CtaButton, ActionCallout, Skeleton, NextStepLink, FlagChip } from '../../ui/koto'
 import StepShell from './StepShell'
 
-export default function StepConnected({ clientId, agencyId, goNext, runId, setRunId, scanRunning }) {
+export default function StepConnected({ clientId, agencyId, goNext, runId, setRunId, scanRunning, setPaired }) {
   const [loading, setLoading] = useState(true)
   const [site, setSite] = useState(null)
   const [clientName, setClientName] = useState('')
@@ -36,12 +36,15 @@ export default function StepConnected({ clientId, agencyId, goNext, runId, setRu
       const row = _rows.find(rw => rw.site?.shim_version === 'v4') || _rows[0]
       setSite(row?.site || null)
       setClientName(row?.client?.name || '')
+      // Report real pair status up so the rail reads "Paired" not "Pairing".
+      const v4 = row?.site?.shim_version === 'v4'
+      setPaired?.(!!(row?.site?.connected && v4))
     } catch (e) {
       setError(e?.message || 'Could not reach the server')
     } finally {
       setLoading(false)
     }
-  }, [agencyId, clientId])
+  }, [agencyId, clientId, setPaired])
 
   useEffect(() => { load() }, [load])
 

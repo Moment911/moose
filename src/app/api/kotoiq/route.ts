@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
 import { logTokenUsage } from '@/lib/tokenTracker'
@@ -142,6 +142,10 @@ import { analyzePerfFeedback } from '@/lib/builder/perfFeedback'
 import { verifySession } from '@/lib/apiAuth'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
+
+// run_all_audits orchestrates a multi-wave background chain via after(); give the
+// instance room to finish (default would cut it short and zombie the scan).
+export const maxDuration = 300
 
 function sb() {
   return createClient(
@@ -5693,55 +5697,97 @@ Return ONLY valid JSON:
         } catch { return null }
       }
 
-      const WAVES = [
+      // Each action gets a plain-English label so the guided UI can show, in real
+      // time, exactly what's being scanned right now (not just "wave 1 of 4").
+      const ACTION_LABELS: Record<string, string> = {
+        quick_scan: 'Crawling your pages',
+        sync: 'Syncing live rankings',
+        deep_enrich: 'Enriching keywords',
+        audit_eeat: 'Auditing E-E-A-T signals',
+        scan_brand_serp: 'Scanning your brand on Google',
+        analyze_backlinks: 'Analyzing backlinks',
+        gmb_health: 'Checking Google Business Profile',
+        audit_schema: 'Auditing structured data',
+        roi_projections: 'Projecting ROI',
+        crawl_sitemaps: 'Crawling your sitemap',
+        generate_topical_map: 'Mapping your topics',
+        generate_scorecard: 'Scoring your site',
+        scan_internal_links: 'Mapping internal links',
+        build_content_inventory: 'Inventorying your content',
+        run_gsc_audit: 'Auditing Search Console',
+        analyze_semantic_network: 'Analyzing semantic network',
+        sync_page_factory: 'Syncing Page Factory',
+        audit_topical_authority: 'Auditing topical authority',
+        generate_strategic_plan: 'Drafting your strategy',
+        analyze_query_paths: 'Analyzing query paths',
+        build_content_calendar: 'Building content calendar',
+        generate_quick_win_queue: 'Queuing quick wins',
+        synthesize: 'Synthesizing findings',
+      }
+
+      const WAVES: Array<Array<{ action: string; extra?: Record<string, any> }>> = [
         [
-          () => callAction('quick_scan', { website: client.website, industry: client.primary_service || '' }),
-          () => callAction('sync'),
-          () => callAction('deep_enrich'),
-          () => callAction('audit_eeat'),
-          () => callAction('scan_brand_serp'),
-          () => callAction('analyze_backlinks'),
-          () => callAction('gmb_health'),
-          () => callAction('audit_schema'),
-          () => callAction('roi_projections'),
-          () => callAction('crawl_sitemaps'),
+          { action: 'quick_scan', extra: { website: client.website, industry: client.primary_service || '' } },
+          { action: 'sync' },
+          { action: 'deep_enrich' },
+          { action: 'audit_eeat' },
+          { action: 'scan_brand_serp' },
+          { action: 'analyze_backlinks' },
+          { action: 'gmb_health' },
+          { action: 'audit_schema' },
+          { action: 'roi_projections' },
+          { action: 'crawl_sitemaps' },
         ],
         [
-          () => callAction('generate_topical_map'),
-          () => callAction('generate_scorecard'),
-          () => callAction('scan_internal_links'),
-          () => callAction('build_content_inventory'),
-          () => callAction('run_gsc_audit'),
-          () => callAction('analyze_semantic_network'),
-          () => callAction('sync_page_factory'),
+          { action: 'generate_topical_map' },
+          { action: 'generate_scorecard' },
+          { action: 'scan_internal_links' },
+          { action: 'build_content_inventory' },
+          { action: 'run_gsc_audit' },
+          { action: 'analyze_semantic_network' },
+          { action: 'sync_page_factory' },
         ],
         [
-          () => callAction('audit_topical_authority'),
-          () => callAction('generate_strategic_plan', { timeframe: '3_month' }),
-          () => callAction('analyze_query_paths'),
-          () => callAction('build_content_calendar'),
+          { action: 'audit_topical_authority' },
+          { action: 'generate_strategic_plan', extra: { timeframe: '3_month' } },
+          { action: 'analyze_query_paths' },
+          { action: 'build_content_calendar' },
         ],
       ]
 
       const completed: string[] = []
       const failed: string[] = []
+      // + the 3 synthesis actions in wave 4 (below).
+      const totalActions = WAVES.reduce((n, w) => n + w.length, 0) + 3
+
+      // Persist a progress snapshot — written after EVERY action settles so the
+      // counter advances smoothly in real time instead of jumping per wave.
+      const writeProgress = (waveNum: number, inflight: string[]) =>
+        s.from('kotoiq_sync_log').update({
+          metadata: {
+            wave: waveNum, total_waves: 4,
+            total_actions: totalActions,
+            completed_actions: completed,
+            failed_actions: failed,
+            current_actions: inflight.map(a => ACTION_LABELS[a] || a),
+          },
+        }).eq('id', runId).then(() => {}, () => {})
 
       for (let w = 0; w < WAVES.length; w++) {
-        await s.from('kotoiq_sync_log').update({
-          metadata: { wave: w + 1, total_waves: 4, completed_actions: completed, failed_actions: failed },
-        }).eq('id', runId)
-
-        const results = await Promise.allSettled(WAVES[w].map(fn => fn()))
-        for (const r of results) {
-          if (r.status === 'fulfilled' && r.value) completed.push(r.value)
-          else failed.push('unknown')
-        }
+        const inflight = WAVES[w].map(a => a.action)
+        await writeProgress(w + 1, inflight)
+        await Promise.allSettled(WAVES[w].map(async (a) => {
+          const ok = await callAction(a.action, a.extra || {})
+          if (ok) completed.push(a.action); else failed.push(a.action)
+          const i = inflight.indexOf(a.action)
+          if (i >= 0) inflight.splice(i, 1)
+          await writeProgress(w + 1, inflight)
+        }))
       }
 
       // Wave 4: Synthesize — mirror audit recommendations, regenerate scorecard + strategy
-      await s.from('kotoiq_sync_log').update({
-        metadata: { wave: 4, total_waves: 4, completed_actions: completed, failed_actions: failed },
-      }).eq('id', runId)
+      const synthInflight = ['generate_scorecard', 'generate_strategic_plan', 'generate_quick_win_queue']
+      await writeProgress(4, synthInflight)
 
       // Mirror recommendations from individual audit tables into kotoiq_recommendations
       try {
@@ -5825,12 +5871,17 @@ Return ONLY valid JSON:
         failed.push('mirror_recommendations')
       }
 
-      // Re-run scorecard + strategy with all audit data now available
-      await Promise.allSettled([
-        callAction('generate_scorecard'),
-        callAction('generate_strategic_plan', { timeframe: '3_month' }),
-        callAction('generate_quick_win_queue'),
-      ])
+      // Re-run scorecard + strategy with all audit data now available, advancing
+      // the counter as each settles (keeps the real-time view honest).
+      const remaining = [...synthInflight]
+      await Promise.allSettled(synthInflight.map(async (act) => {
+        const extra = act === 'generate_strategic_plan' ? { timeframe: '3_month' } : {}
+        const ok = await callAction(act, extra)
+        if (ok) completed.push(act); else failed.push(act)
+        const i = remaining.indexOf(act)
+        if (i >= 0) remaining.splice(i, 1)
+        await writeProgress(4, remaining)
+      }))
       completed.push('synthesize')
 
       // Mark complete
@@ -5838,17 +5889,26 @@ Return ONLY valid JSON:
         status: 'complete',
         completed_at: new Date().toISOString(),
         records_synced: completed.length,
-        metadata: { wave: 4, total_waves: 4, completed_actions: completed, failed_actions: failed },
+        metadata: {
+          wave: 4, total_waves: 4,
+          total_actions: totalActions,
+          completed_actions: completed,
+          failed_actions: failed,
+          current_actions: [],
+        },
       }).eq('id', runId)
     }
 
-    runBackground().catch(async (err) => {
+    // Run the chain in the background but keep the function instance ALIVE past
+    // the response via after() (Vercel waitUntil) — a bare fire-and-forget gets
+    // suspended once the response returns, which zombied the scan at "wave 1".
+    after(() => runBackground().catch(async (err) => {
       console.error('[run_all_audits] Background run failed:', err)
       await s.from('kotoiq_sync_log').update({
         status: 'failed', completed_at: new Date().toISOString(),
         error_message: err.message,
       }).eq('id', runId)
-    })
+    }))
 
     return NextResponse.json({ ok: true, run_id: runId })
   }
@@ -5864,8 +5924,11 @@ Return ONLY valid JSON:
       status: data.status,
       wave: data.metadata?.wave || 0,
       total_waves: data.metadata?.total_waves || 3,
+      total_actions: data.metadata?.total_actions || 0,
       completed_actions: data.metadata?.completed_actions || [],
       failed_actions: data.metadata?.failed_actions || [],
+      current_actions: data.metadata?.current_actions || [],
+      started_at: data.created_at,
       completed_at: data.completed_at,
     })
   }
