@@ -36,15 +36,20 @@ import StepConnected from './steps/StepConnected'
 import StepSiteToday from './steps/StepSiteToday'
 import StepCompetitors from './steps/StepCompetitors'
 import StepGaps from './steps/StepGaps'
+import StepStrategy from './steps/StepStrategy'
 import StepPlan from './steps/StepPlan'
 import StepLiveCited from './steps/StepLiveCited'
 
-// The 6 steps, in spine order. `label`/`sub` drive the WorkflowStepper rail.
+// The 7 steps, in spine order. `label`/`sub` drive the WorkflowStepper rail.
+// 'strategy' (Phase 12 / 12-06) sits between gaps and plan: the fast-rank
+// AI-SEO/GEO/AEO plan synthesized from the confirmed inputs + competitor intel +
+// opportunity list. Plain-English labels (no bare acronyms) — matches the rail.
 const STEPS = [
   { key: 'connected',   label: 'Connected',      sub: 'Pairing' },
   { key: 'site',        label: 'Your site today', sub: 'Inventory' },
   { key: 'competitors', label: "Who you're up against", sub: 'Rivals' },
   { key: 'gaps',        label: 'Your gaps',      sub: 'Opportunities' },
+  { key: 'strategy',    label: 'Your strategy',  sub: 'Fast-rank plan' },
   { key: 'plan',        label: 'Your plan',      sub: 'Build order' },
   { key: 'live',        label: 'Live + cited',   sub: 'Published' },
 ]
@@ -132,7 +137,7 @@ export default function GuidedSpine({ clientId, agencyId }) {
       <KotoKeyframes />
 
       {/* ── Title + rail ─────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginBottom: 10 }}>Guided setup · 6 steps</Eyebrow>
+      <Eyebrow style={{ marginBottom: 10 }}>Guided setup · 7 steps</Eyebrow>
       <h1 style={{
         margin: '0 0 4px', fontFamily: t.fontDisplay, fontSize: 40, color: t.text,
         letterSpacing: '.02em', lineHeight: 1,
@@ -141,8 +146,9 @@ export default function GuidedSpine({ clientId, agencyId }) {
         <em style={{ fontFamily: t.fontAccent, fontStyle: 'italic', color: t.pink, fontWeight: 400 }}>cited</em>
       </h1>
       <p style={{ margin: '0 0 24px', fontSize: 14, color: t.muted, lineHeight: 1.55, maxWidth: 620 }}>
-        Six steps. We scan your site, confirm what you offer and where, find the gaps your
-        competitors already rank for, then build and publish the pages that close them.
+        Seven steps. We scan your site, confirm what you offer and where, find the gaps your
+        competitors already rank for, turn that into a fast-rank strategy, then build and publish
+        the pages that close them.
       </p>
 
       {/* Clickable stepper rail — steps before the current one are "done", the
@@ -160,8 +166,9 @@ export default function GuidedSpine({ clientId, agencyId }) {
         {current === 1 && <StepSiteToday {...shared} />}
         {current === 2 && <StepCompetitors {...shared} />}
         {current === 3 && <StepGaps {...shared} />}
-        {current === 4 && <StepPlan {...shared} />}
-        {current === 5 && <StepLiveCited {...shared} />}
+        {current === 4 && <StepStrategy {...shared} />}
+        {current === 5 && <StepPlan {...shared} />}
+        {current === 6 && <StepLiveCited {...shared} />}
       </div>
     </div>
   )

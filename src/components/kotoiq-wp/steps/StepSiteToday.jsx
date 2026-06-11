@@ -9,17 +9,52 @@
 // the LiveTicker (Pattern 10) with the current wave — that's the live status.
 
 import { useState, useEffect, useCallback } from 'react'
-import { FileText, ArrowRight } from 'lucide-react'
+import { FileText, ArrowRight, Tag, Quote, Wrench, Package } from 'lucide-react'
 import { t } from '../../../styles/koto-tokens'
 import {
   CtaButton, ActionCallout, EmptyState, Skeleton, LiveTicker, StatGrid, Stat, FlagChip,
 } from '../../ui/koto'
+import CategoryChips from '../../kotoiq/CategoryChips'
 import StepShell from './StepShell'
+
+// The four comprehensive categories (12-01) — each rendered as its own editable
+// chip group, all hydrated from ONE extract_comprehensive call (12-02 seedItems)
+// so we don't fire four round-trips.
+const CATEGORIES = [
+  { key: 'keywords',  label: 'Keywords',  icon: Tag,    placeholder: 'Add a keyword…' },
+  { key: 'phrases',   label: 'Phrases',   icon: Quote,  placeholder: 'Add a phrase…' },
+  { key: 'services',  label: 'Services',  icon: Wrench,  placeholder: 'Add a service…' },
+  { key: 'offerings', label: 'Offerings', icon: Package, placeholder: 'Add an offering…' },
+]
 
 export default function StepSiteToday({ clientId, agencyId, goNext, runId, scanStatus, scanRunning }) {
   const [loading, setLoading] = useState(true)
   const [inv, setInv] = useState(null) // { total_pages, types[], captured_at, sample[] }
   const [error, setError] = useState(null)
+
+  // ONE comprehensive extraction (12-01) → four category lists, fetched once and
+  // passed to four CategoryChips groups via seedItems (no four round-trips).
+  const [extract, setExtract] = useState(null) // full extract_comprehensive response
+  const [extractError, setExtractError] = useState(null)
+
+  const loadExtract = useCallback(async () => {
+    if (!clientId || !agencyId) return
+    setExtractError(null)
+    try {
+      const r = await fetch('/api/kotoiq', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'extract_comprehensive', client_id: clientId, agency_id: agencyId }),
+      })
+      const d = await r.json()
+      if (d.error && !d.keywords && !d.services) {
+        setExtractError(typeof d.error === 'string' ? d.error : 'Could not extract from your site')
+        return
+      }
+      setExtract(d)
+    } catch (e) {
+      setExtractError(e?.message || 'Could not reach the server')
+    }
+  }, [clientId, agencyId])
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
@@ -39,11 +74,13 @@ export default function StepSiteToday({ clientId, agencyId, goNext, runId, scanS
   }, [clientId, agencyId])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => { loadExtract() }, [loadExtract])
 
-  // Refresh the inventory when the scan completes (it populates the baseline).
+  // Refresh the inventory + the comprehensive extraction when the scan completes
+  // (it populates the baseline that both read from).
   useEffect(() => {
-    if (scanStatus?.status && scanStatus.status !== 'running') load()
-  }, [scanStatus?.status, load])
+    if (scanStatus?.status && scanStatus.status !== 'running') { load(); loadExtract() }
+  }, [scanStatus?.status, load, loadExtract])
 
   const hasInventory = inv?.total_pages > 0
   const status = loading ? 'running' : scanRunning ? 'running' : hasInventory ? 'done' : 'waiting'
@@ -111,12 +148,52 @@ export default function StepSiteToday({ clientId, agencyId, goNext, runId, scanS
             </div>
           )}
 
-          <CtaButton
-            label="See who you're up against"
-            icon={ArrowRight}
-            onClick={goNext}
-            pulse
-          />
+          {/* Four-category comprehensive extraction (12-01) — keywords / phrases /
+              services / offerings — each an editable chip group, all hydrated from
+              ONE extract_comprehensive call (seedItems). The user curates + confirms
+              per category; AI-inferred chips are flagged (data-integrity). */}
+          <div style={{ borderTop: `1px solid ${t.line}`, margin: '8px 0 0', paddingTop: 20 }}>
+            <h3 style={{ margin: '0 0 6px', fontFamily: t.fontBody, fontSize: 16, fontWeight: 600, color: t.text }}>
+              What we found on your site
+            </h3>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: t.muted, lineHeight: 1.55, maxWidth: 640 }}>
+              We read your pages and pulled out the keywords, phrases, services, and offerings you already
+              signal. Edit each list — confirmed items drive your competitor analysis, gaps, and strategy.
+            </p>
+
+            {extractError && (
+              <ActionCallout variant="warning" title="Couldn't extract from your site" action={{ label: 'Retry', onClick: loadExtract }}>
+                {extractError}
+              </ActionCallout>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {CATEGORIES.map((c) => (
+                <div key={c.key} style={{
+                  background: t.off, border: `1px solid ${t.line}`, borderRadius: t.rTile, padding: '18px 20px',
+                }}>
+                  <CategoryChips
+                    agencyId={agencyId}
+                    clientId={clientId}
+                    category={c.key}
+                    title={`Your ${c.label.toLowerCase()}`}
+                    icon={c.icon}
+                    placeholder={c.placeholder}
+                    seedItems={extract}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <CtaButton
+              label="See who you're up against"
+              icon={ArrowRight}
+              onClick={goNext}
+              pulse
+            />
+          </div>
         </>
       )}
 

@@ -1,20 +1,23 @@
 'use client'
 // ── Step 4: Your gaps ───────────────────────────────────────────────────────
-// The competitor-driven gap report (11-05 score_grid), rendered as OUTCOMES not
-// metrics: "38 opportunities — 9 quick wins, 21 net-new, 8 big bets". The user
-// first confirms the services we found (11-03 ServiceChips, AI-inferred flagged)
-// because confirmed services drive the scoring. Cities a client listed but no
-// competitor targets are surfaced with their reason.
+// The EXTENSIVE, competitor-driven opportunity list (12-05 opportunity_list),
+// rendered as OUTCOMES not metrics: "62 opportunities — 14 quick wins, 33 net-new,
+// 15 big bets", grown beyond the client's own services by competitor-derived
+// keywords (source_counts.competitor_derived). The user first confirms ALL FOUR
+// comprehensive categories (12-02 CategoryChips, AI-inferred flagged) since the
+// confirmed services drive the scoring + the seed set.
 //
-// The ONE primary action is "Score my gaps" (then, once scored, "See my plan").
+// The ONE primary action is "Find my opportunities" (then, once built, "Turn this
+// into a strategy"). When competitor intel hasn't been run yet the list degrades
+// to the own-only grid with a visible prompt to run step 3 (never empty-as-nothing).
 
 import { useState, useCallback } from 'react'
-import { Target, ArrowRight, MapPinOff } from 'lucide-react'
+import { Target, ArrowRight, MapPinOff, Tag, Quote, Wrench, Package } from 'lucide-react'
 import { t } from '../../../styles/koto-tokens'
 import {
   CtaButton, ActionCallout, EmptyState, StatGrid, Stat, FlagChip, Skeleton,
 } from '../../ui/koto'
-import ServiceChips from '../../kotoiq/ServiceChips'
+import CategoryChips from '../../kotoiq/CategoryChips'
 import StepShell from './StepShell'
 
 // Human labels for the buckets (outcomes language).
@@ -31,13 +34,23 @@ const BUCKET_VARIANT = {
   low_demand_deprioritize: 'low',
 }
 
+// The four comprehensive categories (12-01/12-02) confirmed here drive scoring.
+const CATEGORIES = [
+  { key: 'keywords',  label: 'Keywords',  icon: Tag,     placeholder: 'Add a keyword…' },
+  { key: 'phrases',   label: 'Phrases',   icon: Quote,   placeholder: 'Add a phrase…' },
+  { key: 'services',  label: 'Services',  icon: Wrench,  placeholder: 'Add a service…' },
+  { key: 'offerings', label: 'Offerings', icon: Package, placeholder: 'Add an offering…' },
+]
+
 export default function StepGaps({
   clientId, agencyId, goNext,
-  selectedCities, confirmedServices, setConfirmedServices,
+  selectedState, selectedCities, confirmedServices, setConfirmedServices,
 }) {
+  // Services confirmed (the scoring-critical category). Other categories save
+  // independently via their own CategoryChips Confirm button.
   const [servicesReady, setServicesReady] = useState(!!confirmedServices)
-  const [scoring, setScoring] = useState(false)
-  const [result, setResult] = useState(null) // { report, cells, sources, services, state }
+  const [building, setBuilding] = useState(false)
+  const [result, setResult] = useState(null) // opportunity_list response
   const [error, setError] = useState(null)
 
   const onServicesConfirmed = useCallback((services) => {
@@ -45,35 +58,40 @@ export default function StepGaps({
     setServicesReady(true)
   }, [setConfirmedServices])
 
-  // ONE primary action: score the service×city grid for the chosen cities.
-  const scoreGaps = useCallback(async () => {
-    setScoring(true); setError(null)
+  // ONE primary action: build the EXTENSIVE competitor-driven opportunity list
+  // (12-05) over the confirmed services + cities + competitor intel (step 3).
+  const buildList = useCallback(async () => {
+    setBuilding(true); setError(null)
     try {
       const cities = Array.from(selectedCities || [])
       const r = await fetch('/api/kotoiq', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'score_grid',
+          action: 'opportunity_list',
           client_id: clientId, agency_id: agencyId,
           cities: cities.length ? cities : undefined,
+          state: selectedState || undefined,
         }),
       })
       const d = await r.json()
-      if (!d.ok) { setError(typeof d.error === 'string' ? d.error : 'Could not score your gaps'); return }
+      if (!d.ok) { setError(typeof d.error === 'string' ? d.error : 'Could not build your opportunity list'); return }
       setResult(d)
     } catch (e) {
       setError(e?.message || 'Could not reach the server')
     } finally {
-      setScoring(false)
+      setBuilding(false)
     }
-  }, [clientId, agencyId, selectedCities])
+  }, [clientId, agencyId, selectedCities, selectedState])
 
-  const report = result?.report
-  const cells = result?.cells || []
+  const items = result?.items || []
+  const buckets = result?.buckets || null
+  const sourceCounts = result?.source_counts || null
+  const competitorDerived = sourceCounts?.competitor_derived || 0
+  const total = items.length
   // Cities the client listed but no competitor targets — surfaced with reason.
-  const noCompetitorCells = cells.filter(c => c.client_listed_city && (c.competitor_count || 0) === 0)
+  const noCompetitorCells = items.filter(c => c.client_listed_city && (c.competitor_count || 0) === 0)
 
-  const status = scoring ? 'running' : report ? 'done' : 'waiting'
+  const status = building ? 'running' : result ? 'done' : 'waiting'
 
   return (
     <StepShell
@@ -81,43 +99,55 @@ export default function StepGaps({
       title="Your gaps"
       accent="gaps"
       status={status}
-      subtitle="The pages your competitors rank for that you don't have yet — ranked by what'll move traffic fastest. First confirm what you offer, since that drives the scoring."
+      subtitle="The extensive list of pages your competitors rank for that you don't have yet — ranked by what'll move traffic fastest. First confirm what you offer, since that drives the list."
       noteId="guided-gaps"
       noteTitle="What this does"
       note={
         <>
-          We compare your pages to who's ranking in your target cities and score each gap by demand,
-          how contested it is, what you already cover, and how hard it is to win. Quick wins are pages
-          you almost rank for; big bets are high-value but harder.
+          We take your confirmed services and the keywords your competitors rank for, then score every
+          gap by demand, how contested it is, what you already cover, and how hard it is to win. The list
+          grows well beyond your own services — quick wins are pages you almost rank for; big bets are
+          high-value but harder.
         </>
       }
     >
-      {/* Confirm services (11-03) — they drive the scoring. */}
-      <div style={{
-        background: t.off, border: `1px solid ${t.line}`, borderRadius: t.rTile,
-        padding: '18px 20px', marginBottom: 20,
-      }}>
-        <ServiceChips agencyId={agencyId} clientId={clientId} onConfirmed={onServicesConfirmed} />
+      {/* Confirm all four comprehensive categories (12-02) — services drive scoring. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+        {CATEGORIES.map((c) => (
+          <div key={c.key} style={{
+            background: t.off, border: `1px solid ${t.line}`, borderRadius: t.rTile, padding: '18px 20px',
+          }}>
+            <CategoryChips
+              agencyId={agencyId}
+              clientId={clientId}
+              category={c.key}
+              title={`Your ${c.label.toLowerCase()}`}
+              icon={c.icon}
+              placeholder={c.placeholder}
+              onConfirmed={c.key === 'services' ? onServicesConfirmed : undefined}
+            />
+          </div>
+        ))}
       </div>
 
       {!servicesReady && (
         <ActionCallout variant="info" title="Confirm your services first">
-          Review the services above (we inferred them from your site — verify before they drive builds),
-          then score your gaps.
+          Review the four lists above (we inferred them from your site — verify before they drive builds).
+          Confirming your <strong>services</strong> unlocks the opportunity list.
         </ActionCallout>
       )}
 
       {servicesReady && !result && (
         <CtaButton
-          label={scoring ? 'Scoring your gaps…' : 'Score my gaps'}
+          label={building ? 'Building your list…' : 'Find my opportunities'}
           icon={Target}
-          onClick={scoreGaps}
-          disabled={scoring}
-          pulse={!scoring}
+          onClick={buildList}
+          disabled={building}
+          pulse={!building}
         />
       )}
 
-      {scoring && (
+      {building && (
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Skeleton height={64} width="100%" radius={t.rTile} />
           <Skeleton height={20} width="50%" />
@@ -125,26 +155,41 @@ export default function StepGaps({
       )}
 
       {error && (
-        <ActionCallout variant="warning" title="Couldn't score your gaps" action={{ label: 'Retry', onClick: scoreGaps }}>
+        <ActionCallout variant="warning" title="Couldn't build your opportunity list" action={{ label: 'Retry', onClick: buildList }}>
           {error}
         </ActionCallout>
       )}
 
-      {report && (
+      {result && total > 0 && (
         <>
-          {/* Outcome headline (CONTEXT specifics). */}
+          {/* Outcome headline. */}
           <h3 style={{
             margin: '4px 0 16px', fontFamily: t.fontBody, fontSize: 16, fontWeight: 600, color: t.text,
           }}>
-            {report.headline || `${report.total} opportunities found`}
+            {result.headline || `${total} opportunities found`}
           </h3>
 
           <StatGrid columns={4}>
-            <Stat value={report.total} label="Opportunities" />
-            <Stat value={report.quick_wins} label="Quick wins" color={t.success} />
-            <Stat value={report.net_new} label="Net-new" color={t.pink} />
-            <Stat value={report.big_bets} label="Big bets" color={t.warning} isLast />
+            <Stat value={total} label="Opportunities" />
+            <Stat value={buckets?.quick_win ?? 0} label="Quick wins" color={t.success} />
+            <Stat value={buckets?.net_new ?? 0} label="Net-new" color={t.pink} />
+            <Stat value={buckets?.big_bet ?? 0} label="Big bets" color={t.warning} isLast />
           </StatGrid>
+
+          {/* Competitor-derived growth signal — proves the list is competitor-driven. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 18px', flexWrap: 'wrap' }}>
+            {competitorDerived > 0 ? (
+              <FlagChip variant="high" icon={Target}>
+                {competitorDerived} extra {competitorDerived === 1 ? 'opportunity' : 'opportunities'} from competitor keywords
+              </FlagChip>
+            ) : result.competitor_intel_available === false ? (
+              <FlagChip variant="low">
+                Competitor intel not run yet — showing your own services. Run step 3 for the extensive list.
+              </FlagChip>
+            ) : (
+              <FlagChip variant="info">Competitor-driven list</FlagChip>
+            )}
+          </div>
 
           {/* No-competitor client cities, surfaced with their reason. */}
           {noCompetitorCells.length > 0 && (
@@ -171,9 +216,9 @@ export default function StepGaps({
             </div>
           )}
 
-          {/* Top cells preview as outcomes. */}
+          {/* The extensive list (top slice as outcomes — larger than the own-only grid). */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
-            {cells.slice(0, 8).map((c, i) => (
+            {items.slice(0, 16).map((c, i) => (
               <div key={`${c.service}-${c.city}-${i}`} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '10px 14px', borderRadius: t.rTile,
@@ -188,6 +233,9 @@ export default function StepGaps({
                 </span>
               </div>
             ))}
+            {total > 16 && (
+              <span style={{ fontSize: 12, color: t.muted }}>+ {total - 16} more in your strategy.</span>
+            )}
           </div>
 
           {result?.sources?.length > 0 && (
@@ -199,16 +247,16 @@ export default function StepGaps({
             </div>
           )}
 
-          <CtaButton label="Turn this into a plan" icon={ArrowRight} onClick={goNext} pulse />
+          <CtaButton label="Turn this into a strategy" icon={ArrowRight} onClick={goNext} pulse />
         </>
       )}
 
-      {result && report?.total === 0 && (
+      {result && total === 0 && (
         <EmptyState
           icon={Target}
           headline="No gaps found"
-          sub="Either you already cover these markets or there isn't enough competitor demand to justify new pages. Try adding more target cities."
-          primary={{ label: 'Back to cities', onClick: () => {} }}
+          sub="Either you already cover these markets or there isn't enough competitor demand to justify new pages. Try adding more target cities, or run competitor intel on step 3."
+          primary={{ label: 'Retry', onClick: buildList }}
         />
       )}
     </StepShell>
