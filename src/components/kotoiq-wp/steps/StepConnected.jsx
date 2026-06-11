@@ -30,7 +30,10 @@ export default function StepConnected({ clientId, agencyId, goNext, runId, setRu
       })
       const d = await r.json()
       if (d.error) { setError(typeof d.error === 'string' ? d.error : 'Could not load connection status'); return }
-      const row = (d.rows || []).find(rw => rw.client?.id === clientId)
+      // A client can have multiple sites — prefer the genuinely v4-paired one
+      // so the guided flow opens on a connected site rather than an unpaired sibling.
+      const _rows = (d.rows || []).filter(rw => rw.client?.id === clientId)
+      const row = _rows.find(rw => rw.site?.shim_version === 'v4') || _rows[0]
       setSite(row?.site || null)
       setClientName(row?.client?.name || '')
     } catch (e) {

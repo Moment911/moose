@@ -406,13 +406,15 @@ export default function ClientView({ preselectedSiteId, preselectedClientId, pre
 function StatusPills({ site }) {
   if (!site) return <Pill color="#9ca3af" bg="#f3f4f6">No WP site</Pill>
   const isKotoIQ = site.wpsc_plugin === 'kotoiq'
+  const isV4 = site.shim_version === 'v4'           // genuinely paired via the v4 shim (no legacy key)
+  const isPaired = isV4 || !!site.wpsc_api_key
   return (
     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
       <Pill color={site.connected ? GRN : '#9ca3af'} bg={site.connected ? `${GRN}15` : '#f3f4f6'}>
         Koto {site.connected ? 'live' : 'idle'}
       </Pill>
-      {site.wpsc_api_key
-        ? <Pill color={PINK} bg={`${PINK}15`}>{isKotoIQ ? 'KotoIQ paired' : 'WPSC paired'}</Pill>
+      {isPaired
+        ? <Pill color={PINK} bg={`${PINK}15`}>{(isV4 || isKotoIQ) ? 'KotoIQ paired' : 'WPSC paired'}</Pill>
         : <Pill color={AMB} bg={`${AMB}15`}>not paired</Pill>}
       {site.wpsc_version && <Pill color="#6b7280" bg="#f3f4f6">v{site.wpsc_version}</Pill>}
     </div>
