@@ -25,7 +25,7 @@ import { writeSeoMeta } from '@/lib/wp-shim/ports/seoPort'
 import { postGetMetaBulk, healthDiagnostics } from '@/lib/wp-shim/verbs'
 import { getAccessToken, fetchSearchConsoleData, fetchGA4Data, loadClientConnections } from '@/lib/seoService'
 import { fetchCruxData } from '@/lib/builder/cruxClient'
-import { getPlacesForState, STATE_FIPS } from '@/lib/geoLookup'
+import { getPlacesForState, getCountiesForState, getCountySubdivisionsForState, STATE_FIPS } from '@/lib/geoLookup'
 import { fetchCityLocalData } from '@/lib/wp-shim/censusLocalData'
 import { buildLlmsTxt, publishLlmsTxt } from '@/lib/wp-shim/llmsTxtBuilder'
 import { buildPageMarkdown, buildLlmsFullTxt, publishPageMarkdown, publishLlmsFullTxt } from '@/lib/wp-shim/mdTwinBuilder'
@@ -114,6 +114,8 @@ export async function POST(req: NextRequest) {
             case 'regenerate_master': return await regenerateMaster(supabase, agencyId, body)
             case 'list_states':       return NextResponse.json({ ok: true, states: Object.keys(STATE_FIPS).sort() })
             case 'list_cities':       return await listCities(body)
+            case 'list_counties':     return await listCounties(body)
+            case 'list_subdivisions': return await listSubdivisions(body)
             case 'delete_campaign':   return await deleteCampaign(supabase, agencyId, body)
             case 'find_places':       return await findPlaces(body)
             case 'set_campaign_place':return await setCampaignPlace(supabase, agencyId, body)
@@ -3021,6 +3023,43 @@ async function readRankMathScore(siteUrl: string, postId: number, _creds: unknow
         return isFinite(n) && n > 0 ? n : null
     } catch {
         return null
+    }
+}
+
+// Counties for a state — the second tier of the geographic drill-down.
+async function listCounties(body: any) {
+    const stateAbbr = String(body.state_abbr || '').toUpperCase()
+    if (!stateAbbr || !STATE_FIPS[stateAbbr]) {
+        return NextResponse.json({ error: 'state_abbr required (2-letter)' }, { status: 400 })
+    }
+    try {
+        const res = await getCountiesForState(stateAbbr)
+        const counties = (res.data || [])
+            .map(c => ({ name: c.name, fips: c.fips }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        return NextResponse.json({ ok: true, state: stateAbbr, counties, source_url: res.source_url, fetched_at: res.fetched_at })
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Census API failed'
+        return NextResponse.json({ ok: false, error: `Could not load counties for ${stateAbbr}: ${msg}. The Census API may be temporarily unavailable — try again in a minute.` }, { status: 502 })
+    }
+}
+
+// County subdivisions (cities/townships/boroughs) for a whole state in one call,
+// each tagged with its county_fips so the UI groups them under the right county.
+async function listSubdivisions(body: any) {
+    const stateAbbr = String(body.state_abbr || '').toUpperCase()
+    if (!stateAbbr || !STATE_FIPS[stateAbbr]) {
+        return NextResponse.json({ error: 'state_abbr required (2-letter)' }, { status: 400 })
+    }
+    try {
+        const res = await getCountySubdivisionsForState(stateAbbr)
+        const subdivisions = (res.data || [])
+            .map(s => ({ name: s.name, kind: s.kind, fips: s.fips, county_fips: s.county_fips }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        return NextResponse.json({ ok: true, state: stateAbbr, subdivisions, source_url: res.source_url, fetched_at: res.fetched_at })
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Census API failed'
+        return NextResponse.json({ ok: false, error: `Could not load cities/townships for ${stateAbbr}: ${msg}. The Census API may be temporarily unavailable — try again in a minute.` }, { status: 502 })
     }
 }
 

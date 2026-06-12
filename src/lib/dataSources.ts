@@ -59,6 +59,15 @@ export const DATA_SOURCES = {
     threshold_key: 'geo-municipality',
   },
 
+  us_county_subdivisions: {
+    name: 'US Census Bureau — County Subdivisions (MCDs: cities, towns, townships, boroughs)',
+    url: 'https://api.census.gov/data/2020/dec/pl?get=NAME&for=county+subdivision:*&in=state:{STATE_FIPS}',
+    api_docs: 'https://www.census.gov/data/developers/data-sets.html',
+    source_type: 'government-federal',
+    notes: 'Minor Civil Divisions — the layer that contains townships/towns/boroughs AND nests cleanly under counties (the response carries the county FIPS per row), unlike "places" which can straddle county lines. Replace {STATE_FIPS} with the 2-digit state FIPS. In non-MCD states these are statistical county subdivisions (CCDs).',
+    threshold_key: 'geo-municipality',
+  },
+
   us_zip_codes: {
     name: 'US Census Bureau — ZIP Code Tabulation Areas (ZCTAs)',
     url: 'https://api.census.gov/data/2020/dec/pl?get=NAME&for=zip+code+tabulation+area:*&in=state:{STATE_FIPS}',

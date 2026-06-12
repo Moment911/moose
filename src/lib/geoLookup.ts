@@ -110,8 +110,11 @@ export interface GeoPlace {
 export type PlaceKind =
   | 'city'
   | 'town'
+  | 'township'          // MCD — common in NE/Midwest county subdivisions
   | 'village'
   | 'borough'
+  | 'plantation'        // MCD — Maine
+  | 'gore'              // MCD — Vermont/Maine
   | 'CDP'               // Census Designated Place (unincorporated)
   | 'municipality'      // generic fallback
   | 'unknown'
@@ -226,6 +229,70 @@ export async function getPlacesForState(
 // "Places" is more accurate (includes CDPs by default) so the new canonical
 // name uses that, but code that reads like English still makes sense.
 export const getMunicipalitiesForState = getPlacesForState
+
+// ── County Subdivisions (MCDs: cities, towns, townships, boroughs) ───────────
+// The layer that actually contains townships AND nests under counties — each
+// row carries its county FIPS, so the UI can drill state → county → subdivision.
+// One Census call returns every subdivision in the state.
+export interface CountySubdivision extends GeoPlace {
+  county_fips: string   // 5-digit state+county FIPS this subdivision belongs to
+}
+export interface CountySubdivisionsResult extends VerifiedDataSource {
+  data: CountySubdivision[]
+}
+export async function getCountySubdivisionsForState(
+  stateAbbr: string
+): Promise<CountySubdivisionsResult> {
+  const fips = fipsForState(stateAbbr)
+  const url = withCensusKey(buildSourceUrl('us_county_subdivisions', { STATE_FIPS: fips }))
+  const res = await fetchCensusJson(url, stateAbbr, 30000)
+  const raw: string[][] = res
+  if (!Array.isArray(raw) || raw.length < 2) {
+    throw new Error(`[geoLookup] Unexpected Census payload shape for county subdivisions: ${JSON.stringify(raw).slice(0, 200)}`)
+  }
+  const headers = raw[0]
+  const nameIdx = headers.indexOf('NAME')
+  const countyIdx = headers.indexOf('county')
+  const subIdx = headers.indexOf('county subdivision')
+
+  const subs: CountySubdivision[] = raw.slice(1)
+    .map((row) => {
+      const { name, kind } = parseSubdivisionLabel(row[nameIdx])
+      const countyFips = fips + row[countyIdx]
+      return {
+        name,
+        raw_name: row[nameIdx],
+        kind,
+        fips: countyFips + (row[subIdx] || ''),
+        county_fips: countyFips,
+        state: stateAbbr.toUpperCase(),
+        type: 'place' as const,
+      }
+    })
+    // Drop the "County subdivisions not defined" / "not in any" filler rows
+    // Census emits for unorganized territory — they aren't selectable places.
+    .filter((s) => s.name && !/not defined|not in any/i.test(s.raw_name))
+
+  return createVerifiedData(subs, {
+    source_url: url,
+    source_name: DATA_SOURCES.us_county_subdivisions.name,
+    source_type: 'government-federal',
+    fetched_at: new Date().toISOString(),
+    expires_at: buildExpiresAt('geo-municipality'),
+    cross_referenced: false,
+    ai_generated: false,
+    confidence: 'single-source',
+  })
+}
+
+// County-subdivision NAME suffixes are richer than place suffixes (township,
+// plantation, gore…). Parse name + kind; fall back to municipality.
+function parseSubdivisionLabel(raw: string): { name: string; kind: PlaceKind } {
+  const stripped = raw.replace(/,\s*[A-Za-z][^,]*,\s*[A-Za-z][^,]*$/, '') // drop ", X County, State"
+  const m = stripped.match(/^(.+?)\s+(city|town|township|village|borough|plantation|gore|municipality)$/i)
+  if (!m) return { name: stripped.replace(/,.*$/, ''), kind: 'municipality' }
+  return { name: m[1], kind: m[2].toLowerCase() as PlaceKind }
+}
 
 // ── ZIP codes (ZCTAs) ───────────────────────────────────────────────────────
 export interface ZipsResult extends VerifiedDataSource {
